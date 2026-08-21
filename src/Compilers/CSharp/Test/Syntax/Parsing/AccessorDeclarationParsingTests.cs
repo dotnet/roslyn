@@ -102,62 +102,51 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     [Fact]
     public void RefAccessorModifierBodyForms()
     {
-        const string source = "class C { int P { ref get { } ref get; ref get => 0; } }";
+        const string source = "int P { ref get { } ref get; ref get => 0; }";
 
-        UsingTree(source);
-        N(SyntaxKind.CompilationUnit);
+        UsingDeclaration(source);
+        N(SyntaxKind.PropertyDeclaration);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.PredefinedType);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "P");
+            N(SyntaxKind.AccessorList);
+            {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.GetAccessorDeclaration);
                 {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "P");
-                    N(SyntaxKind.AccessorList);
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.GetKeyword);
+                    N(SyntaxKind.Block);
                     {
                         N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.Block);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.CloseBraceToken);
-                            }
-                        }
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.ArrowExpressionClause);
-                            {
-                                N(SyntaxKind.EqualsGreaterThanToken);
-                                N(SyntaxKind.NumericLiteralExpression);
-                                {
-                                    N(SyntaxKind.NumericLiteralToken, "0");
-                                }
-                            }
-                            N(SyntaxKind.SemicolonToken);
-                        }
                         N(SyntaxKind.CloseBraceToken);
                     }
                 }
+                N(SyntaxKind.GetAccessorDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.GetKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.GetAccessorDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.GetKeyword);
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
                 N(SyntaxKind.CloseBraceToken);
             }
-            N(SyntaxKind.EndOfFileToken);
         }
         EOF();
     }
@@ -165,55 +154,45 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     [Fact]
     public void ContextualKeywordWithoutAccessorNameBeforeBodyForms()
     {
-        const string source = "class C { int P { partial { } partial; } }";
+        const string source = "int P { partial { } partial; }";
 
-        UsingTree(
+        UsingDeclaration(
             source,
-            // (1,27): error CS1014: A get or set accessor expected
-            // class C { int P { partial { } partial; } }
-            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "{").WithLocation(1, 27),
-            // (1,38): error CS1014: A get or set accessor expected
-            // class C { int P { partial { } partial; } }
-            Diagnostic(ErrorCode.ERR_GetOrSetExpected, ";").WithLocation(1, 38));
-        N(SyntaxKind.CompilationUnit);
+            options: null,
+            // (1,17): error CS1014: A get or set accessor expected
+            // int P { partial { } partial; }
+            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "{").WithLocation(1, 17),
+            // (1,28): error CS1014: A get or set accessor expected
+            // int P { partial { } partial; }
+            Diagnostic(ErrorCode.ERR_GetOrSetExpected, ";").WithLocation(1, 28));
+        N(SyntaxKind.PropertyDeclaration);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.PredefinedType);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "P");
+            N(SyntaxKind.AccessorList);
+            {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.UnknownAccessorDeclaration);
                 {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "P");
-                    N(SyntaxKind.AccessorList);
+                    N(SyntaxKind.PartialKeyword);
+                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.Block);
                     {
                         N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.UnknownAccessorDeclaration);
-                        {
-                            N(SyntaxKind.PartialKeyword);
-                            M(SyntaxKind.IdentifierToken);
-                            N(SyntaxKind.Block);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.CloseBraceToken);
-                            }
-                        }
-                        N(SyntaxKind.UnknownAccessorDeclaration);
-                        {
-                            N(SyntaxKind.PartialKeyword);
-                            M(SyntaxKind.IdentifierToken);
-                            N(SyntaxKind.SemicolonToken);
-                        }
                         N(SyntaxKind.CloseBraceToken);
                     }
                 }
+                N(SyntaxKind.UnknownAccessorDeclaration);
+                {
+                    N(SyntaxKind.PartialKeyword);
+                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.SemicolonToken);
+                }
                 N(SyntaxKind.CloseBraceToken);
             }
-            N(SyntaxKind.EndOfFileToken);
         }
         EOF();
     }
@@ -221,65 +200,55 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     [Fact]
     public void EscapedContextualAndArbitraryAccessorNames()
     {
-        const string source = "class C { int P { @partial; @async; @scoped; unknown; } }";
+        const string source = "int P { @partial; @async; @scoped; unknown; }";
 
-        UsingTree(
+        UsingDeclaration(
             source,
+            options: null,
+            // (1,9): error CS1014: A get or set accessor expected
+            // int P { @partial; @async; @scoped; unknown; }
+            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "@partial").WithLocation(1, 9),
             // (1,19): error CS1014: A get or set accessor expected
-            // class C { int P { @partial; @async; @scoped; unknown; } }
-            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "@partial").WithLocation(1, 19),
-            // (1,29): error CS1014: A get or set accessor expected
-            // class C { int P { @partial; @async; @scoped; unknown; } }
-            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "@async").WithLocation(1, 29),
-            // (1,37): error CS1014: A get or set accessor expected
-            // class C { int P { @partial; @async; @scoped; unknown; } }
-            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "@scoped").WithLocation(1, 37),
-            // (1,46): error CS1014: A get or set accessor expected
-            // class C { int P { @partial; @async; @scoped; unknown; } }
-            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "unknown").WithLocation(1, 46));
-        N(SyntaxKind.CompilationUnit);
+            // int P { @partial; @async; @scoped; unknown; }
+            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "@async").WithLocation(1, 19),
+            // (1,27): error CS1014: A get or set accessor expected
+            // int P { @partial; @async; @scoped; unknown; }
+            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "@scoped").WithLocation(1, 27),
+            // (1,36): error CS1014: A get or set accessor expected
+            // int P { @partial; @async; @scoped; unknown; }
+            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "unknown").WithLocation(1, 36));
+        N(SyntaxKind.PropertyDeclaration);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.PredefinedType);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "P");
+            N(SyntaxKind.AccessorList);
+            {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.UnknownAccessorDeclaration);
                 {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "P");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.UnknownAccessorDeclaration);
-                        {
-                            N(SyntaxKind.IdentifierToken, "@partial");
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.UnknownAccessorDeclaration);
-                        {
-                            N(SyntaxKind.IdentifierToken, "@async");
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.UnknownAccessorDeclaration);
-                        {
-                            N(SyntaxKind.IdentifierToken, "@scoped");
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.UnknownAccessorDeclaration);
-                        {
-                            N(SyntaxKind.IdentifierToken, "unknown");
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
+                    N(SyntaxKind.IdentifierToken, "@partial");
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.UnknownAccessorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierToken, "@async");
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.UnknownAccessorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierToken, "@scoped");
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.UnknownAccessorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierToken, "unknown");
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
-            N(SyntaxKind.EndOfFileToken);
         }
         EOF();
     }
@@ -287,67 +256,45 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     [Fact]
     public void ContextualKeywordBeforeNonAccessorTokens()
     {
-        const string source = "class C { int P { partial => 0; partial unknown; } }";
+        const string source = "int P { partial => 0; partial unknown; }";
 
-        UsingTree(
+        UsingDeclaration(
             source,
-            // (1,19): error CS1513: } expected
-            // class C { int P { partial => 0; partial unknown; } }
-            Diagnostic(ErrorCode.ERR_RbraceExpected, "partial").WithLocation(1, 19),
-            // (1,27): error CS1519: Invalid token '=>' in a member declaration
-            // class C { int P { partial => 0; partial unknown; } }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(1, 27),
-            // (1,27): error CS1519: Invalid token '=>' in a member declaration
-            // class C { int P { partial => 0; partial unknown; } }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(1, 27),
-            // (1,52): error CS1022: Type or namespace definition, or end-of-file expected
-            // class C { int P { partial => 0; partial unknown; } }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 52));
-        N(SyntaxKind.CompilationUnit);
+            options: null,
+            // (1,9): error CS1014: A get or set accessor expected
+            // int P { partial => 0; partial unknown; }
+            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "partial").WithLocation(1, 9),
+            // (1,21): error CS1014: A get or set accessor expected
+            // int P { partial => 0; partial unknown; }
+            Diagnostic(ErrorCode.ERR_GetOrSetExpected, ";").WithLocation(1, 21),
+            // (1,23): error CS1014: A get or set accessor expected
+            // int P { partial => 0; partial unknown; }
+            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "partial").WithLocation(1, 23),
+            // (1,31): error CS1014: A get or set accessor expected
+            // int P { partial => 0; partial unknown; }
+            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "unknown").WithLocation(1, 31));
+        N(SyntaxKind.PropertyDeclaration);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.PredefinedType);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "P");
+            N(SyntaxKind.AccessorList);
+            {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.UnknownAccessorDeclaration);
                 {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "P");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        M(SyntaxKind.CloseBraceToken);
-                    }
+                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.UnknownAccessorDeclaration);
                 {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "partial");
-                    }
-                }
-                N(SyntaxKind.FieldDeclaration);
-                {
-                    N(SyntaxKind.VariableDeclaration);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "partial");
-                        }
-                        N(SyntaxKind.VariableDeclarator);
-                        {
-                            N(SyntaxKind.IdentifierToken, "unknown");
-                        }
-                    }
+                    N(SyntaxKind.IdentifierToken, "unknown");
                     N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
-            N(SyntaxKind.EndOfFileToken);
         }
         EOF();
     }
@@ -443,117 +390,112 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             }
             """;
 
-        UsingTree(source);
-        N(SyntaxKind.CompilationUnit);
+        UsingDeclaration("public int P { get; private set; }");
+        N(SyntaxKind.PropertyDeclaration);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.PublicKeyword);
+            N(SyntaxKind.PredefinedType);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "P");
+            N(SyntaxKind.AccessorList);
+            {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.GetAccessorDeclaration);
                 {
-                    N(SyntaxKind.PublicKeyword);
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "P");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.SetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.PrivateKeyword);
-                            N(SyntaxKind.SetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
+                    N(SyntaxKind.GetKeyword);
+                    N(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.SetAccessorDeclaration);
                 {
-                    N(SyntaxKind.PublicKeyword);
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "Q");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.InitAccessorDeclaration);
-                        {
-                            N(SyntaxKind.PrivateKeyword);
-                            N(SyntaxKind.InitKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
+                    N(SyntaxKind.PrivateKeyword);
+                    N(SyntaxKind.SetKeyword);
+                    N(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.IndexerDeclaration);
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        EOF();
+
+        UsingDeclaration("public int Q { get; private init; }");
+        N(SyntaxKind.PropertyDeclaration);
+        {
+            N(SyntaxKind.PublicKeyword);
+            N(SyntaxKind.PredefinedType);
+            {
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "Q");
+            N(SyntaxKind.AccessorList);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.GetAccessorDeclaration);
                 {
-                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.GetKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.InitAccessorDeclaration);
+                {
+                    N(SyntaxKind.PrivateKeyword);
+                    N(SyntaxKind.InitKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        EOF();
+
+        UsingDeclaration("public int this[int i] { private get => 0; set { } }");
+        N(SyntaxKind.IndexerDeclaration);
+        {
+            N(SyntaxKind.PublicKeyword);
+            N(SyntaxKind.PredefinedType);
+            {
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.ThisKeyword);
+            N(SyntaxKind.BracketedParameterList);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.Parameter);
+                {
                     N(SyntaxKind.PredefinedType);
                     {
                         N(SyntaxKind.IntKeyword);
                     }
-                    N(SyntaxKind.ThisKeyword);
-                    N(SyntaxKind.BracketedParameterList);
+                    N(SyntaxKind.IdentifierToken, "i");
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+            N(SyntaxKind.AccessorList);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.GetAccessorDeclaration);
+                {
+                    N(SyntaxKind.PrivateKeyword);
+                    N(SyntaxKind.GetKeyword);
+                    N(SyntaxKind.ArrowExpressionClause);
                     {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
                         {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "i");
+                            N(SyntaxKind.NumericLiteralToken, "0");
                         }
-                        N(SyntaxKind.CloseBracketToken);
                     }
-                    N(SyntaxKind.AccessorList);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.SetAccessorDeclaration);
+                {
+                    N(SyntaxKind.SetKeyword);
+                    N(SyntaxKind.Block);
                     {
                         N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.PrivateKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.ArrowExpressionClause);
-                            {
-                                N(SyntaxKind.EqualsGreaterThanToken);
-                                N(SyntaxKind.NumericLiteralExpression);
-                                {
-                                    N(SyntaxKind.NumericLiteralToken, "0");
-                                }
-                            }
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.SetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.SetKeyword);
-                            N(SyntaxKind.Block);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.CloseBraceToken);
-                            }
-                        }
                         N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
-            N(SyntaxKind.EndOfFileToken);
         }
         EOF();
 
@@ -571,98 +513,90 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             }
             """;
 
-        UsingTree(source);
-        N(SyntaxKind.CompilationUnit);
+        UsingDeclaration("int P { ref get => 0; abstract ref set { } }");
+        N(SyntaxKind.PropertyDeclaration);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.PredefinedType);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "P");
+            N(SyntaxKind.AccessorList);
+            {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.GetAccessorDeclaration);
                 {
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.GetKeyword);
+                    N(SyntaxKind.ArrowExpressionClause);
                     {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "P");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
                         {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.ArrowExpressionClause);
-                            {
-                                N(SyntaxKind.EqualsGreaterThanToken);
-                                N(SyntaxKind.NumericLiteralExpression);
-                                {
-                                    N(SyntaxKind.NumericLiteralToken, "0");
-                                }
-                            }
-                            N(SyntaxKind.SemicolonToken);
+                            N(SyntaxKind.NumericLiteralToken, "0");
                         }
-                        N(SyntaxKind.SetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.AbstractKeyword);
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.SetKeyword);
-                            N(SyntaxKind.Block);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.CloseBraceToken);
-                            }
-                        }
-                        N(SyntaxKind.CloseBraceToken);
                     }
+                    N(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.EventDeclaration);
+                N(SyntaxKind.SetAccessorDeclaration);
                 {
-                    N(SyntaxKind.EventKeyword);
-                    N(SyntaxKind.QualifiedName);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "System");
-                        }
-                        N(SyntaxKind.DotToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "Action");
-                        }
-                    }
-                    N(SyntaxKind.IdentifierToken, "E");
-                    N(SyntaxKind.AccessorList);
+                    N(SyntaxKind.AbstractKeyword);
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.SetKeyword);
+                    N(SyntaxKind.Block);
                     {
                         N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.AddAccessorDeclaration);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.AddKeyword);
-                            N(SyntaxKind.Block);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.CloseBraceToken);
-                            }
-                        }
-                        N(SyntaxKind.RemoveAccessorDeclaration);
-                        {
-                            N(SyntaxKind.AbstractKeyword);
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.RemoveKeyword);
-                            N(SyntaxKind.Block);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.CloseBraceToken);
-                            }
-                        }
                         N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
-            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        UsingDeclaration("event System.Action E { ref add { } abstract ref remove { } }");
+        N(SyntaxKind.EventDeclaration);
+        {
+            N(SyntaxKind.EventKeyword);
+            N(SyntaxKind.QualifiedName);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "System");
+                }
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "Action");
+                }
+            }
+            N(SyntaxKind.IdentifierToken, "E");
+            N(SyntaxKind.AccessorList);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.AddAccessorDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.AddKeyword);
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.RemoveAccessorDeclaration);
+                {
+                    N(SyntaxKind.AbstractKeyword);
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.RemoveKeyword);
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
         }
         EOF();
 
@@ -862,40 +796,37 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             }
             """;
 
-        UsingTree(
+        UsingDeclaration(
             source,
+            options: null,
             // (3,21): error CS8180: { or ; or => expected
             //     int P { ref get }
             Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "}").WithLocation(3, 21));
-        N(SyntaxKind.CompilationUnit);
+        N(SyntaxKind.ClassDeclaration);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.ClassKeyword);
+            N(SyntaxKind.IdentifierToken, "C");
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.PropertyDeclaration);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.PredefinedType);
                 {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "P");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            M(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
+                    N(SyntaxKind.IntKeyword);
                 }
-                N(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.IdentifierToken, "P");
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.GetKeyword);
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
             }
-            N(SyntaxKind.EndOfFileToken);
+            N(SyntaxKind.CloseBraceToken);
         }
         EOF();
 
@@ -911,6 +842,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     [Fact]
     public void ScopedRefModifiersRemainOnAccessor()
     {
+        const string declaration = "public int P { scoped ref get; set; }";
         const string source = """
             class C
             {
@@ -918,43 +850,32 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             }
             """;
 
-        UsingTree(source);
-        N(SyntaxKind.CompilationUnit);
+        UsingDeclaration(declaration);
+        N(SyntaxKind.PropertyDeclaration);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.PublicKeyword);
+            N(SyntaxKind.PredefinedType);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "P");
+            N(SyntaxKind.AccessorList);
+            {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.GetAccessorDeclaration);
                 {
-                    N(SyntaxKind.PublicKeyword);
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "P");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.ScopedKeyword);
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.SetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.SetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
+                    N(SyntaxKind.ScopedKeyword);
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.GetKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.SetAccessorDeclaration);
+                {
+                    N(SyntaxKind.SetKeyword);
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
-            N(SyntaxKind.EndOfFileToken);
         }
         EOF();
 
@@ -979,139 +900,134 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             }
             """;
 
-        UsingTree(
-            source,
-            TestOptions.RegularPreview,
-            // (5,17): error CS1014: A get or set accessor expected
-            //     int R { safe; get => 0; set { } }
-            Diagnostic(ErrorCode.ERR_GetOrSetExpected, ";").WithLocation(5, 17));
-        N(SyntaxKind.CompilationUnit);
+        UsingDeclaration("public int P { private safe get => 0; set { } }", TestOptions.RegularPreview);
+        N(SyntaxKind.PropertyDeclaration);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.PublicKeyword);
+            N(SyntaxKind.PredefinedType);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "P");
+            N(SyntaxKind.AccessorList);
+            {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.GetAccessorDeclaration);
                 {
-                    N(SyntaxKind.PublicKeyword);
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.PrivateKeyword);
+                    N(SyntaxKind.SafeKeyword);
+                    N(SyntaxKind.GetKeyword);
+                    N(SyntaxKind.ArrowExpressionClause);
                     {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "P");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
                         {
-                            N(SyntaxKind.PrivateKeyword);
-                            N(SyntaxKind.SafeKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.ArrowExpressionClause);
-                            {
-                                N(SyntaxKind.EqualsGreaterThanToken);
-                                N(SyntaxKind.NumericLiteralExpression);
-                                {
-                                    N(SyntaxKind.NumericLiteralToken, "0");
-                                }
-                            }
-                            N(SyntaxKind.SemicolonToken);
+                            N(SyntaxKind.NumericLiteralToken, "0");
                         }
-                        N(SyntaxKind.SetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.SetKeyword);
-                            N(SyntaxKind.Block);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.CloseBraceToken);
-                            }
-                        }
-                        N(SyntaxKind.CloseBraceToken);
                     }
+                    N(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.SetAccessorDeclaration);
                 {
-                    N(SyntaxKind.PublicKeyword);
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "Q");
-                    N(SyntaxKind.AccessorList);
+                    N(SyntaxKind.SetKeyword);
+                    N(SyntaxKind.Block);
                     {
                         N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.ArrowExpressionClause);
-                            {
-                                N(SyntaxKind.EqualsGreaterThanToken);
-                                N(SyntaxKind.NumericLiteralExpression);
-                                {
-                                    N(SyntaxKind.NumericLiteralToken, "0");
-                                }
-                            }
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.SetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.SafeKeyword);
-                            N(SyntaxKind.PrivateKeyword);
-                            N(SyntaxKind.SetKeyword);
-                            N(SyntaxKind.Block);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.CloseBraceToken);
-                            }
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.PropertyDeclaration);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "R");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.UnknownAccessorDeclaration);
-                        {
-                            N(SyntaxKind.SafeKeyword);
-                            M(SyntaxKind.IdentifierToken);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.ArrowExpressionClause);
-                            {
-                                N(SyntaxKind.EqualsGreaterThanToken);
-                                N(SyntaxKind.NumericLiteralExpression);
-                                {
-                                    N(SyntaxKind.NumericLiteralToken, "0");
-                                }
-                            }
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.SetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.SetKeyword);
-                            N(SyntaxKind.Block);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.CloseBraceToken);
-                            }
-                        }
                         N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
-            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        UsingDeclaration("public int Q { get => 0; safe private set { } }", TestOptions.RegularPreview);
+        N(SyntaxKind.PropertyDeclaration);
+        {
+            N(SyntaxKind.PublicKeyword);
+            N(SyntaxKind.PredefinedType);
+            {
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "Q");
+            N(SyntaxKind.AccessorList);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.GetAccessorDeclaration);
+                {
+                    N(SyntaxKind.GetKeyword);
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.SetAccessorDeclaration);
+                {
+                    N(SyntaxKind.SafeKeyword);
+                    N(SyntaxKind.PrivateKeyword);
+                    N(SyntaxKind.SetKeyword);
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        EOF();
+
+        UsingDeclaration(
+            "int R { safe; get => 0; set { } }",
+            TestOptions.RegularPreview,
+            // (1,13): error CS1014: A get or set accessor expected
+            // int R { safe; get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_GetOrSetExpected, ";").WithLocation(1, 13));
+        N(SyntaxKind.PropertyDeclaration);
+        {
+            N(SyntaxKind.PredefinedType);
+            {
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "R");
+            N(SyntaxKind.AccessorList);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.UnknownAccessorDeclaration);
+                {
+                    N(SyntaxKind.SafeKeyword);
+                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.GetAccessorDeclaration);
+                {
+                    N(SyntaxKind.GetKeyword);
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.SetAccessorDeclaration);
+                {
+                    N(SyntaxKind.SetKeyword);
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
         }
         EOF();
 
@@ -1135,141 +1051,142 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             }
             """;
 
-        UsingTree(source, TestOptions.RegularPreview);
-        N(SyntaxKind.CompilationUnit);
+        UsingDeclaration("int P { scoped get; set; }", TestOptions.RegularPreview);
+        N(SyntaxKind.PropertyDeclaration);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.PredefinedType);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "P");
+            N(SyntaxKind.AccessorList);
+            {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.GetAccessorDeclaration);
                 {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "P");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.ScopedKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.SetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.SetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
+                    N(SyntaxKind.ScopedKeyword);
+                    N(SyntaxKind.GetKeyword);
+                    N(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.SetAccessorDeclaration);
                 {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "Q");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.PartialKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.SetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.SetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.PropertyDeclaration);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "R");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.AsyncKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.SetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.SetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.PropertyDeclaration);
-                {
-                    N(SyntaxKind.PublicKeyword);
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "S");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.PrivateKeyword);
-                            N(SyntaxKind.AsyncKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.SetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.SetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.PropertyDeclaration);
-                {
-                    N(SyntaxKind.PublicKeyword);
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "T");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.PrivateKeyword);
-                            N(SyntaxKind.PartialKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.SetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.SetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
+                    N(SyntaxKind.SetKeyword);
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
-            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        UsingDeclaration("int Q { partial get; set; }", TestOptions.RegularPreview);
+        N(SyntaxKind.PropertyDeclaration);
+        {
+            N(SyntaxKind.PredefinedType);
+            {
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "Q");
+            N(SyntaxKind.AccessorList);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.GetAccessorDeclaration);
+                {
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.GetKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.SetAccessorDeclaration);
+                {
+                    N(SyntaxKind.SetKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        EOF();
+
+        UsingDeclaration("int R { async get; set; }", TestOptions.RegularPreview);
+        N(SyntaxKind.PropertyDeclaration);
+        {
+            N(SyntaxKind.PredefinedType);
+            {
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "R");
+            N(SyntaxKind.AccessorList);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.GetAccessorDeclaration);
+                {
+                    N(SyntaxKind.AsyncKeyword);
+                    N(SyntaxKind.GetKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.SetAccessorDeclaration);
+                {
+                    N(SyntaxKind.SetKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        EOF();
+
+        UsingDeclaration("public int S { private async get; set; }", TestOptions.RegularPreview);
+        N(SyntaxKind.PropertyDeclaration);
+        {
+            N(SyntaxKind.PublicKeyword);
+            N(SyntaxKind.PredefinedType);
+            {
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "S");
+            N(SyntaxKind.AccessorList);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.GetAccessorDeclaration);
+                {
+                    N(SyntaxKind.PrivateKeyword);
+                    N(SyntaxKind.AsyncKeyword);
+                    N(SyntaxKind.GetKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.SetAccessorDeclaration);
+                {
+                    N(SyntaxKind.SetKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        EOF();
+
+        UsingDeclaration("public int T { private partial get; set; }", TestOptions.RegularPreview);
+        N(SyntaxKind.PropertyDeclaration);
+        {
+            N(SyntaxKind.PublicKeyword);
+            N(SyntaxKind.PredefinedType);
+            {
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "T");
+            N(SyntaxKind.AccessorList);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.GetAccessorDeclaration);
+                {
+                    N(SyntaxKind.PrivateKeyword);
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.GetKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.SetAccessorDeclaration);
+                {
+                    N(SyntaxKind.SetKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
         }
         EOF();
 
@@ -1303,93 +1220,88 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             }
             """;
 
-        UsingTree(source, TestOptions.RegularPreview);
-        N(SyntaxKind.CompilationUnit);
+        UsingDeclaration("int P { required get; file set; }", TestOptions.RegularPreview);
+        N(SyntaxKind.PropertyDeclaration);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.PredefinedType);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "P");
+            N(SyntaxKind.AccessorList);
+            {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.GetAccessorDeclaration);
                 {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "P");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.RequiredKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.SetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.FileKeyword);
-                            N(SyntaxKind.SetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
+                    N(SyntaxKind.RequiredKeyword);
+                    N(SyntaxKind.GetKeyword);
+                    N(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.SetAccessorDeclaration);
                 {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "Q");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.ClosedKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.SetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.StaticKeyword);
-                            N(SyntaxKind.SetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.PropertyDeclaration);
-                {
-                    N(SyntaxKind.PublicKeyword);
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "R");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.PrivateKeyword);
-                            N(SyntaxKind.PrivateKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.SetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.SetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
+                    N(SyntaxKind.FileKeyword);
+                    N(SyntaxKind.SetKeyword);
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
-            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        UsingDeclaration("int Q { closed get; static set; }", TestOptions.RegularPreview);
+        N(SyntaxKind.PropertyDeclaration);
+        {
+            N(SyntaxKind.PredefinedType);
+            {
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "Q");
+            N(SyntaxKind.AccessorList);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.GetAccessorDeclaration);
+                {
+                    N(SyntaxKind.ClosedKeyword);
+                    N(SyntaxKind.GetKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.SetAccessorDeclaration);
+                {
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.SetKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        EOF();
+
+        UsingDeclaration("public int R { private private get; set; }", TestOptions.RegularPreview);
+        N(SyntaxKind.PropertyDeclaration);
+        {
+            N(SyntaxKind.PublicKeyword);
+            N(SyntaxKind.PredefinedType);
+            {
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "R");
+            N(SyntaxKind.AccessorList);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.GetAccessorDeclaration);
+                {
+                    N(SyntaxKind.PrivateKeyword);
+                    N(SyntaxKind.PrivateKeyword);
+                    N(SyntaxKind.GetKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.SetAccessorDeclaration);
+                {
+                    N(SyntaxKind.SetKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
         }
         EOF();
 
@@ -1414,6 +1326,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     [Fact]
     public void AttributeBeforeReadonlyAccessorModifier()
     {
+        const string declaration = "public int P { [System.Obsolete] readonly get => 0; set { } }";
         const string source = """
             struct S
             {
@@ -1421,74 +1334,63 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             }
             """;
 
-        UsingTree(source);
-        N(SyntaxKind.CompilationUnit);
+        UsingDeclaration(declaration);
+        N(SyntaxKind.PropertyDeclaration);
         {
-            N(SyntaxKind.StructDeclaration);
+            N(SyntaxKind.PublicKeyword);
+            N(SyntaxKind.PredefinedType);
             {
-                N(SyntaxKind.StructKeyword);
-                N(SyntaxKind.IdentifierToken, "S");
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "P");
+            N(SyntaxKind.AccessorList);
+            {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.GetAccessorDeclaration);
                 {
-                    N(SyntaxKind.PublicKeyword);
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.AttributeList);
                     {
-                        N(SyntaxKind.IntKeyword);
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.QualifiedName);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "System");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Obsolete");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
                     }
-                    N(SyntaxKind.IdentifierToken, "P");
-                    N(SyntaxKind.AccessorList);
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.GetKeyword);
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.SetAccessorDeclaration);
+                {
+                    N(SyntaxKind.SetKeyword);
+                    N(SyntaxKind.Block);
                     {
                         N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.AttributeList);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.Attribute);
-                                {
-                                    N(SyntaxKind.QualifiedName);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "System");
-                                        }
-                                        N(SyntaxKind.DotToken);
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "Obsolete");
-                                        }
-                                    }
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
-                            N(SyntaxKind.ReadOnlyKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.ArrowExpressionClause);
-                            {
-                                N(SyntaxKind.EqualsGreaterThanToken);
-                                N(SyntaxKind.NumericLiteralExpression);
-                                {
-                                    N(SyntaxKind.NumericLiteralToken, "0");
-                                }
-                            }
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.SetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.SetKeyword);
-                            N(SyntaxKind.Block);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.CloseBraceToken);
-                            }
-                        }
                         N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
-            N(SyntaxKind.EndOfFileToken);
         }
         EOF();
 
@@ -1508,68 +1410,65 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             }
             """;
 
-        UsingTree(
+        UsingDeclaration(
             source,
+            options: null,
             // (5,26): error CS1513: } expected
             //         get { return 0; }
             Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 26));
-        N(SyntaxKind.CompilationUnit);
+        N(SyntaxKind.ClassDeclaration);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.ClassKeyword);
+            N(SyntaxKind.IdentifierToken, "C");
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.PropertyDeclaration);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "P");
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.ReturnStatement);
+                            {
+                                N(SyntaxKind.ReturnKeyword);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+            }
+            N(SyntaxKind.FieldDeclaration);
+            {
+                N(SyntaxKind.PrivateKeyword);
+                N(SyntaxKind.VariableDeclaration);
                 {
                     N(SyntaxKind.PredefinedType);
                     {
                         N(SyntaxKind.IntKeyword);
                     }
-                    N(SyntaxKind.IdentifierToken, "P");
-                    N(SyntaxKind.AccessorList);
+                    N(SyntaxKind.VariableDeclarator);
                     {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.Block);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.ReturnStatement);
-                                {
-                                    N(SyntaxKind.ReturnKeyword);
-                                    N(SyntaxKind.NumericLiteralExpression);
-                                    {
-                                        N(SyntaxKind.NumericLiteralToken, "0");
-                                    }
-                                    N(SyntaxKind.SemicolonToken);
-                                }
-                                N(SyntaxKind.CloseBraceToken);
-                            }
-                        }
-                        M(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.IdentifierToken, "F");
                     }
                 }
-                N(SyntaxKind.FieldDeclaration);
-                {
-                    N(SyntaxKind.PrivateKeyword);
-                    N(SyntaxKind.VariableDeclaration);
-                    {
-                        N(SyntaxKind.PredefinedType);
-                        {
-                            N(SyntaxKind.IntKeyword);
-                        }
-                        N(SyntaxKind.VariableDeclarator);
-                        {
-                            N(SyntaxKind.IdentifierToken, "F");
-                        }
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.SemicolonToken);
             }
-            N(SyntaxKind.EndOfFileToken);
+            N(SyntaxKind.CloseBraceToken);
         }
         EOF();
 
@@ -1585,6 +1484,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     [Fact]
     public void AccessorModifierBeforeFeature()
     {
+        const string declaration = "public int P { get; private set; }";
         const string source = """
             class C
             {
@@ -1593,42 +1493,31 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             """;
         var options = TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp1);
 
-        UsingTree(source, options);
-        N(SyntaxKind.CompilationUnit);
+        UsingDeclaration(declaration, options);
+        N(SyntaxKind.PropertyDeclaration);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.PublicKeyword);
+            N(SyntaxKind.PredefinedType);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "P");
+            N(SyntaxKind.AccessorList);
+            {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.GetAccessorDeclaration);
                 {
-                    N(SyntaxKind.PublicKeyword);
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "P");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.SetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.PrivateKeyword);
-                            N(SyntaxKind.SetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
+                    N(SyntaxKind.GetKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.SetAccessorDeclaration);
+                {
+                    N(SyntaxKind.PrivateKeyword);
+                    N(SyntaxKind.SetKeyword);
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
-            N(SyntaxKind.EndOfFileToken);
         }
         EOF();
 
@@ -1644,6 +1533,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     [Fact]
     public void SafeAccessorModifierBeforeFeature()
     {
+        const string declaration = "public int P { private safe get => 0; set { } }";
         const string source = """
             class C
             {
@@ -1651,55 +1541,44 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             }
             """;
 
-        UsingTree(source, TestOptions.Regular14);
-        N(SyntaxKind.CompilationUnit);
+        UsingDeclaration(declaration, TestOptions.Regular14);
+        N(SyntaxKind.PropertyDeclaration);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.PublicKeyword);
+            N(SyntaxKind.PredefinedType);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "P");
+            N(SyntaxKind.AccessorList);
+            {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.GetAccessorDeclaration);
                 {
-                    N(SyntaxKind.PublicKeyword);
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.PrivateKeyword);
+                    N(SyntaxKind.SafeKeyword);
+                    N(SyntaxKind.GetKeyword);
+                    N(SyntaxKind.ArrowExpressionClause);
                     {
-                        N(SyntaxKind.IntKeyword);
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
                     }
-                    N(SyntaxKind.IdentifierToken, "P");
-                    N(SyntaxKind.AccessorList);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.SetAccessorDeclaration);
+                {
+                    N(SyntaxKind.SetKeyword);
+                    N(SyntaxKind.Block);
                     {
                         N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.PrivateKeyword);
-                            N(SyntaxKind.SafeKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.ArrowExpressionClause);
-                            {
-                                N(SyntaxKind.EqualsGreaterThanToken);
-                                N(SyntaxKind.NumericLiteralExpression);
-                                {
-                                    N(SyntaxKind.NumericLiteralToken, "0");
-                                }
-                            }
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.SetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.SetKeyword);
-                            N(SyntaxKind.Block);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.CloseBraceToken);
-                            }
-                        }
                         N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
-            N(SyntaxKind.EndOfFileToken);
         }
         EOF();
 
@@ -1712,55 +1591,39 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     [Fact]
     public void AccessorModifiersRecognizedInOlderLanguageVersion()
     {
-        const string source = """
-            class C
-            {
-                int P { required get; file set; closed init; }
-            }
-            """;
+        const string source = "int P { required get; file set; closed init; }";
 
-        UsingTree(source, TestOptions.Regular10);
-        N(SyntaxKind.CompilationUnit);
+        UsingDeclaration(source, TestOptions.Regular10);
+        N(SyntaxKind.PropertyDeclaration);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.PredefinedType);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "P");
+            N(SyntaxKind.AccessorList);
+            {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.GetAccessorDeclaration);
                 {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "P");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.RequiredKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.SetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.FileKeyword);
-                            N(SyntaxKind.SetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.InitAccessorDeclaration);
-                        {
-                            N(SyntaxKind.ClosedKeyword);
-                            N(SyntaxKind.InitKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
+                    N(SyntaxKind.RequiredKeyword);
+                    N(SyntaxKind.GetKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.SetAccessorDeclaration);
+                {
+                    N(SyntaxKind.FileKeyword);
+                    N(SyntaxKind.SetKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.InitAccessorDeclaration);
+                {
+                    N(SyntaxKind.ClosedKeyword);
+                    N(SyntaxKind.InitKeyword);
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
-            N(SyntaxKind.EndOfFileToken);
         }
         EOF();
     }
@@ -1768,46 +1631,31 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     [Fact]
     public void PartialAccessorModifierBeforeCloseBrace()
     {
-        const string source = """
-            class C
-            {
-                int P { partial }
-            }
-            """;
+        const string source = "int P { partial }";
 
-        UsingTree(
+        UsingDeclaration(
             source,
-            // (3,21): error CS1014: A get or set accessor expected
-            //     int P { partial }
-            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "}").WithLocation(3, 21));
-        N(SyntaxKind.CompilationUnit);
+            options: null,
+            // (1,17): error CS1014: A get or set accessor expected
+            // int P { partial }
+            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "}").WithLocation(1, 17));
+        N(SyntaxKind.PropertyDeclaration);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.PredefinedType);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "P");
+            N(SyntaxKind.AccessorList);
+            {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.UnknownAccessorDeclaration);
                 {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "P");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.UnknownAccessorDeclaration);
-                        {
-                            N(SyntaxKind.PartialKeyword);
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
+                    N(SyntaxKind.PartialKeyword);
+                    M(SyntaxKind.IdentifierToken);
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
-            N(SyntaxKind.EndOfFileToken);
         }
         EOF();
     }
@@ -1817,8 +1665,9 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     {
         const string source = "class C { int P { partial";
 
-        UsingTree(
+        UsingDeclaration(
             source,
+            options: null,
             // (1,26): error CS1014: A get or set accessor expected
             // class C { int P { partial
             Diagnostic(ErrorCode.ERR_GetOrSetExpected, "").WithLocation(1, 26),
@@ -1828,34 +1677,30 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             // (1,26): error CS1513: } expected
             // class C { int P { partial
             Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 26));
-        N(SyntaxKind.CompilationUnit);
+        N(SyntaxKind.ClassDeclaration);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.ClassKeyword);
+            N(SyntaxKind.IdentifierToken, "C");
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.PropertyDeclaration);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.PredefinedType);
                 {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "P");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.UnknownAccessorDeclaration);
-                        {
-                            N(SyntaxKind.PartialKeyword);
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        M(SyntaxKind.CloseBraceToken);
-                    }
+                    N(SyntaxKind.IntKeyword);
                 }
-                M(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.IdentifierToken, "P");
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.UnknownAccessorDeclaration);
+                    {
+                        N(SyntaxKind.PartialKeyword);
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
             }
-            N(SyntaxKind.EndOfFileToken);
+            M(SyntaxKind.CloseBraceToken);
         }
         EOF();
     }
@@ -1863,66 +1708,51 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     [Fact]
     public void AttributeAndPartialAccessorModifierBeforeCloseBrace()
     {
-        const string source = """
-            class C
-            {
-                int P { [System.Obsolete] partial }
-            }
-            """;
+        const string source = "int P { [System.Obsolete] partial }";
 
-        UsingTree(
+        UsingDeclaration(
             source,
-            // (3,39): error CS1014: A get or set accessor expected
-            //     int P { [System.Obsolete] partial }
-            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "}").WithLocation(3, 39));
-        N(SyntaxKind.CompilationUnit);
+            options: null,
+            // (1,35): error CS1014: A get or set accessor expected
+            // int P { [System.Obsolete] partial }
+            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "}").WithLocation(1, 35));
+        N(SyntaxKind.PropertyDeclaration);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.PredefinedType);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "P");
+            N(SyntaxKind.AccessorList);
+            {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.UnknownAccessorDeclaration);
                 {
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.AttributeList);
                     {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "P");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.UnknownAccessorDeclaration);
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
                         {
-                            N(SyntaxKind.AttributeList);
+                            N(SyntaxKind.QualifiedName);
                             {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.Attribute);
+                                N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.QualifiedName);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "System");
-                                        }
-                                        N(SyntaxKind.DotToken);
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "Obsolete");
-                                        }
-                                    }
+                                    N(SyntaxKind.IdentifierToken, "System");
                                 }
-                                N(SyntaxKind.CloseBracketToken);
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Obsolete");
+                                }
                             }
-                            N(SyntaxKind.PartialKeyword);
-                            M(SyntaxKind.IdentifierToken);
                         }
-                        N(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.CloseBracketToken);
                     }
+                    N(SyntaxKind.PartialKeyword);
+                    M(SyntaxKind.IdentifierToken);
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
-            N(SyntaxKind.EndOfFileToken);
         }
         EOF();
     }
@@ -1940,55 +1770,52 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             }
             """;
 
-        UsingTree(
+        UsingDeclaration(
             source,
+            options: null,
             // (5,13): error CS1513: } expected
             //         get;
             Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 13));
-        N(SyntaxKind.CompilationUnit);
+        N(SyntaxKind.ClassDeclaration);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.ClassKeyword);
+            N(SyntaxKind.IdentifierToken, "C");
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.PropertyDeclaration);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "P");
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+            }
+            N(SyntaxKind.FieldDeclaration);
+            {
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.VariableDeclaration);
                 {
                     N(SyntaxKind.PredefinedType);
                     {
                         N(SyntaxKind.IntKeyword);
                     }
-                    N(SyntaxKind.IdentifierToken, "P");
-                    N(SyntaxKind.AccessorList);
+                    N(SyntaxKind.VariableDeclarator);
                     {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        M(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.IdentifierToken, "F");
                     }
                 }
-                N(SyntaxKind.FieldDeclaration);
-                {
-                    N(SyntaxKind.PartialKeyword);
-                    N(SyntaxKind.VariableDeclaration);
-                    {
-                        N(SyntaxKind.PredefinedType);
-                        {
-                            N(SyntaxKind.IntKeyword);
-                        }
-                        N(SyntaxKind.VariableDeclarator);
-                        {
-                            N(SyntaxKind.IdentifierToken, "F");
-                        }
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.SemicolonToken);
             }
-            N(SyntaxKind.EndOfFileToken);
+            N(SyntaxKind.CloseBraceToken);
         }
         EOF();
     }
@@ -1996,63 +1823,47 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     [Fact]
     public void AttributeBeforeScopedAccessorModifier()
     {
-        const string source = """
-            class C
-            {
-                int P { [System.Obsolete] scoped get; }
-            }
-            """;
+        const string source = "int P { [System.Obsolete] scoped get; }";
 
-        UsingTree(source);
-        N(SyntaxKind.CompilationUnit);
+        UsingDeclaration(source);
+        N(SyntaxKind.PropertyDeclaration);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.PredefinedType);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "P");
+            N(SyntaxKind.AccessorList);
+            {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.GetAccessorDeclaration);
                 {
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.AttributeList);
                     {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "P");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
                         {
-                            N(SyntaxKind.AttributeList);
+                            N(SyntaxKind.QualifiedName);
                             {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.Attribute);
+                                N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.QualifiedName);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "System");
-                                        }
-                                        N(SyntaxKind.DotToken);
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "Obsolete");
-                                        }
-                                    }
+                                    N(SyntaxKind.IdentifierToken, "System");
                                 }
-                                N(SyntaxKind.CloseBracketToken);
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Obsolete");
+                                }
                             }
-                            N(SyntaxKind.ScopedKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.SemicolonToken);
                         }
-                        N(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.CloseBracketToken);
                     }
+                    N(SyntaxKind.ScopedKeyword);
+                    N(SyntaxKind.GetKeyword);
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
-            N(SyntaxKind.EndOfFileToken);
         }
         EOF();
     }
@@ -2060,119 +1871,105 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     [Fact]
     public void ContextualModifiersOnOtherAccessorKinds()
     {
-        const string source = """
-            class C
-            {
-                int P { partial init; }
-                int this[int i] { scoped get; }
-                event System.Action E { partial add { } scoped remove { } }
-            }
-            """;
-
-        UsingTree(source);
-        N(SyntaxKind.CompilationUnit);
+        UsingDeclaration("int P { partial init; }");
+        N(SyntaxKind.PropertyDeclaration);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.PredefinedType);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "P");
+            N(SyntaxKind.AccessorList);
+            {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.InitAccessorDeclaration);
+                {
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.InitKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        EOF();
+
+        UsingDeclaration("int this[int i] { scoped get; }");
+        N(SyntaxKind.IndexerDeclaration);
+        {
+            N(SyntaxKind.PredefinedType);
+            {
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.ThisKeyword);
+            N(SyntaxKind.BracketedParameterList);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.Parameter);
                 {
                     N(SyntaxKind.PredefinedType);
                     {
                         N(SyntaxKind.IntKeyword);
                     }
-                    N(SyntaxKind.IdentifierToken, "P");
-                    N(SyntaxKind.AccessorList);
+                    N(SyntaxKind.IdentifierToken, "i");
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+            N(SyntaxKind.AccessorList);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.GetAccessorDeclaration);
+                {
+                    N(SyntaxKind.ScopedKeyword);
+                    N(SyntaxKind.GetKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        EOF();
+
+        UsingDeclaration("event System.Action E { partial add { } scoped remove { } }");
+        N(SyntaxKind.EventDeclaration);
+        {
+            N(SyntaxKind.EventKeyword);
+            N(SyntaxKind.QualifiedName);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "System");
+                }
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "Action");
+                }
+            }
+            N(SyntaxKind.IdentifierToken, "E");
+            N(SyntaxKind.AccessorList);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.AddAccessorDeclaration);
+                {
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.AddKeyword);
+                    N(SyntaxKind.Block);
                     {
                         N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.InitAccessorDeclaration);
-                        {
-                            N(SyntaxKind.PartialKeyword);
-                            N(SyntaxKind.InitKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
                         N(SyntaxKind.CloseBraceToken);
                     }
                 }
-                N(SyntaxKind.IndexerDeclaration);
+                N(SyntaxKind.RemoveAccessorDeclaration);
                 {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.ThisKeyword);
-                    N(SyntaxKind.BracketedParameterList);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "i");
-                        }
-                        N(SyntaxKind.CloseBracketToken);
-                    }
-                    N(SyntaxKind.AccessorList);
+                    N(SyntaxKind.ScopedKeyword);
+                    N(SyntaxKind.RemoveKeyword);
+                    N(SyntaxKind.Block);
                     {
                         N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.ScopedKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.EventDeclaration);
-                {
-                    N(SyntaxKind.EventKeyword);
-                    N(SyntaxKind.QualifiedName);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "System");
-                        }
-                        N(SyntaxKind.DotToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "Action");
-                        }
-                    }
-                    N(SyntaxKind.IdentifierToken, "E");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.AddAccessorDeclaration);
-                        {
-                            N(SyntaxKind.PartialKeyword);
-                            N(SyntaxKind.AddKeyword);
-                            N(SyntaxKind.Block);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.CloseBraceToken);
-                            }
-                        }
-                        N(SyntaxKind.RemoveAccessorDeclaration);
-                        {
-                            N(SyntaxKind.ScopedKeyword);
-                            N(SyntaxKind.RemoveKeyword);
-                            N(SyntaxKind.Block);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.CloseBraceToken);
-                            }
-                        }
                         N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
-            N(SyntaxKind.EndOfFileToken);
         }
         EOF();
     }
@@ -2191,8 +1988,9 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             }
             """;
 
-        UsingTree(
+        UsingDeclaration(
             source,
+            options: null,
             // (3,22): error CS8180: { or ; or => expected
             //     int P1 { ref get A; }
             Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "A").WithLocation(3, 22),
@@ -2223,152 +2021,148 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             // (7,22): error CS1014: A get or set accessor expected
             //     int P5 { ref get A; set; }
             Diagnostic(ErrorCode.ERR_GetOrSetExpected, "A").WithLocation(7, 22));
-        N(SyntaxKind.CompilationUnit);
+        N(SyntaxKind.ClassDeclaration);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.ClassKeyword);
+            N(SyntaxKind.IdentifierToken, "C");
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.PropertyDeclaration);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.PredefinedType);
                 {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "P1");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            M(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.UnknownAccessorDeclaration);
-                        {
-                            N(SyntaxKind.IdentifierToken, "A");
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
+                    N(SyntaxKind.IntKeyword);
                 }
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.IdentifierToken, "P1");
+                N(SyntaxKind.AccessorList);
                 {
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
                     {
-                        N(SyntaxKind.IntKeyword);
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.GetKeyword);
+                        M(SyntaxKind.SemicolonToken);
                     }
-                    N(SyntaxKind.IdentifierToken, "P2");
-                    N(SyntaxKind.AccessorList);
+                    N(SyntaxKind.UnknownAccessorDeclaration);
                     {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            M(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.UnknownAccessorDeclaration);
-                        {
-                            N(SyntaxKind.IdentifierToken, "A");
-                            N(SyntaxKind.Block);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.CloseBraceToken);
-                            }
-                        }
-                        N(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.IdentifierToken, "A");
+                        N(SyntaxKind.SemicolonToken);
                     }
+                    N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.PropertyDeclaration);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "P3");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            M(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.UnknownAccessorDeclaration);
-                        {
-                            N(SyntaxKind.IdentifierToken, "A");
-                            N(SyntaxKind.ArrowExpressionClause);
-                            {
-                                N(SyntaxKind.EqualsGreaterThanToken);
-                                N(SyntaxKind.NumericLiteralExpression);
-                                {
-                                    N(SyntaxKind.NumericLiteralToken, "0");
-                                }
-                            }
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.PropertyDeclaration);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "P4");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            M(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.UnknownAccessorDeclaration);
-                        {
-                            N(SyntaxKind.IdentifierToken, "A");
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.PropertyDeclaration);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "P5");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            M(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.UnknownAccessorDeclaration);
-                        {
-                            N(SyntaxKind.IdentifierToken, "A");
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.SetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.SetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
             }
-            N(SyntaxKind.EndOfFileToken);
+            N(SyntaxKind.PropertyDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "P2");
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.GetKeyword);
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.UnknownAccessorDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierToken, "A");
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            N(SyntaxKind.PropertyDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "P3");
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.GetKeyword);
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.UnknownAccessorDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierToken, "A");
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "0");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            N(SyntaxKind.PropertyDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "P4");
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.GetKeyword);
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.UnknownAccessorDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierToken, "A");
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            N(SyntaxKind.PropertyDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "P5");
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.GetKeyword);
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.UnknownAccessorDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierToken, "A");
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.SetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.SetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            N(SyntaxKind.CloseBraceToken);
         }
         EOF();
     }
@@ -2593,50 +2387,40 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     [Fact]
     public void TrailingContextualModifierInEventAccessorList()
     {
-        const string source = "class C { event System.Action E { scoped } }";
+        const string source = "event System.Action E { scoped }";
 
-        UsingTree(
+        UsingDeclaration(
             source,
-            // (1,42): error CS1055: An add or remove accessor expected
-            // class C { event System.Action E { scoped } }
-            Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "}").WithLocation(1, 42));
-        N(SyntaxKind.CompilationUnit);
+            options: null,
+            // (1,32): error CS1055: An add or remove accessor expected
+            // event System.Action E { scoped }
+            Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "}").WithLocation(1, 32));
+        N(SyntaxKind.EventDeclaration);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.EventKeyword);
+            N(SyntaxKind.QualifiedName);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.EventDeclaration);
+                N(SyntaxKind.IdentifierName);
                 {
-                    N(SyntaxKind.EventKeyword);
-                    N(SyntaxKind.QualifiedName);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "System");
-                        }
-                        N(SyntaxKind.DotToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "Action");
-                        }
-                    }
-                    N(SyntaxKind.IdentifierToken, "E");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.UnknownAccessorDeclaration);
-                        {
-                            N(SyntaxKind.ScopedKeyword);
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
+                    N(SyntaxKind.IdentifierToken, "System");
+                }
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "Action");
+                }
+            }
+            N(SyntaxKind.IdentifierToken, "E");
+            N(SyntaxKind.AccessorList);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.UnknownAccessorDeclaration);
+                {
+                    N(SyntaxKind.ScopedKeyword);
+                    M(SyntaxKind.IdentifierToken);
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
-            N(SyntaxKind.EndOfFileToken);
         }
         EOF();
     }
@@ -2646,55 +2430,52 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     {
         const string source = "class C { int P { ref get 0; } }";
 
-        UsingTree(
+        UsingDeclaration(
             source,
+            options: null,
             // (1,27): error CS8180: { or ; or => expected
             // class C { int P { ref get 0; } }
             Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "0").WithLocation(1, 27),
             // (1,33): error CS1513: } expected
             // class C { int P { ref get 0; } }
             Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 33));
-        N(SyntaxKind.CompilationUnit);
+        N(SyntaxKind.ClassDeclaration);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.ClassKeyword);
+            N(SyntaxKind.IdentifierToken, "C");
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.PropertyDeclaration);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.PredefinedType);
                 {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "P");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.Block);
-                            {
-                                M(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.ExpressionStatement);
-                                {
-                                    N(SyntaxKind.NumericLiteralExpression);
-                                    {
-                                        N(SyntaxKind.NumericLiteralToken, "0");
-                                    }
-                                    N(SyntaxKind.SemicolonToken);
-                                }
-                                N(SyntaxKind.CloseBraceToken);
-                            }
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
+                    N(SyntaxKind.IntKeyword);
                 }
-                M(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.IdentifierToken, "P");
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.Block);
+                        {
+                            M(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
             }
-            N(SyntaxKind.EndOfFileToken);
+            M(SyntaxKind.CloseBraceToken);
         }
         EOF();
     }
