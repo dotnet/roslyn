@@ -7,6 +7,7 @@ HAA0102 |  | Non-overridden virtual method call on value type |
 HAA0301 |  | Closure Allocation Source |
 HAA0302 |  | Display class allocation to capture closure |
 HAA0303 |  | Lambda or anonymous method in a generic method allocates a delegate instance |
+HAA0304 |  | Local function converted to a delegate captures variables |
 HAA0401 |  | Possible allocation of reference type enumerator |
 HAA0501 |  | Explicit new array type allocation |
 HAA0502 |  | Explicit new reference type allocation |
