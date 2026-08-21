@@ -210,63 +210,26 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [InlineData("static extern safe void Local();", SyntaxKind.StaticKeyword, SyntaxKind.ExternKeyword, SyntaxKind.SafeKeyword)]
     public void LocalFunction(string localFunction, params SyntaxKind[] expectedModifiers)
     {
-        UsingTree($$"""
-            class C
-            {
-                void M()
-                {
-                    {{localFunction}}
-                }
-            }
-            """);
+        UsingStatement(localFunction);
 
-        N(SyntaxKind.CompilationUnit);
+        N(SyntaxKind.LocalFunctionStatement);
         {
-            N(SyntaxKind.ClassDeclaration);
+            foreach (var expectedModifier in expectedModifiers)
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.MethodDeclaration);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.LocalFunctionStatement);
-                        {
-                            foreach (var expectedModifier in expectedModifiers)
-                            {
-                                N(expectedModifier);
-                            }
-
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.VoidKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "Local");
-                            N(SyntaxKind.ParameterList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
+                N(expectedModifier);
             }
-            N(SyntaxKind.EndOfFileToken);
+
+            N(SyntaxKind.PredefinedType);
+            {
+                N(SyntaxKind.VoidKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "Local");
+            N(SyntaxKind.ParameterList);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.SemicolonToken);
         }
         EOF();
     }
@@ -734,60 +697,23 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [Fact]
     public void InvocationExpression()
     {
-        UsingTree("""
-            class C
-            {
-                void M()
-                {
-                    safe();
-                }
-            }
-            """);
+        UsingStatement("""safe();""");
 
-        N(SyntaxKind.CompilationUnit);
+        N(SyntaxKind.ExpressionStatement);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.InvocationExpression);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.MethodDeclaration);
+                N(SyntaxKind.IdentifierName);
                 {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.ExpressionStatement);
-                        {
-                            N(SyntaxKind.InvocationExpression);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "safe");
-                                }
-                                N(SyntaxKind.ArgumentList);
-                                {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.CloseParenToken);
-                                }
-                            }
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
+                    N(SyntaxKind.IdentifierToken, "safe");
                 }
-                N(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.ArgumentList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
             }
-            N(SyntaxKind.EndOfFileToken);
+            N(SyntaxKind.SemicolonToken);
         }
         EOF();
     }
