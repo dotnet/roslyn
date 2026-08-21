@@ -92,7 +92,7 @@ try {
   " --sourcePath `"$RepoRoot/`"" +
   " --referencesPath `"$ArtifactsDir/bin`"" +
   " --referencesPath `"$dotnetInstallDir/packs`"")
-  Exec-Command "$ArtifactsDir/bin/BuildValidator/$configuration/net472/BuildValidator.exe" $rebuildArgs
+  Exec-Command "$ArtifactsDir/bin/BuildValidator/$configuration/net10.0/BuildValidator.exe" $rebuildArgs
 
   exit 0
 }
