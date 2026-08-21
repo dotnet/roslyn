@@ -1,0 +1,4 @@
+﻿[0000] OpenComponent<global::Test.MyComponent>()
+[0001] AddComponentParameter("ParamBefore", "before")
+[0002] AddComponentParameter("ParamAfter", "after")
+[0003] AddComponentReferenceCapture((__value) => { myInstance = (global::Test.MyComponent)__value; })

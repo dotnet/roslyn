@@ -12,10 +12,7 @@ namespace Microsoft.CodeAnalysis.Razor;
 internal static class UriExtensions
 {
     public static Uri GetRequiredSystemUri(this DocumentUri uri)
-        => GetSystemUri(uri).AssumeNotNull();
-
-    public static Uri? GetSystemUri(this DocumentUri uri)
-        => uri.ParsedUri;
+        => uri.ParsedUri.AssumeNotNull();
 
     public static Uri CreateSystemUri(this TextDocument document)
         => document.GetURI().GetRequiredSystemUri();

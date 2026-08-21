@@ -16,5 +16,3 @@
                             IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, 
                             IntermediateToken -  - CSharp - __value => ParentValue = __value
                             IntermediateToken -  - CSharp - , ParentValue)
-            CSharpCode - (50:1,7 [55] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (50:1,7 [55] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public string ParentValue { get; set; } = "42";\n

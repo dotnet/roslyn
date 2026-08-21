@@ -1,0 +1,11 @@
+﻿Source Location: (7:0,7 [84] x:\dir\subdir\Test\TestComponent.razor)
+|
+    #:package Newtonsoft.Json@13.0.3
+    private static readonly int Value = 1;
+|
+Generated Location: (556:18,0 [84] )
+|
+    #:package Newtonsoft.Json@13.0.3
+    private static readonly int Value = 1;
+|
+
