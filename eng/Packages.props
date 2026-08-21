@@ -22,7 +22,7 @@
     <!--
       This branch no longer inserts into VS, so there is no need to keep this version in sync.
     -->
-    <SqliteVersion>2.1.12</SqliteVersion>
+    <SqliteVersion>2.1.13</SqliteVersion>
     <!-- HumanizerVersion is referenced from the Text.Analyzers.Package.csproj -->
     <HumanizerVersion>2.14.1</HumanizerVersion>
   </PropertyGroup>
