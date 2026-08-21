@@ -181,54 +181,84 @@ public sealed class ClosedModifierParsingTests : ParsingTests
         EOF();
     }
 
-    [Theory]
-    [InlineData(SyntaxKind.ClassKeyword)]
-    [InlineData(SyntaxKind.StructKeyword)]
-    [InlineData(SyntaxKind.InterfaceKeyword)]
-    public void ClosedModifier_03(SyntaxKind typeKeyword)
+    [Fact]
+    public void ClosedModifier_03_Class()
     {
-        UsingNode($$"""
-            partial closed {{SyntaxFacts.GetText(typeKeyword)}} C { }
+        UsingNode("""
+            partial closed class C { }
             """,
-            expectedParsingDiagnostics: [
-                // (1,16): error CS1002: ; expected
-                // partial closed class C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, SyntaxFacts.GetText(typeKeyword)).WithLocation(1, 16)
-            ],
             expectedBindingDiagnostics: [
-                // (1,1): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
-                // partial closed interface C { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(1, 1),
-                // (1,9): warning CS0168: The variable 'closed' is declared but never used
-                // partial closed interface C { }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "closed").WithArguments("closed").WithLocation(1, 9),
-                // (1,14): error CS1002: ; expected
-                // partial closed {{SyntaxFacts.GetText(typeKeyword)}} C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, SyntaxFacts.GetText(typeKeyword)).WithLocation(1, 16)
+                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                // partial closed class C { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1)
             ]);
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.GlobalStatement);
+            N(SyntaxKind.ClassDeclaration);
             {
-                N(SyntaxKind.LocalDeclarationStatement);
-                {
-                    N(SyntaxKind.VariableDeclaration);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "partial");
-                        }
-                        N(SyntaxKind.VariableDeclarator);
-                        {
-                            N(SyntaxKind.IdentifierToken, "closed");
-                        }
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                }
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.ClosedKeyword);
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
             }
-            N(SyntaxFacts.GetBaseTypeDeclarationKind(typeKeyword));
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void ClosedModifier_03_Struct()
+    {
+        UsingNode("""
+            partial closed struct C { }
+            """,
+            expectedBindingDiagnostics: [
+                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                // partial closed struct C { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1),
+                // (1,23): error CS0106: The modifier 'closed' is not valid for this item
+                // partial closed struct C { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("closed").WithLocation(1, 23)
+            ]);
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.StructDeclaration);
             {
-                N(typeKeyword);
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.ClosedKeyword);
+                N(SyntaxKind.StructKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void ClosedModifier_03_Interface()
+    {
+        UsingNode("""
+            partial closed interface C { }
+            """,
+            expectedBindingDiagnostics: [
+                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                // partial closed interface C { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1),
+                // (1,26): error CS0106: The modifier 'closed' is not valid for this item
+                // partial closed interface C { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("closed").WithLocation(1, 26)
+            ]);
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.InterfaceDeclaration);
+            {
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.ClosedKeyword);
+                N(SyntaxKind.InterfaceKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.CloseBraceToken);
