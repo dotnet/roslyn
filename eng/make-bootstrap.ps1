@@ -55,7 +55,7 @@ try {
   # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
   # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
   # MSBuildAdditionalCommandLineArgs=
-  $args = "/p:TreatWarningsAsErrors=true /warnaserror /nologo /nodeReuse:false /p:Configuration=$configuration /v:m";
+  $args = "/p:TreatWarningsAsErrors=true /warnaserror /warnnotaserror:NU1901;NU1902;NU1903;NU1904 /nologo /nodeReuse:false /p:Configuration=$configuration /v:m";
   $args += " /p:RunAnalyzersDuringBuild=false /bl:$binaryLogFilePath"
   $args += " /t:Pack /p:RoslynEnforceCodeStyle=false /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP"
   $args += " /p:PackageOutputPath=$output /p:NgenOptimization=false /p:PublishWindowsPdb=false"

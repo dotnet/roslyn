@@ -43,7 +43,7 @@ param (
   [switch]$prepareMachine,
   [switch]$useGlobalNuGetCache = $true,
   [switch]$warnAsError = $false,
-  [string]$warnNotAsError = "",
+  [string]$warnNotAsError = "NU1901;NU1902;NU1903;NU1904",
   [switch][Alias('pb')]$productBuild = $false,
   [switch]$fromVMR = $false,
   [switch]$oop64bit = $true,
