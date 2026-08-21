@@ -877,7 +877,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         var fileChangeTcs = new TaskCompletionSource();
         fileChangeContext.FileChanged += (_, path) =>
         {
-            if (path == appCsFile.Path)
+            if (path.Equals(appCsFile.Path, StringComparison.OrdinalIgnoreCase))
                 fileChangeTcs.TrySetResult();
         };
 
@@ -1186,7 +1186,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         // the project for the primary file still loaded and the secondary file moved to that project.
         (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(utilCsUri, testLspServer).ConfigureAwait(false);
         Assert.Equal(WorkspaceKind.Host, workspace.Kind);
-        Assert.Contains(document.Project.Documents, document => document.FilePath == appCsFile.Path);
+        Assert.Contains(document.Project.Documents, document => appCsFile.Path.Equals(document.FilePath, StringComparison.OrdinalIgnoreCase));
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/81410")]
