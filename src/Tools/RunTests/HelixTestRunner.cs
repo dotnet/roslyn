@@ -167,6 +167,47 @@ internal sealed class HelixTestRunner
     /// <summary>
     /// Constructs the dotnet build arguments and launches the Helix submission process.
     /// </summary>
+    /// <summary>
+    /// Extracts the Helix job id from a line of submission output. The generated project prints an
+    /// explicit "HelixJobId=&lt;guid&gt;" line (see PrintHelixJobId), and the Helix SDK also prints
+    /// "Sent Helix Job; see work items at https://helix.dot.net/api/jobs/&lt;guid&gt;/workitems...".
+    /// Either form is accepted so a single missing line does not lose the id. Returns null when no id is
+    /// present on the line.
+    /// </summary>
+    internal static string? TryExtractHelixJobId(string line)
+    {
+        const string marker = "HelixJobId=";
+        var markerIndex = line.IndexOf(marker, StringComparison.Ordinal);
+        if (markerIndex >= 0)
+        {
+            var id = line.Substring(markerIndex + marker.Length).Trim();
+            if (id.Length >= 36)
+            {
+                id = id.Substring(0, 36);
+            }
+
+            if (Guid.TryParse(id, out _))
+            {
+                return id;
+            }
+        }
+
+        const string urlMarker = "/jobs/";
+        var urlIndex = line.IndexOf(urlMarker, StringComparison.Ordinal);
+        if (urlIndex >= 0)
+        {
+            var rest = line.Substring(urlIndex + urlMarker.Length);
+            var end = rest.IndexOf('/');
+            var id = (end >= 0 ? rest.Substring(0, end) : rest).Trim();
+            if (Guid.TryParse(id, out _))
+            {
+                return id;
+            }
+        }
+
+        return null;
+    }
+
     internal static Process StartHelixJob(Options options, string helixProjectFilePath, List<string> jobIds)
     {
         var logsDir = Path.Combine(options.ArtifactsDirectory, "log", options.Configuration);
@@ -202,21 +243,11 @@ internal sealed class HelixTestRunner
             if (e.Data is null)
                 return;
 
-            // The generated helix project prints "HelixJobId=<guid>" (see PrintHelixJobId). Capture it
-            // so the caller can poll the job for its real work-item results after submission returns.
-            const string marker = "HelixJobId=";
-            var markerIndex = e.Data.IndexOf(marker, StringComparison.Ordinal);
-            if (markerIndex >= 0)
+            if (TryExtractHelixJobId(e.Data) is { } id)
             {
-                var id = e.Data.Substring(markerIndex + marker.Length).Trim();
-                if (id.Length >= 36)
+                lock (jobIds)
                 {
-                    id = id.Substring(0, 36);
-                }
-
-                if (id.Length > 0)
-                {
-                    lock (jobIds)
+                    if (!jobIds.Contains(id))
                     {
                         jobIds.Add(id);
                     }
