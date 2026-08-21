@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
 using Roslyn.Test.Utilities;
 using StreamJsonRpc;
 using StreamJsonRpc.Protocol;
@@ -67,6 +68,38 @@ public sealed class SingleServerLifecycleTests(ITestOutputHelper testOutputHelpe
         Assert.False(serverProcess.HasExited);
 
         await client.ShutdownAndExitAsync();
+    }
+
+    [Theory, CombinatorialData]
+    public async Task ProjectInitializationWaitTimesOut(bool useNamedPipe)
+    {
+        await using var client = await StartAsync(useNamedPipe);
+        var serverProcess = await client.GetServerProcessAsync();
+
+        var exception = await Assert.ThrowsAsync<TimeoutException>(async ()
+            => await client.WaitForProjectInitializationAsync(TimeSpan.Zero));
+
+        Assert.Contains("waiting for project initialization to complete", exception.Message);
+        Assert.Contains($"Thin client process {client.ThinClientProcess.Id} has not exited", exception.Message);
+        Assert.Contains($"Server process {serverProcess.Id} has not exited", exception.Message);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task ShutdownWaitTimesOutAndTerminatesOwnedProcesses(bool useNamedPipe)
+    {
+        await using var client = await StartAsync(useNamedPipe);
+        using var thinClientProcess = Process.GetProcessById(client.ThinClientProcess.Id);
+        using var serverProcess = Process.GetProcessById((await client.GetServerProcessAsync()).Id);
+
+        var exception = await Assert.ThrowsAsync<TimeoutException>(async ()
+            => await client.DisposeAsync(TimeSpan.Zero));
+
+        Assert.Contains("shutting down the test language server", exception.Message);
+        Assert.Contains($"Thin client process {thinClientProcess.Id} has not exited", exception.Message);
+        Assert.Contains($"Server process {serverProcess.Id} has not exited", exception.Message);
+
+        await thinClientProcess.WaitForExitAsync().WaitAsync(TestHelpers.HangMitigatingTimeout);
+        await serverProcess.WaitForExitAsync().WaitAsync(TestHelpers.HangMitigatingTimeout);
     }
 
     [Theory, CombinatorialData]

@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Roslyn.LanguageServer.Protocol;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -392,9 +393,21 @@ public partial class AbstractLanguageServerClientTests
 
         public IList<LSP.Location> GetLocations(string locationName) => _locations[locationName];
 
-        public async Task WaitForProjectInitializationAsync()
+        public async Task WaitForProjectInitializationAsync(TimeSpan? timeout = null)
         {
-            await _projectInitializationCompletedSource.Task;
+            var effectiveTimeout = timeout ?? TestHelpers.HangMitigatingTimeout;
+
+            try
+            {
+                await _projectInitializationCompletedSource.Task.WaitAsync(effectiveTimeout);
+            }
+            catch (TimeoutException exception)
+            {
+                throw new TimeoutException(
+                    $"Timed out after {effectiveTimeout} waiting for project initialization to complete. {GetProcessStatus()}",
+                    exception);
+            }
+
             ProjectInitializationCompleted = true;
         }
 
@@ -412,24 +425,73 @@ public partial class AbstractLanguageServerClientTests
             return LspWorkspaceContent.NormalizePath(relativePath);
         }
 
-        public async ValueTask DisposeAsync()
+        public ValueTask DisposeAsync()
+            => DisposeAsync(TestHelpers.HangMitigatingTimeout);
+
+        internal async ValueTask DisposeAsync(TimeSpan timeout)
         {
             // Ensure only one thing disposes; while we disconnect the process will go away, which will call us to do this again
             if (Interlocked.CompareExchange(ref _disposed, value: 1, comparand: 0) != 0)
                 return;
 
             var logger = _loggerFactory.CreateLogger("Shutdown");
+            Process? serverProcess = null;
 
-            var serverProcess = await GetServerProcessAsync();
-
-            await ShutdownAndWaitForExitAsync(serverProcess);
-
-            _clientRpc.Dispose();
-            _thinClientProcess.Dispose();
-            serverProcess.Dispose();
-            DisposeTransport();
+            try
+            {
+                serverProcess = await GetServerProcessAsync().WaitAsync(timeout);
+                await ShutdownAndWaitForExitAsync(serverProcess).WaitAsync(timeout);
+            }
+            catch (TimeoutException exception)
+            {
+                var processStatus = GetProcessStatus(serverProcess);
+                TerminateOwnedProcesses(serverProcess);
+                throw new TimeoutException($"Timed out after {timeout} shutting down the test language server. {processStatus}", exception);
+            }
+            finally
+            {
+                _clientRpc.Dispose();
+                _thinClientProcess.Dispose();
+                serverProcess?.Dispose();
+                DisposeTransport();
+            }
 
             logger.LogTrace("Process shut down.");
+        }
+
+        protected virtual void TerminateOwnedProcesses(Process? serverProcess)
+        {
+            KillIfRunning(_thinClientProcess);
+
+            if (serverProcess is not null)
+                KillIfRunning(serverProcess);
+        }
+
+        private string GetProcessStatus(Process? serverProcess = null)
+        {
+            var serverStatus = serverProcess is not null
+                ? GetProcessStatus("Server", serverProcess)
+                : _serverProcessTask.IsCompletedSuccessfully
+                    ? GetProcessStatus("Server", _serverProcessTask.Result)
+                    : "Server process is not available.";
+
+            return $"{GetProcessStatus("Thin client", _thinClientProcess)} {serverStatus}";
+        }
+
+        private static string GetProcessStatus(string processName, Process process)
+            => $"{processName} process {process.Id} has{(process.HasExited ? string.Empty : " not")} exited.";
+
+        protected void KillIfRunning(Process process)
+        {
+            try
+            {
+                if (!process.HasExited)
+                    process.Kill(entireProcessTree: true);
+            }
+            catch (InvalidOperationException exception)
+            {
+                _loggerFactory.CreateLogger("Shutdown").LogTrace(exception, "Process {ProcessId} exited before it could be terminated.", process.Id);
+            }
         }
 
         /// <summary>

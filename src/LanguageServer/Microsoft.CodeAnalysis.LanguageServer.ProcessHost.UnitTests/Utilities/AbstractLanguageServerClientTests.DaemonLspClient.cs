@@ -128,6 +128,9 @@ public partial class AbstractLanguageServerClientTests
             CloseEditorTransport();
             await ThinClientProcess.WaitForExitAsync();
         }
+
+        protected override void TerminateOwnedProcesses(Process? serverProcess)
+            => KillIfRunning(ThinClientProcess);
     }
 
     internal sealed class DaemonStdioLspClient : DaemonLspClient
