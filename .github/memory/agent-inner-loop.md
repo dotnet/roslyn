@@ -19,13 +19,13 @@ the affected project build and targeted tests required by the Definition of Done
 
 ## Measuring a slice
 
-Run the measurement script from the repository root:
+Run the measurement file-based app from the repository root:
 
-```powershell
-pwsh -NoProfile -File eng/measure-agent-inner-loop.ps1 -slice <slice-name> -iterations 3
+```shell
+dotnet run --file eng/measure-agent-inner-loop.cs -- --slice <slice-name> --iterations 3
 ```
 
-The script restores and prepares the slice, touches a representative product
+The app restores and prepares the slice, touches a representative product
 source file before each validation build, and runs filtered tests. It restores the
 file's original timestamp afterward, prints median timings, and writes detailed
 command, duration, environment, test-count, and exit-code data under
@@ -34,16 +34,14 @@ command, duration, environment, test-count, and exit-code data under
 Each slice defines a stable representative filter for benchmarking. For a real
 change within the selected component, pass the affected test class:
 
-```powershell
-pwsh -NoProfile -File eng/measure-agent-inner-loop.ps1 `
-  -slice CSharpFormatting `
-  -testFilter "FullyQualifiedName~MyAffectedTests"
+```shell
+dotnet run --file eng/measure-agent-inner-loop.cs -- --slice CSharpFormatting --test-filter "FullyQualifiedName~MyAffectedTests"
 ```
 
-Use `-configuration Release` to measure Release builds and `-outputPath <path>`
+Use `--configuration Release` to measure Release builds and `--output-path <path>`
 to select the JSON output file.
 
-Use `-skipPreparation` only when the product and test projects are already built.
+Use `--skip-preparation` only when the product and test projects are already built.
 Do not use it after changing dependencies, generated inputs, target frameworks, or
 build configuration.
 
