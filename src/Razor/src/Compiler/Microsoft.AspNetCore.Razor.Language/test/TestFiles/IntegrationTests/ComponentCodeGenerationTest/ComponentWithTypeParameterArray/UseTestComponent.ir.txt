@@ -19,8 +19,6 @@
                         IntermediateToken - (49:1,36 [6] x:\dir\subdir\Test\UseTestComponent.cshtml) - CSharp - items2
                     ComponentAttribute - (63:1,50 [6] x:\dir\subdir\Test\UseTestComponent.cshtml) - Items3 - Items3 - AttributeStructure.DoubleQuotes
                         IntermediateToken - (63:1,50 [6] x:\dir\subdir\Test\UseTestComponent.cshtml) - CSharp - items3
-            CSharpCode - (135:5,7 [208] x:\dir\subdir\Test\UseTestComponent.cshtml)
-                LazyIntermediateToken - (135:5,7 [208] x:\dir\subdir\Test\UseTestComponent.cshtml) - CSharp - \n    static Tag tag = new Tag() { description = "A description."};\n    Tag[] items1 = new [] { tag };\n    List<Tag[]> items2 = new List<Tag[]>() { new [] { tag } };\n    Tag[] items3() => new [] { tag };\n
     NamespaceDeclaration -  - __Blazor.Test.UseTestComponent
         ClassDeclaration -  - internal static - TypeInference -  - 
             ComponentTypeInferenceMethod -  - __Blazor.Test.UseTestComponent.TypeInference - CreateTestComponent_0

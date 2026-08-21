@@ -1,0 +1,6 @@
+﻿[0000] OpenElement("button")
+[0001] AddAttribute("onclick", global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::Microsoft.AspNetCore.Components.Web.MouseEventArgs>(this, () => Foo = false ))
+[0002] AddEventPreventDefaultAttribute("onfocus", true)
+[0003] AddEventStopPropagationAttribute("onclick", Foo)
+[0004] AddEventStopPropagationAttribute("onfocus", false)
+[0005] AddContent("Click Me")
