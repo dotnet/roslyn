@@ -6,13 +6,10 @@
 
 using System;
 using System.IO;
-#if !NET || MICROSOFT_CODEANALYSIS_MSBUILD_TASK
+#if !NET
 // On .NET Framework, File.ResolveLinkTarget is provided as an extension member in this namespace
 // (see NativeMethods.cs). On .NET it is a native BCL method, so this using is unnecessary there.
 using Microsoft.CodeAnalysis.CommandLine;
-#endif
-#if MICROSOFT_CODEANALYSIS_MSBUILD_TASK
-using Microsoft.Build.Framework;
 #endif
 using Roslyn.Utilities;
 
@@ -45,33 +42,16 @@ namespace Microsoft.CodeAnalysis
         internal const string DotNetExperimentalHostPathEnvironmentName = "DOTNET_EXPERIMENTAL_HOST_PATH";
         internal const string DotNetTieredCompilationEnvironmentName = "DOTNET_TieredCompilation";
 
-#if MICROSOFT_CODEANALYSIS_MSBUILD_TASK
-        /// <inheritdoc cref="GetToolDotNetRootCore(string, System.Action{string, object[]}?)"/>
-        internal static string? GetToolDotNetRoot(
-            TaskEnvironment taskEnvironment,
-            Action<string, object[]>? logger)
-        {
-            var dotnetPath = GetDotNetHostPath(taskEnvironment);
-            return GetToolDotNetRootCore(dotnetPath, logger);
-        }
-#else
-        /// <inheritdoc cref="GetToolDotNetRootCore(string, System.Action{string, object[]}?)"/>
-        internal static string? GetToolDotNetRoot(Action<string, object[]>? logger) =>
-            GetToolDotNetRootCore(GetDotNetHostPath(), logger);
-#endif
-
-        internal static string? GetToolDotNetRoot(Func<string, string?> getEnvFunc, Action<string, object[]>? logger) =>
-            GetToolDotNetRootCore(GetDotNetHostPath(getEnvFunc), logger);
-
         /// <summary>
         /// The <c>DOTNET_ROOT</c> that should be used when launching executable tools. If the return
         /// is non-null then it will be a fully qualified path.
         /// </summary>
-        private static string? GetToolDotNetRootCore(string dotNetPath, Action<string, object[]>? logger)
+        internal static string? GetToolDotNetRoot(IBuildEnvironment buildEnvironment, Action<string, object[]>? logger)
         {
-            if (!Path.IsPathFullyQualified(dotNetPath))
+            var dotNetHostPath = GetDotNetHostPath(buildEnvironment);
+            if (!Path.IsPathFullyQualified(dotNetHostPath))
             {
-                logger?.Invoke("Cannot resolve root as the dotnet path is not fully qualified: {0}", [dotNetPath]);
+                logger?.Invoke("Cannot resolve root as the dotnet path is not fully qualified: {0}", [dotNetHostPath]);
                 return null;
             }
 
@@ -79,20 +59,20 @@ namespace Microsoft.CodeAnalysis
             try
             {
 #pragma warning disable RS0030 // Validated as fully qualified above.
-                var resolvedPath = File.ResolveLinkTarget(dotNetPath, returnFinalTarget: true);
+                var resolvedPath = File.ResolveLinkTarget(dotNetHostPath, returnFinalTarget: true);
 #pragma warning restore RS0030
                 if (resolvedPath != null)
                 {
-                    dotNetPath = resolvedPath.FullName;
+                    dotNetHostPath = resolvedPath.FullName;
                 }
             }
             catch (Exception ex)
             {
-                logger?.Invoke("Failed to resolve symbolic link for dotnet path '{0}': {1}", [dotNetPath, ex]);
+                logger?.Invoke("Failed to resolve symbolic link for dotnet path '{0}': {1}", [dotNetHostPath, ex]);
                 return null;
             }
 
-            var directoryName = Path.GetDirectoryName(dotNetPath);
+            var directoryName = Path.GetDirectoryName(dotNetHostPath);
             if (string.IsNullOrEmpty(directoryName))
             {
                 return null;
@@ -101,27 +81,17 @@ namespace Microsoft.CodeAnalysis
             return directoryName;
         }
 
-#if MICROSOFT_CODEANALYSIS_MSBUILD_TASK
-        /// <inheritdoc cref="GetDotNetHostPath(System.Func{string, string?})"/>
-        internal static string GetDotNetHostPath(TaskEnvironment taskEnvironment)
-            => GetDotNetHostPath(taskEnvironment.GetEnvironmentVariable);
-#else
-        /// <inheritdoc cref="GetDotNetHostPath(System.Func{string, string?})"/>
-        internal static string GetDotNetHostPath()
-            => GetDotNetHostPath(Environment.GetEnvironmentVariable);
-#endif
-
         /// <summary>
         /// Get the path to the dotnet host executable. The path returned is not guaranteed to be fully qualified.
         /// </summary>
-        private static string GetDotNetHostPath(Func<string, string?> getEnvironmentVariable)
+        internal static string GetDotNetHostPath(IBuildEnvironment buildEnvironment)
         {
-            if (getEnvironmentVariable(DotNetHostPathEnvironmentName) is { Length: > 0 } pathToDotNet)
+            if (buildEnvironment.GetEnvironmentVariable(DotNetHostPathEnvironmentName) is { Length: > 0 } pathToDotNet)
             {
                 return pathToDotNet;
             }
 
-            if (getEnvironmentVariable(DotNetExperimentalHostPathEnvironmentName) is { Length: > 0 } pathToDotNetExperimental)
+            if (buildEnvironment.GetEnvironmentVariable(DotNetExperimentalHostPathEnvironmentName) is { Length: > 0 } pathToDotNetExperimental)
             {
                 return pathToDotNetExperimental;
             }

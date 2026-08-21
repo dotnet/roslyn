@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 // and several implementations return partial ones.
                 return UseAppHost
                     ? PathToBuiltInTool
-                    : RuntimeHostInfo.GetDotNetHostPath(TaskEnvironment);
+                    : RuntimeHostInfo.GetDotNetHostPath(TaskEnvironment.BuildEnvironment);
             }
 
             return Path.Combine(ToolPath ?? "", ToolExe);
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             // Set DOTNET_ROOT so that the apphost executables launch properly.
             // Unset all other DOTNET_ROOT* variables so for example DOTNET_ROOT_X64 does not override ours.
             if (IsBuiltinToolRunningOnCoreClr &&
-                RuntimeHostInfo.GetToolDotNetRoot(TaskEnvironment, Log.LogMessage) is { } dotNetRoot)
+                RuntimeHostInfo.GetToolDotNetRoot(TaskEnvironment.BuildEnvironment, Log.LogMessage) is { } dotNetRoot)
             {
                 Log.LogMessage("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
                 EnvironmentVariables =

@@ -33,7 +33,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)CopyRefAssembly.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Csc.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Csi.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateMSBuildEditorConfig.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IAnalyzerConfigFilesHostObject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ICompilerOptionsHostObject.cs" />
@@ -47,7 +46,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)PropertyDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RCWForCurrentContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ShowMessageForImplicitlySkipAnalyzers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TaskBuildEnvironment.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TaskCompilerServerLogger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TaskEnvironmentExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ValidateBootstrap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Vbc.cs" />
@@ -63,4 +64,8 @@
   </ItemGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)..\..\..\NuGet\Microsoft.CodeAnalysis.BuildClient.Package\Microsoft.CodeAnalysis.BuildClient.targets" />
+
+  <ItemGroup>
+    <Compile Remove="$(MSBuildThisFileDirectory)..\..\Shared\StandardBuildEnvironment.cs" />
+  </ItemGroup>
 </Project>

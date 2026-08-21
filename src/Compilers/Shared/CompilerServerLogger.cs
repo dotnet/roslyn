@@ -11,9 +11,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-#if MICROSOFT_CODEANALYSIS_MSBUILD_TASK
-using Microsoft.Build.Framework;
-#endif
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
@@ -108,19 +105,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         public bool IsLogging => _loggingStream is object;
 
-#if MICROSOFT_CODEANALYSIS_MSBUILD_TASK
         public CompilerServerLogger(
             string identifier,
-            TaskEnvironment taskEnvironment)
-            : this(identifier, GetLoggingFilePath(taskEnvironment.GetEnvironmentVariable, taskEnvironment.GetFullPath))
+            IBuildEnvironment? buildEnvironment = null)
+            : this(identifier, buildEnvironment is null ? null : GetLoggingFilePath(buildEnvironment))
         {
         }
-#else
-        public CompilerServerLogger(string identifier)
-            : this(identifier, GetLoggingFilePath(Environment.GetEnvironmentVariable, Path.GetFullPath))
-        {
-        }
-#endif
 
         /// <summary>
         /// Initializes logging using the supplied environment variable lookup and path absolutization.
@@ -171,17 +161,15 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <summary>
         /// Get the fully qualified file path for the log file to use for logging. Returns null if logging is not enabled.
         /// </summary>
-        private static string? GetLoggingFilePath(
-            Func<string, string?> getEnvironmentVariable,
-            Func<string, string> getFullPath)
+        private static string? GetLoggingFilePath(IBuildEnvironment buildEnvironment)
         {
-            var loggingFilePath = getEnvironmentVariable(EnvironmentVariableName);
+            var loggingFilePath = buildEnvironment.GetEnvironmentVariable(EnvironmentVariableName);
             if (string.IsNullOrEmpty(loggingFilePath))
             {
                 return null;
             }
 
-            loggingFilePath = getFullPath(loggingFilePath);
+            loggingFilePath = buildEnvironment.GetFullPath(loggingFilePath);
 
             // If the environment variable contains the path of a currently existing directory,
             // then use a process-specific name for the log file and put it in that directory.

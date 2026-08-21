@@ -19,22 +19,5 @@ internal static class EnvironmentExtensions
         internal static StringComparison EnvironmentVariableComparison => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
                 StringComparison.OrdinalIgnoreCase :
                 StringComparison.Ordinal;
-
-#if !MICROSOFT_CODEANALYSIS_MSBUILD_TASK
-        /// <summary>
-        /// Gets the environment variables as a strongly-typed dictionary.
-        /// </summary>
-        internal static Dictionary<string, string> GetEnvironmentVariablesAsDictionary()
-        {
-            var environmentVariables = Environment.GetEnvironmentVariables();
-            var map = new Dictionary<string, string>(capacity: environmentVariables.Count, Environment.EnvironmentVariableComparer);
-            foreach (System.Collections.DictionaryEntry entry in environmentVariables)
-            {
-                map[(string)entry.Key] = (string?)entry.Value ?? "";
-            }
-
-            return map;
-        }
-#endif
     }
 }

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
+using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -529,7 +530,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             }
             else
             {
-                AssertEx.Equal(RuntimeHostInfo.GetDotNetHostPath(taskEnvironment), csc.GeneratePathToTool());
+                AssertEx.Equal(RuntimeHostInfo.GetDotNetHostPath(taskEnvironment.BuildEnvironment), csc.GeneratePathToTool());
                 AssertEx.Equal(RuntimeHostInfo.GetDotNetExecCommandLine(csc.PathToBuiltInTool, ""), csc.GenerateCommandLineContents());
             }
         }

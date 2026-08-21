@@ -18,9 +18,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CommandLine;
-#if MICROSOFT_CODEANALYSIS_MSBUILD_TASK
-using Microsoft.Build.Framework;
-#endif
 using static Microsoft.CodeAnalysis.CommandLine.NativeMethods;
 
 namespace Microsoft.CodeAnalysis.CommandLine
@@ -178,12 +175,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
-#if MICROSOFT_CODEANALYSIS_MSBUILD_TASK
         internal static Task<BuildResponse> RunServerBuildRequestAsync(
             BuildRequest buildRequest,
             string pipeName,
-            AbsolutePath clientDirectory,
-            TaskEnvironment taskEnvironment,
+            string clientDirectory,
+            IBuildEnvironment buildEnvironment,
             ICompilerServerLogger logger,
             CancellationToken cancellationToken) =>
                 RunServerBuildRequestAsync(
@@ -193,30 +189,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     tryCreateServerFunc: (pipeName, logger) => TryCreateServer(
                         clientDirectory,
                         pipeName,
-                        taskEnvironment,
+                        buildEnvironment,
                         logger,
                         out int _),
                     logger,
                     cancellationToken);
-#else
-        internal static Task<BuildResponse> RunServerBuildRequestAsync(
-            BuildRequest buildRequest,
-            string pipeName,
-            string clientDirectory,
-            ICompilerServerLogger logger,
-            CancellationToken cancellationToken)
-                => RunServerBuildRequestAsync(
-                    buildRequest,
-                    pipeName,
-                    timeoutOverride: null,
-                    tryCreateServerFunc: (pipeName, logger) => TryCreateServer(
-                        clientDirectory,
-                        pipeName,
-                        logger,
-                        out int _),
-                    logger,
-                    cancellationToken);
-#endif
 
         internal static async Task<BuildResponse> RunServerBuildRequestAsync(
             BuildRequest buildRequest,
@@ -477,23 +454,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
-#if MICROSOFT_CODEANALYSIS_MSBUILD_TASK
-        internal static (string processFilePath, string commandLineArguments) GetServerProcessInfo(
-            AbsolutePath clientDir,
-            string pipeName,
-            TaskEnvironment taskEnvironment) =>
-            GetServerProcessInfo(clientDir.Value, pipeName, RuntimeHostInfo.GetDotNetHostPath(taskEnvironment));
-#else
-        internal static (string processFilePath, string commandLineArguments) GetServerProcessInfo(
-            string clientDir,
-            string pipeName) =>
-            GetServerProcessInfo(clientDir, pipeName, RuntimeHostInfo.GetDotNetHostPath());
-#endif
-
-        private static (string processFilePath, string commandLineArguments) GetServerProcessInfo(
+        static (string processFilePath, string commandLineArguments) GetServerProcessInfo(
             string clientDir,
             string pipeName,
-            string dotnetFilePath)
+            IBuildEnvironment buildEnvironment)
         {
             Debug.Assert(Path.IsPathFullyQualified(clientDir));
             var processFilePath = Path.Combine(clientDir, $"VBCSCompiler{PlatformInformation.ExeExtension}");
@@ -505,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 // Fallback to not use the apphost if it is not present (can happen in compiler toolset scenarios for example).
                 commandLineArgs = RuntimeHostInfo.GetDotNetExecCommandLine(Path.ChangeExtension(processFilePath, ".dll"), commandLineArgs);
-                processFilePath = dotnetFilePath;
+                processFilePath = RuntimeHostInfo.GetDotNetHostPath(buildEnvironment);
             }
 
             return (processFilePath, commandLineArgs);
@@ -543,16 +507,16 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <summary>
         /// Gets the environment variables that should be passed to the server process.
         /// </summary>
-        /// <param name="envMap">Current environment variables to use as a base</param>
+        /// <param name="buildEnvironment">Current build environment</param>
         /// <param name="logger">Optional logger for logging environment variable setup</param>
         /// <returns>Dictionary of environment variables to set</returns>
         internal static Dictionary<string, string>? GetServerEnvironmentVariables(
-            IReadOnlyDictionary<string, string> envMap,
+            IBuildEnvironment buildEnvironment,
             ICompilerServerLogger? logger = null)
         {
             var dotNetRoot = IsBuiltinToolRunningOnCoreClr
                 ? RuntimeHostInfo.GetToolDotNetRoot(
-                    x => envMap.TryGetValue(x, out var value) ? value : null,
+                    buildEnvironment,
                     logger is null ? null : logger.Log)
                 : null;
             if (dotNetRoot == null && !RuntimeHostInfo.ShouldDisableTieredCompilation)
@@ -562,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             // Start with current environment
             var environmentVariables = new Dictionary<string, string>(Environment.EnvironmentVariableComparer);
-            foreach (var entry in envMap)
+            foreach (var entry in buildEnvironment.GetEnvironmentVariables())
             {
                 var key = entry.Key;
                 var value = entry.Value;
@@ -596,60 +560,34 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return environmentVariables;
         }
 
-#if MICROSOFT_CODEANALYSIS_MSBUILD_TASK
-        internal static bool TryCreateServer(
-            AbsolutePath clientDirectory,
-            string pipeName,
-            TaskEnvironment taskEnvironment,
-            ICompilerServerLogger logger,
-            out int processId) => TryCreateServer(
-                clientDirectory.Value,
-                GetServerProcessInfo(clientDirectory, pipeName, taskEnvironment),
-                taskEnvironment.GetEnvironmentVariables(),
-                logger,
-                out processId);
-#else
-        internal static bool TryCreateServer(
-            string clientDirectory,
-            string pipeName,
-            ICompilerServerLogger logger,
-            out int processId) => TryCreateServer(
-                clientDirectory,
-                GetServerProcessInfo(clientDirectory, pipeName),
-                Environment.GetEnvironmentVariablesAsDictionary(),
-                logger,
-                out processId);
-#endif
-
         /// <summary>
         /// This will attempt to start a compiler server process using the executable inside the 
         /// directory <paramref name="clientDirectory"/>. This returns "true" if starting the 
         /// compiler server process was successful, it does not state whether the server successfully
         /// started or not (it could crash on startup).
         /// </summary>
-        private static bool TryCreateServer(
+        internal static bool TryCreateServer(
             string clientDirectory,
-            (string processFilePath, string commandLineArguments) serverInfo,
-            IReadOnlyDictionary<string, string> envMap,
+            string pipeName,
+            IBuildEnvironment buildEnvironment,
             ICompilerServerLogger logger,
             out int processId)
         {
             Debug.Assert(Path.IsPathFullyQualified(clientDirectory));
-            Debug.Assert(Path.IsPathFullyQualified(serverInfo.processFilePath));
 
             processId = 0;
+            var serverInfo = GetServerProcessInfo(clientDirectory, pipeName, buildEnvironment);
 
-            // The MSBuild entry point forces a full path
-#pragma warning disable RS0030 // Do not used banned APIs
-            if (!File.Exists(serverInfo.processFilePath))
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Path is fully qualified here
+            if (Path.IsPathFullyQualified(serverInfo.processFilePath) && !File.Exists(serverInfo.processFilePath))
             {
+#pragma warning restore RS0030
                 return false;
             }
 
             logger.Log("Attempting to create process '{0}' {1}", serverInfo.processFilePath, serverInfo.commandLineArguments);
 
-            var environmentVariables = GetServerEnvironmentVariables(envMap, logger);
+            var environmentVariables = GetServerEnvironmentVariables(buildEnvironment, logger);
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // As far as I can tell, there isn't a way to use the Process class to

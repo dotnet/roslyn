@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
-            using var innerLogger = new CompilerServerLogger($"MSBuild {Process.GetCurrentProcess().Id}", TaskEnvironment);
+            using var innerLogger = new CompilerServerLogger($"MSBuild {Process.GetCurrentProcess().Id}", TaskEnvironment.BuildEnvironment);
             var logger = new TaskCompilerServerLogger(Log, innerLogger);
             return ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger);
         }
@@ -573,8 +573,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 var responseTask = BuildServerConnection.RunServerBuildRequestAsync(
                     buildRequest,
                     pipeName,
-                    TaskEnvironment.GetAbsolutePath(clientDirectory),
-                    TaskEnvironment,
+                    clientDirectory,
+                    TaskEnvironment.BuildEnvironment,
                     logger,
                     _sharedCompileCts.Token);
 
