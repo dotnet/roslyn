@@ -364,17 +364,58 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (tryCreateNonArrayBackedSpan(node, spanType, isReadOnlySpan) is { } spanValue)
                     return spanValue;
 
-                var arrayType = getBackingArrayType(spanType);
-                var arrayValue = createArray(node, arrayType, targetsReadOnlyCollection: isReadOnlySpan);
+                if (!ShouldUseKnownLength(node, out _) && _compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T) is { })
+                {
+                    var elementType = spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
 
-                var wellKnownMember = isReadOnlySpan ? WellKnownMember.System_ReadOnlySpan_T__ctor_Array : WellKnownMember.System_Span_T__ctor_Array;
-                var spanConstructor = _factory.WellKnownMethod(wellKnownMember).AsMember(spanType);
+                    // The span initializer has an unknown length, so we'll create an intermediate List<T> instance.
+                    // https://github.com/dotnet/roslyn/issues/68785: Emit Enumerable.TryGetNonEnumeratedCount() and avoid intermediate List<T> at runtime.
+                    var list = CreateAndPopulateList(node, elementType, node.Elements,
+                        // Array/Span collections cannot have with-elements.  So we can create a List<T> in an optimal
+                        // fashion depending on our analysis of the elements.
+                        rewrittenReceiver: null);
+                    BoundLocal temp = _factory.StoreToTemp(list, out var assignment);
+                    var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
+                    sideEffects.Add(assignment);
 
-                // We can either get the same array type as the target span type or an array of more derived type.
-                // In the second case reference conversion would happen automatically since we still construct the span
-                // of the base type, while usually such conversion requires stloc+ldloc with the local of the base type
-                assertTypesAreCompatible(_compilation, arrayType, spanConstructor.Parameters[0].Type, isReadOnlySpan);
-                return _factory.New(spanConstructor, arrayValue);
+                    Debug.Assert(list.Type is { });
+                    Debug.Assert(list.Type.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T), TypeCompareKind.AllIgnoreOptions));
+
+                    TryGetSpanConversion(list.Type, false, out var listToSpan);
+                    Debug.Assert(listToSpan is { });
+                    var listSpanValue = _factory.Call(null, listToSpan, temp);
+                    var getCount = ((PropertySymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__Count)).AsMember((NamedTypeSymbol)list.Type);
+                    var count = _factory.Property(temp, getCount);
+
+                    if (isReadOnlySpan)
+                    {
+                        var implicitOperator = _factory.WellKnownMethod(WellKnownMember.System_Span_T__op_Implicit_ReadOnlySpan_T).AsMember((NamedTypeSymbol)listSpanValue.Type);
+                        listSpanValue = _factory.Call(null, implicitOperator, listSpanValue);
+                    }
+
+                    var sliceMethod = _factory.WellKnownMethod(isReadOnlySpan ? WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int : WellKnownMember.System_Span_T__Slice_Int_Int).AsMember(spanType);
+                    var result = _factory.Call(listSpanValue, sliceMethod, _factory.Literal(0), count);
+                    return new BoundSequence(
+                        node.Syntax,
+                        [temp.LocalSymbol],
+                        sideEffects.ToImmutableAndFree(),
+                        result,
+                        spanType);
+                }
+                else
+                {
+                    var arrayType = getBackingArrayType(spanType);
+                    var arrayValue = createArray(node, arrayType, targetsReadOnlyCollection: isReadOnlySpan);
+
+                    var wellKnownMember = isReadOnlySpan ? WellKnownMember.System_ReadOnlySpan_T__ctor_Array : WellKnownMember.System_Span_T__ctor_Array;
+                    var spanConstructor = _factory.WellKnownMethod(wellKnownMember).AsMember(spanType);
+
+                    // We can either get the same array type as the target span type or an array of more derived type.
+                    // In the second case reference conversion would happen automatically since we still construct the span
+                    // of the base type, while usually such conversion requires stloc+ldloc with the local of the base type
+                    assertTypesAreCompatible(_compilation, arrayType, spanConstructor.Parameters[0].Type, isReadOnlySpan);
+                    return _factory.New(spanConstructor, arrayValue);
+                }
 
                 [Conditional("DEBUG")]
                 static void assertTypesAreCompatible(CSharpCompilation compilation, TypeSymbol arrayType, TypeSymbol constructorParameterType, bool isReadOnlySpan)
