@@ -60,7 +60,7 @@ jobs:
         buildVersionToDownload: latestFromBranch
         branchName: $(Build.SourceBranch)
         allowPartiallySucceededBuilds: true
-        allowFailedBuilds: false
+        allowFailedBuilds: true
         artifact: testskipstore-${{ parameters.jobName }}
         path: $(Agent.TempDirectory)/testskipstore
 
