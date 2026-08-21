@@ -118,6 +118,19 @@ namespace RunTests
 
         public string? TargetBranchName { get; set; }
 
+        /// <summary>
+        /// Directory of the closure-fingerprint test-skip result store. When set (or via the
+        /// ROSLYN_TEST_SKIP_STORE env var), test assemblies whose deploy-closure fingerprint has a
+        /// recorded PASS are skipped, and passes are recorded after a green run.
+        /// </summary>
+        public string? TestSkipStore { get; set; }
+
+        /// <summary>
+        /// When true, compute the skip plan and record every to-run assembly as PASS without running
+        /// any tests. Used to validate skip rates and to pre-warm the store.
+        /// </summary>
+        public bool TestSkipDryRun { get; set; }
+
         public Options(
             string dotnetFilePath,
             string artifactsDirectory,
@@ -160,6 +173,8 @@ namespace RunTests
             string? pipelineDefinitionId = null;
             string? phaseName = null;
             string? targetBranchName = null;
+            string? testSkipStore = null;
+            var testSkipDryRun = false;
             var optionSet = new OptionSet()
             {
                 { "dotnet=", "Path to dotnet", s => dotnetFilePath = s },
@@ -186,6 +201,8 @@ namespace RunTests
                 { "pipelineDefinitionId=", "Pipeline definition id", s => pipelineDefinitionId = s },
                 { "phaseName=", "Pipeline phase name associated with this test run", s => phaseName = s },
                 { "targetBranchName=", "Target branch of this pipeline run", s => targetBranchName = s },
+                { "testSkipStore=", "Directory of the test-skip result store (or set ROSLYN_TEST_SKIP_STORE); assemblies with a recorded PASS for their closure fingerprint are skipped", s => testSkipStore = s },
+                { "testSkipDryRun", "Compute the skip plan and record every to-run assembly as PASS without running any tests (for validating skip rates / pre-warming the store)", o => testSkipDryRun = o is object },
             };
 
             List<string> assemblyList;
@@ -204,6 +221,8 @@ namespace RunTests
             {
                 includeFilter.Add(".*UnitTests.*");
             }
+
+            testSkipStore ??= Environment.GetEnvironmentVariable("ROSLYN_TEST_SKIP_STORE");
 
             artifactsPath ??= TryGetArtifactsPath();
             if (artifactsPath is null || !Directory.Exists(artifactsPath))
@@ -256,6 +275,8 @@ namespace RunTests
                 PipelineDefinitionId = pipelineDefinitionId,
                 PhaseName = phaseName,
                 TargetBranchName = targetBranchName,
+                TestSkipStore = testSkipStore,
+                TestSkipDryRun = testSkipDryRun,
             };
 
             static string? TryGetArtifactsPath()

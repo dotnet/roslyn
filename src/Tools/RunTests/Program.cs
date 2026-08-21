@@ -42,7 +42,28 @@ namespace RunTests
             if (options.UseHelix)
             {
                 var assemblyFilePaths = GetAssemblyFilePaths(options);
-                return await HelixTestRunner.RunAsync(options, assemblyFilePaths);
+                var (toRun, fingerprints, skipped) = TestSkip.Plan(assemblyFilePaths, options);
+                if (options.TestSkipDryRun)
+                {
+                    TestSkip.RecordPasses(toRun, fingerprints, options);
+                    ConsoleUtil.WriteLine($"Test-skip dry-run: recorded {toRun.Length}, skipped {skipped} (no tests run).");
+                    return ExitSuccess;
+                }
+
+                if (toRun.Length == 0)
+                {
+                    ConsoleUtil.WriteLine($"All {skipped} test assemblies skipped (closure unchanged); nothing to submit to Helix.");
+                    return ExitSuccess;
+                }
+
+                var helixResult = await HelixTestRunner.RunAsync(options, toRun);
+                if (helixResult == ExitSuccess)
+                {
+                    // Only record on a green run so every recorded assembly genuinely passed.
+                    TestSkip.RecordPasses(toRun, fingerprints, options);
+                }
+
+                return helixResult;
             }
 
             if (options.CollectDumps)
@@ -126,6 +147,14 @@ namespace RunTests
         private static async Task<int> RunAsync(Options options, CancellationToken cancellationToken)
         {
             var assemblyFilePaths = GetAssemblyFilePaths(options);
+            var (toRun, fingerprints, skipped) = TestSkip.Plan(assemblyFilePaths, options);
+
+            if (options.TestSkipDryRun)
+            {
+                TestSkip.RecordPasses(toRun, fingerprints, options);
+                ConsoleUtil.WriteLine($"Test-skip dry-run: recorded {toRun.Length}, skipped {skipped} (no tests run).");
+                return ExitSuccess;
+            }
 
             var testExecutor = new ProcessTestExecutor();
             var testRunner = new TestRunner(options, testExecutor);
@@ -137,9 +166,16 @@ namespace RunTests
                 return ExitFailure;
             }
 
+            if (toRun.Length == 0)
+            {
+                ConsoleUtil.WriteLine($"All {skipped} test assemblies skipped (closure unchanged).");
+                WriteLogFile(options);
+                return ExitSuccess;
+            }
+
             ConsoleUtil.WriteLine($"Proc dump location: {options.ProcDumpFilePath}");
 
-            var result = await testRunner.RunAllAsync(assemblyFilePaths, cancellationToken).ConfigureAwait(true);
+            var result = await testRunner.RunAllAsync(toRun, cancellationToken).ConfigureAwait(true);
             var elapsed = DateTime.Now - start;
 
             ConsoleUtil.WriteLine($"Test execution time: {elapsed}");
@@ -154,6 +190,7 @@ namespace RunTests
                 return ExitFailure;
             }
 
+            TestSkip.RecordPasses(toRun, fingerprints, options);
             ConsoleUtil.WriteLine($"All tests passed");
             return ExitSuccess;
         }
