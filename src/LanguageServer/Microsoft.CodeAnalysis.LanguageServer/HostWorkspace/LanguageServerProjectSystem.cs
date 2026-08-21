@@ -242,7 +242,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
             }
 
             static string[] GetAliases(ProjectDataItem item)
-                => item.Metadata["aliases"] is string aliases ? aliases.Split(',') : [];
+                => item.Metadata["aliases"] is string aliases ? aliases.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) : [];
         }), _hostProjectFactory);
     }
 }
