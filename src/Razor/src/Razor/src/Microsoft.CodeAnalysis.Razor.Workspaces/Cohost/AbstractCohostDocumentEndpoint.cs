@@ -25,16 +25,17 @@ internal abstract class AbstractCohostDocumentEndpoint<TRequest, TResponse>(
 
     protected abstract bool RequiresLSPSolution { get; }
 
-    public Task<TResponse?> HandleRequestAsync(TRequest request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<TResponse?> HandleRequestAsync(TRequest request, RequestContext context, CancellationToken cancellationToken)
     {
-        if (context.TextDocument is null)
+        var textDocument = await context.GetTextDocumentAsync(cancellationToken).ConfigureAwait(false);
+        if (textDocument is null)
         {
-            _incompatibleProjectService.HandleMissingDocument(GetRazorTextDocumentIdentifier(request), context);
+            await _incompatibleProjectService.HandleMissingDocumentAsync(GetRazorTextDocumentIdentifier(request), context, cancellationToken).ConfigureAwait(false);
 
-            return SpecializedTasks.Default<TResponse>();
+            return await SpecializedTasks.Default<TResponse>().ConfigureAwait(false);
         }
 
-        return HandleRequestAsync(request, context, context.TextDocument, cancellationToken);
+        return await HandleRequestAsync(request, context, textDocument, cancellationToken).ConfigureAwait(false);
     }
 
     protected virtual Task<TResponse?> HandleRequestAsync(TRequest request, RequestContext context, TextDocument razorDocument, CancellationToken cancellationToken)

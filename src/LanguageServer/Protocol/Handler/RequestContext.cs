@@ -206,6 +206,43 @@ internal readonly struct RequestContext
             : _clientCapabilities;
     }
 
+    public ValueTask<Workspace?> GetWorkspaceAsync(CancellationToken cancellationToken)
+        => ValueTask.FromResult(Workspace);
+
+    public ValueTask<Workspace> GetRequiredWorkspaceAsync(CancellationToken cancellationToken)
+        => ValueTask.FromResult(Workspace
+            ?? throw new ArgumentNullException($"{nameof(Workspace)} is null when it was required for {Method}"));
+
+    public ValueTask<Solution?> GetSolutionAsync(CancellationToken cancellationToken)
+        => ValueTask.FromResult(Solution);
+
+    public ValueTask<Solution> GetRequiredSolutionAsync(CancellationToken cancellationToken)
+        => ValueTask.FromResult(Solution
+            ?? throw new ArgumentNullException($"{nameof(Solution)} is null when it was required for {Method}"));
+
+    public ValueTask<TextDocument?> GetTextDocumentAsync(CancellationToken cancellationToken)
+        => ValueTask.FromResult(TextDocument);
+
+    public ValueTask<TextDocument> GetRequiredTextDocumentAsync(CancellationToken cancellationToken)
+        => ValueTask.FromResult(TextDocument
+            ?? throw new ArgumentNullException($"{nameof(TextDocument)} is null when it was required for {Method}"));
+
+    public ValueTask<Document?> GetDocumentAsync(CancellationToken cancellationToken)
+        => ValueTask.FromResult(Document);
+
+    public ValueTask<Document> GetRequiredDocumentAsync(CancellationToken cancellationToken)
+        => ValueTask.FromResult(Document
+            ?? throw new ArgumentNullException($"{nameof(Document)} is null when it was required for {Method}"));
+
+    internal Workspace? GetInitialWorkspace()
+        => Workspace;
+
+    internal Solution? GetInitialSolution()
+        => Solution;
+
+    internal TextDocument? GetInitialTextDocument()
+        => TextDocument;
+
     public Document GetRequiredDocument()
     {
         return Document is null

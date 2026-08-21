@@ -27,8 +27,8 @@ internal sealed class DataTipRangeHandler()
     public TextDocumentIdentifier GetTextDocumentIdentifier(TextDocumentPositionParams request)
         => request.TextDocument;
 
-    public Task<VSInternalDataTip?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
-        => GetDataTipRangeAsync(context.GetRequiredDocument(), ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken);
+    public async Task<VSInternalDataTip?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
+        => await GetDataTipRangeAsync(await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false), ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
     public static async Task<VSInternalDataTip?> GetDataTipRangeAsync(Document document, LinePosition linePosition, CancellationToken cancellationToken)
     {
