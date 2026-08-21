@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -28,6 +29,17 @@ namespace RunTests
         {
             Logger.Log("RunTest command line");
             Logger.Log(string.Join(" ", args));
+
+            // Diagnostic: report the real pass/fail of an already-submitted Helix job by id. Used to
+            // validate the results-gating logic against known-finished jobs without a full test run.
+            if (args is ["--helixJobOutcome", var diagJobId])
+            {
+                using var diagHttp = new HttpClient { Timeout = TimeSpan.FromMinutes(2) };
+                var diag = await HelixResults.GetJobOutcomeAsync(diagHttp, diagJobId, TimeSpan.FromMinutes(5), CancellationToken.None);
+                ConsoleUtil.WriteLine($"outcome: completed={diag.Completed} testWorkItems={diag.TestWorkItems} failed={diag.Failed} jobErrors={diag.HasJobErrors}");
+                return diag.Completed && !diag.HasJobErrors && diag.Failed == 0 ? ExitSuccess : ExitFailure;
+            }
+
             var options = Options.Parse(args);
             if (options == null)
             {
@@ -56,16 +68,17 @@ namespace RunTests
                     return ExitSuccess;
                 }
 
-                // Do NOT record here. On a submit-and-forget pipeline (dnceng-public roslyn-CI)
-                // RunAsync returns as soon as the Helix job is SUBMITTED -- the work items run
-                // asynchronously on Helix afterward, so a zero exit means "submitted", not "passed".
-                // Recording a PASS here caches assemblies whose tests have not run yet, and a run with
-                // failing work items would still be recorded green (verified: a cold run with 5 failing
-                // work items still recorded PASS for every assembly). Helix-leg records must be gated on
-                // the actual work-item results (poll the Helix job by id and record only exit-0 items);
-                // until that exists, Helix legs filter against prior records but never create new ones.
-                // The local runner path below DOES wait for results, so it records there.
-                return await HelixTestRunner.RunAsync(options, toRun);
+                // RunAsync submits the Helix job and then waits for its work items to finish, returning
+                // success only if every work item passed. Recording here is therefore sound: a PASS is
+                // stored only when the tests actually ran green. A failure (or unverifiable result)
+                // records nothing, so the affected assemblies re-run next time.
+                var helixResult = await HelixTestRunner.RunAsync(options, toRun);
+                if (helixResult == ExitSuccess)
+                {
+                    TestSkip.RecordPasses(toRun, fingerprints, options);
+                }
+
+                return helixResult;
             }
 
             if (options.CollectDumps)

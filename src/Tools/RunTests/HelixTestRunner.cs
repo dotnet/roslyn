@@ -77,19 +77,33 @@ internal sealed class HelixTestRunner
         };
 
         var helixProjectFilePath = await CreateHelixArtifactsAsync(options, assemblies, cts.Token).ConfigureAwait(false);
-        var process = StartHelixJob(options, helixProjectFilePath);
+        var jobIds = new List<string>();
+        var process = StartHelixJob(options, helixProjectFilePath, jobIds);
         try
         {
             await process.WaitForExitAsync(cts.Token);
             var exitCode = process.ExitCode;
-            if (exitCode == 0)
+            if (exitCode != 0)
             {
-                ConsoleUtil.WriteLine(
-                    ConsoleColor.Green,
-                    "Helix jobs were submitted successfully. Follow the 'Monitor Helix Jobs' job in this stage for status and automatic retries.");
+                // The submission itself failed.
+                return exitCode;
             }
 
-            return exitCode;
+            // Submission only queues the job; on a submit-and-forget queue the work items run on Helix
+            // afterward, so a zero exit here means "submitted", not "passed". Wait for the work items and
+            // reflect their real result, so the caller's decision to record a closure-fingerprint PASS is
+            // gated on tests actually passing. A leg with any failing work item returns non-zero and
+            // records nothing, so it re-runs next time.
+            ConsoleUtil.WriteLine(ConsoleColor.Green, "Helix job submitted; waiting for work items to finish...");
+            var passed = await HelixResults.AllTestsPassedAsync(jobIds, WorkItemExecutionTimeout * 4, cts.Token).ConfigureAwait(false);
+            if (!passed)
+            {
+                ConsoleUtil.WriteLine(ConsoleColor.Red, "One or more Helix work items failed, or results could not be verified.");
+                return 1;
+            }
+
+            ConsoleUtil.WriteLine(ConsoleColor.Green, "All Helix work items passed.");
+            return 0;
         }
         finally
         {
@@ -153,7 +167,7 @@ internal sealed class HelixTestRunner
     /// <summary>
     /// Constructs the dotnet build arguments and launches the Helix submission process.
     /// </summary>
-    internal static Process StartHelixJob(Options options, string helixProjectFilePath)
+    internal static Process StartHelixJob(Options options, string helixProjectFilePath, List<string> jobIds)
     {
         var logsDir = Path.Combine(options.ArtifactsDirectory, "log", options.Configuration);
         var arguments = $"build -bl:{Path.Combine(logsDir, "helix.binlog")} {helixProjectFilePath}";
@@ -187,6 +201,27 @@ internal sealed class HelixTestRunner
         {
             if (e.Data is null)
                 return;
+
+            // The generated helix project prints "HelixJobId=<guid>" (see PrintHelixJobId). Capture it
+            // so the caller can poll the job for its real work-item results after submission returns.
+            const string marker = "HelixJobId=";
+            var markerIndex = e.Data.IndexOf(marker, StringComparison.Ordinal);
+            if (markerIndex >= 0)
+            {
+                var id = e.Data.Substring(markerIndex + marker.Length).Trim();
+                if (id.Length >= 36)
+                {
+                    id = id.Substring(0, 36);
+                }
+
+                if (id.Length > 0)
+                {
+                    lock (jobIds)
+                    {
+                        jobIds.Add(id);
+                    }
+                }
+            }
 
             ConsoleUtil.WriteLine(e.Data);
         };
