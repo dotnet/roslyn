@@ -863,7 +863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var memberToInitialize = member;
                             switch (member)
                             {
-                                case PropertySymbol { IsRequired: true }:
+                                case PropertySymbol { IsRequired: true } and not SourcePropertySymbolBase { BackingField: { } }:
                                     break;
                                 case PropertySymbol:
                                     // skip any manually implemented non-required properties.

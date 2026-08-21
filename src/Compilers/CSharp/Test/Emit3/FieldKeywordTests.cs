@@ -12998,7 +12998,6 @@ class C<T>
         public void Nullable_Resilient_InitialStateInConstructor_04()
         {
             // Test behaviors of a required null-resilient property
-            // Note: the diagnostics seem unexpected
             var source = """
                 #nullable enable
 
@@ -13008,7 +13007,7 @@ class C<T>
 
                     public C(bool ignored)
                     {
-                        Prop1.ToString(); // 1
+                        Prop1.ToString();
                     }
 
                     public C() : this(false)
@@ -13047,17 +13046,13 @@ class C<T>
                 }
                 """;
             var comp = CreateCompilation([source, RequiredMemberAttribute, CompilerFeatureRequiredAttribute, SetsRequiredMembersAttribute]);
-            comp.VerifyEmitDiagnostics(
-                // (9,9): warning CS8602: Dereference of a possibly null reference.
-                //         Prop1.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop1").WithLocation(9, 9));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77991")]
         public void Nullable_Resilient_InitialStateInConstructor_05()
         {
             // Test behaviors of a required null-resilient property with SetsRequiredMembers on constructors
-            // Note: the diagnostics seem unexpected
             var source = """
                 #nullable enable
                 using System.Diagnostics.CodeAnalysis;
@@ -13069,12 +13064,12 @@ class C<T>
                     [SetsRequiredMembers]
                     public C(bool ignored)
                     {
-                        Prop1.ToString(); // 1
+                        Prop1.ToString();
                     }
 
                     public C(int ignored)
                     {
-                        Prop1.ToString(); // 2
+                        Prop1.ToString();
                     }
 
                     [SetsRequiredMembers]
@@ -13139,13 +13134,7 @@ class C<T>
                 }
                 """;
             var comp = CreateCompilation([source, RequiredMemberAttribute, CompilerFeatureRequiredAttribute, SetsRequiredMembersAttribute]);
-            comp.VerifyEmitDiagnostics(
-                // (11,9): warning CS8602: Dereference of a possibly null reference.
-                //         Prop1.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop1").WithLocation(11, 9),
-                // (16,9): warning CS8602: Dereference of a possibly null reference.
-                //         Prop1.ToString(); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop1").WithLocation(16, 9));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84957")]
