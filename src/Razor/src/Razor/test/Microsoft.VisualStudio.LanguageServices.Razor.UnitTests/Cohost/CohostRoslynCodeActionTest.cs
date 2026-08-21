@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.Settings;
@@ -658,7 +659,8 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
                  @code
                  {
                      private string componentName = nameof(Component);
-                         internal object newField;
+
+                     internal object newField;
                  }
  
                  The end.
@@ -736,26 +738,43 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
 
         var workspaceEdit = resolvedCodeAction.Edit.AssumeNotNull();
 
-        var generatedDoc = await project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(razorDocument, DisposalToken);
-        Assert.NotNull(generatedDoc);
-        var generatedSourceText = await generatedDoc.GetTextAsync(DisposalToken);
-
-        var modifiedGeneratedSourceText = generatedSourceText
-            .WithChanges(
-                workspaceEdit.EnumerateTextDocumentEdits()
-                    .Where(e => e.TextDocument.DocumentUri == generatedDoc.GetURI())
-                    .SelectMany(e => e.Edits)
-                    .Select(e => generatedSourceText.GetTextChange((TextEdit)e)));
-
         // Normally in VS, TryApplyChanges would be called, and that calls into our edit mapping service.
-        var modifiedGeneratedDoc = (SourceGeneratedDocument)generatedDoc.WithText(modifiedGeneratedSourceText);
+        var generatedDocs = await project.TryGetSourceGeneratedDocumentsForRazorDocumentAsync(razorDocument, DisposalToken);
+        Assert.NotNull(generatedDocs);
         var mappingService = new RazorSourceGeneratedDocumentSpanMappingService(RemoteServiceInvoker);
-        var changes = await mappingService.GetMappedTextChangesAsync(generatedDoc, modifiedGeneratedDoc, DisposalToken);
+        var implChanges = await GetMappedTextChangesAsync(workspaceEdit, mappingService, generatedDocs.Value.ImplDoc);
+        var declChanges = generatedDocs.Value.DeclDoc is { } declDoc
+            ? await GetMappedTextChangesAsync(workspaceEdit, mappingService, declDoc)
+            : [];
+        var changes = implChanges.Concat(declChanges).ToArray();
 
         var razorText = await razorDocument.GetTextAsync(DisposalToken);
         Assert.All(changes, change => Assert.Equal(razorDocument.FilePath, change.MappedFilePath));
         razorText = razorText.WithChanges(changes.Select(change => change.TextChange));
 
         AssertEx.EqualOrDiff(expectedRazorFile.Text, razorText.ToString());
+    }
+
+    private async Task<MappedTextChange[]> GetMappedTextChangesAsync(
+        WorkspaceEdit workspaceEdit,
+        RazorSourceGeneratedDocumentSpanMappingService mappingService,
+        SourceGeneratedDocument generatedDoc)
+    {
+        var generatedSourceText = await generatedDoc.GetTextAsync(DisposalToken);
+        var textChanges = workspaceEdit.EnumerateTextDocumentEdits()
+            .Where(e => e.TextDocument.DocumentUri == generatedDoc.GetURI())
+            .SelectMany(e => e.Edits)
+            .Select(e => generatedSourceText.GetTextChange((TextEdit)e))
+            .ToArray();
+
+        if (textChanges.Length == 0)
+        {
+            return [];
+        }
+
+        var modifiedGeneratedSourceText = generatedSourceText.WithChanges(textChanges);
+        var modifiedGeneratedDoc = generatedDoc.WithText(modifiedGeneratedSourceText);
+        var mappedTextChanges = await mappingService.GetMappedTextChangesAsync(generatedDoc, modifiedGeneratedDoc, DisposalToken);
+        return mappedTextChanges.ToArray();
     }
 }

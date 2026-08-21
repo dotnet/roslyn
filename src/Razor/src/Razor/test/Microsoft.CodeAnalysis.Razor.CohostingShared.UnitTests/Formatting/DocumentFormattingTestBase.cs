@@ -12,7 +12,9 @@ using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Cohost;
+#if NETFRAMEWORK
 using Microsoft.CodeAnalysis.Razor.Formatting;
+#endif
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Settings;
@@ -21,6 +23,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 
@@ -51,7 +54,7 @@ public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHel
             //var snapshotManager = OOPExportProvider.GetExportedValue<RemoteSnapshotManager>();
             //var snapshot = snapshotManager.GetSnapshot(document);
             //var codeDocument = await snapshot.GetGeneratedOutputAsync(DisposalToken);
-            //var csharpDocument = codeDocument.GetCSharpDocument();
+            //var csharpDocument = codeDocument.GetImplCSharpDocument();
             //Assert.False(csharpDocument.Diagnostics.Any(), "Error creating document:" + Environment.NewLine + string.Join(Environment.NewLine, csharpDocument.Diagnostics));
         }
 

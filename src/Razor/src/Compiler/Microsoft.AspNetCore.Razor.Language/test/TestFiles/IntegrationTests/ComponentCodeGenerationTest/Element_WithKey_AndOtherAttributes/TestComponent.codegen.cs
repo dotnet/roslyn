@@ -41,18 +41,6 @@ someObject
             __builder.CloseElement();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (3,8)-(7,5) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-        private object someObject = new object();
-
-        [Parameter] public int Min { get; set; }
-    
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591
