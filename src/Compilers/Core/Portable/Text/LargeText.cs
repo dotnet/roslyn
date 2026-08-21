@@ -52,6 +52,9 @@ namespace Microsoft.CodeAnalysis.Text
         {
         }
 
+        internal static SourceText Decode(Stream stream, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, bool throwIfBinaryDetected, bool canBeEmbedded)
+            => Decode(stream, encoding, checksumAlgorithm, throwIfBinaryDetected, canBeEmbedded, embeddedTextBlob: default);
+
         internal static SourceText Decode(
             Stream stream,
             Encoding encoding,
