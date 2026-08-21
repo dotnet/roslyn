@@ -58,6 +58,7 @@ public MyService(IDependency dependency) { }
 ## Out-of-Process (OOP) Services
 
 - ServiceHub components live under `src/Workspaces/Remote/` and have special deployment considerations for .NET Core vs .NET Framework — keep both targets in mind when changing remote services
+- Stateful LSP services may implement `IDisposable` or `IAsyncDisposable`; server exit tracks and disposes them, preferring asynchronous disposal when both interfaces are implemented. Stateless LSP services remain owned by the MEF container.
 
 ## Key Development Patterns
 
