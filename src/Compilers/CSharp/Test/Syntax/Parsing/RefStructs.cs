@@ -6,6 +6,7 @@
 
 using Xunit;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -80,21 +81,21 @@ class Program
 
             var comp = CreateCompilationWithMscorlib461(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
-                // (4,9): error CS1031: Type expected
+                // (4,15): error CS0106: The modifier 'ref' is not valid for this item
                 //     ref class S1{}
-                Diagnostic(ErrorCode.ERR_TypeExpected, "class"),
-                // (6,16): error CS1031: Type expected
-                //     public ref unsafe struct S2{}
-                Diagnostic(ErrorCode.ERR_TypeExpected, "unsafe"),
-                // (8,9): error CS1031: Type expected
-                //     ref interface I1{};
-                Diagnostic(ErrorCode.ERR_TypeExpected, "interface").WithLocation(8, 9),
-                // (10,16): error CS1031: Type expected
-                //     public ref delegate ref int D1();
-                Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(10, 16),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "S1").WithArguments("ref").WithLocation(4, 15),
                 // (6,30): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 //     public ref unsafe struct S2{}
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "S2")
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "S2").WithLocation(6, 30),
+                // (6,12): error CS1585: Member modifier 'ref' must precede the member type and name
+                //     public ref unsafe struct S2{}
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(6, 12),
+                // (8,19): error CS0106: The modifier 'ref' is not valid for this item
+                //     ref interface I1{};
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I1").WithArguments("ref").WithLocation(8, 19),
+                // (10,33): error CS0106: The modifier 'ref' is not valid for this item
+                //     public ref delegate ref int D1();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "D1").WithArguments("ref").WithLocation(10, 33)
             );
         }
 
@@ -102,25 +103,12 @@ class Program
         public void RefModifierRecovery_Class()
         {
             const string source = "ref class C { }";
-            UsingTree(source,
-                // (1,5): error CS1031: Type expected
-                // ref class C { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "class").WithLocation(1, 5));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.ClassDeclaration);
                 {
+                    N(SyntaxKind.RefKeyword);
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
@@ -131,34 +119,19 @@ class Program
             EOF();
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,5): error CS1031: Type expected
-                // ref class C { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "class").WithLocation(1, 5));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("ref"));
         }
 
         [Fact]
         public void RefModifierRecovery_Interface()
         {
             const string source = "ref interface I { }";
-            UsingTree(source,
-                // (1,5): error CS1031: Type expected
-                // ref interface I { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "interface").WithLocation(1, 5));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.InterfaceDeclaration);
                 {
+                    N(SyntaxKind.RefKeyword);
                     N(SyntaxKind.InterfaceKeyword);
                     N(SyntaxKind.IdentifierToken, "I");
                     N(SyntaxKind.OpenBraceToken);
@@ -169,34 +142,19 @@ class Program
             EOF();
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,5): error CS1031: Type expected
-                // ref interface I { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "interface").WithLocation(1, 5));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I").WithArguments("ref"));
         }
 
         [Fact]
         public void RefModifierRecovery_Enum()
         {
             const string source = "ref enum E { }";
-            UsingTree(source,
-                // (1,5): error CS1031: Type expected
-                // ref enum E { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "enum").WithLocation(1, 5));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.EnumDeclaration);
                 {
+                    N(SyntaxKind.RefKeyword);
                     N(SyntaxKind.EnumKeyword);
                     N(SyntaxKind.IdentifierToken, "E");
                     N(SyntaxKind.OpenBraceToken);
@@ -207,34 +165,19 @@ class Program
             EOF();
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,5): error CS1031: Type expected
-                // ref enum E { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "enum").WithLocation(1, 5));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("ref"));
         }
 
         [Fact]
         public void RefModifierRecovery_Delegate()
         {
             const string source = "ref delegate void D();";
-            UsingTree(source,
-                // (1,5): error CS1031: Type expected
-                // ref delegate void D();
-                Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(1, 5));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.DelegateDeclaration);
                 {
+                    N(SyntaxKind.RefKeyword);
                     N(SyntaxKind.DelegateKeyword);
                     N(SyntaxKind.PredefinedType);
                     {
@@ -253,9 +196,7 @@ class Program
             EOF();
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,5): error CS1031: Type expected
-                // ref delegate void D();
-                Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(1, 5));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "D").WithArguments("ref"));
         }
 
         [Fact]
@@ -386,12 +327,9 @@ class Program
 
         [Theory]
         [InlineData("record", LanguageVersion.CSharp8)]
-        [InlineData("record", LanguageVersion.CSharp9)]
         [InlineData("union", LanguageVersion.CSharp14)]
-        [InlineData("union", LanguageVersion.CSharp15)]
         [InlineData("extension", LanguageVersion.CSharp13)]
-        [InlineData("extension", LanguageVersion.CSharp14)]
-        public void RefReadonlyContextualKeywordRemainsReturnType(string contextualKeyword, LanguageVersion languageVersion)
+        public void RefReadonlyContextualKeywordRemainsReturnTypeBeforeFeature(string contextualKeyword, LanguageVersion languageVersion)
         {
             var source = $$"""
                 #pragma warning disable CS8860, CS8981
@@ -442,6 +380,24 @@ class Program
         }
 
         [Theory]
+        [InlineData("record", LanguageVersion.CSharp9, SyntaxKind.RecordDeclaration)]
+        [InlineData("union", LanguageVersion.CSharp15, SyntaxKind.UnionDeclaration)]
+        [InlineData("extension", LanguageVersion.CSharp14, SyntaxKind.ExtensionBlockDeclaration)]
+        public void RefReadonlyContextualKeywordParsingEnabled(
+            string contextualKeyword, LanguageVersion languageVersion, SyntaxKind expectedMemberKind)
+        {
+            var source = $"class C {{ ref readonly {contextualKeyword} M(); }}";
+            var tree = ParseTree(source, TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            var root = tree.GetCompilationUnitRoot();
+            var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
+            Assert.Equal(expectedMemberKind, Assert.Single(containingType.Members).Kind());
+            Assert.Contains(
+                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).GetDiagnostics(),
+                diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+        }
+
+        [Theory]
         [InlineData("record", LanguageVersion.CSharp8)]
         [InlineData("union", LanguageVersion.CSharp14)]
         [InlineData("extension", LanguageVersion.CSharp13)]
@@ -458,12 +414,7 @@ class Program
                 """;
             var options = TestOptions.Regular.WithLanguageVersion(languageVersion);
             CreateCompilation(source, parseOptions: options).VerifyDiagnostics(
-                // (1,7): warning CS8981: The type name 'extension' only contains lower-cased ascii characters. Such names may become reserved for the language.
-                // class extension { }
-                // (1,7): warning CS8981: The type name 'union' only contains lower-cased ascii characters. Such names may become reserved for the language.
-                // class union { }
-                // (1,7): warning CS8981: The type name 'record' only contains lower-cased ascii characters. Such names may become reserved for the language.
-                // class record { }
+                // (1,7): warning CS8981: The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
                 Diagnostic(ErrorCode.WRN_LowerCaseTypeName, contextualKeyword).WithArguments(contextualKeyword).WithLocation(1, 7));
 
             UsingTree(source, options);
@@ -554,12 +505,9 @@ class Program
 
         [Theory]
         [InlineData("record", LanguageVersion.CSharp8)]
-        [InlineData("record", LanguageVersion.CSharp9)]
         [InlineData("union", LanguageVersion.CSharp14)]
-        [InlineData("union", LanguageVersion.CSharp15)]
         [InlineData("extension", LanguageVersion.CSharp13)]
-        [InlineData("extension", LanguageVersion.CSharp14)]
-        public void RefReadonlyContextualKeywordRemainsPropertyType(string contextualKeyword, LanguageVersion languageVersion)
+        public void RefReadonlyContextualKeywordRemainsPropertyTypeBeforeFeature(string contextualKeyword, LanguageVersion languageVersion)
         {
             var source = $$"""
                 #pragma warning disable CS8860, CS8981
@@ -613,17 +561,31 @@ class Program
             EOF();
         }
 
+        [Theory]
+        [InlineData("record", LanguageVersion.CSharp9, SyntaxKind.RecordDeclaration)]
+        [InlineData("union", LanguageVersion.CSharp15, SyntaxKind.UnionDeclaration)]
+        [InlineData("extension", LanguageVersion.CSharp14, SyntaxKind.ExtensionBlockDeclaration)]
+        public void RefReadonlyContextualKeywordPropertyParsingEnabled(
+            string contextualKeyword, LanguageVersion languageVersion, SyntaxKind expectedMemberKind)
+        {
+            var source = $"class C {{ ref readonly {contextualKeyword} A {{ get; }} }}";
+            var tree = ParseTree(source, TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            var root = tree.GetCompilationUnitRoot();
+            var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
+            Assert.Equal(expectedMemberKind, Assert.Single(containingType.Members).Kind());
+            Assert.Contains(
+                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).GetDiagnostics(),
+                diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+        }
+
         [Fact]
         public void ModifierParsing_Class_Readonly()
         {
             const string source = "readonly class R { } class C { readonly class R { } }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,16): error CS0106: The modifier 'readonly' is not valid for this item
-                // readonly class R { } class C { readonly class R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 16),
-                // (1,47): error CS0106: The modifier 'readonly' is not valid for this item
-                // readonly class R { } class C { readonly class R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 47));
             UsingTree(source);
             N(SyntaxKind.CompilationUnit);
@@ -662,34 +624,14 @@ class Program
             const string source = "ref class R { } class C { ref class R { } }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,5): error CS1031: Type expected
-                // ref class R { } class C { ref class R { } }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "class").WithLocation(1, 5),
-                // (1,31): error CS1031: Type expected
-                // ref class R { } class C { ref class R { } }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "class").WithLocation(1, 31));
-            UsingTree(source,
-            // (1,5): error CS1031: Type expected
-            // ref class R { } class C { ref class R { } }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "class").WithLocation(1, 5),
-            // (1,31): error CS1031: Type expected
-            // ref class R { } class C { ref class R { } }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "class").WithLocation(1, 31));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 11),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 37));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.ClassDeclaration);
                 {
+                    N(SyntaxKind.RefKeyword);
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "R");
                     N(SyntaxKind.OpenBraceToken);
@@ -700,19 +642,9 @@ class Program
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                    }
                     N(SyntaxKind.ClassDeclaration);
                     {
+                        N(SyntaxKind.RefKeyword);
                         N(SyntaxKind.ClassKeyword);
                         N(SyntaxKind.IdentifierToken, "R");
                         N(SyntaxKind.OpenBraceToken);
@@ -731,35 +663,17 @@ class Program
             const string source = "ref readonly class R { } class C { ref readonly class R { } }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,14): error CS1031: Type expected
-                // ref readonly class R { } class C { ref readonly class R { } }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "class").WithLocation(1, 14),
-                // (1,49): error CS1031: Type expected
-                // ref readonly class R { } class C { ref readonly class R { } }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "class").WithLocation(1, 49));
-            UsingTree(source,
-            // (1,14): error CS1031: Type expected
-            // ref readonly class R { } class C { ref readonly class R { } }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "class").WithLocation(1, 14),
-            // (1,49): error CS1031: Type expected
-            // ref readonly class R { } class C { ref readonly class R { } }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "class").WithLocation(1, 49));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 20),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 20),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 55),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 55));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.ClassDeclaration);
                 {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ReadOnlyKeyword);
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "R");
                     N(SyntaxKind.OpenBraceToken);
@@ -770,20 +684,10 @@ class Program
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.ReadOnlyKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                    }
                     N(SyntaxKind.ClassDeclaration);
                     {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
                         N(SyntaxKind.ClassKeyword);
                         N(SyntaxKind.IdentifierToken, "R");
                         N(SyntaxKind.OpenBraceToken);
@@ -876,35 +780,15 @@ class Program
             const string source = "ref readonly struct R { } class C { ref readonly struct R { } }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,14): error CS1031: Type expected
-                // ref readonly struct R { } class C { ref readonly struct R { } }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(1, 14),
-                // (1,50): error CS1031: Type expected
-                // ref readonly struct R { } class C { ref readonly struct R { } }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(1, 50));
-            UsingTree(source,
-            // (1,14): error CS1031: Type expected
-            // ref readonly struct R { } class C { ref readonly struct R { } }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(1, 14),
-            // (1,50): error CS1031: Type expected
-            // ref readonly struct R { } class C { ref readonly struct R { } }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(1, 50));
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 37));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.StructDeclaration);
                 {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ReadOnlyKeyword);
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "R");
                     N(SyntaxKind.OpenBraceToken);
@@ -915,20 +799,10 @@ class Program
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.ReadOnlyKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                    }
                     N(SyntaxKind.StructDeclaration);
                     {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
                         N(SyntaxKind.StructKeyword);
                         N(SyntaxKind.IdentifierToken, "R");
                         N(SyntaxKind.OpenBraceToken);
@@ -947,11 +821,7 @@ class Program
             const string source = "readonly interface R { } class C { readonly interface R { } }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,20): error CS0106: The modifier 'readonly' is not valid for this item
-                // readonly interface R { } class C { readonly interface R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 20),
-                // (1,55): error CS0106: The modifier 'readonly' is not valid for this item
-                // readonly interface R { } class C { readonly interface R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 55));
             UsingTree(source);
             N(SyntaxKind.CompilationUnit);
@@ -990,34 +860,14 @@ class Program
             const string source = "ref interface R { } class C { ref interface R { } }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,5): error CS1031: Type expected
-                // ref interface R { } class C { ref interface R { } }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "interface").WithLocation(1, 5),
-                // (1,35): error CS1031: Type expected
-                // ref interface R { } class C { ref interface R { } }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "interface").WithLocation(1, 35));
-            UsingTree(source,
-            // (1,5): error CS1031: Type expected
-            // ref interface R { } class C { ref interface R { } }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "interface").WithLocation(1, 5),
-            // (1,35): error CS1031: Type expected
-            // ref interface R { } class C { ref interface R { } }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "interface").WithLocation(1, 35));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 15),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 45));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.InterfaceDeclaration);
                 {
+                    N(SyntaxKind.RefKeyword);
                     N(SyntaxKind.InterfaceKeyword);
                     N(SyntaxKind.IdentifierToken, "R");
                     N(SyntaxKind.OpenBraceToken);
@@ -1028,19 +878,9 @@ class Program
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                    }
                     N(SyntaxKind.InterfaceDeclaration);
                     {
+                        N(SyntaxKind.RefKeyword);
                         N(SyntaxKind.InterfaceKeyword);
                         N(SyntaxKind.IdentifierToken, "R");
                         N(SyntaxKind.OpenBraceToken);
@@ -1059,35 +899,17 @@ class Program
             const string source = "ref readonly interface R { } class C { ref readonly interface R { } }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,14): error CS1031: Type expected
-                // ref readonly interface R { } class C { ref readonly interface R { } }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "interface").WithLocation(1, 14),
-                // (1,53): error CS1031: Type expected
-                // ref readonly interface R { } class C { ref readonly interface R { } }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "interface").WithLocation(1, 53));
-            UsingTree(source,
-            // (1,14): error CS1031: Type expected
-            // ref readonly interface R { } class C { ref readonly interface R { } }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "interface").WithLocation(1, 14),
-            // (1,53): error CS1031: Type expected
-            // ref readonly interface R { } class C { ref readonly interface R { } }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "interface").WithLocation(1, 53));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 24),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 24),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 63),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 63));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.InterfaceDeclaration);
                 {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ReadOnlyKeyword);
                     N(SyntaxKind.InterfaceKeyword);
                     N(SyntaxKind.IdentifierToken, "R");
                     N(SyntaxKind.OpenBraceToken);
@@ -1098,20 +920,10 @@ class Program
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.ReadOnlyKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                    }
                     N(SyntaxKind.InterfaceDeclaration);
                     {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
                         N(SyntaxKind.InterfaceKeyword);
                         N(SyntaxKind.IdentifierToken, "R");
                         N(SyntaxKind.OpenBraceToken);
@@ -1130,11 +942,7 @@ class Program
             const string source = "readonly enum R { } class C { readonly enum R { } }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,15): error CS0106: The modifier 'readonly' is not valid for this item
-                // readonly enum R { } class C { readonly enum R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 15),
-                // (1,45): error CS0106: The modifier 'readonly' is not valid for this item
-                // readonly enum R { } class C { readonly enum R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 45));
             UsingTree(source);
             N(SyntaxKind.CompilationUnit);
@@ -1173,34 +981,14 @@ class Program
             const string source = "ref enum R { } class C { ref enum R { } }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,5): error CS1031: Type expected
-                // ref enum R { } class C { ref enum R { } }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "enum").WithLocation(1, 5),
-                // (1,30): error CS1031: Type expected
-                // ref enum R { } class C { ref enum R { } }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "enum").WithLocation(1, 30));
-            UsingTree(source,
-            // (1,5): error CS1031: Type expected
-            // ref enum R { } class C { ref enum R { } }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "enum").WithLocation(1, 5),
-            // (1,30): error CS1031: Type expected
-            // ref enum R { } class C { ref enum R { } }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "enum").WithLocation(1, 30));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 10),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 35));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.EnumDeclaration);
                 {
+                    N(SyntaxKind.RefKeyword);
                     N(SyntaxKind.EnumKeyword);
                     N(SyntaxKind.IdentifierToken, "R");
                     N(SyntaxKind.OpenBraceToken);
@@ -1211,19 +999,9 @@ class Program
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                    }
                     N(SyntaxKind.EnumDeclaration);
                     {
+                        N(SyntaxKind.RefKeyword);
                         N(SyntaxKind.EnumKeyword);
                         N(SyntaxKind.IdentifierToken, "R");
                         N(SyntaxKind.OpenBraceToken);
@@ -1242,35 +1020,17 @@ class Program
             const string source = "ref readonly enum R { } class C { ref readonly enum R { } }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,14): error CS1031: Type expected
-                // ref readonly enum R { } class C { ref readonly enum R { } }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "enum").WithLocation(1, 14),
-                // (1,48): error CS1031: Type expected
-                // ref readonly enum R { } class C { ref readonly enum R { } }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "enum").WithLocation(1, 48));
-            UsingTree(source,
-            // (1,14): error CS1031: Type expected
-            // ref readonly enum R { } class C { ref readonly enum R { } }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "enum").WithLocation(1, 14),
-            // (1,48): error CS1031: Type expected
-            // ref readonly enum R { } class C { ref readonly enum R { } }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "enum").WithLocation(1, 48));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 19),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 19),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 53),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 53));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.EnumDeclaration);
                 {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ReadOnlyKeyword);
                     N(SyntaxKind.EnumKeyword);
                     N(SyntaxKind.IdentifierToken, "R");
                     N(SyntaxKind.OpenBraceToken);
@@ -1281,20 +1041,10 @@ class Program
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.ReadOnlyKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                    }
                     N(SyntaxKind.EnumDeclaration);
                     {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
                         N(SyntaxKind.EnumKeyword);
                         N(SyntaxKind.IdentifierToken, "R");
                         N(SyntaxKind.OpenBraceToken);
@@ -1313,11 +1063,7 @@ class Program
             const string source = "readonly delegate void R(); class C { readonly delegate void R(); }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,24): error CS0106: The modifier 'readonly' is not valid for this item
-                // readonly delegate void R(); class C { readonly delegate void R(); }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 24),
-                // (1,62): error CS0106: The modifier 'readonly' is not valid for this item
-                // readonly delegate void R(); class C { readonly delegate void R(); }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 62));
             UsingTree(source);
             N(SyntaxKind.CompilationUnit);
@@ -1372,34 +1118,14 @@ class Program
             const string source = "ref delegate void R(); class C { ref delegate void R(); }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,5): error CS1031: Type expected
-                // ref delegate void R(); class C { ref delegate void R(); }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(1, 5),
-                // (1,38): error CS1031: Type expected
-                // ref delegate void R(); class C { ref delegate void R(); }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(1, 38));
-            UsingTree(source,
-            // (1,5): error CS1031: Type expected
-            // ref delegate void R(); class C { ref delegate void R(); }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(1, 5),
-            // (1,38): error CS1031: Type expected
-            // ref delegate void R(); class C { ref delegate void R(); }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(1, 38));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 19),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 52));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.DelegateDeclaration);
                 {
+                    N(SyntaxKind.RefKeyword);
                     N(SyntaxKind.DelegateKeyword);
                     N(SyntaxKind.PredefinedType);
                     {
@@ -1418,19 +1144,9 @@ class Program
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                    }
                     N(SyntaxKind.DelegateDeclaration);
                     {
+                        N(SyntaxKind.RefKeyword);
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.PredefinedType);
                         {
@@ -1457,35 +1173,17 @@ class Program
             const string source = "ref readonly delegate void R(); class C { ref readonly delegate void R(); }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,14): error CS1031: Type expected
-                // ref readonly delegate void R(); class C { ref readonly delegate void R(); }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(1, 14),
-                // (1,56): error CS1031: Type expected
-                // ref readonly delegate void R(); class C { ref readonly delegate void R(); }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(1, 56));
-            UsingTree(source,
-            // (1,14): error CS1031: Type expected
-            // ref readonly delegate void R(); class C { ref readonly delegate void R(); }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(1, 14),
-            // (1,56): error CS1031: Type expected
-            // ref readonly delegate void R(); class C { ref readonly delegate void R(); }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(1, 56));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 28),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 28),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 70),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 70));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.DelegateDeclaration);
                 {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ReadOnlyKeyword);
                     N(SyntaxKind.DelegateKeyword);
                     N(SyntaxKind.PredefinedType);
                     {
@@ -1504,20 +1202,10 @@ class Program
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.ReadOnlyKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                    }
                     N(SyntaxKind.DelegateDeclaration);
                     {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.PredefinedType);
                         {
@@ -1544,26 +1232,12 @@ class Program
             const string source = "readonly record R { } class C { readonly record R { } }";
 
             CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8)).VerifyDiagnostics(
-                // (1,10): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
-                // readonly record R { } class C { readonly record R { } }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 10),
-                // (1,17): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
-                // readonly record R { } class C { readonly record R { } }
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "R").WithLocation(1, 17),
-                // (1,17): error CS0106: The modifier 'readonly' is not valid for this item
-                // readonly record R { } class C { readonly record R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 17),
-                // (1,17): error CS0548: '<invalid-global-code>.R': property or indexer must have at least one accessor
-                // readonly record R { } class C { readonly record R { } }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("<invalid-global-code>.R").WithLocation(1, 17),
-                // (1,42): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
-                // readonly record R { } class C { readonly record R { } }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 42),
-                // (1,49): error CS0106: The modifier 'readonly' is not valid for this item
-                // readonly record R { } class C { readonly record R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 49),
-                // (1,49): error CS0548: 'C.R': property or indexer must have at least one accessor
-                // readonly record R { } class C { readonly record R { } }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("C.R").WithLocation(1, 49));
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8));
             N(SyntaxKind.CompilationUnit);
@@ -1614,20 +1288,10 @@ class Program
             const string source = "ref record R { } class C { ref record R { } }";
 
             CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8)).VerifyDiagnostics(
-                // (1,5): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
-                // ref record R { } class C { ref record R { } }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 5),
-                // (1,12): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
-                // ref record R { } class C { ref record R { } }
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "R").WithLocation(1, 12),
-                // (1,12): error CS0548: '<invalid-global-code>.R': property or indexer must have at least one accessor
-                // ref record R { } class C { ref record R { } }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("<invalid-global-code>.R").WithLocation(1, 12),
-                // (1,32): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
-                // ref record R { } class C { ref record R { } }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 32),
-                // (1,39): error CS0548: 'C.R': property or indexer must have at least one accessor
-                // ref record R { } class C { ref record R { } }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("C.R").WithLocation(1, 39));
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8));
             N(SyntaxKind.CompilationUnit);
@@ -1684,20 +1348,10 @@ class Program
             const string source = "ref readonly record R { } class C { ref readonly record R { } }";
 
             CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8)).VerifyDiagnostics(
-                // (1,14): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
-                // ref readonly record R { } class C { ref readonly record R { } }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 14),
-                // (1,21): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
-                // ref readonly record R { } class C { ref readonly record R { } }
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "R").WithLocation(1, 21),
-                // (1,21): error CS0548: '<invalid-global-code>.R': property or indexer must have at least one accessor
-                // ref readonly record R { } class C { ref readonly record R { } }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("<invalid-global-code>.R").WithLocation(1, 21),
-                // (1,50): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
-                // ref readonly record R { } class C { ref readonly record R { } }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 50),
-                // (1,57): error CS0548: 'C.R': property or indexer must have at least one accessor
-                // ref readonly record R { } class C { ref readonly record R { } }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("C.R").WithLocation(1, 57));
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8));
             N(SyntaxKind.CompilationUnit);
@@ -1756,11 +1410,7 @@ class Program
             const string source = "readonly record R { } class C { readonly record R { } }";
 
             CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)).VerifyDiagnostics(
-                // (1,17): error CS0106: The modifier 'readonly' is not valid for this item
-                // readonly record R { } class C { readonly record R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 17),
-                // (1,49): error CS0106: The modifier 'readonly' is not valid for this item
-                // readonly record R { } class C { readonly record R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 49));
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             N(SyntaxKind.CompilationUnit);
@@ -1799,11 +1449,7 @@ class Program
             const string source = "ref record R { } class C { ref record R { } }";
 
             CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)).VerifyDiagnostics(
-                // (1,12): error CS0106: The modifier 'ref' is not valid for this item
-                // ref record R { } class C { ref record R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 12),
-                // (1,39): error CS0106: The modifier 'ref' is not valid for this item
-                // ref record R { } class C { ref record R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 39));
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             N(SyntaxKind.CompilationUnit);
@@ -1842,64 +1488,35 @@ class Program
             const string source = "ref readonly record R { } class C { ref readonly record R { } }";
 
             CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)).VerifyDiagnostics(
-                // (1,14): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
-                // ref readonly record R { } class C { ref readonly record R { } }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 14),
-                // (1,21): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
-                // ref readonly record R { } class C { ref readonly record R { } }
-                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "R").WithLocation(1, 21),
-                // (1,21): error CS0548: '<invalid-global-code>.R': property or indexer must have at least one accessor
-                // ref readonly record R { } class C { ref readonly record R { } }
-                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("<invalid-global-code>.R").WithLocation(1, 21),
-                // (1,50): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
-                // ref readonly record R { } class C { ref readonly record R { } }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 50),
-                // (1,57): error CS0548: 'C.R': property or indexer must have at least one accessor
-                // ref readonly record R { } class C { ref readonly record R { } }
-                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("C.R").WithLocation(1, 57));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 21),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 21),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 57),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 57));
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.RecordDeclaration);
                 {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "record");
-                        }
-                    }
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.RecordKeyword);
                     N(SyntaxKind.IdentifierToken, "R");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
-                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.PropertyDeclaration);
+                    N(SyntaxKind.RecordDeclaration);
                     {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.ReadOnlyKeyword);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "record");
-                            }
-                        }
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.RecordKeyword);
                         N(SyntaxKind.IdentifierToken, "R");
-                        N(SyntaxKind.AccessorList);
-                        {
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.CloseBraceToken);
-                        }
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
@@ -1914,26 +1531,12 @@ class Program
             const string source = "readonly union R { } class C { readonly union R { } }";
 
             CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp14)).VerifyDiagnostics(
-                // (1,10): error CS0246: The type or namespace name 'union' could not be found (are you missing a using directive or an assembly reference?)
-                // readonly union R { } class C { readonly union R { } }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "union").WithArguments("union").WithLocation(1, 10),
-                // (1,16): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
-                // readonly union R { } class C { readonly union R { } }
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "R").WithLocation(1, 16),
-                // (1,16): error CS0106: The modifier 'readonly' is not valid for this item
-                // readonly union R { } class C { readonly union R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 16),
-                // (1,16): error CS0548: '<invalid-global-code>.R': property or indexer must have at least one accessor
-                // readonly union R { } class C { readonly union R { } }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("<invalid-global-code>.R").WithLocation(1, 16),
-                // (1,41): error CS0246: The type or namespace name 'union' could not be found (are you missing a using directive or an assembly reference?)
-                // readonly union R { } class C { readonly union R { } }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "union").WithArguments("union").WithLocation(1, 41),
-                // (1,47): error CS0106: The modifier 'readonly' is not valid for this item
-                // readonly union R { } class C { readonly union R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 47),
-                // (1,47): error CS0548: 'C.R': property or indexer must have at least one accessor
-                // readonly union R { } class C { readonly union R { } }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("C.R").WithLocation(1, 47));
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp14));
             N(SyntaxKind.CompilationUnit);
@@ -1984,20 +1587,10 @@ class Program
             const string source = "ref union R { } class C { ref union R { } }";
 
             CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp14)).VerifyDiagnostics(
-                // (1,5): error CS0246: The type or namespace name 'union' could not be found (are you missing a using directive or an assembly reference?)
-                // ref union R { } class C { ref union R { } }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "union").WithArguments("union").WithLocation(1, 5),
-                // (1,11): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
-                // ref union R { } class C { ref union R { } }
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "R").WithLocation(1, 11),
-                // (1,11): error CS0548: '<invalid-global-code>.R': property or indexer must have at least one accessor
-                // ref union R { } class C { ref union R { } }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("<invalid-global-code>.R").WithLocation(1, 11),
-                // (1,31): error CS0246: The type or namespace name 'union' could not be found (are you missing a using directive or an assembly reference?)
-                // ref union R { } class C { ref union R { } }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "union").WithArguments("union").WithLocation(1, 31),
-                // (1,37): error CS0548: 'C.R': property or indexer must have at least one accessor
-                // ref union R { } class C { ref union R { } }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("C.R").WithLocation(1, 37));
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp14));
             N(SyntaxKind.CompilationUnit);
@@ -2054,20 +1647,10 @@ class Program
             const string source = "ref readonly union R { } class C { ref readonly union R { } }";
 
             CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp14)).VerifyDiagnostics(
-                // (1,14): error CS0246: The type or namespace name 'union' could not be found (are you missing a using directive or an assembly reference?)
-                // ref readonly union R { } class C { ref readonly union R { } }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "union").WithArguments("union").WithLocation(1, 14),
-                // (1,20): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
-                // ref readonly union R { } class C { ref readonly union R { } }
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "R").WithLocation(1, 20),
-                // (1,20): error CS0548: '<invalid-global-code>.R': property or indexer must have at least one accessor
-                // ref readonly union R { } class C { ref readonly union R { } }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("<invalid-global-code>.R").WithLocation(1, 20),
-                // (1,49): error CS0246: The type or namespace name 'union' could not be found (are you missing a using directive or an assembly reference?)
-                // ref readonly union R { } class C { ref readonly union R { } }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "union").WithArguments("union").WithLocation(1, 49),
-                // (1,55): error CS0548: 'C.R': property or indexer must have at least one accessor
-                // ref readonly union R { } class C { ref readonly union R { } }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("C.R").WithLocation(1, 55));
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp14));
             N(SyntaxKind.CompilationUnit);
@@ -2126,23 +1709,11 @@ class Program
             const string source = "readonly union R { } class C { readonly union R { } }";
 
             CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp15)).VerifyDiagnostics(
-                // (1,16): error CS0518: Predefined type 'System.Runtime.CompilerServices.IUnion' is not defined or imported
-                // readonly union R { } class C { readonly union R { } }
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "R").WithArguments("System.Runtime.CompilerServices.IUnion").WithLocation(1, 16),
-                // (1,16): error CS9370: A union declaration must specify at least one case type.
-                // readonly union R { } class C { readonly union R { } }
                 Diagnostic(ErrorCode.ERR_UnionDeclarationNeedsCaseTypes, "R").WithLocation(1, 16),
-                // (1,16): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.UnionAttribute..ctor'
-                // readonly union R { } class C { readonly union R { } }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "R").WithArguments("System.Runtime.CompilerServices.UnionAttribute", ".ctor").WithLocation(1, 16),
-                // (1,47): error CS0518: Predefined type 'System.Runtime.CompilerServices.IUnion' is not defined or imported
-                // readonly union R { } class C { readonly union R { } }
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "R").WithArguments("System.Runtime.CompilerServices.IUnion").WithLocation(1, 47),
-                // (1,47): error CS9370: A union declaration must specify at least one case type.
-                // readonly union R { } class C { readonly union R { } }
                 Diagnostic(ErrorCode.ERR_UnionDeclarationNeedsCaseTypes, "R").WithLocation(1, 47),
-                // (1,47): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.UnionAttribute..ctor'
-                // readonly union R { } class C { readonly union R { } }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "R").WithArguments("System.Runtime.CompilerServices.UnionAttribute", ".ctor").WithLocation(1, 47));
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp15));
             N(SyntaxKind.CompilationUnit);
@@ -2181,29 +1752,13 @@ class Program
             const string source = "ref union R { } class C { ref union R { } }";
 
             CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp15)).VerifyDiagnostics(
-                // (1,11): error CS0106: The modifier 'ref' is not valid for this item
-                // ref union R { } class C { ref union R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 11),
-                // (1,11): error CS0518: Predefined type 'System.Runtime.CompilerServices.IUnion' is not defined or imported
-                // ref union R { } class C { ref union R { } }
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "R").WithArguments("System.Runtime.CompilerServices.IUnion").WithLocation(1, 11),
-                // (1,11): error CS9370: A union declaration must specify at least one case type.
-                // ref union R { } class C { ref union R { } }
                 Diagnostic(ErrorCode.ERR_UnionDeclarationNeedsCaseTypes, "R").WithLocation(1, 11),
-                // (1,11): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.UnionAttribute..ctor'
-                // ref union R { } class C { ref union R { } }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "R").WithArguments("System.Runtime.CompilerServices.UnionAttribute", ".ctor").WithLocation(1, 11),
-                // (1,37): error CS0106: The modifier 'ref' is not valid for this item
-                // ref union R { } class C { ref union R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 37),
-                // (1,37): error CS0518: Predefined type 'System.Runtime.CompilerServices.IUnion' is not defined or imported
-                // ref union R { } class C { ref union R { } }
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "R").WithArguments("System.Runtime.CompilerServices.IUnion").WithLocation(1, 37),
-                // (1,37): error CS9370: A union declaration must specify at least one case type.
-                // ref union R { } class C { ref union R { } }
                 Diagnostic(ErrorCode.ERR_UnionDeclarationNeedsCaseTypes, "R").WithLocation(1, 37),
-                // (1,37): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.UnionAttribute..ctor'
-                // ref union R { } class C { ref union R { } }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "R").WithArguments("System.Runtime.CompilerServices.UnionAttribute", ".ctor").WithLocation(1, 37));
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp15));
             N(SyntaxKind.CompilationUnit);
@@ -2242,64 +1797,39 @@ class Program
             const string source = "ref readonly union R { } class C { ref readonly union R { } }";
 
             CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp15)).VerifyDiagnostics(
-                // (1,14): error CS0246: The type or namespace name 'union' could not be found (are you missing a using directive or an assembly reference?)
-                // ref readonly union R { } class C { ref readonly union R { } }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "union").WithArguments("union").WithLocation(1, 14),
-                // (1,20): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
-                // ref readonly union R { } class C { ref readonly union R { } }
-                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "R").WithLocation(1, 20),
-                // (1,20): error CS0548: '<invalid-global-code>.R': property or indexer must have at least one accessor
-                // ref readonly union R { } class C { ref readonly union R { } }
-                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("<invalid-global-code>.R").WithLocation(1, 20),
-                // (1,49): error CS0246: The type or namespace name 'union' could not be found (are you missing a using directive or an assembly reference?)
-                // ref readonly union R { } class C { ref readonly union R { } }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "union").WithArguments("union").WithLocation(1, 49),
-                // (1,55): error CS0548: 'C.R': property or indexer must have at least one accessor
-                // ref readonly union R { } class C { ref readonly union R { } }
-                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("C.R").WithLocation(1, 55));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 20),
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "R").WithArguments("System.Runtime.CompilerServices.IUnion").WithLocation(1, 20),
+                Diagnostic(ErrorCode.ERR_UnionDeclarationNeedsCaseTypes, "R").WithLocation(1, 20),
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "R").WithArguments("System.Runtime.CompilerServices.UnionAttribute", ".ctor").WithLocation(1, 20),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 55),
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "R").WithArguments("System.Runtime.CompilerServices.IUnion").WithLocation(1, 55),
+                Diagnostic(ErrorCode.ERR_UnionDeclarationNeedsCaseTypes, "R").WithLocation(1, 55),
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "R").WithArguments("System.Runtime.CompilerServices.UnionAttribute", ".ctor").WithLocation(1, 55));
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp15));
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.UnionDeclaration);
                 {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "union");
-                        }
-                    }
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.UnionKeyword);
                     N(SyntaxKind.IdentifierToken, "R");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
-                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.PropertyDeclaration);
+                    N(SyntaxKind.UnionDeclaration);
                     {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.ReadOnlyKeyword);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "union");
-                            }
-                        }
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.UnionKeyword);
                         N(SyntaxKind.IdentifierToken, "R");
-                        N(SyntaxKind.AccessorList);
-                        {
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.CloseBraceToken);
-                        }
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
@@ -2309,7 +1839,7 @@ class Program
         }
 
         [Fact]
-        public void RefReadonlyRecordReturnType_BindsAsBefore()
+        public void RefReadonlyRecordReturnType_BreakingParsingChange()
         {
             var source = """
                 #pragma warning disable CS8860
@@ -2321,52 +1851,49 @@ class Program
                 }
                 """;
 
-            UsingTree(source, TestOptions.Regular9);
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("readonly").WithLocation(6, 32),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("ref").WithLocation(6, 32),
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "=>").WithLocation(6, 36),
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(6, 36),
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 36));
+        }
+
+        [Fact]
+        public void PartialRefStruct()
+        {
+            const string text = @"
+class Program
+{
+    partial ref struct S {}
+    partial ref struct S {}
+}
+";
+            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken, "record");
+                    N(SyntaxKind.IdentifierToken, "Program");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.CloseBraceToken);
-                }
-                N(SyntaxKind.ClassDeclaration);
-                {
-                    N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken, "C");
-                    N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.MethodDeclaration);
+                    N(SyntaxKind.StructDeclaration);
                     {
-                        N(SyntaxKind.PublicKeyword);
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.ReadOnlyKeyword);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "record");
-                            }
-                        }
-                        N(SyntaxKind.IdentifierToken, "M");
-                        N(SyntaxKind.ParameterList);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                        N(SyntaxKind.ArrowExpressionClause);
-                        {
-                            N(SyntaxKind.EqualsGreaterThanToken);
-                            N(SyntaxKind.ThrowExpression);
-                            {
-                                N(SyntaxKind.ThrowKeyword);
-                                N(SyntaxKind.NullLiteralExpression);
-                                {
-                                    N(SyntaxKind.NullKeyword);
-                                }
-                            }
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.PartialKeyword);
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.StructKeyword);
+                        N(SyntaxKind.IdentifierToken, "S");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.StructDeclaration);
+                    {
+                        N(SyntaxKind.PartialKeyword);
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.StructKeyword);
+                        N(SyntaxKind.IdentifierToken, "S");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
@@ -2374,30 +1901,13 @@ class Program
             }
             EOF();
 
-            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void PartialRefStruct()
-        {
-            var text = @"
-class Program
-{
-    partial ref struct S {}
-    partial ref struct S {}
-}
-";
-            var comp = CreateCompilation(text);
-            comp.VerifyDiagnostics(
-                // (4,13): error CS1585: Member modifier 'ref' must precede the member type and name
+            CreateCompilation(text).VerifyDiagnostics(
+                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 13),
-                // (5,13): error CS1585: Member modifier 'ref' must precede the member type and name
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
+                // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 13),
-                // (5,24): error CS0102: The type 'Program' already contains a definition for 'S'
-                //     partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("Program", "S").WithLocation(5, 24));
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5));
         }
 
         [Fact]
@@ -2440,10 +1950,7 @@ class C
         {
             const string source = "class C { ref unsafe struct S {} }";
 
-            UsingTree(source,
-                // (1,15): error CS1031: Type expected
-                // class C { ref unsafe struct S {} }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "unsafe").WithLocation(1, 15));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2451,19 +1958,9 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                    }
                     N(SyntaxKind.StructDeclaration);
                     {
+                        N(SyntaxKind.RefKeyword);
                         N(SyntaxKind.UnsafeKeyword);
                         N(SyntaxKind.StructKeyword);
                         N(SyntaxKind.IdentifierToken, "S");
@@ -2477,9 +1974,7 @@ class C
             EOF();
 
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (1,15): error CS1031: Type expected
-                // class C { ref unsafe struct S {} }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "unsafe").WithLocation(1, 15));
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref"));
         }
 
         [Fact]
@@ -2487,10 +1982,7 @@ class C
         {
             const string source = "class C { ref readonly struct S {} }";
 
-            UsingTree(source,
-                // (1,24): error CS1031: Type expected
-                // class C { ref readonly struct S {} }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(1, 24));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2498,20 +1990,10 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.ReadOnlyKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                    }
                     N(SyntaxKind.StructDeclaration);
                     {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
                         N(SyntaxKind.StructKeyword);
                         N(SyntaxKind.IdentifierToken, "S");
                         N(SyntaxKind.OpenBraceToken);
@@ -2524,9 +2006,7 @@ class C
             EOF();
 
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (1,24): error CS1031: Type expected
-                // class C { ref readonly struct S {} }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(1, 24));
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref"));
         }
 
         [Fact]
@@ -2534,10 +2014,7 @@ class C
         {
             const string source = "class C { ref unsafe readonly struct S {} }";
 
-            UsingTree(source,
-                // (1,15): error CS1031: Type expected
-                // class C { ref unsafe readonly struct S {} }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "unsafe").WithLocation(1, 15));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2545,19 +2022,9 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                    }
                     N(SyntaxKind.StructDeclaration);
                     {
+                        N(SyntaxKind.RefKeyword);
                         N(SyntaxKind.UnsafeKeyword);
                         N(SyntaxKind.ReadOnlyKeyword);
                         N(SyntaxKind.StructKeyword);
@@ -2572,99 +2039,33 @@ class C
             EOF();
 
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (1,15): error CS1031: Type expected
-                // class C { ref unsafe readonly struct S {} }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "unsafe").WithLocation(1, 15));
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref"));
         }
 
         [Fact]
         public void RefReadonlyStruct_RemainsRejected()
         {
-            const string source = """
+            CreateCompilation("""
                 ref readonly struct R { }
                 class C
                 {
                     ref readonly struct S { }
                 }
-                """;
-
-            UsingTree(
-                source,
-                // (1,14): error CS1031: Type expected
+                """).VerifyDiagnostics(
+                // (1,1): error CS1585: Member modifier 'ref' must precede the member type and name
                 // ref readonly struct R { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(1, 14),
-                // (4,18): error CS1031: Type expected
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 1),
+                // (4,5): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     ref readonly struct S { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(4, 18));
-            N(SyntaxKind.CompilationUnit);
-            {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
-                N(SyntaxKind.StructDeclaration);
-                {
-                    N(SyntaxKind.StructKeyword);
-                    N(SyntaxKind.IdentifierToken, "R");
-                    N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.CloseBraceToken);
-                }
-                N(SyntaxKind.ClassDeclaration);
-                {
-                    N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken, "C");
-                    N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.ReadOnlyKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                    }
-                    N(SyntaxKind.StructDeclaration);
-                    {
-                        N(SyntaxKind.StructKeyword);
-                        N(SyntaxKind.IdentifierToken, "S");
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                    N(SyntaxKind.CloseBraceToken);
-                }
-                N(SyntaxKind.EndOfFileToken);
-            }
-            EOF();
-
-            CreateCompilation(source).VerifyDiagnostics(
-                // (1,14): error CS1031: Type expected
-                // ref readonly struct R { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(1, 14),
-                // (4,18): error CS1031: Type expected
-                //     ref readonly struct S { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(4, 18));
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 5));
         }
 
         [Fact]
         public void RefModifierRecovery_WithScoped()
         {
-            const string source = "class C { ref scoped struct S {} }";
             UsingTree(
-                source,
+                "class C { ref scoped struct S {} }",
                 TestOptions.Regular,
-                // (1,22): error CS1519: Invalid token 'struct' in a member declaration
-                // class C { ref scoped struct S {} }
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "struct").WithArguments("struct"));
             N(SyntaxKind.CompilationUnit);
             {
@@ -2675,13 +2076,10 @@ class C
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.IncompleteMember);
                     {
-                        N(SyntaxKind.RefType);
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "scoped");
-                            }
+                            N(SyntaxKind.IdentifierToken, "scoped");
                         }
                     }
                     N(SyntaxKind.StructDeclaration);
@@ -2696,22 +2094,14 @@ class C
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
-
-            CreateCompilation(source).VerifyDiagnostics(
-                // (1,22): error CS1519: Invalid token 'struct' in a member declaration
-                // class C { ref scoped struct S {} }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "struct").WithArguments("struct").WithLocation(1, 22));
         }
 
         [Fact]
         public void RefModifierRecovery_WithReadonlyScoped()
         {
-            const string source = "class C { ref readonly scoped struct S {} }";
             UsingTree(
-                source,
+                "class C { ref readonly scoped struct S {} }",
                 TestOptions.Regular,
-                // (1,31): error CS1519: Invalid token 'struct' in a member declaration
-                // class C { ref readonly scoped struct S {} }
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "struct").WithArguments("struct"));
             N(SyntaxKind.CompilationUnit);
             {
@@ -2722,14 +2112,11 @@ class C
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.IncompleteMember);
                     {
-                        N(SyntaxKind.RefType);
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.ReadOnlyKeyword);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "scoped");
-                            }
+                            N(SyntaxKind.IdentifierToken, "scoped");
                         }
                     }
                     N(SyntaxKind.StructDeclaration);
@@ -2744,16 +2131,35 @@ class C
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
-
-            CreateCompilation(source).VerifyDiagnostics(
-                // (1,31): error CS1519: Invalid token 'struct' in a member declaration
-                // class C { ref readonly scoped struct S {} }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "struct").WithArguments("struct").WithLocation(1, 31));
         }
 
         [Fact]
         public void RefPartialReadonlyStruct()
         {
+            UsingTree("class C { ref partial readonly struct S {} }");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.StructDeclaration);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.PartialKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.StructKeyword);
+                        N(SyntaxKind.IdentifierToken, "S");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
             var comp = CreateCompilation(@"
 class C
 {
@@ -2761,15 +2167,18 @@ class C
     ref partial readonly struct S {}
 }");
             comp.VerifyDiagnostics(
-                // (4,17): error CS1585: Member modifier 'readonly' must precede the member type and name
+                // (4,5): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(4, 17),
-                // (5,17): error CS1585: Member modifier 'readonly' must precede the member type and name
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 5),
+                // (4,9): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(5, 17),
-                // (5,33): error CS0102: The type 'C' already contains a definition for 'S'
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 9),
+                // (5,5): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("C", "S").WithLocation(5, 33));
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 5),
+                // (5,9): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                //     ref partial readonly struct S {}
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 9));
         }
 
         [Fact]
@@ -2777,16 +2186,7 @@ class C
         {
             const string text = "class C { ref readonly partial struct S {} }";
 
-            UsingTree(text,
-                // (1,24): error CS1031: Type expected
-                // class C { ref readonly partial struct S {} }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(1, 24),
-                // (1,24): error CS1525: Invalid expression term 'partial'
-                // class C { ref readonly partial struct S {} }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 24),
-                // (1,24): error CS1002: ; expected
-                // class C { ref readonly partial struct S {} }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(1, 24));
+            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2794,28 +2194,10 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.FieldDeclaration);
-                    {
-                        N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.RefType);
-                            {
-                                N(SyntaxKind.RefKeyword);
-                                N(SyntaxKind.ReadOnlyKeyword);
-                                M(SyntaxKind.IdentifierName);
-                                {
-                                    M(SyntaxKind.IdentifierToken);
-                                }
-                            }
-                            M(SyntaxKind.VariableDeclarator);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                        M(SyntaxKind.SemicolonToken);
-                    }
                     N(SyntaxKind.StructDeclaration);
                     {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
                         N(SyntaxKind.PartialKeyword);
                         N(SyntaxKind.StructKeyword);
                         N(SyntaxKind.IdentifierToken, "S");
@@ -2829,69 +2211,119 @@ class C
             EOF();
 
             CreateCompilation(text).VerifyDiagnostics(
-                // (1,24): error CS1031: Type expected
+                // (1,11): error CS1585: Member modifier 'ref' must precede the member type and name
                 // class C { ref readonly partial struct S {} }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(1, 24),
-                // (1,24): error CS1525: Invalid expression term 'partial'
-                // class C { ref readonly partial struct S {} }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 24),
-                // (1,24): error CS1002: ; expected
-                // class C { ref readonly partial struct S {} }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(1, 24),
-                // (1,24): error CS9064: Target runtime doesn't support ref fields.
-                // class C { ref readonly partial struct S {} }
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "").WithLocation(1, 24),
-                // (1,24): error CS9059: A ref field can only be declared in a ref struct.
-                // class C { ref readonly partial struct S {} }
-                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "").WithLocation(1, 24));
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 11));
         }
 
         [Fact]
         public void RefReadonlyPartialStruct()
         {
-            var comp = CreateCompilation(@"
+            const string text = @"
 class C
 {
     partial ref readonly struct S {}
     partial ref readonly struct S {}
-}");
-            comp.VerifyDiagnostics(
+}";
+            UsingTree(text);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.StructDeclaration);
+                    {
+                        N(SyntaxKind.PartialKeyword);
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.StructKeyword);
+                        N(SyntaxKind.IdentifierToken, "S");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.StructDeclaration);
+                    {
+                        N(SyntaxKind.PartialKeyword);
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.StructKeyword);
+                        N(SyntaxKind.IdentifierToken, "S");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                //     partial ref readonly struct S {}
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
                 // (4,13): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     partial ref readonly struct S {}
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 13),
-                // (4,26): error CS1031: Type expected
+                // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial ref readonly struct S {}
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(4, 26),
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
                 // (5,13): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     partial ref readonly struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 13),
-                // (5,26): error CS1031: Type expected
-                //     partial ref readonly struct S {}
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(5, 26),
-                // (5,33): error CS0102: The type 'C' already contains a definition for 'S'
-                //     partial ref readonly struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("C", "S").WithLocation(5, 33));
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 13));
         }
 
         [Fact]
         public void ReadonlyPartialRefStruct()
         {
-            var comp = CreateCompilation(@"
+            const string text = @"
 class C
 {
     readonly partial ref struct S {}
     readonly partial ref struct S {}
-}");
-            comp.VerifyDiagnostics(
-                // (4,22): error CS1585: Member modifier 'ref' must precede the member type and name
+}";
+            UsingTree(text);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.StructDeclaration);
+                    {
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.PartialKeyword);
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.StructKeyword);
+                        N(SyntaxKind.IdentifierToken, "S");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.StructDeclaration);
+                    {
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.PartialKeyword);
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.StructKeyword);
+                        N(SyntaxKind.IdentifierToken, "S");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (4,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     readonly partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 22),
-                // (5,22): error CS1585: Member modifier 'ref' must precede the member type and name
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 14),
+                // (5,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     readonly partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 22),
-                // (5,33): error CS0102: The type 'C' already contains a definition for 'S'
-                //     readonly partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("C", "S").WithLocation(5, 33));
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 14));
         }
 
         [Fact]

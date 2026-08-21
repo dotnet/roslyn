@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -2395,22 +2396,12 @@ class C
     [Fact]
     public void WithModifiers_Ref_CSharp13()
     {
-        const string source = "class C { ref extension(Type) { } }";
         UsingTree(
-            source,
+            "class C { ref extension(Type) { } }",
             TestOptions.Regular13,
-            // (1,24): error CS1519: Invalid token '(' in a member declaration
+            // (1,29): error CS1001: Identifier expected
             // class C { ref extension(Type) { } }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(1, 24),
-            // (1,29): error CS8124: Tuple must contain at least two elements.
-            // class C { ref extension(Type) { } }
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 29),
-            // (1,31): error CS1519: Invalid token '{' in a member declaration
-            // class C { ref extension(Type) { } }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 31),
-            // (1,35): error CS1022: Type or namespace definition, or end-of-file expected
-            // class C { ref extension(Type) { } }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 35));
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 29));
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
@@ -2418,38 +2409,27 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.ConstructorDeclaration);
                 {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "extension");
-                        }
-                    }
-                }
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.TupleType);
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.IdentifierToken, "extension");
+                    N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.TupleElement);
+                        N(SyntaxKind.Parameter);
                         {
                             N(SyntaxKind.IdentifierName);
                             {
                                 N(SyntaxKind.IdentifierToken, "Type");
                             }
-                        }
-                        M(SyntaxKind.CommaToken);
-                        M(SyntaxKind.TupleElement);
-                        {
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.CloseBraceToken);
@@ -2457,39 +2437,13 @@ class C
             N(SyntaxKind.EndOfFileToken);
         }
         EOF();
-
-        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-            // (1,24): error CS1519: Invalid token '(' in a member declaration
-            // class C { ref extension(Type) { } }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(1, 24),
-            // (1,29): error CS8124: Tuple must contain at least two elements.
-            // class C { ref extension(Type) { } }
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 29),
-            // (1,31): error CS1519: Invalid token '{' in a member declaration
-            // class C { ref extension(Type) { } }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 31),
-            // (1,35): error CS1022: Type or namespace definition, or end-of-file expected
-            // class C { ref extension(Type) { } }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 35));
     }
 
     [Fact]
     public void WithModifiers_Ref_CSharp14()
     {
         const string source = "static class C { ref extension(object) { } }";
-        UsingTree(source, TestOptions.Regular14,
-            // (1,31): error CS1519: Invalid token '(' in a member declaration
-            // static class C { ref extension(object) { } }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(1, 31),
-            // (1,38): error CS8124: Tuple must contain at least two elements.
-            // static class C { ref extension(object) { } }
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 38),
-            // (1,40): error CS1519: Invalid token '{' in a member declaration
-            // static class C { ref extension(object) { } }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 40),
-            // (1,44): error CS1022: Type or namespace definition, or end-of-file expected
-            // static class C { ref extension(object) { } }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 44));
+        UsingTree(source, TestOptions.Regular14);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
@@ -2498,39 +2452,24 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "extension");
-                        }
-                    }
-                }
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.TupleType);
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.TupleElement);
+                        N(SyntaxKind.Parameter);
                         {
                             N(SyntaxKind.PredefinedType);
                             {
                                 N(SyntaxKind.ObjectKeyword);
                             }
                         }
-                        M(SyntaxKind.CommaToken);
-                        M(SyntaxKind.TupleElement);
-                        {
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
                         N(SyntaxKind.CloseParenToken);
                     }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
@@ -2539,18 +2478,9 @@ class C
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,31): error CS1519: Invalid token '(' in a member declaration
+            // (1,22): error CS0106: The modifier 'ref' is not valid for this item
             // static class C { ref extension(object) { } }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(1, 31),
-            // (1,38): error CS8124: Tuple must contain at least two elements.
-            // static class C { ref extension(object) { } }
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 38),
-            // (1,40): error CS1519: Invalid token '{' in a member declaration
-            // static class C { ref extension(object) { } }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 40),
-            // (1,44): error CS1022: Type or namespace definition, or end-of-file expected
-            // static class C { ref extension(object) { } }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 44));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("ref").WithLocation(1, 22));
     }
 
     [Fact]
@@ -2560,14 +2490,8 @@ class C
         UsingTree(
             source,
             TestOptions.Regular13,
-            // (1,1): error CS0106: The modifier 'readonly' is not valid for this item
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 1),
-            // (1,19): error CS1001: Identifier expected
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 19),
-            // (1,26): error CS1001: Identifier expected
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 26));
         N(SyntaxKind.CompilationUnit);
         {
@@ -2606,20 +2530,10 @@ class C
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-            // (1,1): error CS0106: The modifier 'readonly' is not valid for this item
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 1),
-            // (1,10): error CS0246: The type or namespace name 'extension' could not be found (are you missing a using directive or an assembly reference?)
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "extension").WithArguments("extension").WithLocation(1, 10),
-            // (1,19): error CS1001: Identifier expected
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 19),
-            // (1,19): error CS0161: '(object)': not all code paths return a value
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("(object)").WithLocation(1, 19),
-            // (1,26): error CS1001: Identifier expected
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 26));
     }
 
@@ -2630,54 +2544,41 @@ class C
         UsingTree(
             source,
             TestOptions.Regular13,
-            // (1,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-            // ref extension(object) { }
-            Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "extension").WithLocation(1, 5),
-            // (1,23): error CS1525: Invalid expression term '{'
-            // ref extension(object) { }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(1, 23),
-            // (1,23): error CS1002: ; expected
-            // ref extension(object) { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 23));
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 14),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 21));
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.IncompleteMember);
-            {
-                N(SyntaxKind.RefType);
-                {
-                    N(SyntaxKind.RefKeyword);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "extension");
-                    }
-                }
-            }
             N(SyntaxKind.GlobalStatement);
             {
-                N(SyntaxKind.ExpressionStatement);
+                N(SyntaxKind.LocalFunctionStatement);
                 {
-                    N(SyntaxKind.CastExpression);
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "extension");
+                        }
+                    }
+                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.ObjectKeyword);
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                        M(SyntaxKind.IdentifierName);
-                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
                             M(SyntaxKind.IdentifierToken);
                         }
+                        N(SyntaxKind.CloseParenToken);
                     }
-                    M(SyntaxKind.SemicolonToken);
-                }
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.Block);
-                {
-                    N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
                 }
             }
             N(SyntaxKind.EndOfFileToken);
@@ -2685,15 +2586,10 @@ class C
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-            // (1,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-            // ref extension(object) { }
-            Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "extension").WithLocation(1, 5),
-            // (1,23): error CS1525: Invalid expression term '{'
-            // ref extension(object) { }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(1, 23),
-            // (1,23): error CS1002: ; expected
-            // ref extension(object) { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 23));
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "extension").WithArguments("extension").WithLocation(1, 5),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 14),
+            Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("(object)").WithLocation(1, 14),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 21));
     }
 
     [Fact]
@@ -2703,55 +2599,42 @@ class C
         UsingTree(
             source,
             TestOptions.Regular13,
-            // (1,14): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-            // ref readonly extension(object) { }
-            Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "extension").WithLocation(1, 14),
-            // (1,32): error CS1525: Invalid expression term '{'
-            // ref readonly extension(object) { }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(1, 32),
-            // (1,32): error CS1002: ; expected
-            // ref readonly extension(object) { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 32));
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 23),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 30));
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.IncompleteMember);
-            {
-                N(SyntaxKind.RefType);
-                {
-                    N(SyntaxKind.RefKeyword);
-                    N(SyntaxKind.ReadOnlyKeyword);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "extension");
-                    }
-                }
-            }
             N(SyntaxKind.GlobalStatement);
             {
-                N(SyntaxKind.ExpressionStatement);
+                N(SyntaxKind.LocalFunctionStatement);
                 {
-                    N(SyntaxKind.CastExpression);
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "extension");
+                        }
+                    }
+                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.ObjectKeyword);
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                        M(SyntaxKind.IdentifierName);
-                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
                             M(SyntaxKind.IdentifierToken);
                         }
+                        N(SyntaxKind.CloseParenToken);
                     }
-                    M(SyntaxKind.SemicolonToken);
-                }
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.Block);
-                {
-                    N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
                 }
             }
             N(SyntaxKind.EndOfFileToken);
@@ -2759,15 +2642,10 @@ class C
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-            // (1,14): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-            // ref readonly extension(object) { }
-            Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "extension").WithLocation(1, 14),
-            // (1,32): error CS1525: Invalid expression term '{'
-            // ref readonly extension(object) { }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(1, 32),
-            // (1,32): error CS1002: ; expected
-            // ref readonly extension(object) { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 32));
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "extension").WithArguments("extension").WithLocation(1, 14),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 23),
+            Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("(object)").WithLocation(1, 23),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 30));
     }
 
     [Fact]
@@ -2777,14 +2655,8 @@ class C
         UsingTree(
             source,
             TestOptions.Regular14,
-            // (1,1): error CS0106: The modifier 'readonly' is not valid for this item
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 1),
-            // (1,19): error CS1001: Identifier expected
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 19),
-            // (1,26): error CS1001: Identifier expected
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 26));
         N(SyntaxKind.CompilationUnit);
         {
@@ -2823,20 +2695,10 @@ class C
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,1): error CS0106: The modifier 'readonly' is not valid for this item
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 1),
-            // (1,10): error CS0246: The type or namespace name 'extension' could not be found (are you missing a using directive or an assembly reference?)
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "extension").WithArguments("extension").WithLocation(1, 10),
-            // (1,19): error CS1001: Identifier expected
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 19),
-            // (1,19): error CS0161: '(object)': not all code paths return a value
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("(object)").WithLocation(1, 19),
-            // (1,26): error CS1001: Identifier expected
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 26));
     }
 
@@ -2847,54 +2709,41 @@ class C
         UsingTree(
             source,
             TestOptions.Regular14,
-            // (1,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-            // ref extension(object) { }
-            Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "extension").WithLocation(1, 5),
-            // (1,23): error CS1525: Invalid expression term '{'
-            // ref extension(object) { }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(1, 23),
-            // (1,23): error CS1002: ; expected
-            // ref extension(object) { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 23));
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 14),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 21));
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.IncompleteMember);
-            {
-                N(SyntaxKind.RefType);
-                {
-                    N(SyntaxKind.RefKeyword);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "extension");
-                    }
-                }
-            }
             N(SyntaxKind.GlobalStatement);
             {
-                N(SyntaxKind.ExpressionStatement);
+                N(SyntaxKind.LocalFunctionStatement);
                 {
-                    N(SyntaxKind.CastExpression);
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "extension");
+                        }
+                    }
+                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.ObjectKeyword);
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                        M(SyntaxKind.IdentifierName);
-                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
                             M(SyntaxKind.IdentifierToken);
                         }
+                        N(SyntaxKind.CloseParenToken);
                     }
-                    M(SyntaxKind.SemicolonToken);
-                }
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.Block);
-                {
-                    N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
                 }
             }
             N(SyntaxKind.EndOfFileToken);
@@ -2902,15 +2751,10 @@ class C
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-            // ref extension(object) { }
-            Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "extension").WithLocation(1, 5),
-            // (1,23): error CS1525: Invalid expression term '{'
-            // ref extension(object) { }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(1, 23),
-            // (1,23): error CS1002: ; expected
-            // ref extension(object) { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 23));
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "extension").WithArguments("extension").WithLocation(1, 5),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 14),
+            Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("(object)").WithLocation(1, 14),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 21));
     }
 
     [Fact]
@@ -2920,55 +2764,42 @@ class C
         UsingTree(
             source,
             TestOptions.Regular14,
-            // (1,14): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-            // ref readonly extension(object) { }
-            Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "extension").WithLocation(1, 14),
-            // (1,32): error CS1525: Invalid expression term '{'
-            // ref readonly extension(object) { }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(1, 32),
-            // (1,32): error CS1002: ; expected
-            // ref readonly extension(object) { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 32));
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 23),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 30));
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.IncompleteMember);
-            {
-                N(SyntaxKind.RefType);
-                {
-                    N(SyntaxKind.RefKeyword);
-                    N(SyntaxKind.ReadOnlyKeyword);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "extension");
-                    }
-                }
-            }
             N(SyntaxKind.GlobalStatement);
             {
-                N(SyntaxKind.ExpressionStatement);
+                N(SyntaxKind.LocalFunctionStatement);
                 {
-                    N(SyntaxKind.CastExpression);
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "extension");
+                        }
+                    }
+                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.ObjectKeyword);
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                        M(SyntaxKind.IdentifierName);
-                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
                             M(SyntaxKind.IdentifierToken);
                         }
+                        N(SyntaxKind.CloseParenToken);
                     }
-                    M(SyntaxKind.SemicolonToken);
-                }
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.Block);
-                {
-                    N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
                 }
             }
             N(SyntaxKind.EndOfFileToken);
@@ -2976,15 +2807,10 @@ class C
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,14): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-            // ref readonly extension(object) { }
-            Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "extension").WithLocation(1, 14),
-            // (1,32): error CS1525: Invalid expression term '{'
-            // ref readonly extension(object) { }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(1, 32),
-            // (1,32): error CS1002: ; expected
-            // ref readonly extension(object) { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 32));
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "extension").WithArguments("extension").WithLocation(1, 14),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 23),
+            Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("(object)").WithLocation(1, 23),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 30));
     }
 
     [Fact]
@@ -2994,8 +2820,6 @@ class C
         UsingTree(
             source,
             TestOptions.Regular13,
-            // (1,36): error CS1001: Identifier expected
-            // class C { readonly extension(object) { } }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 36));
         N(SyntaxKind.CompilationUnit);
         {
@@ -3034,14 +2858,8 @@ class C
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-            // (1,11): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
-            // class C { readonly extension(object) { } }
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "readonly extension(object) { }").WithArguments("extensions", "14.0").WithLocation(1, 11),
-            // (1,20): error CS0106: The modifier 'readonly' is not valid for this item
-            // class C { readonly extension(object) { } }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("readonly").WithLocation(1, 20),
-            // (1,36): error CS1001: Identifier expected
-            // class C { readonly extension(object) { } }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 36));
     }
 
@@ -3052,18 +2870,7 @@ class C
         UsingTree(
             source,
             TestOptions.Regular13,
-            // (1,24): error CS1519: Invalid token '(' in a member declaration
-            // class C { ref extension(object) { } }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(1, 24),
-            // (1,31): error CS8124: Tuple must contain at least two elements.
-            // class C { ref extension(object) { } }
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 31),
-            // (1,33): error CS1519: Invalid token '{' in a member declaration
-            // class C { ref extension(object) { } }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 33),
-            // (1,37): error CS1022: Type or namespace definition, or end-of-file expected
-            // class C { ref extension(object) { } }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 37));
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 31));
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
@@ -3071,38 +2878,27 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.ConstructorDeclaration);
                 {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "extension");
-                        }
-                    }
-                }
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.TupleType);
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.IdentifierToken, "extension");
+                    N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.TupleElement);
+                        N(SyntaxKind.Parameter);
                         {
                             N(SyntaxKind.PredefinedType);
                             {
                                 N(SyntaxKind.ObjectKeyword);
                             }
-                        }
-                        M(SyntaxKind.CommaToken);
-                        M(SyntaxKind.TupleElement);
-                        {
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.CloseBraceToken);
@@ -3112,18 +2908,9 @@ class C
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-            // (1,24): error CS1519: Invalid token '(' in a member declaration
-            // class C { ref extension(object) { } }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(1, 24),
-            // (1,31): error CS8124: Tuple must contain at least two elements.
-            // class C { ref extension(object) { } }
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 31),
-            // (1,33): error CS1519: Invalid token '{' in a member declaration
-            // class C { ref extension(object) { } }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 33),
-            // (1,37): error CS1022: Type or namespace definition, or end-of-file expected
-            // class C { ref extension(object) { } }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 37));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "ref extension(object) { }").WithArguments("extensions", "14.0").WithLocation(1, 11),
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("ref").WithLocation(1, 15),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 31));
     }
 
     [Fact]
@@ -3133,18 +2920,7 @@ class C
         UsingTree(
             source,
             TestOptions.Regular13,
-            // (1,33): error CS1519: Invalid token '(' in a member declaration
-            // class C { ref readonly extension(object) { } }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(1, 33),
-            // (1,40): error CS8124: Tuple must contain at least two elements.
-            // class C { ref readonly extension(object) { } }
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 40),
-            // (1,42): error CS1519: Invalid token '{' in a member declaration
-            // class C { ref readonly extension(object) { } }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 42),
-            // (1,46): error CS1022: Type or namespace definition, or end-of-file expected
-            // class C { ref readonly extension(object) { } }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 46));
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 40));
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
@@ -3152,39 +2928,28 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.ConstructorDeclaration);
                 {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "extension");
-                        }
-                    }
-                }
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.TupleType);
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.IdentifierToken, "extension");
+                    N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.TupleElement);
+                        N(SyntaxKind.Parameter);
                         {
                             N(SyntaxKind.PredefinedType);
                             {
                                 N(SyntaxKind.ObjectKeyword);
                             }
-                        }
-                        M(SyntaxKind.CommaToken);
-                        M(SyntaxKind.TupleElement);
-                        {
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.CloseBraceToken);
@@ -3194,18 +2959,10 @@ class C
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-            // (1,33): error CS1519: Invalid token '(' in a member declaration
-            // class C { ref readonly extension(object) { } }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(1, 33),
-            // (1,40): error CS8124: Tuple must contain at least two elements.
-            // class C { ref readonly extension(object) { } }
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 40),
-            // (1,42): error CS1519: Invalid token '{' in a member declaration
-            // class C { ref readonly extension(object) { } }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 42),
-            // (1,46): error CS1022: Type or namespace definition, or end-of-file expected
-            // class C { ref readonly extension(object) { } }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 46));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "ref readonly extension(object) { }").WithArguments("extensions", "14.0").WithLocation(1, 11),
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("readonly").WithLocation(1, 24),
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("ref").WithLocation(1, 24),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 40));
     }
 
     [Fact]
@@ -3247,8 +3004,6 @@ class C
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,27): error CS0106: The modifier 'readonly' is not valid for this item
-            // static class C { readonly extension(object) { } }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("readonly").WithLocation(1, 27));
     }
 
@@ -3256,19 +3011,7 @@ class C
     public void ModifierParsing_CSharp14_Ref_TypeMember()
     {
         const string source = "static class C { ref extension(object) { } }";
-        UsingTree(source, TestOptions.Regular14,
-            // (1,31): error CS1519: Invalid token '(' in a member declaration
-            // static class C { ref extension(object) { } }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(1, 31),
-            // (1,38): error CS8124: Tuple must contain at least two elements.
-            // static class C { ref extension(object) { } }
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 38),
-            // (1,40): error CS1519: Invalid token '{' in a member declaration
-            // static class C { ref extension(object) { } }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 40),
-            // (1,44): error CS1022: Type or namespace definition, or end-of-file expected
-            // static class C { ref extension(object) { } }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 44));
+        UsingTree(source, TestOptions.Regular14);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
@@ -3277,39 +3020,24 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "extension");
-                        }
-                    }
-                }
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.TupleType);
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.TupleElement);
+                        N(SyntaxKind.Parameter);
                         {
                             N(SyntaxKind.PredefinedType);
                             {
                                 N(SyntaxKind.ObjectKeyword);
                             }
                         }
-                        M(SyntaxKind.CommaToken);
-                        M(SyntaxKind.TupleElement);
-                        {
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
                         N(SyntaxKind.CloseParenToken);
                     }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
@@ -3318,37 +3046,14 @@ class C
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,31): error CS1519: Invalid token '(' in a member declaration
-            // static class C { ref extension(object) { } }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(1, 31),
-            // (1,38): error CS8124: Tuple must contain at least two elements.
-            // static class C { ref extension(object) { } }
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 38),
-            // (1,40): error CS1519: Invalid token '{' in a member declaration
-            // static class C { ref extension(object) { } }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 40),
-            // (1,44): error CS1022: Type or namespace definition, or end-of-file expected
-            // static class C { ref extension(object) { } }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 44));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("ref").WithLocation(1, 22));
     }
 
     [Fact]
     public void ModifierParsing_CSharp14_RefReadonly_TypeMember()
     {
         const string source = "static class C { ref readonly extension(object) { } }";
-        UsingTree(source, TestOptions.Regular14,
-            // (1,40): error CS1519: Invalid token '(' in a member declaration
-            // static class C { ref readonly extension(object) { } }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(1, 40),
-            // (1,47): error CS8124: Tuple must contain at least two elements.
-            // static class C { ref readonly extension(object) { } }
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 47),
-            // (1,49): error CS1519: Invalid token '{' in a member declaration
-            // static class C { ref readonly extension(object) { } }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 49),
-            // (1,53): error CS1022: Type or namespace definition, or end-of-file expected
-            // static class C { ref readonly extension(object) { } }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 53));
+        UsingTree(source, TestOptions.Regular14);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
@@ -3357,40 +3062,25 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "extension");
-                        }
-                    }
-                }
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.TupleType);
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.TupleElement);
+                        N(SyntaxKind.Parameter);
                         {
                             N(SyntaxKind.PredefinedType);
                             {
                                 N(SyntaxKind.ObjectKeyword);
                             }
                         }
-                        M(SyntaxKind.CommaToken);
-                        M(SyntaxKind.TupleElement);
-                        {
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
                         N(SyntaxKind.CloseParenToken);
                     }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
@@ -3399,18 +3089,8 @@ class C
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,40): error CS1519: Invalid token '(' in a member declaration
-            // static class C { ref readonly extension(object) { } }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(1, 40),
-            // (1,47): error CS8124: Tuple must contain at least two elements.
-            // static class C { ref readonly extension(object) { } }
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 47),
-            // (1,49): error CS1519: Invalid token '{' in a member declaration
-            // static class C { ref readonly extension(object) { } }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 49),
-            // (1,53): error CS1022: Type or namespace definition, or end-of-file expected
-            // static class C { ref readonly extension(object) { } }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 53));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("readonly").WithLocation(1, 31),
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("ref").WithLocation(1, 31));
     }
 
     [Theory]
@@ -4547,25 +4227,13 @@ static class C
     [Fact]
     public void WithRef()
     {
-        UsingTree("""
-class C
-{
-    ref extension(Type) { }
-}
-""",
-            TestOptions.RegularPreview,
-            // (3,18): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
-            //     ref extension(Type) { }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(3, 18),
-            // (3,23): error CS8124: Tuple must contain at least two elements.
-            //     ref extension(Type) { }
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 23),
-            // (3,25): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
-            //     ref extension(Type) { }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(3, 25),
-            // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
-            // }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
+        const string source = """
+            class C
+            {
+                ref extension(Type) { }
+            }
+            """;
+        UsingTree(source);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
@@ -4573,45 +4241,41 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "extension");
-                        }
-                    }
-                }
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.TupleType);
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.TupleElement);
+                        N(SyntaxKind.Parameter);
                         {
                             N(SyntaxKind.IdentifierName);
                             {
                                 N(SyntaxKind.IdentifierToken, "Type");
                             }
                         }
-                        M(SyntaxKind.CommaToken);
-                        M(SyntaxKind.TupleElement);
-                        {
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
                         N(SyntaxKind.CloseParenToken);
                     }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
         EOF();
+
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,9): error CS0106: The modifier 'ref' is not valid for this item
+            //     ref extension(Type) { }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("ref").WithLocation(3, 9),
+            // (3,9): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //     ref extension(Type) { }
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 9),
+            // (3,19): error CS0246: The type or namespace name 'Type' could not be found (are you missing a using directive or an assembly reference?)
+            //     ref extension(Type) { }
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type").WithArguments("Type").WithLocation(3, 19));
     }
 
     [Fact]
