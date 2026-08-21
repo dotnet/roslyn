@@ -97,6 +97,29 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             N(SyntaxKind.EndOfFileToken);
         }
         EOF();
+
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,13): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            //     int P { partial ref get; }
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 13),
+            // (3,13): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            //     int P { partial ref get; }
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 13),
+            // (3,25): error CS0106: The modifier 'ref' is not valid for this item
+            //     int P { partial ref get; }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("ref").WithLocation(3, 25),
+            // (4,19): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            //     int Q { async partial get; }
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 19),
+            // (4,27): error CS0106: The modifier 'async' is not valid for this item
+            //     int Q { async partial get; }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("async").WithLocation(4, 27),
+            // (5,24): error CS0106: The modifier 'ref' is not valid for this item
+            //     int R { ref scoped get; }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("ref").WithLocation(5, 24),
+            // (5,24): error CS0106: The modifier 'scoped' is not valid for this item
+            //     int R { ref scoped get; }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("scoped").WithLocation(5, 24));
     }
 
     [Fact]
@@ -1591,9 +1614,22 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     [Fact]
     public void AccessorModifiersRecognizedInOlderLanguageVersion()
     {
-        const string source = "int P { required get; file set; closed init; }";
+        const string declaration = "int P { required get; file set; closed init; }";
+        const string source = """
+            namespace System.Runtime.CompilerServices
+            {
+                class IsExternalInit { }
+            }
 
-        UsingDeclaration(source, TestOptions.Regular10);
+            class C
+            {
+                int P { required get; }
+                int Q { get; file set; }
+                int R { get; closed init; }
+            }
+            """;
+
+        UsingDeclaration(declaration, TestOptions.Regular10);
         N(SyntaxKind.PropertyDeclaration);
         {
             N(SyntaxKind.PredefinedType);
@@ -1626,6 +1662,17 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             }
         }
         EOF();
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+            // (8,22): error CS0106: The modifier 'required' is not valid for this item
+            //     int P { required get; }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("required").WithLocation(8, 22),
+            // (9,23): error CS0106: The modifier 'file' is not valid for this item
+            //     int Q { get; file set; }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("file").WithLocation(9, 23),
+            // (10,25): error CS0106: The modifier 'closed' is not valid for this item
+            //     int R { get; closed init; }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "init").WithArguments("closed").WithLocation(10, 25));
     }
 
     [Fact]
@@ -1823,9 +1870,10 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     [Fact]
     public void AttributeBeforeScopedAccessorModifier()
     {
-        const string source = "int P { [System.Obsolete] scoped get; }";
+        const string declaration = "int P { [System.Obsolete] scoped get; }";
+        const string source = "class C { int P { [System.Obsolete] scoped get; } }";
 
-        UsingDeclaration(source);
+        UsingDeclaration(declaration);
         N(SyntaxKind.PropertyDeclaration);
         {
             N(SyntaxKind.PredefinedType);
@@ -1866,11 +1914,25 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             }
         }
         EOF();
+
+        CreateCompilation(source).VerifyDiagnostics(
+            // (1,44): error CS0106: The modifier 'scoped' is not valid for this item
+            // class C { int P { [System.Obsolete] scoped get; } }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("scoped").WithLocation(1, 44));
     }
 
     [Fact]
     public void ContextualModifiersOnOtherAccessorKinds()
     {
+        const string source = """
+            class C
+            {
+                int P { partial init; }
+                int this[int i] { scoped get; }
+                event System.Action E { partial add { } scoped remove { } }
+            }
+            """;
+
         UsingDeclaration("int P { partial init; }");
         N(SyntaxKind.PropertyDeclaration);
         {
@@ -1972,6 +2034,26 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             }
         }
         EOF();
+
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,13): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            //     int P { partial init; }
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 13),
+            // (3,21): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
+            //     int P { partial init; }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "init").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(3, 21),
+            // (3,21): error CS8051: Auto-implemented properties must have get accessors.
+            //     int P { partial init; }
+            Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "init").WithLocation(3, 21),
+            // (4,30): error CS0106: The modifier 'scoped' is not valid for this item
+            //     int this[int i] { scoped get; }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("scoped").WithLocation(4, 30),
+            // (5,29): error CS1609: Modifiers cannot be placed on event accessor declarations
+            //     event System.Action E { partial add { } scoped remove { } }
+            Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "partial").WithLocation(5, 29),
+            // (5,45): error CS1609: Modifiers cannot be placed on event accessor declarations
+            //     event System.Action E { partial add { } scoped remove { } }
+            Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "scoped").WithLocation(5, 45));
     }
 
     [Fact]
