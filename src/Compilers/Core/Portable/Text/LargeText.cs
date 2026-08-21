@@ -52,7 +52,13 @@ namespace Microsoft.CodeAnalysis.Text
         {
         }
 
-        internal static SourceText Decode(Stream stream, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, bool throwIfBinaryDetected, bool canBeEmbedded)
+        internal static SourceText Decode(
+            Stream stream,
+            Encoding encoding,
+            SourceHashAlgorithm checksumAlgorithm,
+            bool throwIfBinaryDetected,
+            bool canBeEmbedded,
+            ImmutableArray<byte> embeddedTextBlob)
         {
             stream.Seek(0, SeekOrigin.Begin);
 
@@ -73,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Text
                 // We must compute the checksum and embedded text blob now while we still have the original bytes in hand.
                 // We cannot re-encode to obtain checksum and blob as the encoding is not guaranteed to round-trip.
                 var checksum = CalculateChecksum(stream, checksumAlgorithm);
-                var embeddedTextBlob = canBeEmbedded ? EmbeddedText.CreateBlob(stream) : default(ImmutableArray<byte>);
+                embeddedTextBlob = embeddedTextBlob.IsDefault && canBeEmbedded ? EmbeddedText.CreateBlob(stream) : embeddedTextBlob;
                 return new LargeText(chunks, reader.CurrentEncoding, checksum, checksumAlgorithm, embeddedTextBlob);
             }
         }
