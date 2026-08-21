@@ -2085,6 +2085,51 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             new SignatureHelpTestItem("void C.Goo<string>(string a)", string.Empty, string.Empty, currentParameterIndex: 0),
             new SignatureHelpTestItem("void C.Goo<T, U>(T a, U b)", string.Empty)]);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79733")]
+    public Task NoSignatureHelpInsideLambdaStatementBlock()
+        => TestAsync("""
+            class C
+            {
+                void M1(Action a) { }
+                void M2()
+                {
+                    M1(() => 
+                    {
+                        $$
+                    });
+                }
+            }
+            """, []);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79733")]
+    public Task NoSignatureHelpInsideAnonymousMethodBlock()
+        => TestAsync("""
+            class C
+            {
+                void M1(Action a) { }
+                void M2()
+                {
+                    M1(delegate 
+                    {
+                        $$
+                    });
+                }
+            }
+            """, []);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79733")]
+    public Task NoSignatureHelpInsideLambdaExpressionBody()
+        => TestAsync("""
+            class C
+            {
+                void M1(Action a) { }
+                void M2()
+                {
+                    M1(() => ($$);
+                }
+            }
+            """, []);
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/699")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068424")]
     public Task TestGenericParameters2()
