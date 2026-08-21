@@ -30,6 +30,13 @@ namespace RunTests
             Logger.Log("RunTest command line");
             Logger.Log(string.Join(" ", args));
 
+            // Diagnostic: extract a Helix job id from a submission-output line, to validate parsing.
+            if (args is ["--extractJobId", var diagLine])
+            {
+                ConsoleUtil.WriteLine(HelixTestRunner.TryExtractHelixJobId(diagLine) ?? "<none>");
+                return ExitSuccess;
+            }
+
             // Diagnostic: report the real pass/fail of an already-submitted Helix job by id. Used to
             // validate the results-gating logic against known-finished jobs without a full test run.
             if (args is ["--helixJobOutcome", var diagJobId])
