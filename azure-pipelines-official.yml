@@ -164,6 +164,29 @@ extends:
               $sw.Stop()
               Write-Host ("##[section]Build finished in {0:n1}s (seeded=$(Seeded))" -f $sw.Elapsed.TotalSeconds)
 
+        - task: PowerShell@2
+          displayName: Capture fresh baseline
+          inputs:
+            targetType: inline
+            pwsh: true
+            script: |
+              $ErrorActionPreference = 'Stop'
+              $store = "$(CacheStore)"
+              $lane  = "roslyn-${{ parameters.sdkFingerprint }}-win"
+              $sha   = (git rev-parse HEAD).Trim()
+              $baselineDir = Join-Path (Join-Path $store $lane) $sha
+              $capArgs = @{ RepoRoot = '.'; BaselineDir = $baselineDir; OutputRoots = @('artifacts\obj'); Archive = $true }
+              $seeded = $env:SEEDEDBASELINEDIR
+              if ($seeded -and (Test-Path (Join-Path $seeded 'outputs.clixml'))) {
+                $stash = Join-Path "$(Agent.TempDirectory)" 'prior-baseline'
+                New-Item -ItemType Directory -Force $stash | Out-Null
+                Copy-Item (Join-Path $seeded 'outputs.clixml') (Join-Path $stash 'outputs.clixml') -Force
+                $capArgs['PriorBaselineDir'] = $stash
+              }
+              if (Test-Path $store) { Remove-Item $store -Recurse -Force }
+              & "$(Scripts)/Capture-Baseline.ps1" @capArgs
+              Write-Host "==> captured baseline -> $baselineDir"
+
         - task: DownloadPipelineArtifact@2
           displayName: Pull testresults store
           continueOnError: true
@@ -189,10 +212,12 @@ extends:
               $dotnet = "$(Build.SourcesDirectory)\.dotnet\dotnet.exe"
               $gp = & $dotnet nuget locals global-packages --list 2>$null
               if ("$gp" -match 'global-packages:\s*(.+?)\s*$') { $env:NUGET_PACKAGES = $matches[1].Trim() }
-              # RunTests is restored by the full restore; build just this tool.
-              & $dotnet build src/Tools/RunTests/RunTests.csproj -c Debug --no-restore -v m
-              if ($LASTEXITCODE -ne 0) { throw "RunTests build failed ($LASTEXITCODE)" }
+              # RunTests is part of ${{ parameters.slnf }}, so the main build already produced it with the
+              # deterministic flags. Do NOT rebuild it here -- a second build with different properties would
+              # rewrite shared-project obj (resources/xml) and poison the captured baseline (which is why the
+              # Capture step now runs BEFORE this one). Use the already-built RunTests.dll directly.
               $rt = "$(Build.SourcesDirectory)/artifacts/bin/RunTests/Debug/net10.0/RunTests.dll"
+              if (-not (Test-Path $rt)) { throw "RunTests.dll not found at $rt (expected from the main build)" }
               $store = "$(Agent.TempDirectory)/test-store"
               New-Item -ItemType Directory -Force $store | Out-Null
               # Dry-run: fingerprint every CSharp unit-test closure, skip those already recorded PASS,
@@ -201,25 +226,3 @@ extends:
               & $dotnet exec $rt --dotnet $dotnet --artifactspath "$(Build.SourcesDirectory)/artifacts" --configuration Debug --include "CSharp.*UnitTests" --testSkipStore $store --testSkipDryRun
               if ($LASTEXITCODE -ne 0) { throw "RunTests dry-run failed ($LASTEXITCODE)" }
 
-        - task: PowerShell@2
-          displayName: Capture fresh baseline
-          inputs:
-            targetType: inline
-            pwsh: true
-            script: |
-              $ErrorActionPreference = 'Stop'
-              $store = "$(CacheStore)"
-              $lane  = "roslyn-${{ parameters.sdkFingerprint }}-win"
-              $sha   = (git rev-parse HEAD).Trim()
-              $baselineDir = Join-Path (Join-Path $store $lane) $sha
-              $capArgs = @{ RepoRoot = '.'; BaselineDir = $baselineDir; OutputRoots = @('artifacts\obj'); Archive = $true }
-              $seeded = $env:SEEDEDBASELINEDIR
-              if ($seeded -and (Test-Path (Join-Path $seeded 'outputs.clixml'))) {
-                $stash = Join-Path "$(Agent.TempDirectory)" 'prior-baseline'
-                New-Item -ItemType Directory -Force $stash | Out-Null
-                Copy-Item (Join-Path $seeded 'outputs.clixml') (Join-Path $stash 'outputs.clixml') -Force
-                $capArgs['PriorBaselineDir'] = $stash
-              }
-              if (Test-Path $store) { Remove-Item $store -Recurse -Force }
-              & "$(Scripts)/Capture-Baseline.ps1" @capArgs
-              Write-Host "==> captured baseline -> $baselineDir"
