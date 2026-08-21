@@ -23,11 +23,14 @@ public sealed class SingleServerLifecycleTests(ITestOutputHelper testOutputHelpe
             new LspServerLaunchOptions { UseNamedPipe = useNamedPipe, ClientProcessId = clientProcessId });
 
     [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84828")]
     public async Task StartsAndShutsDownCleanly(bool useNamedPipe)
     {
         await using var client = await StartAsync(useNamedPipe);
 
-        await client.ShutdownAndExitAsync();
+        var shutdownTask = client.ShutdownAndExitAsync();
+        Assert.Same(shutdownTask, client.ShutdownAndExitAsync());
+        await shutdownTask;
 
         var exitCode = await WaitForThinClientExitAsync(client);
         Assert.Equal(0, exitCode);
