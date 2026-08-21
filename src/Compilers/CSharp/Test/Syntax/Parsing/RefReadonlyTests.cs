@@ -179,10 +179,20 @@ class Program
                 """;
 
             UsingTree(source,
+                // (3,40): error CS1519: Invalid token 'operator' in a member declaration
+                //     public static ref readonly Program operator +(Program x, Program y)
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "operator").WithArguments("operator").WithLocation(3, 40),
+                // (3,40): error CS1519: Invalid token 'operator' in a member declaration
+                //     public static ref readonly Program operator +(Program x, Program y)
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "operator").WithArguments("operator").WithLocation(3, 40),
+                // (3,72): error CS1001: Identifier expected
+                //     public static ref readonly Program operator +(Program x, Program y)
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 72),
+                // (5,9): error CS1014: A get or set accessor expected
+                //         throw null;
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "throw").WithLocation(5, 9),
+                // (5,19): error CS1014: A get or set accessor expected
+                //         throw null;
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, ";").WithLocation(5, 19));
 
             N(SyntaxKind.CompilationUnit);
@@ -249,11 +259,23 @@ class Program
             EOF();
 
             CreateCompilation(source).VerifyDiagnostics(
+                // (3,40): error CS1519: Invalid token 'operator' in a member declaration
+                //     public static ref readonly Program operator +(Program x, Program y)
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "operator").WithArguments("operator").WithLocation(3, 40),
+                // (3,40): error CS1519: Invalid token 'operator' in a member declaration
+                //     public static ref readonly Program operator +(Program x, Program y)
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "operator").WithArguments("operator").WithLocation(3, 40),
+                // (3,72): error CS1001: Identifier expected
+                //     public static ref readonly Program operator +(Program x, Program y)
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 72),
+                // (4,1): error CS0548: 'Program.': property or indexer must have at least one accessor
+                //     {
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "").WithArguments("Program.").WithLocation(4, 1),
+                // (5,9): error CS1014: A get or set accessor expected
+                //         throw null;
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "throw").WithLocation(5, 9),
+                // (5,19): error CS1014: A get or set accessor expected
+                //         throw null;
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, ";").WithLocation(5, 19));
         }
 
@@ -348,6 +370,8 @@ class Program
                 """;
 
             UsingTree(source,
+                // (3,25): error CS1031: Type expected
+                //     public ref readonly virtual int* P1 => throw null;
                 Diagnostic(ErrorCode.ERR_TypeExpected, "virtual").WithLocation(3, 25));
 
             N(SyntaxKind.CompilationUnit);
@@ -403,7 +427,11 @@ class Program
             EOF();
 
             CreateCompilation(source).VerifyDiagnostics(
+                // (3,25): error CS1031: Type expected
+                //     public ref readonly virtual int* P1 => throw null;
                 Diagnostic(ErrorCode.ERR_TypeExpected, "virtual").WithLocation(3, 25),
+                // (3,38): error CS0621: 'Program.P1': virtual or abstract members cannot be private
+                //     public ref readonly virtual int* P1 => throw null;
                 Diagnostic(ErrorCode.ERR_VirtualPrivate, "P1").WithArguments("Program.P1").WithLocation(3, 38));
         }
 
