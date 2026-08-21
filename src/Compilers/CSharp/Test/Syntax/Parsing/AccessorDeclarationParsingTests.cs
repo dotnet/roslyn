@@ -866,10 +866,10 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     public void ScopedRefModifiersRemainOnAccessor()
     {
         const string declaration = "public int P { scoped ref get; set; }";
-        const string source = """
+        var source = $$"""
             class C
             {
-                public int P { scoped ref get; set; }
+                {{declaration}}
             }
             """;
 
@@ -914,16 +914,19 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     [Fact]
     public void SafeModifierOrderingAndAccessorName()
     {
-        const string source = """
+        const string pDeclaration = "public int P { private safe get => 0; set { } }";
+        const string qDeclaration = "public int Q { get => 0; safe private set { } }";
+        const string rDeclaration = "int R { safe; get => 0; set { } }";
+        var source = $$"""
             class C
             {
-                public int P { private safe get => 0; set { } }
-                public int Q { get => 0; safe private set { } }
-                int R { safe; get => 0; set { } }
+                {{pDeclaration}}
+                {{qDeclaration}}
+                {{rDeclaration}}
             }
             """;
 
-        UsingDeclaration("public int P { private safe get => 0; set { } }", TestOptions.RegularPreview);
+        UsingDeclaration(pDeclaration, TestOptions.RegularPreview);
         N(SyntaxKind.PropertyDeclaration);
         {
             N(SyntaxKind.PublicKeyword);
@@ -964,7 +967,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
         }
         EOF();
 
-        UsingDeclaration("public int Q { get => 0; safe private set { } }", TestOptions.RegularPreview);
+        UsingDeclaration(qDeclaration, TestOptions.RegularPreview);
         N(SyntaxKind.PropertyDeclaration);
         {
             N(SyntaxKind.PublicKeyword);
@@ -1006,7 +1009,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
         EOF();
 
         UsingDeclaration(
-            "int R { safe; get => 0; set { } }",
+            rDeclaration,
             TestOptions.RegularPreview,
             // (1,13): error CS1014: A get or set accessor expected
             // int R { safe; get => 0; set { } }
@@ -1063,18 +1066,23 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     [Fact]
     public void ContextualKeywordsAreRecoveredBeforeAccessors()
     {
-        const string source = """
+        const string pDeclaration = "int P { scoped get; set; }";
+        const string qDeclaration = "int Q { partial get; set; }";
+        const string rDeclaration = "int R { async get; set; }";
+        const string sDeclaration = "public int S { private async get; set; }";
+        const string tDeclaration = "public int T { private partial get; set; }";
+        var source = $$"""
             class C
             {
-                int P { scoped get; set; }
-                int Q { partial get; set; }
-                int R { async get; set; }
-                public int S { private async get; set; }
-                public int T { private partial get; set; }
+                {{pDeclaration}}
+                {{qDeclaration}}
+                {{rDeclaration}}
+                {{sDeclaration}}
+                {{tDeclaration}}
             }
             """;
 
-        UsingDeclaration("int P { scoped get; set; }", TestOptions.RegularPreview);
+        UsingDeclaration(pDeclaration, TestOptions.RegularPreview);
         N(SyntaxKind.PropertyDeclaration);
         {
             N(SyntaxKind.PredefinedType);
@@ -1101,7 +1109,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
         }
         EOF();
 
-        UsingDeclaration("int Q { partial get; set; }", TestOptions.RegularPreview);
+        UsingDeclaration(qDeclaration, TestOptions.RegularPreview);
         N(SyntaxKind.PropertyDeclaration);
         {
             N(SyntaxKind.PredefinedType);
@@ -1128,7 +1136,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
         }
         EOF();
 
-        UsingDeclaration("int R { async get; set; }", TestOptions.RegularPreview);
+        UsingDeclaration(rDeclaration, TestOptions.RegularPreview);
         N(SyntaxKind.PropertyDeclaration);
         {
             N(SyntaxKind.PredefinedType);
@@ -1155,7 +1163,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
         }
         EOF();
 
-        UsingDeclaration("public int S { private async get; set; }", TestOptions.RegularPreview);
+        UsingDeclaration(sDeclaration, TestOptions.RegularPreview);
         N(SyntaxKind.PropertyDeclaration);
         {
             N(SyntaxKind.PublicKeyword);
@@ -1184,7 +1192,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
         }
         EOF();
 
-        UsingDeclaration("public int T { private partial get; set; }", TestOptions.RegularPreview);
+        UsingDeclaration(tDeclaration, TestOptions.RegularPreview);
         N(SyntaxKind.PropertyDeclaration);
         {
             N(SyntaxKind.PublicKeyword);
@@ -1614,8 +1622,10 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     [Fact]
     public void AccessorModifiersRecognizedInOlderLanguageVersion()
     {
-        const string declaration = "int P { required get; file set; closed init; }";
-        const string source = """
+        const string pDeclaration = "int P { required get; }";
+        const string qDeclaration = "int Q { get; file set; }";
+        const string rDeclaration = "int R { get; closed init; }";
+        var source = $$"""
             namespace System.Runtime.CompilerServices
             {
                 class IsExternalInit { }
@@ -1623,13 +1633,13 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
 
             class C
             {
-                int P { required get; }
-                int Q { get; file set; }
-                int R { get; closed init; }
+                {{pDeclaration}}
+                {{qDeclaration}}
+                {{rDeclaration}}
             }
             """;
 
-        UsingDeclaration(declaration, TestOptions.Regular10);
+        UsingDeclaration(pDeclaration, TestOptions.Regular10);
         N(SyntaxKind.PropertyDeclaration);
         {
             N(SyntaxKind.PredefinedType);
@@ -1646,10 +1656,52 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
                     N(SyntaxKind.GetKeyword);
                     N(SyntaxKind.SemicolonToken);
                 }
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        EOF();
+
+        UsingDeclaration(qDeclaration, TestOptions.Regular10);
+        N(SyntaxKind.PropertyDeclaration);
+        {
+            N(SyntaxKind.PredefinedType);
+            {
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "Q");
+            N(SyntaxKind.AccessorList);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.GetAccessorDeclaration);
+                {
+                    N(SyntaxKind.GetKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
                 N(SyntaxKind.SetAccessorDeclaration);
                 {
                     N(SyntaxKind.FileKeyword);
                     N(SyntaxKind.SetKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        EOF();
+
+        UsingDeclaration(rDeclaration, TestOptions.Regular10);
+        N(SyntaxKind.PropertyDeclaration);
+        {
+            N(SyntaxKind.PredefinedType);
+            {
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "R");
+            N(SyntaxKind.AccessorList);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.GetAccessorDeclaration);
+                {
+                    N(SyntaxKind.GetKeyword);
                     N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.InitAccessorDeclaration);
@@ -1871,7 +1923,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     public void AttributeBeforeScopedAccessorModifier()
     {
         const string declaration = "int P { [System.Obsolete] scoped get; }";
-        const string source = "class C { int P { [System.Obsolete] scoped get; } }";
+        var source = $$"""class C { {{declaration}} }""";
 
         UsingDeclaration(declaration);
         N(SyntaxKind.PropertyDeclaration);
@@ -1924,16 +1976,19 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     [Fact]
     public void ContextualModifiersOnOtherAccessorKinds()
     {
-        const string source = """
+        const string propertyDeclaration = "int P { partial init; }";
+        const string indexerDeclaration = "int this[int i] { scoped get; }";
+        const string eventDeclaration = "event System.Action E { partial add { } scoped remove { } }";
+        var source = $$"""
             class C
             {
-                int P { partial init; }
-                int this[int i] { scoped get; }
-                event System.Action E { partial add { } scoped remove { } }
+                {{propertyDeclaration}}
+                {{indexerDeclaration}}
+                {{eventDeclaration}}
             }
             """;
 
-        UsingDeclaration("int P { partial init; }");
+        UsingDeclaration(propertyDeclaration);
         N(SyntaxKind.PropertyDeclaration);
         {
             N(SyntaxKind.PredefinedType);
@@ -1955,7 +2010,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
         }
         EOF();
 
-        UsingDeclaration("int this[int i] { scoped get; }");
+        UsingDeclaration(indexerDeclaration);
         N(SyntaxKind.IndexerDeclaration);
         {
             N(SyntaxKind.PredefinedType);
@@ -1990,7 +2045,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
         }
         EOF();
 
-        UsingDeclaration("event System.Action E { partial add { } scoped remove { } }");
+        UsingDeclaration(eventDeclaration);
         N(SyntaxKind.EventDeclaration);
         {
             N(SyntaxKind.EventKeyword);

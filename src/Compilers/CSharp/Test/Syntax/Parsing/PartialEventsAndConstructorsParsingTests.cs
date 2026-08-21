@@ -632,7 +632,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     [Theory, CombinatorialData]
     public void Event_Implementation_PartialAccessors([CSharp14_Preview] LanguageVersion langVersion)
     {
-        var source = "partial event Action E { partial add; partial remove; }";
+        const string source = "partial event Action E { partial add; partial remove; }";
         var parseOptions = TestOptions.Regular.WithLanguageVersion(langVersion);
 
         UsingDeclaration(source, parseOptions);
