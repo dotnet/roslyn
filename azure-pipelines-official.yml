@@ -63,6 +63,11 @@ extends:
             condition: succeededOrFailed()
             targetPath: $(Build.SourcesDirectory)/artifacts/log
             artifactName: binlogs
+          - output: pipelineArtifact
+            displayName: Publish testresults store
+            condition: succeededOrFailed()
+            targetPath: $(Agent.TempDirectory)/test-store
+            artifactName: testresults
         steps:
         - checkout: self
           path: s
@@ -158,6 +163,43 @@ extends:
               if ($LASTEXITCODE -ne 0) { throw "build failed ($LASTEXITCODE)" }
               $sw.Stop()
               Write-Host ("##[section]Build finished in {0:n1}s (seeded=$(Seeded))" -f $sw.Elapsed.TotalSeconds)
+
+        - task: DownloadPipelineArtifact@2
+          displayName: Pull testresults store
+          continueOnError: true
+          inputs:
+            buildType: specific
+            project: $(System.TeamProjectId)
+            definition: $(System.DefinitionId)
+            buildVersionToDownload: latestFromBranch
+            allowPartiallySucceededBuilds: true
+            branchName: $(Build.SourceBranch)
+            artifactName: testresults
+            targetPath: $(Agent.TempDirectory)/test-store
+
+        - task: PowerShell@2
+          displayName: Test-skip dry-run (fingerprint determinism + skip on dnceng)
+          inputs:
+            targetType: inline
+            pwsh: true
+            workingDirectory: $(Build.SourcesDirectory)
+            script: |
+              $ErrorActionPreference = 'Stop'
+              $env:DOTNET_MULTILEVEL_LOOKUP = "0"
+              $dotnet = "$(Build.SourcesDirectory)\.dotnet\dotnet.exe"
+              $gp = & $dotnet nuget locals global-packages --list 2>$null
+              if ("$gp" -match 'global-packages:\s*(.+?)\s*$') { $env:NUGET_PACKAGES = $matches[1].Trim() }
+              # RunTests is restored by the full restore; build just this tool.
+              & $dotnet build src/Tools/RunTests/RunTests.csproj -c Debug --no-restore -v m
+              if ($LASTEXITCODE -ne 0) { throw "RunTests build failed ($LASTEXITCODE)" }
+              $rt = "$(Build.SourcesDirectory)/artifacts/bin/RunTests/Debug/net10.0/RunTests.dll"
+              $store = "$(Agent.TempDirectory)/test-store"
+              New-Item -ItemType Directory -Force $store | Out-Null
+              # Dry-run: fingerprint every CSharp unit-test closure, skip those already recorded PASS,
+              # record the rest -- no tests executed. A warm re-run of the same commit skips everything,
+              # proving the deploy-closure fingerprint is byte-stable across the dnceng warm-cache flow.
+              & $dotnet exec $rt --dotnet $dotnet --artifactspath "$(Build.SourcesDirectory)/artifacts" --configuration Debug --include "CSharp.*UnitTests" --testSkipStore $store --testSkipDryRun
+              if ($LASTEXITCODE -ne 0) { throw "RunTests dry-run failed ($LASTEXITCODE)" }
 
         - task: PowerShell@2
           displayName: Capture fresh baseline
