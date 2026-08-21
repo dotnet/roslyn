@@ -57,7 +57,7 @@ jobs:
         branchName: $(Build.SourceBranch)
         allowPartiallySucceededBuilds: true
         allowFailedBuilds: true
-        artifact: testskipstore2-${{ parameters.jobName }}
+        artifact: testskipstore3-${{ parameters.jobName }}
         path: $(Agent.TempDirectory)/testskipstore
 
     - task: PowerShell@2
@@ -79,7 +79,7 @@ jobs:
       condition: succeeded()
       inputs:
         targetPath: $(Agent.TempDirectory)/testskipstore
-        artifact: testskipstore2-${{ parameters.jobName }}
+        artifact: testskipstore3-${{ parameters.jobName }}
 
     - template: publish-logs.yml
       parameters:
