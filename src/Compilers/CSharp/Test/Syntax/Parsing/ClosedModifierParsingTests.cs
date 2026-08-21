@@ -185,25 +185,14 @@ public sealed class ClosedModifierParsingTests : ParsingTests
     public void ClosedModifier_03_Class()
     {
         const SyntaxKind typeKeyword = SyntaxKind.ClassKeyword;
-        UsingNode($$"""
+        var source = $$"""
             partial closed {{SyntaxFacts.GetText(typeKeyword)}} C { }
-            """,
-            expectedParsingDiagnostics: [
-                // (1,16): error CS1002: ; expected
-                // partial closed class C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, SyntaxFacts.GetText(typeKeyword)).WithLocation(1, 16)
-            ],
-            expectedBindingDiagnostics: [
-                // (1,1): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
-                // partial closed class C { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(1, 1),
-                // (1,9): warning CS0168: The variable 'closed' is declared but never used
-                // partial closed class C { }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "closed").WithArguments("closed").WithLocation(1, 9),
-                // (1,16): error CS1002: ; expected
-                // partial closed class C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, SyntaxFacts.GetText(typeKeyword)).WithLocation(1, 16)
-            ]);
+            """;
+        UsingTree(source, TestOptions.RegularPreview, [
+            // (1,16): error CS1002: ; expected
+            // partial closed class C { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, SyntaxFacts.GetText(typeKeyword)).WithLocation(1, 16)
+        ]);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.GlobalStatement);
@@ -234,31 +223,31 @@ public sealed class ClosedModifierParsingTests : ParsingTests
             N(SyntaxKind.EndOfFileToken);
         }
         EOF();
+
+        CreateCompilation([source, IsClosedTypeAttributeDefinition, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            // (1,1): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+            // partial closed class C { }
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(1, 1),
+            // (1,9): warning CS0168: The variable 'closed' is declared but never used
+            // partial closed class C { }
+            Diagnostic(ErrorCode.WRN_UnreferencedVar, "closed").WithArguments("closed").WithLocation(1, 9),
+            // (1,16): error CS1002: ; expected
+            // partial closed class C { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, SyntaxFacts.GetText(typeKeyword)).WithLocation(1, 16));
     }
 
     [Fact]
     public void ClosedModifier_03_Struct()
     {
         const SyntaxKind typeKeyword = SyntaxKind.StructKeyword;
-        UsingNode($$"""
+        var source = $$"""
             partial closed {{SyntaxFacts.GetText(typeKeyword)}} C { }
-            """,
-            expectedParsingDiagnostics: [
-                // (1,16): error CS1002: ; expected
-                // partial closed struct C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, SyntaxFacts.GetText(typeKeyword)).WithLocation(1, 16)
-            ],
-            expectedBindingDiagnostics: [
-                // (1,1): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
-                // partial closed struct C { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(1, 1),
-                // (1,9): warning CS0168: The variable 'closed' is declared but never used
-                // partial closed struct C { }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "closed").WithArguments("closed").WithLocation(1, 9),
-                // (1,16): error CS1002: ; expected
-                // partial closed struct C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, SyntaxFacts.GetText(typeKeyword)).WithLocation(1, 16)
-            ]);
+            """;
+        UsingTree(source, TestOptions.RegularPreview, [
+            // (1,16): error CS1002: ; expected
+            // partial closed struct C { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, SyntaxFacts.GetText(typeKeyword)).WithLocation(1, 16)
+        ]);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.GlobalStatement);
@@ -289,31 +278,31 @@ public sealed class ClosedModifierParsingTests : ParsingTests
             N(SyntaxKind.EndOfFileToken);
         }
         EOF();
+
+        CreateCompilation([source, IsClosedTypeAttributeDefinition, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            // (1,1): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+            // partial closed struct C { }
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(1, 1),
+            // (1,9): warning CS0168: The variable 'closed' is declared but never used
+            // partial closed struct C { }
+            Diagnostic(ErrorCode.WRN_UnreferencedVar, "closed").WithArguments("closed").WithLocation(1, 9),
+            // (1,16): error CS1002: ; expected
+            // partial closed struct C { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, SyntaxFacts.GetText(typeKeyword)).WithLocation(1, 16));
     }
 
     [Fact]
     public void ClosedModifier_03_Interface()
     {
         const SyntaxKind typeKeyword = SyntaxKind.InterfaceKeyword;
-        UsingNode($$"""
+        var source = $$"""
             partial closed {{SyntaxFacts.GetText(typeKeyword)}} C { }
-            """,
-            expectedParsingDiagnostics: [
-                // (1,16): error CS1002: ; expected
-                // partial closed interface C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, SyntaxFacts.GetText(typeKeyword)).WithLocation(1, 16)
-            ],
-            expectedBindingDiagnostics: [
-                // (1,1): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
-                // partial closed interface C { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(1, 1),
-                // (1,9): warning CS0168: The variable 'closed' is declared but never used
-                // partial closed interface C { }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "closed").WithArguments("closed").WithLocation(1, 9),
-                // (1,16): error CS1002: ; expected
-                // partial closed interface C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, SyntaxFacts.GetText(typeKeyword)).WithLocation(1, 16)
-            ]);
+            """;
+        UsingTree(source, TestOptions.RegularPreview, [
+            // (1,16): error CS1002: ; expected
+            // partial closed interface C { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, SyntaxFacts.GetText(typeKeyword)).WithLocation(1, 16)
+        ]);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.GlobalStatement);
@@ -344,6 +333,17 @@ public sealed class ClosedModifierParsingTests : ParsingTests
             N(SyntaxKind.EndOfFileToken);
         }
         EOF();
+
+        CreateCompilation([source, IsClosedTypeAttributeDefinition, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            // (1,1): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+            // partial closed interface C { }
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(1, 1),
+            // (1,9): warning CS0168: The variable 'closed' is declared but never used
+            // partial closed interface C { }
+            Diagnostic(ErrorCode.WRN_UnreferencedVar, "closed").WithArguments("closed").WithLocation(1, 9),
+            // (1,16): error CS1002: ; expected
+            // partial closed interface C { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, SyntaxFacts.GetText(typeKeyword)).WithLocation(1, 16));
     }
 
     [Fact]
