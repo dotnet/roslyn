@@ -6234,10 +6234,130 @@ class C
             var verifier = CompileAndVerify(source, expectedOutput: "TrueFalse", options: TestOptions.ReleaseExe);
             verifier.VerifyDiagnostics();
 
-            Assert.Equal(verifier.VisualizeIL("C.Comparison2"), verifier.VisualizeIL("C.Pattern2"));
-            Assert.Equal(verifier.VisualizeIL("C.Comparison3"), verifier.VisualizeIL("C.Pattern3"));
-            Assert.Contains("switch", verifier.VisualizeIL("C.Pattern4"));
-            Assert.Contains("switch", verifier.VisualizeIL("C.Pattern5"));
+            var expectedIL = """
+                {
+                  // Code size       16 (0x10)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.s   69
+                  IL_0003:  beq.s      IL_000e
+                  IL_0005:  ldarg.0
+                  IL_0006:  ldc.i4.s   101
+                  IL_0008:  ceq
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  ceq
+                  IL_000d:  ret
+                  IL_000e:  ldc.i4.0
+                  IL_000f:  ret
+                }
+                """;
+            verifier.VerifyIL("C.Comparison2", expectedIL);
+            verifier.VerifyIL("C.Pattern2", expectedIL);
+
+            expectedIL = """
+                {
+                  // Code size       21 (0x15)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.s   46
+                  IL_0003:  beq.s      IL_0013
+                  IL_0005:  ldarg.0
+                  IL_0006:  ldc.i4.s   69
+                  IL_0008:  beq.s      IL_0013
+                  IL_000a:  ldarg.0
+                  IL_000b:  ldc.i4.s   101
+                  IL_000d:  ceq
+                  IL_000f:  ldc.i4.0
+                  IL_0010:  ceq
+                  IL_0012:  ret
+                  IL_0013:  ldc.i4.0
+                  IL_0014:  ret
+                }
+                """;
+
+            verifier.VerifyIL("C.Comparison3", expectedIL);
+            verifier.VerifyIL("C.Pattern3", expectedIL);
+
+            verifier.VerifyIL("C.Comparison4", """
+                {
+                  // Code size       22 (0x16)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.1
+                  IL_0002:  beq.s      IL_0014
+                  IL_0004:  ldarg.0
+                  IL_0005:  ldc.i4.3
+                  IL_0006:  beq.s      IL_0014
+                  IL_0008:  ldarg.0
+                  IL_0009:  ldc.i4.4
+                  IL_000a:  beq.s      IL_0014
+                  IL_000c:  ldarg.0
+                  IL_000d:  ldc.i4.6
+                  IL_000e:  ceq
+                  IL_0010:  ldc.i4.0
+                  IL_0011:  ceq
+                  IL_0013:  ret
+                  IL_0014:  ldc.i4.0
+                  IL_0015:  ret
+                }
+                """);
+
+            verifier.VerifyIL("C.Pattern4", """
+                {
+                  // Code size       45 (0x2d)
+                  .maxstack  2
+                  .locals init (bool V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.1
+                  IL_0002:  sub
+                  IL_0003:  switch    (
+                        IL_0022,
+                        IL_0026,
+                        IL_0022,
+                        IL_0022,
+                        IL_0026,
+                        IL_0022)
+                  IL_0020:  br.s       IL_0026
+                  IL_0022:  ldc.i4.1
+                  IL_0023:  stloc.0
+                  IL_0024:  br.s       IL_0028
+                  IL_0026:  ldc.i4.0
+                  IL_0027:  stloc.0
+                  IL_0028:  ldloc.0
+                  IL_0029:  ldc.i4.0
+                  IL_002a:  ceq
+                  IL_002c:  ret
+                }
+                """);
+
+            verifier.VerifyIL("C.Pattern5", """
+                {
+                  // Code size       49 (0x31)
+                  .maxstack  2
+                  .locals init (bool V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.1
+                  IL_0002:  sub
+                  IL_0003:  switch    (
+                        IL_0026,
+                        IL_002a,
+                        IL_0026,
+                        IL_0026,
+                        IL_002a,
+                        IL_0026,
+                        IL_0026)
+                  IL_0024:  br.s       IL_002a
+                  IL_0026:  ldc.i4.1
+                  IL_0027:  stloc.0
+                  IL_0028:  br.s       IL_002c
+                  IL_002a:  ldc.i4.0
+                  IL_002b:  stloc.0
+                  IL_002c:  ldloc.0
+                  IL_002d:  ldc.i4.0
+                  IL_002e:  ceq
+                  IL_0030:  ret
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80052")]

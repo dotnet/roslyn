@@ -6006,15 +6006,14 @@ class Driver
                 """);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/80052")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80052")]
         public void IsPatternExpressionInAsyncMethod_DoesNotAffectHoistedLocals()
         {
             var source = """
                 using System;
-                using System.Collections.Immutable;
                 using System.Threading.Tasks;
 
-                await M(ImmutableArray.Create<string>("", new('a', 10), new('a', 20), new('a', 30)));
+                await M(new StringCollection("", new('a', 10), new('a', 20), new('a', 30)));
                 Console.WriteLine("done");
 
                 static void Print(bool value)
@@ -6022,7 +6021,7 @@ class Driver
                     Console.WriteLine(value);
                 }
 
-                static async Task M(ImmutableArray<string> values)
+                static async Task M(StringCollection values)
                 {
                     await Task.Yield();
                     foreach (var value in values)
@@ -6031,23 +6030,53 @@ class Driver
                         await Task.Delay(1).ConfigureAwait(false);
                     }
                 }
+
+                // A mutable value-type enumerator that must be hoisted into the async state machine.
+                readonly struct StringCollection
+                {
+                    private readonly string[] _values;
+
+                    public StringCollection(params string[] values)
+                    {
+                        _values = values;
+                    }
+
+                    public Enumerator GetEnumerator() => new Enumerator(_values);
+
+                    public struct Enumerator
+                    {
+                        private readonly string[] _values;
+                        private int _index;
+
+                        public Enumerator(string[] values)
+                        {
+                            _values = values;
+                            _index = -1;
+                        }
+
+                        public string Current => _values[_index];
+
+                        public bool MoveNext() => ++_index < _values.Length;
+                    }
+                }
                 """;
 
+            var compilation = CreateCompilationWithTasksExtensions(
+                [source, IAsyncDisposableDefinition],
+                options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(
-                source,
+                compilation,
                 expectedOutput: """
                     False
                     True
                     True
                     True
                     done
-                    """,
-                options: TestOptions.ReleaseExe,
-                targetFramework: TargetFramework.NetCoreApp);
+                    """);
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/72753"), WorkItem("https://github.com/dotnet/roslyn/issues/80052")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72753"), WorkItem("https://github.com/dotnet/roslyn/issues/80052")]
         public void IsPatternExpressionInAwaitUsing()
         {
             var source = """
@@ -6090,11 +6119,12 @@ class Driver
                 }
                 """;
 
+            var compilation = CreateCompilationWithTasksExtensions(
+                [source, IAsyncDisposableDefinition],
+                options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(
-                source,
-                expectedOutput: "TrueDisposed",
-                options: TestOptions.ReleaseExe,
-                targetFramework: TargetFramework.NetCoreApp);
+                compilation,
+                expectedOutput: "TrueDisposed");
             verifier.VerifyDiagnostics();
         }
 
