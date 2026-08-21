@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -5773,10 +5774,15 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         Assert.True((await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [], CancellationToken.None)).IsDefault);
     }
 
-    [Theory]
-    [InlineData(DebugInformationFormat.Pdb)]
-    [InlineData(DebugInformationFormat.PortablePdb)]
-    public async Task Disposal_PdbReader(DebugInformationFormat pdbFormat)
+    [Fact]
+    public Task Disposal_PortablePdbReader()
+        => Disposal_PdbReader(DebugInformationFormat.PortablePdb);
+
+    [ConditionalFact(typeof(WindowsOnly))]
+    public Task Disposal_WindowsPdbReader()
+        => Disposal_PdbReader(DebugInformationFormat.Pdb);
+
+    private async Task Disposal_PdbReader(DebugInformationFormat pdbFormat)
     {
         var source1 = "class C1 { void M() { System.Console.WriteLine(1); } }";
 
