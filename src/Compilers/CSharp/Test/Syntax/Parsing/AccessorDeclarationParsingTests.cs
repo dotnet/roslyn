@@ -169,7 +169,11 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
 
         UsingTree(
             source,
+            // (1,27): error CS1014: A get or set accessor expected
+            // class C { int P { partial { } partial; } }
             Diagnostic(ErrorCode.ERR_GetOrSetExpected, "{").WithLocation(1, 27),
+            // (1,38): error CS1014: A get or set accessor expected
+            // class C { int P { partial { } partial; } }
             Diagnostic(ErrorCode.ERR_GetOrSetExpected, ";").WithLocation(1, 38));
         N(SyntaxKind.CompilationUnit);
         {
@@ -221,9 +225,17 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
 
         UsingTree(
             source,
+            // (1,19): error CS1014: A get or set accessor expected
+            // class C { int P { @partial; @async; @scoped; unknown; } }
             Diagnostic(ErrorCode.ERR_GetOrSetExpected, "@partial").WithLocation(1, 19),
+            // (1,29): error CS1014: A get or set accessor expected
+            // class C { int P { @partial; @async; @scoped; unknown; } }
             Diagnostic(ErrorCode.ERR_GetOrSetExpected, "@async").WithLocation(1, 29),
+            // (1,37): error CS1014: A get or set accessor expected
+            // class C { int P { @partial; @async; @scoped; unknown; } }
             Diagnostic(ErrorCode.ERR_GetOrSetExpected, "@scoped").WithLocation(1, 37),
+            // (1,46): error CS1014: A get or set accessor expected
+            // class C { int P { @partial; @async; @scoped; unknown; } }
             Diagnostic(ErrorCode.ERR_GetOrSetExpected, "unknown").WithLocation(1, 46));
         N(SyntaxKind.CompilationUnit);
         {
@@ -279,9 +291,17 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
 
         UsingTree(
             source,
+            // (1,19): error CS1513: } expected
+            // class C { int P { partial => 0; partial unknown; } }
             Diagnostic(ErrorCode.ERR_RbraceExpected, "partial").WithLocation(1, 19),
+            // (1,27): error CS1519: Invalid token '=>' in a member declaration
+            // class C { int P { partial => 0; partial unknown; } }
             Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(1, 27),
+            // (1,27): error CS1519: Invalid token '=>' in a member declaration
+            // class C { int P { partial => 0; partial unknown; } }
             Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(1, 27),
+            // (1,52): error CS1022: Type or namespace definition, or end-of-file expected
+            // class C { int P { partial => 0; partial unknown; } }
             Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 52));
         N(SyntaxKind.CompilationUnit);
         {
@@ -339,8 +359,14 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
 
         UsingTree(
             source,
+            // (1,19): error CS1513: } expected
+            // class C { int P { private [System.Obsolete] get; } }
             Diagnostic(ErrorCode.ERR_RbraceExpected, "private").WithLocation(1, 19),
+            // (1,27): error CS1031: Type expected
+            // class C { int P { private [System.Obsolete] get; } }
             Diagnostic(ErrorCode.ERR_TypeExpected, "[").WithLocation(1, 27),
+            // (1,52): error CS1022: Type or namespace definition, or end-of-file expected
+            // class C { int P { private [System.Obsolete] get; } }
             Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 52));
         N(SyntaxKind.CompilationUnit);
         {
@@ -641,10 +667,20 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
         EOF();
 
         CreateCompilation(source).VerifyDiagnostics(
+            // (3,17): error CS0106: The modifier 'ref' is not valid for this item
+            //     int P { ref get => 0; abstract ref set { } }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("ref").WithLocation(3, 17),
+            // (3,40): error CS0106: The modifier 'abstract' is not valid for this item
+            //     int P { ref get => 0; abstract ref set { } }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("abstract").WithLocation(3, 40),
+            // (3,40): error CS0106: The modifier 'ref' is not valid for this item
+            //     int P { ref get => 0; abstract ref set { } }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("ref").WithLocation(3, 40),
+            // (4,29): error CS1609: Modifiers cannot be placed on event accessor declarations
+            //     event System.Action E { ref add { } abstract ref remove { } }
             Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "ref").WithLocation(4, 29),
+            // (4,41): error CS1609: Modifiers cannot be placed on event accessor declarations
+            //     event System.Action E { ref add { } abstract ref remove { } }
             Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "abstract").WithLocation(4, 41));
     }
 
@@ -828,6 +864,8 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
 
         UsingTree(
             source,
+            // (3,21): error CS8180: { or ; or => expected
+            //     int P { ref get }
             Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "}").WithLocation(3, 21));
         N(SyntaxKind.CompilationUnit);
         {
@@ -862,7 +900,11 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
         EOF();
 
         CreateCompilation(source).VerifyDiagnostics(
+            // (3,17): error CS0106: The modifier 'ref' is not valid for this item
+            //     int P { ref get }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("ref").WithLocation(3, 17),
+            // (3,21): error CS8180: { or ; or => expected
+            //     int P { ref get }
             Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "}").WithLocation(3, 21));
     }
 
@@ -917,7 +959,11 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
         EOF();
 
         CreateCompilation(source).VerifyDiagnostics(
+            // (3,31): error CS0106: The modifier 'ref' is not valid for this item
+            //     public int P { scoped ref get; set; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("ref").WithLocation(3, 31),
+            // (3,31): error CS0106: The modifier 'scoped' is not valid for this item
+            //     public int P { scoped ref get; set; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("scoped").WithLocation(3, 31));
     }
 
@@ -936,6 +982,8 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
         UsingTree(
             source,
             TestOptions.RegularPreview,
+            // (5,17): error CS1014: A get or set accessor expected
+            //     int R { safe; get => 0; set { } }
             Diagnostic(ErrorCode.ERR_GetOrSetExpected, ";").WithLocation(5, 17));
         N(SyntaxKind.CompilationUnit);
         {
@@ -1068,6 +1116,8 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            // (5,17): error CS1014: A get or set accessor expected
+            //     int R { safe; get => 0; set { } }
             Diagnostic(ErrorCode.ERR_GetOrSetExpected, ";").WithLocation(5, 17));
     }
 
@@ -1224,10 +1274,20 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            // (3,20): error CS0106: The modifier 'scoped' is not valid for this item
+            //     int P { scoped get; set; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("scoped").WithLocation(3, 20),
+            // (4,13): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            //     int Q { partial get; set; }
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 13),
+            // (5,19): error CS0106: The modifier 'async' is not valid for this item
+            //     int R { async get; set; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("async").WithLocation(5, 19),
+            // (6,34): error CS0106: The modifier 'async' is not valid for this item
+            //     public int S { private async get; set; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("async").WithLocation(6, 34),
+            // (7,28): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            //     public int T { private partial get; set; }
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(7, 28));
     }
 
@@ -1334,10 +1394,20 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            // (3,22): error CS0106: The modifier 'required' is not valid for this item
+            //     int P { required get; file set; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("required").WithLocation(3, 22),
+            // (3,32): error CS0106: The modifier 'file' is not valid for this item
+            //     int P { required get; file set; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("file").WithLocation(3, 32),
+            // (4,20): error CS0106: The modifier 'closed' is not valid for this item
+            //     int Q { closed get; static set; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("closed").WithLocation(4, 20),
+            // (4,32): error CS0106: The modifier 'static' is not valid for this item
+            //     int Q { closed get; static set; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("static").WithLocation(4, 32),
+            // (5,28): error CS1004: Duplicate 'private' modifier
+            //     public int R { private private get; set; }
             Diagnostic(ErrorCode.ERR_DuplicateModifier, "private").WithArguments("private").WithLocation(5, 28));
     }
 
@@ -1440,6 +1510,8 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
 
         UsingTree(
             source,
+            // (5,26): error CS1513: } expected
+            //         get { return 0; }
             Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 26));
         N(SyntaxKind.CompilationUnit);
         {
@@ -1502,7 +1574,11 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
         EOF();
 
         CreateCompilation(source).VerifyDiagnostics(
+            // (5,26): error CS1513: } expected
+            //         get { return 0; }
             Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 26),
+            // (6,17): warning CS0169: The field 'C.F' is never used
+            //     private int F;
             Diagnostic(ErrorCode.WRN_UnreferencedField, "F").WithArguments("C.F").WithLocation(6, 17));
     }
 
@@ -1557,7 +1633,11 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
         EOF();
 
         CreateCompilation(source, parseOptions: options).VerifyDiagnostics(
+            // (3,16): error CS8022: Feature 'automatically implemented properties' is not available in C# 1. Please use language version 3 or greater.
+            //     public int P { get; private set; }
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion1, "P").WithArguments("automatically implemented properties", "3").WithLocation(3, 16),
+            // (3,25): error CS8022: Feature 'access modifiers on properties' is not available in C# 1. Please use language version 2 or greater.
+            //     public int P { get; private set; }
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion1, "private").WithArguments("access modifiers on properties", "2").WithLocation(3, 25));
     }
 
@@ -1624,6 +1704,8 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            // (3,28): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     public int P { private safe get => 0; set { } }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(3, 28));
     }
 
@@ -1695,6 +1777,8 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
 
         UsingTree(
             source,
+            // (3,21): error CS1014: A get or set accessor expected
+            //     int P { partial }
             Diagnostic(ErrorCode.ERR_GetOrSetExpected, "}").WithLocation(3, 21));
         N(SyntaxKind.CompilationUnit);
         {
@@ -1735,8 +1819,14 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
 
         UsingTree(
             source,
+            // (1,26): error CS1014: A get or set accessor expected
+            // class C { int P { partial
             Diagnostic(ErrorCode.ERR_GetOrSetExpected, "").WithLocation(1, 26),
+            // (1,26): error CS1513: } expected
+            // class C { int P { partial
             Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 26),
+            // (1,26): error CS1513: } expected
+            // class C { int P { partial
             Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 26));
         N(SyntaxKind.CompilationUnit);
         {
@@ -1782,6 +1872,8 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
 
         UsingTree(
             source,
+            // (3,39): error CS1014: A get or set accessor expected
+            //     int P { [System.Obsolete] partial }
             Diagnostic(ErrorCode.ERR_GetOrSetExpected, "}").WithLocation(3, 39));
         N(SyntaxKind.CompilationUnit);
         {
@@ -1850,6 +1942,8 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
 
         UsingTree(
             source,
+            // (5,13): error CS1513: } expected
+            //         get;
             Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 13));
         N(SyntaxKind.CompilationUnit);
         {
@@ -2099,15 +2193,35 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
 
         UsingTree(
             source,
+            // (3,22): error CS8180: { or ; or => expected
+            //     int P1 { ref get A; }
             Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "A").WithLocation(3, 22),
+            // (3,22): error CS1014: A get or set accessor expected
+            //     int P1 { ref get A; }
             Diagnostic(ErrorCode.ERR_GetOrSetExpected, "A").WithLocation(3, 22),
+            // (4,22): error CS8180: { or ; or => expected
+            //     int P2 { ref get A { } }
             Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "A").WithLocation(4, 22),
+            // (4,22): error CS1014: A get or set accessor expected
+            //     int P2 { ref get A { } }
             Diagnostic(ErrorCode.ERR_GetOrSetExpected, "A").WithLocation(4, 22),
+            // (5,22): error CS8180: { or ; or => expected
+            //     int P3 { ref get A => 0; }
             Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "A").WithLocation(5, 22),
+            // (5,22): error CS1014: A get or set accessor expected
+            //     int P3 { ref get A => 0; }
             Diagnostic(ErrorCode.ERR_GetOrSetExpected, "A").WithLocation(5, 22),
+            // (6,22): error CS8180: { or ; or => expected
+            //     int P4 { ref get A }
             Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "A").WithLocation(6, 22),
+            // (6,22): error CS1014: A get or set accessor expected
+            //     int P4 { ref get A }
             Diagnostic(ErrorCode.ERR_GetOrSetExpected, "A").WithLocation(6, 22),
+            // (7,22): error CS8180: { or ; or => expected
+            //     int P5 { ref get A; set; }
             Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "A").WithLocation(7, 22),
+            // (7,22): error CS1014: A get or set accessor expected
+            //     int P5 { ref get A; set; }
             Diagnostic(ErrorCode.ERR_GetOrSetExpected, "A").WithLocation(7, 22));
         N(SyntaxKind.CompilationUnit);
         {
@@ -2266,11 +2380,23 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
 
         UsingTree(
             source,
+            // (1,27): error CS8180: { or ; or => expected
+            // class C { int P { ref get A(); } }
             Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "A").WithLocation(1, 27),
+            // (1,27): error CS1014: A get or set accessor expected
+            // class C { int P { ref get A(); } }
             Diagnostic(ErrorCode.ERR_GetOrSetExpected, "A").WithLocation(1, 27),
+            // (1,28): error CS1513: } expected
+            // class C { int P { ref get A(); } }
             Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 28),
+            // (1,29): error CS8124: Tuple must contain at least two elements.
+            // class C { int P { ref get A(); } }
             Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 29),
+            // (1,30): error CS1519: Invalid token ';' in a member declaration
+            // class C { int P { ref get A(); } }
             Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(1, 30),
+            // (1,34): error CS1022: Type or namespace definition, or end-of-file expected
+            // class C { int P { ref get A(); } }
             Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 34));
         N(SyntaxKind.CompilationUnit);
         {
@@ -2339,7 +2465,11 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
 
         UsingTree(
             source,
+            // (1,19): error CS1513: } expected
+            // class C { int P { private int F; } }
             Diagnostic(ErrorCode.ERR_RbraceExpected, "private").WithLocation(1, 19),
+            // (1,36): error CS1022: Type or namespace definition, or end-of-file expected
+            // class C { int P { private int F; } }
             Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 36));
         N(SyntaxKind.CompilationUnit);
         {
@@ -2391,7 +2521,11 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
 
         UsingTree(
             source,
+            // (1,28): error CS1014: A get or set accessor expected
+            // class C1 { int P { private { } } } class C2 { int P { private; } }
             Diagnostic(ErrorCode.ERR_GetOrSetExpected, "{").WithLocation(1, 28),
+            // (1,62): error CS1014: A get or set accessor expected
+            // class C1 { int P { private { } } } class C2 { int P { private; } }
             Diagnostic(ErrorCode.ERR_GetOrSetExpected, ";").WithLocation(1, 62));
         N(SyntaxKind.CompilationUnit);
         {
@@ -2463,6 +2597,8 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
 
         UsingTree(
             source,
+            // (1,42): error CS1055: An add or remove accessor expected
+            // class C { event System.Action E { scoped } }
             Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "}").WithLocation(1, 42));
         N(SyntaxKind.CompilationUnit);
         {
@@ -2512,7 +2648,11 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
 
         UsingTree(
             source,
+            // (1,27): error CS8180: { or ; or => expected
+            // class C { int P { ref get 0; } }
             Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "0").WithLocation(1, 27),
+            // (1,33): error CS1513: } expected
+            // class C { int P { ref get 0; } }
             Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 33));
         N(SyntaxKind.CompilationUnit);
         {
