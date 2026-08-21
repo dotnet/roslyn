@@ -863,7 +863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var memberToInitialize = member;
                             switch (member)
                             {
-                                case PropertySymbol { IsRequired: true }:
+                                case PropertySymbol { IsRequired: true } and not SourcePropertySymbolBase { BackingField: { } }:
                                     break;
                                 case PropertySymbol:
                                     // skip any manually implemented non-required properties.
@@ -873,7 +873,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     continue;
                                 case FieldSymbol { IsConst: true }:
                                     continue;
-                                case FieldSymbol { AssociatedSymbol: SourcePropertySymbolBase { UsesFieldKeyword: false } prop }:
+                                case SynthesizedBackingFieldSymbol backingField when IsAssociatedPropertyNullResilient(backingField):
+                                    // Skip backing fields of null-resilient properties, since the property will return a valid value even when the field is null.
+                                    continue;
+                                case SynthesizedBackingFieldSymbol { AssociatedProperty: { UsesFieldKeyword: false } prop }:
                                     // this is a property where assigning 'default' causes us to simply update
                                     // the state to the output state of the property
                                     // thus we skip setting an initial state for it here
@@ -2293,24 +2296,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Share a slot between backing field and associated property/event in the context of a constructor which owns initialization of that backing field.
             if (this._symbol is MethodSymbol constructor
                 && constructor.IsConstructor()
-                && constructor.IsStatic == symbol.IsStatic)
+                && constructor.IsStatic == symbol.IsStatic
+                && constructor.DeclaringCompilation == symbol.DeclaringCompilation)
             {
                 if ((constructor.IsStatic && containingSlot == 0 && constructor.ContainingType.Equals(symbol.ContainingType))
                     || (!constructor.IsStatic && containingSlot > 0 && _variables[containingSlot].Symbol is ThisParameterSymbol))
                 {
-                    // If symbol is a backing field, but property does not use the field keyword,
-                    // then use the property to determine initial state and to own the slot.
-                    // Example scenarios:
-                    // - property initializer on normal auto-property
-                    // - property assignment on getter-only auto-property.
-                    // Example test: NullableReferenceTypesTests.ConstructorUsesStateFromInitializers will fail without this.
-                    if (symbol is SynthesizedBackingFieldSymbol { AssociatedSymbol: SourcePropertySymbolBase { UsesFieldKeyword: false } property })
-                        symbol = property;
-                    // If symbol is a property that uses field keyword, then use field to determine initial state and to own the slot.
-                    else if (symbol is SourcePropertySymbolBase { UsesFieldKeyword: true, BackingField: { } backingField })
-                        symbol = backingField;
-                    else if (symbol is SourceEventFieldSymbol eventField)
-                        symbol = eventField.AssociatedSymbol;
+                    // General principle for properties in constructors:
+                    // - Either the property or field symbol "owns" the slot. The owning symbol's type/attributes determines initial flow state.
+                    // - We implement the principle, by detecting cases where the "non-owning" symbol is flowing in, and replacing it with the "owning" symbol.
+                    // Example scenarios impacted by this replacement:
+                    // - property initializer on normal auto-property (assigns to the synthesized field)
+                    // - property assignment on getter-only auto-property (assigns to the synthesized field)
+                    // - property assignment on writable property using 'field' keyword (assigns to the property).
+                    // - reading a property in the constructor (uses the field's nullability to determine initial flow state, unless the property is null-resilient, in which case the property's nullability is used.)
+                    // Example tests (would fail without this replacement):
+                    // - NullableReferenceTypesTests.ConstructorUsesStateFromInitializers
+                    // - FieldKeywordTests.Nullable_Resilient_InitialStateInConstructor_
+                    switch (symbol)
+                    {
+                        // When field keyword is not used, or the property is null-resilient, then the property owns the slot.
+                        case SynthesizedBackingFieldSymbol { AssociatedSymbol: SourcePropertySymbolBase { UsesFieldKeyword: false } property }:
+                            symbol = property;
+                            break;
+
+                        case SynthesizedBackingFieldSymbol { AssociatedSymbol: SourcePropertySymbolBase { UsesFieldKeyword: true } property } backingField
+                            when IsAssociatedPropertyNullResilient(backingField):
+
+                            symbol = property;
+                            break;
+
+                        // When field keyword is used, and the property is not null-resilient, then the field owns the slot.
+                        case SourcePropertySymbolBase { UsesFieldKeyword: true, BackingField: { } backingField }
+                            when !IsAssociatedPropertyNullResilient(backingField):
+
+                            symbol = backingField;
+                            break;
+
+                        // Event symbol always owns the slot shared with the associated field.
+                        case SourceEventFieldSymbol eventField:
+                            symbol = eventField.AssociatedSymbol;
+                            break;
+                    }
                 }
             }
 
@@ -2782,7 +2809,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!IsSlotMember(targetContainerSlot, member))
                 return;
 
-            if (member is SynthesizedBackingFieldSymbol backingField && !isUsable(backingField))
+            if (member is SynthesizedBackingFieldSymbol backingField && !shouldInherit(backingField))
                 return;
 
             TypeWithAnnotations fieldOrPropertyType = GetTypeOrReturnTypeWithAnnotations(member);
@@ -2830,14 +2857,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // Decide if the given 'backingField' can be used in the context of '_symbol'.
-            // Filtering on this basis helps us avoid cycles across nullable inference of backing fields.
-            bool isUsable(SynthesizedBackingFieldSymbol backingField)
+            // Decide whether to inherit the 'backingField' nullable state in the context of '_symbol'.
+            // Skipping this in certain contexts helps us avoid cycles across nullable inference of backing fields.
+            bool shouldInherit(SynthesizedBackingFieldSymbol backingField)
             {
                 if (_symbol is not MethodSymbol method)
                     return false;
 
-                if (method.IsConstructor() && method.IsStatic == backingField.IsStatic)
+                if (method.IsConstructor() && method.IsStatic == backingField.IsStatic && !IsAssociatedPropertyNullResilient(backingField))
                     return true;
 
                 if (method is SourcePropertyAccessorSymbol { AssociatedSymbol: PropertySymbol prop } && (object)backingField.AssociatedSymbol == prop)
@@ -11289,6 +11316,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+        }
+
+        private bool IsAssociatedPropertyNullResilient(SynthesizedBackingFieldSymbol backingField)
+        {
+            // Only possible to answer this question if a null resilience inference is not currently in progress.
+            Debug.Assert(_getterNullResilienceData is null);
+            return backingField.InfersNullableAnnotation && backingField.GetInferredNullableAnnotation() == NullableAnnotation.Annotated;
         }
 
         private bool IsPropertyOutputMoreStrictThanInput(PropertySymbol property)
