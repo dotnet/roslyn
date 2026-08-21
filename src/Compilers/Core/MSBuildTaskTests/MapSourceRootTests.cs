@@ -15,6 +15,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
     public sealed class MapSourceRootsTests
     {
+        private static string GetFullPathNoThrow(string path)
+            => MapSourceRoots.GetFullPathNoThrow(path);
+
         private string InspectSourceRoot(ITaskItem sourceRoot)
             => $"'{sourceRoot.ItemSpec}'" +
                $" SourceControl='{sourceRoot.GetMetadata("SourceControl")}'" +
@@ -57,17 +60,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             RoslynDebug.Assert(task.MappedSourceRoots is object);
             Assert.Equal(4, task.MappedSourceRoots.Length);
 
-            Assert.Equal(Utilities.GetFullPathNoThrow(Utilities.FixFilePath(@"c:\packages\SourcePackage1\")), task.MappedSourceRoots[0].ItemSpec);
+            Assert.Equal(GetFullPathNoThrow(Utilities.FixFilePath(@"c:\packages\SourcePackage1\")), task.MappedSourceRoots[0].ItemSpec);
             Assert.Equal(@"/_1/", task.MappedSourceRoots[0].GetMetadata("MappedPath"));
 
-            Assert.Equal(Utilities.GetFullPathNoThrow(Utilities.FixFilePath("/packages/SourcePackage2/")), task.MappedSourceRoots[1].ItemSpec);
+            Assert.Equal(GetFullPathNoThrow(Utilities.FixFilePath("/packages/SourcePackage2/")), task.MappedSourceRoots[1].ItemSpec);
             Assert.Equal(@"/_2/", task.MappedSourceRoots[1].GetMetadata("MappedPath"));
 
-            Assert.Equal(Utilities.GetFullPathNoThrow(Utilities.FixFilePath(@"c:\MyProjects\MyProject\")), task.MappedSourceRoots[2].ItemSpec);
+            Assert.Equal(GetFullPathNoThrow(Utilities.FixFilePath(@"c:\MyProjects\MyProject\")), task.MappedSourceRoots[2].ItemSpec);
             Assert.Equal(@"/_/", task.MappedSourceRoots[2].GetMetadata("MappedPath"));
             Assert.Equal(@"Git", task.MappedSourceRoots[2].GetMetadata("SourceControl"));
 
-            Assert.Equal(Utilities.GetFullPathNoThrow(Utilities.FixFilePath(@"c:\MyProjects\MyProject\a\b\")), task.MappedSourceRoots[3].ItemSpec);
+            Assert.Equal(GetFullPathNoThrow(Utilities.FixFilePath(@"c:\MyProjects\MyProject\a\b\")), task.MappedSourceRoots[3].ItemSpec);
             Assert.Equal(@"/_/a/b/", task.MappedSourceRoots[3].GetMetadata("MappedPath"));
             Assert.Equal(@"Git", task.MappedSourceRoots[3].GetMetadata("SourceControl"));
             Assert.Equal(@"some value", task.MappedSourceRoots[3].GetMetadata("some metadata"));
@@ -106,14 +109,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             RoslynDebug.Assert(task.MappedSourceRoots is object);
             Assert.Equal(3, task.MappedSourceRoots.Length);
 
-            Assert.Equal(Utilities.FixFilePath(Utilities.GetFullPathNoThrow(@"!@#:;$%^&*()_+|{}\")), task.MappedSourceRoots[0].ItemSpec);
+            Assert.Equal(Utilities.FixFilePath(GetFullPathNoThrow(@"!@#:;$%^&*()_+|{}\")), task.MappedSourceRoots[0].ItemSpec);
             Assert.Equal(@"/_1/", task.MappedSourceRoots[0].GetMetadata("MappedPath"));
 
-            Assert.Equal(Utilities.FixFilePath(Utilities.GetFullPathNoThrow("****/")), task.MappedSourceRoots[1].ItemSpec);
+            Assert.Equal(Utilities.FixFilePath(GetFullPathNoThrow("****/")), task.MappedSourceRoots[1].ItemSpec);
             Assert.Equal(@"/_/", task.MappedSourceRoots[1].GetMetadata("MappedPath"));
             Assert.Equal(@"Git", task.MappedSourceRoots[1].GetMetadata("SourceControl"));
 
-            Assert.Equal(Utilities.FixFilePath(Utilities.GetFullPathNoThrow(@"****\|||:;\")), task.MappedSourceRoots[2].ItemSpec);
+            Assert.Equal(Utilities.FixFilePath(GetFullPathNoThrow(@"****\|||:;\")), task.MappedSourceRoots[2].ItemSpec);
             Assert.Equal(@"/_/|||:;/", task.MappedSourceRoots[2].GetMetadata("MappedPath"));
             Assert.Equal(@"Git", task.MappedSourceRoots[2].GetMetadata("SourceControl"));
 
@@ -183,16 +186,16 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
             RoslynDebug.Assert(task.MappedSourceRoots is object);
             Assert.Equal(4, task.MappedSourceRoots.Length);
 
-            Assert.Equal(Utilities.GetFullPathNoThrow(Utilities.FixFilePath(@"c:\MyProjects\MyProject\")), task.MappedSourceRoots[0].ItemSpec);
+            Assert.Equal(GetFullPathNoThrow(Utilities.FixFilePath(@"c:\MyProjects\MyProject\")), task.MappedSourceRoots[0].ItemSpec);
             Assert.Equal(@"/_/", task.MappedSourceRoots[0].GetMetadata("MappedPath"));
 
-            Assert.Equal(Utilities.GetFullPathNoThrow(Utilities.FixFilePath(@"c:\MyProjects\MyProject\a\a\")), task.MappedSourceRoots[1].ItemSpec);
+            Assert.Equal(GetFullPathNoThrow(Utilities.FixFilePath(@"c:\MyProjects\MyProject\a\a\")), task.MappedSourceRoots[1].ItemSpec);
             Assert.Equal(@"/_/a/a/", task.MappedSourceRoots[1].GetMetadata("MappedPath"));
 
-            Assert.Equal(Utilities.GetFullPathNoThrow(Utilities.FixFilePath(@"c:\MyProjects\MyProject\a\b\")), task.MappedSourceRoots[2].ItemSpec);
+            Assert.Equal(GetFullPathNoThrow(Utilities.FixFilePath(@"c:\MyProjects\MyProject\a\b\")), task.MappedSourceRoots[2].ItemSpec);
             Assert.Equal(@"/_/a/b/", task.MappedSourceRoots[2].GetMetadata("MappedPath"));
 
-            Assert.Equal(Utilities.GetFullPathNoThrow(Utilities.FixFilePath(@"c:\MyProjects\MyProject\a\c\")), task.MappedSourceRoots[3].ItemSpec);
+            Assert.Equal(GetFullPathNoThrow(Utilities.FixFilePath(@"c:\MyProjects\MyProject\a\c\")), task.MappedSourceRoots[3].ItemSpec);
             Assert.Equal(@"/_/a/c/", task.MappedSourceRoots[3].GetMetadata("MappedPath"));
 
             Assert.True(result);
@@ -221,13 +224,13 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
             RoslynDebug.Assert(task.MappedSourceRoots is object);
             Assert.Equal(3, task.MappedSourceRoots.Length);
 
-            Assert.Equal(Utilities.GetFullPathNoThrow(Utilities.FixFilePath(@"c:\packages\SourcePackage1\")), task.MappedSourceRoots[0].ItemSpec);
+            Assert.Equal(GetFullPathNoThrow(Utilities.FixFilePath(@"c:\packages\SourcePackage1\")), task.MappedSourceRoots[0].ItemSpec);
             Assert.Equal(@"/_/", task.MappedSourceRoots[0].GetMetadata("MappedPath"));
 
-            Assert.Equal(Utilities.GetFullPathNoThrow(Utilities.FixFilePath(@"C:\packages\SourcePackage1\")), task.MappedSourceRoots[1].ItemSpec);
+            Assert.Equal(GetFullPathNoThrow(Utilities.FixFilePath(@"C:\packages\SourcePackage1\")), task.MappedSourceRoots[1].ItemSpec);
             Assert.Equal(@"/_1/", task.MappedSourceRoots[1].GetMetadata("MappedPath"));
 
-            Assert.Equal(Utilities.GetFullPathNoThrow(Utilities.FixFilePath(@"c:\packages\SourcePackage2\")), task.MappedSourceRoots[2].ItemSpec);
+            Assert.Equal(GetFullPathNoThrow(Utilities.FixFilePath(@"c:\packages\SourcePackage2\")), task.MappedSourceRoots[2].ItemSpec);
             Assert.Equal(@"/_2/", task.MappedSourceRoots[2].GetMetadata("MappedPath"));
 
             Assert.True(result);
@@ -266,9 +269,9 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
                 "ERROR : " + string.Format(task.Log.FormatResourceString(
-                    "MapSourceRoots.NoSuchTopLevelSourceRoot", "SourceRoot.ContainingRoot", "SourceRoot", Utilities.GetFullPathNoThrow(path2))) + Environment.NewLine +
+                    "MapSourceRoots.NoSuchTopLevelSourceRoot", "SourceRoot.ContainingRoot", "SourceRoot", GetFullPathNoThrow(path2))) + Environment.NewLine +
                 "ERROR : " + string.Format(task.Log.FormatResourceString(
-                    "MapSourceRoots.NoSuchTopLevelSourceRoot", "SourceRoot.ContainingRoot", "SourceRoot", Utilities.GetFullPathNoThrow(path1))) + Environment.NewLine, engine.Log);
+                    "MapSourceRoots.NoSuchTopLevelSourceRoot", "SourceRoot.ContainingRoot", "SourceRoot", GetFullPathNoThrow(path1))) + Environment.NewLine, engine.Log);
 
             Assert.Null(task.MappedSourceRoots);
             Assert.False(result);
@@ -327,25 +330,25 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
                 "WARNING : " + string.Format(task.Log.FormatResourceString(
-                    "MapSourceRoots.ContainsDuplicate", "SourceRoot", Utilities.GetFullPathNoThrow(path1), "SourceControl", "git", "tfvc")) + Environment.NewLine +
+                    "MapSourceRoots.ContainsDuplicate", "SourceRoot", GetFullPathNoThrow(path1), "SourceControl", "git", "tfvc")) + Environment.NewLine +
                 "WARNING : " + string.Format(task.Log.FormatResourceString(
-                    "MapSourceRoots.ContainsDuplicate", "SourceRoot", Utilities.GetFullPathNoThrow(path1), "RevisionId", "RevId1", "RevId2")) + Environment.NewLine +
+                    "MapSourceRoots.ContainsDuplicate", "SourceRoot", GetFullPathNoThrow(path1), "RevisionId", "RevId1", "RevId2")) + Environment.NewLine +
                 "WARNING : " + string.Format(task.Log.FormatResourceString(
-                    "MapSourceRoots.ContainsDuplicate", "SourceRoot", Utilities.GetFullPathNoThrow(path1), "NestedRoot", "NR1A", "NR1B")) + Environment.NewLine +
+                    "MapSourceRoots.ContainsDuplicate", "SourceRoot", GetFullPathNoThrow(path1), "NestedRoot", "NR1A", "NR1B")) + Environment.NewLine +
                 "WARNING : " + string.Format(task.Log.FormatResourceString(
-                    "MapSourceRoots.ContainsDuplicate", "SourceRoot", Utilities.GetFullPathNoThrow(path1), "ContainingRoot", path3, "CR")) + Environment.NewLine +
+                    "MapSourceRoots.ContainsDuplicate", "SourceRoot", GetFullPathNoThrow(path1), "ContainingRoot", path3, "CR")) + Environment.NewLine +
                 "WARNING : " + string.Format(task.Log.FormatResourceString(
-                    "MapSourceRoots.ContainsDuplicate", "SourceRoot", Utilities.GetFullPathNoThrow(path1), "MappedPath", "MP1", "MP2")) + Environment.NewLine +
+                    "MapSourceRoots.ContainsDuplicate", "SourceRoot", GetFullPathNoThrow(path1), "MappedPath", "MP1", "MP2")) + Environment.NewLine +
                 "WARNING : " + string.Format(task.Log.FormatResourceString(
-                    "MapSourceRoots.ContainsDuplicate", "SourceRoot", Utilities.GetFullPathNoThrow(path1), "SourceLinkUrl", "URL1", "URL2")) + Environment.NewLine,
+                    "MapSourceRoots.ContainsDuplicate", "SourceRoot", GetFullPathNoThrow(path1), "SourceLinkUrl", "URL1", "URL2")) + Environment.NewLine,
                 engine.Log);
 
             Assert.NotNull(task.MappedSourceRoots);
             AssertEx.Equal(string.Join("\n",
             [
-                $"'{Utilities.GetFullPathNoThrow(path1)}' SourceControl='git' RevisionId='RevId1' NestedRoot='NR1A' ContainingRoot='{(deterministic ? Utilities.GetFullPathNoThrow(path3) : path3)}' MappedPath='{(deterministic ? "/_/NR1A/" : Utilities.GetFullPathNoThrow(path1))}' SourceLinkUrl='URL1'",
-                $"'{Utilities.GetFullPathNoThrow(path2)}' SourceControl='git' RevisionId='' NestedRoot='NR2' ContainingRoot='{(deterministic ? Utilities.GetFullPathNoThrow(path3) : path3)}' MappedPath='{(deterministic ? "/_/NR2/" : Utilities.GetFullPathNoThrow(path2))}' SourceLinkUrl=''",
-                $"'{Utilities.GetFullPathNoThrow(path3)}' SourceControl='' RevisionId='' NestedRoot='' ContainingRoot='' MappedPath='{(deterministic ? "/_/" : Utilities.GetFullPathNoThrow(path3))}' SourceLinkUrl=''",
+                $"'{GetFullPathNoThrow(path1)}' SourceControl='git' RevisionId='RevId1' NestedRoot='NR1A' ContainingRoot='{(deterministic ? GetFullPathNoThrow(path3) : path3)}' MappedPath='{(deterministic ? "/_/NR1A/" : GetFullPathNoThrow(path1))}' SourceLinkUrl='URL1'",
+                $"'{GetFullPathNoThrow(path2)}' SourceControl='git' RevisionId='' NestedRoot='NR2' ContainingRoot='{(deterministic ? GetFullPathNoThrow(path3) : path3)}' MappedPath='{(deterministic ? "/_/NR2/" : GetFullPathNoThrow(path2))}' SourceLinkUrl=''",
+                $"'{GetFullPathNoThrow(path3)}' SourceControl='' RevisionId='' NestedRoot='' ContainingRoot='' MappedPath='{(deterministic ? "/_/" : GetFullPathNoThrow(path3))}' SourceLinkUrl=''",
             ]), string.Join("\n", task.MappedSourceRoots.Select(InspectSourceRoot)));
 
             Assert.True(result);
@@ -375,7 +378,7 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
             bool result = task.Execute();
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences("ERROR : " + string.Format(task.Log.FormatResourceString(
-                "MapSourceRoots.NoSuchTopLevelSourceRoot", "SourceRoot.ContainingRoot", "SourceRoot", Utilities.GetFullPathNoThrow(Utilities.FixFilePath(@"c:\MyProjects\MyProject\")))) + Environment.NewLine, engine.Log);
+                "MapSourceRoots.NoSuchTopLevelSourceRoot", "SourceRoot.ContainingRoot", "SourceRoot", GetFullPathNoThrow(Utilities.FixFilePath(@"c:\MyProjects\MyProject\")))) + Environment.NewLine, engine.Log);
 
             Assert.Null(task.MappedSourceRoots);
             Assert.False(result);
@@ -448,7 +451,7 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
                 Assert.NotNull(task.MappedSourceRoots);
                 AssertEx.Equal(string.Join("\n",
                 [
-                    $"'{Utilities.GetFullPathNoThrow(path1)}' SourceControl='' RevisionId='' NestedRoot='a/b' ContainingRoot='{(deterministic ? Utilities.GetFullPathNoThrow(path1) : path1)}' MappedPath='{Utilities.GetFullPathNoThrow(path1)}' SourceLinkUrl=''",
+                    $"'{GetFullPathNoThrow(path1)}' SourceControl='' RevisionId='' NestedRoot='a/b' ContainingRoot='{(deterministic ? GetFullPathNoThrow(path1) : path1)}' MappedPath='{GetFullPathNoThrow(path1)}' SourceLinkUrl=''",
                 ]), string.Join("\n", task.MappedSourceRoots.Select(InspectSourceRoot)));
 
                 Assert.True(result);
@@ -483,16 +486,16 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
             bool result = task.Execute();
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", engine.Log);
 
-            var expectedMappedPath1 = deterministic ? "/_/" : Utilities.GetFullPathNoThrow(normalizedPath1);
+            var expectedMappedPath1 = deterministic ? "/_/" : GetFullPathNoThrow(normalizedPath1);
             var expectedNestedRoot = deterministic ? "e" : nestedRoot;
-            var expectedContainingRoot = deterministic ? Utilities.GetFullPathNoThrow(normalizedPath1) : originalPath1;
-            var expectedMappedPath2 = deterministic ? "/_/e/" : Utilities.GetFullPathNoThrow(normalizedPath2);
+            var expectedContainingRoot = deterministic ? GetFullPathNoThrow(normalizedPath1) : originalPath1;
+            var expectedMappedPath2 = deterministic ? "/_/e/" : GetFullPathNoThrow(normalizedPath2);
 
             Assert.NotNull(task.MappedSourceRoots);
             AssertEx.Equal(
                 $"""
-                '{Utilities.GetFullPathNoThrow(normalizedPath1)}' SourceControl='' RevisionId='' NestedRoot='' ContainingRoot='' MappedPath='{expectedMappedPath1}' SourceLinkUrl=''
-                '{Utilities.GetFullPathNoThrow(normalizedPath2)}' SourceControl='' RevisionId='' NestedRoot='{expectedNestedRoot}' ContainingRoot='{expectedContainingRoot}' MappedPath='{expectedMappedPath2}' SourceLinkUrl=''
+                '{GetFullPathNoThrow(normalizedPath1)}' SourceControl='' RevisionId='' NestedRoot='' ContainingRoot='' MappedPath='{expectedMappedPath1}' SourceLinkUrl=''
+                '{GetFullPathNoThrow(normalizedPath2)}' SourceControl='' RevisionId='' NestedRoot='{expectedNestedRoot}' ContainingRoot='{expectedContainingRoot}' MappedPath='{expectedMappedPath2}' SourceLinkUrl=''
                 """,
                 string.Join(Environment.NewLine, task.MappedSourceRoots.Select(InspectSourceRoot)));
 
