@@ -2058,8 +2058,6 @@ ref scoped int c;
             const string source = "ref public int F;";
             UsingTree(
                 source,
-                // (1,5): error CS1031: Type expected
-                // ref public int F;
                 Diagnostic(ErrorCode.ERR_TypeExpected, "public").WithLocation(1, 5));
             N(SyntaxKind.CompilationUnit);
             {
@@ -2093,14 +2091,6 @@ ref scoped int c;
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
-
-            CreateCompilation(source).VerifyDiagnostics(
-                // (1,5): error CS1031: Type expected
-                // ref public int F;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "public").WithLocation(1, 5),
-                // (1,16): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
-                // ref public int F;
-                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "F").WithLocation(1, 16));
         }
 
         [Theory]

@@ -1397,6 +1397,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             // Standard legal cases.
                             modTok = ConvertToKeyword(this.EatToken());
                         }
+                        else if (nextToken.Kind == SyntaxKind.RefKeyword)
+                        {
+                            // IsPartialMember has already ruled out a ref-returning member, so consume
+                            // 'partial' here to recover a type declaration such as 'partial ref struct'.
+                            modTok = ConvertToKeyword(this.EatToken());
+                        }
                         else if (nextToken.Kind == SyntaxKind.NamespaceKeyword)
                         {
                             // Error reported in binding
@@ -1417,27 +1423,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         break;
 
                     case DeclarationModifiers.Ref:
-                        // 'ref' is only a modifier if used on a ref struct
-                        // it must be either immediately before the 'struct'
-                        // keyword, or immediately before 'partial struct' if
-                        // this is a partial ref struct declaration
                         {
-                            var next = PeekToken(1);
-                            if (isStructOrRecordOrUnionKeyword(next) ||
-                                (next.ContextualKind == SyntaxKind.PartialKeyword &&
-                                 isStructOrRecordOrUnionKeyword(PeekToken(2))))
-                            {
-                                modTok = this.EatToken();
-                            }
-                            else if (forAccessors && this.IsPossibleAccessorModifier())
-                            {
-                                // Accept ref as a modifier for properties and event accessors, to produce an error later during binding.
-                                modTok = this.EatToken();
-                            }
-                            else
+                            if (isRefReturningMember())
                             {
                                 return;
                             }
+
+                            // At the top level, only consume 'ref' as a modifier when the following
+                            // modifier chain actually leads to a type declaration. Otherwise, leave
+                            // it for return-type/statement parsing so malformed declarations remain
+                            // split into useful syntax nodes rather than swallowing subsequent tokens.
+                            if (forTopLevelStatements && !shouldConsumeRefAtTopLevel())
+                            {
+                                return;
+                            }
+
+                            modTok = this.EatToken();
                             break;
                         }
 
@@ -1494,6 +1495,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 tokens.Add(modTok);
             }
 
+            bool isRefReturningMember()
+            {
+                Debug.Assert(this.CurrentToken.Kind == SyntaxKind.RefKeyword);
+
+                var peekIndex = 1;
+
+                // Skip ordinary modifiers while looking for the type declaration. 'scoped' is
+                // intentionally excluded: it is contextual and may instead be the type in a
+                // 'ref scoped ...' return-type prefix.
+                while (GetModifierExcludingScoped(this.PeekToken(peekIndex)) != DeclarationModifiers.None)
+                {
+                    peekIndex++;
+                }
+
+                if (this.IsTypeDeclarationStart(peekIndex))
+                {
+                    return false;
+                }
+
+                // Speculatively scan the complete ref type and check for a following member name.
+                // If both are present, leave 'ref' unconsumed so the return-type parser handles it.
+                using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+                return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
+            }
+
+            bool shouldConsumeRefAtTopLevel()
+            {
+                Debug.Assert(this.CurrentToken.Kind == SyntaxKind.RefKeyword);
+
+                using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+                this.EatToken();
+
+                while (GetModifierExcludingScoped(this.CurrentToken) != DeclarationModifiers.None)
+                {
+                    this.EatToken();
+                }
+
+                // Preserve existing recovery for contextual declaration keywords in older language
+                // versions. isRefReturningMember() has already handled cases where one of these is
+                // instead the type of a ref-returning member.
+                return this.CurrentToken.ContextualKind is
+                    SyntaxKind.RecordKeyword or SyntaxKind.UnionKeyword or SyntaxKind.ExtensionKeyword ||
+                    this.IsTypeDeclarationStart();
+            }
+
             bool parseAsModifier(MessageID requiredFeature, [NotNullWhen(true)] out SyntaxToken? modTok)
             {
                 // When 'requiredFeature' is enabled, the associated contextual keyword is always a keyword if not escaped. Otherwise, we reuse the async detection
@@ -1509,11 +1555,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // LangVersion errors for contextual modifiers are given during binding.
                 modTok = ConvertToKeyword(EatToken());
                 return true;
-            }
-
-            bool isStructOrRecordOrUnionKeyword(SyntaxToken token)
-            {
-                return token.Kind == SyntaxKind.StructKeyword || IsEnabledRecordOrUnionKeyword(token);
             }
         }
 
@@ -1654,21 +1695,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
 
             var peekIndex = 1;
-            while (this.PeekToken(peekIndex).ContextualKind == SyntaxKind.PartialKeyword)
+
+            // Look through intervening modifiers to determine whether 'partial' belongs to a type
+            // declaration. Stop at 'ref' because it may instead begin a ref-returning member;
+            // ParseModifiers handles that ambiguity separately.
+            while (GetModifierExcludingScoped(this.PeekToken(peekIndex)) is
+                   not (DeclarationModifiers.None or DeclarationModifiers.Ref))
             {
                 peekIndex++;
             }
 
-            var nextToken = this.PeekToken(peekIndex);
-            switch (nextToken.Kind)
-            {
-                case SyntaxKind.StructKeyword:
-                case SyntaxKind.ClassKeyword:
-                case SyntaxKind.InterfaceKeyword:
-                    return true;
-            }
-
-            return this.IsEnabledRecordOrUnionKeyword(nextToken);
+            return this.IsTypeDeclarationStart(peekIndex);
         }
 
         private bool IsPartialMember()
@@ -2477,6 +2514,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 default:
                     return false;
             }
+        }
+
+        private bool IsTypeDeclarationStart(int peekIndex)
+        {
+            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+
+            while (peekIndex > 0)
+            {
+                this.EatToken();
+                peekIndex--;
+            }
+
+            return this.IsTypeDeclarationStart();
         }
 
         private bool CanReuseMemberDeclaration(SyntaxKind kind, bool isGlobal)
