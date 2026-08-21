@@ -2396,8 +2396,9 @@ class C
     [Fact]
     public void WithModifiers_Ref_CSharp13()
     {
+        const string source = "class C { ref extension(Type) { } }";
         UsingTree(
-            "class C { ref extension(Type) { } }",
+            source,
             TestOptions.Regular13,
             // (1,29): error CS1001: Identifier expected
             // class C { ref extension(Type) { } }
@@ -2437,6 +2438,20 @@ class C
             N(SyntaxKind.EndOfFileToken);
         }
         EOF();
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (1,11): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+            // class C { ref extension(Type) { } }
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "ref extension(Type) { }").WithArguments("extensions", "14.0").WithLocation(1, 11),
+            // (1,15): error CS0106: The modifier 'ref' is not valid for this item
+            // class C { ref extension(Type) { } }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("ref").WithLocation(1, 15),
+            // (1,25): error CS0246: The type or namespace name 'Type' could not be found (are you missing a using directive or an assembly reference?)
+            // class C { ref extension(Type) { } }
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type").WithArguments("Type").WithLocation(1, 25),
+            // (1,29): error CS1001: Identifier expected
+            // class C { ref extension(Type) { } }
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 29));
     }
 
     [Fact]
@@ -3113,50 +3128,6 @@ class C
             // (1,27): error CS0106: The modifier 'readonly' is not valid for this item
             // static class C { readonly extension(object) { } }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("readonly").WithLocation(1, 27));
-    }
-
-    [Fact]
-    public void ModifierParsing_CSharp14_Ref_TypeMember()
-    {
-        const string source = "static class C { ref extension(object) { } }";
-        UsingTree(source, TestOptions.Regular14);
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.ClassDeclaration);
-            {
-                N(SyntaxKind.StaticKeyword);
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionBlockDeclaration);
-                {
-                    N(SyntaxKind.RefKeyword);
-                    N(SyntaxKind.ExtensionKeyword);
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.ObjectKeyword);
-                            }
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.CloseBraceToken);
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-
-        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,22): error CS0106: The modifier 'ref' is not valid for this item
-            // static class C { ref extension(object) { } }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("ref").WithLocation(1, 22));
     }
 
     [Fact]
@@ -4347,7 +4318,7 @@ static class C
                 ref extension(Type) { }
             }
             """;
-        UsingTree(source);
+        UsingTree(source, TestOptions.RegularPreview);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
@@ -4380,7 +4351,7 @@ static class C
         }
         EOF();
 
-        CreateCompilation(source).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
             // (3,9): error CS0106: The modifier 'ref' is not valid for this item
             //     ref extension(Type) { }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("ref").WithLocation(3, 9),

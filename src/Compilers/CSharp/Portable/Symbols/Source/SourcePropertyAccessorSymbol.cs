@@ -537,6 +537,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowedModifiers |= DeclarationModifiers.ReadOnly;
             }
 
+            var partialIndex = modifiers.IndexOf(SyntaxKind.PartialKeyword);
+            var hasPartialOrderingError = partialIndex >= 0 && partialIndex < modifiers.Count - 1;
+            if (hasPartialOrderingError)
+            {
+                // Modifier-order validation reports this occurrence of 'partial'. Temporarily
+                // allow it here to avoid reporting the same error again as a bad accessor modifier.
+                allowedModifiers |= DeclarationModifiers.Partial;
+            }
+
             var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
 
             bool isInterface = containingType.IsInterface;
@@ -547,6 +556,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface,
                                                                         modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors, out _);
+
+            if (hasPartialOrderingError)
+            {
+                mods &= ~DeclarationModifiers.Partial;
+                modifierErrors = true;
+            }
 
             if ((mods & DeclarationModifiers.Unsafe) != 0)
             {

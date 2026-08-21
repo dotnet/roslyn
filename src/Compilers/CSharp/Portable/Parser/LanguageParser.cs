@@ -1424,7 +1424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     case DeclarationModifiers.Ref:
                         {
-                            if (isRefReturningMember())
+                            if (!forAccessors && isRefReturningMember())
                             {
                                 return;
                             }

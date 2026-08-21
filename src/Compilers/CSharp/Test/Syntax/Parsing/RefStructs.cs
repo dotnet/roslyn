@@ -121,7 +121,7 @@ class Program
             CreateCompilation(source).VerifyDiagnostics(
                 // (1,11): error CS0106: The modifier 'ref' is not valid for this item
                 // ref class C { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("ref"));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("ref").WithLocation(1, 11));
         }
 
         [Fact]
@@ -146,7 +146,7 @@ class Program
             CreateCompilation(source).VerifyDiagnostics(
                 // (1,15): error CS0106: The modifier 'ref' is not valid for this item
                 // ref interface I { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I").WithArguments("ref"));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I").WithArguments("ref").WithLocation(1, 15));
         }
 
         [Fact]
@@ -171,7 +171,7 @@ class Program
             CreateCompilation(source).VerifyDiagnostics(
                 // (1,10): error CS0106: The modifier 'ref' is not valid for this item
                 // ref enum E { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("ref"));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("ref").WithLocation(1, 10));
         }
 
         [Fact]
@@ -204,7 +204,7 @@ class Program
             CreateCompilation(source).VerifyDiagnostics(
                 // (1,19): error CS0106: The modifier 'ref' is not valid for this item
                 // ref delegate void D();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "D").WithArguments("ref"));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "D").WithArguments("ref").WithLocation(1, 19));
         }
 
         [Fact]
@@ -2060,6 +2060,59 @@ class Program
                 }
                 """;
 
+            UsingTree(source, TestOptions.Regular9);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "record");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "record");
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.ThrowExpression);
+                            {
+                                N(SyntaxKind.ThrowKeyword);
+                                N(SyntaxKind.NullLiteralExpression);
+                                {
+                                    N(SyntaxKind.NullKeyword);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
             CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics();
         }
 
@@ -2180,7 +2233,7 @@ class C
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (1,11): error CS1585: Member modifier 'ref' must precede the member type and name
                 // class C { ref unsafe struct S {} }
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref"));
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 11));
         }
 
         [Fact]
@@ -2214,7 +2267,7 @@ class C
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (1,11): error CS1585: Member modifier 'ref' must precede the member type and name
                 // class C { ref readonly struct S {} }
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref"));
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 11));
         }
 
         [Fact]
@@ -2249,19 +2302,53 @@ class C
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (1,11): error CS1585: Member modifier 'ref' must precede the member type and name
                 // class C { ref unsafe readonly struct S {} }
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref"));
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 11));
         }
 
         [Fact]
         public void RefReadonlyStruct_RemainsRejected()
         {
-            CreateCompilation("""
+            const string source = """
                 ref readonly struct R { }
                 class C
                 {
                     ref readonly struct S { }
                 }
-                """).VerifyDiagnostics(
+                """;
+
+            UsingTree(source);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.StructDeclaration);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.StructKeyword);
+                        N(SyntaxKind.IdentifierToken, "S");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            CreateCompilation(source).VerifyDiagnostics(
                 // (1,1): error CS1585: Member modifier 'ref' must precede the member type and name
                 // ref readonly struct R { }
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 1),
@@ -2273,8 +2360,9 @@ class C
         [Fact]
         public void RefModifierRecovery_WithScoped()
         {
+            const string source = "class C { ref scoped struct S {} }";
             UsingTree(
-                "class C { ref scoped struct S {} }",
+                source,
                 TestOptions.Regular,
                 // (1,22): error CS1519: Invalid token 'struct' in a member declaration
                 // class C { ref scoped struct S {} }
@@ -2306,13 +2394,19 @@ class C
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,22): error CS1519: Invalid token 'struct' in a member declaration
+                // class C { ref scoped struct S {} }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "struct").WithArguments("struct").WithLocation(1, 22));
         }
 
         [Fact]
         public void RefModifierRecovery_WithReadonlyScoped()
         {
+            const string source = "class C { ref readonly scoped struct S {} }";
             UsingTree(
-                "class C { ref readonly scoped struct S {} }",
+                source,
                 TestOptions.Regular,
                 // (1,31): error CS1519: Invalid token 'struct' in a member declaration
                 // class C { ref readonly scoped struct S {} }
@@ -2345,6 +2439,11 @@ class C
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,31): error CS1519: Invalid token 'struct' in a member declaration
+                // class C { ref readonly scoped struct S {} }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "struct").WithArguments("struct").WithLocation(1, 31));
         }
 
         [Fact]
