@@ -56,18 +56,16 @@ namespace RunTests
                     return ExitSuccess;
                 }
 
-                // RunAsync submits the Helix job and WAITS for it to finish (a real leg's "Run Unit Tests"
-                // step runs for the full test duration, ~50 min, and fails on any test failure), so a zero
-                // exit code means every submitted work item passed. Recording here is therefore sound:
-                // PASS is only recorded when the whole run was green. A failure records nothing, so the
-                // affected assemblies re-run next time.
-                var helixResult = await HelixTestRunner.RunAsync(options, toRun);
-                if (helixResult == ExitSuccess)
-                {
-                    TestSkip.RecordPasses(toRun, fingerprints, options);
-                }
-
-                return helixResult;
+                // Do NOT record here. On a submit-and-forget pipeline (dnceng-public roslyn-CI)
+                // RunAsync returns as soon as the Helix job is SUBMITTED -- the work items run
+                // asynchronously on Helix afterward, so a zero exit means "submitted", not "passed".
+                // Recording a PASS here caches assemblies whose tests have not run yet, and a run with
+                // failing work items would still be recorded green (verified: a cold run with 5 failing
+                // work items still recorded PASS for every assembly). Helix-leg records must be gated on
+                // the actual work-item results (poll the Helix job by id and record only exit-0 items);
+                // until that exists, Helix legs filter against prior records but never create new ones.
+                // The local runner path below DOES wait for results, so it records there.
+                return await HelixTestRunner.RunAsync(options, toRun);
             }
 
             if (options.CollectDumps)
