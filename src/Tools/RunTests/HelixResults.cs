@@ -71,16 +71,21 @@ internal static class HelixResults
             try
             {
                 details = JObject.Parse(await http.GetStringAsync($"{ApiBase}/{jobId}/details", cancellationToken).ConfigureAwait(false));
-                var wi = details["WorkItems"];
-                var running = (int?)wi?["Running"] ?? 0;
-                var waiting = (int?)wi?["Waiting"] ?? 0;
-                var unscheduled = (int?)wi?["Unscheduled"] ?? 0;
-                if (running == 0 && waiting == 0 && unscheduled == 0)
+
+                // The job-level "Finished" timestamp is the authoritative completion signal: it is empty
+                // while the job runs and set once every work item has finished. The per-state counts are
+                // NOT a reliable "done" signal -- immediately after submission, before Helix schedules the
+                // work items, running/waiting/unscheduled are all zero even though nothing has run yet.
+                var finishedTimestamp = (string?)details["Finished"];
+                if (!string.IsNullOrEmpty(finishedTimestamp))
                 {
                     break;
                 }
 
-                // Log progress every poll so the build agent sees output during the long wait.
+                var wi = details["WorkItems"];
+                var running = (int?)wi?["Running"] ?? 0;
+                var waiting = (int?)wi?["Waiting"] ?? 0;
+                var unscheduled = (int?)wi?["Unscheduled"] ?? 0;
                 var finished = (int?)wi?["Finished"] ?? 0;
                 ConsoleUtil.WriteLine($"Waiting on Helix job {jobId}: finished={finished} running={running} waiting={waiting} unscheduled={unscheduled}");
             }
