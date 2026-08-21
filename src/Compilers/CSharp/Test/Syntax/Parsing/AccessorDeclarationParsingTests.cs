@@ -24,77 +24,73 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             }
             """;
 
-        UsingTree(source);
-        N(SyntaxKind.CompilationUnit);
+        UsingDeclaration(source);
+        N(SyntaxKind.ClassDeclaration);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.ClassKeyword);
+            N(SyntaxKind.IdentifierToken, "C");
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.PropertyDeclaration);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.PredefinedType);
                 {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "P");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.PartialKeyword);
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
+                    N(SyntaxKind.IntKeyword);
                 }
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.IdentifierToken, "P");
+                N(SyntaxKind.AccessorList);
                 {
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
                     {
-                        N(SyntaxKind.IntKeyword);
+                        N(SyntaxKind.PartialKeyword);
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
                     }
-                    N(SyntaxKind.IdentifierToken, "Q");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.AsyncKeyword);
-                            N(SyntaxKind.PartialKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
+                    N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.PropertyDeclaration);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "R");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.ScopedKeyword);
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
             }
-            N(SyntaxKind.EndOfFileToken);
+            N(SyntaxKind.PropertyDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "Q");
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.PartialKeyword);
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            N(SyntaxKind.PropertyDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "R");
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            N(SyntaxKind.CloseBraceToken);
         }
         EOF();
 
@@ -914,146 +910,144 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     [Fact]
     public void SafeModifierOrderingAndAccessorName()
     {
-        const string pDeclaration = "public int P { private safe get => 0; set { } }";
-        const string qDeclaration = "public int Q { get => 0; safe private set { } }";
-        const string rDeclaration = "int R { safe; get => 0; set { } }";
-        var source = $$"""
+        const string source = """
             class C
             {
-                {{pDeclaration}}
-                {{qDeclaration}}
-                {{rDeclaration}}
+                public int P { private safe get => 0; set { } }
+                public int Q { get => 0; safe private set { } }
+                int R { safe; get => 0; set { } }
             }
             """;
 
-        UsingDeclaration(pDeclaration, TestOptions.RegularPreview);
-        N(SyntaxKind.PropertyDeclaration);
-        {
-            N(SyntaxKind.PublicKeyword);
-            N(SyntaxKind.PredefinedType);
-            {
-                N(SyntaxKind.IntKeyword);
-            }
-            N(SyntaxKind.IdentifierToken, "P");
-            N(SyntaxKind.AccessorList);
-            {
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.GetAccessorDeclaration);
-                {
-                    N(SyntaxKind.PrivateKeyword);
-                    N(SyntaxKind.SafeKeyword);
-                    N(SyntaxKind.GetKeyword);
-                    N(SyntaxKind.ArrowExpressionClause);
-                    {
-                        N(SyntaxKind.EqualsGreaterThanToken);
-                        N(SyntaxKind.NumericLiteralExpression);
-                        {
-                            N(SyntaxKind.NumericLiteralToken, "0");
-                        }
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.SetAccessorDeclaration);
-                {
-                    N(SyntaxKind.SetKeyword);
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-        }
-        EOF();
-
-        UsingDeclaration(qDeclaration, TestOptions.RegularPreview);
-        N(SyntaxKind.PropertyDeclaration);
-        {
-            N(SyntaxKind.PublicKeyword);
-            N(SyntaxKind.PredefinedType);
-            {
-                N(SyntaxKind.IntKeyword);
-            }
-            N(SyntaxKind.IdentifierToken, "Q");
-            N(SyntaxKind.AccessorList);
-            {
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.GetAccessorDeclaration);
-                {
-                    N(SyntaxKind.GetKeyword);
-                    N(SyntaxKind.ArrowExpressionClause);
-                    {
-                        N(SyntaxKind.EqualsGreaterThanToken);
-                        N(SyntaxKind.NumericLiteralExpression);
-                        {
-                            N(SyntaxKind.NumericLiteralToken, "0");
-                        }
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.SetAccessorDeclaration);
-                {
-                    N(SyntaxKind.SafeKeyword);
-                    N(SyntaxKind.PrivateKeyword);
-                    N(SyntaxKind.SetKeyword);
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-        }
-        EOF();
-
         UsingDeclaration(
-            rDeclaration,
+            source,
             TestOptions.RegularPreview,
-            // (1,13): error CS1014: A get or set accessor expected
-            // int R { safe; get => 0; set { } }
-            Diagnostic(ErrorCode.ERR_GetOrSetExpected, ";").WithLocation(1, 13));
-        N(SyntaxKind.PropertyDeclaration);
+            // (5,17): error CS1014: A get or set accessor expected
+            //     int R { safe; get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_GetOrSetExpected, ";").WithLocation(5, 17));
+        N(SyntaxKind.ClassDeclaration);
         {
-            N(SyntaxKind.PredefinedType);
+            N(SyntaxKind.ClassKeyword);
+            N(SyntaxKind.IdentifierToken, "C");
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.PropertyDeclaration);
             {
-                N(SyntaxKind.IntKeyword);
-            }
-            N(SyntaxKind.IdentifierToken, "R");
-            N(SyntaxKind.AccessorList);
-            {
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.UnknownAccessorDeclaration);
+                N(SyntaxKind.PublicKeyword);
+                N(SyntaxKind.PredefinedType);
                 {
-                    N(SyntaxKind.SafeKeyword);
-                    M(SyntaxKind.IdentifierToken);
-                    N(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.IntKeyword);
                 }
-                N(SyntaxKind.GetAccessorDeclaration);
+                N(SyntaxKind.IdentifierToken, "P");
+                N(SyntaxKind.AccessorList);
                 {
-                    N(SyntaxKind.GetKeyword);
-                    N(SyntaxKind.ArrowExpressionClause);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
                     {
-                        N(SyntaxKind.EqualsGreaterThanToken);
-                        N(SyntaxKind.NumericLiteralExpression);
+                        N(SyntaxKind.PrivateKeyword);
+                        N(SyntaxKind.SafeKeyword);
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.ArrowExpressionClause);
                         {
-                            N(SyntaxKind.NumericLiteralToken, "0");
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "0");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.SetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.SetKeyword);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
                         }
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.SetAccessorDeclaration);
-                {
-                    N(SyntaxKind.SetKeyword);
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
             }
+            N(SyntaxKind.PropertyDeclaration);
+            {
+                N(SyntaxKind.PublicKeyword);
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "Q");
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "0");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.SetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.SafeKeyword);
+                        N(SyntaxKind.PrivateKeyword);
+                        N(SyntaxKind.SetKeyword);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            N(SyntaxKind.PropertyDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "R");
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.UnknownAccessorDeclaration);
+                    {
+                        N(SyntaxKind.SafeKeyword);
+                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "0");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.SetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.SetKeyword);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            N(SyntaxKind.CloseBraceToken);
         }
         EOF();
 
@@ -1066,158 +1060,148 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     [Fact]
     public void ContextualKeywordsAreRecoveredBeforeAccessors()
     {
-        const string pDeclaration = "int P { scoped get; set; }";
-        const string qDeclaration = "int Q { partial get; set; }";
-        const string rDeclaration = "int R { async get; set; }";
-        const string sDeclaration = "public int S { private async get; set; }";
-        const string tDeclaration = "public int T { private partial get; set; }";
-        var source = $$"""
+        const string source = """
             class C
             {
-                {{pDeclaration}}
-                {{qDeclaration}}
-                {{rDeclaration}}
-                {{sDeclaration}}
-                {{tDeclaration}}
+                int P { scoped get; set; }
+                int Q { partial get; set; }
+                int R { async get; set; }
+                public int S { private async get; set; }
+                public int T { private partial get; set; }
             }
             """;
 
-        UsingDeclaration(pDeclaration, TestOptions.RegularPreview);
-        N(SyntaxKind.PropertyDeclaration);
+        UsingDeclaration(source, TestOptions.RegularPreview);
+        N(SyntaxKind.ClassDeclaration);
         {
-            N(SyntaxKind.PredefinedType);
+            N(SyntaxKind.ClassKeyword);
+            N(SyntaxKind.IdentifierToken, "C");
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.PropertyDeclaration);
             {
-                N(SyntaxKind.IntKeyword);
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "P");
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.SetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.SetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
             }
-            N(SyntaxKind.IdentifierToken, "P");
-            N(SyntaxKind.AccessorList);
+            N(SyntaxKind.PropertyDeclaration);
             {
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.GetAccessorDeclaration);
+                N(SyntaxKind.PredefinedType);
                 {
-                    N(SyntaxKind.ScopedKeyword);
-                    N(SyntaxKind.GetKeyword);
-                    N(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.IntKeyword);
                 }
-                N(SyntaxKind.SetAccessorDeclaration);
+                N(SyntaxKind.IdentifierToken, "Q");
+                N(SyntaxKind.AccessorList);
                 {
-                    N(SyntaxKind.SetKeyword);
-                    N(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.PartialKeyword);
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.SetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.SetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.CloseBraceToken);
             }
-        }
-        EOF();
-
-        UsingDeclaration(qDeclaration, TestOptions.RegularPreview);
-        N(SyntaxKind.PropertyDeclaration);
-        {
-            N(SyntaxKind.PredefinedType);
+            N(SyntaxKind.PropertyDeclaration);
             {
-                N(SyntaxKind.IntKeyword);
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "R");
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.SetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.SetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
             }
-            N(SyntaxKind.IdentifierToken, "Q");
-            N(SyntaxKind.AccessorList);
+            N(SyntaxKind.PropertyDeclaration);
             {
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.GetAccessorDeclaration);
+                N(SyntaxKind.PublicKeyword);
+                N(SyntaxKind.PredefinedType);
                 {
-                    N(SyntaxKind.PartialKeyword);
-                    N(SyntaxKind.GetKeyword);
-                    N(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.IntKeyword);
                 }
-                N(SyntaxKind.SetAccessorDeclaration);
+                N(SyntaxKind.IdentifierToken, "S");
+                N(SyntaxKind.AccessorList);
                 {
-                    N(SyntaxKind.SetKeyword);
-                    N(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.PrivateKeyword);
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.SetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.SetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.CloseBraceToken);
             }
-        }
-        EOF();
-
-        UsingDeclaration(rDeclaration, TestOptions.RegularPreview);
-        N(SyntaxKind.PropertyDeclaration);
-        {
-            N(SyntaxKind.PredefinedType);
+            N(SyntaxKind.PropertyDeclaration);
             {
-                N(SyntaxKind.IntKeyword);
-            }
-            N(SyntaxKind.IdentifierToken, "R");
-            N(SyntaxKind.AccessorList);
-            {
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.GetAccessorDeclaration);
+                N(SyntaxKind.PublicKeyword);
+                N(SyntaxKind.PredefinedType);
                 {
-                    N(SyntaxKind.AsyncKeyword);
-                    N(SyntaxKind.GetKeyword);
-                    N(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.IntKeyword);
                 }
-                N(SyntaxKind.SetAccessorDeclaration);
+                N(SyntaxKind.IdentifierToken, "T");
+                N(SyntaxKind.AccessorList);
                 {
-                    N(SyntaxKind.SetKeyword);
-                    N(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.PrivateKeyword);
+                        N(SyntaxKind.PartialKeyword);
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.SetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.SetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.CloseBraceToken);
             }
-        }
-        EOF();
-
-        UsingDeclaration(sDeclaration, TestOptions.RegularPreview);
-        N(SyntaxKind.PropertyDeclaration);
-        {
-            N(SyntaxKind.PublicKeyword);
-            N(SyntaxKind.PredefinedType);
-            {
-                N(SyntaxKind.IntKeyword);
-            }
-            N(SyntaxKind.IdentifierToken, "S");
-            N(SyntaxKind.AccessorList);
-            {
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.GetAccessorDeclaration);
-                {
-                    N(SyntaxKind.PrivateKeyword);
-                    N(SyntaxKind.AsyncKeyword);
-                    N(SyntaxKind.GetKeyword);
-                    N(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.SetAccessorDeclaration);
-                {
-                    N(SyntaxKind.SetKeyword);
-                    N(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-        }
-        EOF();
-
-        UsingDeclaration(tDeclaration, TestOptions.RegularPreview);
-        N(SyntaxKind.PropertyDeclaration);
-        {
-            N(SyntaxKind.PublicKeyword);
-            N(SyntaxKind.PredefinedType);
-            {
-                N(SyntaxKind.IntKeyword);
-            }
-            N(SyntaxKind.IdentifierToken, "T");
-            N(SyntaxKind.AccessorList);
-            {
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.GetAccessorDeclaration);
-                {
-                    N(SyntaxKind.PrivateKeyword);
-                    N(SyntaxKind.PartialKeyword);
-                    N(SyntaxKind.GetKeyword);
-                    N(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.SetAccessorDeclaration);
-                {
-                    N(SyntaxKind.SetKeyword);
-                    N(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
+            N(SyntaxKind.CloseBraceToken);
         }
         EOF();
 
@@ -1622,109 +1606,105 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     [Fact]
     public void AccessorModifiersRecognizedInOlderLanguageVersion()
     {
-        const string pDeclaration = "int P { required get; }";
-        const string qDeclaration = "int Q { get; file set; }";
-        const string rDeclaration = "int R { get; closed init; }";
-        var source = $$"""
-            namespace System.Runtime.CompilerServices
-            {
-                class IsExternalInit { }
-            }
-
+        const string source = """
             class C
             {
-                {{pDeclaration}}
-                {{qDeclaration}}
-                {{rDeclaration}}
+                int P { required get; }
+                int Q { get; file set; }
+                int R { get; closed init; }
             }
             """;
 
-        UsingDeclaration(pDeclaration, TestOptions.Regular10);
-        N(SyntaxKind.PropertyDeclaration);
+        UsingDeclaration(source, TestOptions.Regular10);
+        N(SyntaxKind.ClassDeclaration);
         {
-            N(SyntaxKind.PredefinedType);
+            N(SyntaxKind.ClassKeyword);
+            N(SyntaxKind.IdentifierToken, "C");
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.PropertyDeclaration);
             {
-                N(SyntaxKind.IntKeyword);
-            }
-            N(SyntaxKind.IdentifierToken, "P");
-            N(SyntaxKind.AccessorList);
-            {
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.GetAccessorDeclaration);
+                N(SyntaxKind.PredefinedType);
                 {
-                    N(SyntaxKind.RequiredKeyword);
-                    N(SyntaxKind.GetKeyword);
-                    N(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.IntKeyword);
                 }
-                N(SyntaxKind.CloseBraceToken);
-            }
-        }
-        EOF();
-
-        UsingDeclaration(qDeclaration, TestOptions.Regular10);
-        N(SyntaxKind.PropertyDeclaration);
-        {
-            N(SyntaxKind.PredefinedType);
-            {
-                N(SyntaxKind.IntKeyword);
-            }
-            N(SyntaxKind.IdentifierToken, "Q");
-            N(SyntaxKind.AccessorList);
-            {
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.GetAccessorDeclaration);
+                N(SyntaxKind.IdentifierToken, "P");
+                N(SyntaxKind.AccessorList);
                 {
-                    N(SyntaxKind.GetKeyword);
-                    N(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.RequiredKeyword);
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.SetAccessorDeclaration);
-                {
-                    N(SyntaxKind.FileKeyword);
-                    N(SyntaxKind.SetKeyword);
-                    N(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.CloseBraceToken);
             }
-        }
-        EOF();
-
-        UsingDeclaration(rDeclaration, TestOptions.Regular10);
-        N(SyntaxKind.PropertyDeclaration);
-        {
-            N(SyntaxKind.PredefinedType);
+            N(SyntaxKind.PropertyDeclaration);
             {
-                N(SyntaxKind.IntKeyword);
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "Q");
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.SetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.FileKeyword);
+                        N(SyntaxKind.SetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
             }
-            N(SyntaxKind.IdentifierToken, "R");
-            N(SyntaxKind.AccessorList);
+            N(SyntaxKind.PropertyDeclaration);
             {
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.GetAccessorDeclaration);
+                N(SyntaxKind.PredefinedType);
                 {
-                    N(SyntaxKind.GetKeyword);
-                    N(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.IntKeyword);
                 }
-                N(SyntaxKind.InitAccessorDeclaration);
+                N(SyntaxKind.IdentifierToken, "R");
+                N(SyntaxKind.AccessorList);
                 {
-                    N(SyntaxKind.ClosedKeyword);
-                    N(SyntaxKind.InitKeyword);
-                    N(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.InitAccessorDeclaration);
+                    {
+                        N(SyntaxKind.ClosedKeyword);
+                        N(SyntaxKind.InitKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.CloseBraceToken);
             }
+            N(SyntaxKind.CloseBraceToken);
         }
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-            // (8,22): error CS0106: The modifier 'required' is not valid for this item
+            // (3,22): error CS0106: The modifier 'required' is not valid for this item
             //     int P { required get; }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("required").WithLocation(8, 22),
-            // (9,23): error CS0106: The modifier 'file' is not valid for this item
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("required").WithLocation(3, 22),
+            // (4,23): error CS0106: The modifier 'file' is not valid for this item
             //     int Q { get; file set; }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("file").WithLocation(9, 23),
-            // (10,25): error CS0106: The modifier 'closed' is not valid for this item
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("file").WithLocation(4, 23),
+            // (5,25): error CS0106: The modifier 'closed' is not valid for this item
             //     int R { get; closed init; }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "init").WithArguments("closed").WithLocation(10, 25));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "init").WithArguments("closed").WithLocation(5, 25),
+            // (5,25): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
+            //     int R { get; closed init; }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "init").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(5, 25));
     }
 
     [Fact]
@@ -1976,117 +1956,115 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     [Fact]
     public void ContextualModifiersOnOtherAccessorKinds()
     {
-        const string propertyDeclaration = "int P { partial init; }";
-        const string indexerDeclaration = "int this[int i] { scoped get; }";
-        const string eventDeclaration = "event System.Action E { partial add { } scoped remove { } }";
-        var source = $$"""
+        const string source = """
             class C
             {
-                {{propertyDeclaration}}
-                {{indexerDeclaration}}
-                {{eventDeclaration}}
+                int P { partial init; }
+                int this[int i] { scoped get; }
+                event System.Action E { partial add { } scoped remove { } }
             }
             """;
 
-        UsingDeclaration(propertyDeclaration);
-        N(SyntaxKind.PropertyDeclaration);
+        UsingDeclaration(source);
+        N(SyntaxKind.ClassDeclaration);
         {
-            N(SyntaxKind.PredefinedType);
+            N(SyntaxKind.ClassKeyword);
+            N(SyntaxKind.IdentifierToken, "C");
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.PropertyDeclaration);
             {
-                N(SyntaxKind.IntKeyword);
-            }
-            N(SyntaxKind.IdentifierToken, "P");
-            N(SyntaxKind.AccessorList);
-            {
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.InitAccessorDeclaration);
+                N(SyntaxKind.PredefinedType);
                 {
-                    N(SyntaxKind.PartialKeyword);
-                    N(SyntaxKind.InitKeyword);
-                    N(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.IntKeyword);
                 }
-                N(SyntaxKind.CloseBraceToken);
-            }
-        }
-        EOF();
-
-        UsingDeclaration(indexerDeclaration);
-        N(SyntaxKind.IndexerDeclaration);
-        {
-            N(SyntaxKind.PredefinedType);
-            {
-                N(SyntaxKind.IntKeyword);
-            }
-            N(SyntaxKind.ThisKeyword);
-            N(SyntaxKind.BracketedParameterList);
-            {
-                N(SyntaxKind.OpenBracketToken);
-                N(SyntaxKind.Parameter);
+                N(SyntaxKind.IdentifierToken, "P");
+                N(SyntaxKind.AccessorList);
                 {
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.InitAccessorDeclaration);
                     {
-                        N(SyntaxKind.IntKeyword);
+                        N(SyntaxKind.PartialKeyword);
+                        N(SyntaxKind.InitKeyword);
+                        N(SyntaxKind.SemicolonToken);
                     }
-                    N(SyntaxKind.IdentifierToken, "i");
-                }
-                N(SyntaxKind.CloseBracketToken);
-            }
-            N(SyntaxKind.AccessorList);
-            {
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.GetAccessorDeclaration);
-                {
-                    N(SyntaxKind.ScopedKeyword);
-                    N(SyntaxKind.GetKeyword);
-                    N(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-        }
-        EOF();
-
-        UsingDeclaration(eventDeclaration);
-        N(SyntaxKind.EventDeclaration);
-        {
-            N(SyntaxKind.EventKeyword);
-            N(SyntaxKind.QualifiedName);
-            {
-                N(SyntaxKind.IdentifierName);
-                {
-                    N(SyntaxKind.IdentifierToken, "System");
-                }
-                N(SyntaxKind.DotToken);
-                N(SyntaxKind.IdentifierName);
-                {
-                    N(SyntaxKind.IdentifierToken, "Action");
+                    N(SyntaxKind.CloseBraceToken);
                 }
             }
-            N(SyntaxKind.IdentifierToken, "E");
-            N(SyntaxKind.AccessorList);
+            N(SyntaxKind.IndexerDeclaration);
             {
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.AddAccessorDeclaration);
+                N(SyntaxKind.PredefinedType);
                 {
-                    N(SyntaxKind.PartialKeyword);
-                    N(SyntaxKind.AddKeyword);
-                    N(SyntaxKind.Block);
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.ThisKeyword);
+                N(SyntaxKind.BracketedParameterList);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.Parameter);
                     {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "i");
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            N(SyntaxKind.EventDeclaration);
+            {
+                N(SyntaxKind.EventKeyword);
+                N(SyntaxKind.QualifiedName);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "System");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Action");
                     }
                 }
-                N(SyntaxKind.RemoveAccessorDeclaration);
+                N(SyntaxKind.IdentifierToken, "E");
+                N(SyntaxKind.AccessorList);
                 {
-                    N(SyntaxKind.ScopedKeyword);
-                    N(SyntaxKind.RemoveKeyword);
-                    N(SyntaxKind.Block);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.AddAccessorDeclaration);
                     {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.PartialKeyword);
+                        N(SyntaxKind.AddKeyword);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
                     }
+                    N(SyntaxKind.RemoveAccessorDeclaration);
+                    {
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.RemoveKeyword);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.CloseBraceToken);
             }
+            N(SyntaxKind.CloseBraceToken);
         }
         EOF();
 
