@@ -3247,6 +3247,11 @@
         <target state="translated">inicjatory pola struktury</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureTypeParameterInferenceFromConstraints">
+        <source>type parameter inference from constraints</source>
+        <target state="new">type parameter inference from constraints</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
         <source>unbound generic types in nameof operator</source>
         <target state="translated">niepowiązane typy ogólne w operatorze nameof</target>

@@ -149,6 +149,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly HashSet<TypeWithAnnotations>[] _upperBounds;
         private readonly HashSet<TypeWithAnnotations>[] _lowerBounds;
 
+        // Constraint-derived bounds are used only when the corresponding type parameter
+        // has no bounds from ordinary argument or output inference.
+        private readonly HashSet<TypeWithAnnotations>[] _constraintExactBounds;
+        private readonly HashSet<TypeWithAnnotations>[] _constraintUpperBounds;
+        private readonly HashSet<TypeWithAnnotations>[] _constraintLowerBounds;
+        private bool _isInferringFromConstraint;
+
         // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-9.0/nullable-reference-types-specification.md#fixing
         // If the resulting candidate is a reference type and *all* of the exact bounds or *any* of
         // the lower bounds are nullable reference types, `null` or `default`, then `?` is added to
@@ -350,6 +357,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             _exactBounds = new HashSet<TypeWithAnnotations>[methodTypeParameters.Length];
             _upperBounds = new HashSet<TypeWithAnnotations>[methodTypeParameters.Length];
             _lowerBounds = new HashSet<TypeWithAnnotations>[methodTypeParameters.Length];
+            if (IsFeatureTypeParameterInferenceFromConstraintsEnabled)
+            {
+                _constraintExactBounds = new HashSet<TypeWithAnnotations>[methodTypeParameters.Length];
+                _constraintUpperBounds = new HashSet<TypeWithAnnotations>[methodTypeParameters.Length];
+                _constraintLowerBounds = new HashSet<TypeWithAnnotations>[methodTypeParameters.Length];
+            }
+            else
+            {
+                _constraintExactBounds = null;
+                _constraintUpperBounds = null;
+                _constraintLowerBounds = null;
+            }
+            _isInferringFromConstraint = false;
             _nullableAnnotationLowerBounds = new NullableAnnotation[methodTypeParameters.Length];
             Debug.Assert(_nullableAnnotationLowerBounds.All(annotation => annotation.IsNotAnnotated()));
             _dependencies = null;
@@ -469,10 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!fixedResultType.Type.IsErrorType())
                     {
-                        if (_conversions.IncludeNullability && _nullableAnnotationLowerBounds[i].IsAnnotated())
-                        {
-                            _fixedResults[i] = _fixedResults[i] with { Type = fixedResultType.AsAnnotated() };
-                        }
+                        _fixedResults[i] = _fixedResults[i] with { Type = GetTypeWithInferredNullability(i, fixedResultType) };
                         continue;
                     }
 
@@ -486,6 +503,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return GetInferredTypeArguments(out inferredFromFunctionType);
+        }
+
+        private TypeWithAnnotations GetTypeWithInferredNullability(int iParam, TypeWithAnnotations type)
+        {
+            Debug.Assert(type.HasType);
+            return _conversions.IncludeNullability && _nullableAnnotationLowerBounds[iParam].IsAnnotated()
+                ? type.AsAnnotated()
+                : type;
         }
 
         private bool ValidIndex(int index)
@@ -534,12 +559,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private void AddBound(TypeWithAnnotations addedBound, HashSet<TypeWithAnnotations>[] collectedBounds, TypeWithAnnotations methodTypeParameterWithAnnotations)
+        private void AddBound(
+            TypeWithAnnotations addedBound,
+            HashSet<TypeWithAnnotations>[] ordinaryBounds,
+            HashSet<TypeWithAnnotations>[] constraintBounds,
+            TypeWithAnnotations methodTypeParameterWithAnnotations)
         {
             Debug.Assert(IsUnfixedTypeParameter(methodTypeParameterWithAnnotations));
 
             var methodTypeParameter = (TypeParameterSymbol)methodTypeParameterWithAnnotations.Type;
             int methodTypeParameterIndex = GetOrdinal(methodTypeParameter);
+            var collectedBounds = ordinaryBounds;
+
+            if (_isInferringFromConstraint)
+            {
+                if (HasOrdinaryBound(methodTypeParameterIndex))
+                {
+                    return;
+                }
+
+                Debug.Assert(constraintBounds != null);
+                collectedBounds = constraintBounds;
+            }
 
             if (collectedBounds[methodTypeParameterIndex] == null)
             {
@@ -549,12 +590,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             collectedBounds[methodTypeParameterIndex].Add(addedBound);
         }
 
-        private bool HasBound(int methodTypeParameterIndex)
+        private bool HasOrdinaryBound(int methodTypeParameterIndex)
         {
             Debug.Assert(ValidIndex(methodTypeParameterIndex));
             return _lowerBounds[methodTypeParameterIndex] != null ||
                 _upperBounds[methodTypeParameterIndex] != null ||
                 _exactBounds[methodTypeParameterIndex] != null;
+        }
+
+        private bool HasEffectiveBound(int methodTypeParameterIndex)
+        {
+            Debug.Assert(ValidIndex(methodTypeParameterIndex));
+            return HasOrdinaryBound(methodTypeParameterIndex) ||
+                (_constraintLowerBounds != null &&
+                 (_constraintLowerBounds[methodTypeParameterIndex] != null ||
+                  _constraintUpperBounds[methodTypeParameterIndex] != null ||
+                  _constraintExactBounds[methodTypeParameterIndex] != null));
         }
 
         private TypeSymbol GetFixedDelegateOrFunctionPointer(TypeSymbol delegateOrFunctionPointerType)
@@ -981,25 +1032,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = InferenceResult.NoProgress;
             for (int param = 0; param < _methodTypeParameters.Length; param++)
             {
-                if (IsUnfixed(param) && HasBound(param) && predicate(ref this, param))
+                if (IsUnfixed(param) && HasEffectiveBound(param) && predicate(ref this, param))
                 {
                     needsFixing[param] = true;
                     result = InferenceResult.MadeProgress;
                 }
             }
 
-            for (int param = 0; param < _methodTypeParameters.Length; param++)
+            if (result == InferenceResult.NoProgress)
             {
-                // Fix as much as you can, even if there are errors.  That will
-                // help with intellisense.
-                if (needsFixing[param])
+                return result;
+            }
+
+            if (IsFeatureTypeParameterInferenceFromConstraintsEnabled)
+            {
+                if (!FixSelectedParameters(needsFixing, ref useSiteInfo))
                 {
-                    if (!Fix(param, ref useSiteInfo))
+                    result = InferenceResult.InferenceFailed;
+                }
+            }
+            else
+            {
+                for (int param = 0; param < _methodTypeParameters.Length; param++)
+                {
+                    // Fix as much as you can, even if there are errors. That will
+                    // help with IntelliSense.
+                    if (needsFixing[param] && !FixParameter(param, ref useSiteInfo))
                     {
                         result = InferenceResult.InferenceFailed;
                     }
                 }
             }
+
             return result;
         }
 
@@ -1151,6 +1215,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
             }
+
+            // SPEC EXTENSION (type parameter inference from constraints):
+            // SPEC: Xi depends directly on Xj if Xi occurs in a constraint for Xj.
+            // This lets the bounds inferred for Xj (e.g. from an argument) flow into the
+            // type parameters mentioned in Xj's constraints, by ensuring Xj is fixed first.
+            if (IsFeatureTypeParameterInferenceFromConstraintsEnabled &&
+                iParam != jParam &&
+                ConstraintContainsTypeParameter(_methodTypeParameters[jParam], _methodTypeParameters[iParam]))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool ConstraintContainsTypeParameter(TypeParameterSymbol constrainedTypeParameter, TypeParameterSymbol typeParameter)
+        {
+            foreach (var constraintType in constrainedTypeParameter.ConstraintTypesNoUseSiteDiagnostics)
+            {
+                if (constraintType.Type.ContainsTypeParameter(typeParameter))
+                {
+                    return true;
+                }
+            }
+
             return false;
         }
 
@@ -1698,7 +1787,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:   for Xi.
             if (IsUnfixedTypeParameter(target))
             {
-                AddBound(source, _exactBounds, target);
+                AddBound(source, _exactBounds, _constraintExactBounds, target);
                 return true;
             }
             return false;
@@ -1733,6 +1822,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Note: when Compilation is null, we assume latest LangVersion.
                 return _compilation?.IsFeatureEnabled(MessageID.IDS_FeatureFirstClassSpan) != false;
+            }
+        }
+
+        private readonly bool IsFeatureTypeParameterInferenceFromConstraintsEnabled
+        {
+            get
+            {
+                // Note: when Compilation is null, we assume latest LangVersion.
+                return _compilation?.IsFeatureEnabled(MessageID.IDS_FeatureTypeParameterInferenceFromConstraints) != false;
             }
         }
 
@@ -2069,7 +2167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:   for Xi.
             if (IsUnfixedTypeParameter(target))
             {
-                AddBound(source, _lowerBounds, target);
+                AddBound(source, _lowerBounds, _constraintLowerBounds, target);
                 return true;
             }
             return false;
@@ -2544,7 +2642,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:   for Xi.
             if (IsUnfixedTypeParameter(target))
             {
-                AddBound(source, _upperBounds, target);
+                AddBound(source, _upperBounds, _constraintUpperBounds, target);
                 return true;
             }
             return false;
@@ -2824,19 +2922,123 @@ namespace Microsoft.CodeAnalysis.CSharp
         //
         // Fixing
         //
-        private bool Fix(int iParam, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private bool FixParameter(int iParam, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            Debug.Assert(!IsFeatureTypeParameterInferenceFromConstraintsEnabled);
+
+            var fixedResult = GetFixResult(iParam, ref useSiteInfo);
+            if (!fixedResult.Type.HasType)
+            {
+                return false;
+            }
+
+            _fixedResults[iParam] = fixedResult;
+            UpdateDependenciesAfterFix(iParam);
+            return true;
+        }
+
+        /// <summary>
+        /// Fixes the parameters selected by <paramref name="needsFixing"/>.
+        /// Results are calculated from the same bounds state, committed together, and only
+        /// then propagated through constraints, so parameter order cannot affect the result.
+        /// </summary>
+        /// <returns>
+        /// <see langword="true"/> if every selected parameter was fixed; otherwise,
+        /// <see langword="false"/>. Successful fixes are still committed for error recovery.
+        /// </returns>
+        private bool FixSelectedParameters(BitVector needsFixing, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            Debug.Assert(IsFeatureTypeParameterInferenceFromConstraintsEnabled);
+
+            var fixedResults = ArrayBuilder<(TypeWithAnnotations Type, bool FromFunctionType)>.GetInstance(_methodTypeParameters.Length);
+            fixedResults.AddMany(default, _methodTypeParameters.Length);
+            var success = true;
+
+            // Calculate every result from the same bounds snapshot before committing any
+            // of them. Constraint propagation from one result therefore cannot affect
+            // another parameter selected by the same fixing step.
+            for (int param = 0; param < _methodTypeParameters.Length; param++)
+            {
+                if (!needsFixing[param])
+                {
+                    continue;
+                }
+
+                var fixedResult = GetFixResult(param, ref useSiteInfo);
+                fixedResults[param] = fixedResult;
+                if (!fixedResult.Type.HasType)
+                {
+                    success = false;
+                }
+            }
+
+            for (int parameter = 0; parameter < fixedResults.Count; parameter++)
+            {
+                var fixedResult = fixedResults[parameter];
+                if (fixedResult.Type.HasType)
+                {
+                    _fixedResults[parameter] = fixedResult;
+                }
+            }
+
+            Debug.Assert(!_isInferringFromConstraint);
+            _isInferringFromConstraint = true;
+            for (int parameter = 0; parameter < fixedResults.Count; parameter++)
+            {
+                var type = fixedResults[parameter].Type;
+                if (!type.HasType)
+                {
+                    continue;
+                }
+
+                var constraintSource = GetTypeWithInferredNullability(parameter, type);
+                foreach (var constraintType in _methodTypeParameters[parameter].ConstraintTypesNoUseSiteDiagnostics)
+                {
+                    LowerBoundInference(constraintSource, constraintType, ref useSiteInfo);
+                }
+            }
+            _isInferringFromConstraint = false;
+
+            for (int parameter = 0; parameter < fixedResults.Count; parameter++)
+            {
+                if (fixedResults[parameter].Type.HasType)
+                {
+                    UpdateDependenciesAfterFix(parameter);
+                }
+            }
+
+            fixedResults.Free();
+            return success;
+        }
+
+        private (TypeWithAnnotations Type, bool FromFunctionType) GetFixResult(
+            int iParam,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(IsUnfixed(iParam));
 
             var typeParameter = _methodTypeParameters[iParam];
-            var exact = _exactBounds[iParam];
-            var lower = _lowerBounds[iParam];
-            var upper = _upperBounds[iParam];
+            HashSet<TypeWithAnnotations> exact;
+            HashSet<TypeWithAnnotations> lower;
+            HashSet<TypeWithAnnotations> upper;
+            if (HasOrdinaryBound(iParam))
+            {
+                exact = _exactBounds[iParam];
+                lower = _lowerBounds[iParam];
+                upper = _upperBounds[iParam];
+            }
+            else
+            {
+                Debug.Assert(_constraintExactBounds != null);
+                exact = _constraintExactBounds[iParam];
+                lower = _constraintLowerBounds[iParam];
+                upper = _constraintUpperBounds[iParam];
+            }
 
             var best = Fix(_compilation, _conversions, typeParameter, exact, lower, upper, ref useSiteInfo);
             if (!best.Type.HasType)
             {
-                return false;
+                return default;
             }
 
 #if DEBUG
@@ -2852,9 +3054,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 #endif
 
-            _fixedResults[iParam] = best;
-            UpdateDependenciesAfterFix(iParam);
-            return true;
+            return best;
         }
 
         private static (TypeWithAnnotations Type, bool FromFunctionType) Fix(
@@ -3311,8 +3511,32 @@ OuterBreak:
                 return false;
             }
             LowerBoundInference(_extensions.GetTypeWithAnnotations(argument), dest, ref useSiteInfo);
-            // Now check to see that every type parameter used by the first
-            // formal parameter type was successfully inferred.
+
+            // Preserve sequential fixing for previous language versions. Constraint inference
+            // instead collects all applicable parameters and fixes them from one shared snapshot.
+            if (!IsFeatureTypeParameterInferenceFromConstraintsEnabled)
+            {
+                for (int iParam = 0; iParam < _methodTypeParameters.Length; ++iParam)
+                {
+                    TypeParameterSymbol pParam = _methodTypeParameters[iParam];
+                    if (!dest.Type.ContainsTypeParameter(pParam))
+                    {
+                        continue;
+                    }
+
+                    Debug.Assert(IsUnfixed(iParam));
+                    if (!HasEffectiveBound(iParam) || !FixParameter(iParam, ref useSiteInfo))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            // Check that every type parameter used by the first formal parameter type
+            // was successfully inferred before fixing the batch.
+            var needsFixing = BitVector.Create(_methodTypeParameters.Length);
             for (int iParam = 0; iParam < _methodTypeParameters.Length; ++iParam)
             {
                 TypeParameterSymbol pParam = _methodTypeParameters[iParam];
@@ -3321,12 +3545,15 @@ OuterBreak:
                     continue;
                 }
                 Debug.Assert(IsUnfixed(iParam));
-                if (!HasBound(iParam) || !Fix(iParam, ref useSiteInfo))
+                if (!HasEffectiveBound(iParam))
                 {
                     return false;
                 }
+
+                needsFixing[iParam] = true;
             }
-            return true;
+
+            return FixSelectedParameters(needsFixing, ref useSiteInfo);
         }
 
 #nullable enable
@@ -3531,4 +3758,3 @@ OuterBreak:
         }
     }
 }
-

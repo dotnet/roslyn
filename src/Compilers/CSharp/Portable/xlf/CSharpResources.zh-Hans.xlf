@@ -3247,6 +3247,11 @@
         <target state="translated">结构字段初始化表达式</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureTypeParameterInferenceFromConstraints">
+        <source>type parameter inference from constraints</source>
+        <target state="new">type parameter inference from constraints</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
         <source>unbound generic types in nameof operator</source>
         <target state="translated">nameof 运算符中的未绑定泛型类型</target>
