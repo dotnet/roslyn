@@ -1429,19 +1429,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     case DeclarationModifiers.Ref:
                         {
-                            if (isRefTypeDeclarationAfterModifiers())
-                            {
-                                modTok = this.EatToken();
-                            }
-                            else if (forAccessors && this.IsPossibleAccessorModifier())
-                            {
-                                // Accept ref as a modifier for properties and event accessors, to produce an error later during binding.
-                                modTok = this.EatToken();
-                            }
-                            else
+                            if (isRefReturningMember())
                             {
                                 return;
                             }
+
+                            // At the top level, only consume 'ref' as a modifier when the following
+                            // modifier chain actually leads to a type declaration. Otherwise, leave
+                            // it for return-type/statement parsing so malformed declarations remain
+                            // split into useful syntax nodes rather than swallowing subsequent tokens.
+                            if (forTopLevelStatements && !shouldConsumeRefAtTopLevel())
+                            {
+                                return;
+                            }
+
+                            modTok = this.EatToken();
                             break;
                         }
 
@@ -1498,41 +1500,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 tokens.Add(modTok);
             }
 
-            bool isRefTypeDeclarationAfterModifiers()
+            bool isRefReturningMember()
             {
+                Debug.Assert(this.CurrentToken.Kind == SyntaxKind.RefKeyword);
+
                 var peekIndex = 1;
-                var skippedNonPartialModifier = false;
 
                 // Skip ordinary modifiers while looking for the type declaration. 'scoped' is
                 // intentionally excluded: it is contextual and may instead be the type in a
                 // 'ref scoped ...' return-type prefix.
-                while (GetModifierExcludingScoped(this.PeekToken(peekIndex)) is var modifier and not DeclarationModifiers.None)
+                while (GetModifierExcludingScoped(this.PeekToken(peekIndex)) != DeclarationModifiers.None)
                 {
-                    skippedNonPartialModifier |= modifier != DeclarationModifiers.Partial;
                     peekIndex++;
                 }
 
-                var token = this.PeekToken(peekIndex);
-                if (!this.IsTypeDeclarationStart(peekIndex))
+                if (this.IsTypeDeclarationStart(peekIndex))
                 {
                     return false;
                 }
 
-                // If reaching a contextual type-declaration keyword required looking past a modifier
-                // that the previous parser did not support here, preserve a possible ref-returning
-                // member interpretation. For example, 'ref readonly record M()' may use 'record' as
-                // the return type even when records are enabled.
-                if (skippedNonPartialModifier &&
-                    token.Kind == SyntaxKind.IdentifierToken)
+                // Speculatively scan the complete ref type and check for a following member name.
+                // If both are present, leave 'ref' unconsumed so the return-type parser handles it.
+                using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+                return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
+            }
+
+            bool shouldConsumeRefAtTopLevel()
+            {
+                Debug.Assert(this.CurrentToken.Kind == SyntaxKind.RefKeyword);
+
+                using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+                this.EatToken();
+
+                while (GetModifierExcludingScoped(this.CurrentToken) != DeclarationModifiers.None)
                 {
-                    using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
-                    if (this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName())
-                    {
-                        return false;
-                    }
+                    this.EatToken();
                 }
 
-                return true;
+                // Preserve existing recovery for contextual declaration keywords in older language
+                // versions. isRefReturningMember() has already handled cases where one of these is
+                // instead the type of a ref-returning member.
+                return this.CurrentToken.ContextualKind is
+                    SyntaxKind.RecordKeyword or SyntaxKind.UnionKeyword or SyntaxKind.ExtensionKeyword ||
+                    this.IsTypeDeclarationStart();
             }
 
             bool parseAsModifier(MessageID requiredFeature, [NotNullWhen(true)] out SyntaxToken? modTok)
@@ -1861,7 +1871,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
 
             var peekIndex = 1;
-            while (this.PeekToken(peekIndex).ContextualKind == SyntaxKind.PartialKeyword)
+
+            // Look through intervening modifiers to determine whether 'partial' belongs to a type
+            // declaration. Stop at 'ref' because it may instead begin a ref-returning member;
+            // ParseModifiers handles that ambiguity separately.
+            while (GetModifierExcludingScoped(this.PeekToken(peekIndex)) is
+                   not (DeclarationModifiers.None or DeclarationModifiers.Ref))
             {
                 peekIndex++;
             }
@@ -2368,14 +2383,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 : _syntaxFactory.SimpleBaseType(firstType));
 
             // Parse any optional base types that follow.
-            while (true)
+            while (this.CurrentToken.Kind is not (SyntaxKind.OpenBraceToken or SyntaxKind.SemicolonToken) &&
+                !this.IsCurrentTokenWhereOfConstraintClause())
             {
-                if (this.CurrentToken.Kind is SyntaxKind.OpenBraceToken or SyntaxKind.SemicolonToken ||
-                    this.IsCurrentTokenWhereOfConstraintClause())
-                {
-                    break;
-                }
-
                 if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
                     list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
@@ -3974,48 +3984,39 @@ parse_member_name:;
                     {
                         // Scan possible ExplicitInterfaceSpecifier
 
-                        while (true)
+                        while (this.CurrentToken.Kind != SyntaxKind.OperatorKeyword)
                         {
                             // now, scan past the next name.  if it's followed by a dot then
                             // it's part of the explicit name we're building up.  Otherwise,
                             // it should be an operator token
 
-                            if (this.CurrentToken.Kind == SyntaxKind.OperatorKeyword)
-                            {
-                                // We're past any explicit interface portion
-                                break;
-                            }
-                            else
-                            {
-                                using var scanNamePartPoint = GetDisposableResetPoint(resetOnDispose: false);
+                            using var scanNamePartPoint = GetDisposableResetPoint(resetOnDispose: false);
 
-                                int lastTokenPosition = -1;
-                                IsMakingProgress(ref lastTokenPosition, assertIfFalse: true);
-                                ScanNamedTypePart();
+                            int lastTokenPosition = -1;
+                            IsMakingProgress(ref lastTokenPosition, assertIfFalse: true);
+                            ScanNamedTypePart();
 
-                                if (IsDotOrColonColon() ||
-                                    (IsMakingProgress(ref lastTokenPosition, assertIfFalse: false) && this.CurrentToken.Kind != SyntaxKind.OpenParenToken))
+                            if (IsDotOrColonColon() ||
+                                (IsMakingProgress(ref lastTokenPosition, assertIfFalse: false) && this.CurrentToken.Kind != SyntaxKind.OpenParenToken))
+                            {
+                                haveExplicitInterfaceName = true;
+
+                                if (IsDotOrColonColon())
                                 {
-                                    haveExplicitInterfaceName = true;
-
-                                    if (IsDotOrColonColon())
-                                    {
-                                        separatorKind = this.CurrentToken.Kind;
-                                        EatToken();
-                                    }
-                                    else
-                                    {
-                                        separatorKind = SyntaxKind.None;
-                                    }
-
+                                    separatorKind = this.CurrentToken.Kind;
+                                    EatToken();
                                 }
                                 else
                                 {
-                                    scanNamePartPoint.Reset();
-
-                                    // We're past any explicit interface portion
-                                    break;
+                                    separatorKind = SyntaxKind.None;
                                 }
+                            }
+                            else
+                            {
+                                scanNamePartPoint.Reset();
+
+                                // We're past any explicit interface portion
+                                break;
                             }
                         }
                     }
@@ -4592,13 +4593,9 @@ parse_member_name:;
                 // parse property accessors
                 var builder = _pool.Allocate<AccessorDeclarationSyntax>();
 
-                while (true)
+                while (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
                 {
-                    if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
-                    {
-                        break;
-                    }
-                    else if (this.IsPossibleAccessor())
+                    if (this.IsPossibleAccessor())
                     {
                         var acc = this.ParseAccessorDeclaration(declaringKind);
                         builder.Add(acc);
@@ -5546,13 +5543,9 @@ parse_member_name:;
                 return;
             }
 
-            while (true)
+            while (this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
             {
-                if (this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
-                {
-                    break;
-                }
-                else if (stopOnCloseParen && this.CurrentToken.Kind == SyntaxKind.CloseParenToken)
+                if (stopOnCloseParen && this.CurrentToken.Kind == SyntaxKind.CloseParenToken)
                 {
                     break;
                 }
@@ -6813,13 +6806,8 @@ parse_member_name:;
             types.Add(this.ParseTypeArgument());
 
             // remaining types & commas
-            while (true)
+            while (this.CurrentToken.Kind != SyntaxKind.GreaterThanToken)
             {
-                if (this.CurrentToken.Kind == SyntaxKind.GreaterThanToken)
-                {
-                    break;
-                }
-
                 // We prefer early terminating the argument list over parsing until exhaustion
                 // for better error recovery
                 if (tokenBreaksTypeArgumentList(this.CurrentToken))
