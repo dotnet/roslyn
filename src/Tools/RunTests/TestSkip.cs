@@ -107,7 +107,10 @@ internal static class TestSkip
     /// <summary>
     /// The environment axis a result depends on beyond the closure bytes: configuration, target
     /// framework, OS, architecture, and culture. Culture matters -- roslyn's localized legs prove test
-    /// output depends on it -- so the same closure under a different culture is a different key.
+    /// output depends on it -- so the same closure under a different culture is a different key. The
+    /// ROSLYN_TEST_* / DOTNET_RuntimeAsync mode variables also change results for the same bytes (the
+    /// IOperation, UsedAssemblies and RuntimeAsync legs run the same assemblies with these set), and are
+    /// exactly the variables the Helix runner forwards to the test machines, so they belong in the key.
     /// </summary>
     internal static string EnvAxis(Options options, string tfm)
     {
@@ -121,7 +124,10 @@ internal static class TestSkip
             culture = "neutral";
         }
 
-        return $"{options.Configuration}|{tfm}|{os}|{arch}|{culture}";
+        var modeVars = new[] { "ROSLYN_TEST_IOPERATION", "ROSLYN_TEST_USEDASSEMBLIES", "DOTNET_RuntimeAsync" };
+        var modes = string.Join(",", modeVars.Select(v => $"{v}={Environment.GetEnvironmentVariable(v)}"));
+
+        return $"{options.Configuration}|{tfm}|{os}|{arch}|{culture}|{modes}";
     }
 
     internal static string Key(string assembly, string envAxis, string fingerprint)

@@ -43,6 +43,23 @@ jobs:
       env:
         HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)/.duplicate'
 
+    # Pull this leg's closure-fingerprint PASS store from the most recent build on the branch. A leg
+    # only skips an assembly whose full deploy closure has a recorded PASS under this same leg. Missing
+    # on the first run (nothing to download) -> everything runs, so continueOnError is intentional.
+    - task: DownloadPipelineArtifact@2
+      displayName: Pull test-skip store
+      continueOnError: true
+      inputs:
+        buildType: specific
+        project: $(System.TeamProject)
+        definition: $(System.DefinitionId)
+        buildVersionToDownload: latestFromBranch
+        branchName: $(Build.SourceBranch)
+        allowPartiallySucceededBuilds: true
+        allowFailedBuilds: false
+        artifact: testskipstore-${{ parameters.jobName }}
+        path: $(Agent.TempDirectory)/testskipstore
+
     - task: ShellScript@2
       inputs:
         scriptPath: ./eng/build.sh        
@@ -53,6 +70,16 @@ jobs:
       displayName: Test
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+        ROSLYN_TEST_SKIP_STORE: $(Agent.TempDirectory)/testskipstore
+
+    # Persist the updated PASS store only when the whole leg (tests included) was green. This is the
+    # authoritative soundness gate: a failed leg publishes nothing, so its assemblies re-run next time.
+    - task: PublishPipelineArtifact@1
+      displayName: Publish test-skip store
+      condition: succeeded()
+      inputs:
+        targetPath: $(Agent.TempDirectory)/testskipstore
+        artifact: testskipstore-${{ parameters.jobName }}
 
     - template: publish-logs.yml
       parameters:

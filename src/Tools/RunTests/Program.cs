@@ -56,12 +56,18 @@ namespace RunTests
                     return ExitSuccess;
                 }
 
-                // For Helix, RunAsync returns success on SUBMISSION, not on test results -- the separate
-                // "Monitor Helix Jobs" job determines pass/fail. Recording a PASS here would wrongly
-                // cache an assembly that later fails on Helix, so record nothing. Passes are recorded by
-                // a post-results step (RunTests --testSkipDryRun) that runs only after the monitor job
-                // is green, so every recorded assembly genuinely passed.
-                return await HelixTestRunner.RunAsync(options, toRun);
+                // RunAsync submits the Helix job and WAITS for it to finish (a real leg's "Run Unit Tests"
+                // step runs for the full test duration, ~50 min, and fails on any test failure), so a zero
+                // exit code means every submitted work item passed. Recording here is therefore sound:
+                // PASS is only recorded when the whole run was green. A failure records nothing, so the
+                // affected assemblies re-run next time.
+                var helixResult = await HelixTestRunner.RunAsync(options, toRun);
+                if (helixResult == ExitSuccess)
+                {
+                    TestSkip.RecordPasses(toRun, fingerprints, options);
+                }
+
+                return helixResult;
             }
 
             if (options.CollectDumps)
