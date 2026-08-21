@@ -235,6 +235,7 @@ public sealed class ClosedModifierParsingTests : ParsingTests
         }
         EOF();
     }
+
     [Fact]
     public void ClosedModifier_03_Struct()
     {
@@ -289,6 +290,7 @@ public sealed class ClosedModifierParsingTests : ParsingTests
         }
         EOF();
     }
+
     [Fact]
     public void ClosedModifier_03_Interface()
     {
