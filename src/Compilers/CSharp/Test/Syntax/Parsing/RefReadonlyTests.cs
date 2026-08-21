@@ -435,8 +435,6 @@ class Program
                 Diagnostic(ErrorCode.ERR_VirtualPrivate, "P1").WithArguments("Program.P1").WithLocation(3, 38));
         }
 
-
-
         [Fact]
         public void RefReadonlyReturn_UnexpectedBindTime()
         {
@@ -1959,12 +1957,5 @@ class Test
             }
             EOF();
         }
-
-
-
-
-
-
-
     }
 }

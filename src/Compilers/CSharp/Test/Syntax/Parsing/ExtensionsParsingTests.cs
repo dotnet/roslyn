@@ -3413,8 +3413,6 @@ class C
             Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 53));
     }
 
-
-
     [Theory]
     [InlineData("abstract", SyntaxKind.AbstractKeyword)]
     [InlineData("sealed", SyntaxKind.SealedKeyword)]
@@ -6285,21 +6283,4 @@ class C
         Assert.True(SyntaxFacts.IsContextualKeyword(SyntaxKind.ExtensionKeyword));
         Assert.Equal(SyntaxKind.ExtensionKeyword, SyntaxFacts.GetContextualKeywordKind("extension"));
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

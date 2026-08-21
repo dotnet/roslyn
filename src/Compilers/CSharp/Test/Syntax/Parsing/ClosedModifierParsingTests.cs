@@ -345,6 +345,7 @@ public sealed class ClosedModifierParsingTests : ParsingTests
         }
         EOF();
     }
+
     [Fact]
     public void ClosedModifier_04()
     {
