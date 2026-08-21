@@ -67,6 +67,7 @@ function Run-Build([string]$rootDir, [string]$logFileName) {
      /p:DeployExtension=false `
      /p:RepoRoot=$rootDir `
      /p:TreatWarningsAsErrors=true `
+     /warnnotaserror:NU1901;NU1902;NU1903;NU1904 `
      /p:BootstrapBuildPath=$bootstrapDir `
      /p:DeterministicSourcePaths=true `
      /p:RunAnalyzers=false `
