@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -132,7 +132,7 @@ public sealed class AddConstructorParametersFromMembersTests
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int i)"), codeAction.Title)
         }.RunAsync();
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/58040")]
     public Task TestProperlyWrapParameters2()
         => new VerifyCS.Test
@@ -180,7 +180,7 @@ public sealed class AddConstructorParametersFromMembersTests
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int i, string s)"), codeAction.Title)
         }.RunAsync();
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/58040")]
     public Task TestProperlyWrapParameters3()
         => new VerifyCS.Test
@@ -226,7 +226,7 @@ public sealed class AddConstructorParametersFromMembersTests
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int i, string s)"), codeAction.Title)
         }.RunAsync();
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/58040")]
     public Task TestProperlyWrapParameters4()
         => new VerifyCS.Test
@@ -2437,7 +2437,7 @@ public sealed class AddConstructorParametersFromMembersTests
             CodeActionIndex = 1
         }.RunAsync();
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/60816")]
     public Task TestAddMultipleParametersWithWrapping()
         => new VerifyCS.Test
