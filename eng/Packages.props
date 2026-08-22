@@ -14,12 +14,15 @@
     <!--
       VS .NET Runtime
 
-      We should try to keep this version in sync with the version of app-local runtime in VS.
+      This branch no longer inserts into VS, so there is no need to keep this version in sync.
     -->
-    <MicrosoftNetCoreAppRuntimePackagesVersion>8.0.10</MicrosoftNetCoreAppRuntimePackagesVersion>
-    <MicrosoftWindowsDesktopAppRuntimePackagesVersion>8.0.10</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
+    <MicrosoftNetCoreAppRuntimePackagesVersion>8.0.30</MicrosoftNetCoreAppRuntimePackagesVersion>
+    <MicrosoftWindowsDesktopAppRuntimePackagesVersion>8.0.30</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
     <_xunitVersion>2.9.2</_xunitVersion>
-    <SqliteVersion>2.1.0</SqliteVersion>
+    <!--
+      This branch no longer inserts into VS, so there is no need to keep this version in sync.
+    -->
+    <SqliteVersion>2.1.11</SqliteVersion>
     <!-- HumanizerVersion is referenced from the Text.Analyzers.Package.csproj -->
     <HumanizerVersion>2.14.1</HumanizerVersion>
   </PropertyGroup>
@@ -229,8 +232,10 @@
     <PackageVersion Include="Microsoft.IO.Redist" Version="$(MicrosoftIORedistVersion)" />
 
     <PackageVersion Include="SQLitePCLRaw.core" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="$(SqliteVersion)" />
+    <!-- Setting this separately because no matching package version exists -->
+    <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
+    <!-- Keep the patched native library while matching the managed packages to bundle_green. -->
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.13" />
     <PackageVersion Include="SQLitePCLRaw.provider.dynamic_cdecl" Version="$(SqliteVersion)" />
     <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.linux" Version="$(SqliteVersion)" />
     <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.osx" Version="$(SqliteVersion)" />
