@@ -780,7 +780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return kind;
         }
 
-        internal static void ReportDiagnosticsIfObsoleteInternal(BindingDiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node, Symbol containingMember, BinderFlags location)
+        internal static void ReportDiagnosticsIfObsoleteInternal(BindingDiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node, Symbol? containingMember, BinderFlags location)
         {
             if (diagnostics.DiagnosticBag is object)
             {

@@ -2502,7 +2502,7 @@ outerDefault:
             // operator, the non-lifted one is better.
 
             // Otherwise: Position in interactive submission chain. The last definition wins.
-            if (m1.Member.ContainingType.TypeKind == TypeKind.Submission && m2.Member.ContainingType.TypeKind == TypeKind.Submission)
+            if (m1.Member.RequiredContainingType.TypeKind == TypeKind.Submission && m2.Member.RequiredContainingType.TypeKind == TypeKind.Submission)
             {
                 // script class is always defined in source:
                 var compilation1 = m1.Member.DeclaringCompilation;
@@ -2598,13 +2598,11 @@ outerDefault:
             static ParameterSymbol getParameterOrExtensionParameter(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, TMember member)
             {
                 int paramIndex = result.ParameterFromArgument(argIndex);
-                if (member.IsExtensionBlockMember())
+                if (member.IsExtensionBlockMember(out var extension))
                 {
                     if (paramIndex == 0)
                     {
-                        ParameterSymbol? extensionParameter = member.ContainingType.ExtensionParameter;
-                        Debug.Assert(extensionParameter is not null);
-                        return extensionParameter;
+                        return extension.RequiredExtensionParameter;
                     }
 
                     paramIndex--;

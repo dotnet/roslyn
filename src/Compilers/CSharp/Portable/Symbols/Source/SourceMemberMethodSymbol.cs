@@ -517,6 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks);
         }
 
+#nullable enable
         public sealed override Symbol ContainingSymbol
         {
             get
@@ -532,6 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _containingType;
             }
         }
+#nullable disable
 
         public override Symbol AssociatedSymbol
         {

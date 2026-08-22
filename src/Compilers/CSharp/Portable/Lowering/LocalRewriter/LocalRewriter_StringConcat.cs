@@ -489,7 +489,7 @@ fallbackStrings:
             if (self.TryGetSpecialTypeMethod(syntax, SpecialMember.System_ReadOnlySpan_T__ctor_Reference, out MethodSymbol? readOnlySpanCtorRefParamGeneric, isOptional: true) &&
                 readOnlySpanCtorRefParamGeneric.Parameters[0].RefKind != RefKind.Out)
             {
-                var readOnlySpanOfChar = readOnlySpanCtorRefParamGeneric.ContainingType.Construct(charType);
+                var readOnlySpanOfChar = readOnlySpanCtorRefParamGeneric.RequiredContainingType.Construct(charType);
                 readOnlySpanCtorRefParamChar = readOnlySpanCtorRefParamGeneric.AsMember(readOnlySpanOfChar);
             }
             else
@@ -538,7 +538,7 @@ fallbackStrings:
                         defaultArguments: default,
                         constantValueOpt: null,
                         initializerExpressionOpt: null,
-                        type: readOnlySpanCtorRefParamChar.ContainingType);
+                        type: readOnlySpanCtorRefParamChar.RequiredContainingType);
 
                     args[i] = new BoundSequence(
                         arg.Syntax,

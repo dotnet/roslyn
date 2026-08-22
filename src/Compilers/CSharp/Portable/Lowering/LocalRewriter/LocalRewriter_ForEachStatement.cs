@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression ConvertReceiverForInvocation(CSharpSyntaxNode syntax, BoundExpression receiver, MethodSymbol method, Conversion receiverConversion, TypeSymbol convertedReceiverType)
         {
             Debug.Assert(receiver.Type is { });
-            if (!receiver.Type.IsReferenceType && method.ContainingType.IsInterface)
+            if (!receiver.Type.IsReferenceType && method.RequiredContainingType.IsInterface)
             {
                 Debug.Assert(receiverConversion.IsImplicit);
                 Debug.Assert(!receiverConversion.IsUserDefined);

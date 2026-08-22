@@ -163,7 +163,7 @@ internal sealed class ModuleCancellationInstrumenter(
 
         var methodsSetsRequiredMembers = methodDefinition.HasSetsRequiredMembers;
 
-        foreach (var member in methodDefinition.ContainingType.GetMembers(method.Name))
+        foreach (var member in methodDefinition.RequiredContainingType.GetMembers(method.Name))
         {
             // If the member is the method being compiled, calling it could result in a recursion not present in the code previously.
             // We can't guarantee the instrumentation won't result in infinite recursion, but we can avoid the trivial case.

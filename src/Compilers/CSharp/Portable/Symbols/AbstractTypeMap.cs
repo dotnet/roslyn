@@ -83,13 +83,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return newConstructedFrom.ConstructIfGeneric(newTypeArguments.ToImmutableAndFree()).WithTupleDataFrom(previous);
         }
 
+#nullable enable
         /// <summary>
         /// Perform the substitution on the given type.  Each occurrence of the type parameter is
         /// replaced with its corresponding type argument from the map.
         /// </summary>
         /// <param name="previous">The type to be rewritten.</param>
         /// <returns>The type with type parameters replaced with the type arguments.</returns>
-        internal TypeWithAnnotations SubstituteType(TypeSymbol previous)
+        internal TypeWithAnnotations SubstituteType(TypeSymbol? previous)
         {
             if (ReferenceEquals(previous, null))
                 return default(TypeWithAnnotations);
@@ -124,6 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return TypeWithAnnotations.Create(result);
         }
+#nullable disable
 
         internal TypeWithAnnotations SubstituteType(TypeWithAnnotations previous)
         {

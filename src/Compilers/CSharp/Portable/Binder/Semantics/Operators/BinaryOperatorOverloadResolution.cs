@@ -1502,7 +1502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static void getDeclaredUserDefinedBinaryOperators(ArrayBuilder<Symbol> extensionCandidatesInSingleScope, BinaryOperatorKind kind, string name, ArrayBuilder<BinaryOperatorSignature> operators)
             {
-                Debug.Assert(extensionCandidatesInSingleScope.All(static m => m.ContainingType.ExtensionParameter is not null));
+                Debug.Assert(extensionCandidatesInSingleScope.All(static m => m.RequiredContainingType.ExtensionParameter is not null));
                 var typeOperators = ArrayBuilder<MethodSymbol>.GetInstance();
                 NamedTypeSymbol.AddOperators(typeOperators, extensionCandidatesInSingleScope);
                 GetDeclaredUserDefinedBinaryOperators(constrainedToTypeOpt: null, typeOperators, kind, name, operators);
@@ -1515,7 +1515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var candidate = operators[i];
                     MethodSymbol method = candidate.Method;
-                    NamedTypeSymbol extension = method.ContainingType;
+                    NamedTypeSymbol extension = method.RequiredContainingType;
 
                     if (extension.Arity == 0)
                     {
@@ -1585,7 +1585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool isApplicableToReceiver(in BinaryOperatorSignature candidate, BoundExpression left, BoundExpression right, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
-                Debug.Assert(candidate.Method.ContainingType.ExtensionParameter is not null);
+                Debug.Assert(candidate.Method.RequiredContainingType.ExtensionParameter is not null);
 
                 if (left.Type is not null && parameterMatchesReceiver(in candidate, 0) && isOperandApplicableToReceiver(in candidate, left, ref useSiteInfo))
                 {
@@ -1603,8 +1603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             static bool parameterMatchesReceiver(in BinaryOperatorSignature candidate, int paramIndex)
             {
                 var method = candidate.Method.OriginalDefinition;
-                var extensionParameter = method.ContainingType.ExtensionParameter;
-                Debug.Assert(extensionParameter is not null);
+                var extensionParameter = method.RequiredContainingType.RequiredExtensionParameter;
 
                 return SourceUserDefinedOperatorSymbolBase.ExtensionOperatorParameterTypeMatchesExtendedType(method.Parameters[paramIndex].Type, extensionParameter.Type);
             }
@@ -1612,17 +1611,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isOperandApplicableToReceiver(in BinaryOperatorSignature candidate, BoundExpression operand, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
                 Debug.Assert(operand.Type is not null);
-                Debug.Assert(candidate.Method.ContainingType.ExtensionParameter is not null);
+                var extensionParameter = candidate.Method.RequiredContainingType.RequiredExtensionParameter;
 
                 if (candidate.Kind.IsLifted() && operand.Type.IsNullableType())
                 {
-                    if (!candidate.Method.ContainingType.ExtensionParameter.Type.IsValidNullableTypeArgument() ||
-                        !Conversions.ConvertExtensionMethodThisArg(MakeNullable(candidate.Method.ContainingType.ExtensionParameter.Type), operand.Type, ref useSiteInfo, isMethodGroupConversion: false).Exists)
+                    if (!extensionParameter.Type.IsValidNullableTypeArgument() ||
+                        !Conversions.ConvertExtensionMethodThisArg(MakeNullable(extensionParameter.Type), operand.Type, ref useSiteInfo, isMethodGroupConversion: false).Exists)
                     {
                         return false;
                     }
                 }
-                else if (!Conversions.ConvertExtensionMethodThisArg(candidate.Method.ContainingType.ExtensionParameter.Type, operand.Type, ref useSiteInfo, isMethodGroupConversion: false).Exists)
+                else if (!Conversions.ConvertExtensionMethodThisArg(extensionParameter.Type, operand.Type, ref useSiteInfo, isMethodGroupConversion: false).Exists)
                 {
                     return false;
                 }

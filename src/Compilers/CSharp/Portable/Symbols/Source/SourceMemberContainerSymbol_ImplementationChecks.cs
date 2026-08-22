@@ -1926,7 +1926,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (implementingMethod.ContainingType != (object)this)
                 {
-                    if (implementingMethod.ContainingType.IsInterface ||
+                    if (implementingMethod.RequiredContainingType.IsInterface ||
                         implementingMethod.Equals(this.BaseTypeNoUseSiteDiagnostics?.FindImplementationForInterfaceMemberInNonInterfaceWithDiagnostics(interfaceMethod).Symbol, TypeCompareKind.CLRSignatureCompareOptions))
                     {
                         return default;

@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is MethodSymbol implementationMethod)
             {
                 method = implementationMethod.AsMember(method.ContainingSymbol.ContainingType).
-                    ConstructIfGeneric(method.ContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Concat(method.TypeArgumentsWithAnnotations));
+                    ConstructIfGeneric(method.RequiredContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Concat(method.TypeArgumentsWithAnnotations));
             }
 
             return rewriter.VisitMethodSymbol(method);
