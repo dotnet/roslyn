@@ -192,8 +192,8 @@ public sealed class SharedMetadataReferenceCacheTests : TestBase
         Assert.NotSame(assemblyReference.GetMetadataId(), moduleReference.GetMetadataId());
     }
 
-    [ConditionalFact(typeof(UnixLikeOnly))]
-    public void PathsDifferingOnlyByCase_DoNotShareReferenceOnUnix()
+    [ConditionalFact(typeof(LinuxOnly))]
+    public void PathsDifferingOnlyByCase_DoNotShareReferenceOnCaseSensitiveFileSystem()
     {
         var cache = new SharedMetadataReferenceCache();
         var directory = Temp.CreateDirectory();
