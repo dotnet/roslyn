@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable();
         }
 
-        private BoundExpression RewriteCollectionExpressionConversion(Conversion conversion, BoundCollectionExpression node)
+        private BoundExpression RewriteCollectionExpressionConversion(Conversion conversion, BoundCollectionExpression node, ParameterSymbol? passedAsParameter)
         {
             Debug.Assert(conversion.Kind == ConversionKind.CollectionExpression);
             Debug.Assert(!_inExpressionLambda);
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case CollectionExpressionTypeKind.Span:
                     case CollectionExpressionTypeKind.ReadOnlySpan:
                         Debug.Assert(elementType is { });
-                        return VisitArrayOrSpanCollectionExpression(node, node.Type);
+                        return VisitArrayOrSpanCollectionExpression(node, node.Type, passedAsParameter);
                     case CollectionExpressionTypeKind.CollectionBuilder:
                         // A few special cases when a collection type is an ImmutableArray<T>. Only do this if there is
                         // no with-element provided (if so, we want to defer to the user-specified collection builder
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (!node.HasWithElement &&
                             (object)node.Type.OriginalDefinition == _compilation.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T))
                         {
-                            return VisitArrayOrSpanCollectionExpression(node, node.Type);
+                            return VisitArrayOrSpanCollectionExpression(node, node.Type, passedAsParameter);
                         }
 
                         return VisitCollectionBuilderCollectionExpression(node);
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Note that Span/ROS/ImmutableArray cases, may or may not involve us actually creating an array.
         /// Depending on the collection elements, available APIs, or other context, we may use some other strategy.
         /// </summary>
-        private BoundExpression VisitArrayOrSpanCollectionExpression(BoundCollectionExpression node, TypeSymbol collectionType)
+        private BoundExpression VisitArrayOrSpanCollectionExpression(BoundCollectionExpression node, TypeSymbol collectionType, ParameterSymbol? passedAsParameter)
         {
             // Note: this can be called when we have an actual array/span collection expression target, or when we're
             // making an array/span as a temporary for some other sort of collection expression (for example, the
@@ -345,11 +345,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _additionalLocals is { })
                 {
                     Debug.Assert(!IsAllocatingRefStructCollectionExpression(node, isReadOnlySpan ? CollectionExpressionTypeKind.ReadOnlySpan : CollectionExpressionTypeKind.Span, elementType.Type, _compilation));
-                    return CreateAndPopulateSpanFromInlineArray(
+
+                    return CreateTransientArrayOrCreateAndPopulateSpanFromInlineArray(
                         node.Syntax,
                         elementType,
-                        elements,
-                        asReadOnlySpan: isReadOnlySpan);
+                        elements.SelectAsArray(static (element, @this) => @this.VisitExpression((BoundExpression)element), this),
+                        asReadOnlySpan: isReadOnlySpan,
+                        passedAsParameter);
                 }
 
                 return null;
@@ -598,7 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we can directly use `anotherReadOnlySpan` as collection builder argument and skip the copying assignment.
             var span = CanOptimizeSingleSpreadAsCollectionBuilderArgument(node, out var spreadExpression)
                 ? VisitExpression(spreadExpression)
-                : VisitArrayOrSpanCollectionExpression(node, spanType);
+                : VisitArrayOrSpanCollectionExpression(node, spanType, passedAsParameter: null);
 
             // Replace the placeholder with the span value and rewrite the collection creation.
             var elementsPlaceholder = node.CollectionBuilderElementsPlaceholder;
@@ -633,51 +635,78 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilation.Assembly.RuntimeSupportsInlineArrayTypes;
         }
 
-        private BoundExpression CreateAndPopulateSpanFromInlineArray(
+        private BoundExpression CreateTransientArrayOrCreateAndPopulateSpanFromInlineArray(
             SyntaxNode syntax,
             TypeWithAnnotations elementType,
-            ImmutableArray<BoundNode> elements,
-            bool asReadOnlySpan)
+            ImmutableArray<BoundExpression> elements,
+            bool asReadOnlySpan,
+            ParameterSymbol? passedAsParameter)
         {
             Debug.Assert(elements.Length > 0);
-            Debug.Assert(elements.All(e => e is BoundExpression));
-            Debug.Assert(_factory.ModuleBuilderOpt is { });
-            Debug.Assert(_diagnostics.DiagnosticBag is { });
-            Debug.Assert(_compilation.Assembly.RuntimeSupportsInlineArrayTypes);
+
+            // If the span is being passed to a scoped parameter, we can share inline array temps across invocations, we
+            // know that the inline array won't escape the current call. This will be done by a pass after local rewriting,
+            // as the array sizes won't be known until all of local rewriting is done.
+            if (passedAsParameter is { EffectiveScope: ScopedKind.ScopedValue, RefKind: RefKind.None })
+            {
+                _transientInlineArrayAllocator.AllocateInlineArray(elementType.Type, elements.Length, isReadOnly: asReadOnlySpan);
+                _allocatedTransientInlineArrays ??= ArrayBuilder<(TypeSymbol type, int length)>.GetInstance();
+                _allocatedTransientInlineArrays.Add((elementType.Type, elements.Length));
+
+                var spanType = _factory.WellKnownType(asReadOnlySpan ? WellKnownType.System_ReadOnlySpan_T : WellKnownType.System_Span_T).Construct([elementType]);
+
+                return new BoundTransientSpanFromInlineArray(syntax, elements, elementType.Type, asReadOnlySpan, spanType);
+            }
+
             Debug.Assert(_additionalLocals is { });
+            return CreateCreateAndPopulateSpanFromInlineArray(syntax, elementType, elements, asReadOnlySpan, _factory, _compilation, _additionalLocals, _diagnostics);
+        }
+
+        internal static BoundExpression CreateCreateAndPopulateSpanFromInlineArray(
+            SyntaxNode syntax,
+            TypeWithAnnotations elementType,
+            ImmutableArray<BoundExpression> elements,
+            bool asReadOnlySpan,
+            SyntheticBoundNodeFactory factory,
+            CSharpCompilation compilation,
+            ArrayBuilder<LocalSymbol> additionalLocals,
+            BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(factory.ModuleBuilderOpt is { });
+            Debug.Assert(diagnostics.DiagnosticBag is { });
+            Debug.Assert(compilation.Assembly.RuntimeSupportsInlineArrayTypes);
 
             int arrayLength = elements.Length;
             if (arrayLength == 1
-                && _factory.WellKnownMember(asReadOnlySpan
+                && factory.WellKnownMember(asReadOnlySpan
                     ? WellKnownMember.System_ReadOnlySpan_T__ctor_ref_readonly_T
                     : WellKnownMember.System_Span_T__ctor_ref_T, isOptional: true) is MethodSymbol spanRefConstructor)
             {
                 // Special case: no need to create an InlineArray1 type. Just use a temp of the element type.
-                var spanType = _factory
+                var spanType = factory
                     .WellKnownType(asReadOnlySpan ? WellKnownType.System_ReadOnlySpan_T : WellKnownType.System_Span_T)
                     .Construct([elementType]);
                 var constructor = spanRefConstructor.AsMember(spanType);
-                var element = VisitExpression((BoundExpression)elements[0]);
-                var temp = _factory.StoreToTemp(element, out var assignment);
-                _additionalLocals.Add(temp.LocalSymbol);
-                var call = _factory.New(constructor, arguments: [temp], argumentRefKinds: [asReadOnlySpan ? RefKindExtensions.StrictIn : RefKind.Ref]);
-                return _factory.Sequence([assignment], call);
+                var temp = factory.StoreToTemp(elements[0], out var assignment);
+                additionalLocals.Add(temp.LocalSymbol);
+                var call = factory.New(constructor, arguments: [temp], argumentRefKinds: [asReadOnlySpan ? RefKindExtensions.StrictIn : RefKind.Ref]);
+                return factory.Sequence([assignment], call);
             }
 
-            var inlineArrayType = _factory.ModuleBuilderOpt.EnsureInlineArrayTypeExists(syntax, _factory, arrayLength, _diagnostics).Construct(ImmutableArray.Create(elementType));
+            var inlineArrayType = factory.ModuleBuilderOpt.EnsureInlineArrayTypeExists(syntax, factory, arrayLength, diagnostics).Construct(ImmutableArray.Create(elementType));
             Debug.Assert(inlineArrayType.HasInlineArrayAttribute(out int inlineArrayLength) && inlineArrayLength == arrayLength);
 
-            var intType = _factory.SpecialType(SpecialType.System_Int32);
-            MethodSymbol elementRef = _factory.ModuleBuilderOpt.EnsureInlineArrayElementRefExists(syntax, intType, _diagnostics.DiagnosticBag).
+            var intType = factory.SpecialType(SpecialType.System_Int32);
+            MethodSymbol elementRef = factory.ModuleBuilderOpt.EnsureInlineArrayElementRefExists(syntax, intType, diagnostics.DiagnosticBag).
                 Construct(ImmutableArray.Create(TypeWithAnnotations.Create(inlineArrayType), elementType));
 
             // Create an inline array and assign to a local.
             // var tmp = new <>y__InlineArrayN<ElementType>();
             BoundAssignmentOperator assignmentToTemp;
-            BoundLocal inlineArrayLocal = _factory.StoreToTemp(new BoundDefaultExpression(syntax, inlineArrayType), out assignmentToTemp);
+            BoundLocal inlineArrayLocal = factory.StoreToTemp(new BoundDefaultExpression(syntax, inlineArrayType), out assignmentToTemp);
             var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
             sideEffects.Add(assignmentToTemp);
-            _additionalLocals.Add(inlineArrayLocal.LocalSymbol);
+            additionalLocals.Add(inlineArrayLocal.LocalSymbol);
 
             // Populate the inline array.
             // InlineArrayElementRef<<>y__InlineArrayN<ElementType>, ElementType>(ref tmp, 0) = element0;
@@ -685,9 +714,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // ...
             for (int i = 0; i < arrayLength; i++)
             {
-                var element = VisitExpression((BoundExpression)elements[i]);
-                var call = _factory.Call(null, elementRef, inlineArrayLocal, _factory.Literal(i), useStrictArgumentRefKinds: true);
-                var assignment = new BoundAssignmentOperator(syntax, call, element, type: call.Type) { WasCompilerGenerated = true };
+                var call = factory.Call(null, elementRef, inlineArrayLocal, factory.Literal(i), useStrictArgumentRefKinds: true);
+                var assignment = new BoundAssignmentOperator(syntax, call, elements[i], type: call.Type) { WasCompilerGenerated = true };
                 sideEffects.Add(assignment);
             }
 
@@ -696,14 +724,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // or
             // ... InlineArrayAsSpan<<>y__InlineArrayN<ElementType>, ElementType>(ref tmp, N)
             MethodSymbol inlineArrayAsSpan = asReadOnlySpan ?
-                _factory.ModuleBuilderOpt.EnsureInlineArrayAsReadOnlySpanExists(syntax, _factory.WellKnownType(WellKnownType.System_ReadOnlySpan_T), intType, _diagnostics.DiagnosticBag) :
-                _factory.ModuleBuilderOpt.EnsureInlineArrayAsSpanExists(syntax, _factory.WellKnownType(WellKnownType.System_Span_T), intType, _diagnostics.DiagnosticBag);
+                factory.ModuleBuilderOpt.EnsureInlineArrayAsReadOnlySpanExists(syntax, factory.WellKnownType(WellKnownType.System_ReadOnlySpan_T), intType, diagnostics.DiagnosticBag) :
+                factory.ModuleBuilderOpt.EnsureInlineArrayAsSpanExists(syntax, factory.WellKnownType(WellKnownType.System_Span_T), intType, diagnostics.DiagnosticBag);
             inlineArrayAsSpan = inlineArrayAsSpan.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(inlineArrayType), elementType));
-            var span = _factory.Call(
+            var span = factory.Call(
                 receiver: null,
                 inlineArrayAsSpan,
                 inlineArrayLocal,
-                _factory.Literal(arrayLength),
+                factory.Literal(arrayLength),
                 useStrictArgumentRefKinds: true);
 
             Debug.Assert(span.Type is { });
