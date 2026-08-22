@@ -12391,8 +12391,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(containingType.IsNullableType());
             Debug.Assert(TypeSymbol.Equals(NominalSlotType(containingSlot), containingType, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
-            var getValue = (MethodSymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value);
-            valueProperty = getValue?.AsMember((NamedTypeSymbol)containingType)?.AssociatedSymbol;
+            var getValue = (MethodSymbol?)compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value);
+
+            // 'containingType' can be a constructed error type over a missing 'System.Nullable<T>', for example when it
+            // comes from a compilation without a core library. Adjusting 'get_Value' to such a type is not possible.
+            if (getValue is null || !ReferenceEquals(containingType.OriginalDefinition, getValue.ContainingSymbol))
+            {
+                valueProperty = null;
+                return -1;
+            }
+
+            valueProperty = getValue.AsMember((NamedTypeSymbol)containingType).AssociatedSymbol;
             return (valueProperty is null) ? -1 : GetOrCreateSlot(valueProperty, containingSlot, forceSlotEvenIfEmpty: forceSlotEvenIfEmpty);
         }
 

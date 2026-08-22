@@ -99,6 +99,7 @@ public class IntermediateNodeCloneTest
 
         // The declaration subtree, options, and code target are shared by reference on purpose.
         Assert.Same(documentNode.DeclDocumentNode, clone.DeclDocumentNode);
+        Assert.Same(documentNode.FallbackDiscoveryDeclDocumentNode, clone.FallbackDiscoveryDeclDocumentNode);
         Assert.Same(documentNode.Options, clone.Options);
         Assert.Same(documentNode.Target, clone.Target);
 
@@ -146,7 +147,7 @@ public class IntermediateNodeCloneTest
             .Where(p => p.CanRead && p.GetIndexParameters().Length == 0)
             .OrderBy(p => p.Name, StringComparer.Ordinal))
         {
-            if (property.Name is "Children" or "Parent" or "DeclDocumentNode")
+            if (property.Name is "Children" or "Parent" or "DeclDocumentNode" or "FallbackDiscoveryDeclDocumentNode")
             {
                 continue;
             }
@@ -260,7 +261,7 @@ public class IntermediateNodeCloneTest
             .Where(p => p.CanRead && p.GetIndexParameters().Length == 0)
             .OrderBy(p => p.Name, StringComparer.Ordinal))
         {
-            if (property.Name is "Children" or "Parent" or "DeclDocumentNode" or "IsLazy")
+            if (property.Name is "Children" or "Parent" or "DeclDocumentNode" or "FallbackDiscoveryDeclDocumentNode" or "IsLazy")
             {
                 // IsLazy is a content-storage detail: cloning a token materializes its lazy content into an
                 // eager string, so IsLazy legitimately differs while Content is identical.

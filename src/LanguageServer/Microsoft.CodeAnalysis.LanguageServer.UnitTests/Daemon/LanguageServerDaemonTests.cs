@@ -157,6 +157,63 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
         }
     }
 
+    [Fact]
+    public async Task Daemon_SharesGreenSyntaxTreesAcrossServers()
+    {
+        const string source = "class SharedSyntaxTree { }";
+
+        await using var daemon = await CreateDaemonServerAsync();
+        await using var second = await daemon.CreateClientAsync();
+
+        var secondFactory = second.GetRequiredLspService<LanguageServerWorkspaceFactory>();
+        var secondDocument = LoadProjectWithDocument(
+            secondFactory,
+            projectName: "Second",
+            source,
+            filePath: Path.Combine(Path.GetTempPath(), "second", $"{Guid.NewGuid():N}.cs"));
+
+        SyntaxNode secondRoot;
+        await using (var first = await daemon.CreateClientAsync())
+        {
+            var firstFactory = first.GetRequiredLspService<LanguageServerWorkspaceFactory>();
+            var firstDocument = LoadProjectWithDocument(
+                firstFactory,
+                projectName: "First",
+                source,
+                filePath: Path.Combine(Path.GetTempPath(), "first", $"{Guid.NewGuid():N}.cs"));
+
+            var firstTree = await firstDocument.GetSyntaxTreeAsync(CancellationToken.None);
+            var secondTree = await secondDocument.GetSyntaxTreeAsync(CancellationToken.None);
+            Assert.NotNull(firstTree);
+            Assert.NotNull(secondTree);
+
+            var firstRoot = await firstTree.GetRootAsync(CancellationToken.None);
+            secondRoot = await secondTree.GetRootAsync(CancellationToken.None);
+
+            Assert.NotSame(firstFactory.HostWorkspace, secondFactory.HostWorkspace);
+            Assert.NotSame(firstTree, secondTree);
+            Assert.NotSame(firstRoot, secondRoot);
+            Assert.True(firstRoot.IsIncrementallyIdenticalTo(secondRoot));
+            Assert.NotEqual(firstTree.FilePath, secondTree.FilePath);
+            Assert.NotEqual(firstDocument.Id, secondDocument.Id);
+        }
+
+        await WaitForConditionAsync(() => daemon.GetStartedServers().Length == 1);
+
+        await using var third = await daemon.CreateClientAsync();
+        var thirdDocument = LoadProjectWithDocument(
+            third.GetRequiredLspService<LanguageServerWorkspaceFactory>(),
+            projectName: "Third",
+            source,
+            filePath: Path.Combine(Path.GetTempPath(), "third", $"{Guid.NewGuid():N}.cs"));
+        var thirdTree = await thirdDocument.GetSyntaxTreeAsync(CancellationToken.None);
+        Assert.NotNull(thirdTree);
+        var thirdRoot = await thirdTree.GetRootAsync(CancellationToken.None);
+
+        Assert.NotSame(secondRoot, thirdRoot);
+        Assert.True(secondRoot.IsIncrementallyIdenticalTo(thirdRoot));
+    }
+
     // If one client's server faults (e.g. the client process crashes and abruptly drops its connection), the daemon
     // tears down only that server. The daemon stays alive, the other client's server is untouched and still
     // functional, and the daemon keeps accepting new clients.
@@ -369,5 +426,21 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
             WorkspaceChangeKind.ProjectAdded);
 
         return ProtocolConversions.CreateAbsoluteDocumentUri(filePath);
+    }
+
+    private static Document LoadProjectWithDocument(
+        LanguageServerWorkspaceFactory workspaceFactory,
+        string projectName,
+        string source,
+        string filePath)
+    {
+        workspaceFactory.HostWorkspace.SetCurrentSolution(
+            solution => solution
+                .AddProject(projectName, projectName, LanguageNames.CSharp)
+                .AddDocument(Path.GetFileName(filePath), SourceText.From(source), filePath: filePath)
+                .Project.Solution,
+            WorkspaceChangeKind.ProjectAdded);
+
+        return workspaceFactory.HostWorkspace.CurrentSolution.Projects.Single().Documents.Single();
     }
 }

@@ -1,157 +1,169 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
-  <Source Uri="https://github.com/dotnet/dotnet" Mapping="roslyn" Sha="1d4910780fe728cf5affade170fe51fc8f96f9fb" BarId="320053" />
+  <Source Uri="https://github.com/dotnet/dotnet" Mapping="roslyn" Sha="7cdb217445905f3342bbb0266a4497b9a014389a" BarId="326717" />
   <ProductDependencies>
     <!-- RoslynAnalyzers reference older builds of Roslyn and this is necessary for SourceBuild. -->
-    <Dependency Name="Microsoft.CodeAnalysis" Version="5.10.0-1.26365.3">
+    <Dependency Name="Microsoft.CodeAnalysis" Version="5.11.0-1.26415.2">
       <Uri>https://github.com/dotnet/roslyn</Uri>
-      <Sha>3d32d464e2949f054086fbb5346e4beea0c6df56</Sha>
+      <Sha>0280f7f9457d50a46cd523ce0082807b5d70b236</Sha>
     </Dependency>
-    <Dependency Name="System.CommandLine" Version="3.0.0-preview.6.26324.102">
+    <Dependency Name="System.CommandLine" Version="3.0.0-rc.1.26411.119">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>1d4910780fe728cf5affade170fe51fc8f96f9fb</Sha>
+      <Sha>7cdb217445905f3342bbb0266a4497b9a014389a</Sha>
     </Dependency>
     <!-- Necessary for source-build. This allows the live version of the package to be used by source-build. -->
-    <Dependency Name="Microsoft.Bcl.AsyncInterfaces" Version="10.0.8">
+    <Dependency Name="Microsoft.Bcl.AsyncInterfaces" Version="10.0.10">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Configuration" Version="10.0.8">
+    <Dependency Name="Microsoft.Extensions.Configuration" Version="10.0.10">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.DependencyInjection" Version="10.0.8">
+    <Dependency Name="Microsoft.Extensions.DependencyInjection" Version="10.0.10">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.FileSystemGlobbing" Version="10.0.8">
+    <Dependency Name="Microsoft.Extensions.FileSystemGlobbing" Version="10.0.10">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Logging" Version="10.0.8">
+    <Dependency Name="Microsoft.Extensions.Logging" Version="10.0.10">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Logging.Abstractions" Version="10.0.8">
+    <Dependency Name="Microsoft.Extensions.Logging.Abstractions" Version="10.0.10">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Logging.Console" Version="10.0.8">
+    <Dependency Name="Microsoft.Extensions.Logging.Console" Version="10.0.10">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Options.ConfigurationExtension" Version="10.0.8">
+    <Dependency Name="Microsoft.Extensions.Options.ConfigurationExtension" Version="10.0.10">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Options" Version="10.0.8">
+    <Dependency Name="Microsoft.Extensions.Options" Version="10.0.10">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Primitives" Version="10.0.8">
+    <Dependency Name="Microsoft.Extensions.Primitives" Version="10.0.10">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Collections.Immutable" Version="10.0.8">
+    <Dependency Name="System.Collections.Immutable" Version="10.0.10">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.ComponentModel.Composition" Version="10.0.8">
+    <Dependency Name="System.ComponentModel.Composition" Version="10.0.10">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Diagnostics.DiagnosticSource" Version="10.0.8">
+    <Dependency Name="System.Diagnostics.DiagnosticSource" Version="10.0.10">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.IO.Hashing" Version="10.0.8">
+    <Dependency Name="System.IO.Hashing" Version="10.0.10">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.IO.Pipelines" Version="10.0.8">
+    <Dependency Name="System.IO.Pipelines" Version="10.0.10">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Resources.Extensions" Version="10.0.8">
+    <Dependency Name="System.Resources.Extensions" Version="10.0.10">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Text.Encodings.Web" Version="10.0.8">
+    <Dependency Name="System.Text.Encodings.Web" Version="10.0.10">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
     <!-- Note: When updating SystemTextJsonVersion ensure that the version is no higher than what is used by MSBuild in VS (would lead to NGEN failures on insertion). -->
-    <Dependency Name="System.Text.Json" Version="10.0.8">
+    <Dependency Name="System.Text.Json" Version="10.0.10">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Threading.Tasks.Dataflow" Version="10.0.8">
+    <Dependency Name="System.Threading.Tasks.Dataflow" Version="10.0.10">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Reflection.Metadata" Version="10.0.8">
+    <Dependency Name="System.Reflection.Metadata" Version="10.0.10">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Configuration.ConfigurationManager" Version="10.0.8">
+    <Dependency Name="System.Configuration.ConfigurationManager" Version="10.0.10">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Diagnostics.EventLog" Version="10.0.8">
+    <Dependency Name="System.Diagnostics.EventLog" Version="10.0.10">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Security.Cryptography.ProtectedData" Version="10.0.8">
+    <Dependency Name="System.Security.Cryptography.ProtectedData" Version="10.0.10">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Security.Permissions" Version="10.0.8">
+    <Dependency Name="System.Security.Permissions" Version="10.0.10">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Windows.Extensions" Version="10.0.8">
+    <Dependency Name="System.Windows.Extensions" Version="10.0.10">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
+    </Dependency>
+    <Dependency Name="System.CodeDom" Version="10.0.10">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
+    </Dependency>
+    <Dependency Name="System.Threading.Channels" Version="10.0.10">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="10.0.0-beta.26379.2">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="11.0.0-beta.26420.6">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>c5d54a9de6e0e20a85e37fa3576a37235276772b</Sha>
+      <Sha>e2e96a9587219f6619d8a1cef7581bdb358f0909</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.XliffTasks" Version="10.0.0-beta.26379.2">
+    <Dependency Name="Microsoft.DotNet.XliffTasks" Version="11.0.0-beta.26420.6">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>c5d54a9de6e0e20a85e37fa3576a37235276772b</Sha>
+      <Sha>e2e96a9587219f6619d8a1cef7581bdb358f0909</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DiaSymReader" Version="2.0.0">
+    <Dependency Name="Microsoft.DiaSymReader" Version="2.2.10">
       <Uri>https://github.com/dotnet/symreader</Uri>
-      <Sha>27e584661980ee6d82c419a2a471ae505b7d122e</Sha>
+      <Sha>8655fee9aae40ba74257255cbcd1f05edc2f48fa</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="5.10.0-1.26365.3">
+    <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="5.11.0-1.26415.2">
       <Uri>https://github.com/dotnet/roslyn</Uri>
-      <Sha>3d32d464e2949f054086fbb5346e4beea0c6df56</Sha>
+      <Sha>0280f7f9457d50a46cd523ce0082807b5d70b236</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="10.0.0-beta.26379.2">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="11.0.0-beta.26420.6">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>c5d54a9de6e0e20a85e37fa3576a37235276772b</Sha>
+      <Sha>e2e96a9587219f6619d8a1cef7581bdb358f0909</Sha>
     </Dependency>
     <!-- Entries below are necessary for source-build. This allows the packages to be retrieved from previously-source-built
          artifacts and flow in as dependencies of the packages produced by roslyn. -->
-    <Dependency Name="System.Composition" Version="10.0.8">
+    <Dependency Name="System.Composition" Version="10.0.10">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.CodeAnalysis.Analyzers" Version="5.10.0-1.26365.3">
+    <Dependency Name="Microsoft.CodeAnalysis.Analyzers" Version="5.11.0-1.26415.2">
       <Uri>https://github.com/dotnet/roslyn</Uri>
-      <Sha>3d32d464e2949f054086fbb5346e4beea0c6df56</Sha>
+      <Sha>0280f7f9457d50a46cd523ce0082807b5d70b236</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="5.10.0-1.26365.3">
+    <Dependency Name="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="5.11.0-1.26415.2">
       <Uri>https://github.com/dotnet/roslyn</Uri>
-      <Sha>3d32d464e2949f054086fbb5346e4beea0c6df56</Sha>
+      <Sha>0280f7f9457d50a46cd523ce0082807b5d70b236</Sha>
     </Dependency>
-    <Dependency Name="Roslyn.Diagnostics.Analyzers" Version="5.10.0-1.26365.3">
+    <Dependency Name="Roslyn.Diagnostics.Analyzers" Version="5.11.0-1.26415.2">
       <Uri>https://github.com/dotnet/roslyn</Uri>
-      <Sha>3d32d464e2949f054086fbb5346e4beea0c6df56</Sha>
+      <Sha>0280f7f9457d50a46cd523ce0082807b5d70b236</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.DotNet.Helix.JobMonitor" Version="11.0.0-beta.26420.6">
+      <Uri>https://github.com/dotnet/arcade</Uri>
+      <Sha>e2e96a9587219f6619d8a1cef7581bdb358f0909</Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>
