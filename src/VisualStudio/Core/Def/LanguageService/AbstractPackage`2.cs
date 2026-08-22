@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -88,6 +90,13 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
         var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
 
         RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
+
+        var devenv = Path.Combine(AppContext.BaseDirectory, "devenv.exe");
+        var version = FileVersionInfo.GetVersionInfo(devenv);
+        if (version.FileMajorPart < 18 || (version.FileMajorPart == 18 && version.FileBuildPart < 11304))
+        {
+            await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        }
 
         foreach (var editorFactory in CreateEditorFactories())
         {
