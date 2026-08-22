@@ -101,6 +101,7 @@ If the LSP logs show failures loading projects
 
 - Loading a solution with many projects may take some time. The server reports progress to the client during loading.
 - For large repositories, prefer loading a specific solution (via `dotnet.defaultSolution`) rather than relying on individual project discovery, which may load test projects and other projects you don't need.
+- While we're working on improving startup time, consider adding `"requestTimeoutMs": 1000000` to the `lsp.json` installed by the plugin (see [example from C++ LSP](https://github.com/microsoft/cpp-language-server#-quick-start) and [doc](https://docs.github.com/en/copilot/how-tos/copilot-cli/set-up-copilot-cli/add-lsp-servers#configuration-fields))
 
 ## Related Links
 
