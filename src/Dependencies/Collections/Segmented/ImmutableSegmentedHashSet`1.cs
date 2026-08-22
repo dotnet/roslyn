@@ -308,9 +308,13 @@ namespace Microsoft.CodeAnalysis.Collections
 
             equalityComparer ??= EqualityComparer<T>.Default;
             if (Equals(self.KeyComparer, equalityComparer))
+            {
                 return self;
-
-            return new ImmutableSegmentedHashSet<T>(new SegmentedHashSet<T>(self._set, equalityComparer));
+            }
+            else
+            {
+                return new ImmutableSegmentedHashSet<T>(new SegmentedHashSet<T>(self._set, equalityComparer));
+            }
         }
 
         public override int GetHashCode()
@@ -348,14 +352,15 @@ namespace Microsoft.CodeAnalysis.Collections
 
         void ICollection.CopyTo(Array array, int index)
         {
+            var self = this;
             if (array is null)
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.array);
             if (index < 0)
                 ThrowHelper.ThrowIndexArgumentOutOfRange_NeedNonNegNumException();
-            if (array.Length < index + Count)
+            if (array.Length < index + self.Count)
                 ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.index);
 
-            foreach (var item in this)
+            foreach (var item in self)
             {
                 array.SetValue(item, index++);
             }

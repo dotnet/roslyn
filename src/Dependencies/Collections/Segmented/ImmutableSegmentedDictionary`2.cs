@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (self.Contains(new KeyValuePair<TKey, TValue>(key, value)))
                 return self;
 
-            var builder = ToValueBuilder();
+            var builder = self.ToValueBuilder();
             builder.Add(key, value);
             return builder.ToImmutable();
         }
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 return other;
             }
 
-            var builder = ToValueBuilder();
+            var builder = self.ToValueBuilder();
             builder.AddRange(pairs);
             return builder.ToImmutable();
         }
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (!self._dictionary.ContainsKey(key))
                 return self;
 
-            var builder = ToValueBuilder();
+            var builder = self.ToValueBuilder();
             builder.Remove(key);
             return builder.ToImmutable();
         }
@@ -211,7 +211,8 @@ namespace Microsoft.CodeAnalysis.Collections
             if (keys is null)
                 throw new ArgumentNullException(nameof(keys));
 
-            var result = ToValueBuilder();
+            var self = this;
+            var result = self.ToValueBuilder();
             result.RemoveRange(keys);
             return result.ToImmutable();
         }
@@ -231,10 +232,11 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public ImmutableSegmentedDictionary<TKey, TValue> SetItems(IEnumerable<KeyValuePair<TKey, TValue>> items)
         {
+            var self = this;
             if (items is null)
                 throw new ArgumentNullException(nameof(items));
 
-            var result = ToValueBuilder();
+            var result = self.ToValueBuilder();
             foreach (var item in items)
             {
                 result[item.Key] = item.Value;
