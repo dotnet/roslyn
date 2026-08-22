@@ -193,6 +193,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
+        [WorkItem(72014, "https://github.com/dotnet/roslyn/issues/72014")]
+        public void DefineConstantsWithEscaping()
+        {
+            var vbc = new Vbc();
+            vbc.DefineConstants = "CONFIG=\"DEBUG\"";
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            var responseFileContents = vbc.GenerateResponseFileContents();
+            var argTaskItems = vbc.GenerateCommandLineArgsTaskItems(responseFileContents);
+            var defineTaskItem = Assert.Single(argTaskItems, item => item.ItemSpec.StartsWith("/define:"));
+            Assert.Equal("/define:\"CONFIG=\\\"DEBUG\\\"\"", defineTaskItem.ItemSpec);
+        }
+
+        [Fact]
         public void Features()
         {
             Action<string> test = (s) =>
