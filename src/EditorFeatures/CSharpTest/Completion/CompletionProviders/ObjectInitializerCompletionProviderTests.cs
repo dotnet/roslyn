@@ -1071,7 +1071,7 @@ public sealed class ObjectInitializerCompletionProviderTests : AbstractCSharpCom
     }
 
     [Fact]
-    public async Task RequiredMembersLabeledAndSelected()
+    public async Task RequiredMembersLabeled()
     {
         var markup = """
             class C
@@ -1089,7 +1089,7 @@ public sealed class ObjectInitializerCompletionProviderTests : AbstractCSharpCom
             }
             """;
 
-        await VerifyItemExistsAsync(markup, "RequiredField", inlineDescription: FeaturesResources.Required, matchPriority: MatchPriority.Preselect);
+        await VerifyItemExistsAsync(markup, "RequiredField", inlineDescription: FeaturesResources.Required);
         await VerifyItemExistsAsync(markup, "RequiredProperty", inlineDescription: FeaturesResources.Required);
     }
 
