@@ -27,7 +27,8 @@ This file is a **top-level map only**. For per-area directory detail, read the m
 | `Razor/src/` | razor | Razor compiler + tooling (own sub-tree layout). |
 | `Scripting/`, `Interactive/` | — | C#/VB scripting engine and REPL. |
 | `RoslynAnalyzers/` | — | Shipping `Microsoft.CodeAnalysis.*` analyzer packages. |
-| `Deployment/`, `NuGet/`, `Setup/`, `Test/` | — | Deployment/VSIX, packaging, shared test infrastructure. |
+| `Deployment/`, `NuGet/`, `Setup/` | — | Deployment/VSIX and packaging. |
+| `Test/Microsoft.CodeAnalysis.Testing/` | — | Merged roslyn-sdk testing library for authoring Roslyn analyzer/code-fix/refactoring/source-generator tests. CPM disabled for this subtree via `Directory.Packages.props` at the subtree root; `<Features></Features>` override in the library `Directory.Build.props` clears Roslyn's strict mode (needed for the `Nullable` NuGet package's internal attribute types on public API members). |
 
 ## Non-source Roots
 

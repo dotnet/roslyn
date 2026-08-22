@@ -1,0 +1,76 @@
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project>
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);NU5125;NU3005;CA2007;IDE0044;RS0016;RS0023;RS0030;RS0034;RS0038;RS1025;RS1026;VSTHRD200</NoWarn>
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+    <!-- netcoreapp3.1 and net472 are not supported by the current Microsoft.NET.Test.Sdk, suppress the error. -->
+    <SuppressTfmSupportBuildErrors>true</SuppressTfmSupportBuildErrors>
+
+    <!-- Opt-out repo features -->
+    <UsingToolXliff>false</UsingToolXliff>
+  </PropertyGroup>
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup>
+    <SupportsNet10Targeting>$([MSBuild]::VersionGreaterThanOrEquals('$(MSBuildVersion)', '18.0'))</SupportsNet10Targeting>
+    <TestTargetFrameworks>netcoreapp3.1</TestTargetFrameworks>
+    <TestTargetFrameworks Condition="'$(SupportsNet10Targeting)' == 'True'">net10.0;$(TestTargetFrameworks)</TestTargetFrameworks>
+    <TestTargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TestTargetFrameworks);net472</TestTargetFrameworks>
+    <SourceGeneratorTestTargetFrameworks>netcoreapp3.1</SourceGeneratorTestTargetFrameworks>
+    <SourceGeneratorTestTargetFrameworks Condition="'$(SupportsNet10Targeting)' == 'True'">net10.0;$(SourceGeneratorTestTargetFrameworks)</SourceGeneratorTestTargetFrameworks>
+    <SourceGeneratorTestTargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(SourceGeneratorTestTargetFrameworks);net472</SourceGeneratorTestTargetFrameworks>
+
+    <!-- Workaround dependencies that do not yet support netcoreapp3.1 https://github.com/dotnet/roslyn/issues/45114 -->
+    <NoWarn>NU1701;$(NoWarn)</NoWarn>
+
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+  </PropertyGroup>
+
+  <!-- Versions of Microsoft.CodeAnalysis used by the test utility projects for compatibility testing -->
+  <PropertyGroup>
+    <MicrosoftCodeAnalysis3PrimaryTestVersion>4.12.0</MicrosoftCodeAnalysis3PrimaryTestVersion>
+  </PropertyGroup>
+
+  <!-- Version variables needed when CPM is disabled for this subtree -->
+  <PropertyGroup>
+    <SystemNetHttpVersion>4.3.4</SystemNetHttpVersion>
+    <XunitVersion>2.9.2</XunitVersion>
+    <XunitCombinatorialVersion>1.6.24</XunitCombinatorialVersion>
+  </PropertyGroup>
+
+  <Choose>
+    <When Condition="'$(Language)' == 'VB'">
+      <PropertyGroup>
+        <LangVersion>15.5</LangVersion>
+      </PropertyGroup>
+    </When>
+
+    <When Condition="'$(Language)' == 'C#'">
+      <PropertyGroup>
+        <LangVersion>11</LangVersion>
+      </PropertyGroup>
+
+      <!-- Nullable reference types -->
+      <PropertyGroup>
+        <Nullable>enable</Nullable>
+      </PropertyGroup>
+    </When>
+  </Choose>
+
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(CodeAnalysisRuleSet)" Condition="'$(CodeAnalysisRuleSet)' != ''" Link="%(Filename)%(Extension)" />
+    <PackageReference Include="System.Net.Http" Version="$(SystemNetHttpVersion)" PrivateAssets="all" ExcludeAssets="all" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" />
+    <!-- Pin versions for parent-injected analyzer packages that have no version when CPM is disabled -->
+    <PackageReference Update="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsAnalyzersVersion)" PrivateAssets="all" />
+    <PackageReference Update="Microsoft.VisualStudio.Threading.Analyzers" Version="18.7.23" PrivateAssets="all" />
+    <PackageReference Update="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers" Version="3.3.4-beta1.22504.1" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

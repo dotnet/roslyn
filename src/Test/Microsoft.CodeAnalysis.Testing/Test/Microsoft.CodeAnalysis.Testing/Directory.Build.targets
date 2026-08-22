@@ -1,0 +1,24 @@
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project>
+  <!-- All test projects in this subtree use Xunit.Combinatorial. Add it unconditionally since TestRunnerName
+       and IsUnitTestProject are not set in Roslyn's standard build infrastructure. -->
+  <ItemGroup>
+    <PackageReference Include="Xunit.Combinatorial" Version="$(XunitCombinatorialVersion)" />
+  </ItemGroup>
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)../'))" />
+
+  <!-- Pin versions for xunit packages injected by eng/targets/XUnit.targets without version when CPM is disabled.
+       These Update items must appear AFTER the parent import so the packages already exist when Update runs. -->
+  <ItemGroup>
+    <PackageReference Update="xunit.analyzers" Version="1.17.0" />
+    <PackageReference Update="xunit.core" Version="2.9.2" />
+    <PackageReference Update="xunit.extensibility.execution" Version="2.9.2" />
+    <PackageReference Update="xunit.runner.visualstudio" Version="3.1.3" />
+    <PackageReference Update="XunitXml.TestLogger" Version="3.1.17" />
+    <!-- Remove InstallTraceListener.cs (added by XUnit.targets) since it references Roslyn.Test.Utilities
+         which is not available in this subtree. -->
+    <Compile Remove="$(RepositoryEngineeringDir)config\test\Core\InstallTraceListener$(DefaultLanguageSourceExtension)" />
+  </ItemGroup>
+
+</Project>

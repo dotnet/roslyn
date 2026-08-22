@@ -1,0 +1,11 @@
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<!--
+  Opt out of Central Package Management for the testing library subtree. These projects use explicit
+  Version= attributes on PackageReference items inherited from roslyn-sdk, which allows them to target
+  multiple Roslyn versions as a compatibility library. See https://aka.ms/nuget/cpm/gettingstarted.
+-->
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+</Project>
