@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             Uninitialized = 0,
             NoAttribute,
-            Updated, // https://github.com/dotnet/roslyn/issues/82546: rename to Version15 (or whatever the value ends up being)
+            Version2,
             UnrecognizedAttribute,
         }
 
@@ -757,10 +757,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override bool UseUpdatedMemorySafetyRules
-            => MemorySafetyRulesVersion == MemorySafetyRulesAttributeVersion.Updated;
+        internal override MemorySafetyRulesVersion MemorySafetyRulesVersion
+        {
+            get
+            {
+                return MemorySafetyRulesVersionFromAttribute switch
+                {
+                    MemorySafetyRulesAttributeVersion.Version2 => MemorySafetyRulesVersion.Version2,
+                    _ => MemorySafetyRulesVersion.Version1
+                };
+            }
+        }
 
-        internal MemorySafetyRulesAttributeVersion MemorySafetyRulesVersion
+        internal MemorySafetyRulesAttributeVersion MemorySafetyRulesVersionFromAttribute
         {
             get
             {
@@ -774,8 +783,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     if (_module.HasMemorySafetyRulesAttribute(Token, out int version, out bool foundAttributeType))
                     {
-                        return version == CSharpCompilationOptions.UpdatedMemorySafetyRulesVersion
-                            ? MemorySafetyRulesAttributeVersion.Updated
+                        return version == (int)MemorySafetyRulesVersion.Version2
+                            ? MemorySafetyRulesAttributeVersion.Version2
                             : MemorySafetyRulesAttributeVersion.UnrecognizedAttribute;
                     }
 

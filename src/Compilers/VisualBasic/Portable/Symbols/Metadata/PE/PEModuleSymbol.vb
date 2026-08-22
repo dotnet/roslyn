@@ -412,6 +412,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property MemorySafetyRulesVersion As MemorySafetyRulesVersion
+            Get
+                Dim version As Integer
+                Dim foundAttributeType As Boolean
+
+                If _module.HasMemorySafetyRulesAttribute(EntityHandle.ModuleDefinition, version, foundAttributeType) AndAlso
+                   version = CInt(Global.Microsoft.CodeAnalysis.MemorySafetyRulesVersion.Version2) Then
+                    Return Global.Microsoft.CodeAnalysis.MemorySafetyRulesVersion.Version2
+                End If
+
+                Return Global.Microsoft.CodeAnalysis.MemorySafetyRulesVersion.Version1
+            End Get
+        End Property
+
         ''' <remarks>
         ''' This is for perf, not for correctness.
         ''' </remarks>
