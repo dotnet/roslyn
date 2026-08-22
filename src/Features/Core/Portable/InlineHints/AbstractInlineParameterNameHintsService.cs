@@ -55,6 +55,7 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
         var suppressForParametersThatDifferOnlyBySuffix = !displayAllOverride && options.SuppressForParametersThatDifferOnlyBySuffix;
         var suppressForParametersThatMatchMethodIntent = !displayAllOverride && options.SuppressForParametersThatMatchMethodIntent;
         var suppressForParametersThatMatchArgumentName = !displayAllOverride && options.SuppressForParametersThatMatchArgumentName;
+        var suppressForParametersThatMatchMemberName = !displayAllOverride && options.SuppressForParametersThatMatchMemberName;
 
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -97,6 +98,12 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
                     continue;
 
                 if (suppressForParametersThatMatchArgumentName && ParameterMatchesArgumentName(argument, parameter, syntaxFacts))
+                    continue;
+
+                if (suppressForParametersThatDifferOnlyBySuffix && ParameterDiffersOnlyBySuffix(argument, parameter, syntaxFacts))
+                    continue;
+
+                if (suppressForParametersThatMatchMemberName && ParameterMatchesMemberAccessName(argument, parameter, syntaxFacts))
                     continue;
 
                 if (!indexerParameters && IsIndexer(node, parameter))
@@ -279,7 +286,91 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
     private static bool ParameterMatchesArgumentName(SyntaxNode argument, IParameterSymbol parameter, ISyntaxFactsService syntaxFacts)
     {
         var argumentName = GetIdentifierNameFromArgument(argument, syntaxFacts);
-        return syntaxFacts.StringComparer.Compare(parameter.Name, argumentName) == 0;
+        if (string.IsNullOrEmpty(argumentName))
+            return false;
+
+        // First, try exact match
+        if (syntaxFacts.StringComparer.Compare(parameter.Name, argumentName) == 0)
+            return true;
+
+        // Try normalized comparison (case-insensitive and ignoring underscores)
+        return NormalizeIdentifier(parameter.Name).Equals(NormalizeIdentifier(argumentName), StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool ParameterDiffersOnlyBySuffix(SyntaxNode argument, IParameterSymbol parameter, ISyntaxFactsService syntaxFacts)
+    {
+        var argumentName = GetIdentifierNameFromArgument(argument, syntaxFacts);
+        if (string.IsNullOrEmpty(argumentName) || string.IsNullOrEmpty(parameter.Name))
+            return false;
+
+        // Check if parameter and argument differ only by a trailing underscore or single character suffix
+        // Cases to handle:
+        // 1. fooBar vs fooBar_
+        // 2. fooBar_ vs fooBar
+        // 3. fooBar vs fooBarX (where X is A-Z)
+        // 4. fooBarX vs fooBar
+
+        // Check if one is prefix of another with single character difference
+        if (argumentName.Length == parameter.Name.Length + 1)
+        {
+            // argument is longer (e.g., fooBar_ vs fooBar)
+            if (argumentName.StartsWith(parameter.Name, StringComparison.Ordinal))
+            {
+                var suffix = argumentName[^1];
+                return suffix == '_' || IsUpperAlpha(suffix) || IsNumeric(suffix);
+            }
+        }
+        else if (parameter.Name.Length == argumentName.Length + 1)
+        {
+            // parameter is longer (e.g., fooBar vs fooBar_)
+            if (parameter.Name.StartsWith(argumentName, StringComparison.Ordinal))
+            {
+                var suffix = parameter.Name[^1];
+                return suffix == '_' || IsUpperAlpha(suffix) || IsNumeric(suffix);
+            }
+        }
+
+        return false;
+
+        static bool IsUpperAlpha(char c) => char.IsUpper(c);
+        static bool IsNumeric(char c) => char.IsDigit(c);
+    }
+
+    private static bool ParameterMatchesMemberAccessName(SyntaxNode argument, IParameterSymbol parameter, ISyntaxFactsService syntaxFacts)
+    {
+        var memberName = GetMemberNameFromArgument(argument, syntaxFacts);
+        if (string.IsNullOrEmpty(memberName))
+            return false;
+
+        // Check if member name matches parameter name (normalized, case-insensitive)
+        return NormalizeIdentifier(parameter.Name).Equals(NormalizeIdentifier(memberName), StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string GetMemberNameFromArgument(SyntaxNode argument, ISyntaxFactsService syntaxFacts)
+    {
+        var expression =
+            syntaxFacts.IsArgument(argument) ? syntaxFacts.GetExpressionOfArgument(argument) :
+            syntaxFacts.IsAttributeArgument(argument) ? syntaxFacts.GetExpressionOfAttributeArgument(argument) : null;
+
+        // Check if the expression is a member access (e.g., foo.X)
+        if (syntaxFacts.IsMemberAccessExpression(expression))
+        {
+            var memberNameSyntax = syntaxFacts.GetNameOfMemberAccessExpression(expression);
+            if (syntaxFacts.IsIdentifierName(memberNameSyntax))
+            {
+                var identifier = syntaxFacts.GetIdentifierOfIdentifierName(memberNameSyntax);
+                return identifier.ValueText;
+            }
+        }
+
+        return string.Empty;
+    }
+
+    private static string NormalizeIdentifier(string identifier)
+    {
+        // Remove leading underscores and @ prefixes for comparison
+        var normalized = identifier.TrimStart('_', '@');
+        return normalized.Replace("_", "");
     }
 
     protected static string GetIdentifierNameFromArgument(SyntaxNode argument, ISyntaxFactsService syntaxFacts)
