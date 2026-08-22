@@ -7,7 +7,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Reflection;
 using System.Threading;
-using Microsoft.CodeAnalysis.ExternalAccess.Extensions;
+using Microsoft.CodeAnalysis.Features.ExternalAccess.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Extensions;
