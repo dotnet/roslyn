@@ -110,6 +110,19 @@ internal sealed class DefaultRazorMarkupSplitPhase : RazorEnginePhaseBase
             documentNode.FallbackComponentTypeName = primaryNamespace?.Name is { } namespaceName
                 ? $"{namespaceName}.{primaryClass.Name}"
                 : primaryClass.Name;
+
+            // Retain the full discoverable decl so the source generator can produce this fallback
+            // component's descriptor from the already-parsed document rather than re-parsing the source
+            // through a separate declaration engine. Built exactly like a split component's decl over the
+            // whole class body (no plan), it is never emitted to pre-compilation -- only its syntax tree
+            // is fed into slow discovery. Needs the render method (to exclude) and namespace; when either
+            // is absent the generator falls back to re-parsing.
+            if (renderMethod is not null && primaryNamespace is not null)
+            {
+                documentNode.FallbackDiscoveryDeclDocumentNode =
+                    BuildDeclDocument(documentNode, primaryNamespace, primaryClass, renderMethod, plan: null);
+            }
+
             return codeDocument.WithDocumentNode(documentNode);
         }
     }
