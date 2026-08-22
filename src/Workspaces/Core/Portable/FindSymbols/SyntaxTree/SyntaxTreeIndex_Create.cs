@@ -355,6 +355,16 @@ internal sealed partial class SyntaxTreeIndex
             aliasInfo ??= [];
             aliasInfo.Add((alias.ValueText, name, arity, isGlobal: globalToken != default));
         }
+        else if (syntaxFacts.IsPredefinedType(usingTarget) &&
+                 syntaxFacts.TryGetPredefinedType(usingTarget.GetFirstToken(), out var predefinedType) &&
+                 predefinedType.GetMetadataName() is string predefinedName)
+        {
+            // For `using X = int` we want to index the alias as pointing at the metadata name (`Int32`) of the
+            // predefined type so that references searching for that type (which use its metadata name) can find the
+            // alias.  This mirrors the `using X = System.Int32` case handled above.
+            aliasInfo ??= [];
+            aliasInfo.Add((alias.ValueText, predefinedName, arity: 0, isGlobal: globalToken != default));
+        }
     }
 
     public static StringTable GetStringTable(ProjectState project)
