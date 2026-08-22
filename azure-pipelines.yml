@@ -143,6 +143,7 @@ stages:
     parameters:
       jobName: Build_Windows_Debug
       testArtifactName: Transport_Artifacts_Windows_Debug
+      cacheArtifactName: compiler-cache-windows-debug
       configuration: Debug
       poolParameters: ${{ parameters.vs2026PreviewPool }}
       restoreArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
@@ -155,6 +156,7 @@ stages:
     parameters:
       jobName: Build_Windows_Release
       testArtifactName: Transport_Artifacts_Windows_Release
+      cacheArtifactName: compiler-cache-windows-release
       configuration: Release
       poolParameters: ${{ parameters.vs2026PreviewPool }}
       restoreArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
@@ -167,6 +169,7 @@ stages:
     parameters:
       jobName: Build_Unix_Debug
       testArtifactName: Transport_Artifacts_Unix_Debug
+      cacheArtifactName: compiler-cache-linux-debug
       poolParameters: ${{ parameters.ubuntuPool }}
 
 - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
@@ -177,6 +180,7 @@ stages:
       parameters:
         jobName: Build_macOS_Debug
         testArtifactName: Transport_Artifacts_macOS_Debug
+        cacheArtifactName: compiler-cache-macos-debug
         poolParameters: ${{ parameters.macOSPool }}
 
 - stage: Source_Build
