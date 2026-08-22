@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(NarrowedType.Equals(InputType, TypeCompareKind.AllIgnoreOptions));
             Debug.Assert(Negated.InputType.Equals(InputType, TypeCompareKind.AllIgnoreOptions));
             Debug.Assert(Negated is not BoundPatternWithUnionMatching);
-            Debug.Assert(UnionMatchingMode == UnionMatchingMode.None);
+            Debug.Assert(!IsUnionMatching);
         }
     }
 }

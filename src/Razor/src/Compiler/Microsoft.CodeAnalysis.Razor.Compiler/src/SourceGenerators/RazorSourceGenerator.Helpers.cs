@@ -2,8 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
+using System.Threading;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -99,6 +101,40 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             }
         }
 
+        private static RazorCSharpDocument GetFallbackDiscoveryDeclDocument(
+            RazorCodeDocument codeDocument,
+            SourceGeneratorProjectItem item,
+            ImmutableArray<SourceGeneratorProjectItem> imports,
+            RazorSourceGenerationOptions razorSourceGeneratorOptions,
+            CancellationToken cancellationToken)
+        {
+            // Reuse the discoverable decl the split phase built from the already-parsed document and lower
+            // it here, so a fallback component's descriptor comes from the initial parse instead of
+            // re-parsing the source through a separate declaration engine. The generator processes each
+            // document before running discovery over the set, so this lowers ahead of the tag-helper
+            // rewrite that mutates the shared IR.
+            if (codeDocument.GetRequiredDocumentNode().FallbackDiscoveryDeclDocumentNode is { } declDocumentNode)
+            {
+                // Mirror DefaultRazorDeclCSharpLoweringPhase: the decl is lowered before the rewrite phase,
+                // so seed the rewritten-tree back-reference with the canonical (markup-free) syntax tree.
+                var declCodeDocument = codeDocument.GetTagHelperRewrittenSyntaxTree() is null
+                    ? codeDocument.WithTagHelperRewrittenSyntaxTree(codeDocument.GetRequiredSyntaxTree())
+                    : codeDocument;
+
+                return RazorCSharpDocumentWriter.Write(
+                    declDocumentNode,
+                    declCodeDocument,
+                    reportDiagnostics: false,
+                    isDeclarationDocument: true,
+                    isStubDocument: false,
+                    cancellationToken);
+            }
+
+            // Rare fallback shapes (no render method or namespace) leave no discovery decl; re-parse those.
+            var declEngine = GetDeclarationProjectEngine(item, imports, razorSourceGeneratorOptions);
+            return declEngine.Process(item, cancellationToken).GetRequiredCSharpDocument(declarationDocument: false);
+        }
+
         private static RazorProjectEngine GetDeclarationProjectEngine(
             SourceGeneratorProjectItem item,
             ImmutableArray<SourceGeneratorProjectItem> imports,
@@ -152,6 +188,44 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             });
 
             return tagHelperFeature;
+        }
+
+        /// <summary>
+        ///  Resolves the fallback component type symbols so the slow discovery path can target just those
+        ///  types instead of walking the whole augmented assembly. Uses the compilation's declaration table
+        ///  (no semantic models): a fallback type name is namespace-qualified, so the fast predicate keys off
+        ///  its final segment and over-selects; the caller's descriptor-name filter trims any collisions.
+        /// </summary>
+        private static ImmutableArray<INamedTypeSymbol> ResolveFallbackTypes(
+            Compilation compilation,
+            ImmutableHashSet<string> fallbackTypeNames,
+            CancellationToken cancellationToken)
+        {
+            if (fallbackTypeNames.IsEmpty)
+            {
+                return [];
+            }
+
+            var shortNames = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var name in fallbackTypeNames)
+            {
+                var lastDot = name.LastIndexOf('.');
+                shortNames.Add(lastDot >= 0 ? name.Substring(lastDot + 1) : name);
+            }
+
+            using var builder = new PooledArrayBuilder<INamedTypeSymbol>();
+
+            foreach (var symbol in compilation.GetSymbolsWithName(shortNames.Contains, SymbolFilter.Type, cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (symbol is INamedTypeSymbol typeSymbol)
+                {
+                    builder.Add(typeSymbol);
+                }
+            }
+
+            return builder.ToImmutable();
         }
 
         private static SourceGeneratorProjectEngine GetGenerationProjectEngine(

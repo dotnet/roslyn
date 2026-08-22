@@ -36,11 +36,11 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
-            // (1,14): error CS8652: The feature 'closed classes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,14): error CS9327: Feature 'closed classes' is not available in C# 14.0. Please use language version 15.0 or greater.
             // closed class C { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("closed classes").WithLocation(1, 14));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "C").WithArguments("closed classes", "15.0").WithLocation(1, 14));
 
-        comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], parseOptions: TestOptions.Regular15, targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics();
 
         comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
@@ -2515,9 +2515,9 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
-            // (1,21): error CS8652: The feature 'closed classes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,21): error CS9327: Feature 'closed classes' is not available in C# 14.0. Please use language version 15.0 or greater.
             // public closed class C
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("closed classes").WithLocation(1, 21),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "C").WithArguments("closed classes", "15.0").WithLocation(1, 21),
             // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
             //         return c switch
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(100, 18));
@@ -2537,7 +2537,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             //         return c switch
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(100, 18));
 
-        comp1 = CreateCompilation([source2, IsClosedTypeAttributeDefinition], references: [comp0.ToMetadataReference()], parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net100);
+        comp1 = CreateCompilation([source2, IsClosedTypeAttributeDefinition], references: [comp0.ToMetadataReference()], parseOptions: TestOptions.Regular15, targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics(
             // (113,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
             //             C => 3,
@@ -2592,33 +2592,33 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         var comp1 = CreateCompilation([source2, IsClosedTypeAttributeDefinition], references: [comp0.ToMetadataReference()], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net100);
         comp1.VerifyDiagnostics(
-            // (7,13): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (7,13): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
             //             D1 => 1,
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "D1").WithArguments("unions").WithLocation(7, 13),
-            // (8,13): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "D1").WithArguments("unions", "15.0").WithLocation(7, 13),
+            // (8,13): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
             //             D2 => 2,
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "D2").WithArguments("unions").WithLocation(8, 13),
-            // (16,13): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "D2").WithArguments("unions", "15.0").WithLocation(8, 13),
+            // (16,13): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
             //             C1 => 1,
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C1").WithArguments("unions").WithLocation(16, 13),
-            // (17,13): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "C1").WithArguments("unions", "15.0").WithLocation(16, 13),
+            // (17,13): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
             //             C2 => 2,
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C2").WithArguments("unions").WithLocation(17, 13));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "C2").WithArguments("unions", "15.0").WithLocation(17, 13));
 
         comp1 = CreateCompilation([source2, IsClosedTypeAttributeDefinition], references: [comp0.EmitToImageReference()], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net100);
         comp1.VerifyDiagnostics(
-            // (7,13): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (7,13): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
             //             D1 => 1,
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "D1").WithArguments("unions").WithLocation(7, 13),
-            // (8,13): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "D1").WithArguments("unions", "15.0").WithLocation(7, 13),
+            // (8,13): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
             //             D2 => 2,
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "D2").WithArguments("unions").WithLocation(8, 13),
-            // (16,13): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "D2").WithArguments("unions", "15.0").WithLocation(8, 13),
+            // (16,13): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
             //             C1 => 1,
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C1").WithArguments("unions").WithLocation(16, 13),
-            // (17,13): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "C1").WithArguments("unions", "15.0").WithLocation(16, 13),
+            // (17,13): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
             //             C2 => 2,
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C2").WithArguments("unions").WithLocation(17, 13));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "C2").WithArguments("unions", "15.0").WithLocation(17, 13));
     }
 
     [Fact]
@@ -2813,9 +2813,15 @@ public sealed class ClosedClassesTests : CSharpTestBase
             // (100,14): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'string' is not covered.
             //         => u switch
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("string").WithLocation(100, 14),
-            // (205,14): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1' is not covered.
-            //         => u switch
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D1").WithLocation(205, 14));
+            // (200,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'D1'.
+            //             D1 => 1,
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "D1").WithArguments("MyUnion", "D1").WithLocation(200, 13),
+            // (201,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'D2'.
+            //             D2 => 2,
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "D2").WithArguments("MyUnion", "D2").WithLocation(201, 13),
+            // (300,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'D2'.
+            //             D2 => 2,
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "D2").WithArguments("MyUnion", "D2").WithLocation(300, 13));
     }
 
     [Fact]
@@ -2993,9 +2999,21 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         var comp = CreateCompilationWithIL(source2, ilSource, targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
-            // (305,14): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1' is not covered.
-            //         => u switch
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D1").WithLocation(305, 14)
+            // (100,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'MyUnion'.
+            //             MyUnion => 1
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "MyUnion").WithArguments("MyUnion", "MyUnion").WithLocation(100, 13),
+            // (200,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'object'.
+            //             object => 1
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("MyUnion", "object").WithLocation(200, 13),
+            // (300,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'D1'.
+            //             D1 => 1,
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "D1").WithArguments("MyUnion", "D1").WithLocation(300, 13),
+            // (301,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'D2'.
+            //             D2 => 2,
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "D2").WithArguments("MyUnion", "D2").WithLocation(301, 13),
+            // (400,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'D2'.
+            //             D2 => 2,
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "D2").WithArguments("MyUnion", "D2").WithLocation(400, 13)
             );
     }
 
@@ -7791,9 +7809,15 @@ class Program
             // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'string' is not covered.
             //         return u switch 
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("string").WithLocation(100, 18),
-            // (300,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C3' is not covered.
-            //         return u switch 
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C3").WithLocation(300, 18)
+            // (302,13): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C2'.
+            //             C2 => 1,
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "C2").WithArguments("C1", "C2").WithLocation(302, 13),
+            // (402,13): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C2'.
+            //             C2 => 1,
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "C2").WithArguments("C1", "C2").WithLocation(402, 13),
+            // (403,13): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
+            //             C3 => 2,
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(403, 13)
             );
     }
 }

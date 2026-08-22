@@ -418,7 +418,20 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [Fact]
     public void PropertyAccessor()
     {
-        UsingDeclaration("public int P { safe get; set; }");
+        const string declaration = """public int P { safe get; set; }""";
+        var source = $$"""class C { {{declaration}} }""";
+        UsingDeclaration(declaration);
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            // (1,26): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // class C { public int P { safe get; set; } }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(1, 26));
+        CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
+            // (1,26): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // class C { public int P { safe get; set; } }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(1, 26));
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
 
         N(SyntaxKind.PropertyDeclaration);
         {
@@ -452,7 +465,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [InlineData("public int P { private safe get; set; }", 0, SyntaxKind.PrivateKeyword, SyntaxKind.SafeKeyword)]
     [InlineData("public int P { safe private get; set; }", 0, SyntaxKind.SafeKeyword, SyntaxKind.PrivateKeyword)]
     [InlineData("public int P { get; private safe set; }", 1, SyntaxKind.PrivateKeyword, SyntaxKind.SafeKeyword)]
-    public void PropertyAccessor_WithOtherModifiers(string source, int accessorIndex, params SyntaxKind[] expectedModifiers)
+    public void PropertyAccessor_WithOtherModifiers_ModifierOrder(string source, int accessorIndex, params SyntaxKind[] expectedModifiers)
     {
         var declaration = Assert.IsType<PropertyDeclarationSyntax>(SyntaxFactory.ParseMemberDeclaration(source));
         declaration.GetDiagnostics().Verify();
@@ -467,9 +480,46 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     }
 
     [Fact]
+    public void PropertyAccessor_WithOtherModifiers()
+    {
+        const string declaration = """public int P { private safe get; set; }""";
+        var source = $$"""class C { {{declaration}} }""";
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            // (1,34): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // class C { public int P { private safe get; set; } }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(1, 34));
+        CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
+            // (1,34): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // class C { public int P { private safe get; set; } }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(1, 34));
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+    }
+
+    [Fact]
     public void EventAccessor()
     {
-        UsingDeclaration("public event EHandler E { safe add { } remove { } }");
+        const string declaration = """public event EHandler E { safe add { } remove { } }""";
+        var source = $$"""delegate void EHandler(); class C { {{declaration}} }""";
+        UsingDeclaration(declaration);
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            // (1,63): error CS1609: Modifiers cannot be placed on event accessor declarations
+            // delegate void EHandler(); class C { public event EHandler E { safe add { } remove { } } }
+            Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "safe").WithLocation(1, 63));
+        CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
+            // (1,63): error CS1609: Modifiers cannot be placed on event accessor declarations
+            // delegate void EHandler(); class C { public event EHandler E { safe add { } remove { } } }
+            Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "safe").WithLocation(1, 63));
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            // (1,63): error CS1609: Modifiers cannot be placed on event accessor declarations
+            // delegate void EHandler(); class C { public event EHandler E { safe add { } remove { } } }
+            Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "safe").WithLocation(1, 63));
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            // (1,63): error CS1609: Modifiers cannot be placed on event accessor declarations
+            // delegate void EHandler(); class C { public event EHandler E { safe add { } remove { } } }
+            Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "safe").WithLocation(1, 63));
 
         N(SyntaxKind.EventDeclaration);
         {

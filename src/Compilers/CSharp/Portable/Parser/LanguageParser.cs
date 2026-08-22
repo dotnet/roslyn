@@ -1513,33 +1513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             bool isStructOrRecordOrUnionKeyword(SyntaxToken token)
             {
-                if (token.Kind == SyntaxKind.StructKeyword)
-                {
-                    return true;
-                }
-
-                switch (token.ContextualKind)
-                {
-                    case SyntaxKind.RecordKeyword:
-                        {
-                            // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                            // does not support a feature, but in this case we are effectively making a language breaking
-                            // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
-                            // older code that is not using C# 9 we conditionally parse based on langversion
-                            return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
-                        }
-
-                    case SyntaxKind.UnionKeyword:
-                        {
-                            // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                            // does not support a feature, but in this case we are effectively making a language breaking
-                            // change to consider "union" a type declaration in all ambiguous cases. To avoid breaking
-                            // older code that is not using C# 15 we conditionally parse based on langversion
-                            return IsFeatureEnabled(MessageID.IDS_FeatureUnions);
-                        }
-                }
-
-                return false;
+                return token.Kind == SyntaxKind.StructKeyword || IsEnabledRecordOrUnionKeyword(token);
             }
         }
 
@@ -1661,10 +1635,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return !SyntaxFacts.IsContextualKeyword(nextToken.ContextualKind) && GetModifierExcludingScoped(nextToken) != DeclarationModifiers.None;
         }
 
+        private bool IsEnabledRecordOrUnionKeyword(SyntaxToken token)
+        {
+            // Normally the parser recognizes unsupported features and binding reports a language-version
+            // diagnostic. Record and union are contextual keywords, however, so treating them as type
+            // declarations in every ambiguous context would break older code. Only recognize them here
+            // when the corresponding feature is enabled.
+            return token.ContextualKind switch
+            {
+                SyntaxKind.RecordKeyword => IsFeatureEnabled(MessageID.IDS_FeatureRecords),
+                SyntaxKind.UnionKeyword => IsFeatureEnabled(MessageID.IDS_FeatureUnions),
+                _ => false,
+            };
+        }
+
         private bool IsPartialType()
         {
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
-            var nextToken = this.PeekToken(1);
+
+            var peekIndex = 1;
+            while (this.PeekToken(peekIndex).ContextualKind == SyntaxKind.PartialKeyword)
+            {
+                peekIndex++;
+            }
+
+            var nextToken = this.PeekToken(peekIndex);
             switch (nextToken.Kind)
             {
                 case SyntaxKind.StructKeyword:
@@ -1673,28 +1668,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return true;
             }
 
-            switch (nextToken.ContextualKind)
-            {
-                case SyntaxKind.RecordKeyword:
-                    {
-                        // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                        // does not support a feature, but in this case we are effectively making a language breaking
-                        // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
-                        // older code that is not using C# 9 we conditionally parse based on langversion
-                        return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
-                    }
-
-                case SyntaxKind.UnionKeyword:
-                    {
-                        // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                        // does not support a feature, but in this case we are effectively making a language breaking
-                        // change to consider "union" a type declaration in all ambiguous cases. To avoid breaking
-                        // older code that is not using C# 15 we conditionally parse based on langversion
-                        return IsFeatureEnabled(MessageID.IDS_FeatureUnions);
-                    }
-            }
-
-            return false;
+            return this.IsEnabledRecordOrUnionKeyword(nextToken);
         }
 
         private bool IsPartialMember()
@@ -2180,14 +2154,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 : _syntaxFactory.SimpleBaseType(firstType));
 
             // Parse any optional base types that follow.
-            while (true)
+            while (this.CurrentToken.Kind is not (SyntaxKind.OpenBraceToken or SyntaxKind.SemicolonToken) &&
+                !this.IsCurrentTokenWhereOfConstraintClause())
             {
-                if (this.CurrentToken.Kind is SyntaxKind.OpenBraceToken or SyntaxKind.SemicolonToken ||
-                    this.IsCurrentTokenWhereOfConstraintClause())
-                {
-                    break;
-                }
-
                 if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
                     list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
@@ -2493,25 +2462,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 case SyntaxKind.IdentifierToken:
 
-                    switch (CurrentToken.ContextualKind)
+                    if (this.IsEnabledRecordOrUnionKeyword(this.CurrentToken))
                     {
-                        case SyntaxKind.RecordKeyword:
-                            {
-                                // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                                // does not support a feature, but in this case we are effectively making a language breaking
-                                // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
-                                // older code that is not using C# 9 we conditionally parse based on langversion
-                                return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
-                            }
-
-                        case SyntaxKind.UnionKeyword:
-                            {
-                                // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                                // does not support a feature, but in this case we are effectively making a language breaking
-                                // change to consider "union" a type declaration in all ambiguous cases. To avoid breaking
-                                // older code that is not using C# 15 we conditionally parse based on langversion
-                                return IsFeatureEnabled(MessageID.IDS_FeatureUnions);
-                            }
+                        return true;
                     }
 
                     if (IsExtensionContainerStart())
@@ -3789,48 +3742,39 @@ parse_member_name:;
                     {
                         // Scan possible ExplicitInterfaceSpecifier
 
-                        while (true)
+                        while (this.CurrentToken.Kind != SyntaxKind.OperatorKeyword)
                         {
                             // now, scan past the next name.  if it's followed by a dot then
                             // it's part of the explicit name we're building up.  Otherwise,
                             // it should be an operator token
 
-                            if (this.CurrentToken.Kind == SyntaxKind.OperatorKeyword)
-                            {
-                                // We're past any explicit interface portion
-                                break;
-                            }
-                            else
-                            {
-                                using var scanNamePartPoint = GetDisposableResetPoint(resetOnDispose: false);
+                            using var scanNamePartPoint = GetDisposableResetPoint(resetOnDispose: false);
 
-                                int lastTokenPosition = -1;
-                                IsMakingProgress(ref lastTokenPosition, assertIfFalse: true);
-                                ScanNamedTypePart();
+                            int lastTokenPosition = -1;
+                            IsMakingProgress(ref lastTokenPosition, assertIfFalse: true);
+                            ScanNamedTypePart();
 
-                                if (IsDotOrColonColon() ||
-                                    (IsMakingProgress(ref lastTokenPosition, assertIfFalse: false) && this.CurrentToken.Kind != SyntaxKind.OpenParenToken))
+                            if (IsDotOrColonColon() ||
+                                (IsMakingProgress(ref lastTokenPosition, assertIfFalse: false) && this.CurrentToken.Kind != SyntaxKind.OpenParenToken))
+                            {
+                                haveExplicitInterfaceName = true;
+
+                                if (IsDotOrColonColon())
                                 {
-                                    haveExplicitInterfaceName = true;
-
-                                    if (IsDotOrColonColon())
-                                    {
-                                        separatorKind = this.CurrentToken.Kind;
-                                        EatToken();
-                                    }
-                                    else
-                                    {
-                                        separatorKind = SyntaxKind.None;
-                                    }
-
+                                    separatorKind = this.CurrentToken.Kind;
+                                    EatToken();
                                 }
                                 else
                                 {
-                                    scanNamePartPoint.Reset();
-
-                                    // We're past any explicit interface portion
-                                    break;
+                                    separatorKind = SyntaxKind.None;
                                 }
+                            }
+                            else
+                            {
+                                scanNamePartPoint.Reset();
+
+                                // We're past any explicit interface portion
+                                break;
                             }
                         }
                     }
@@ -4407,13 +4351,9 @@ parse_member_name:;
                 // parse property accessors
                 var builder = _pool.Allocate<AccessorDeclarationSyntax>();
 
-                while (true)
+                while (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
                 {
-                    if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
-                    {
-                        break;
-                    }
-                    else if (this.IsPossibleAccessor())
+                    if (this.IsPossibleAccessor())
                     {
                         var acc = this.ParseAccessorDeclaration(declaringKind);
                         builder.Add(acc);
@@ -5361,13 +5301,9 @@ parse_member_name:;
                 return;
             }
 
-            while (true)
+            while (this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
             {
-                if (this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
-                {
-                    break;
-                }
-                else if (stopOnCloseParen && this.CurrentToken.Kind == SyntaxKind.CloseParenToken)
+                if (stopOnCloseParen && this.CurrentToken.Kind == SyntaxKind.CloseParenToken)
                 {
                     break;
                 }
@@ -6628,13 +6564,8 @@ parse_member_name:;
             types.Add(this.ParseTypeArgument());
 
             // remaining types & commas
-            while (true)
+            while (this.CurrentToken.Kind != SyntaxKind.GreaterThanToken)
             {
-                if (this.CurrentToken.Kind == SyntaxKind.GreaterThanToken)
-                {
-                    break;
-                }
-
                 // We prefer early terminating the argument list over parsing until exhaustion
                 // for better error recovery
                 if (tokenBreaksTypeArgumentList(this.CurrentToken))
