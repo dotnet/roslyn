@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
@@ -19,6 +20,7 @@ internal sealed class TriviaRewriter : CSharpSyntaxRewriter
 {
     private readonly SyntaxNode _node;
     private readonly TextSpanMutableIntervalTree _spans;
+    private readonly SyntaxFormattingOptions _options;
     private readonly CancellationToken _cancellationToken;
 
     private readonly Dictionary<SyntaxToken, SyntaxTriviaList> _trailingTriviaMap = [];
@@ -28,6 +30,7 @@ internal sealed class TriviaRewriter : CSharpSyntaxRewriter
         SyntaxNode node,
         TextSpanMutableIntervalTree spanToFormat,
         Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData> map,
+        SyntaxFormattingOptions options,
         CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(node);
@@ -35,6 +38,7 @@ internal sealed class TriviaRewriter : CSharpSyntaxRewriter
 
         _node = node;
         _spans = spanToFormat;
+        _options = options;
         _cancellationToken = cancellationToken;
 
         PreprocessTriviaListMap(map, cancellationToken);
@@ -181,7 +185,8 @@ internal sealed class TriviaRewriter : CSharpSyntaxRewriter
         }
         else
         {
-            trailingTrivia = token.TrailingTrivia;
+            (var hasTrailingChanges, trailingTrivia) = NormalizeElasticNewLines(token.TrailingTrivia, _options.LineFormatting);
+            hasChanges |= hasTrailingChanges;
         }
 
         if (_leadingTriviaMap.TryGetValue(token, out var leadingTrivia))
@@ -192,7 +197,8 @@ internal sealed class TriviaRewriter : CSharpSyntaxRewriter
         }
         else
         {
-            leadingTrivia = token.LeadingTrivia;
+            (var hasLeadingChanges, leadingTrivia) = NormalizeElasticNewLines(token.LeadingTrivia, _options.LineFormatting);
+            hasChanges |= hasLeadingChanges;
         }
 
         if (hasChanges)
@@ -206,4 +212,31 @@ internal sealed class TriviaRewriter : CSharpSyntaxRewriter
 
     private static SyntaxToken CreateNewToken(SyntaxTriviaList leadingTrivia, SyntaxToken token, SyntaxTriviaList trailingTrivia)
         => token.With(leadingTrivia, trailingTrivia);
+
+    private static (bool hasChanges, SyntaxTriviaList triviaList) NormalizeElasticNewLines(SyntaxTriviaList triviaList, LineFormattingOptions options)
+    {
+        if (triviaList.Count == 0)
+            return (false, triviaList);
+
+        var hasElasticNewLine = triviaList.Any(t => t.IsElastic() && t.IsEndOfLine());
+        if (!hasElasticNewLine)
+            return (false, triviaList);
+
+        var hasChanges = false;
+        using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(triviaList.Count, out var builder);
+        foreach (var trivia in triviaList)
+        {
+            if (trivia.IsEndOfLine() && trivia.IsElastic())
+            {
+                builder.Add(SyntaxFactory.EndOfLine(options.NewLine));
+                hasChanges = true;
+            }
+            else
+            {
+                builder.Add(trivia);
+            }
+        }
+
+        return (hasChanges, builder.ToSyntaxTriviaList());
+    }
 }
