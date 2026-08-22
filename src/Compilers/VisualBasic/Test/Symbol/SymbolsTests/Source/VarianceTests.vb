@@ -369,7 +369,7 @@ End Interface
 
             Dim expected =
 <expected>
-BC42333: Interface 'R(Of Mammal)' is ambiguous with another implemented interface 'R(Of Fish)' due to the 'In' and 'Out' parameters in 'Interface R(Of Out T)'.
+BC42333: Interface 'R(Of Mammal)' is ambiguous with another implemented interface 'R(Of Fish)' due to the 'In' and 'Out' parameters in 'Interface R(Of T)'.
 Class ChimeraFM : Implements R(Of Fish) : Implements R(Of Mammal) : End Class ' BC42333 "R(Of Mammal)", BC42333 "R(Of Fish)"
                                                      ~~~~~~~~~~~~
 BC36722: Keywords 'Out' and 'In' can only be used in interface and delegate declarations.
