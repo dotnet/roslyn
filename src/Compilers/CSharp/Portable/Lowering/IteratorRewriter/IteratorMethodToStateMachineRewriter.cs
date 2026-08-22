@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Finally state of the next Finally frame if such created.
-        /// Finally state is a negative decreasing number starting with -3. (-2 is used for something else).
+        /// Finally state is a negative decreasing number starting with -4 (<see cref="StateMachineState.FirstIteratorFinalizeState"/>). (-2 and -3 are used for something else).
         /// Root frame has finally state -1.
         ///
         /// The Finally state is the state that we are in when "between states".
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // nothing to finalize
                 var disposeBody = F.Block(
                                     GenerateAllHoistedLocalsCleanup(),
-                                    F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineState.FinishedState)),
+                                    F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineState.IteratorFinishedState)),
                                     F.Return());
 
                 F.CloseMethod(disposeBody);
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     F.Assignment(F.Local(stateLocal), F.Field(F.This(), stateField)),
                                     EmitFinallyFrame(rootFrame, state),
                                     GenerateAllHoistedLocalsCleanup(),
-                                    F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineState.FinishedState)),
+                                    F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineState.IteratorFinishedState)),
                                     F.Return());
 
                 F.CloseMethod(disposeBody);

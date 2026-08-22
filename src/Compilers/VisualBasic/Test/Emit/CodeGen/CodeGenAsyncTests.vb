@@ -14,6 +14,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
+    <CompilerTrait(CompilerFeature.Async)>
     Public Class AsyncTests
         Inherits BasicTestBase
 
