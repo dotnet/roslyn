@@ -218,8 +218,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 typeName,
                 methodName,
                 this,
-                (EEMethodSymbol method, DiagnosticBag diags, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties) =>
+                (EEMethodSymbol method, DiagnosticBag diags, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties, out ImmutableArray<string> existingAliasNames) =>
                 {
+                    existingAliasNames = aliases.SelectAsArray(a => a.Name);
                     var binder = ExtendBinderChain(
                         syntax,
                         aliases,
@@ -255,8 +256,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 typeName,
                 methodName,
                 this,
-                (EEMethodSymbol method, DiagnosticBag diags, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties) =>
+                (EEMethodSymbol method, DiagnosticBag diags, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties, out ImmutableArray<string> existingAliasNames) =>
                 {
+                    existingAliasNames = aliases.SelectAsArray(a => a.Name);
                     var binder = ExtendBinderChain(
                         syntax,
                         aliases,
@@ -374,8 +376,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                     container,
                                     methodName,
                                     syntax,
-                                    (EEMethodSymbol method, DiagnosticBag diags, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties) =>
+                                    (EEMethodSymbol method, DiagnosticBag diags, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties, out ImmutableArray<string> existingAliasNames) =>
                                     {
+                                        existingAliasNames = ImmutableArray<string>.Empty;
                                         declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                                         var expression = new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type);
                                         properties = default;
@@ -627,8 +630,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private EEMethodSymbol GetLocalMethod(EENamedTypeSymbol container, string methodName, string localName, int localIndex)
         {
             var syntax = SyntaxFactory.IdentifierName(localName);
-            return CreateMethod(container, methodName, syntax, (EEMethodSymbol method, DiagnosticBag diagnostics, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties) =>
+            return CreateMethod(container, methodName, syntax, (EEMethodSymbol method, DiagnosticBag diagnostics, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties, out ImmutableArray<string> existingAliasNames) =>
             {
+                existingAliasNames = ImmutableArray<string>.Empty;
                 declaredLocals = ImmutableArray<LocalSymbol>.Empty;
 
                 int indexInside = localIndex - method.LocalsForBindingOutside.Length;
@@ -650,8 +654,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private EEMethodSymbol GetParameterMethod(EENamedTypeSymbol container, string methodName, string parameterName, int parameterIndex)
         {
             var syntax = SyntaxFactory.IdentifierName(parameterName);
-            return CreateMethod(container, methodName, syntax, (EEMethodSymbol method, DiagnosticBag diagnostics, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties) =>
+            return CreateMethod(container, methodName, syntax, (EEMethodSymbol method, DiagnosticBag diagnostics, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties, out ImmutableArray<string> existingAliasNames) =>
             {
+                existingAliasNames = ImmutableArray<string>.Empty;
                 declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                 var parameter = method.Parameters[parameterIndex];
                 var expression = new BoundParameter(syntax, parameter);
@@ -663,8 +668,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private EEMethodSymbol GetThisMethod(EENamedTypeSymbol container, string methodName)
         {
             var syntax = SyntaxFactory.ThisExpression();
-            return CreateMethod(container, methodName, syntax, (EEMethodSymbol method, DiagnosticBag diagnostics, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties) =>
+            return CreateMethod(container, methodName, syntax, (EEMethodSymbol method, DiagnosticBag diagnostics, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties, out ImmutableArray<string> existingAliasNames) =>
             {
+                existingAliasNames = ImmutableArray<string>.Empty;
                 declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                 var expression = new BoundThisReference(syntax, GetNonDisplayClassContainer(container.SubstitutedSourceType));
                 properties = default;
@@ -675,8 +681,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private EEMethodSymbol GetTypeVariablesMethod(EENamedTypeSymbol container, string methodName, NamedTypeSymbol typeVariablesType)
         {
             var syntax = SyntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken));
-            return CreateMethod(container, methodName, syntax, (EEMethodSymbol method, DiagnosticBag diagnostics, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties) =>
+            return CreateMethod(container, methodName, syntax, (EEMethodSymbol method, DiagnosticBag diagnostics, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties, out ImmutableArray<string> existingAliasNames) =>
             {
+                existingAliasNames = ImmutableArray<string>.Empty;
                 declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                 var type = method.TypeMap.SubstituteNamedType(typeVariablesType);
                 var expression = new BoundObjectCreationExpression(syntax, type.InstanceConstructors[0]);
