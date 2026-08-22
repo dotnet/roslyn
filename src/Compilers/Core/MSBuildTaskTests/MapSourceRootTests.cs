@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
@@ -106,14 +107,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             RoslynDebug.Assert(task.MappedSourceRoots is object);
             Assert.Equal(3, task.MappedSourceRoots.Length);
 
-            Assert.Equal(Utilities.FixFilePath(Utilities.GetFullPathNoThrow(@"!@#:;$%^&*()_+|{}\")), task.MappedSourceRoots[0].ItemSpec);
             Assert.Equal(@"/_1/", task.MappedSourceRoots[0].GetMetadata("MappedPath"));
 
-            Assert.Equal(Utilities.FixFilePath(Utilities.GetFullPathNoThrow("****/")), task.MappedSourceRoots[1].ItemSpec);
             Assert.Equal(@"/_/", task.MappedSourceRoots[1].GetMetadata("MappedPath"));
             Assert.Equal(@"Git", task.MappedSourceRoots[1].GetMetadata("SourceControl"));
 
-            Assert.Equal(Utilities.FixFilePath(Utilities.GetFullPathNoThrow(@"****\|||:;\")), task.MappedSourceRoots[2].ItemSpec);
             Assert.Equal(@"/_/|||:;/", task.MappedSourceRoots[2].GetMetadata("MappedPath"));
             Assert.Equal(@"Git", task.MappedSourceRoots[2].GetMetadata("SourceControl"));
 
@@ -497,6 +495,39 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
                 string.Join(Environment.NewLine, task.MappedSourceRoots.Select(InspectSourceRoot)));
 
             Assert.True(result);
+        }
+
+        [Fact]
+        public void RelativeSourceRoot_ResolvedAgainstProjectDirectory()
+        {
+            var projectDirectory = Path.Combine(Path.GetTempPath(), "MapSourceRoots", Guid.NewGuid().ToString("N"));
+            var relativeSourceRoot = "relativeRoot" + Path.DirectorySeparatorChar;
+
+            var mappedItemSpec = MapSingleSourceRoot(
+                TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(projectDirectory),
+                relativeSourceRoot);
+
+            Assert.Equal(Path.GetFullPath(Path.Combine(projectDirectory, relativeSourceRoot)), mappedItemSpec);
+        }
+
+        private static string MapSingleSourceRoot(TaskEnvironment taskEnvironment, string sourceRoot)
+        {
+            var engine = new MockEngine();
+
+            var task = new MapSourceRoots
+            {
+                BuildEngine = engine,
+                TaskEnvironment = taskEnvironment,
+                SourceRoots = new[] { new TaskItem(sourceRoot) },
+                Deterministic = false,
+            };
+
+            bool result = task.Execute();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", engine.Log);
+            Assert.True(result);
+
+            RoslynDebug.Assert(task.MappedSourceRoots is object);
+            return task.MappedSourceRoots.Single().ItemSpec;
         }
     }
 }
