@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Runtime.Versioning;
 using Microsoft.DiaSymReader;
 
 namespace Roslyn.Test.PdbUtilities
@@ -14,6 +15,9 @@ namespace Roslyn.Test.PdbUtilities
         public static readonly Func<ISymWriterMetadataProvider, SymUnmanagedWriter> ThrowingFactory =
             _ => throw new SymUnmanagedWriterException("xxx", new NotSupportedException(), "<lib name>");
 
+#if NET
+        [SupportedOSPlatform("windows")]
+#endif
         public static SymUnmanagedWriter CreateUnmanagedWriter(ISymWriterMetadataProvider metadataProvider)
         {
             return SymUnmanagedWriterFactory.CreateWriter(metadataProvider);
