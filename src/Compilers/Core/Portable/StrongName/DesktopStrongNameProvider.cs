@@ -8,9 +8,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Interop;
 using Roslyn.Utilities;
 
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal override void SignBuilder(ExtendedPEBuilder peBuilder, BlobBuilder peBlob, RSAParameters privateKey)
+        internal override void SignBuilder(ManagedPEBuilder peBuilder, BlobBuilder peBlob, RSAParameters privateKey)
         {
             peBuilder.Sign(peBlob, content => SigningUtilities.CalculateRsaSignature(content, privateKey));
         }
