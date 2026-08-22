@@ -136,7 +136,7 @@ public sealed class CSharp15LanguageFeaturesIntegrationTest_Legacy : Integration
             codeDocument);
 
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument.GetRequiredDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredImplCSharpDocument());
         AssertCSharpDiagnosticsMatchBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
     }
@@ -164,7 +164,7 @@ public sealed class CSharp15LanguageFeaturesIntegrationTest_Legacy : Integration
             path: DefaultLegacyFileName);
 
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument.GetRequiredDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredImplCSharpDocument());
         AssertCSharpDiagnosticsMatchBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
     }
@@ -206,7 +206,7 @@ public sealed class CSharp15LanguageFeaturesIntegrationTest_Legacy : Integration
             path: DefaultLegacyFileName);
 
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument.GetRequiredDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument(declarationDocument: false));
         AssertCSharpDiagnosticsMatchBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
     }
@@ -238,7 +238,7 @@ public sealed class CSharp15LanguageFeaturesIntegrationTest_Legacy : Integration
             path: DefaultLegacyFileName);
 
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument.GetRequiredDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument(declarationDocument: false));
         AssertCSharpDiagnosticsMatchBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
     }

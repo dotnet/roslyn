@@ -21,5 +21,3 @@
                     ComponentAttribute - (28:0,28 [8] x:\dir\subdir\Test\TestComponent.cshtml) - MessageExpression - MessageExpression - AttributeStructure.DoubleQuotes
                         CSharpExpression - 
                             IntermediateToken -  - CSharp - () => message
-            CSharpCode - (87:1,12 [30] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (87:1,12 [30] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    string message = "hi";\n

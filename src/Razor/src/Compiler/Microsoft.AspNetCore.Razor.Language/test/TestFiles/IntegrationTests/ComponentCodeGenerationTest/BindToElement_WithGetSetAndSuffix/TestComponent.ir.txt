@@ -22,5 +22,3 @@
                             IntermediateToken -  - CSharp - , 
                             IntermediateToken -  - CSharp - ParentValue
                             IntermediateToken -  - CSharp - )
-            CSharpCode - (88:2,7 [144] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (88:2,7 [144] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public string ParentValue { get; set; } = "hi";\n\n    Task ValueChanged(string value)\n    {\n        return Task.CompletedTask;\n    }\n

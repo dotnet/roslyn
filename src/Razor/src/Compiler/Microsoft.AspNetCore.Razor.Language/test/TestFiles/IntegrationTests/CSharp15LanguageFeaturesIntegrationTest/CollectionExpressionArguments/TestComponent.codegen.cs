@@ -50,16 +50,6 @@ __builder.AddContent(4, CountValues([with(capacity: 32), "f", "g"])
             __builder.CloseElement();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (9,8)-(12,1) "x:\dir\subdir\Test\TestComponent.razor"
-
-    private static int CountValues(System.Collections.Generic.List<string> values)
-        => values.Count;
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591
