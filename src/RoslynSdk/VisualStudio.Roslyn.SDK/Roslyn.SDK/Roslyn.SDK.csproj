@@ -94,10 +94,7 @@
       <Link>SyntaxTree.ico</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="..\ThirdPartyNotices.rtf">
-      <Link>ThirdPartyNotices.rtf</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
+    <!-- ThirdPartyNotices.rtf is supplied centrally by eng/targets/VisualStudio.targets. -->
     <Content Include="..\EULA.rtf">
       <Link>EULA.rtf</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
