@@ -102,9 +102,6 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             // (3,13): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
             //     int P { partial ref get; }
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 13),
-            // (3,13): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-            //     int P { partial ref get; }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 13),
             // (3,25): error CS0106: The modifier 'ref' is not valid for this item
             //     int P { partial ref get; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("ref").WithLocation(3, 25),
@@ -120,6 +117,39 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             // (5,24): error CS0106: The modifier 'scoped' is not valid for this item
             //     int R { ref scoped get; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("scoped").WithLocation(5, 24));
+    }
+
+    [Fact]
+    public void PartialRefAccessorModifiers_BindingDiagnostics()
+    {
+        const string source = """
+            class C
+            {
+                int P { partial ref get; set; }
+                int Q { get; partial ref set; }
+                int R { get; partial ref init; }
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+            // (3,13): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            //     int P { partial ref get; set; }
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 13),
+            // (3,25): error CS0106: The modifier 'ref' is not valid for this item
+            //     int P { partial ref get; set; }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("ref").WithLocation(3, 25),
+            // (4,18): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            //     int Q { get; partial ref set; }
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 18),
+            // (4,30): error CS0106: The modifier 'ref' is not valid for this item
+            //     int Q { get; partial ref set; }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("ref").WithLocation(4, 30),
+            // (5,18): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            //     int R { get; partial ref init; }
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 18),
+            // (5,30): error CS0106: The modifier 'ref' is not valid for this item
+            //     int R { get; partial ref init; }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "init").WithArguments("ref").WithLocation(5, 30));
     }
 
     [Fact]
@@ -325,9 +355,6 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
         UsingDeclaration(
             source,
             options: null,
-            // (1,9): error CS1014: A get or set accessor expected
-            // int P { partial unknown; }
-            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "partial").WithLocation(1, 9),
             // (1,17): error CS1014: A get or set accessor expected
             // int P { partial unknown; }
             Diagnostic(ErrorCode.ERR_GetOrSetExpected, "unknown").WithLocation(1, 17));
@@ -343,6 +370,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
                 N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.UnknownAccessorDeclaration);
                 {
+                    N(SyntaxKind.PartialKeyword);
                     N(SyntaxKind.IdentifierToken, "unknown");
                     N(SyntaxKind.SemicolonToken);
                 }
@@ -2627,6 +2655,55 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     }
 
     [Fact]
+    public void ContextualKeywordTypeFollowingProperty()
+    {
+        const string source = "class C { int P { get; } partial unknown; }";
+
+        UsingDeclaration(source);
+        N(SyntaxKind.ClassDeclaration);
+        {
+            N(SyntaxKind.ClassKeyword);
+            N(SyntaxKind.IdentifierToken, "C");
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.PropertyDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "P");
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            N(SyntaxKind.FieldDeclaration);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "partial");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "unknown");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.CloseBraceToken);
+        }
+        EOF();
+    }
+
+    [Fact]
     public void KeywordModifierBeforeFollowingMember()
     {
         const string source = "class C { int P { private int F; } }";
@@ -2675,6 +2752,150 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
                     }
                     N(SyntaxKind.SemicolonToken);
                 }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void AccessorModifierWithBodyConsumesEnclosingTypeCloseBrace()
+    {
+        const string source = """
+            class C
+            {
+                int P { get;
+                unsafe { }
+            }
+            class D { }
+            """;
+
+        UsingTree(
+            source,
+            // (4,12): error CS1014: A get or set accessor expected
+            //     unsafe { }
+            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "{").WithLocation(4, 12),
+            // (6,12): error CS1513: } expected
+            // class D { }
+            Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(6, 12));
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.PropertyDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "P");
+                    N(SyntaxKind.AccessorList);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.GetAccessorDeclaration);
+                        {
+                            N(SyntaxKind.GetKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.UnknownAccessorDeclaration);
+                        {
+                            N(SyntaxKind.UnsafeKeyword);
+                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "D");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                M(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void AccessorRecoveryDoesNotConsumeFollowingUnsafeMethod()
+    {
+        const string source = """
+            class C
+            {
+                int P { get;
+                unsafe void M() { }
+            }
+            class D { }
+            """;
+
+        UsingTree(
+            source,
+            // (3,17): error CS1513: } expected
+            //     int P { get;
+            Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 17));
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.PropertyDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "P");
+                    N(SyntaxKind.AccessorList);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.GetAccessorDeclaration);
+                        {
+                            N(SyntaxKind.GetKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.UnsafeKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "D");
+                N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.CloseBraceToken);
             }
             N(SyntaxKind.EndOfFileToken);

@@ -446,6 +446,13 @@ ref partial union U1(E1);
             N(SyntaxKind.EndOfFileToken);
         }
         EOF();
+
+        CreateCompilation(
+            [src, "struct E1;", UnionAttributeSource, IUnionSource],
+            parseOptions: useCSharp15 ? TestOptions.Regular15 : TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,19): error CS0106: The modifier 'ref' is not valid for this item
+                // ref partial union U1(E1);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "U1").WithArguments("ref").WithLocation(1, 19));
     }
 
     [Fact]

@@ -4468,14 +4468,21 @@ parse_member_name:;
                 return true;
 
             // Recover an accessor with a missing name when its body is present.
-            if (this.CurrentToken.Kind is SyntaxKind.OpenBraceToken or SyntaxKind.SemicolonToken or SyntaxKind.EqualsGreaterThanToken)
+            if (IsAccessorBodyStart(this.CurrentToken))
                 return true;
 
             if (parsedModifiers)
             {
-                // In `{ protected }`, parsing an accessor consumes `protected` and creates a
-                // missing name. Conversely, `{ private int F;` should remain a following member.
-                return this.CurrentToken.Kind is SyntaxKind.CloseBraceToken or SyntaxKind.EndOfFileToken;
+                // In `{ protected }`, parsing an accessor consumes `protected` and creates a missing name.
+                if (this.CurrentToken.Kind is SyntaxKind.CloseBraceToken or SyntaxKind.EndOfFileToken)
+                    return true;
+
+                // In `{ partial unknown; }`, `unknown` is an accessor with a modifier. Conversely,
+                // `{ private int F;` should remain a following member.
+                if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && IsAccessorBodyStart(PeekToken(1)))
+                    return true;
+
+                return false;
             }
             else
             {
@@ -4484,6 +4491,9 @@ parse_member_name:;
                 return this.CurrentToken.Kind == SyntaxKind.IdentifierToken;
             }
         }
+
+        private static bool IsAccessorBodyStart(SyntaxToken token)
+            => token.Kind is SyntaxKind.OpenBraceToken or SyntaxKind.SemicolonToken or SyntaxKind.EqualsGreaterThanToken;
 
         private enum PostSkipAction
         {

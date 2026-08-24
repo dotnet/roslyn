@@ -178,7 +178,7 @@ class Program
                 }
                 """;
 
-            UsingTree(source);
+            UsingTree(source, TestOptions.Regular9);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -242,7 +242,7 @@ class Program
             }
             EOF();
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (3,49): error CS0106: The modifier 'readonly' is not valid for this item
                 //     public static ref readonly Program operator +(Program x, Program y)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("readonly").WithLocation(3, 49),
@@ -264,7 +264,7 @@ class Program
                 }
                 """;
 
-            UsingTree(source);
+            UsingTree(source, TestOptions.Regular9);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -322,7 +322,7 @@ class Program
             }
             EOF();
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (3,18): error CS1073: Unexpected token 'ref'
                 //     static async ref readonly Task M<T>()
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(3, 18),
@@ -341,7 +341,7 @@ class Program
                 }
                 """;
 
-            UsingTree(source);
+            UsingTree(source, TestOptions.Regular9);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -385,7 +385,10 @@ class Program
             }
             EOF();
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (3,33): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     public ref readonly virtual int* P1 => throw null;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 33),
                 // (3,38): error CS0106: The modifier 'readonly' is not valid for this item
                 //     public ref readonly virtual int* P1 => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("readonly").WithLocation(3, 38),
