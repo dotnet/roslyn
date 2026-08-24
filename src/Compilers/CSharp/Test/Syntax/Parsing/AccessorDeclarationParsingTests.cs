@@ -277,25 +277,16 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     }
 
     [Fact]
-    public void ContextualKeywordBeforeNonAccessorTokens()
+    public void ContextualKeywordWithoutAccessorNameBeforeExpressionBody()
     {
-        const string source = "int P { partial => 0; partial unknown; }";
+        const string source = "int P { partial => 0; }";
 
         UsingDeclaration(
             source,
             options: null,
-            // (1,9): error CS1014: A get or set accessor expected
-            // int P { partial => 0; partial unknown; }
-            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "partial").WithLocation(1, 9),
-            // (1,21): error CS1014: A get or set accessor expected
-            // int P { partial => 0; partial unknown; }
-            Diagnostic(ErrorCode.ERR_GetOrSetExpected, ";").WithLocation(1, 21),
-            // (1,23): error CS1014: A get or set accessor expected
-            // int P { partial => 0; partial unknown; }
-            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "partial").WithLocation(1, 23),
-            // (1,31): error CS1014: A get or set accessor expected
-            // int P { partial => 0; partial unknown; }
-            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "unknown").WithLocation(1, 31));
+            // (1,17): error CS1014: A get or set accessor expected
+            // int P { partial => 0; }
+            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "=>").WithLocation(1, 17));
         N(SyntaxKind.PropertyDeclaration);
         {
             N(SyntaxKind.PredefinedType);
@@ -308,9 +299,48 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
                 N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.UnknownAccessorDeclaration);
                 {
+                    N(SyntaxKind.PartialKeyword);
                     M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
                     N(SyntaxKind.SemicolonToken);
                 }
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void ContextualKeywordBeforeNonAccessorTokens()
+    {
+        const string source = "int P { partial unknown; }";
+
+        UsingDeclaration(
+            source,
+            options: null,
+            // (1,9): error CS1014: A get or set accessor expected
+            // int P { partial unknown; }
+            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "partial").WithLocation(1, 9),
+            // (1,17): error CS1014: A get or set accessor expected
+            // int P { partial unknown; }
+            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "unknown").WithLocation(1, 17));
+        N(SyntaxKind.PropertyDeclaration);
+        {
+            N(SyntaxKind.PredefinedType);
+            {
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.IdentifierToken, "P");
+            N(SyntaxKind.AccessorList);
+            {
+                N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.UnknownAccessorDeclaration);
                 {
                     N(SyntaxKind.IdentifierToken, "unknown");

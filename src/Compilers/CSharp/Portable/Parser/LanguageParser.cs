@@ -4413,7 +4413,7 @@ parse_member_name:;
                 return true;
 
             // Recover an accessor with a missing name when its body is present.
-            if (this.CurrentToken.Kind is SyntaxKind.OpenBraceToken or SyntaxKind.SemicolonToken)
+            if (this.CurrentToken.Kind is SyntaxKind.OpenBraceToken or SyntaxKind.SemicolonToken or SyntaxKind.EqualsGreaterThanToken)
                 return true;
 
             if (parsedModifiers)
