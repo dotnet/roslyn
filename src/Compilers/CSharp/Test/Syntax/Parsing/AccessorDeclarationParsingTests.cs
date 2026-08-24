@@ -325,9 +325,6 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
         UsingDeclaration(
             source,
             options: null,
-            // (1,9): error CS1014: A get or set accessor expected
-            // int P { partial unknown; }
-            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "partial").WithLocation(1, 9),
             // (1,17): error CS1014: A get or set accessor expected
             // int P { partial unknown; }
             Diagnostic(ErrorCode.ERR_GetOrSetExpected, "unknown").WithLocation(1, 17));
@@ -343,6 +340,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
                 N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.UnknownAccessorDeclaration);
                 {
+                    N(SyntaxKind.PartialKeyword);
                     N(SyntaxKind.IdentifierToken, "unknown");
                     N(SyntaxKind.SemicolonToken);
                 }
@@ -2622,6 +2620,55 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
                 N(SyntaxKind.CloseBraceToken);
             }
             N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void ContextualKeywordTypeFollowingProperty()
+    {
+        const string source = "class C { int P { get; } partial unknown; }";
+
+        UsingDeclaration(source);
+        N(SyntaxKind.ClassDeclaration);
+        {
+            N(SyntaxKind.ClassKeyword);
+            N(SyntaxKind.IdentifierToken, "C");
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.PropertyDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "P");
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            N(SyntaxKind.FieldDeclaration);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "partial");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "unknown");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.CloseBraceToken);
         }
         EOF();
     }
