@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 
@@ -79,16 +78,27 @@ internal static class SolutionExtensions
             ?? ThrowHelper.ThrowInvalidOperationException<Document>($"The document {documentId} did not exist in {solution.FilePath ?? "solution"}.");
     }
 
-    public static bool TryGetSourceGeneratedDocumentIdentity(this Solution solution, Uri generatedDocumentUri, out RazorGeneratedDocumentIdentity identity)
+    public static bool TryGetSourceGeneratedDocumentIdentity(this Solution solution, DocumentUri generatedDocumentUri, out SourceGeneratedDocumentIdentity identity)
     {
         identity = default;
-        if (!ProtocolConversions.IsSourceGeneratedScheme(generatedDocumentUri.Scheme))
+
+        // Generated document Uris are computed by Roslyn so should always be parsable
+        if (generatedDocumentUri.ParsedUri is not { } parsedUri)
         {
             return false;
         }
 
-        identity = solution.GetIdentityOfGeneratedDocument(generatedDocumentUri);
+        if (!ProtocolConversions.IsSourceGeneratedScheme(parsedUri.Scheme))
+        {
+            return false;
+        }
 
+        if (SourceGeneratedDocumentUri.DeserializeIdentity(solution, parsedUri) is not { } docIdentity)
+        {
+            throw new InvalidOperationException($"Could not deserialize Uri into a source generated Uri: {parsedUri}");
+        }
+
+        identity = docIdentity;
         if (!identity.IsRazorSourceGeneratedDocument())
         {
             return false;
@@ -97,7 +107,7 @@ internal static class SolutionExtensions
         return true;
     }
 
-    public static async Task<SourceGeneratedDocument?> TryGetSourceGeneratedDocumentAsync(this Solution solution, Uri generatedDocumentUri, CancellationToken cancellationToken)
+    public static async Task<SourceGeneratedDocument?> TryGetSourceGeneratedDocumentAsync(this Solution solution, DocumentUri generatedDocumentUri, CancellationToken cancellationToken)
     {
         if (!solution.TryGetSourceGeneratedDocumentIdentity(generatedDocumentUri, out var identity) ||
             !solution.TryGetProject(identity.DocumentId.ProjectId, out var project))

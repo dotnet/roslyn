@@ -1,0 +1,9 @@
+﻿Source Location: (2:0,2 [39] x:\dir\subdir\Test\TestComponent.razor)
+|
+    _ = Helpers.Utility.GetValue();
+|
+Generated Location: (733:21,0 [39] )
+|
+    _ = Helpers.Utility.GetValue();
+|
+

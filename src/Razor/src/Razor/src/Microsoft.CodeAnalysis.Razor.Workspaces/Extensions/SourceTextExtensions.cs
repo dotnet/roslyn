@@ -11,6 +11,8 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Text;
 
+using SourceLocation = Microsoft.AspNetCore.Razor.Language.SourceLocation;
+
 internal static class SourceTextExtensions
 {
     /// <summary>
@@ -261,6 +263,32 @@ internal static class SourceTextExtensions
     public static TextSpan GetTextSpan(this SourceText text, LinePositionSpan span)
         => text.GetTextSpan(span.Start, span.End);
 
+    public static bool TryGetTextSpan(this SourceText text, LinePositionSpan span, out TextSpan textSpan)
+        => text.TryGetTextSpan(span.Start, span.End, out textSpan);
+
+    public static bool TryGetTextSpan(this SourceText text, LinePosition start, LinePosition end, out TextSpan textSpan)
+        => text.TryGetTextSpan(start.Line, start.Character, end.Line, end.Character, out textSpan);
+
+    public static bool TryGetTextSpan(this SourceText text, int startLine, int startCharacter, int endLine, int endCharacter, out TextSpan textSpan)
+    {
+        textSpan = default;
+
+        if (!text.TryGetAbsoluteIndex(startLine, startCharacter, out var start) ||
+            !text.TryGetAbsoluteIndex(endLine, endCharacter, out var end))
+        {
+            return false;
+        }
+
+        var length = end - start;
+        if (length < 0)
+        {
+            return false;
+        }
+
+        textSpan = new TextSpan(start, length);
+        return true;
+    }
+
     public static TextSpan GetTextSpan(this SourceText text, int startLine, int startCharacter, int endLine, int endCharacter)
     {
         var start = GetAbsoluteIndex(text, startLine, startCharacter, "Start");
@@ -367,5 +395,34 @@ internal static class SourceTextExtensions
         }
 
         return list.ToImmutableArray();
+    }
+
+    /// <summary>
+    /// Sometimes the Html language server will send back an edit that contains a tilde, because the generated
+    /// document we send them has lots of tildes. In those cases, we need to do some extra work to compute the
+    /// minimal text edits
+    /// </summary>
+    public static TextEdit[] FixHtmlTextEdits(this SourceText htmlSourceText, TextEdit[] edits)
+    {
+        // Avoid computing a minimal diff if we don't need to
+        if (!edits.Any(static e => e.NewText.Contains('~')))
+            return edits;
+
+        var changes = edits.SelectAsArray(htmlSourceText.GetTextChange);
+
+        var fixedChanges = htmlSourceText.MinimizeTextChanges(changes);
+        return fixedChanges.SelectAsPlainArray(htmlSourceText.GetTextEdit);
+    }
+
+    public static SumType<TextEdit, AnnotatedTextEdit>[] FixHtmlTextEdits(this SourceText htmlSourceText, SumType<TextEdit, AnnotatedTextEdit>[] edits)
+    {
+        // Avoid computing a minimal diff if we don't need to
+        if (!edits.Any(static e => ((TextEdit)e).NewText.Contains('~')))
+            return edits;
+
+        var changes = edits.SelectAsArray(e => htmlSourceText.GetTextChange((TextEdit)e));
+
+        var fixedChanges = htmlSourceText.MinimizeTextChanges(changes);
+        return fixedChanges.SelectAsPlainArray<TextChange, SumType<TextEdit, AnnotatedTextEdit>>(c => htmlSourceText.GetTextEdit(c));
     }
 }

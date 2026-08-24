@@ -218,7 +218,7 @@ Instance of PooledArrayBuilder\<T>.AsRef() must be a 'using' variable.
 
 ## RS0065: Invalid parameter type in IRemoteJsonService method
 
-Methods in interfaces inheriting from IRemoteJsonService should not have parameters of type RazorPinnedSolutionInfoWrapper or DocumentId as they are not JSON serializable.
+Methods in interfaces inheriting from IRemoteJsonService should not have parameters of type RazorSolutionWrapper or DocumentId as they are not JSON serializable.
 
 |Item|Value|
 |-|-|

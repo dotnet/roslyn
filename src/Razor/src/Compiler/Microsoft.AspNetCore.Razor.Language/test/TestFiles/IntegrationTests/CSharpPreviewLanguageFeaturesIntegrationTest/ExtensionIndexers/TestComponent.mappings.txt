@@ -1,0 +1,16 @@
+﻿Source Location: (2:0,2 [62] x:\dir\subdir\Test\TestComponent.razor)
+|
+    var value = new TextValue("Razor");
+    _ = value[0];
+|
+Generated Location: (733:21,0 [62] )
+|
+    var value = new TextValue("Razor");
+    _ = value[0];
+|
+
+Source Location: (74:5,5 [25] x:\dir\subdir\Test\TestComponent.razor)
+|new TextValue("Razor")[1]|
+Generated Location: (998:32,24 [25] )
+|new TextValue("Razor")[1]|
+

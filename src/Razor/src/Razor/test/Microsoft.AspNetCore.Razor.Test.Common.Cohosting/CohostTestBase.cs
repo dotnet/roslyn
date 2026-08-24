@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Basic.Reference.Assemblies;
 using Microsoft.AspNetCore.Razor;
@@ -17,7 +19,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Remote.Razor.Logging;
@@ -32,20 +33,21 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : ToolingTestBase(testOutputHelper)
 {
+    private readonly Lazy<ImmutableArray<PortableExecutableReference>> _aspNet80References = new(
+        static () => CreateMetadataReferences(net461: false));
+    private readonly Lazy<ImmutableArray<PortableExecutableReference>> _net461References = new(
+        static () => CreateMetadataReferences(net461: true));
     private ExportProvider? _exportProvider;
     private TestIncompatibleProjectService _incompatibleProjectService = null!;
-    private RemoteClientInitializationOptions _clientInitializationOptions;
     private RemoteClientLSPInitializationOptions _clientLSPInitializationOptions;
     private CodeAnalysis.Workspace? _localWorkspace;
     private ExportProvider? _localExportProvider;
     private IClientSettingsManager? _clientSettingsManager;
 
     private protected abstract IRemoteServiceInvoker RemoteServiceInvoker { get; }
-    private protected abstract IFilePathService FilePathService { get; }
     private protected abstract TestComposition LocalComposition { get; }
 
     private protected TestIncompatibleProjectService IncompatibleProjectService => _incompatibleProjectService.AssumeNotNull();
-    private protected RemoteLanguageServerFeatureOptions FeatureOptions => OOPExportProvider.GetExportedValue<RemoteLanguageServerFeatureOptions>();
     private protected RemoteClientCapabilitiesService ClientCapabilitiesService => (RemoteClientCapabilitiesService)OOPExportProvider.GetExportedValue<IClientCapabilitiesService>();
     private protected CodeAnalysis.Workspace LocalWorkspace => _localWorkspace.AssumeNotNull();
     private protected IClientSettingsManager ClientSettingsManager => _clientSettingsManager.AssumeNotNull();
@@ -87,14 +89,6 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
         remoteLogger.SetTargetLoggerFactory(LoggerFactory);
         remoteLogger.AddLoggerProvider(new ThrowingErrorLoggerProvider());
 
-        _clientInitializationOptions = new()
-        {
-            ReturnCodeActionAndRenamePathsWithPrefixedSlash = false,
-            SupportsFileManipulation = true,
-            ShowAllCSharpCodeActions = false,
-        };
-        UpdateClientInitializationOptions(c => c);
-
         _clientLSPInitializationOptions = GetRemoteClientLSPInitializationOptions();
         UpdateClientLSPInitializationOptions(c => c);
 
@@ -133,9 +127,7 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
         // can assume there should be no errors related to Razor, and having this array makes debugging failures a lot
         // easier.
         var errors = composition.GetCompositionErrors().ToArray();
-        // RazorInProcLanguageClient is a Roslyn type, which we don't care about, so no need to worry about false positives there,
-        // but command line builds fail to compose it correctly.
-        AssertEx.EqualOrDiff("", string.Join(Environment.NewLine, errors.Where(e => e.Contains("Razor") && !e.Contains("RazorInProcLanguageClient"))));
+        AssertEx.EqualOrDiff("", string.Join(Environment.NewLine, errors.Where(e => e.Contains("Razor"))));
 
         _localExportProvider = composition.ExportProviderFactory.CreateExportProvider();
         AddDisposable(_localExportProvider);
@@ -148,12 +140,6 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
         => composition;
 
     private protected abstract RemoteClientLSPInitializationOptions GetRemoteClientLSPInitializationOptions();
-
-    private protected void UpdateClientInitializationOptions(Func<RemoteClientInitializationOptions, RemoteClientInitializationOptions> mutation)
-    {
-        _clientInitializationOptions = mutation(_clientInitializationOptions);
-        FeatureOptions.SetOptions(_clientInitializationOptions);
-    }
 
     private protected void UpdateClientLSPInitializationOptions(Func<RemoteClientLSPInitializationOptions, RemoteClientLSPInitializationOptions> mutation)
     {
@@ -194,18 +180,25 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
             ? TestProjectData.SomeProjectComponentFile1.FilePath
             : TestProjectData.SomeProjectFile1.FilePath;
 
-        var projectId = ProjectId.CreateNewId(debugName: TestProjectData.SomeProject.DisplayName);
+        // Keep the project ID stable so source-generated document IDs are stable across test runs.
+        // The generated document IDs include the project ID, and Roslyn currently adds source-generated
+        // documents to the compilation in DocumentId order. Some features, such as implement interface,
+        // can then report diagnostics against either the generated impl or decl document depending on
+        // which partial declaration appears first in the compilation. A random project ID can therefore
+        // make the tests nondeterministically exercise different generated documents. This causes failures
+        // not because of product bugs, but because we expect exactly matching output.
+        var projectId = ProjectId.CreateFromSerialized(new Guid("5ff8e3ed-cee4-44d7-912f-614517f7afcc"), debugName: TestProjectData.SomeProject.DisplayName);
         var documentId = DocumentId.CreateNewId(projectId, debugName: documentFilePath);
 
         return CreateProjectAndRazorDocument(remoteWorkspace, projectId, miscellaneousFile, documentId, documentFilePath, contents, additionalFiles, inGlobalNamespace, addDefaultImports, projectConfigure);
     }
 
-    private protected static TextDocument CreateProjectAndRazorDocument(CodeAnalysis.Workspace workspace, ProjectId projectId, bool miscellaneousFile, DocumentId documentId, string documentFilePath, string contents, (string fileName, string contents)[]? additionalFiles, bool inGlobalNamespace, bool addDefaultImports, Action<RazorProjectBuilder>? projectConfigure)
+    private protected TextDocument CreateProjectAndRazorDocument(CodeAnalysis.Workspace workspace, ProjectId projectId, bool miscellaneousFile, DocumentId documentId, string documentFilePath, string contents, (string fileName, string contents)[]? additionalFiles, bool inGlobalNamespace, bool addDefaultImports, Action<RazorProjectBuilder>? projectConfigure)
     {
         return AddProjectAndRazorDocument(workspace.CurrentSolution, TestProjectData.SomeProject.FilePath, projectId, documentId, documentFilePath, contents, miscellaneousFile, additionalFiles, inGlobalNamespace, addDefaultImports, projectConfigure);
     }
 
-    private protected static TextDocument AddProjectAndRazorDocument(
+    private protected TextDocument AddProjectAndRazorDocument(
         Solution solution,
         [DisallowNull] string? projectFilePath,
         ProjectId projectId,
@@ -225,9 +218,8 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
             projectConfigure(builder);
         }
 
-        builder.AddReferences(miscellaneousFile
-            ? Net461.ReferenceInfos.All.Select(r => r.Reference) // This isn't quite what Roslyn does, but its close enough for our tests
-            : AspNet80.ReferenceInfos.All.Select(r => r.Reference));
+        var references = miscellaneousFile ? _net461References : _aspNet80References;
+        builder.AddReferences(references.Value);
         builder.GenerateGlobalConfigFile = !miscellaneousFile;
         builder.RootNamespace = null;
 
@@ -284,4 +276,15 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
 
     protected static string FilePath(string projectRelativeFileName)
         => Path.GetFullPath(Path.Combine(TestProjectData.SomeProjectPath, projectRelativeFileName));
+
+    private static ImmutableArray<PortableExecutableReference> CreateMetadataReferences(bool net461)
+    {
+        // Cohost workspaces and their MEF providers are disposed after each test. Roslyn's process-wide
+        // symbol-tree caches are keyed by both reference and metadata identity, so neither can cross that boundary.
+        return net461
+            ? Net461.ReferenceInfos.All.Select(static referenceInfo => MetadataReference.CreateFromImage(
+                ImmutableCollectionsMarshal.AsImmutableArray(referenceInfo.ImageBytes), referenceInfo.Reference.Properties, filePath: referenceInfo.FileName)).ToImmutableArray()
+            : AspNet80.ReferenceInfos.All.Select(static referenceInfo => MetadataReference.CreateFromImage(
+                ImmutableCollectionsMarshal.AsImmutableArray(referenceInfo.ImageBytes), referenceInfo.Reference.Properties, filePath: referenceInfo.FileName)).ToImmutableArray();
+    }
 }

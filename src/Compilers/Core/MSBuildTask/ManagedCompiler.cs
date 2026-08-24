@@ -694,6 +694,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     var completedResponse = (CompletedBuildResponse)response;
                     LogCompilerOutput(completedResponse.Output, StandardOutputImportanceToUse);
                     LogCompilationMessage(logger, requestId, CompilationKind.Server, "server processed compilation");
+                    ReportTelemetry(completedResponse.TelemetryEvents, logger);
                     return completedResponse.ReturnCode;
 
                 case BuildResponse.ResponseType.MismatchedVersion:
@@ -722,6 +723,32 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 default:
                     LogCompilationMessage(logger, requestId, CompilationKind.ToolFallback, $"server gave an unrecognized response");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+            }
+        }
+
+        /// <summary>
+        /// Forwards telemetry events produced by the compiler server to the host via
+        /// <see cref="IBuildEngine5.LogTelemetry"/>. This is a generic passthrough: the task does not
+        /// interpret individual events. When the host does not support <see cref="IBuildEngine5"/> (or
+        /// registered no telemetry logger) this is a no-op.
+        /// </summary>
+        internal void ReportTelemetry(IReadOnlyList<BuildTelemetryEvent> telemetryEvents, ICompilerServerLogger logger)
+        {
+            if (telemetryEvents.Count == 0 || BuildEngine is not IBuildEngine5 buildEngine5)
+            {
+                return;
+            }
+
+            foreach (var telemetryEvent in telemetryEvents)
+            {
+                try
+                {
+                    buildEngine5.LogTelemetry(telemetryEvent.EventName, telemetryEvent.Properties);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogException(ex, $"Failed to log telemetry event '{telemetryEvent.EventName}'");
+                }
             }
         }
 
@@ -856,11 +883,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 {
                     throw new ArgumentException(e.Message, "Sources");
                 }
-                if (string.Compare(TargetType, "library", StringComparison.OrdinalIgnoreCase) == 0)
+                if (string.Equals(TargetType, "library", StringComparison.OrdinalIgnoreCase))
                 {
                     OutputAssembly.ItemSpec += ".dll";
                 }
-                else if (string.Compare(TargetType, "module", StringComparison.OrdinalIgnoreCase) == 0)
+                else if (string.Equals(TargetType, "module", StringComparison.OrdinalIgnoreCase))
                 {
                     OutputAssembly.ItemSpec += ".netmodule";
                 }
@@ -1057,7 +1084,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             if (_store[nameof(DebugType)] != null)
             {
                 // If debugtype is none then only show debug- else use the debug type and the debugsymbols as is.
-                if (string.Compare((string?)_store[nameof(DebugType)], "none", StringComparison.OrdinalIgnoreCase) == 0)
+                if (string.Equals((string?)_store[nameof(DebugType)], "none", StringComparison.OrdinalIgnoreCase))
                 {
                     _store[nameof(DebugType)] = null;
                     _store[nameof(EmitDebugInformation)] = false;

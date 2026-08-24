@@ -379,11 +379,11 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Punctuation.CloseCurly);
 
     [Theory, CombinatorialData]
-    public Task ClosedAsIdentifierInClass(TestHost testHost)
+    public Task ClosedAsKeywordInClass(TestHost testHost)
         => TestInClassAsync("closed Goo;",
             testHost,
-            Identifier("closed"),
-            Field("Goo"),
+            Keyword("closed"),
+            Identifier("Goo"),
             Punctuation.Semicolon);
 
     private static readonly string[] s_contextualKeywordsOnlyValidInMethods = ["where", "from", "group", "join", "select", "into", "let", "by", "orderby", "on", "equals", "ascending", "descending"];
@@ -2115,7 +2115,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     public Task UnionTypeDeclaration1(TestHost testHost)
         => TestAsync("union Union1(int, Union1) { }",
             testHost,
-            TestOptions.RegularNext,
+            TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp15),
             Keyword("union"),
             Struct("Union1"),
             Punctuation.OpenParen,
@@ -2736,6 +2736,52 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Punctuation.CloseBracket,
             Keyword("set"),
             Punctuation.OpenCurly,
+            Punctuation.CloseCurly,
+            Punctuation.CloseCurly);
+
+    [Theory, CombinatorialData]
+    public Task ExtensionBlockIndexer_01(TestHost testHost)
+        => TestAsync(
+            """
+            static class E
+            {
+                extension(int i)
+                {
+                    public int this[int j] { get => i + j; set { } }
+                }
+            }
+            """,
+            testHost,
+            [new CSharpParseOptions(LanguageVersion.CSharp15)],
+            Keyword("static"),
+            Keyword("class"),
+            Class("E"),
+            Static("E"),
+            Punctuation.OpenCurly,
+            Keyword("extension"),
+            Punctuation.OpenParen,
+            Keyword("int"),
+            Parameter("i"),
+            Punctuation.CloseParen,
+            Punctuation.OpenCurly,
+            Keyword("public"),
+            Keyword("int"),
+            Keyword("this"),
+            Punctuation.OpenBracket,
+            Keyword("int"),
+            Parameter("j"),
+            Punctuation.CloseBracket,
+            Punctuation.OpenCurly,
+            Keyword("get"),
+            Operators.EqualsGreaterThan,
+            Identifier("i"),
+            Operators.Plus,
+            Identifier("j"),
+            Punctuation.Semicolon,
+            Keyword("set"),
+            Punctuation.OpenCurly,
+            Punctuation.CloseCurly,
+            Punctuation.CloseCurly,
             Punctuation.CloseCurly,
             Punctuation.CloseCurly);
 

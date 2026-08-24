@@ -1,0 +1,28 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - Razor
+        RazorSourceChecksumAttribute - 
+        ClassDeclaration -  - public - Template - global::LegacyTemplateBase - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (38:1,0 [2] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (38:1,0 [2] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                CSharpCode - (42:2,2 [116] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (42:2,2 [116] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - \n    System.Collections.Generic.List<string> values = [with(capacity: 32), "a", "b", "c"];\n    _ = values.Count;\n
+                HtmlContent - (161:6,0 [5] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (161:6,0 [2] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                    LazyIntermediateToken - (163:7,0 [2] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - <p
+                    LazyIntermediateToken - (165:7,2 [1] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - >
+                CSharpExpression - (168:7,5 [43] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (168:7,5 [43] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - CountValues([with(capacity: 32), "d", "e"])
+                HtmlContent - (212:7,49 [9] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (212:7,49 [4] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - </p>
+                    LazyIntermediateToken - (216:7,53 [2] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                    LazyIntermediateToken - (218:8,0 [2] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - <p
+                    LazyIntermediateToken - (220:8,2 [1] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - >
+                CSharpExpression - (222:8,4 [43] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (222:8,4 [43] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - CountValues([with(capacity: 32), "f", "g"])
+                HtmlContent - (265:8,47 [8] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (265:8,47 [4] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - </p>
+                    LazyIntermediateToken - (269:8,51 [4] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n\n
+            CSharpCode - (285:10,12 [112] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                LazyIntermediateToken - (285:10,12 [112] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - \n    private static int CountValues(System.Collections.Generic.List<string> values)\n        => values.Count;\n

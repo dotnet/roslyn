@@ -2077,21 +2077,8 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83836")]
-    public Task TestMissingOnPositionalRecord()
-        => TestMissingInRegularAndScriptAsync(
-            """
-            public record CopilotProcessInfo(
-                [||]uint Pid,
-                string FileName,
-                string FullPath,
-                string Title,
-                bool IsBeingDebugged,
-                bool IsSystemProcess);
-            """);
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83836")]
-    public Task TestMissingOnPositionalRecord_CaretOnHeader()
-        => TestActionDoesNotIncludeAsync(
+    public Task TestOnPositionalRecord_CaretOnHeader()
+        => TestWithPickMembersDialogAsync(
             """
             public record [||]CopilotProcessInfo(
                 uint Pid,
@@ -2101,18 +2088,41 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                 bool IsBeingDebugged,
                 bool IsSystemProcess);
             """,
-            FeaturesResources.Generate_constructor_from_members);
+            """
+            public record CopilotProcessInfo(
+                uint Pid,
+                string FileName,
+                string FullPath,
+                string Title,
+                bool IsBeingDebugged,
+                bool IsSystemProcess)
+            {
+                public CopilotProcessInfo(uint pid{|Navigation:)|} : this(pid, null, null, null, false, false)
+                {
+                }
+            }
+            """,
+            chosenSymbols: ["Pid"]);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83836")]
-    public Task TestMissingOnPositionalRecordStruct()
-        => TestMissingInRegularAndScriptAsync(
+    public Task TestOnPositionalRecordStruct()
+        => TestWithPickMembersDialogAsync(
             """
             public record struct [||]Point(int X, int Y);
-            """);
+            """,
+            """
+            public record struct Point(int X, int Y)
+            {
+                public Point(int x{|Navigation:)|} : this(x, 0)
+                {
+                }
+            }
+            """,
+            chosenSymbols: ["X"]);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83836")]
-    public Task TestMissingOnPositionalRecordWithExtraMembers()
-        => TestActionDoesNotIncludeAsync(
+    public Task TestOnPositionalRecordWithExtraMember()
+        => TestWithPickMembersDialogAsync(
             """
             public record Foo(int X, int Y)
             {
@@ -2120,7 +2130,180 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                 [||]
             }
             """,
-            FeaturesResources.Generate_constructor_from_members);
+            """
+            public record Foo(int X, int Y)
+            {
+                public int Z { get; init; }
+
+                public Foo(int x, int y, int z{|Navigation:)|} : this(x, y)
+                {
+                    Z = z;
+                }
+            }
+            """,
+            chosenSymbols: ["X", "Y", "Z"]);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83836")]
+    public Task TestOnSelectedExtraMemberInPositionalRecord()
+        => TestInRegularAndScriptAsync(
+            """
+            public record Foo(int X, int Y)
+            {
+                [|public string Z { get; init; }|]
+            }
+            """,
+            """
+            public record Foo(int X, int Y)
+            {
+                public Foo(string z{|Navigation:)|} : this(0, 0)
+                {
+                    Z = z;
+                }
+
+                public string Z { get; init; }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83836")]
+    public Task TestOnPositionalRecordWithReorderedMembers()
+        => TestWithPickMembersDialogAsync(
+            """
+            public record Foo(int X, string Y)
+            {
+                public bool Z { get; init; }
+                [||]
+            }
+            """,
+            """
+            public record Foo(int X, string Y)
+            {
+                public bool Z { get; init; }
+
+                public Foo(bool z, string y, int x{|Navigation:)|} : this(x, y)
+                {
+                    Z = z;
+                }
+            }
+            """,
+            chosenSymbols: ["Z", "Y", "X"]);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83836")]
+    public Task TestOnPositionalRecordWithOptionalParameter()
+        => TestWithPickMembersDialogAsync(
+            """
+            public record Foo(int X, string Y = "default")
+            {
+                public bool Z { get; init; }
+                [||]
+            }
+            """,
+            """
+            public record Foo(int X, string Y = "default")
+            {
+                public bool Z { get; init; }
+
+                public Foo(int x, bool z{|Navigation:)|} : this(x)
+                {
+                    Z = z;
+                }
+            }
+            """,
+            chosenSymbols: ["X", "Z"]);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83836")]
+    public Task TestOnPositionalRecordWithOmittedOptionalParameterBeforeSelectedParameter()
+        => TestWithPickMembersDialogAsync(
+            """
+            public record Foo(string Label = "fallback", int Count = 0)
+            {
+                [||]
+            }
+            """,
+            """
+            public record Foo(string Label = "fallback", int Count = 0)
+            {
+                public Foo(int count{|Navigation:)|} : this(Count: count)
+                {
+                }
+            }
+            """,
+            chosenSymbols: ["Count"]);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83836")]
+    public Task TestOnClassWithPrimaryConstructor()
+        => TestWithPickMembersDialogAsync(
+            """
+            public class C(int X)
+            {
+                public string Y { get; set; }
+                [||]
+            }
+            """,
+            """
+            public class C(int X)
+            {
+                public string Y { get; set; }
+
+                public C(string y{|Navigation:)|} : this(0)
+                {
+                    Y = y;
+                }
+            }
+            """,
+            chosenSymbols: ["Y"]);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83836")]
+    public Task TestOnClassWithPrimaryConstructorMatchingSelectedMember()
+        => TestWithPickMembersDialogAsync(
+            """
+            public class C(int x)
+            {
+                private int X = x;
+                public string Y { get; set; }
+                [||]
+            }
+            """,
+            """
+            public class C(int x)
+            {
+                private int X = x;
+                public string Y { get; set; }
+
+                public C(int x, string y{|Navigation:)|} : this(x)
+                {
+                    Y = y;
+                }
+            }
+            """,
+            chosenSymbols: ["X", "Y"]);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83836")]
+    public Task TestOnClassWithPrimaryConstructorAndUnrelatedMemberOfSameType()
+        => TestWithPickMembersDialogAsync(
+            """
+            public class C(int x)
+            {
+                public int Captured = x;
+                public int Unrelated;
+                public string Other;
+                [||]
+            }
+            """,
+            """
+            public class C(int x)
+            {
+                public int Captured = x;
+                public int Unrelated;
+                public string Other;
+
+                public C(int unrelated, string other{|Navigation:)|} : this(0)
+                {
+                    Unrelated = unrelated;
+                    Other = other;
+                }
+            }
+            """,
+            chosenSymbols: ["Unrelated", "Other"]);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83836")]
     public Task TestOnRecordWithoutPrimaryConstructor()
@@ -2147,12 +2330,4 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
             }
             """,
             chosenSymbols: ["X", "Y"]);
-
-    private async Task TestActionDoesNotIncludeAsync(string initialMarkup, string disallowedTitle)
-    {
-        var ps = TestParameters.Default;
-        using var workspace = CreateWorkspaceFromOptions(initialMarkup, ps);
-        var (actions, _) = await GetCodeActionsAsync(workspace, ps);
-        Assert.DoesNotContain(actions, a => a.Title == disallowedTitle);
-    }
 }

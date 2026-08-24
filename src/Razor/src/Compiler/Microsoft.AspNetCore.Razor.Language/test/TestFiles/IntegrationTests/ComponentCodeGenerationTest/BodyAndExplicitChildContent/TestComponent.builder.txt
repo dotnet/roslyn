@@ -1,0 +1,8 @@
+﻿[0000] OpenElement("div")
+[0001] AddContent(context.ToLowerInvariant())
+[0002] OpenComponent<global::Test.MyComponent>()
+[0003] AddComponentParameter(nameof(global::Test.MyComponent. Header ), (global::Microsoft.AspNetCore.Components.RenderFragment<global::System.String>)( header ))
+[0004] AddAttribute("ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => { __builder2.AddContent(5, "Some Content"); } ))
+[0005] AddContent("Some Content")
+[0006] AddAttribute("Footer", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => { __builder2.AddContent(7, "Bye!"); } ))
+[0007] AddContent("Bye!")

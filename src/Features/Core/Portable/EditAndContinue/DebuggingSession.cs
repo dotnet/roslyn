@@ -35,6 +35,7 @@ internal sealed class DebuggingSession : IDisposable
     private readonly CancellationTokenSource _cancellationSource = new();
 
     internal readonly IPdbMatchingSourceTextProvider SourceTextProvider;
+    internal readonly EditAndContinueDiagnosticLevel DiagnosticLevel;
 
     /// <summary>
     /// Logs debugging session events.
@@ -134,6 +135,7 @@ internal sealed class DebuggingSession : IDisposable
         IPdbMatchingSourceTextProvider sourceTextProvider,
         TraceLog sessionLog,
         TraceLog analysisLog,
+        EditAndContinueDiagnosticLevel diagnosticLevel,
         bool reportDiagnostics)
     {
         sessionLog.Write($"Debugging session started: #{id}");
@@ -157,6 +159,7 @@ internal sealed class DebuggingSession : IDisposable
             inBreakState: false);
 
         ReportDiagnostics = reportDiagnostics;
+        DiagnosticLevel = diagnosticLevel;
     }
 
     public void Dispose()
@@ -517,6 +520,7 @@ internal sealed class DebuggingSession : IDisposable
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
+            EditSession.Log.Write($"Exception while analyzing document '{document.FilePath}': {e}");
             return [];
         }
     }
@@ -539,6 +543,8 @@ internal sealed class DebuggingSession : IDisposable
         solutionUpdate.Log(SessionLog, updateId);
         _lastModuleUpdatesLog = solutionUpdate.ModuleUpdates.Updates;
 
+        SolutionAction solutionAction;
+
         switch (solutionUpdate.ModuleUpdates.Status)
         {
             case ModuleUpdateStatus.Ready:
@@ -555,6 +561,7 @@ internal sealed class DebuggingSession : IDisposable
                     solutionUpdate.ModuleUpdates.Updates,
                     solutionUpdate.NonRemappableRegions));
 
+                solutionAction = SolutionAction.PendingUpdate;
                 break;
 
             case ModuleUpdateStatus.None:
@@ -568,6 +575,12 @@ internal sealed class DebuggingSession : IDisposable
                 // No significant changes have been made.
                 // Commit the solution to apply any insignificant changes that do not generate updates.
                 LastCommittedSolution.CommitChanges(solution, solutionUpdate.StaleProjects);
+
+                solutionAction = SolutionAction.Committed;
+                break;
+
+            default:
+                solutionAction = SolutionAction.None;
                 break;
         }
 
@@ -576,6 +589,7 @@ internal sealed class DebuggingSession : IDisposable
         return new EmitSolutionUpdateResults()
         {
             Solution = solution,
+            SolutionAction = solutionAction,
             ModuleUpdates = solutionUpdate.ModuleUpdates,
             Diagnostics = solutionUpdate.Diagnostics,
             SyntaxError = solutionUpdate.SyntaxError,

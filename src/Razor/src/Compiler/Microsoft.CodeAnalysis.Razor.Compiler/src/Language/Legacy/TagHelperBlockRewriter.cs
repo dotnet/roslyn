@@ -572,7 +572,11 @@ internal static class TagHelperBlockRewriter
             if (_tryParseResult.IsBoundNonStringAttribute && CanBeCollapsed(node))
             {
                 using var builder = new PooledArrayBuilder<SyntaxToken>();
-                builder.AddRange(node.DescendantTokens());
+
+                foreach (var token in node.DescendantTokens())
+                {
+                    builder.Add(token);
+                }
 
                 var tokens = builder.ToList();
 

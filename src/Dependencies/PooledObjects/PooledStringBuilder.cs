@@ -7,6 +7,10 @@
 using System.Diagnostics;
 using System.Text;
 
+#if DEBUG
+using System.Runtime.CompilerServices;
+#endif
+
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
     /// <summary>
@@ -89,9 +93,18 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             return pool;
         }
 
-        public static PooledStringBuilder GetInstance()
+        public static PooledStringBuilder GetInstance(
+#if DEBUG
+            [CallerFilePath] string filePath = "",
+            [CallerLineNumber] int lineNumber = 0
+#endif
+            )
         {
-            var builder = s_poolInstance.Allocate();
+            var builder = s_poolInstance.Allocate(
+#if DEBUG
+                filePath, lineNumber
+#endif
+                );
             Debug.Assert(builder.Builder.Length == 0);
             return builder;
         }

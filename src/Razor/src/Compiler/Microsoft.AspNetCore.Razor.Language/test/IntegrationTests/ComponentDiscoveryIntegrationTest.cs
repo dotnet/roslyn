@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Xunit;
@@ -196,7 +197,7 @@ namespace Test.AnotherNamespace
             """);
 
         // Assert
-        var directives = result.CodeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().ToArray();
+        var directives = result.CodeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().ToImmutableArray();
         Assert.True(result.CodeDocument.IsDirectiveUsed(directives[0]));
         Assert.False(result.CodeDocument.IsDirectiveUsed(directives[1]));
     }
@@ -227,7 +228,7 @@ namespace Test.AnotherNamespace
         // Assert
         var contributions = result.CodeDocument.GetDirectiveTagHelperContributions();
         Assert.Equal(2, contributions.Length);
-        var directives = result.CodeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().ToArray();
+        var directives = result.CodeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().ToImmutableArray();
         Assert.Equal([directives[0].SpanStart, directives[1].SpanStart], contributions.Select(c => c.DirectiveSpanStart));
         Assert.Single(contributions, c => !c.ContributedTagHelpers.IsEmpty);
         Assert.Single(contributions, c => c.ContributedTagHelpers.IsEmpty);
@@ -264,7 +265,7 @@ namespace Test.AnotherNamespace
             """);
 
         // Assert
-        var directives = result.CodeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().ToArray();
+        var directives = result.CodeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().ToImmutableArray();
         Assert.False(result.CodeDocument.IsDirectiveUsed(directives[0]));
         Assert.False(result.CodeDocument.IsDirectiveUsed(directives[1]));
     }

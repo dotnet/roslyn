@@ -1,0 +1,15 @@
+﻿Source Location: (7:0,7 [134] x:\dir\subdir\Test\TestComponent.razor)
+|
+    public sealed record Person(string Name);
+    
+    public static string Format()
+        => new Person("Razor").ToString();
+|
+Generated Location: (556:18,0 [134] )
+|
+    public sealed record Person(string Name);
+    
+    public static string Format()
+        => new Person("Razor").ToString();
+|
+

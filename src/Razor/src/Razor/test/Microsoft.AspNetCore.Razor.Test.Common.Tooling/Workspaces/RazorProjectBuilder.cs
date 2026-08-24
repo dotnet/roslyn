@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -9,15 +9,12 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.NET.Sdk.Razor.SourceGenerators;
-using Roslyn.Test.Utilities;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-internal class RazorProjectBuilder(ProjectId? id = null)
+internal partial class RazorProjectBuilder(ProjectId? id = null)
 {
     public ProjectId Id { get; } = id ?? ProjectId.CreateNewId();
 
@@ -83,8 +80,6 @@ internal class RazorProjectBuilder(ProjectId? id = null)
 
     public Solution Build(Solution solution)
     {
-        var sgAssembly = typeof(RazorSourceGenerator).Assembly;
-
         var projectInfo = ProjectInfo
             .Create(
                 Id,
@@ -100,7 +95,7 @@ internal class RazorProjectBuilder(ProjectId? id = null)
 
         if (ReferenceRazorSourceGenerator)
         {
-            projectInfo = projectInfo.WithAnalyzerReferences([new AnalyzerFileReference(sgAssembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)]);
+            projectInfo = projectInfo.WithAnalyzerReferences([new DeterministicRazorSourceGeneratorReference()]);
         }
 
         solution = solution.AddProject(projectInfo);

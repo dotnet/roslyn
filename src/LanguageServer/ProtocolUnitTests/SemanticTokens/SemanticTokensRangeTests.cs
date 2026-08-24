@@ -109,7 +109,6 @@ public sealed class SemanticTokensRangeTests(ITestOutputHelper testOutputHelper)
             #line hidden
             #nullable disable
                     }
-                    #pragma warning restore 1998
                 }
             }
             #pragma warning restore 1591
