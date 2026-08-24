@@ -81,13 +81,26 @@ internal interface IFileChangeContext : IDisposable
     /// Raised when a file has been changed. This may be a file watched explicitly by <see cref="EnqueueWatchingFile(string)"/> or it could be any
     /// file in the directory if the <see cref="IFileChangeContext"/> was watching a directory.
     /// </summary>
-    event EventHandler<string> FileChanged;
+    event EventHandler<FileChangedEventArgs> FileChanged;
 
     /// <summary>
     /// Starts watching a file but doesn't wait for the file watcher to be registered with the operating system. Good if you know
     /// you'll need a file watched (eventually) but it's not worth blocking yet.
     /// </summary>
     IWatchedFile EnqueueWatchingFile(string filePath);
+}
+
+internal sealed class FileChangedEventArgs(string filePath, FileChangeKind changeKind) : EventArgs
+{
+    public string FilePath { get; } = filePath;
+    public FileChangeKind ChangeKind { get; } = changeKind;
+}
+
+internal enum FileChangeKind
+{
+    Added,
+    Removed,
+    Changed
 }
 
 internal interface IWatchedFile : IDisposable

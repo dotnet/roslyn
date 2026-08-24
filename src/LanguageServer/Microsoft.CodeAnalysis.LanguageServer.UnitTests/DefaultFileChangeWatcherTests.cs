@@ -524,12 +524,12 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
 
     private static FileChangeTask ListenForFileChangeAsync(IFileChangeContext context, string filePath)
     {
-        var eventSource = new TaskCompletionSource();
+        var eventSource = new TaskCompletionSource<FileChangeKind>();
 
-        context.FileChanged += (sender, path) =>
+        context.FileChanged += (sender, e) =>
         {
-            if (path == filePath)
-                eventSource.TrySetResult();
+            if (e.FilePath == filePath)
+                eventSource.TrySetResult(e.ChangeKind);
         };
 
         return new FileChangeTask(eventSource.Task, filePath);
@@ -538,7 +538,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
     /// <summary>
     /// Represents a wait for a single file change; includes the file path so failures are easy to understand which one didn't trigger.
     /// </summary>
-    private sealed record FileChangeTask(Task Task, string FilePath);
+    private sealed record FileChangeTask(Task<FileChangeKind> Task, string FilePath);
 
     [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
     public async Task FileCreated_InWatchedParentDirectory_RaisesFileChangedEvent()
@@ -558,6 +558,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
 
         // Wait for the event
         await AssertAllChangesFire([fileChangeTask], s_fileChangeTimeout);
+        Assert.Equal(FileChangeKind.Added, await fileChangeTask.Task);
     }
 
     [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
@@ -578,6 +579,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
 
         // Wait for the event
         await AssertAllChangesFire([fileChangeTask], s_fileChangeTimeout);
+        Assert.Equal(FileChangeKind.Changed, await fileChangeTask.Task);
     }
 
     [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
@@ -598,6 +600,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
 
         // Wait for the event
         await AssertAllChangesFire([fileChangeTask], s_fileChangeTimeout);
+        Assert.Equal(FileChangeKind.Removed, await fileChangeTask.Task);
     }
 
     [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
@@ -991,7 +994,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
         var context1Events = new List<string>();
         var context2Received = ListenForFileChangeAsync(context2, filePath);
 
-        context1.FileChanged += (sender, path) => context1Events.Add(path);
+        context1.FileChanged += (sender, e) => context1Events.Add(e.FilePath);
 
         // Dispose context1 before creating file
         context1.Dispose();
