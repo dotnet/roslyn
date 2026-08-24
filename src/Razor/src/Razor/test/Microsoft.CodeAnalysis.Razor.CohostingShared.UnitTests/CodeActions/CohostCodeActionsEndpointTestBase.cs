@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -38,7 +39,8 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
         (string filePath, string contents)[]? additionalFiles = null,
         (DocumentUri fileUri, string contents)[]? additionalExpectedFiles = null,
         bool addDefaultImports = true,
-        bool makeDiagnosticsRequest = false)
+        bool makeDiagnosticsRequest = false,
+        CSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptions = null)
     {
         var document = CreateRazorDocument(input, fileKind, documentFilePath, additionalFiles, addDefaultImports: addDefaultImports);
 
@@ -51,10 +53,11 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
         }
 
         Assert.NotNull(expected);
+        csharpSyntaxFormattingOptions ??= CSharpSyntaxFormattingOptions.Default;
 
         var workspaceEdit = codeAction.Data is null
             ? codeAction.Edit.AssumeNotNull()
-            : await ResolveCodeActionAsync(document, codeAction);
+            : await ResolveCodeActionAsync(document, codeAction, csharpSyntaxFormattingOptions);
 
         var expectedChanges = (additionalExpectedFiles ?? []).Select(e => (e.fileUri, e.contents)).Concat([(document.GetURI(), expected)]);
         await workspaceEdit.AssertWorkspaceEditAsync(document.Project.Solution, expectedChanges, DisposalToken);
@@ -190,12 +193,15 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
         return await endpoint.GetTestAccessor().HandleRequestAsync(document, request, DisposalToken);
     }
 
-    private async Task<WorkspaceEdit> ResolveCodeActionAsync(CodeAnalysis.TextDocument document, CodeAction codeAction)
+    private async Task<WorkspaceEdit> ResolveCodeActionAsync(
+        CodeAnalysis.TextDocument document,
+        CodeAction codeAction,
+        CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions)
     {
         var requestInvoker = new TestHtmlRequestInvoker();
-        var endpoint = new CohostCodeActionsResolveEndpoint(IncompatibleProjectService, RemoteServiceInvoker, ClientCapabilitiesService, requestInvoker);
+        var endpoint = new CohostCodeActionsResolveEndpoint(IncompatibleProjectService, RemoteServiceInvoker, ClientCapabilitiesService, ClientSettingsManager, requestInvoker);
 
-        var result = await endpoint.GetTestAccessor().HandleRequestAsync(document, codeAction, DisposalToken);
+        var result = await endpoint.GetTestAccessor().HandleRequestAsync(document, codeAction, csharpSyntaxFormattingOptions, DisposalToken);
 
         Assert.NotNull(result?.Edit);
         return result.Edit;

@@ -1,0 +1,3 @@
+﻿[0000] OpenElement("input")
+[0001] AddAttribute("value", global::Microsoft.AspNetCore.Components.BindConverter.FormatValue( CurrentDate , format: "MM/dd"))
+[0002] AddAttribute("onchange", global::Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, __value => CurrentDate = __value, CurrentDate, format: "MM/dd"))

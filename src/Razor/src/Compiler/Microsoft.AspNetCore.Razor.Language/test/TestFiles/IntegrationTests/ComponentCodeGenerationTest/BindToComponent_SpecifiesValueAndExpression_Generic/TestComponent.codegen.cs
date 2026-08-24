@@ -28,15 +28,6 @@ ParentValue
             , 2, __value => ParentValue = __value, 3, () => ParentValue);
         }
         #pragma warning restore 1998
-#nullable restore
-#line (2,8)-(4,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    public DateTime ParentValue { get; set; } = DateTime.Now;
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 namespace __Blazor.Test.TestComponent

@@ -1,0 +1,3 @@
+﻿[0000] AddMarkupContent("<div>Joey</div>")
+[0001] OpenComponent<global::Test.MyComponent>()
+[0002] AddComponentParameter("Person", template)
