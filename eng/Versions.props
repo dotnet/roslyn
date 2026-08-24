@@ -109,7 +109,7 @@
         <!-- Versions for tests and general utility execution. -->
         <!-- This version is for utility and executable assemblies. The version here should not overlap with any of the surface
             area versions. -->
-        <MicrosoftCodeAnalysisVersionForAnalyzerTests>$(MicrosoftCodeAnalysisAnalyzersPackageVersion)</MicrosoftCodeAnalysisVersionForAnalyzerTests>
+        <MicrosoftCodeAnalysisVersionForAnalyzerTests>$(MicrosoftCodeAnalysisPackageVersion)</MicrosoftCodeAnalysisVersionForAnalyzerTests>
         <MicrosoftCodeAnalysisVersionForAnalyzerExecution>4.12.0</MicrosoftCodeAnalysisVersionForAnalyzerExecution>
       </PropertyGroup>
     </When>
