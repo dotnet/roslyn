@@ -189,9 +189,10 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
             {
                 // Result of generating declarations
                 codeDocument = projectEngine.ProcessDeclarationOnly(item);
-                Assert.Empty(codeDocument.GetRequiredCSharpDocument().Diagnostics);
+                var implCSharpDocument = codeDocument.GetRequiredCSharpDocument(declarationDocument: false);
+                Assert.Empty(implCSharpDocument.Diagnostics);
 
-                var syntaxTree = Parse(codeDocument.GetRequiredCSharpDocument().Text, path: item.FilePath);
+                var syntaxTree = Parse(implCSharpDocument.Text, path: item.FilePath);
                 AdditionalSyntaxTrees.Add(syntaxTree);
             }
 
@@ -202,8 +203,9 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
             {
                 BaseCompilation = BaseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
-                Code = codeDocument.GetRequiredCSharpDocument().Text.ToString(),
-                Diagnostics = codeDocument.GetRequiredCSharpDocument().Diagnostics,
+                Code = codeDocument.GetRequiredCSharpDocument(declarationDocument: false).Text.ToString(),
+                DeclCode = codeDocument.GetCSharpDocument(declarationDocument: true)?.Text.ToString(),
+                Diagnostics = codeDocument.GetRequiredCSharpDocument(declarationDocument: false).Diagnostics,
             };
 
             // Result of doing 'temp' compilation
@@ -218,12 +220,16 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
             {
                 // Result of generating definition
                 codeDocument = projectEngine.Process(item);
-                Assert.Empty(codeDocument.GetRequiredCSharpDocument().Diagnostics);
+                var implCSharpDocument = codeDocument.GetRequiredCSharpDocument(declarationDocument: false);
+                Assert.Empty(implCSharpDocument.Diagnostics);
 
                 // Replace the 'declaration' syntax tree
-                var syntaxTree = Parse(codeDocument.GetRequiredCSharpDocument().Text, path: item.FilePath);
-                AdditionalSyntaxTrees.RemoveAll(st => st.FilePath == item.FilePath);
-                AdditionalSyntaxTrees.Add(syntaxTree);
+                AdditionalSyntaxTrees.RemoveAll(st => st.FilePath == item.FilePath || st.FilePath == item.FilePath + ".decl.g.cs");
+                AdditionalSyntaxTrees.Add(Parse(implCSharpDocument.Text, path: item.FilePath));
+                if (codeDocument.GetCSharpDocument(declarationDocument: true) is { } declCSharpDocument)
+                {
+                    AdditionalSyntaxTrees.Add(Parse(declCSharpDocument.Text, path: item.FilePath + ".decl.g.cs"));
+                }
             }
 
             // Result of real code generation for the document under test
@@ -232,8 +238,9 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
             {
                 BaseCompilation = BaseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
-                Code = codeDocument.GetRequiredCSharpDocument().Text.ToString(),
-                Diagnostics = codeDocument.GetRequiredCSharpDocument().Diagnostics,
+                Code = codeDocument.GetRequiredCSharpDocument(declarationDocument: false).Text.ToString(),
+                DeclCode = codeDocument.GetCSharpDocument(declarationDocument: true)?.Text.ToString(),
+                Diagnostics = codeDocument.GetRequiredCSharpDocument(declarationDocument: false).Diagnostics,
             };
         }
         else
@@ -251,16 +258,11 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
             {
                 BaseCompilation = BaseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
-                Code = codeDocument.GetRequiredCSharpDocument().Text.ToString(),
-                Diagnostics = codeDocument.GetRequiredCSharpDocument().Diagnostics,
+                Code = codeDocument.GetRequiredCSharpDocument(declarationDocument: false).Text.ToString(),
+                DeclCode = codeDocument.GetCSharpDocument(declarationDocument: true)?.Text.ToString(),
+                Diagnostics = codeDocument.GetRequiredCSharpDocument(declarationDocument: false).Diagnostics,
             };
         }
-    }
-
-    protected CompileToAssemblyResult CompileToAssembly(string cshtmlRelativePath, string cshtmlContent)
-    {
-        var cSharpResult = CompileToCSharp(cshtmlRelativePath, cshtmlContent);
-        return CompileToAssembly(cSharpResult);
     }
 
     protected static CompileToAssemblyResult CompileToAssembly(CompileToCSharpResult cSharpResult, bool throwOnFailure = true)
@@ -271,10 +273,15 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
             throw new InvalidOperationException($"Aborting compilation to assembly because RazorCompiler returned nonempty diagnostics: {diagnosticsLog}");
         }
 
-        var syntaxTrees = new[]
+        var primaryPath = cSharpResult.CodeDocument.Source.FilePath ?? string.Empty;
+        var syntaxTrees = new List<SyntaxTree>
         {
-            Parse(cSharpResult.Code),
+            Parse(cSharpResult.Code, path: primaryPath),
         };
+        if (cSharpResult.DeclCode is { } declCode)
+        {
+            syntaxTrees.Add(Parse(declCode, path: primaryPath + ".decl.g.cs"));
+        }
 
         var compilation = cSharpResult.BaseCompilation.AddSyntaxTrees(syntaxTrees);
 
@@ -318,27 +325,13 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
         return Parse(SourceText.From(text, Encoding.UTF8), path);
     }
 
-    protected static string FullTypeName<T>() => typeof(T).FullName.Replace('+', '.');
-
-    protected static void AssertSourceEquals(string expected, CompileToCSharpResult generated)
-    {
-        // Normalize the paths inside the expected result to match the OS paths
-        if (!PlatformInformation.IsWindows)
-        {
-            var windowsPath = Path.Combine(ArbitraryWindowsPath, generated.CodeDocument.Source.RelativePath).Replace('/', '\\');
-            expected = expected.Replace(windowsPath, generated.CodeDocument.Source.FilePath);
-        }
-
-        expected = expected.Trim();
-        Assert.Equal(expected, generated.Code.Trim(), ignoreLineEndingDifferences: true);
-    }
-
     protected class CompileToCSharpResult
     {
         // A compilation that can be used *with* this code to compile an assembly
         public Compilation BaseCompilation { get; set; }
         public RazorCodeDocument CodeDocument { get; set; }
         public string Code { get; set; }
+        public string DeclCode { get; set; }
         public IEnumerable<RazorDiagnostic> Diagnostics { get; set; }
     }
 
@@ -346,7 +339,6 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
     {
         public Assembly Assembly { get; set; }
         public Compilation Compilation { get; set; }
-        public string VerboseLog { get; set; }
         public IEnumerable<Diagnostic> Diagnostics { get; set; }
     }
 
