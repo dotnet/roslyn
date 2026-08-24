@@ -785,6 +785,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var modifiers = node.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: true, diagnostics: diagnostics);
+            // Extensions never allow 'partial', so there is no need to report an ordering error.
+            // The invalid modifier is reported later.
+            if (kind != DeclarationKind.Extension)
+            {
+                node.Modifiers.CheckPartialModifierOrder(diagnostics, isOrdinaryMethod: false);
+            }
+
             if (kind == DeclarationKind.Struct)
             {
                 ReportMisplacedRef(node.Modifiers, diagnostics);
