@@ -5,20 +5,16 @@ using System.Composition;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Threading;
-using Microsoft.CodeAnalysis.Razor.Telemetry;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 [Shared]
 [Export(typeof(RemoteSnapshotManager))]
 [method: ImportingConstructor]
-internal sealed class RemoteSnapshotManager(ITelemetryReporter telemetryReporter)
+internal sealed class RemoteSnapshotManager()
 {
     private static readonly ConditionalWeakTable<Solution, RemoteSolutionSnapshot> s_solutionToSnapshotMap = new();
-
-    public ITelemetryReporter TelemetryReporter { get; } = telemetryReporter;
 
     public RemoteSolutionSnapshot GetSnapshot(Solution solution)
     {
@@ -33,18 +29,6 @@ internal sealed class RemoteSnapshotManager(ITelemetryReporter telemetryReporter
     public RemoteDocumentSnapshot GetSnapshot(TextDocument document)
     {
         return GetSnapshot(document.Project).GetDocument(document);
-    }
-
-    public Task<RazorCodeDocument?> TryGetRazorCodeDocumentAsync(Solution solution, DocumentUri generatedDocumentUri, CancellationToken cancellationToken)
-    {
-        if (!solution.TryGetSourceGeneratedDocumentIdentity(generatedDocumentUri, out var identity) ||
-            !solution.TryGetProject(identity.DocumentId.ProjectId, out var project))
-        {
-            return SpecializedTasks.Null<RazorCodeDocument>();
-        }
-
-        var snapshot = GetSnapshot(project);
-        return snapshot.TryGetCodeDocumentForGeneratedDocumentAsync(identity, cancellationToken);
     }
 
     public Task<TextDocument?> TryGetRazorDocumentAsync(Solution solution, DocumentUri generatedDocumentUri, CancellationToken cancellationToken)
