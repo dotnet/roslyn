@@ -171,6 +171,11 @@
     <GeneratePerformanceSensitiveAttribute>false</GeneratePerformanceSensitiveAttribute>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <!-- Keep NuGet audit enabled without promoting vulnerability warnings to errors. -->
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);NU1901;NU1902;NU1903;NU1904</WarningsNotAsErrors>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(RoslynEnforceCodeStyle)' != 'true'">
     <!-- Don't treat FormattingAnalyzer as an error, even when TreatWarningsAsErrors is specified. -->
     <WarningsNotAsErrors>$(WarningsNotAsErrors);IDE0055</WarningsNotAsErrors>
