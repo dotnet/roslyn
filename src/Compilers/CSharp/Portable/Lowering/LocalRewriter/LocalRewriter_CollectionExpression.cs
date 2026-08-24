@@ -355,6 +355,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            BoundExpression? tryCreateOptimizedArray(BoundCollectionExpression node, ArrayTypeSymbol arrayType, bool targetsReadOnlyCollection)
+            {
+                BoundExpression? array = null;
+                if (TryOptimizeSingleSpreadToArray_NoConversionApplied(node, targetsReadOnlyCollection, arrayType) is { } optimizedArray)
+                {
+                    array = optimizedArray;
+                }
+                else if (ShouldUseKnownLength(node, out _))
+                {
+                    array = CreateAndPopulateArray(node, arrayType);
+                }
+                // https://github.com/dotnet/roslyn/issues/68785: Emit Enumerable.TryGetNonEnumeratedCount() and avoid intermediate List<T> at runtime.
+
+                return array;
+            }
+
             BoundExpression createSpan(BoundCollectionExpression node, NamedTypeSymbol spanType, bool isReadOnlySpan)
             {
                 Debug.Assert(isReadOnlySpan
@@ -364,16 +380,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (tryCreateNonArrayBackedSpan(node, spanType, isReadOnlySpan) is { } spanValue)
                     return spanValue;
 
-                if (!ShouldUseKnownLength(node, out _) && _compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T) is { })
-                {
-                    var elementType = spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+                var arrayType = getBackingArrayType(spanType);
 
-                    // The span initializer has an unknown length, so we'll create an intermediate List<T> instance.
-                    // https://github.com/dotnet/roslyn/issues/68785: Emit Enumerable.TryGetNonEnumeratedCount() and avoid intermediate List<T> at runtime.
-                    var list = CreateAndPopulateList(node, elementType, node.Elements,
-                        // Array/Span collections cannot have with-elements.  So we can create a List<T> in an optimal
-                        // fashion depending on our analysis of the elements.
-                        rewrittenReceiver: null);
+                if (tryCreateOptimizedArray(node, arrayType, isReadOnlySpan) is { } optimizedArrayValue)
+                    return wrapArrayInSpan(optimizedArrayValue, spanType, isReadOnlySpan);
+
+                var elementType = spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+
+                // The span initializer has an unknown length, so we'll create an intermediate List<T> instance.
+                var list = CreateAndPopulateList(node, elementType, node.Elements,
+                    // Array/Span collections cannot have with-elements.  So we can create a List<T> in an optimal
+                    // fashion depending on our analysis of the elements.
+                    rewrittenReceiver: null);
+                Debug.Assert(list.Type is { });
+                Debug.Assert(list.Type.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T), TypeCompareKind.AllIgnoreOptions));
+
+                if (_factory.WellKnownMethod(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T, isOptional: true) is { } asSpanMethod)
+                {
                     BoundLocal temp = _factory.StoreToTemp(list, out var assignment);
                     var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
                     sideEffects.Add(assignment);
@@ -381,9 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(list.Type is { });
                     Debug.Assert(list.Type.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T), TypeCompareKind.AllIgnoreOptions));
 
-                    TryGetSpanConversion(list.Type, false, out var listToSpan);
-                    Debug.Assert(listToSpan is { });
-                    var listSpanValue = _factory.Call(null, listToSpan, temp);
+                    var listSpanValue = _factory.Call(null, asSpanMethod.Construct(elementType.Type), temp);
                     var getCount = ((PropertySymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__Count)).AsMember((NamedTypeSymbol)list.Type);
                     var count = _factory.Property(temp, getCount);
 
@@ -404,16 +425,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var arrayType = getBackingArrayType(spanType);
-                    var arrayValue = createArray(node, arrayType, targetsReadOnlyCollection: isReadOnlySpan);
+                    var listToArray = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__ToArray)).AsMember((NamedTypeSymbol)list.Type);
+                    var array = _factory.Call(list, listToArray);
+                    return wrapArrayInSpan(array, spanType, isReadOnlySpan);
+                }
 
+                BoundExpression wrapArrayInSpan(BoundExpression arrayValue, NamedTypeSymbol spanType, bool isReadOnlySpan)
+                {
                     var wellKnownMember = isReadOnlySpan ? WellKnownMember.System_ReadOnlySpan_T__ctor_Array : WellKnownMember.System_Span_T__ctor_Array;
                     var spanConstructor = _factory.WellKnownMethod(wellKnownMember).AsMember(spanType);
 
                     // We can either get the same array type as the target span type or an array of more derived type.
                     // In the second case reference conversion would happen automatically since we still construct the span
                     // of the base type, while usually such conversion requires stloc+ldloc with the local of the base type
-                    assertTypesAreCompatible(_compilation, arrayType, spanConstructor.Parameters[0].Type, isReadOnlySpan);
+                    assertTypesAreCompatible(_compilation, arrayValue.Type!, spanConstructor.Parameters[0].Type, isReadOnlySpan);
                     return _factory.New(spanConstructor, arrayValue);
                 }
 
@@ -429,18 +454,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression createArray(BoundCollectionExpression node, ArrayTypeSymbol arrayType, bool targetsReadOnlyCollection)
             {
                 BoundExpression array;
-                if (TryOptimizeSingleSpreadToArray_NoConversionApplied(node, targetsReadOnlyCollection, arrayType) is { } optimizedArray)
+                if (tryCreateOptimizedArray(node, arrayType, targetsReadOnlyCollection) is { } optimizedArray)
                 {
                     array = optimizedArray;
-                }
-                else if (ShouldUseKnownLength(node, out _))
-                {
-                    array = CreateAndPopulateArray(node, arrayType);
                 }
                 else
                 {
                     // The array initializer has an unknown length, so we'll create an intermediate List<T> instance.
-                    // https://github.com/dotnet/roslyn/issues/68785: Emit Enumerable.TryGetNonEnumeratedCount() and avoid intermediate List<T> at runtime.
                     var list = CreateAndPopulateList(node, arrayType.ElementTypeWithAnnotations, node.Elements,
                         // Array/Span collections cannot have with-elements.  So we can create a List<T> in an optimal
                         // fashion depending on our analysis of the elements.
