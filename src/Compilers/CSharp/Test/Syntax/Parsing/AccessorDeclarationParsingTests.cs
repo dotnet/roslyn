@@ -102,9 +102,6 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             // (3,13): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
             //     int P { partial ref get; }
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 13),
-            // (3,13): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-            //     int P { partial ref get; }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 13),
             // (3,25): error CS0106: The modifier 'ref' is not valid for this item
             //     int P { partial ref get; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("ref").WithLocation(3, 25),
