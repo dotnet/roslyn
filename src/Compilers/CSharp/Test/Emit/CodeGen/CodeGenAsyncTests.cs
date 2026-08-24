@@ -6061,19 +6061,30 @@ class Driver
                 }
                 """;
 
+            var expectedOutput = """
+                False
+                True
+                True
+                True
+                done
+                """;
+
             var compilation = CreateCompilationWithTasksExtensions(
                 [source, IAsyncDisposableDefinition],
                 options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(
+            CompileAndVerify(compilation, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            compilation = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(
                 compilation,
-                expectedOutput: """
-                    False
-                    True
-                    True
-                    True
-                    done
-                    """);
-            verifier.VerifyDiagnostics();
+                expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput),
+                verify: Verification.Fails with
+                {
+                    ILVerifyMessage = $"""
+                        {ReturnValueMissing("<Main>$", "0x4b")}
+                        {ReturnValueMissing("<<Main>$>g__M|0_1", "0x72")}
+                        """,
+                }).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72753"), WorkItem("https://github.com/dotnet/roslyn/issues/80052")]
@@ -6119,13 +6130,25 @@ class Driver
                 }
                 """;
 
+            var expectedOutput = "TrueDisposed";
+
             var compilation = CreateCompilationWithTasksExtensions(
                 [source, IAsyncDisposableDefinition],
                 options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(
+            CompileAndVerify(compilation, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            compilation = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(
                 compilation,
-                expectedOutput: "TrueDisposed");
-            verifier.VerifyDiagnostics();
+                expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput),
+                verify: Verification.Fails with
+                {
+                    ILVerifyMessage = $$"""
+                        {{ReturnValueMissing("<Main>$", "0x71")}}
+                        [<<Main>$>g__GetResourceAsync|0_0]: Unexpected type on the stack. { Offset = 0x29, Found = ref 'Resource', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<Resource>' }
+                        [<<Main>$>g__GetExceptionAsync|0_1]: Unexpected type on the stack. { Offset = 0x2e, Found = ref 'CustomException', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<System.Exception>' }
+                        """,
+                }).VerifyDiagnostics();
         }
 
         [Fact]
