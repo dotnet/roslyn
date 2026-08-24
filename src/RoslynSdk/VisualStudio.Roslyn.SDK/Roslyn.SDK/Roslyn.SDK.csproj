@@ -6,6 +6,8 @@
     <AssemblyName>Roslyn.SDK</AssemblyName>
     <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
+    <!-- The explicit Microsoft.VSSDK.BuildTools reference below is needed when a .NET SDK restore
+         precedes full-framework evaluation. Suppress Arcade's later implicit duplicate. -->
     <IncludeMicrosoftVSSDKBuildToolsPackageReference>false</IncludeMicrosoftVSSDKBuildToolsPackageReference>
     <EnableDefaultItems>false</EnableDefaultItems>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
@@ -131,6 +133,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <!-- Ensure VSSDK output-group targets are available after a preceding .NET SDK restore. -->
     <PackageReference Include="Microsoft.VSSDK.BuildTools" VersionOverride="$(MicrosoftVSSDKBuildToolsDefaultVersion)" PrivateAssets="all" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" />
     <!-- Explicit reference to avoid missing package warning -->
