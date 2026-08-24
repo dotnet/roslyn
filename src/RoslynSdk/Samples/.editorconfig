@@ -31,3 +31,7 @@ csharp_style_conditional_delegate_call = true:error
 
 # Samples preserve unused parameters to demonstrate extensibility points.
 dotnet_diagnostic.IDE0060.severity = none
+
+# Require the repository license header in all sample source files.
+file_header_template = Licensed to the .NET Foundation under one or more agreements.\nThe .NET Foundation licenses this file to you under the MIT license.\nSee the LICENSE file in the project root for more information.
+dotnet_diagnostic.IDE0073.severity = error
