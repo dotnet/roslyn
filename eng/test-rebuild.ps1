@@ -34,7 +34,7 @@ try {
 
   if ($bootstrap) {
     Write-Host "Building Roslyn"
-    & eng/build.ps1 -restore -build -bootstrap -prepareMachine:$prepareMachine -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog /p:RoslynCompilerType=Framework
+    & eng/build.ps1 -restore -build -bootstrap -prepareMachine:$prepareMachine -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog
     Test-LastExitCode
   }
 
@@ -92,7 +92,7 @@ try {
   " --sourcePath `"$RepoRoot/`"" +
   " --referencesPath `"$ArtifactsDir/bin`"" +
   " --referencesPath `"$dotnetInstallDir/packs`"")
-  Exec-Command "$ArtifactsDir/bin/BuildValidator/$configuration/net472/BuildValidator.exe" $rebuildArgs
+  Exec-Command "$ArtifactsDir/bin/BuildValidator/$configuration/net10.0/BuildValidator.exe" $rebuildArgs
 
   exit 0
 }
