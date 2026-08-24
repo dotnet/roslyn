@@ -4643,22 +4643,22 @@ parse_member_name:;
             }
             else
             {
-                // We didn't get something we recognized.  If we got an accessor type we 
-                // recognized (i.e. get/set/init/add/remove) then try to parse out a block.
-                // Only do this if it doesn't seem like we're at the end of the accessor/property.
-                // for example, if we have "get set", don't actually try to parse out the 
-                // block.  Otherwise we'll consume the 'set'.  In that case, just end the
-                // current accessor with a semicolon so we can properly consume the next
-                // in the calling method's loop.
                 if (accessorKind != SyntaxKind.UnknownAccessorDeclaration)
                 {
-                    if (!IsTerminator())
+                    if (IsTerminator())
                     {
-                        blockBody = this.ParseMethodOrAccessorBodyBlock(attributes: default, isAccessorBody: true);
+                        // The accessor has no body before the list ends, as in `{ get }`.
+                        semicolon = EatAccessorSemicolon();
+                    }
+                    else if (IsPossibleAccessor())
+                    {
+                        // Keep a following accessor separate, as in `{ get set { } }`.
+                        semicolon = EatAccessorSemicolon();
                     }
                     else
                     {
-                        semicolon = EatAccessorSemicolon();
+                        // Recover a body with a missing `{`, as in `{ get return 0; }`.
+                        blockBody = this.ParseMethodOrAccessorBodyBlock(attributes: default, isAccessorBody: true);
                     }
                 }
                 else

@@ -2133,13 +2133,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             options: null,
             // (1,13): error CS8180: { or ; or => expected
             // int P { get set { } }
-            Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "set").WithLocation(1, 13),
-            // (1,17): error CS1002: ; expected
-            // int P { get set { } }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 17),
-            // (1,22): error CS1513: } expected
-            // int P { get set { } }
-            Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 22));
+            Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "set").WithLocation(1, 13));
         N(SyntaxKind.PropertyDeclaration);
         {
             N(SyntaxKind.PredefinedType);
@@ -2153,26 +2147,18 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
                 N(SyntaxKind.GetAccessorDeclaration);
                 {
                     N(SyntaxKind.GetKeyword);
+                    M(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.SetAccessorDeclaration);
+                {
+                    N(SyntaxKind.SetKeyword);
                     N(SyntaxKind.Block);
                     {
-                        M(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.ExpressionStatement);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "set");
-                            }
-                            M(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.Block);
-                        {
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.CloseBraceToken);
-                        }
+                        N(SyntaxKind.OpenBraceToken);
                         N(SyntaxKind.CloseBraceToken);
                     }
                 }
-                M(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.CloseBraceToken);
             }
         }
         EOF();
@@ -2188,13 +2174,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             options: null,
             // (1,13): error CS8180: { or ; or => expected
             // int P { get [A] set { } }
-            Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "[").WithLocation(1, 13),
-            // (1,21): error CS1002: ; expected
-            // int P { get [A] set { } }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 21),
-            // (1,26): error CS1513: } expected
-            // int P { get [A] set { } }
-            Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 26));
+            Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "[").WithLocation(1, 13));
         N(SyntaxKind.PropertyDeclaration);
         {
             N(SyntaxKind.PredefinedType);
@@ -2208,38 +2188,30 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
                 N(SyntaxKind.GetAccessorDeclaration);
                 {
                     N(SyntaxKind.GetKeyword);
-                    N(SyntaxKind.Block);
+                    M(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.SetAccessorDeclaration);
+                {
+                    N(SyntaxKind.AttributeList);
                     {
-                        M(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.ExpressionStatement);
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
                         {
-                            N(SyntaxKind.AttributeList);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.Attribute);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "A");
-                                    }
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken, "set");
+                                N(SyntaxKind.IdentifierToken, "A");
                             }
-                            M(SyntaxKind.SemicolonToken);
                         }
-                        N(SyntaxKind.Block);
-                        {
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.CloseBraceToken);
-                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.SetKeyword);
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
                         N(SyntaxKind.CloseBraceToken);
                     }
                 }
-                M(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.CloseBraceToken);
             }
         }
         EOF();
@@ -2255,16 +2227,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             options: null,
             // (1,13): error CS8180: { or ; or => expected
             // int P { get private set { } }
-            Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "private").WithLocation(1, 13),
-            // (1,13): error CS1513: } expected
-            // int P { get private set { } }
-            Diagnostic(ErrorCode.ERR_RbraceExpected, "private").WithLocation(1, 13),
-            // (1,25): error CS1002: ; expected
-            // int P { get private set { } }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 25),
-            // (1,30): error CS1513: } expected
-            // int P { get private set { } }
-            Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 30));
+            Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "private").WithLocation(1, 13));
         N(SyntaxKind.PropertyDeclaration);
         {
             N(SyntaxKind.PredefinedType);
@@ -2278,26 +2241,19 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
                 N(SyntaxKind.GetAccessorDeclaration);
                 {
                     N(SyntaxKind.GetKeyword);
+                    M(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.SetAccessorDeclaration);
+                {
+                    N(SyntaxKind.PrivateKeyword);
+                    N(SyntaxKind.SetKeyword);
                     N(SyntaxKind.Block);
                     {
-                        M(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.ExpressionStatement);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "set");
-                            }
-                            M(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.Block);
-                        {
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.CloseBraceToken);
-                        }
+                        N(SyntaxKind.OpenBraceToken);
                         N(SyntaxKind.CloseBraceToken);
                     }
                 }
-                M(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.CloseBraceToken);
             }
         }
         EOF();
@@ -2314,9 +2270,9 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             // (1,13): error CS8180: { or ; or => expected
             // int P { get partial => 0; }
             Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "partial").WithLocation(1, 13),
-            // (1,28): error CS1513: } expected
+            // (1,21): error CS1014: A get or set accessor expected
             // int P { get partial => 0; }
-            Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 28));
+            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "=>").WithLocation(1, 21));
         N(SyntaxKind.PropertyDeclaration);
         {
             N(SyntaxKind.PredefinedType);
@@ -2330,29 +2286,23 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
                 N(SyntaxKind.GetAccessorDeclaration);
                 {
                     N(SyntaxKind.GetKeyword);
-                    N(SyntaxKind.Block);
-                    {
-                        M(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.ExpressionStatement);
-                        {
-                            N(SyntaxKind.SimpleLambdaExpression);
-                            {
-                                N(SyntaxKind.Parameter);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "partial");
-                                }
-                                N(SyntaxKind.EqualsGreaterThanToken);
-                                N(SyntaxKind.NumericLiteralExpression);
-                                {
-                                    N(SyntaxKind.NumericLiteralToken, "0");
-                                }
-                            }
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
+                    M(SyntaxKind.SemicolonToken);
                 }
-                M(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.UnknownAccessorDeclaration);
+                {
+                    N(SyntaxKind.PartialKeyword);
+                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
             }
         }
         EOF();
@@ -2369,9 +2319,9 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             // (1,13): error CS8180: { or ; or => expected
             // int P { get A; }
             Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "A").WithLocation(1, 13),
-            // (1,17): error CS1513: } expected
+            // (1,13): error CS1014: A get or set accessor expected
             // int P { get A; }
-            Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 17));
+            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "A").WithLocation(1, 13));
         N(SyntaxKind.PropertyDeclaration);
         {
             N(SyntaxKind.PredefinedType);
@@ -2385,21 +2335,14 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
                 N(SyntaxKind.GetAccessorDeclaration);
                 {
                     N(SyntaxKind.GetKeyword);
-                    N(SyntaxKind.Block);
-                    {
-                        M(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.ExpressionStatement);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "A");
-                            }
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
+                    M(SyntaxKind.SemicolonToken);
                 }
-                M(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.UnknownAccessorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierToken, "A");
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
             }
         }
         EOF();
