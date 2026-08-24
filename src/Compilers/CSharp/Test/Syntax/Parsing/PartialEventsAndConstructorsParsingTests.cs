@@ -405,30 +405,27 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Event_Definition_DoublePartial([CSharp14_Preview] LanguageVersion langVersion)
+    public void Event_Definition_DoublePartial([CSharp13_CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial partial event Action E;
             """,
-            TestOptions.Regular.WithLanguageVersion(langVersion),
-            // (1,9): error CS1525: Invalid expression term 'partial'
-            // partial partial event Action E;
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 9),
-            // (1,9): error CS1003: Syntax error, ',' expected
-            // partial partial event Action E;
-            Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(1, 9));
+            TestOptions.Regular.WithLanguageVersion(langVersion));
 
-        N(SyntaxKind.FieldDeclaration);
+        N(SyntaxKind.EventFieldDeclaration);
         {
+            N(SyntaxKind.PartialKeyword);
+            N(SyntaxKind.PartialKeyword);
+            N(SyntaxKind.EventKeyword);
             N(SyntaxKind.VariableDeclaration);
             {
                 N(SyntaxKind.IdentifierName);
                 {
-                    N(SyntaxKind.IdentifierToken, "partial");
+                    N(SyntaxKind.IdentifierToken, "Action");
                 }
-                M(SyntaxKind.VariableDeclarator);
+                N(SyntaxKind.VariableDeclarator);
                 {
-                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "E");
                 }
             }
             N(SyntaxKind.SemicolonToken);
@@ -955,6 +952,31 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         N(SyntaxKind.ConstructorDeclaration);
         {
             N(SyntaxKind.PartialKeyword);
+            N(SyntaxKind.IdentifierToken, "partial");
+            N(SyntaxKind.ParameterList);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Constructor_PartialAsName_CSharp13()
+    {
+        UsingDeclaration("""
+            partial partial();
+            """,
+            TestOptions.Regular13);
+
+        N(SyntaxKind.MethodDeclaration);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "partial");
+            }
             N(SyntaxKind.IdentifierToken, "partial");
             N(SyntaxKind.ParameterList);
             {
