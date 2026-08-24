@@ -18,6 +18,10 @@ Layer-specific test guidance for Razor tooling/compiler tests under `src/Razor`.
   `src\Razor\src\Razor\test\Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests`
   and must be listed in its `.projitems` file; both the Visual Studio and VS Code
   unit-test projects import that suite.
+- Cohost tests that exercise C# formatting options should supply `.editorconfig`
+  paths and contents through `additionalFiles`. `CohostTestBase` registers files
+  named `.editorconfig` as analyzer-config documents, including nested configs,
+  so endpoints resolve options through the production path.
 - Integration tests using `AdditionalSyntaxTrees` for tag helper discovery must
   set `UseTwoPhaseCompilation => true` (see `ComponentDiscoveryIntegrationTest`).
   Under two-phase compilation the `AdditionalSyntaxTrees` are compiled into a

@@ -40,12 +40,13 @@ their original sub-tree layout
   `solution.GetDocumentIdsWithFilePath(filePath)` then `solution.GetAdditionalDocument(documentId)`.
 - **Remote services**: Place the public stub method (calling `RunServiceAsync`) directly
   above its private implementation method.
-- **Formatting options across OOP**: Cohost endpoints must read
-  `CSharpSyntaxFormattingOptions` from the local Roslyn solution services and include them in
-  `RazorFormattingOptions` sent to remote formatting consumers. Remote `IClientSettingsManager`
-  state does not contain the user's C# formatting preferences, so do not reconstruct them OOP.
-  Resolve the options at the public handler boundary and keep downstream product parameters
-  non-null.
+- **Formatting options across OOP**: Cohost endpoints must resolve
+  `CSharpSyntaxFormattingOptions` from the Razor document's analyzer-config options with
+  `CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument, cancellationToken)`.
+  This applies `.editorconfig` sections matching the `.razor` or `.cshtml` path and falls back to
+  the user's global C# options. Include the resolved options in `RazorFormattingOptions` sent to
+  remote formatting consumers; remote `IClientSettingsManager` state does not contain the user's
+  C# formatting preferences.
 - **Runtime-declared attribute lists**: When the runtime declares a set the compiler must read
   (e.g. `[EventHandler]`, `[AcceptsAssetPath]`), it applies the attributes to a public type with
   a well-known name (`EventHandlers`, `AssetPathAttributes`). A `TagHelperProducer` under
