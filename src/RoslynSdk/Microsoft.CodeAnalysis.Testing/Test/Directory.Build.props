@@ -2,7 +2,8 @@
 <Project>
   <PropertyGroup>
     <NoWarn>$(NoWarn);NU5125;NU3005</NoWarn>
-    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+    <!-- These imported tests do not reference Roslyn.Test.Utilities, which is required by
+         the repository's InstallTraceListener.cs module initializer. -->
     <SkipRoslynTestTraceListener>true</SkipRoslynTestTraceListener>
 
     <!-- Opt-out repo features -->
@@ -19,27 +20,8 @@
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
   </PropertyGroup>
 
-  <Choose>
-    <When Condition="'$(Language)' == 'VB'">
-      <PropertyGroup>
-        <LangVersion>15.5</LangVersion>
-      </PropertyGroup>
-    </When>
-
-    <When Condition="'$(Language)' == 'C#'">
-      <PropertyGroup>
-        <LangVersion>11</LangVersion>
-      </PropertyGroup>
-
-      <!-- Nullable reference types -->
-      <PropertyGroup>
-        <Nullable>enable</Nullable>
-      </PropertyGroup>
-    </When>
-  </Choose>
-
-  <PropertyGroup>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  <PropertyGroup Condition="'$(Language)' == 'C#'">
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

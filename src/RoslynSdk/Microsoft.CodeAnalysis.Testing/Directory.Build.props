@@ -22,6 +22,8 @@
     <TestingLibrarySourceGeneratorTargetFrameworks>netstandard2.0;net472</TestingLibrarySourceGeneratorTargetFrameworks>
   </PropertyGroup>
   
+  <!-- Use shipped language versions so the packages remain compatible with the Roslyn 4.12
+       compiler used by downstream builds. -->
   <Choose>
     <When Condition="'$(Language)' == 'VB'">
       <PropertyGroup>
