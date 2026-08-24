@@ -481,10 +481,6 @@ class X
                             // These are the warnings introduced with the warning "wave" shipped with dotnet 10 and C# 14.
                             Assert.Equal(10, ErrorFacts.GetWarningLevel(errorCode));
                             break;
-                        case ErrorCode.WRN_UnsafeMeaningless:
-                            // These are the warnings introduced with the warning "wave" shipped with dotnet 11 and C# 15.
-                            Assert.Equal(11, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
                         default:
                             // If a new warning is added, this test will fail
                             // and whoever is adding the new warning will have to update it with the expected error level.
@@ -3014,7 +3010,6 @@ class Program
                     case ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait:
                     case ErrorCode.ERR_RefLocalAcrossAwait:
                     case ErrorCode.ERR_DataSectionStringLiteralHashCollision:
-                    case ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync:
                     case ErrorCode.ERR_NonTaskMainCantBeAsync:
                     case ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported:
                     case ErrorCode.ERR_EncUpdateFailedMissingSymbol:

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly StatementSyntax _syntax;
 
         public WhileBinder(Binder enclosing, StatementSyntax syntax)
-            : base(enclosing)
+            : base(enclosing, syntax)
         {
             Debug.Assert(syntax != null && (syntax.IsKind(SyntaxKind.WhileStatement) || syntax.IsKind(SyntaxKind.DoStatement)));
             _syntax = syntax;

@@ -40,6 +40,7 @@
   <ValueType Name="AccessorKind" />
   <ValueType Name="SafeContext" />
   <ValueType Name="InConversionGroupFlags" />
+  <ValueType Name="UnionMatchingMode" />
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
@@ -675,7 +676,7 @@
     Needed so we can emit with correct side effects (runtime element type check).
   -->
   <Node Name="BoundRefArrayAccess" Base="BoundExpression">
-    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="ArrayAccess" Type="BoundArrayAccess" Null="disallow"/>
   </Node>
 
@@ -1177,11 +1178,35 @@
   </Node>
 
   <Node Name="BoundBreakStatement" Base="BoundStatement">
+    <!-- The compiler-generated label that the break jumps to (e.g. the loop's "break" label). -->
     <Field Name="Label" Type="LabelSymbol" />
+    <!--
+    For a labeled break (e.g. "break outer;" targeting "outer: while (true) { ... }"), holds the
+    bound node for the "outer" identifier; null for an ordinary unlabeled "break;".  Stored so
+    that:
+      * the bound tree contains a BoundLabel whose Syntax is the "outer" IdentifierNameSyntax,
+        which is what SemanticModel.GetSymbolInfo walks to find the LabelSymbol referenced by
+        that identifier; and
+      * ControlFlowPass can mark the LabelSymbol as referenced (otherwise the "outer:"
+        declaration would be reported as WRN_UnreferencedLabel).
+    -->
+    <Field Name="LabelExpressionOpt" Type="BoundLabel?" />
   </Node>
 
   <Node Name="BoundContinueStatement" Base="BoundStatement">
+    <!-- The compiler-generated label that the continue jumps to (e.g. the loop's "continue" label). -->
     <Field Name="Label" Type="LabelSymbol" />
+    <!--
+    For a labeled continue (e.g. "continue outer;" targeting "outer: for (...) { ... }"), holds
+    the bound node for the "outer" identifier; null for an ordinary unlabeled "continue;".
+    Stored so that:
+      * the bound tree contains a BoundLabel whose Syntax is the "outer" IdentifierNameSyntax,
+        which is what SemanticModel.GetSymbolInfo walks to find the LabelSymbol referenced by
+        that identifier; and
+      * ControlFlowPass can mark the LabelSymbol as referenced (otherwise the "outer:"
+        declaration would be reported as WRN_UnreferencedLabel).
+    -->
+    <Field Name="LabelExpressionOpt" Type="BoundLabel?" />
   </Node>
 
   <Node Name="BoundSwitchStatement" Base="BoundStatement">
@@ -2452,7 +2477,7 @@
   <Node Name="BoundConstantPattern" Base="BoundPattern" HasValidate="true">
     <Field Name="Value" Type="BoundExpression"/>
     <Field Name="ConstantValue" Type="ConstantValue" Null="disallow"/>
-    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
+    <Field Name="UnionMatchingMode" Type="UnionMatchingMode"/>
   </Node>
 
   <!--
@@ -2461,7 +2486,7 @@
       of any bound node, except another BoundPatternWithUnionMatching node. In which case,
       it must be the LeftOfPendingConjunction child.
 
-      The ValueProperty and ValuePattern represents a Union matching operation
+      The ValueProperty and ValuePattern represent a Union matching operation
       pending a rewrite to a BoundRecursivePattern. 
 
       The BoundPatternWithUnionMatching node represents either a standalone Union matching operation
@@ -2478,15 +2503,15 @@
       Etc.
 
       InputType is LeftOfPendingConjunction.InputType ?? UnionMatchingInputType 
-      NarrowedType is Pattern.NarrowedType
+      NarrowedType is ValuePattern.NarrowedType
   -->
   <Node Name="BoundPatternWithUnionMatching" Base="BoundPattern" HasValidate="true" DoesNotSurvive="InitialBinding">
     <!-- The Union or Nullable<Union> type matched -->
     <Field Name="UnionMatchingInputType" Type="TypeSymbol" Null="disallow"/>
     <Field Name="LeftOfPendingConjunction" Type="BoundPattern?"/>
-    <!-- Info for the corresponding IUnion.Value property -->    
+    <!-- Info for the corresponding union Value property -->    
     <Field Name="ValueProperty" Type="BoundPropertySubpatternMember"/>
-    <!-- The pattern to match against the IUnion.Value property -->
+    <!-- The pattern to match against the union Value property -->
     <Field Name="ValuePattern" Type="BoundPattern"/>
   </Node>
 
@@ -2506,13 +2531,13 @@
          https://github.com/dotnet/roslyn/issues/13960 . When that is fixed this field can be
          removed. -->
     <Field Name="VariableAccess" Type="BoundExpression?"/>
-    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
   </AbstractNode>
 
   <!-- NarrowedType is the DeclaredType if given, or an InputType -->
   <Node Name="BoundDeclarationPattern" Base="BoundObjectPattern" HasValidate="true">
     <Field Name="DeclaredType" Type="BoundTypeExpression" Null="disallow"/>
     <Field Name="IsVar" Type="bool"/>
+    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
   </Node>
 
   <!--
@@ -2525,6 +2550,7 @@
     <Field Name="Deconstruction" Type="ImmutableArray&lt;BoundPositionalSubpattern&gt;" Null="allow"/>
     <Field Name="Properties" Type="ImmutableArray&lt;BoundPropertySubpattern&gt;" Null="allow"/>
     <Field Name="IsExplicitNotNullTest" Type="bool"/>
+    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
   </Node>
 
   <!--
@@ -2571,7 +2597,6 @@
     <Field Name="GetLengthMethod" Type="MethodSymbol" Null="disallow"/>
     <Field Name="GetItemMethod" Type="MethodSymbol" Null="disallow"/>
     <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPositionalSubpattern&gt;" Null="disallow"/>
-    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
   </Node>
 
   <AbstractNode Name="BoundSubpattern" Base="BoundNode" HasValidate="true">

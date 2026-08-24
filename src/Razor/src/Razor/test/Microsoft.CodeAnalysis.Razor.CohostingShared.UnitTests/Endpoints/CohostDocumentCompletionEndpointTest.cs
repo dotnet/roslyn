@@ -1704,6 +1704,60 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 """);
     }
 
+    [RoslynConditionalFact(typeof(IsEnglishLocal))]
+    [WorkItem("https://github.com/dotnet/razor/issues/13202")]
+    public async Task CSharp_AwaitKeyword_OutsideCodeBlock()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                @if (awai$$)
+                {
+                }
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["char", "DateTime", "await"],
+            itemToResolve: "await",
+            expectedResolvedItemDescription: "await Keyword\r\nAsynchronously waits for the task to finish.",
+            expected: """
+                @using System.Threading.Tasks
+                @if (await)
+                {
+                }
+                """);
+    }
+
+    [RoslynConditionalFact(typeof(IsEnglishLocal))]
+    [WorkItem("https://github.com/dotnet/razor/issues/13202")]
+    public async Task CSharp_AwaitKeyword_OutsideCodeBlock_Legacy()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                @if (awai$$)
+                {
+                }
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["char", "DateTime", "await"],
+            itemToResolve: "await",
+            expectedResolvedItemDescription: "await Keyword\r\nAsynchronously waits for the task to finish.",
+            expected: """
+                @if (await)
+                {
+                }
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
     [Fact]
     public async Task RazorHelpersFilteredOut()
     {

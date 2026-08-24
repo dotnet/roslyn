@@ -77,7 +77,13 @@ internal sealed partial class RazorSemanticTokensInfoService(
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var textSpan = codeDocument.Source.Text.GetTextSpan(span);
+        var sourceText = codeDocument.Source.Text;
+        if (!sourceText.TryGetTextSpan(span, out var textSpan))
+        {
+            _logger.LogWarning($"Semantic tokens request span {span} was outside the bounds of {documentContext.Uri} with {sourceText.Lines.Count} lines. Returning null.");
+            return null;
+        }
+
         using var _ = s_pool.GetPooledObject(out var combinedSemanticRanges);
 
         SemanticTokensVisitor.AddSemanticRanges(combinedSemanticRanges, codeDocument, textSpan, _semanticTokensLegendService, colorBackground);
@@ -227,7 +233,12 @@ internal sealed partial class RazorSemanticTokensInfoService(
         using var _ = ArrayBuilderPool<LinePositionSpan>.GetPooledObject(out var csharpRanges);
         var csharpSourceText = codeDocument.GetCSharpSourceText();
         var sourceText = codeDocument.Source.Text;
-        var textSpan = sourceText.GetTextSpan(razorRange);
+        if (!sourceText.TryGetTextSpan(razorRange, out var textSpan))
+        {
+            ranges = [];
+            return false;
+        }
+
         var csharpDoc = codeDocument.GetRequiredCSharpDocument();
 
         // We want to find the min and max C# source mapping that corresponds with our Razor range.

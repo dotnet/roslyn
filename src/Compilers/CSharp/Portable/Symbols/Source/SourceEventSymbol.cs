@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttributeIfNecessary(this, containingType.GetNullableContextValue(), type));
             }
 
-            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            if (GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute());
             }
@@ -478,20 +478,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (_modifiers & DeclarationModifiers.Unsafe) != 0; }
         }
 
-        internal sealed override CallerUnsafeMode CallerUnsafeMode
+        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
         {
-            get
+            if (ContainingModule.UseUpdatedMemorySafetyRules)
             {
-                if (ContainingModule.UseUpdatedMemorySafetyRules)
-                {
-                    return HasUnsafeModifier
-                        ? CallerUnsafeMode.Explicit
-                        : CallerUnsafeMode.None;
-                }
-
-                return Type.ContainsPointerOrFunctionPointer()
-                    ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
+                return HasUnsafeModifier
+                    ? CallerUnsafeMode.Explicit
+                    : CallerUnsafeMode.None;
             }
+
+            return Type.ContainsPointerOrFunctionPointer()
+                ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
         }
 
         public sealed override Accessibility DeclaredAccessibility
@@ -544,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
 
             // Check that the set of modifiers is allowed
-            var allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
+            var allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe | DeclarationModifiers.Safe;
             if (!explicitInterfaceImplementation)
             {
                 allowedModifiers |= DeclarationModifiers.New |
@@ -593,11 +590,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!isInterface)
             {
                 allowedModifiers |= DeclarationModifiers.Extern;
-            }
-
-            if ((allowedModifiers & DeclarationModifiers.Extern) != 0)
-            {
-                allowedModifiers |= DeclarationModifiers.Safe;
             }
 
             var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface,
@@ -894,7 +886,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     (MemberSyntax?.Modifiers).GetModifierLocation(SyntaxKind.ExternKeyword, location));
             }
 
-            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            if (GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
             {
                 compilation.EnsureRequiresUnsafeAttributeExists(diagnostics,
                     (MemberSyntax?.Modifiers).GetModifierLocation(SyntaxKind.UnsafeKeyword, location),
@@ -972,21 +964,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMemberExtendedModDifference, implementation.GetFirstLocation());
             }
-        }
-
-        internal sealed override void AfterTypeMembersCompletedChecks(BindingDiagnosticBag diagnostics)
-        {
-            base.AfterTypeMembersCompletedChecks(diagnostics);
-
-            if (HasSafeModifier && (!(IsExtern || hasExplicitOrExtendedLayoutField()) || HasUnsafeModifier))
-            {
-                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
-                    (MemberSyntax?.Modifiers).GetModifierLocation(SyntaxKind.SafeKeyword, GetFirstLocation()));
-            }
-
-            return;
-
-            bool hasExplicitOrExtendedLayoutField() => AssociatedField != null && !IsStatic && (ContainingType.Layout.Kind == LayoutKind.Explicit || ContainingType.Layout.Kind == LayoutKind.Extended);
         }
 
         internal bool IsPartial => (this.Modifiers & DeclarationModifiers.Partial) != 0;

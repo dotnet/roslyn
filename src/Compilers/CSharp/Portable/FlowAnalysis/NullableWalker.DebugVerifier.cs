@@ -259,6 +259,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            public override BoundNode? VisitBreakStatement(BoundBreakStatement node)
+            {
+                // There's no need to verify the label children. They do not have types or nullabilities
+                return null;
+            }
+
+            public override BoundNode? VisitContinueStatement(BoundContinueStatement node)
+            {
+                // There's no need to verify the label children. They do not have types or nullabilities
+                return null;
+            }
+
             public override BoundNode? VisitTypeOrValueExpression(BoundTypeOrValueExpression node)
             {
                 Debug.Assert(node is not BoundTypeOrValueExpression, "The Binder is expected to resolve the member access in the most appropriate way, even in an error scenario.");

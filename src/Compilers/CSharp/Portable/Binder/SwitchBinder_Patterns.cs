@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         NamedTypeSymbol unionType = null;
                         BoundPattern pattern = sectionBinder.BindPattern(
-                            matchLabelSyntax.Pattern, ref unionType, SwitchGoverningType, permitDesignations: true, node.HasErrors, diagnostics, out bool hasUnionMatching);
+                            matchLabelSyntax.Pattern, ref unionType, SwitchGoverningType, permitDesignations: true, node.HasErrors, diagnostics, out bool hasUnionMatching, underIsPattern: false);
                         if (matchLabelSyntax.Pattern is ConstantPatternSyntax p)
                             reportIfConstantNamedUnderscore(pattern, p.Expression);
 

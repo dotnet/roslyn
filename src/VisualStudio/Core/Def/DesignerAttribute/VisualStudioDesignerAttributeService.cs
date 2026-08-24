@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
 [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
 internal sealed class VisualStudioDesignerAttributeService :
-    IDesignerAttributeDiscoveryService.ICallback, IEventListener
+    IDesignerAttributeDiscoveryService.ICallback, IEventListener, IDisposable
 {
     private readonly VisualStudioWorkspaceImpl _workspace;
     private readonly IThreadingContext _threadingContext;
@@ -79,14 +79,18 @@ internal sealed class VisualStudioDesignerAttributeService :
         _workQueue = new AsyncBatchingWorkQueue(
             DelayTimeSpan.Idle,
             this.ProcessWorkspaceChangeAsync,
-            _listener,
-            _threadingContext.DisposalToken);
+            _listener);
 
         _projectSystemNotificationQueue = new AsyncBatchingWorkQueue<DesignerAttributeData>(
             DelayTimeSpan.Idle,
             this.NotifyProjectSystemAsync,
-            _listener,
-            _threadingContext.DisposalToken);
+            _listener);
+    }
+
+    public void Dispose()
+    {
+        _workQueue.Dispose();
+        _projectSystemNotificationQueue.Dispose();
     }
 
     void IEventListener.StartListening(Workspace workspace)
