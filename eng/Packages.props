@@ -154,7 +154,9 @@
 
     <PackageVersion Include="Microsoft.NETCore.App.Runtime.win-arm64" Version="$(MicrosoftNetCoreAppRuntimePackagesVersion)" />
     <PackageVersion Include="Microsoft.NETCore.App.Runtime.win-x64" Version="$(MicrosoftNetCoreAppRuntimePackagesVersion)" />
-    <PackageVersion Include="Microsoft.NETCore.App.crossgen2.win-x64" Version="$(MicrosoftNetCoreAppRuntimePackagesVersion)" />
+    <!-- Pin to 10.0.1 because versions 10.0.2 and later remove READYTORUN_FLAG_SKIP_TYPE_VALIDATION
+         from our binaries, causing additional JIT compilation in VS. -->
+    <PackageVersion Include="Microsoft.NETCore.App.crossgen2.win-x64" Version="10.0.1" />
     <PackageVersion Include="Microsoft.WindowsDesktop.App.Runtime.win-arm64" Version="$(MicrosoftWindowsDesktopAppRuntimePackagesVersion)" />
     <PackageVersion Include="Microsoft.WindowsDesktop.App.Runtime.win-x64" Version="$(MicrosoftWindowsDesktopAppRuntimePackagesVersion)" />
 
