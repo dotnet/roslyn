@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.VisualBasic.Testing;
@@ -3148,90 +3149,201 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
             """;
 
         [Fact]
-        public Task TestRequiresUnsafeApiOnMethodAsync()
-            => VerifyRequiresUnsafeAdditionalFileFixAsync($$"""
-                using System.Runtime.CompilerServices;
-
+        public async Task UnsafeEvolution_Method_CallerUnsafe()
+        {
+            var source = $$"""
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
                 {
-                    [RequiresUnsafe]
-                    {{EnabledModifierCSharp}} void {|{{AddNewApiId}}:M|}() { }
+                    {{EnabledModifierCSharp}} unsafe void {|{{AddNewApiId}}:M|}() { }
                 }
-                """, @"", @"", """
-                C
-                C.C() -> void
-                [RequiresUnsafe]C.M() -> void
-                """);
+                """;
+
+            await VerifyRequiresUnsafeAdditionalFileFixAsync(
+                source: source,
+                shippedApiText: "",
+                oldUnshippedApiText: "",
+                newUnshippedApiText: """
+                    C
+                    C.C() -> void
+                    unsafe C.M() -> void
+                    """,
+                updatedMemorySafetyRules: true);
+
+            await VerifyRequiresUnsafeAdditionalFileFixAsync(
+                source: source,
+                shippedApiText: "",
+                oldUnshippedApiText: "",
+                newUnshippedApiText: """
+                    C
+                    C.C() -> void
+                    C.M() -> void
+                    """,
+                updatedMemorySafetyRules: false);
+        }
+
+        [Theory, CombinatorialData]
+        public Task UnsafeEvolution_Method_CallerSafe(bool updatedRules)
+            => VerifyRequiresUnsafeAdditionalFileFixAsync(
+                source: $$"""
+                    {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
+                    {
+                        {{EnabledModifierCSharp}} void {|{{AddNewApiId}}:M|}() { }
+                    }
+                    """,
+                shippedApiText: "",
+                oldUnshippedApiText: "",
+                newUnshippedApiText: """
+                    C
+                    C.C() -> void
+                    C.M() -> void
+                    """,
+                updatedMemorySafetyRules: updatedRules);
+
+        [Theory, CombinatorialData]
+        public Task UnsafeEvolution_Method_CompatMode(bool updatedRules)
+            => VerifyRequiresUnsafeAdditionalFileFixAsync(
+                source: $$"""
+                    {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
+                    {
+                        {{EnabledModifierCSharp}} void {|{{AddNewApiId}}:M|}(int* p) { }
+                    }
+                    """,
+                shippedApiText: "",
+                oldUnshippedApiText: "",
+                newUnshippedApiText: """
+                    C
+                    C.C() -> void
+                    C.M(int* p) -> void
+                    """,
+                updatedMemorySafetyRules: updatedRules);
 
         [Fact]
-        public Task TestRequiresUnsafeApiOnExternMethodAsync()
-            => VerifyRequiresUnsafeAdditionalFileFixAsync($$"""
-                using System.Runtime.CompilerServices;
-
+        public async Task UnsafeEvolution_Method_Extern_Unsafe()
+        {
+            var source = $$"""
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
                 {
-                    {{EnabledModifierCSharp}} extern void {|{{AddNewApiId}}:M1|}() { }
-                    [RequiresUnsafe]
-                    {{EnabledModifierCSharp}} extern void {|{{AddNewApiId}}:M2|}() { }
+                    {{EnabledModifierCSharp}} unsafe extern void {|{{AddNewApiId}}:M|}();
                 }
-                """, @"", @"", """
-                C
-                C.C() -> void
-                extern C.M1() -> void
-                [RequiresUnsafe]extern C.M2() -> void
-                """);
+                """;
+
+            await VerifyRequiresUnsafeAdditionalFileFixAsync(
+                source: source,
+                shippedApiText: "",
+                oldUnshippedApiText: "",
+                newUnshippedApiText: """
+                    C
+                    C.C() -> void
+                    unsafe extern C.M() -> void
+                    """,
+                updatedMemorySafetyRules: true);
+
+            await VerifyRequiresUnsafeAdditionalFileFixAsync(
+                source: source,
+                shippedApiText: "",
+                oldUnshippedApiText: "",
+                newUnshippedApiText: """
+                    C
+                    C.C() -> void
+                    extern C.M() -> void
+                    """,
+                updatedMemorySafetyRules: false);
+        }
+
+        [Theory, CombinatorialData]
+        public Task UnsafeEvolution_Method_Extern_Safe(bool updatedRules)
+            => VerifyRequiresUnsafeAdditionalFileFixAsync(
+                source: $$"""
+                    {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
+                    {
+                        {{EnabledModifierCSharp}} safe extern void {|{{AddNewApiId}}:M|}();
+                    }
+                    """,
+                shippedApiText: "",
+                oldUnshippedApiText: "",
+                newUnshippedApiText: """
+                    C
+                    C.C() -> void
+                    extern C.M() -> void
+                    """,
+                updatedMemorySafetyRules: updatedRules);
 
         [Fact]
-        public Task TestRequiresUnsafeApiOnPropertyAsync()
-            => VerifyRequiresUnsafeAdditionalFileFixAsync($$"""
-                using System.Runtime.CompilerServices;
-
+        public async Task UnsafeEvolution_Property_CallerUnsafe()
+        {
+            var source = $$"""
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
                 {
-                    [RequiresUnsafe]
-                    {{EnabledModifierCSharp}} int Property { {|{{AddNewApiId}}:get|}; {|{{AddNewApiId}}:set|}; }
+                    {{EnabledModifierCSharp}} unsafe int Property { {|{{AddNewApiId}}:get|}; {|{{AddNewApiId}}:set|}; }
                 }
-                """, @"", @"", """
-                C
-                C.C() -> void
-                [RequiresUnsafe]C.Property.get -> int
-                [RequiresUnsafe]C.Property.set -> void
-                """);
+                """;
+
+            await VerifyRequiresUnsafeAdditionalFileFixAsync(
+                source: source,
+                shippedApiText: "",
+                oldUnshippedApiText: "",
+                newUnshippedApiText: """
+                    C
+                    C.C() -> void
+                    unsafe C.Property.get -> int
+                    unsafe C.Property.set -> void
+                    """,
+                updatedMemorySafetyRules: true);
+
+            await VerifyRequiresUnsafeAdditionalFileFixAsync(
+                source: source,
+                shippedApiText: "",
+                oldUnshippedApiText: "",
+                newUnshippedApiText: """
+                    C
+                    C.C() -> void
+                    C.Property.get -> int
+                    C.Property.set -> void
+                    """,
+                updatedMemorySafetyRules: false);
+        }
 
         [Fact]
-        public Task TestRequiresUnsafeApiOnPropertyAccessorsAsync()
-            => VerifyRequiresUnsafeAdditionalFileFixAsync($$"""
-                using System.Runtime.CompilerServices;
-
+        public async Task UnsafeEvolution_PropertyAccessor_CallerUnsafe()
+        {
+            var source = $$"""
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
                 {
-                    {{EnabledModifierCSharp}} int Property { [RequiresUnsafe] {|{{AddNewApiId}}:get|}; {|{{AddNewApiId}}:set|}; }
+                    {{EnabledModifierCSharp}} int Property { unsafe {|{{AddNewApiId}}:get|}; {|{{AddNewApiId}}:set|}; }
                 }
-                """, @"", @"", """
-                C
-                C.C() -> void
-                C.Property.set -> void
-                [RequiresUnsafe]C.Property.get -> int
-                """);
+                """;
 
-        [Fact]
-        public Task TestRequiresUnsafeApiOnEventAsync()
-            => VerifyRequiresUnsafeAdditionalFileFixAsync($$"""
-                using System;
-                using System.Runtime.CompilerServices;
+            await VerifyRequiresUnsafeAdditionalFileFixAsync(
+                source: source,
+                shippedApiText: "",
+                oldUnshippedApiText: "",
+                newUnshippedApiText: """
+                    C
+                    C.C() -> void
+                    C.Property.set -> void
+                    unsafe C.Property.get -> int
+                    """,
+                updatedMemorySafetyRules: true);
 
-                {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
-                {
-                    [RequiresUnsafe]
-                    {{EnabledModifierCSharp}} event EventHandler {|{{AddNewApiId}}:MyEvent|};
-                }
-                """, @"", @"", """
-                C
-                C.C() -> void
-                [RequiresUnsafe]C.MyEvent -> System.EventHandler
-                """);
+            await VerifyRequiresUnsafeAdditionalFileFixAsync(
+                source: source,
+                shippedApiText: "",
+                oldUnshippedApiText: "",
+                newUnshippedApiText: """
+                    C
+                    C.C() -> void
+                    C.Property.get -> int
+                    C.Property.set -> void
+                    """,
+                updatedMemorySafetyRules: false);
+        }
 
-        private async Task VerifyRequiresUnsafeAdditionalFileFixAsync(string source, string? shippedApiText, string? oldUnshippedApiText, string newUnshippedApiText)
+        private async Task VerifyRequiresUnsafeAdditionalFileFixAsync(
+            string source,
+            string? shippedApiText,
+            string? oldUnshippedApiText,
+            string newUnshippedApiText,
+            bool updatedMemorySafetyRules)
         {
             // The RequiresUnsafeAttribute is defined as internal in test source, so we need to provide
             // internal API files and include the attribute type entries to satisfy the internal API analyzer.
@@ -3244,7 +3356,24 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
             var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, DeclarePublicApiFix, DefaultVerifier>()
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
-                CompilerDiagnostics = CompilerDiagnostics.None,
+                SolutionTransforms =
+                {
+                    (solution, projectId) =>
+                    {
+                        var parseOptions = (CSharpParseOptions)solution.GetProject(projectId)!.ParseOptions!;
+
+                        if (updatedMemorySafetyRules)
+                        {
+                            // https://github.com/dotnet/roslyn/issues/82546: use public API instead when available
+                            parseOptions = parseOptions.WithFeatures([new KeyValuePair<string, string>("updated-memory-safety-rules", "")]);
+                        }
+
+                        parseOptions = parseOptions.WithLanguageVersion(LanguageVersion.Preview);
+
+                        solution = solution.WithProjectParseOptions(projectId, parseOptions);
+                        return solution;
+                    },
+                },
             };
 
             test.TestState.Sources.Add(source);
