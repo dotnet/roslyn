@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -8,8 +8,9 @@ using System.Threading;
 namespace Microsoft.CodeAnalysis.LanguageServer.Daemon;
 
 /// <summary>
-/// The "server" mutex that signals a language server daemon is running for a given pipe. The daemon holds it
-/// open for its lifetime; clients (and tests) check its existence to decide whether a daemon already exists.
+/// The "server" mutex that signals a language server daemon is accepting connections for a given pipe. The daemon
+/// holds it open until it commits shutdown; clients (and tests) check its existence to decide whether a daemon
+/// already exists.
 /// <para>
 /// The mutex is held unlocked (<c>initiallyOwned: false</c>): clients only check existence via
 /// <see cref="Mutex.TryOpenExisting(string, out Mutex)"/>, which is satisfied by an open handle. Holding it
@@ -22,7 +23,7 @@ internal static class DaemonServerMutex
     /// <summary>
     /// Attempts to become the daemon for <paramref name="pipeName"/> by opening the server mutex. Returns
     /// <see langword="true"/> and the held mutex if this process is the first; <see langword="false"/> if a
-    /// daemon already owns it. The returned mutex must be disposed when the daemon shuts down.
+    /// daemon already owns it. The returned mutex must be disposed when the daemon stops accepting connections.
     /// </summary>
     public static bool TryAcquire(string pipeName, [NotNullWhen(true)] out Mutex? mutex)
     {

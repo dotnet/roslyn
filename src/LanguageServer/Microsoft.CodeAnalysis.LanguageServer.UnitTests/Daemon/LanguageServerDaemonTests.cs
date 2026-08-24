@@ -6,6 +6,7 @@ using System.IO.Pipes;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServer.Daemon;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
@@ -28,6 +29,107 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
         Assert.False(NamedPipeDaemonConnectionSource.TryCreate(
             daemon.PipeName, Timeout.InfiniteTimeSpan, LoggerFactory.CreateLogger("Daemon2"), out var secondSource));
         Assert.Null(secondSource);
+    }
+
+    [Fact]
+    public async Task Daemon_InitialConnectionTimeout_ReleasesServerMutexBeforeSourceDisposal()
+    {
+        var pipeName = "roslyn-daemon-test." + Guid.NewGuid().ToString("N");
+        Assert.True(NamedPipeDaemonConnectionSource.TryCreate(
+            pipeName,
+            Timeout.InfiniteTimeSpan,
+            LoggerFactory.CreateLogger("Daemon"),
+            out var source,
+            initialConnectionTimeout: Timeout.InfiniteTimeSpan));
+        Assert.NotNull(source);
+
+        using var mutexReleased = new ManualResetEventSlim();
+        using var allowShutdownCompletion = new ManualResetEventSlim();
+        var sourceAccessor = source.GetTestAccessor();
+        sourceAccessor.OnServerMutexReleased = () =>
+        {
+            mutexReleased.Set();
+            allowShutdownCompletion.Wait();
+        };
+        var enumerator = source.AcceptConnectionsAsync(CancellationToken.None).GetAsyncEnumerator();
+
+        try
+        {
+            var acceptTask = enumerator.MoveNextAsync().AsTask();
+
+            sourceAccessor.TriggerTimeout();
+
+            Assert.True(mutexReleased.Wait(TimeSpan.FromSeconds(10)));
+            Assert.False(acceptTask.IsCompleted);
+            Assert.False(DaemonServerMutex.IsRunning(pipeName));
+            await AssertReplacementDaemonAcceptsConnectionAsync(pipeName);
+
+            allowShutdownCompletion.Set();
+            Assert.False(await acceptTask.WaitAsync(TimeSpan.FromSeconds(10)));
+        }
+        finally
+        {
+            sourceAccessor.OnServerMutexReleased = null;
+            allowShutdownCompletion.Set();
+            await enumerator.DisposeAsync();
+            source.Dispose();
+        }
+    }
+
+    [Fact]
+    public async Task Daemon_KeepaliveTimeout_ReleasesServerMutexBeforeSourceDisposal()
+    {
+        var pipeName = "roslyn-daemon-test." + Guid.NewGuid().ToString("N");
+        Assert.True(NamedPipeDaemonConnectionSource.TryCreate(
+            pipeName,
+            Timeout.InfiniteTimeSpan,
+            LoggerFactory.CreateLogger("Daemon"),
+            out var source,
+            initialConnectionTimeout: Timeout.InfiniteTimeSpan));
+        Assert.NotNull(source);
+
+        using var mutexReleased = new ManualResetEventSlim();
+        using var allowShutdownCompletion = new ManualResetEventSlim();
+        var sourceAccessor = source.GetTestAccessor();
+        sourceAccessor.OnServerMutexReleased = () =>
+        {
+            mutexReleased.Set();
+            allowShutdownCompletion.Wait();
+        };
+        var enumerator = source.AcceptConnectionsAsync(CancellationToken.None).GetAsyncEnumerator();
+
+        try
+        {
+            using var client = NamedPipeUtil.CreateClient(
+                serverName: ".",
+                pipeName,
+                PipeDirection.InOut,
+                PipeOptions.Asynchronous);
+
+            var acceptTask = enumerator.MoveNextAsync().AsTask();
+            await client.ConnectAsync(timeout: 30_000);
+            Assert.True(await acceptTask.WaitAsync(TimeSpan.FromSeconds(10)));
+            Assert.NotNull(enumerator.Current.Resource);
+            enumerator.Current.Resource.Dispose();
+
+            var timeoutTask = enumerator.MoveNextAsync().AsTask();
+            sourceAccessor.TriggerTimeout();
+
+            Assert.True(mutexReleased.Wait(TimeSpan.FromSeconds(10)));
+            Assert.False(timeoutTask.IsCompleted);
+            Assert.False(DaemonServerMutex.IsRunning(pipeName));
+            await AssertReplacementDaemonAcceptsConnectionAsync(pipeName);
+
+            allowShutdownCompletion.Set();
+            Assert.False(await timeoutTask.WaitAsync(TimeSpan.FromSeconds(10)));
+        }
+        finally
+        {
+            sourceAccessor.OnServerMutexReleased = null;
+            allowShutdownCompletion.Set();
+            await enumerator.DisposeAsync();
+            source.Dispose();
+        }
     }
 
     [Fact]
@@ -414,6 +516,33 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
                 .AddMetadataReferences(references)
                 .Solution,
             WorkspaceChangeKind.ProjectAdded);
+
+    private async Task AssertReplacementDaemonAcceptsConnectionAsync(string pipeName)
+    {
+        Assert.True(NamedPipeDaemonConnectionSource.TryCreate(
+            pipeName, Timeout.InfiniteTimeSpan, LoggerFactory.CreateLogger("ReplacementDaemon"), out var replacementSource));
+        Assert.NotNull(replacementSource);
+
+        try
+        {
+            await using var enumerator = replacementSource.AcceptConnectionsAsync(CancellationToken.None).GetAsyncEnumerator();
+            using var client = NamedPipeUtil.CreateClient(
+                serverName: ".",
+                pipeName,
+                PipeDirection.InOut,
+                PipeOptions.Asynchronous);
+
+            var acceptTask = enumerator.MoveNextAsync().AsTask();
+            await client.ConnectAsync(timeout: 30_000);
+            Assert.True(await acceptTask.WaitAsync(TimeSpan.FromSeconds(10)));
+            Assert.NotNull(enumerator.Current.Resource);
+            enumerator.Current.Resource.Dispose();
+        }
+        finally
+        {
+            replacementSource.Dispose();
+        }
+    }
 
     private static DocumentUri LoadProjectWithDocument(LanguageServerWorkspaceFactory workspaceFactory, string typeName)
     {

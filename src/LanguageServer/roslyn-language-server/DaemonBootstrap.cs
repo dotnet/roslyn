@@ -115,8 +115,8 @@ internal static class DaemonBootstrap
             if (daemonProcess.HasExited)
                 return DaemonReadinessResult.Exited(daemonProcess.ExitCode);
 
-            // The daemon holds its server mutex for its whole lifetime once it is ready to accept clients, so its
-            // existence is our readiness signal.
+            // The daemon holds its server mutex while it is ready to accept clients, so its existence is our
+            // readiness signal.
             if (DaemonServerMutex.IsRunning(pipeName))
                 return DaemonReadinessResult.Ready;
 
