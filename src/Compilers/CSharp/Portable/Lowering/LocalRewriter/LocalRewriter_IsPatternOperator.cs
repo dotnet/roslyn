@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class LocalRewriter
     {
         /// <summary>
-        /// Benchmark results (see https://github.com/dotnet/roslyn/pull/84961) show that short patterns can be more
+        /// Benchmark results (<c>src/Tools/Benchmarks/IsPatternBenchmarks.cs</c>) show that short patterns can be more
         /// efficient when emitted as comparisons. Larger patterns can benefit from switch dispatch.
         /// </summary>
         private const int MaxTestsForInvertedLinearSequence = 3;
