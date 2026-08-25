@@ -420,6 +420,9 @@ stages:
       - powershell: eng/validate-benchmarks.ps1 -configuration Release -ci
         displayName: Validate Benchmarks
 
+      - powershell: eng/validate-roslyn-sdk-samples.ps1 -configuration Release -ci
+        displayName: Validate Roslyn SDK Samples
+
       - script: dotnet build-server shutdown
         displayName: Shutdown Build Server
         continueOnError: true
