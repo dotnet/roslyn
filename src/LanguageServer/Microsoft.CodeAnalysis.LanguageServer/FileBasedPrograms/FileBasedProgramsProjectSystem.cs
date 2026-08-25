@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -255,7 +254,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
     public async ValueTask<TextDocument?> GetOrLoadEntryPointDocumentAsync(string documentFilePath, TextLoader textLoader, LanguageInformation languageInformation, SourceHashAlgorithm checksumAlgorithm, bool doDesignTimeBuild)
     {
-        var project = await base.GetOrLoadProjectAsync(documentFilePath, _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory, CreatePrimordialProjectAsync, doDesignTimeBuild);
+        var project = await base.GetOrLoadProjectAsync(documentFilePath, _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory, CreatePrimordialProjectInfo, doDesignTimeBuild);
         return project is null ? null : LookupExistingDocument(project);
 
         TextDocument? LookupExistingDocument(Project project)
@@ -270,58 +269,11 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             return document;
         }
 
-        async ValueTask<(Project project, ProjectSystemProject? projectSystemProject)> CreatePrimordialProjectAsync(
-            ProjectSystemProjectFactory projectFactory, CancellationToken cancellationToken)
+        ProjectInfo CreatePrimordialProjectInfo(ProjectSystemProjectFactory projectFactory)
         {
             var enableFileBasedPrograms = GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms);
-            var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
+            return MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
                 projectFactory.Workspace, documentFilePath, textLoader, languageInformation, checksumAlgorithm, projectFactory.Workspace.Services.SolutionServices, [], enableFileBasedPrograms);
-
-            if (!PathUtilities.IsAbsolute(documentFilePath) || !File.Exists(documentFilePath))
-            {
-                projectFactory.ApplyChangeToWorkspace(workspace => workspace.OnProjectAdded(projectInfo));
-                return (projectFactory.Workspace.CurrentSolution.GetRequiredProject(projectInfo.Id), projectSystemProject: null);
-            }
-
-            var projectSystemProject = await projectFactory.CreateAndAddToWorkspaceAsync(
-                projectInfo.Name,
-                projectInfo.Language,
-                new ProjectSystemProjectCreationInfo
-                {
-                    AssemblyName = projectInfo.AssemblyName,
-                    CompilationOptions = projectInfo.CompilationOptions,
-                    ParseOptions = projectInfo.ParseOptions,
-                },
-                _workspaceFactory.ProjectSystemHostInfo,
-                cancellationToken);
-
-            projectSystemProject.HasAllInformation = projectInfo.HasAllInformation;
-            projectSystemProject.ChecksumAlgorithm = checksumAlgorithm;
-            foreach (var analyzerReference in projectInfo.AnalyzerReferences)
-            {
-                Contract.ThrowIfNull(analyzerReference.FullPath);
-                projectSystemProject.AddAnalyzerReference(analyzerReference.FullPath);
-            }
-
-            TextDocument document;
-            if (projectInfo.Documents.Any())
-            {
-                projectSystemProject.AddSourceFile(documentFilePath, projectInfo.Documents.Single().SourceCodeKind);
-                document = projectFactory.Workspace.CurrentSolution.GetRequiredProject(projectSystemProject.Id).Documents.Single();
-                document = document.Project.Solution
-                    .WithDocumentTextLoader(document.Id, textLoader, PreservationMode.PreserveValue)
-                    .GetRequiredDocument(document.Id);
-            }
-            else
-            {
-                projectSystemProject.AddAdditionalFile(documentFilePath);
-                document = projectFactory.Workspace.CurrentSolution.GetRequiredProject(projectSystemProject.Id).AdditionalDocuments.Single();
-                document = document.Project.Solution
-                    .WithAdditionalDocumentTextLoader(document.Id, textLoader, PreservationMode.PreserveValue)
-                    .GetRequiredAdditionalDocument(document.Id);
-            }
-
-            return (document.Project, projectSystemProject);
         }
     }
 

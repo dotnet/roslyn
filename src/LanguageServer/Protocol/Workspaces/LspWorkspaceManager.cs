@@ -293,7 +293,12 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             }
             else if (uri.ParsedUri?.IsFile == true)
             {
-                var sourceText = TryReadSourceTextFromFile(uri);
+                var sourceText = IOUtilities.PerformIO(() =>
+                {
+                    using var fileStream = File.OpenRead(uri.GetDocumentFilePathFromUri());
+                    return SourceText.From(fileStream);
+                });
+
                 if (sourceText is not null)
                     documentInfo = new(sourceText, LanguageId: string.Empty, LspVersion: 0);
             }
@@ -314,18 +319,6 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         }
 
         return default;
-    }
-
-    private static SourceText? TryReadSourceTextFromFile(DocumentUri uri)
-    {
-        if (uri.ParsedUri?.IsFile != true)
-            return null;
-
-        return IOUtilities.PerformIO(() =>
-        {
-            using var fileStream = File.OpenRead(uri.GetDocumentFilePathFromUri());
-            return SourceText.From(fileStream);
-        });
     }
 
     /// <summary>
