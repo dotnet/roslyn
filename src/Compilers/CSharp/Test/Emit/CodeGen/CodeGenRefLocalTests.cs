@@ -4734,18 +4734,23 @@ class Program
             var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "");
             verifier.VerifyIL("Program.F<T>",
 @"{
-  // Code size        3 (0x3)
-  .maxstack  0
+  // Code size        9 (0x9)
+  .maxstack  1
   IL_0000:  nop
-  IL_0001:  nop
-  IL_0002:  ret
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""S<T>""
+  IL_0007:  pop
+  IL_0008:  ret
 }");
             verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "");
             verifier.VerifyIL("Program.F<T>",
 @"{
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""S<T>""
+  IL_0006:  pop
+  IL_0007:  ret
 }");
         }
 
@@ -4770,18 +4775,23 @@ class Program
             var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "");
             verifier.VerifyIL("Program.F<T>",
 @"{
-  // Code size        3 (0x3)
-  .maxstack  0
+  // Code size        9 (0x9)
+  .maxstack  1
   IL_0000:  nop
-  IL_0001:  nop
-  IL_0002:  ret
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""S<T>""
+  IL_0007:  pop
+  IL_0008:  ret
 }");
             verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "");
             verifier.VerifyIL("Program.F<T>",
 @"{
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""S<T>""
+  IL_0006:  pop
+  IL_0007:  ret
 }");
         }
 

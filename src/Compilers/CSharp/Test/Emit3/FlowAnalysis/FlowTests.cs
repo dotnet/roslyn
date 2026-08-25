@@ -4578,7 +4578,7 @@ class C
                 // (61,15): error CS0165: Use of unassigned local variable 'x'
                 //             ? x.ToString() // 11
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(61, 15),
-                // (68,41): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (68,41): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         _ = (b && M0(x = y = 0)) is var z or true // 12
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "z").WithLocation(68, 41),
                 // (69,15): error CS0165: Use of unassigned local variable 'x'

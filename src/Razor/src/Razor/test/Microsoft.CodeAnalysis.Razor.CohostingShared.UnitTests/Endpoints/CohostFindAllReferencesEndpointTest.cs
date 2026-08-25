@@ -35,6 +35,44 @@ public class CohostFindAllReferencesEndpointTest(ITestOutputHelper testOutputHel
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84352")]
+    public Task FindCSharpMember_AtDirective_NoLeadingWhitespace()
+        => VerifyFindAllReferencesAsync("""
+            @if ([|MyName|] == "test")
+            {
+                <p>yes</p>
+            }
+
+            @code {
+                private const string [|$$MyName|] = "David";
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84352")]
+    public Task FindCSharpMember_AtDirective_WithLeadingWhitespace()
+        => VerifyFindAllReferencesAsync("""
+                @if ([|MyName|] == "test")
+                {
+                    <p>yes</p>
+                }
+
+            @code {
+                private const string [|$$MyName|] = "David";
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84352")]
+    public Task FindCSharpMember_ExplicitStatementBlock_WholeCSharpLine()
+        => VerifyFindAllReferencesAsync("""
+            @{
+                var x = [|MyName|];
+            }
+
+            @code {
+                private const string [|$$MyName|] = "David";
+            }
+            """);
+
     [Fact]
     public async Task ComponentAttribute()
     {

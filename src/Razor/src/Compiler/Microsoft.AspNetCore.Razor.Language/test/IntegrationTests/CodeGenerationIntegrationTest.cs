@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -190,6 +191,45 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     [Fact]
     public void TagHelpersWithBoundAttributes() => RunTagHelpersTest(TestTagHelperDescriptors.SimpleTagHelperDescriptors);
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/13188")]
+    public void StringLiteralAttributeOnUnionTagHelperProperty()
+    {
+        AddCSharpSyntaxTree("""
+            #nullable enable
+
+            namespace System.Runtime.CompilerServices
+            {
+                public interface IUnion
+                {
+                    object? Value { get; }
+                }
+
+                public class UnionAttribute : System.Attribute
+                {
+                }
+            }
+            """);
+
+        AddCSharpSyntaxTree("""
+            using Microsoft.AspNetCore.Razor.TagHelpers;
+
+            namespace Test
+            {
+                public union SlotContent(string, int);
+
+                public class SlotTagHelper : TagHelper
+                {
+                    public SlotContent Content { get; set; }
+                }
+            }
+            """);
+
+        RunDiscoveredTagHelpersTest(static tagHelpers =>
+        {
+            Assert.Contains(tagHelpers, static tagHelper => tagHelper.TypeName == "Test.SlotTagHelper");
+        });
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/12261")]
     public void TagHelpersWithBoundAttributesAndRazorComment() => RunTagHelpersTest(TestTagHelperDescriptors.SimpleTagHelperDescriptors);
 
@@ -331,6 +371,31 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         var imports = GetImports(projectEngine, projectItem);
 
         AddTagHelperStubs(tagHelpers);
+
+        // Act
+        var codeDocument = projectEngine.Process(RazorSourceDocument.ReadFrom(projectItem), RazorFileKind.Legacy, imports, tagHelpers);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(codeDocument.GetRequiredDocumentNode(), testName);
+        AssertCSharpDocumentMatchesBaseline(codeDocument.GetRequiredCSharpDocument(), testName);
+        AssertCSharpDiagnosticsMatchBaseline(codeDocument, testName);
+    }
+
+    private void RunDiscoveredTagHelpersTest(Action<TagHelperCollection> verifyTagHelpers, [CallerMemberName] string testName = "")
+    {
+        // Arrange
+        var projectEngine = CreateProjectEngine(static builder =>
+        {
+            RazorExtensions.Register(builder);
+            builder.RegisterDefaultTagHelperProducer();
+        });
+
+        var projectItem = CreateProjectItemFromFile(testName: testName);
+        var imports = GetImports(projectEngine, projectItem);
+        var compilation = BaseCompilation.AddSyntaxTrees(CSharpSyntaxTrees);
+        var tagHelpers = projectEngine.Engine.Features.OfType<ITagHelperDiscoveryService>().Single().GetTagHelpers(compilation);
+
+        verifyTagHelpers(tagHelpers);
 
         // Act
         var codeDocument = projectEngine.Process(RazorSourceDocument.ReadFrom(projectItem), RazorFileKind.Legacy, imports, tagHelpers);
