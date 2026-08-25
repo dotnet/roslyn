@@ -487,6 +487,8 @@ gh pr create --repo {owner}/{repo} \
 
 Find them with `git ls-files 'src/RoslynAnalyzers/**/*.sarif'` or search via the GitHub API. Replace `"version": "{oldVersion}"` with `"version": "{newVersion}"` (e.g., `"5.6.0"` → `"5.7.0"`).
 
+These SARIF files are generated and intentionally have no final newline. Perform a byte-preserving replacement: keep the existing encoding, BOM, line endings, and EOF state exactly. Do not deserialize/reserialize the JSON or append a newline. The correctness build regenerates these files and fails if any non-version bytes differ.
+
 **Razor versions in `eng/Versions.props`**: Two independent sets of edits in the Razor PropertyGroups. Read the current file, perform both replacements in memory, then PUT the new content back via the GitHub API.
 
 - **5a. VSIX/Addin version** -- bump the VS version (always done):
