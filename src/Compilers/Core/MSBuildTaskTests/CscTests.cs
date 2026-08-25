@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         /// <summary>
-        /// The value of `DOTNET_HOST_PATH` will be preffered as is when present
+        /// The value of `DOTNET_HOST_PATH` will be preferred as is when present
         /// </summary>
         [Fact]
         public void BuiltInToolUsesTaskEnvironmentDotNetHostPathRelative()

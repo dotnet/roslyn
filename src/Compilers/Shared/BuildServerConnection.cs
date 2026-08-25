@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                 // Clear DOTNET_ROOT* variables such as DOTNET_ROOT_X64 by setting them to empty,
                 // as we want to set our own DOTNET_ROOT and avoid conflicts
-                if (dotNetRoot != null && key.StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, StringComparison.OrdinalIgnoreCase))
+                if (dotNetRoot != null && key.StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, Environment.EnvironmentVariableComparison))
                 {
                     environmentVariables[key] = string.Empty;
                 }

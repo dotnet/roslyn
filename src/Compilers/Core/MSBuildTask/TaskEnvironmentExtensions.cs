@@ -17,7 +17,15 @@ internal static class TaskEnvironmentExtensions
     {
         public TaskBuildEnvironment BuildEnvironment => new TaskBuildEnvironment(taskEnvironment);
 
-        public string? GetTempPath() => taskEnvironment.BuildEnvironment.GetTempPath();
+        /// <summary>
+        /// Get the temporary path to use for this task environment.
+        /// </summary>
+        /// <remarks>
+        /// Delete when the MSBuild API is available https://github.com/dotnet/msbuild/issues/14583
+        /// </remarks>
+#pragma warning disable RS0030 // Do not use banned APIs
+        public string? GetTempPath() => Path.GetTempPath();
+#pragma warning restore RS0030 // Do not use banned APIs
 
         public string GetFullPathNoThrow(string path)
         {
