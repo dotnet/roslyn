@@ -91,6 +91,10 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
         if (solutionPath is null)
             return projectsThatNeedRestore;
 
+        // If there's only one project to restore, then there's no advantage to restoring the entire solution
+        if (projectsThatNeedRestore.Length == 1)
+            return projectsThatNeedRestore;
+
         // Re-read the solution's current project set so a solution-level restore only collapses projects that are
         // actually part of the solution as it exists on disk right now (the set can change if the solution file is
         // edited between restores).
