@@ -21,6 +21,11 @@
     <Compile Include="..\DaemonConnection\*.cs" LinkBase="DaemonConnection" />
   </ItemGroup>
 
+  <ItemGroup Label="Shared telemetry files">
+    <Compile Include="..\..\VisualStudio\Core\Def\Telemetry\Shared\*.cs" LinkBase="Telemetry\Shared" />
+    <Compile Include="..\..\VisualStudio\Core\Def\Watson\FaultReporter.cs" Link="Telemetry\FaultReporter.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <!-- Include MIBC data if available.  This is produced by a separate profiling pipeline for the C# extension, and injected in official builds -->
     <PublishReadyToRunPgoFiles Condition="'$(VSCodeOptimizationDataRoot)'!=''" Include="$(VSCodeOptimizationDataRoot)\*.mibc" />
@@ -57,6 +62,7 @@
     <!-- An extern alias is necessary to prevent ambiguity between shared projects linked to both Workspace and BuildHost -->
     <ProjectReference Include="..\..\Workspaces\MSBuild\Core\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" Aliases="MSBuildWorkspaces" />
     <ProjectReference Include="..\..\Workspaces\MSBuild\Contracts\Microsoft.CodeAnalysis.Workspaces.MSBuild.Contracts.csproj" Aliases="MSBuildWorkspacesContracts" />
+    <ProjectReference Include="..\ProjectData\Microsoft.NET.ProjectData\Microsoft.NET.ProjectData.csproj" />
 
     <ProjectReference Include="..\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
 
@@ -68,10 +74,12 @@
 
     <!-- Not directly referenced but needed for Route embedded language features -->
     <ProjectReference Include="..\..\Features\ExternalAccess\Core\Microsoft.CodeAnalysis.Features.ExternalAccess.csproj" />
-    <ProjectReference Include="..\ExternalAccess\VisualDiagnostics\Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.csproj" />
+    <ProjectReference Include="..\ExternalAccess\Core\Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.csproj" />
     <!-- Ship the VS Code Razor entrypoint as a real runtime dependency so it participates in the server deps.json. -->
     <ProjectReference Include="..\..\Razor\src\Razor\src\Microsoft.VisualStudioCode.RazorExtension\Microsoft.VisualStudioCode.RazorExtension.csproj" />
-    <ProjectReference Include="..\ExternalAccess\Core\Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.csproj" />
+
+    <!-- EA packages that can be removed once unification is complete -->
+    <ProjectReference Include="..\ExternalAccess\CompilerDeveloperSDK\Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -83,6 +91,7 @@
     <PackageReference Include="Microsoft.TestPlatform.TranslationLayer" />
     <PackageReference Include="Microsoft.TestPlatform.ObjectModel" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" />
+    <PackageReference Include="Microsoft.VisualStudio.Telemetry" />
     <PackageReference Include="NuGet.ProjectModel" />
     <PackageReference Include="System.CommandLine" />
 
@@ -90,8 +99,8 @@
       Ensure we include the sqlite assemblies and their native dependencies in our package to enable persistent storage.
     -->
     <PackageReference Include="SQLitePCLRaw.core" />
-    <PackageReference Include="SQLite3MC.PCLRaw.bundle" />
-    <PackageReference Include="SQLite3MC.PCLRaw.provider" />
+    <PackageReference Include="SQLitePCLRaw.bundle_green" />
+    <PackageReference Include="SQLitePCLRaw.provider.dynamic_cdecl" />
   </ItemGroup>
 
   <ItemGroup>
@@ -130,8 +139,8 @@
           BeforeTargets="Build">
     <PropertyGroup>
       <_SymbolExclusionsFile>$(RepoRoot)eng\SymbolPublishingExclusionsFile.txt</_SymbolExclusionsFile>
-      <_ExpectedArm64Entry>tools/$(TargetFramework)/linux-musl-arm64/libsqlite3mc.so</_ExpectedArm64Entry>
-      <_ExpectedX64Entry>tools/$(TargetFramework)/linux-musl-x64/libsqlite3mc.so</_ExpectedX64Entry>
+      <_ExpectedArm64Entry>tools/$(TargetFramework)/linux-musl-arm64/libe_sqlite3.so</_ExpectedArm64Entry>
+      <_ExpectedX64Entry>tools/$(TargetFramework)/linux-musl-x64/libe_sqlite3.so</_ExpectedX64Entry>
     </PropertyGroup>
 
     <ReadLinesFromFile File="$(_SymbolExclusionsFile)">
