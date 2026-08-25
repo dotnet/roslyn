@@ -2887,12 +2887,6 @@ namespace Microsoft.CodeAnalysis
                 options = options.WithIncludePrivateMembers(true);
             }
 
-            if (options?.DebugInformationFormat == DebugInformationFormat.Embedded &&
-                options?.EmitMetadataOnly == true)
-            {
-                throw new ArgumentException(CodeAnalysisResources.EmbeddingPdbUnexpectedWhenEmittingMetadata, nameof(metadataPEStream));
-            }
-
             if (this.Options.OutputKind == OutputKind.NetModule)
             {
                 if (metadataPEStream != null)
@@ -3274,7 +3268,12 @@ namespace Microsoft.CodeAnalysis
 
             string? pePdbFilePath = emitOptions.PdbFilePath;
 
-            if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Embedded || pdbStreamProvider != null)
+            if (emitOptions.EmitMetadataOnly)
+            {
+                // Metadata-only output has no associated PDB. Clear the path so the PE writer doesn't emit a CodeView entry.
+                pePdbFilePath = null;
+            }
+            else if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Embedded || pdbStreamProvider != null)
             {
                 pePdbFilePath = pePdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb");
             }

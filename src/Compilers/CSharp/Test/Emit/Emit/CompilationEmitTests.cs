@@ -2709,16 +2709,22 @@ struct S
         }
 
         [Fact]
-        public void EmitMetadataOnly_DisallowEmbeddingPdb()
+        public void EmitMetadataOnly_IgnoreEmbeddedPdb()
         {
             CSharpCompilation comp = CreateEmptyCompilation("", references: new[] { MscorlibRef },
-                options: TestOptions.DebugDll);
+                options: TestOptions.DebugDll.WithDeterministic(true));
 
             using (var output = new MemoryStream())
             {
-                Assert.Throws<ArgumentException>(() => comp.Emit(output,
+                var result = comp.Emit(output,
                     options: EmitOptions.Default.WithEmitMetadataOnly(true)
-                        .WithDebugInformationFormat(DebugInformationFormat.Embedded)));
+                        .WithDebugInformationFormat(DebugInformationFormat.Embedded));
+
+                Assert.True(result.Success);
+                using var peReader = new PEReader(output.ToImmutable());
+                AssertEx.Equal(
+                    new[] { DebugDirectoryEntryType.Reproducible },
+                    peReader.ReadDebugDirectory().Select(entry => entry.Type));
             }
         }
 
