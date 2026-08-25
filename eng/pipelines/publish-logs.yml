@@ -47,6 +47,7 @@ steps:
         testRunner: XUnit
         testResultsFiles: '$(Build.SourcesDirectory)/artifacts/TestResults/${{ parameters.configuration }}/*.xml'
         mergeTestResults: true
+        failTaskOnFailureToPublishResults: true
         testRunTitle: ${{ parameters.testRunName }}
     condition: and(always(), ne('${{ parameters.testRunName }}', ''))
 
