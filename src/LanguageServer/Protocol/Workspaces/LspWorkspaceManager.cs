@@ -259,26 +259,6 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 // We have at least one document, so find the one in the right project context.
                 var document = documents.FindDocumentInProjectContext(textDocumentIdentifier, (sln, id) => sln.GetRequiredTextDocument(id));
 
-                if (workspace.Kind == WorkspaceKind.MiscellaneousFiles &&
-                    !_trackedDocuments.ContainsKey(uri) &&
-                    TryReadSourceTextFromFile(uri) is { } sourceText &&
-                    !await AreChecksumsEqualAsync(document, sourceText, cancellationToken).ConfigureAwait(false))
-                {
-                    var changeKind = document.Kind switch
-                    {
-                        TextDocumentKind.Document => WorkspaceChangeKind.DocumentChanged,
-                        TextDocumentKind.AdditionalDocument => WorkspaceChangeKind.AdditionalDocumentChanged,
-                        TextDocumentKind.AnalyzerConfigDocument => WorkspaceChangeKind.AnalyzerConfigDocumentChanged,
-                        _ => throw ExceptionUtilities.UnexpectedValue(document.Kind),
-                    };
-
-                    workspace.SetCurrentSolution(
-                        solution => solution.WithTextDocumentText(document.Id, sourceText),
-                        changeKind,
-                        documentId: document.Id);
-                    document = workspace.CurrentSolution.GetRequiredTextDocument(document.Id);
-                }
-
                 if (workspace.Kind != WorkspaceKind.MiscellaneousFiles && _lspMiscellaneousFilesWorkspaceProvider is not null)
                 {
                     // Found the document in a non-miscellaneous files workspace.

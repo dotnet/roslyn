@@ -79,7 +79,11 @@ public sealed partial class LspMiscellaneousFilesWorkspaceProviderTests : Abstra
         Assert.NotNull(symbols);
         Assert.Equal("A", Assert.Single(symbols).Name);
 
+        var documentChanged = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var miscellaneousWorkspace = (await GetMiscellaneousDocumentAsync(testLspServer))!.Project.Solution.Workspace;
+        using var _ = miscellaneousWorkspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
         sourceFile.WriteAllText("class B { }");
+        await documentChanged.Task.WaitAsync(TimeSpan.FromSeconds(30));
         symbols = await testLspServer.ExecuteRequestAsync<LSP.DocumentSymbolParams, LSP.DocumentSymbol[]>(
             LSP.Methods.TextDocumentDocumentSymbolName,
             new LSP.DocumentSymbolParams { TextDocument = CreateTextDocumentIdentifier(looseFileUri) },
@@ -87,6 +91,16 @@ public sealed partial class LspMiscellaneousFilesWorkspaceProviderTests : Abstra
 
         Assert.NotNull(symbols);
         Assert.Equal("B", Assert.Single(symbols).Name);
+
+        void OnWorkspaceChanged(WorkspaceChangeEventArgs args)
+        {
+            if (args.Kind == WorkspaceChangeKind.DocumentChanged &&
+                args.DocumentId is { } documentId &&
+                args.NewSolution.GetDocument(documentId)?.FilePath == sourceFile.Path)
+            {
+                documentChanged.TrySetResult();
+            }
+        }
     }
 
     [Theory, CombinatorialData]

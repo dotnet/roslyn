@@ -77,7 +77,10 @@ internal abstract class LanguageServerProjectLoader : IDisposable
         /// ID of the project which LSP uses to fulfill requests until the first design-time build is complete.
         /// The project with this ID is removed from the workspace when unloading or when transitioning to <see cref="LoadedTargets"/> state.
         /// </param>
-        public sealed record Primordial(ProjectSystemProjectFactory PrimordialProjectFactory, ProjectId PrimordialProjectId) : ProjectLoadState;
+        public sealed record Primordial(
+            ProjectSystemProjectFactory PrimordialProjectFactory,
+            ProjectId PrimordialProjectId,
+            ProjectSystemProject? ProjectSystemProject) : ProjectLoadState;
 
         /// <summary>
         /// Represents a project for which we have loaded zero or more targets.
@@ -370,9 +373,16 @@ internal abstract class LanguageServerProjectLoader : IDisposable
                 if (startingLoadState is ProjectLoadState.Primordial primordial)
                 {
                     // Remove the primordial project from the workspace now that the design-time build has produced real targets.
-                    await primordial.PrimordialProjectFactory.ApplyChangeToWorkspaceAsync(
-                        workspace => workspace.OnProjectRemoved(primordial.PrimordialProjectId),
-                        cancellationToken);
+                    if (primordial.ProjectSystemProject is null)
+                    {
+                        await primordial.PrimordialProjectFactory.ApplyChangeToWorkspaceAsync(
+                            workspace => workspace.OnProjectRemoved(primordial.PrimordialProjectId),
+                            cancellationToken);
+                    }
+                    else
+                    {
+                        await primordial.ProjectSystemProject.RemoveFromWorkspaceAsync();
+                    }
                 }
             }
 
@@ -420,7 +430,11 @@ internal abstract class LanguageServerProjectLoader : IDisposable
         }
     }
 
-    protected async ValueTask<Project?> GetOrLoadProjectAsync(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, Func<ProjectSystemProjectFactory, ProjectInfo> createPrimordialProjectInfo, bool doDesignTimeBuild)
+    protected async ValueTask<Project?> GetOrLoadProjectAsync(
+        string projectPath,
+        ProjectSystemProjectFactory primordialProjectFactory,
+        Func<ProjectSystemProjectFactory, CancellationToken, ValueTask<(Project project, ProjectSystemProject? projectSystemProject)>> createPrimordialProjectAsync,
+        bool doDesignTimeBuild)
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
@@ -433,13 +447,12 @@ internal abstract class LanguageServerProjectLoader : IDisposable
                 return LookupExistingProject(existingState);
             }
 
-            var primordialProjectInfo = createPrimordialProjectInfo(primordialProjectFactory);
-            primordialProjectFactory.ApplyChangeToWorkspace(workspace => workspace.OnProjectAdded(primordialProjectInfo));
-            _loadedProjects.Add(projectPath, new ProjectLoadState.Primordial(primordialProjectFactory, primordialProjectInfo.Id));
+            var (primordialProject, projectSystemProject) = await createPrimordialProjectAsync(primordialProjectFactory, CancellationToken.None);
+            _loadedProjects.Add(projectPath, new ProjectLoadState.Primordial(primordialProjectFactory, primordialProject.Id, projectSystemProject));
             if (doDesignTimeBuild)
                 _projectsToReload.AddWork(new ProjectToLoad(projectPath, ProjectGuid: null, ReportTelemetry: true));
 
-            return primordialProjectFactory.Workspace.CurrentSolution.GetRequiredProject(primordialProjectInfo.Id);
+            return primordialProject;
         }
 
         Project? LookupExistingProject(ProjectLoadState loadState)
@@ -591,11 +604,13 @@ internal abstract class LanguageServerProjectLoader : IDisposable
 
             foreach (var (_, loadState) in _loadedProjects)
             {
-                // Disposing a LoadedProject unloads it, releasing its file watches and removing it from the workspace.
-                // Primordial projects don't own any file watches; their placeholder projects are torn down along with
-                // the workspace, so there's nothing to release for them here.
-                if (loadState is ProjectLoadState.LoadedTargets(var loadedProjectTargets))
+                if (loadState is ProjectLoadState.Primordial(_, _, { } projectSystemProject))
                 {
+                    projectSystemProject.RemoveFromWorkspace();
+                }
+                else if (loadState is ProjectLoadState.LoadedTargets(var loadedProjectTargets))
+                {
+                    // Disposing a LoadedProject unloads it, releasing its file watches and removing it from the workspace.
                     foreach (var loadedProject in loadedProjectTargets)
                         loadedProject.Dispose();
                 }
@@ -628,9 +643,12 @@ internal abstract class LanguageServerProjectLoader : IDisposable
             return false;
         }
 
-        if (loadState is ProjectLoadState.Primordial(var projectFactory, var projectId))
+        if (loadState is ProjectLoadState.Primordial(var projectFactory, var projectId, var projectSystemProject))
         {
-            await projectFactory.ApplyChangeToWorkspaceAsync(workspace => workspace.OnProjectRemoved(projectId));
+            if (projectSystemProject is null)
+                await projectFactory.ApplyChangeToWorkspaceAsync(workspace => workspace.OnProjectRemoved(projectId));
+            else
+                await projectSystemProject.RemoveFromWorkspaceAsync();
         }
         else if (loadState is ProjectLoadState.LoadedTargets(var existingProjects))
         {
@@ -651,7 +669,7 @@ internal abstract class LanguageServerProjectLoader : IDisposable
         {
             if (_loadedProjects.TryGetValue(projectPath, out var loadState1))
             {
-                if (loadState1 is ProjectLoadState.Primordial(var projectFactory1, _))
+                if (loadState1 is ProjectLoadState.Primordial(var projectFactory1, _, _))
                 {
                     if (projectFactory1 == fromProjectFactory)
                         return true;
