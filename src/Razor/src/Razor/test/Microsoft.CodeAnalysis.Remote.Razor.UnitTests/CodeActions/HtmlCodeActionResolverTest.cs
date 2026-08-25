@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
-using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Testing;
@@ -96,7 +95,7 @@ public class HtmlCodeActionResolverTest
 
         workspace.TryApplyChanges(solution);
         var document = workspace.CurrentSolution.GetAdditionalDocument(documentId)!;
-        var snapshotManager = new RemoteSnapshotManager(NoOpTelemetryReporter.Instance);
+        var snapshotManager = new RemoteSnapshotManager();
         var snapshot = snapshotManager.GetSnapshot(document);
 
         return (snapshot, sourceText, workspace);

@@ -8,9 +8,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Analyzers;
 
 internal static class OmnisharpAnalyzerAssemblyLoaderFactory
 {
-    public static IAnalyzerAssemblyLoader CreateShadowCopyAnalyzerAssemblyLoader(string? baseDirectory = null)
+    public static IAnalyzerAssemblyLoader CreateShadowCopyAnalyzerAssemblyLoader()
     {
-        baseDirectory ??= Path.Combine(Path.GetTempPath(), "CodeAnalysis", "OmnisharpAnalyzerShadowCopies");
-        return AnalyzerAssemblyLoader.CreateNonLockingLoader(baseDirectory);
+        AnalyzerAssemblyLoader.CleanLegacyShadowCopyDirectoryIfNeeded(Path.Combine(Path.GetTempPath(), "CodeAnalysis", "OmnisharpAnalyzerShadowCopies"));
+        return AnalyzerAssemblyLoader.CreateNonLockingLoader(Path.Combine(Path.GetTempPath(), "CodeAnalysis", "OmnisharpAnalyzerPathResolver"));
     }
 }

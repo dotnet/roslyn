@@ -25,6 +25,18 @@ public sealed class DocumentIntermediateNode : IntermediateNode
     internal DocumentIntermediateNode DeclDocumentNode { get; set; }
 
     /// <summary>
+    /// For a fallback component (one that could not be split), the full discoverable decl subtree --
+    /// the same declaration surface <see cref="DefaultRazorMarkupSplitPhase"/> builds for a split
+    /// component, but retained here rather than emitted to pre-compilation. The source generator lowers
+    /// it and feeds its syntax tree straight into slow discovery, so the fallback component's descriptor
+    /// is produced from the already-parsed document instead of re-parsing the source through a separate
+    /// declaration engine. Distinct from <see cref="DeclDocumentNode"/>, which for a fallback is the
+    /// bodiless type shell emitted to pre-compilation for C# type resolution. Null when the component
+    /// split completely, or for a fallback with no render method or namespace to build a decl from.
+    /// </summary>
+    internal DocumentIntermediateNode FallbackDiscoveryDeclDocumentNode { get; set; }
+
+    /// <summary>
     /// The namespace-qualified type name of a component document that could not be split completely, so its
     /// tag-helper descriptor must be produced by the separate declaration engine (the fallback discovery
     /// path) rather than read from the pre-compilation compilation; <see langword="null"/> for a component
@@ -65,6 +77,7 @@ public sealed class DocumentIntermediateNode : IntermediateNode
         {
             DocumentKind = DocumentKind,
             DeclDocumentNode = DeclDocumentNode,
+            FallbackDiscoveryDeclDocumentNode = FallbackDiscoveryDeclDocumentNode,
             FallbackComponentTypeName = FallbackComponentTypeName,
             Options = Options,
             Target = Target,

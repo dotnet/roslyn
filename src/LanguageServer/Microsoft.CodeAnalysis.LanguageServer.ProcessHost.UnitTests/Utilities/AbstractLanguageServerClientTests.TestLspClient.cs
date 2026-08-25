@@ -31,8 +31,10 @@ public partial class AbstractLanguageServerClientTests
         private readonly string _workspaceRootPath;
         private readonly Dictionary<string, IList<LSP.Location>> _locations;
         private readonly ILoggerFactory _loggerFactory;
+        private readonly object _shutdownGate = new();
         private readonly int? _initializeProcessId;
         private LspWorkspaceContent _workspaceContent;
+        private Task? _shutdownAndExitTask;
 
         private readonly JsonRpc _clientRpc;
 
@@ -260,9 +262,22 @@ public partial class AbstractLanguageServerClientTests
             _clientRpc.Dispose();
         }
 
-        /// <summary>Performs a clean LSP <c>shutdown</c>/<c>exit</c> so the session ends gracefully.</summary>
-        internal async Task ShutdownAndExitAsync()
+        /// <summary>Performs a clean LSP <c>shutdown</c>/<c>exit</c> once so the session ends gracefully.</summary>
+        internal Task ShutdownAndExitAsync()
         {
+            lock (_shutdownGate)
+            {
+                return _shutdownAndExitTask ??= ShutdownAndExitCoreAsync();
+            }
+        }
+
+        private async Task ShutdownAndExitCoreAsync()
+        {
+            // Ensure the shutdown handshake does not run while holding _shutdownGate.
+            await Task.Yield();
+
+            _loggerFactory.CreateLogger("Shutdown").LogTrace("Sending a Shutdown request to the LSP.");
+
             await _clientRpc.InvokeAsync(Methods.ShutdownName);
             await _clientRpc.NotifyAsync(Methods.ExitName);
         }
@@ -427,11 +442,7 @@ public partial class AbstractLanguageServerClientTests
         {
             if (!_thinClientProcess.HasExited && !serverProcess.HasExited)
             {
-                _loggerFactory.CreateLogger("Shutdown").LogTrace("Sending a Shutdown request to the LSP.");
-
-                await _clientRpc.InvokeAsync(Methods.ShutdownName);
-                await _clientRpc.NotifyAsync(Methods.ExitName);
-
+                await ShutdownAndExitAsync();
                 await _clientRpc.Completion;
             }
 
