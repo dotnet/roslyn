@@ -207,7 +207,7 @@ internal sealed partial class LoadedProject : IAsyncDisposable
 
             foreach (var loadedProjectInfo in loadedProjectInfos)
             {
-                var (target, targetAlreadyExists) = await GetOrCreateProjectTargetAsync(loadedProjectInfo, projectFactory, workspaceFactory, cancellationToken);
+                var target = await GetOrCreateProjectTargetAsync(loadedProjectInfo, projectFactory, workspaceFactory, cancellationToken);
                 staleTargets.Remove(target);
                 await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, isMiscellaneousFile, hasAllInformation, targetFrameworkManager, logger);
             }
@@ -233,13 +233,13 @@ internal sealed partial class LoadedProject : IAsyncDisposable
         }
     }
 
-    private async Task<(Target, bool alreadyExists)> GetOrCreateProjectTargetAsync(ProjectFileInfo loadedProjectInfo, ProjectSystemProjectFactory projectFactory, LanguageServerWorkspaceFactory workspaceFactory, CancellationToken cancellationToken)
+    private async Task<Target> GetOrCreateProjectTargetAsync(ProjectFileInfo loadedProjectInfo, ProjectSystemProjectFactory projectFactory, LanguageServerWorkspaceFactory workspaceFactory, CancellationToken cancellationToken)
     {
         Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
         var existingTarget = _targets.SingleOrDefault(p => p.GetTargetFramework() == loadedProjectInfo.TargetFramework && p.ProjectFactory == projectFactory);
         if (existingTarget != null)
-            return (existingTarget, alreadyExists: true);
+            return existingTarget;
 
         var targetFramework = loadedProjectInfo.TargetFramework;
         var projectSystemName = targetFramework is null ? _projectFilePath : $"{_projectFilePath} (${targetFramework})";
@@ -260,7 +260,7 @@ internal sealed partial class LoadedProject : IAsyncDisposable
 
         var target = new Target(this, projectSystemProject, projectFactory);
         _targets.Add(target);
-        return (target, alreadyExists: false);
+        return target;
     }
 
     public async ValueTask SetProjectGuidForTelemetryAsync(Guid guid)
