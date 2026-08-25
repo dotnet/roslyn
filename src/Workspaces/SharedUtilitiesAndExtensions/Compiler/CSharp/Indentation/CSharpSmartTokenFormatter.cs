@@ -47,6 +47,17 @@ internal sealed class CSharpSmartTokenFormatter : ISmartTokenFormatter
         Contract.ThrowIfTrue(startToken.Kind() is SyntaxKind.None or SyntaxKind.EndOfFileToken);
         Contract.ThrowIfTrue(endToken.Kind() is SyntaxKind.None or SyntaxKind.EndOfFileToken);
 
+        var previousToken = endToken.GetPreviousToken(includeZeroWidth: true);
+        // A trailing comma produces a missing parameter. Formatting through an already-separated close paren
+        // duplicates the trivia before it, so stop at the last visible token in the incomplete parameter list.
+        if (endToken.IsKind(SyntaxKind.CloseParenToken) &&
+            endToken.Parent is BaseParameterListSyntax &&
+            previousToken.IsMissing &&
+            !_text.AreOnSameLine(previousToken, endToken))
+        {
+            endToken = previousToken.GetPreviousToken();
+        }
+
         var smartTokenformattingRules = _formattingRules;
         var common = startToken.GetCommonRoot(endToken);
         RoslynDebug.AssertNotNull(common);
