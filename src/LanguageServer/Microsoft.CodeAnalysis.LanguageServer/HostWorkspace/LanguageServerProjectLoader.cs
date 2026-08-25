@@ -146,13 +146,12 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
 
     private async ValueTask ReloadProjectsAsync(ImmutableSegmentedList<ProjectToLoad> projectsToLoadOrReload, CancellationToken cancellationToken)
     {
-        var stopwatch = Stopwatch.StartNew();
-
         // TODO: support configuration switching
+        var stopwatch = Stopwatch.StartNew();
+        ImmutableArray<string> projectsThatNeedRestore;
 
         try
         {
-            ImmutableArray<string> projectsThatNeedRestore;
 
             // Disposing of this BuildHostProcessManager will shut down any processes; so be explicit about the scope so we don't hold onto it longer than
             // needed.
@@ -186,18 +185,18 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
                     args: (@this: this, toastErrorReporter, buildHostProcessManager),
                     cancellationToken).ConfigureAwait(false);
             }
-
-            if (GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore) && projectsThatNeedRestore.Any())
-            {
-                var pathsToRestore = await GetPathsToRestoreAsync(projectsThatNeedRestore, cancellationToken);
-
-                // This request blocks to ensure we aren't trying to run a design time build at the same time as a restore.
-                await ProjectDependencyHelper.RestoreProjectsAsync(_workDoneProgressManager, pathsToRestore, EnableProgressReporting, _dotnetCliHelper, _logger, cancellationToken);
-            }
         }
         finally
         {
-            _logger.LogInformation(string.Format(LanguageServerResources.Completed_reload_of_all_projects_in_0, stopwatch.Elapsed));
+            _logger.LogInformation(string.Format(LanguageServerResources.Completed_reload_of_0_projects_in_1, projectsToLoadOrReload.Count, stopwatch.Elapsed));
+        }
+
+        if (GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore) && projectsThatNeedRestore.Any())
+        {
+            var pathsToRestore = await GetPathsToRestoreAsync(projectsThatNeedRestore, cancellationToken);
+
+            // This request blocks to ensure we aren't trying to run a design time build at the same time as a restore.
+            await ProjectDependencyHelper.RestoreProjectsAsync(_workDoneProgressManager, pathsToRestore, EnableProgressReporting, _dotnetCliHelper, _logger, cancellationToken);
         }
     }
 
