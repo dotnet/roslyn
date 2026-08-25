@@ -754,6 +754,16 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .class public A
             {
                 .method public static void M() { ldnull throw }
+                .field public static int32 F
+                .method public specialname static int32 get_P() { ldc.i4.0 ret }
+                .property int32 P() { .get int32 A::get_P() }
+                .method public specialname static void add_E(class [mscorlib]System.Action 'value') { ret }
+                .method public specialname static void remove_E(class [mscorlib]System.Action 'value') { ret }
+                .event [mscorlib]System.Action E
+                {
+                    .addon void A::add_E(class [mscorlib]System.Action)
+                    .removeon void A::remove_E(class [mscorlib]System.Action)
+                }
             }
             """;
         var refA = CompileIL(sourceA, prependDefaultHeader: false);
@@ -761,7 +771,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         var sourceB = """
             class B
             {
-                void M() => A.M();
+                void M()
+                {
+                    A.M();
+                    _ = A.F;
+                    _ = A.P;
+                    A.E += () => { };
+                }
             }
             """;
         var comp = CreateCompilation(sourceB, [refA]);
@@ -772,9 +788,18 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         else
         {
             comp.VerifyDiagnostics(
-                // (3,17): error CS9103: 'A.M()' is defined in a module with an unrecognized System.Runtime.CompilerServices.MemorySafetyRulesAttribute version, expecting '2'.
-                //     void M() => A.M();
-                Diagnostic(ErrorCode.ERR_UnrecognizedAttributeVersion, "A.M").WithArguments("A.M()", "System.Runtime.CompilerServices.MemorySafetyRulesAttribute", "2").WithLocation(3, 17));
+                // (5,9): error CS9103: 'A.M()' is defined in a module with an unrecognized System.Runtime.CompilerServices.MemorySafetyRulesAttribute version, expecting '2'.
+                //         A.M();
+                Diagnostic(ErrorCode.ERR_UnrecognizedAttributeVersion, "A.M").WithArguments("A.M()", "System.Runtime.CompilerServices.MemorySafetyRulesAttribute", "2").WithLocation(5, 9),
+                // (6,15): error CS9103: 'A.F' is defined in a module with an unrecognized System.Runtime.CompilerServices.MemorySafetyRulesAttribute version, expecting '2'.
+                //         _ = A.F;
+                Diagnostic(ErrorCode.ERR_UnrecognizedAttributeVersion, "F").WithArguments("A.F", "System.Runtime.CompilerServices.MemorySafetyRulesAttribute", "2").WithLocation(6, 15),
+                // (7,15): error CS9103: 'A.P' is defined in a module with an unrecognized System.Runtime.CompilerServices.MemorySafetyRulesAttribute version, expecting '2'.
+                //         _ = A.P;
+                Diagnostic(ErrorCode.ERR_UnrecognizedAttributeVersion, "P").WithArguments("A.P", "System.Runtime.CompilerServices.MemorySafetyRulesAttribute", "2").WithLocation(7, 15),
+                // (8,11): error CS9103: 'A.E' is defined in a module with an unrecognized System.Runtime.CompilerServices.MemorySafetyRulesAttribute version, expecting '2'.
+                //         A.E += () => { };
+                Diagnostic(ErrorCode.ERR_UnrecognizedAttributeVersion, "E").WithArguments("A.E", "System.Runtime.CompilerServices.MemorySafetyRulesAttribute", "2").WithLocation(8, 11));
         }
 
         var bM = comp.GetMember<MethodSymbol>("B.M");
@@ -787,8 +812,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         // VB
         var sourceVB = """
             Class C
+                Shared Sub Handler()
+                End Sub
+
                 Sub M()
                     A.M()
+                    Dim f = A.F
+                    Dim p = A.P
+                    AddHandler A.E, AddressOf Handler
                 End Sub
             End Class
             """;
