@@ -1,12 +1,15 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System.IO.Pipes;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
+using Roslyn.Test.Utilities;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -104,6 +107,111 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
         Assert.DoesNotContain(factory2.HostWorkspace, registrations1);
         Assert.Contains(factory2.HostWorkspace, registrations2);
         Assert.DoesNotContain(factory1.HostWorkspace, registrations2);
+    }
+
+    [Fact]
+    public async Task Daemon_ClosingSolutionReleasesReferencesOnlyUsedByThatSolution()
+    {
+        var directory = TempRoot.CreateDirectory();
+        var sharedPath = Path.Combine(directory.Path, "Shared.dll");
+        var uniquePath = Path.Combine(directory.Path, "Unique.dll");
+        File.Copy(typeof(object).Assembly.Location, sharedPath);
+        File.Copy(typeof(Enumerable).Assembly.Location, uniquePath);
+
+        await using var daemon = await CreateDaemonServerAsync();
+        await using var closing = await daemon.CreateClientAsync();
+        await using var survivor = await daemon.CreateClientAsync();
+        var closingWorkspace = closing.GetRequiredLspService<LanguageServerWorkspaceFactory>().HostWorkspace;
+        var survivorWorkspace = survivor.GetRequiredLspService<LanguageServerWorkspaceFactory>().HostWorkspace;
+        CreateMetadataLifetimeReferences(closingWorkspace, survivorWorkspace, sharedPath, uniquePath,
+            out var sharedReference,
+            out var uniqueReference);
+
+        ClearProjects(closingWorkspace);
+        uniqueReference.AssertReleased();
+        sharedReference.AssertHeld();
+
+        // Keep reference creation in a separate stack frame so the GC can collect references after this returns.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static void CreateMetadataLifetimeReferences(
+            Workspace closingWorkspace,
+            Workspace survivorWorkspace,
+            string sharedPath,
+            string uniquePath,
+            out ObjectReference<PortableExecutableReference> sharedReference,
+            out ObjectReference<PortableExecutableReference> uniqueReference)
+        {
+            var survivorSharedReference = survivorWorkspace.Services.GetRequiredService<IMetadataService>()
+                .GetReference(sharedPath, MetadataReferenceProperties.Assembly);
+            var closingMetadataService = closingWorkspace.Services.GetRequiredService<IMetadataService>();
+            var closingSharedReference = closingMetadataService.GetReference(sharedPath, MetadataReferenceProperties.Assembly);
+            var closingUniqueReference = closingMetadataService.GetReference(uniquePath, MetadataReferenceProperties.Assembly);
+
+            Assert.Same(survivorSharedReference, closingSharedReference);
+
+            AddProjectWithReferences(survivorWorkspace, "Survivor", [survivorSharedReference]);
+            AddProjectWithReferences(closingWorkspace, "Closing", [closingSharedReference, closingUniqueReference]);
+
+            sharedReference = ObjectReference.Create(survivorSharedReference);
+            uniqueReference = ObjectReference.Create(closingUniqueReference);
+        }
+    }
+
+    [Fact]
+    public async Task Daemon_SharesGreenSyntaxTreesAcrossServers()
+    {
+        const string source = "class SharedSyntaxTree { }";
+
+        await using var daemon = await CreateDaemonServerAsync();
+        await using var second = await daemon.CreateClientAsync();
+
+        var secondFactory = second.GetRequiredLspService<LanguageServerWorkspaceFactory>();
+        var secondDocument = LoadProjectWithDocument(
+            secondFactory,
+            projectName: "Second",
+            source,
+            filePath: Path.Combine(Path.GetTempPath(), "second", $"{Guid.NewGuid():N}.cs"));
+
+        SyntaxNode secondRoot;
+        await using (var first = await daemon.CreateClientAsync())
+        {
+            var firstFactory = first.GetRequiredLspService<LanguageServerWorkspaceFactory>();
+            var firstDocument = LoadProjectWithDocument(
+                firstFactory,
+                projectName: "First",
+                source,
+                filePath: Path.Combine(Path.GetTempPath(), "first", $"{Guid.NewGuid():N}.cs"));
+
+            var firstTree = await firstDocument.GetSyntaxTreeAsync(CancellationToken.None);
+            var secondTree = await secondDocument.GetSyntaxTreeAsync(CancellationToken.None);
+            Assert.NotNull(firstTree);
+            Assert.NotNull(secondTree);
+
+            var firstRoot = await firstTree.GetRootAsync(CancellationToken.None);
+            secondRoot = await secondTree.GetRootAsync(CancellationToken.None);
+
+            Assert.NotSame(firstFactory.HostWorkspace, secondFactory.HostWorkspace);
+            Assert.NotSame(firstTree, secondTree);
+            Assert.NotSame(firstRoot, secondRoot);
+            Assert.True(firstRoot.IsIncrementallyIdenticalTo(secondRoot));
+            Assert.NotEqual(firstTree.FilePath, secondTree.FilePath);
+            Assert.NotEqual(firstDocument.Id, secondDocument.Id);
+        }
+
+        await WaitForConditionAsync(() => daemon.GetStartedServers().Length == 1);
+
+        await using var third = await daemon.CreateClientAsync();
+        var thirdDocument = LoadProjectWithDocument(
+            third.GetRequiredLspService<LanguageServerWorkspaceFactory>(),
+            projectName: "Third",
+            source,
+            filePath: Path.Combine(Path.GetTempPath(), "third", $"{Guid.NewGuid():N}.cs"));
+        var thirdTree = await thirdDocument.GetSyntaxTreeAsync(CancellationToken.None);
+        Assert.NotNull(thirdTree);
+        var thirdRoot = await thirdTree.GetRootAsync(CancellationToken.None);
+
+        Assert.NotSame(secondRoot, thirdRoot);
+        Assert.True(secondRoot.IsIncrementallyIdenticalTo(thirdRoot));
     }
 
     // If one client's server faults (e.g. the client process crashes and abruptly drops its connection), the daemon
@@ -290,6 +398,23 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
             solution => solution.AddProject(projectName, projectName, LanguageNames.CSharp).Solution,
             WorkspaceChangeKind.ProjectAdded);
 
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void ClearProjects(Workspace workspace)
+        => workspace.SetCurrentSolution(
+            solution => solution.RemoveProject(solution.Projects.Single().Id),
+            WorkspaceChangeKind.SolutionCleared);
+
+    private static void AddProjectWithReferences(
+        Workspace workspace,
+        string projectName,
+        IReadOnlyList<MetadataReference> references)
+        => workspace.SetCurrentSolution(
+            solution => solution
+                .AddProject(projectName, projectName, LanguageNames.CSharp)
+                .AddMetadataReferences(references)
+                .Solution,
+            WorkspaceChangeKind.ProjectAdded);
+
     private static DocumentUri LoadProjectWithDocument(LanguageServerWorkspaceFactory workspaceFactory, string typeName)
     {
         var filePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.cs");
@@ -301,5 +426,21 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
             WorkspaceChangeKind.ProjectAdded);
 
         return ProtocolConversions.CreateAbsoluteDocumentUri(filePath);
+    }
+
+    private static Document LoadProjectWithDocument(
+        LanguageServerWorkspaceFactory workspaceFactory,
+        string projectName,
+        string source,
+        string filePath)
+    {
+        workspaceFactory.HostWorkspace.SetCurrentSolution(
+            solution => solution
+                .AddProject(projectName, projectName, LanguageNames.CSharp)
+                .AddDocument(Path.GetFileName(filePath), SourceText.From(source), filePath: filePath)
+                .Project.Solution,
+            WorkspaceChangeKind.ProjectAdded);
+
+        return workspaceFactory.HostWorkspace.CurrentSolution.Projects.Single().Documents.Single();
     }
 }

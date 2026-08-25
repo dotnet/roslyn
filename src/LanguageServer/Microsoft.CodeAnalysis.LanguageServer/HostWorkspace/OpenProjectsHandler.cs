@@ -43,7 +43,7 @@ internal sealed class OpenProjectHandler : ILspService, ILspServiceNotificationH
     async Task INotificationHandler<NotificationParams, RequestContext>.HandleNotificationAsync(NotificationParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
         var projectsLength = request.Projects.Length;
-        var loadingMessage = string.Format(LanguageServerResources.Loading_0_projects, projectsLength);
+        var loadingMessage = LanguageServerResources.Loading_projects;
         await using var progressReporter = await _workDoneProgressManager.CreateWorkDoneProgressAsync(
             reportProgressToClient: true,
             title: loadingMessage,

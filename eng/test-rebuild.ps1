@@ -34,7 +34,7 @@ try {
 
   if ($bootstrap) {
     Write-Host "Building Roslyn"
-    & eng/build.ps1 -restore -build -bootstrap -prepareMachine:$prepareMachine -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog /p:RoslynCompilerType=Framework
+    & eng/build.ps1 -restore -build -bootstrap -prepareMachine:$prepareMachine -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog
     Test-LastExitCode
   }
 
@@ -45,6 +45,13 @@ try {
   " --assembliesPath `"$ArtifactsDir/obj/`"" +
 
 # Rebuilds with output differences
+  # BenchmarkDotNet 0.16 weaves benchmark assemblies after CoreCompile, which BuildValidator cannot replay.
+  " --exclude net10.0\Benchmarks.dll" +
+  " --exclude net472\IdeBenchmarks.exe" +
+  " --exclude net10.0\Microsoft.AspNetCore.Razor.Microbenchmarks.Compiler.dll" +
+  " --exclude net10.0\Microsoft.AspNetCore.Razor.Microbenchmarks.dll" +
+  " --exclude net472\Microsoft.AspNetCore.Razor.Microbenchmarks.exe" +
+  " --exclude net10.0\Microsoft.AspNetCore.Razor.Microbenchmarks.Generator.dll" +
   " --exclude net472\Microsoft.CodeAnalysis.EditorFeatures.dll" +
   " --exclude net472\Microsoft.VisualStudio.LanguageServices.CSharp.dll" +
   " --exclude net472\Microsoft.VisualStudio.LanguageServices.dll" +
@@ -85,7 +92,7 @@ try {
   " --sourcePath `"$RepoRoot/`"" +
   " --referencesPath `"$ArtifactsDir/bin`"" +
   " --referencesPath `"$dotnetInstallDir/packs`"")
-  Exec-Command "$ArtifactsDir/bin/BuildValidator/$configuration/net472/BuildValidator.exe" $rebuildArgs
+  Exec-Command "$ArtifactsDir/bin/BuildValidator/$configuration/net10.0/BuildValidator.exe" $rebuildArgs
 
   exit 0
 }

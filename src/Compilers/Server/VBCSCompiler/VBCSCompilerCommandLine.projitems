@@ -36,6 +36,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CompilationCache.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CompilationCacheUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CompilerRequestHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CompilerServerTelemetry.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CompletionData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CSharpCompilerServer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticListener.cs" />

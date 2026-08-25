@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -29,10 +28,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets;
 internal sealed class CSharpCreateServicesOnTextViewConnection(
     VisualStudioWorkspace workspace,
     IGlobalOptionService globalOptions,
-    IAsynchronousOperationListenerProvider listenerProvider,
-    IThreadingContext threadingContext)
+    IAsynchronousOperationListenerProvider listenerProvider)
     : AbstractCreateServicesOnTextViewConnection(
-        workspace, globalOptions, listenerProvider, threadingContext, LanguageNames.CSharp)
+        workspace, globalOptions, listenerProvider, LanguageNames.CSharp)
 {
     protected override async Task InitializeServiceForProjectWithOpenedDocumentAsync(Project project)
     {

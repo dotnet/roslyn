@@ -45,16 +45,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public Symbol? _lazyValueProperty = ErrorTypeSymbol.UnknownResultType;
             public StrongBox<NullableFlowState>? _lazyValueDeclaredNullableFlowState;
             public Symbol? _lazyHasValueProperty = ErrorTypeSymbol.UnknownResultType;
+            public ImmutableArray<MethodSymbol> _lazyTryGetValueMethods;
+            public ImmutableArray<TypeUnionValueSet.CaseInfo> _lazyTypeUnionValueSetCases;
         }
 
         private sealed class UnionDataForDefinition : UnionData
         {
             public NamedTypeSymbol? _lazyMemberProviderInterface = ErrorTypeSymbol.UnknownResultType;
+            public ImmutableArray<NamedTypeSymbol> _lazyMemberProviderInterfaceAllInterfaces;
+        }
+
+        private sealed class ClosedClassData
+        {
+            /// <summary>
+            /// This field is safe to read only after checking that <see cref="_lazySubtypes"/> has been initialized.
+            /// Reading of <see cref="_lazySubtypes"/> for this purpose should be done
+            /// using <see cref="RoslynImmutableInterlocked.VolatileRead{T}(ref readonly ImmutableArray{T})"/> API
+            /// to enforce order of read operations between the fields.
+            /// </summary>
+            public bool _lazySubtypesIsComplete;
+            public ImmutableArray<NamedTypeSymbol> _lazySubtypes;
+            public ImmutableArray<TypeUnionValueSet.CaseInfo> _lazyTypeUnionValueSetCases;
         }
 
         private sealed partial class UncommonProperties
         {
             public UnionData? _lazyUnionData;
+            public ClosedClassData? _lazyClosedClassData;
         }
 #nullable disable
 
@@ -744,22 +761,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            var candidateSubtypes = CandidateClosedSubtypeDefinitions;
-            if (!IsGenericType && candidateSubtypes.All(subtype => !subtype.IsGenericType))
+            ClosedClassData lazyClosedClassData = GetClosedClassData();
+            ImmutableArray<NamedTypeSymbol> lazySubtypes = RoslynImmutableInterlocked.VolatileRead(in lazyClosedClassData._lazySubtypes);
+            if (!lazySubtypes.IsDefault)
             {
-                subtypes = candidateSubtypes;
-                return true;
+                subtypes = lazySubtypes;
+                return lazyClosedClassData._lazySubtypesIsComplete;
             }
 
-            var resultBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance(candidateSubtypes.Length);
-            var baseTypeTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
-            this.FindTypeParameters(baseTypeTypeParameters);
+            (lazyClosedClassData._lazySubtypesIsComplete, lazySubtypes) = calculateClosedSubtypes(cancellationToken);
+            ImmutableInterlocked.InterlockedInitialize(ref lazyClosedClassData._lazySubtypes, lazySubtypes);
 
-            var success = tryGetSpeakableSubtypes(this, candidateSubtypes, resultBuilder, baseTypeTypeParameters, cancellationToken);
-            baseTypeTypeParameters.Free();
+            subtypes = lazyClosedClassData._lazySubtypes;
+            return lazyClosedClassData._lazySubtypesIsComplete;
 
-            subtypes = resultBuilder.ToImmutableAndFree();
-            return success;
+            (bool, ImmutableArray<NamedTypeSymbol>) calculateClosedSubtypes(CancellationToken cancellationToken)
+            {
+                var candidateSubtypes = CandidateClosedSubtypeDefinitions;
+                if (!IsGenericType && candidateSubtypes.All(subtype => !subtype.IsGenericType))
+                {
+                    return (true, candidateSubtypes);
+                }
+
+                var resultBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance(candidateSubtypes.Length);
+                var baseTypeTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
+                this.FindTypeParameters(baseTypeTypeParameters);
+
+                var success = tryGetSpeakableSubtypes(this, candidateSubtypes, resultBuilder, baseTypeTypeParameters, cancellationToken);
+                baseTypeTypeParameters.Free();
+
+                return (success, resultBuilder.ToImmutableAndFree());
+            }
 
             static bool tryGetSpeakableSubtypes(NamedTypeSymbol @this, ImmutableArray<NamedTypeSymbol> candidateSubtypes, ArrayBuilder<NamedTypeSymbol> resultBuilder, HashSet<TypeParameterSymbol> baseTypeTypeParameters, CancellationToken cancellationToken)
             {
@@ -783,6 +815,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return allSubtypesAreSpeakable;
             }
+        }
+
+        internal ImmutableArray<TypeUnionValueSet.CaseInfo> ClosedClassTypeUnionValueSetCases()
+        {
+            ClosedClassData lazyClosedClassData = GetClosedClassData();
+            ImmutableArray<TypeUnionValueSet.CaseInfo> lazyTypeUnionValueSetCases = lazyClosedClassData._lazyTypeUnionValueSetCases;
+            if (!lazyTypeUnionValueSetCases.IsDefault)
+            {
+                return lazyTypeUnionValueSetCases;
+            }
+
+            var builder = ArrayBuilder<TypeUnionValueSet.CaseInfo>.GetInstance();
+            var setBuilder = AllIgnoreOptionsSetPool.Allocate();
+            ValueSetFactory.ClosedClassTypeUnionValueSetFactory.ExpandClosedSubtypes(this, builder, setBuilder);
+            setBuilder.Free();
+
+            ImmutableInterlocked.InterlockedInitialize(ref lazyClosedClassData._lazyTypeUnionValueSetCases, builder.ToImmutableAndFree());
+            return lazyClosedClassData._lazyTypeUnionValueSetCases;
         }
 
         /// <summary>
@@ -1968,8 +2018,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void addUseSiteInfoForCachedResult(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
-                AddUseSiteInfoForCachedUnionFactoryMethodsResult(ref useSiteInfo);
+                AddUseSiteInfoForCachedUnionFactoryMethodsResult(GetMemberProviderInterfaceAllInterfacesForDefinition(), ref useSiteInfo);
             }
+        }
+
+        internal ImmutableArray<TypeUnionValueSet.CaseInfo> UnionTypeUnionValueSetCases()
+        {
+            UnionData lazyUnionData = GetUnionData();
+            ImmutableArray<TypeUnionValueSet.CaseInfo> lazyTypeUnionValueSetCases = lazyUnionData._lazyTypeUnionValueSetCases;
+            if (!lazyTypeUnionValueSetCases.IsDefault)
+            {
+                return lazyTypeUnionValueSetCases;
+            }
+
+            var builder = ArrayBuilder<TypeUnionValueSet.CaseInfo>.GetInstance();
+            var setBuilder = AllIgnoreOptionsSetPool.Allocate();
+            foreach (var caseType in UnionCaseTypesNoUseSiteDiagnostics)
+            {
+                ValueSetFactory.ClosedClassTypeUnionValueSetFactory.ExpandClosedSubtypes(caseType.StrippedType(), builder, setBuilder);
+            }
+
+            setBuilder.Free();
+
+            ImmutableInterlocked.InterlockedInitialize(ref lazyUnionData._lazyTypeUnionValueSetCases, builder.ToImmutableAndFree());
+            return lazyUnionData._lazyTypeUnionValueSetCases;
         }
 
         internal ImmutableArray<MethodSymbol> UnionFactoryMethods(ref CompoundUseSiteInfo<AssemblySymbol> membersInterfaceForDefinitionInterfacesUseSiteInfo)
@@ -1981,7 +2053,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!lazyFactoryMethods.IsDefault)
             {
-                AddUseSiteInfoForCachedUnionFactoryMethodsResult(ref membersInterfaceForDefinitionInterfacesUseSiteInfo);
+                AddUseSiteInfoForCachedUnionFactoryMethodsResult(GetMemberProviderInterfaceAllInterfacesForDefinition(), ref membersInterfaceForDefinitionInterfacesUseSiteInfo);
                 return lazyFactoryMethods;
             }
 
@@ -2066,7 +2138,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                     }
 
-                    foreach (var baseInterfaceForDefinition in membersInterfaceForDefinition.AllInterfacesWithDefinitionUseSiteDiagnostics(ref membersInterfaceForDefinitionInterfacesUseSiteInfo))
+                    ImmutableArray<NamedTypeSymbol> memberProviderInterfaceAllInterfaces = GetMemberProviderInterfaceAllInterfacesForDefinition();
+                    AddUseSiteInfoForCachedUnionFactoryMethodsResult(memberProviderInterfaceAllInterfaces, ref membersInterfaceForDefinitionInterfacesUseSiteInfo);
+
+                    foreach (var baseInterfaceForDefinition in memberProviderInterfaceAllInterfaces)
                     {
                         Debug.Assert(shadowingMethods is not null);
                         bool canShadow = !baseInterfaceForDefinition.OriginalDefinition.InterfacesNoUseSiteDiagnostics().IsEmpty;
@@ -2152,11 +2227,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Add use site info that would be added during calculation of non-cached result of
         /// <see cref="UnionFactoryMethods"/>.
         /// </summary>
-        private void AddUseSiteInfoForCachedUnionFactoryMethodsResult(ref CompoundUseSiteInfo<AssemblySymbol> membersInterfaceForDefinitionInterfacesUseSiteInfo)
+        private void AddUseSiteInfoForCachedUnionFactoryMethodsResult(ImmutableArray<NamedTypeSymbol> memberProviderInterfaceAllInterfaces, ref CompoundUseSiteInfo<AssemblySymbol> membersInterfaceForDefinitionInterfacesUseSiteInfo)
         {
-            if (membersInterfaceForDefinitionInterfacesUseSiteInfo.AccumulatesDependencies || membersInterfaceForDefinitionInterfacesUseSiteInfo.AccumulatesDiagnostics)
+            if (!memberProviderInterfaceAllInterfaces.IsDefault &&
+                (membersInterfaceForDefinitionInterfacesUseSiteInfo.AccumulatesDependencies || membersInterfaceForDefinitionInterfacesUseSiteInfo.AccumulatesDiagnostics))
             {
-                GetMemberProviderInterfaceForDefinition()?.AllInterfacesWithDefinitionUseSiteDiagnostics(ref membersInterfaceForDefinitionInterfacesUseSiteInfo);
+                foreach (var iface in memberProviderInterfaceAllInterfaces)
+                {
+                    iface.OriginalDefinition.AddUseSiteInfo(ref membersInterfaceForDefinitionInterfacesUseSiteInfo);
+                }
             }
         }
 
@@ -2206,6 +2285,69 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal ImmutableArray<NamedTypeSymbol> GetMemberProviderInterfaceAllInterfacesForDefinition()
+        {
+            if (!this.IsDefinition)
+            {
+                return this.OriginalDefinition.GetMemberProviderInterfaceAllInterfacesForDefinition();
+            }
+
+            var lazyUnionData = (UnionDataForDefinition)GetUnionData();
+            ImmutableArray<NamedTypeSymbol> lazyAllInterfaces = lazyUnionData._lazyMemberProviderInterfaceAllInterfaces;
+
+            if (!lazyAllInterfaces.IsDefault)
+            {
+                return lazyAllInterfaces;
+            }
+
+            NamedTypeSymbol? memberProviderInterface = GetMemberProviderInterfaceForDefinition();
+            if (memberProviderInterface is null)
+            {
+                return default;
+            }
+
+            ImmutableInterlocked.InterlockedInitialize(ref lazyUnionData._lazyMemberProviderInterfaceAllInterfaces, makeAllInterfaces(memberProviderInterface));
+            return lazyUnionData._lazyMemberProviderInterfaceAllInterfaces;
+
+            // Produce all implemented interfaces in topologically sorted order.
+            static ImmutableArray<NamedTypeSymbol> makeAllInterfaces(NamedTypeSymbol memberProviderInterface)
+            {
+                var result = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+                var visited = TypeSymbol.AllIgnoreOptionsSetPool.Allocate();
+
+                var interfaces = memberProviderInterface.GetInterfacesToEmit();
+                for (int i = interfaces.Length - 1; i >= 0; i--)
+                {
+                    addAllInterfaces(interfaces[i], visited, result);
+                }
+
+                visited.Free();
+                result.ReverseContents();
+                return result.ToImmutableAndFree();
+
+                static void addAllInterfaces(NamedTypeSymbol @interface, HashSet<TypeSymbol> visited, ArrayBuilder<NamedTypeSymbol> result)
+                {
+                    if (visited.Add(@interface))
+                    {
+                        ImmutableArray<NamedTypeSymbol> baseInterfaces = @interface.OriginalDefinition.GetInterfacesToEmit();
+                        for (int i = baseInterfaces.Length - 1; i >= 0; i--)
+                        {
+                            var baseInterface = baseInterfaces[i];
+
+                            if (!@interface.IsDefinition)
+                            {
+                                baseInterface = @interface.TypeSubstitution.SubstituteNamedType(baseInterface);
+                            }
+
+                            addAllInterfaces(baseInterface, visited, result);
+                        }
+
+                        result.Add(@interface);
+                    }
+                }
+            }
+        }
+
         private UncommonProperties GetUncommonProperties()
         {
             UncommonProperties? lazyUncommonProperties = _lazyUncommonProperties;
@@ -2232,6 +2374,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return lazyUnionData;
+        }
+
+        private ClosedClassData GetClosedClassData()
+        {
+            UncommonProperties lazyUncommonProperties = GetUncommonProperties();
+
+            ClosedClassData? lazyClosedClassData = lazyUncommonProperties._lazyClosedClassData;
+            if (lazyClosedClassData is null)
+            {
+                Debug.Assert(IsClosed);
+                Interlocked.CompareExchange(ref lazyUncommonProperties._lazyClosedClassData, new ClosedClassData(), null);
+                Debug.Assert(lazyUncommonProperties._lazyClosedClassData is not null);
+                return lazyUncommonProperties._lazyClosedClassData;
+            }
+
+            return lazyClosedClassData;
         }
 
         internal static bool IsSuitableUnionConstructor(MethodSymbol ctor)
@@ -2335,7 +2493,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (valueProperty?.ContainingType.OriginalDefinition != (object)memberProviderInterface)
                         {
-                            memberProviderInterface.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
+                            foreach (var iface in GetMemberProviderInterfaceAllInterfacesForDefinition())
+                            {
+                                iface.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
+                            }
                         }
                     }
                     else
@@ -2355,6 +2516,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
             }
+        }
+
+        internal PropertySymbol? UnionValuePropertyNoUseSiteDiagnostics()
+        {
+            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            return this.UnionValueProperty(ref useSiteInfo);
         }
 
         private delegate bool IsSuitableUnionProperty(Symbol m, [NotNullWhen(true)] out PropertySymbol? member);
@@ -2377,8 +2544,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 PropertySymbol? match = null;
+                ImmutableArray<NamedTypeSymbol> memberProviderInterfaceAllInterfaces = GetMemberProviderInterfaceAllInterfacesForDefinition();
 
-                foreach (var baseInterfaceForDefinition in membersInterfaceForDefinition.AllInterfacesWithDefinitionUseSiteDiagnostics(ref membersProviderForDefinitionBasesUseSiteInfo))
+                foreach (var iface in memberProviderInterfaceAllInterfaces)
+                {
+                    iface.OriginalDefinition.AddUseSiteInfo(ref membersProviderForDefinitionBasesUseSiteInfo);
+                }
+
+                foreach (var baseInterfaceForDefinition in memberProviderInterfaceAllInterfaces)
                 {
                     if (getMemberDeclaredInType(baseInterfaceForDefinition, memberName, isSuitableUnionMember, out member))
                     {
@@ -2523,6 +2696,194 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 lazyUnionData._lazyValueDeclaredNullableFlowState = new StrongBox<NullableFlowState>(result);
                 return result;
             }
+        }
+
+        internal MethodSymbol? GetUnionTypeTryGetValueMethod(ConversionsBase conversions, TypeSymbol type)
+        {
+            Debug.Assert(this.IsUnionType);
+
+            MethodSymbol? bestMatch = null;
+            Conversion bestMatchConversion = Conversion.NoConversion;
+            ImmutableArray<MethodSymbol> tryGetValueMethods = this.UnionTryGetValueMethods();
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
+            foreach (var candidate in tryGetValueMethods)
+            {
+                Conversion conversion = conversions.ClassifyBuiltInConversion(type, candidate.Parameters[0].Type, isChecked: false, ref discardedUseSiteInfo);
+
+                if (!conversion.Exists || !conversion.IsImplicit ||
+                    !(conversion.IsIdentity || conversion.IsReference || conversion.IsBoxing ||
+                      (conversion.IsNullable && conversion.UnderlyingConversions[0].IsIdentity)))
+                {
+                    continue;
+                }
+
+                if (conversion.IsIdentity)
+                {
+                    return candidate;
+                }
+                else
+                {
+                    Debug.Assert(bestMatch is null ||
+                                 bestMatchConversion.IsReference || bestMatchConversion.IsBoxing ||
+                                 (bestMatchConversion.IsNullable && bestMatchConversion.UnderlyingConversions[0].IsIdentity));
+                    Debug.Assert(!bestMatchConversion.IsReference || !conversion.IsNullable);
+                    Debug.Assert(!conversion.IsReference || !bestMatchConversion.IsNullable);
+                    Debug.Assert(!bestMatchConversion.IsReference || !conversion.IsBoxing);
+                    Debug.Assert(!conversion.IsReference || !bestMatchConversion.IsBoxing);
+
+                    if (bestMatch is null || (!conversion.IsBoxing && bestMatchConversion.IsBoxing))
+                    {
+                        bestMatch = candidate;
+                        bestMatchConversion = conversion;
+                    }
+                }
+            }
+
+            return bestMatch;
+        }
+
+        internal ImmutableArray<MethodSymbol> UnionTryGetValueMethods()
+        {
+            UnionData lazyUnionData = GetUnionData();
+            ImmutableArray<MethodSymbol> lazyTryGetValueMethods = lazyUnionData._lazyTryGetValueMethods;
+
+            if (!lazyTryGetValueMethods.IsDefault)
+            {
+                return lazyTryGetValueMethods;
+            }
+
+            var result = ArrayBuilder<MethodSymbol>.GetInstance();
+
+            if (!this.IsDefinition)
+            {
+                ImmutableArray<MethodSymbol> definitionTryGetValueMethods = this.OriginalDefinition.UnionTryGetValueMethods();
+                TypeMap typeSubstitution = this.TypeSubstitution;
+
+                for (int i = 0; i < definitionTryGetValueMethods.Length; i++)
+                {
+                    NamedTypeSymbol containerForDefinition = definitionTryGetValueMethods[i].ContainingType;
+                    NamedTypeSymbol constructedOrSubstitutedContainer = containerForDefinition == (object)this.OriginalDefinition ? this : typeSubstitution.SubstituteNamedType(containerForDefinition);
+
+                    for (int j = i; j < definitionTryGetValueMethods.Length; j++)
+                    {
+                        if (definitionTryGetValueMethods[j].ContainingType != (object)containerForDefinition)
+                        {
+                            Debug.Assert(!containerForDefinition.Equals(definitionTryGetValueMethods[j].ContainingType, TypeCompareKind.ConsiderEverything));
+                            break;
+                        }
+
+                        i = j;
+                        MethodSymbol tryGetValueMethod = definitionTryGetValueMethods[i].OriginalDefinition.AsMember(constructedOrSubstitutedContainer);
+                        result.Add(tryGetValueMethod);
+                    }
+                }
+            }
+            else
+            {
+                PooledHashSet<TypeSymbol>? typeSet = null;
+                NamedTypeSymbol? membersInterfaceForDefinition = GetMemberProviderInterfaceForDefinition();
+
+                if (membersInterfaceForDefinition is not null)
+                {
+                    addCandidates(membersInterfaceForDefinition, ref typeSet, result);
+
+                    foreach (var declaringType in GetMemberProviderInterfaceAllInterfacesForDefinition())
+                    {
+                        addCandidates(declaringType, ref typeSet, result);
+                    }
+                }
+                else
+                {
+                    for (NamedTypeSymbol declaringType = this;
+                         declaringType is not null;
+                         declaringType = declaringType.BaseTypeNoUseSiteDiagnostics)
+                    {
+                        addCandidates(declaringType, ref typeSet, result);
+                    }
+                }
+
+                typeSet?.Free();
+            }
+
+            ImmutableInterlocked.InterlockedInitialize(ref lazyUnionData._lazyTryGetValueMethods, result.ToImmutableAndFree());
+            return lazyUnionData._lazyTryGetValueMethods;
+
+            void addCandidates(
+                NamedTypeSymbol declaringType,
+                ref PooledHashSet<TypeSymbol>? typeSet,
+                ArrayBuilder<MethodSymbol> result)
+            {
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
+                foreach (var m in declaringType.GetMembers(WellKnownMemberNames.TryGetValueMethodName))
+                {
+                    if (m is MethodSymbol candidate && HasTryGetValueSignature(candidate) &&
+                        candidate.GetUseSiteInfo().DiagnosticInfo?.DefaultSeverity != DiagnosticSeverity.Error)
+                    {
+                        if (typeSet is null)
+                        {
+                            typeSet = TypeSymbol.AllIgnoreOptionsSetPool.Allocate();
+
+                            foreach (var caseType in this.UnionCaseTypes(ref discardedUseSiteInfo))
+                            {
+                                typeSet.Add(caseType);
+
+                                if (caseType.IsNullableType())
+                                {
+                                    typeSet.Add(caseType.GetNullableUnderlyingType());
+                                }
+
+                            }
+                        }
+
+                        if (typeSet.Contains(candidate.Parameters[0].Type))
+                        {
+                            result.Add(candidate);
+                        }
+                    }
+                }
+            }
+        }
+
+        internal static bool HasTryGetValueSignature(MethodSymbol method)
+        {
+            return method is
+            {
+                IsStatic: false,
+                DeclaredAccessibility: Accessibility.Public,
+                Arity: 0,
+                RefKind: RefKind.None,
+                Parameters: [{ RefKind: RefKind.Out }],
+                ReturnType.SpecialType: SpecialType.System_Boolean
+            };
+        }
+
+        internal bool IsUnionTypeTryGetValueMethod(MethodSymbol method)
+        {
+            Debug.Assert(this.IsUnionType);
+
+            if (method.Name is not WellKnownMemberNames.TryGetValueMethodName)
+            {
+                return false;
+            }
+
+            MethodSymbol originalDefinition = method.OriginalDefinition;
+            NamedTypeSymbol? membersInterfaceForDefinition = this.GetMemberProviderInterfaceForDefinition();
+
+            if (membersInterfaceForDefinition is not null == originalDefinition.ContainingType.IsInterface)
+            {
+                foreach (var candidate in this.UnionTryGetValueMethods())
+                {
+                    if (candidate.OriginalDefinition == (object)originalDefinition &&
+                        candidate.Equals(method, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
 #nullable disable

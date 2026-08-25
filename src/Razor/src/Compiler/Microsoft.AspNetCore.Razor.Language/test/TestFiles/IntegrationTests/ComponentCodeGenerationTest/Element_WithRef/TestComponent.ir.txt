@@ -17,5 +17,3 @@
                     HtmlAttribute -  - attributeafter=" - "
                         HtmlAttributeValue - (61:0,61 [5] x:\dir\subdir\Test\TestComponent.cshtml) - 
                             LazyIntermediateToken - (61:0,61 [5] x:\dir\subdir\Test\TestComponent.cshtml) - Html - after
-            CSharpCode - (91:2,7 [128] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (91:2,7 [128] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private Microsoft.AspNetCore.Components.ElementReference myElem;\n    public void Foo() { System.GC.KeepAlive(myElem); }\n
