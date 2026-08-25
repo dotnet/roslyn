@@ -18,6 +18,8 @@ public class RemoteWorkspaceProviderTest
     [InlineData("custom://workspace/Component.razor?SGVsbG8=", true)]
     [InlineData("cline-diff:Program.cs?SGVsbG8=", false)]
     [InlineData("custom://workspace/README.md?SGVsbG8=", false)]
+    [InlineData("custom://workspace/Component.razor#fragment", true)]
+    [InlineData("custom://workspace/README.md#fragment", false)]
     [InlineData("Index.cshtml", true)]
     [InlineData("Program.cs", false)]
     [InlineData(@"C:\Project\Index.cshtml", true)]
