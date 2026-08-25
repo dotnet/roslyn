@@ -18,7 +18,7 @@ Namespace BasicAnalyzers
 
 #Region "Descriptor fields"
         Friend Shared ReadOnly Title As LocalizableString = "Do not suppress documentation comment diagnostics"
-        Friend Shared ReadOnly MessageFormat As LocalizableString = "Enable documentation comment diagnostics on source file '{0}'."
+        Friend Shared ReadOnly MessageFormat As LocalizableString = "Enable documentation comment diagnostics on source file '{0}'"
         Friend Shared ReadOnly Description As LocalizableString = "Do not suppress documentation comment diagnostics."
 
         Friend Shared Rule As New DiagnosticDescriptor(DiagnosticIds.SyntaxTreeAnalyzerRuleId, Title, MessageFormat, DiagnosticCategories.Stateless, DiagnosticSeverity.Warning, isEnabledByDefault:=True, description:=Description)
@@ -31,6 +31,8 @@ Namespace BasicAnalyzers
         End Property
 
         Public Overrides Sub Initialize(context As AnalysisContext)
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None)
+            context.EnableConcurrentExecution()
             context.RegisterSyntaxTreeAction(AddressOf AnalyzeSyntaxTree)
         End Sub
 

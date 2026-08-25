@@ -36,6 +36,8 @@ Namespace BasicAnalyzers
         End Property
 
         Public Overrides Sub Initialize(context As AnalysisContext)
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None)
+            context.EnableConcurrentExecution()
             context.RegisterSyntaxNodeAction(AddressOf AnalyzeSyntaxNode, SyntaxKind.VariableDeclarator)
         End Sub
 

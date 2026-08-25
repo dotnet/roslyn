@@ -6,5 +6,7 @@
     <PackageVersion Include="Handlebars.Net" Version="1.10.1" />
     <PackageVersion Include="Microsoft.CodeAnalysis" Version="4.12.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.12.0" />
+    <!-- Microsoft.VisualStudio.Composition transitively references vulnerable 1.1.62. -->
+    <PackageVersion Include="Nerdbank.MessagePack" Version="1.2.4" />
   </ItemGroup>
 </Project>

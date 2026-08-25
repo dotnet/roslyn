@@ -27,7 +27,7 @@ namespace Sample.Analyzers
     public class CodeBlockStartedAnalyzer : DiagnosticAnalyzer
     {
         private const string Title = "Remove unused parameters";
-        public const string MessageFormat = "Parameter '{0}' is unused in the method '{1}'.";
+        public const string MessageFormat = "Parameter '{0}' is unused in the method '{1}'";
         private const string Description = "Remove unused parameters.";
 
         internal static DiagnosticDescriptor Rule =

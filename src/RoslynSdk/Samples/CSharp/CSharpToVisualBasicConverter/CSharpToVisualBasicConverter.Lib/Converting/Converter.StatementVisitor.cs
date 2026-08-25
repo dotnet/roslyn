@@ -38,27 +38,6 @@ namespace CSharpToVisualBasicConverter
                 return Visit(node);
             }
 
-            private static VB.Syntax.StatementSyntax ConvertToStatement(SyntaxNode node)
-            {
-                if (node == null)
-                {
-                    return null;
-                }
-                else if (node is VB.Syntax.StatementSyntax)
-                {
-                    return (VB.Syntax.StatementSyntax)node;
-                }
-                else if (node is VB.Syntax.InvocationExpressionSyntax)
-                {
-                    return VB.SyntaxFactory.ExpressionStatement((VB.Syntax.InvocationExpressionSyntax)node);
-                }
-                else
-                {
-                    // can happen in error scenarios
-                    return CreateBadStatement(((SyntaxNode)node).ToFullString(), typeof(VB.Syntax.StatementSyntax));
-                }
-            }
-
             public override SyntaxList<VB.Syntax.StatementSyntax> VisitBlock(CS.Syntax.BlockSyntax node)
             {
                 List<VB.Syntax.StatementSyntax> statements = node.Statements.SelectMany(VisitStatementEnumerable).ToList();

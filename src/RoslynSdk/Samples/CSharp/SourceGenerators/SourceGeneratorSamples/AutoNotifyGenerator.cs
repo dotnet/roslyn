@@ -34,7 +34,6 @@ namespace AutoNotify
 }
 ";
 
-
         public void Initialize(GeneratorInitializationContext context)
         {
             // Register the attribute source
