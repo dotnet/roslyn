@@ -88,8 +88,8 @@ internal static class CSharpUsePatternCombinatorsAnalyzer
     {
         return (op.LeftOperand, op.RightOperand) switch
         {
-            var (_, v) when IsConstant(v) => ConstantResult.Right,
-            var (v, _) when IsConstant(v) => ConstantResult.Left,
+            var (e, v) when IsConstant(v) && IsValidPatternConstant(v, e) => ConstantResult.Right,
+            var (v, e) when IsConstant(v) && IsValidPatternConstant(v, e) => ConstantResult.Left,
             _ => ConstantResult.None,
         };
     }
@@ -162,4 +162,22 @@ internal static class CSharpUsePatternCombinatorsAnalyzer
             ? IsConstant(op.Operand)
             : operation.ConstantValue.HasValue;
     }
+
+    // Patterns match against the target's own type and never apply user-defined conversions.
+    private static bool IsValidPatternConstant(IOperation constant, IOperation target)
+    {
+        if (constant.SemanticModel is not { } semanticModel ||
+            constant.Syntax is not ExpressionSyntax constantSyntax ||
+            WalkDownConversions(target).Type is not { } targetType)
+        {
+            return false;
+        }
+
+        // An explicit conversion is fine, the fixer adds the cast.
+        var conversion = semanticModel.ClassifyConversion(constantSyntax, targetType);
+        return conversion.Exists && !conversion.IsUserDefined;
+    }
+
+    private static IOperation WalkDownConversions(IOperation operation)
+        => operation is IConversionOperation conversion ? WalkDownConversions(conversion.Operand) : operation;
 }
