@@ -38,9 +38,10 @@ Namespace BasicAnalyzers
             End Get
         End Property
 
+#Disable Warning RS1026 ' Enable concurrent execution. This analyzer uses mutable per-code-block state.
         Public Overrides Sub Initialize(context As AnalysisContext)
+#Enable Warning RS1026
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None)
-            context.EnableConcurrentExecution()
             context.RegisterCodeBlockStartAction(Of SyntaxKind)(
                 Sub(startCodeBlockContext)
                     ' We only care about method bodies.
