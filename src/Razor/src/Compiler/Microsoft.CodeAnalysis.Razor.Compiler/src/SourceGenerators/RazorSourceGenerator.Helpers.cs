@@ -250,6 +250,10 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     builder.SupportLocalizedComponentNames = razorSourceGeneratorOptions.SupportLocalizedComponentNames;
                     builder.SuppressUniqueIds = razorSourceGeneratorOptions.TestSuppressUniqueIds;
                     builder.SuppressAddComponentParameter = razorSourceGeneratorOptions.Configuration.SuppressAddComponentParameter;
+
+                    // The generator emits both halves of a split component (the impl `.g.cs` and the
+                    // decl `.decl.g.cs`), so it is the one host that opts into the markup split.
+                    builder.EnableMarkupSplit = true;
                 });
 
                 b.ConfigureParserOptions(builder =>
