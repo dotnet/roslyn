@@ -781,7 +781,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         Assert.False(bM.ContainingModule.UseUpdatedMemorySafetyRules);
 
         var aM = comp.GetMember<MethodSymbol>("A.M");
-        var expectedVersion = correctVersion ? MemorySafetyRulesVersion.Version2 : MemorySafetyRulesVersion.Version1;
+        var expectedVersion = (MemorySafetyRulesVersion)(version == 1 ? -1 : version);
         Assert.Equal(expectedVersion, aM.ContainingModule.GetPublicSymbol().MemorySafetyRulesVersion);
 
         // VB
@@ -796,6 +796,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         // No error reported as VB doesn't have unsafe evolution feature.
         var compVB = CreateVisualBasicCompilation(sourceVB, referencedAssemblies: [MscorlibRef, refA]);
         compVB.VerifyEmitDiagnostics();
+        var assemblyVB = (IAssemblySymbol)compVB.GetAssemblyOrModuleSymbol(refA)!;
+        Assert.Equal(expectedVersion, assemblyVB.Modules.Single().MemorySafetyRulesVersion);
 
         // 'A.M' not used => no error.
         CreateCompilation("class C;", references: [refA]).VerifyEmitDiagnostics();

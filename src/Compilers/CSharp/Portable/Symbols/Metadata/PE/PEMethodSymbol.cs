@@ -1545,7 +1545,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 if (diagnosticInfo == null &&
-                    _containingType.ContainingPEModule.MemorySafetyRulesVersionFromAttribute == PEModuleSymbol.MemorySafetyRulesAttributeVersion.UnrecognizedAttribute)
+                    !_containingType.ContainingPEModule.MemorySafetyRulesVersion.IsValid())
                 {
                     diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_UnrecognizedAttributeVersion,
                         this,

@@ -20,3 +20,11 @@ public enum MemorySafetyRulesVersion
     [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/82789")]
     Version2 = 2,
 }
+
+internal static class MemorySafetyRulesVersionExtensions
+{
+    public static bool IsValid(this MemorySafetyRulesVersion version)
+    {
+        return version is MemorySafetyRulesVersion.Version1 or MemorySafetyRulesVersion.Version2;
+    }
+}

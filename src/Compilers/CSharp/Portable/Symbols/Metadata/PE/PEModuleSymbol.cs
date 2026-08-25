@@ -116,15 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private RefSafetyRulesAttributeVersion _lazyRefSafetyRulesAttributeVersion;
 
-        internal enum MemorySafetyRulesAttributeVersion
-        {
-            Uninitialized = 0,
-            NoAttribute,
-            Version2,
-            UnrecognizedAttribute,
-        }
-
-        private MemorySafetyRulesAttributeVersion _lazyMemorySafetyRulesAttributeVersion;
+        private MemorySafetyRulesVersion? _lazyMemorySafetyRulesVersion;
 
 #nullable enable
         private DiagnosticInfo? _lazyCachedCompilerFeatureRequiredDiagnosticInfo = CSDiagnosticInfo.EmptyErrorInfo;
@@ -761,36 +753,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return MemorySafetyRulesVersionFromAttribute switch
-                {
-                    MemorySafetyRulesAttributeVersion.Version2 => MemorySafetyRulesVersion.Version2,
-                    _ => MemorySafetyRulesVersion.Version1
-                };
-            }
-        }
+                return _lazyMemorySafetyRulesVersion ??= getAttributeVersion();
 
-        internal MemorySafetyRulesAttributeVersion MemorySafetyRulesVersionFromAttribute
-        {
-            get
-            {
-                if (_lazyMemorySafetyRulesAttributeVersion == MemorySafetyRulesAttributeVersion.Uninitialized)
+                // Returns
+                // * recognized: 1 if the attribute is not present,
+                // * recognized: 2 if the attribute is present and has the value 2,
+                // * unrecognized: -1 if the attribute is present and has the value 1 or some non-integer value,
+                // * unrecognized: the attribute's value (which is other than 1 or 2).
+                MemorySafetyRulesVersion getAttributeVersion()
                 {
-                    _lazyMemorySafetyRulesAttributeVersion = getAttributeVersion();
-                }
-                return _lazyMemorySafetyRulesAttributeVersion;
-
-                MemorySafetyRulesAttributeVersion getAttributeVersion()
-                {
-                    if (_module.HasMemorySafetyRulesAttribute(Token, out int version, out bool foundAttributeType))
+                    if (_module.HasMemorySafetyRulesAttribute(Token, out int version, out bool foundAttributeType) &&
+                        version != (int)MemorySafetyRulesVersion.Version1)
                     {
-                        return version == (int)MemorySafetyRulesVersion.Version2
-                            ? MemorySafetyRulesAttributeVersion.Version2
-                            : MemorySafetyRulesAttributeVersion.UnrecognizedAttribute;
+                        return (MemorySafetyRulesVersion)version;
                     }
 
                     return foundAttributeType
-                        ? MemorySafetyRulesAttributeVersion.UnrecognizedAttribute
-                        : MemorySafetyRulesAttributeVersion.NoAttribute;
+                        ? (MemorySafetyRulesVersion)(-1)
+                        : MemorySafetyRulesVersion.Version1;
                 }
             }
         }

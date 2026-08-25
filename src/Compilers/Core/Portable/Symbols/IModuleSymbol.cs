@@ -44,6 +44,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Which memory safety rules are enabled in this module. Determines which symbols are considered requires-unsafe (<see cref="ISymbol.RequiresUnsafeContext"/>).
         /// </summary>
+        /// <remarks>
+        /// A metadata module compiled with an unsupported rules version may return a value that is not defined by <see cref="Microsoft.CodeAnalysis.MemorySafetyRulesVersion"/>.
+        /// </remarks>
         [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/82789")]
         MemorySafetyRulesVersion MemorySafetyRulesVersion { get; }
 

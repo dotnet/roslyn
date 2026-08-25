@@ -418,11 +418,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim foundAttributeType As Boolean
 
                 If _module.HasMemorySafetyRulesAttribute(EntityHandle.ModuleDefinition, version, foundAttributeType) AndAlso
-                   version = CInt(Global.Microsoft.CodeAnalysis.MemorySafetyRulesVersion.Version2) Then
-                    Return Global.Microsoft.CodeAnalysis.MemorySafetyRulesVersion.Version2
+                   version <> CInt(Global.Microsoft.CodeAnalysis.MemorySafetyRulesVersion.Version1) Then
+                    Return CType(version, Global.Microsoft.CodeAnalysis.MemorySafetyRulesVersion)
                 End If
 
-                Return Global.Microsoft.CodeAnalysis.MemorySafetyRulesVersion.Version1
+                Return If(foundAttributeType,
+                    CType(-1, Global.Microsoft.CodeAnalysis.MemorySafetyRulesVersion),
+                    Global.Microsoft.CodeAnalysis.MemorySafetyRulesVersion.Version1)
             End Get
         End Property
 
