@@ -31,9 +31,7 @@ internal sealed class CohostSemanticTokensRegistration(ISemanticTokensLegendServ
 
             return [new Registration()
             {
-                Method = supportsSemanticTokensRange
-                    ? Methods.TextDocumentSemanticTokensRangeName
-                    : Methods.TextDocumentSemanticTokensFullName,
+                Method = Methods.TextDocumentSemanticTokensName,
                 RegisterOptions = new SemanticTokensRegistrationOptions()
                     .EnableSemanticTokens(_semanticTokensLegendService, supportsSemanticTokensRange)
             }];
