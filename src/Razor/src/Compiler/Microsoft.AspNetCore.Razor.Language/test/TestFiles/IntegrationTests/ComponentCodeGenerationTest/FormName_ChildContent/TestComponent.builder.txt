@@ -1,0 +1,4 @@
+﻿[0000] OpenElement("form")
+[0001] AddAttribute("class", "nice")
+[0002] OpenElement("p")
+[0003] AddContent(DateTime.Now)

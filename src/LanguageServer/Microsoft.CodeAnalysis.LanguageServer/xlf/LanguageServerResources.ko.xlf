@@ -109,7 +109,7 @@
       </trans-unit>
       <trans-unit id="Loading_projects">
         <source>Loading projects...</source>
-        <target state="new">Loading projects...</target>
+        <target state="translated">프로젝트를 로드하는 중...</target>
         <note />
       </trans-unit>
       <trans-unit id="Message">

@@ -16,12 +16,30 @@ public sealed class ClassDeclarationIntermediateNode : MemberDeclarationIntermed
     public ImmutableArray<TypeParameter> TypeParameters { get; set => field = value.NullToEmpty(); } = [];
 
     public bool IsPrimaryClass { get; init; }
+
     public bool NullableContext { get; set; }
 
     public override IntermediateNodeCollection Children { get => field ??= []; }
 
     public override void Accept(IntermediateNodeVisitor visitor)
         => visitor.VisitClassDeclaration(this);
+
+    protected override IntermediateNode CloneNode()
+    {
+        var clone = new ClassDeclarationIntermediateNode
+        {
+            Name = Name,
+            BaseType = BaseType,
+            Modifiers = Modifiers,
+            Interfaces = Interfaces,
+            TypeParameters = TypeParameters,
+            IsPrimaryClass = IsPrimaryClass,
+            NullableContext = NullableContext,
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
+
+        return clone;
+    }
 
     public override void FormatNode(IntermediateNodeFormatter formatter)
     {
