@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ko" original="../ExternalAccessFSharpResources.resx">
+    <body>
+      <trans-unit id="CannotDetermineSymbol">
+        <source>Cannot determine the symbol under the caret</source>
+        <target state="translated">캐럿에서 기호를 확인할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotNavigateUnknown">
+        <source>Cannot navigate to the requested location</source>
+        <target state="translated">요청한 위치로 이동할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FSharpDisposablesClassificationType">
+        <source>F# Disposable Types</source>
+        <target state="translated">F# 삭제 가능한 형식</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FSharpFunctionsOrMethodsClassificationType">
+        <source>F# Functions / Methods</source>
+        <target state="translated">F# 함수/메서드</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FSharpMutableVarsClassificationType">
+        <source>F# Mutable Variables / Reference Cells</source>
+        <target state="translated">F# 변경 가능한 변수/참조 셀</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FSharpPrintfFormatClassificationType">
+        <source>F# Printf Format</source>
+        <target state="translated">F# Printf 형식</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FSharpPropertiesClassificationType">
+        <source>F# Properties</source>
+        <target state="translated">F# 속성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImplementInterface">
+        <source>Implement interface</source>
+        <target state="translated">인터페이스 구현</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImplementInterfaceWithoutTypeAnnotation">
+        <source>Implement interface without type annotation</source>
+        <target state="translated">형식 주석 없이 인터페이스 구현</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="LocatingSymbol">
+        <source>Locating the symbol under the caret...</source>
+        <target state="translated">캐럿에서 기호를 찾는 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NameCanBeSimplified">
+        <source>Name can be simplified.</source>
+        <target state="translated">이름을 단순화할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NavigateToFailed">
+        <source>Navigate to symbol failed: {0}</source>
+        <target state="translated">기호로 이동하지 못함: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NavigatingTo">
+        <source>Navigating to symbol...</source>
+        <target state="translated">기호로 이동하는 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveUnusedOpens">
+        <source>Remove unused open declarations</source>
+        <target state="translated">사용되지 않는 열려 있는 선언 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SimplifyName">
+        <source>Simplify name</source>
+        <target state="translated">이름 단순화</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TheValueIsUnused">
+        <source>The value is unused</source>
+        <target state="translated">값이 사용되지 않음</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnusedOpens">
+        <source>Open declaration can be removed.</source>
+        <target state="translated">열려 있는 선언은 제거할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
