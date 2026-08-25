@@ -519,6 +519,11 @@ stages:
         continueOnError: true
         condition: failed()
 
+      - script: dotnet build-server shutdown
+        displayName: Shutdown Build Server
+        continueOnError: true
+        condition: always()
+
       - template: eng/pipelines/publish-logs.yml
         parameters:
           jobName: Correctness_Rebuild
