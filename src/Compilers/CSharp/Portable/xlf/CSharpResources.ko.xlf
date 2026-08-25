@@ -2972,6 +2972,11 @@
         <target state="translated">패턴이 너무 복잡하여 중복성을 분석할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ICoalesceOperationIsNotCSharpCoalesceOperation">
+        <source>{0} is not a valid C# coalesce operation</source>
+        <target state="new">{0} is not a valid C# coalesce operation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
         <source>array access</source>
         <target state="translated">배열 액세스</target>

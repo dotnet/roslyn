@@ -222,6 +222,11 @@
         <target state="translated">正在识别 “unmanaged” 约束</target>
         <note />
       </trans-unit>
+      <trans-unit id="ICoalesceOperationIsNotVisualBasicCoalesceOperation">
+        <source>{0} is not a valid Visual Basic coalesce operation</source>
+        <target state="new">{0} is not a valid Visual Basic coalesce operation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_VBCHelp">
         <source>                  Visual Basic Compiler Options
 

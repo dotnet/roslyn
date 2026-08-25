@@ -4,9 +4,11 @@
 
 #nullable disable
 
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1606,6 +1608,109 @@ Block[B6] - Exit
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(compilation, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84905")]
+        public void GetValueConversion_NullArgumentThrows()
+        {
+            ICoalesceOperation nullCoalesce = null;
+            Assert.Throws<ArgumentNullException>("coalesceExpression", () => nullCoalesce.GetValueConversion());
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84905")]
+        public void GetValueConversion_IdentityConversion()
+        {
+            var source = @"
+class C
+{
+    void F(int? input, int alternative)
+    {
+        var result = /*<bind>*/input ?? alternative/*</bind>*/;
+    }
+}";
+
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
+
+            var (operation, _) = GetOperationAndSyntaxForTest<BinaryExpressionSyntax>(compilation);
+            var coalesce = (ICoalesceOperation)operation;
+
+            Assert.Equal(Conversion.Identity, coalesce.GetValueConversion());
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84905")]
+        public void GetValueConversion_BoxingConversion()
+        {
+            var source = @"
+class C
+{
+    void F(int? input, object alternative)
+    {
+        var result = /*<bind>*/input ?? alternative/*</bind>*/;
+    }
+}";
+
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
+
+            var (operation, _) = GetOperationAndSyntaxForTest<BinaryExpressionSyntax>(compilation);
+            var coalesce = (ICoalesceOperation)operation;
+
+            var conversion = coalesce.GetValueConversion();
+            Assert.True(conversion.IsBoxing);
+            Assert.Equal(ConversionKind.Boxing, conversion.Kind);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84905")]
+        public void GetValueConversion_UserDefinedConversion()
+        {
+            var source = @"
+class C
+{
+    void F(int? input, C alternative)
+    {
+        var result = /*<bind>*/input ?? alternative/*</bind>*/;
+    }
+
+    public static implicit operator C(int i) => null;
+}";
+
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
+
+            var (operation, _) = GetOperationAndSyntaxForTest<BinaryExpressionSyntax>(compilation);
+            var coalesce = (ICoalesceOperation)operation;
+
+            var conversion = coalesce.GetValueConversion();
+            Assert.Equal(ConversionKind.ImplicitUserDefined, conversion.Kind);
+            Assert.Equal("C.implicit operator C(int)", conversion.MethodSymbol.ToDisplayString());
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84905")]
+        public void GetValueConversion_FromVisualBasicExtensionThrows()
+        {
+            var source = @"
+class C
+{
+    void F(int? input, int alternative)
+    {
+        var result = /*<bind>*/input ?? alternative/*</bind>*/;
+    }
+}";
+
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
+
+            var (operation, _) = GetOperationAndSyntaxForTest<BinaryExpressionSyntax>(compilation);
+            var coalesce = (ICoalesceOperation)operation;
+
+            // We are calling the VB extension method on an ICoalesceOperation created from C# code, therefore an exception is expected here.
+            Assert.Throws<ArgumentException>("coalesceExpression", () => Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetValueConversion(coalesce));
         }
     }
 }
