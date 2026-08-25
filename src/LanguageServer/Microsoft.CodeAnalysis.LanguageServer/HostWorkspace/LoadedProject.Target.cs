@@ -67,10 +67,11 @@ internal sealed partial class LoadedProject
                 if (_mostRecentProjectAssetsFileChecksum != checksum)
                 {
                     _mostRecentProjectAssetsFileChecksum = checksum;
-                    _project.NeedsReload?.Invoke(this, EventArgs.Empty);
+                    _project.NeedsReload?.Invoke(_project, e.FilePath);
                 }
             });
         }
+
 
         public string? GetTargetFramework()
         {

@@ -357,7 +357,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
             if (doDesignTimeBuild)
             {
                 _projectsToReload.AddWork(new ProjectToLoad(projectPath));
-                newLoadedProject.NeedsReload += (sender, args) => _projectsToReload.AddWork(new ProjectToLoad(projectPath));
+                newLoadedProject.NeedsReload += LoadedProject_NeedsReload;
             }
 
             return [newProject];
@@ -383,7 +383,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
 
                 _projectsToReload.AddWork(new ProjectToLoad(Path: projectPath, progressTracker));
 
-                loadedProject.NeedsReload += (sender, args) => _projectsToReload.AddWork(new ProjectToLoad(Path: projectPath, ProgressTracker: null));
+                loadedProject.NeedsReload += LoadedProject_NeedsReload;
             }
 
             if (projectGuid is not null)
@@ -414,6 +414,14 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
         {
             _logger.LogWarning(e, "Exception encountered while trying to load cached state for {ProjectPath}", projectPath);
         }
+    }
+
+    protected void LoadedProject_NeedsReload(object? sender, string triggeringFilePath)
+    {
+        var loadedProject = (LoadedProject)sender!;
+
+        _logger.LogTrace("Project {ProjectPath} needs reload due to change in {TriggeringFilePath}", loadedProject.ProjectFilePath, triggeringFilePath);
+        _projectsToReload.AddWork(new ProjectToLoad(Path: loadedProject.ProjectFilePath, ProgressTracker: null));
     }
 
     protected Task WaitForProjectsToFinishLoadingAsync() => _projectsToReload.WaitUntilCurrentBatchCompletesAsync();
