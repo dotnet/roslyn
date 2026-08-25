@@ -241,6 +241,7 @@ Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetTypeInfo(Microsoft.CodeAnalysi
 Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetTypeInfo(Microsoft.CodeAnalysis.SemanticModel,Microsoft.CodeAnalysis.CSharp.Syntax.ConstructorInitializerSyntax,System.Threading.CancellationToken)
 Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetTypeInfo(Microsoft.CodeAnalysis.SemanticModel,Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax,System.Threading.CancellationToken)
 Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetTypeInfo(Microsoft.CodeAnalysis.SemanticModel,Microsoft.CodeAnalysis.CSharp.Syntax.SelectOrGroupClauseSyntax,System.Threading.CancellationToken)
+Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetValueConversion(Microsoft.CodeAnalysis.Operations.ICoalesceOperation)
 Microsoft.CodeAnalysis.CSharp.CSharpExtensions.Insert(Microsoft.CodeAnalysis.SyntaxTokenList,System.Int32,Microsoft.CodeAnalysis.SyntaxToken[])
 Microsoft.CodeAnalysis.CSharp.CSharpExtensions.IsContextualKeyword(Microsoft.CodeAnalysis.SyntaxToken)
 Microsoft.CodeAnalysis.CSharp.CSharpExtensions.IsKeyword(Microsoft.CodeAnalysis.SyntaxToken)
