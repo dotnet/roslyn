@@ -200,7 +200,7 @@ public sealed class TaskBuildEnvironmentTests : TestBase
     [ConditionalTheory(typeof(WindowsOnly))]
     [InlineData(null)]
     [InlineData("")]
-    public void GetTempPath_Windows_AllVariablesNullOrEmpty_ReturnsResolvedSystemRoot(string? value)
+    public void GetTempPath_Windows_AllVariablesNullOrEmpty_ReturnsNull(string? value)
     {
         var projectDirectory = Temp.CreateDirectory();
         var taskEnvironment = new TaskBuildEnvironment(
@@ -215,7 +215,6 @@ public sealed class TaskBuildEnvironmentTests : TestBase
 
         var result = taskEnvironment.GetTempPath();
 
-        var expected = value is null ? null : Path.GetFullPath(projectDirectory.Path);
-        Assert.Equal(expected, result);
+        Assert.Null(result);
     }
 }

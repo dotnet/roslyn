@@ -40,7 +40,7 @@ internal sealed class TaskBuildEnvironment : IBuildEnvironment
         var path = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? getTempPathWindows()
             : getTempPathLinux();
-        return path is null ? path : GetFullPath(path);
+        return string.IsNullOrEmpty(path) ? null : GetFullPath(path);
 
         string? getTempPathLinux()
         {
