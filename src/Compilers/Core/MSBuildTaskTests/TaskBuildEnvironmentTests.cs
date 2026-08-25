@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.CommandLine;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -12,17 +11,14 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests;
 
-public sealed class ExtensionsTests : TestBase
+public sealed class TaskBuildEnvironmentTests : TestBase
 {
-    private TaskEnvironment CreateTaskEnvironment(string projectDirectory, Dictionary<string, string> environment) =>
-        TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(projectDirectory, environment);
-
     [ConditionalFact(typeof(UnixLikeOnly))]
     public void GetTempPath_Unix_TmpDirRooted_ReturnsRootedPath()
     {
         var projectDirectory = Temp.CreateDirectory();
         var tempPath = TestHelpers.GetRootedPath("custom-temp");
-        var taskEnvironment = CreateTaskEnvironment(
+        var taskEnvironment = new TaskBuildEnvironment(
             projectDirectory.Path,
             new Dictionary<string, string> { ["TMPDIR"] = tempPath });
 
@@ -37,7 +33,7 @@ public sealed class ExtensionsTests : TestBase
     public void GetTempPath_Unix_TmpDirRelative_ReturnsFullyQualifiedUnderProjectDirectory()
     {
         var projectDirectory = Temp.CreateDirectory();
-        var taskEnvironment = CreateTaskEnvironment(
+        var taskEnvironment = new TaskBuildEnvironment(
             projectDirectory.Path,
             new Dictionary<string, string> { ["TMPDIR"] = "relative-temp" });
 
@@ -52,9 +48,24 @@ public sealed class ExtensionsTests : TestBase
     public void GetTempPath_Unix_TmpDirUnset_ReturnsSlashTmp()
     {
         var projectDirectory = Temp.CreateDirectory();
-        var taskEnvironment = CreateTaskEnvironment(
+        var taskEnvironment = new TaskBuildEnvironment(
             projectDirectory.Path,
             new Dictionary<string, string>());
+
+        var result = taskEnvironment.GetTempPath();
+
+        Assert.Equal("/tmp", result);
+    }
+
+    [ConditionalTheory(typeof(UnixLikeOnly))]
+    [InlineData(null)]
+    [InlineData("")]
+    public void GetTempPath_Unix_TmpDirNullOrEmpty_ReturnsSlashTmp(string? tmpDir)
+    {
+        var projectDirectory = Temp.CreateDirectory();
+        var taskEnvironment = new TaskBuildEnvironment(
+            projectDirectory.Path,
+            new Dictionary<string, string> { ["TMPDIR"] = tmpDir! });
 
         var result = taskEnvironment.GetTempPath();
 
@@ -65,7 +76,7 @@ public sealed class ExtensionsTests : TestBase
     public void GetTempPath_Windows_TmpPartialPath_ReturnsFullyQualifiedUnderProjectDirectory()
     {
         var projectDirectory = Temp.CreateDirectory();
-        var taskEnvironment = CreateTaskEnvironment(
+        var taskEnvironment = new TaskBuildEnvironment(
             projectDirectory.Path,
             new Dictionary<string, string> { ["TMP"] = "partial-temp" });
 
@@ -81,7 +92,7 @@ public sealed class ExtensionsTests : TestBase
     {
         var projectDirectory = Temp.CreateDirectory();
         var tempPath = TestHelpers.GetRootedPath("rooted-temp");
-        var taskEnvironment = CreateTaskEnvironment(
+        var taskEnvironment = new TaskBuildEnvironment(
             projectDirectory.Path,
             new Dictionary<string, string> { ["TMP"] = tempPath });
 
@@ -96,7 +107,7 @@ public sealed class ExtensionsTests : TestBase
     public void GetTempPath_Windows_TmpUnsetTempPartial_ReturnsFullyQualifiedUnderProjectDirectory()
     {
         var projectDirectory = Temp.CreateDirectory();
-        var taskEnvironment = CreateTaskEnvironment(
+        var taskEnvironment = new TaskBuildEnvironment(
             projectDirectory.Path,
             new Dictionary<string, string> { ["TEMP"] = "partial-temp" });
 
@@ -112,7 +123,7 @@ public sealed class ExtensionsTests : TestBase
     {
         var projectDirectory = Temp.CreateDirectory();
         var userProfile = TestHelpers.GetRootedPath("user-profile");
-        var taskEnvironment = CreateTaskEnvironment(
+        var taskEnvironment = new TaskBuildEnvironment(
             projectDirectory.Path,
             new Dictionary<string, string> { ["USERPROFILE"] = userProfile });
 
@@ -121,5 +132,90 @@ public sealed class ExtensionsTests : TestBase
         Assert.NotNull(result);
         Assert.True(Path.IsPathFullyQualified(result));
         Assert.Equal(Path.GetFullPath(userProfile), result);
+    }
+
+    [ConditionalTheory(typeof(WindowsOnly))]
+    [InlineData(null)]
+    [InlineData("")]
+    public void GetTempPath_Windows_TmpNullOrEmpty_FallsBackToTemp(string? tmp)
+    {
+        var projectDirectory = Temp.CreateDirectory();
+        var temp = TestHelpers.GetRootedPath("temp");
+        var taskEnvironment = new TaskBuildEnvironment(
+            projectDirectory.Path,
+            new Dictionary<string, string>
+            {
+                ["TMP"] = tmp!,
+                ["TEMP"] = temp,
+            });
+
+        var result = taskEnvironment.GetTempPath();
+
+        Assert.Equal(Path.GetFullPath(temp), result);
+    }
+
+    [ConditionalTheory(typeof(WindowsOnly))]
+    [InlineData(null)]
+    [InlineData("")]
+    public void GetTempPath_Windows_TmpAndTempNullOrEmpty_FallsBackToUserProfile(string? value)
+    {
+        var projectDirectory = Temp.CreateDirectory();
+        var userProfile = TestHelpers.GetRootedPath("user-profile");
+        var taskEnvironment = new TaskBuildEnvironment(
+            projectDirectory.Path,
+            new Dictionary<string, string>
+            {
+                ["TMP"] = value!,
+                ["TEMP"] = value!,
+                ["USERPROFILE"] = userProfile,
+            });
+
+        var result = taskEnvironment.GetTempPath();
+
+        Assert.Equal(Path.GetFullPath(userProfile), result);
+    }
+
+    [ConditionalTheory(typeof(WindowsOnly))]
+    [InlineData(null)]
+    [InlineData("")]
+    public void GetTempPath_Windows_TempAndUserProfileNullOrEmpty_FallsBackToSystemRoot(string? value)
+    {
+        var projectDirectory = Temp.CreateDirectory();
+        var systemRoot = TestHelpers.GetRootedPath("system-root");
+        var taskEnvironment = new TaskBuildEnvironment(
+            projectDirectory.Path,
+            new Dictionary<string, string>
+            {
+                ["TMP"] = value!,
+                ["TEMP"] = value!,
+                ["USERPROFILE"] = value!,
+                ["SYSTEMROOT"] = systemRoot,
+            });
+
+        var result = taskEnvironment.GetTempPath();
+
+        Assert.Equal(Path.GetFullPath(systemRoot), result);
+    }
+
+    [ConditionalTheory(typeof(WindowsOnly))]
+    [InlineData(null)]
+    [InlineData("")]
+    public void GetTempPath_Windows_AllVariablesNullOrEmpty_ReturnsResolvedSystemRoot(string? value)
+    {
+        var projectDirectory = Temp.CreateDirectory();
+        var taskEnvironment = new TaskBuildEnvironment(
+            projectDirectory.Path,
+            new Dictionary<string, string>
+            {
+                ["TMP"] = value!,
+                ["TEMP"] = value!,
+                ["USERPROFILE"] = value!,
+                ["SYSTEMROOT"] = value!,
+            });
+
+        var result = taskEnvironment.GetTempPath();
+
+        var expected = value is null ? null : Path.GetFullPath(projectDirectory.Path);
+        Assert.Equal(expected, result);
     }
 }

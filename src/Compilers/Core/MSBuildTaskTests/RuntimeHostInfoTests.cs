@@ -112,23 +112,23 @@ public sealed class RuntimeHostInfoTests(ITestOutputHelper output) : TestBase
         var testDir = tempRoot.CreateDirectory();
         var globalDotNetDir = testDir.CreateDirectory("global-dotnet");
         var globalDotNetExe = globalDotNetDir.CreateFile(RuntimeHostInfo.DotNetHostExecutableName);
-        var taskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(
-            testDir.Path,
-            environmentVariables: new Dictionary<string, string>
-            {
-                ["PATH"] = globalDotNetDir.Path,
-                [RuntimeHostInfo.DotNetHostPathEnvironmentName] = "",
-                [RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName] = "",
-            });
         var binDir = testDir.CreateDirectory("bin");
         var symlinkPath = Path.Combine(binDir.Path, $"dotnet{PlatformInformation.ExeExtension}");
 
         // Create symlink from binDir to the actual dotnet executable
         File.CreateSymbolicLink(path: symlinkPath, pathToTarget: globalDotNetExe.Path);
+        var taskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(
+            testDir.Path,
+            environmentVariables: new Dictionary<string, string>
+            {
+                [RuntimeHostInfo.DotNetHostPathEnvironmentName] = symlinkPath,
+                [RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName] = "",
+            });
 
         var result = RuntimeHostInfo.GetToolDotNetRoot(taskEnvironment.BuildEnvironment, _output.WriteLine);
 
-        Assert.Null(result);
+        Assert.NotNull(result);
+        Assert.Equal(NormalizePath(globalDotNetDir.Path), NormalizePath(result));
     }
 
     [Fact]

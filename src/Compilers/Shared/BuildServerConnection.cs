@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <param name="buildEnvironment">Current build environment</param>
         /// <param name="logger">Optional logger for logging environment variable setup</param>
         /// <returns>Dictionary of environment variables to set</returns>
-        internal static Dictionary<string, string>? GetServerEnvironmentVariables(
+        internal static IReadOnlyDictionary<string, string> GetServerEnvironmentVariables(
             IBuildEnvironment buildEnvironment,
             ICompilerServerLogger? logger = null)
         {
@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 : null;
             if (dotNetRoot == null && !RuntimeHostInfo.ShouldDisableTieredCompilation)
             {
-                return null;
+                return buildEnvironment.GetEnvironmentVariables();
             }
 
             // Start with current environment
@@ -609,12 +609,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 IntPtr environmentBlockPtr = IntPtr.Zero;
                 try
                 {
-                    if (environmentVariables != null)
-                    {
-                        environmentBlockPtr = CreateEnvironmentBlock(environmentVariables);
-                        // When passing a Unicode environment block, we must set the CREATE_UNICODE_ENVIRONMENT flag
-                        dwCreationFlags |= CREATE_UNICODE_ENVIRONMENT;
-                    }
+                    environmentBlockPtr = CreateEnvironmentBlock(environmentVariables);
+                    // When passing a Unicode environment block, we must set the CREATE_UNICODE_ENVIRONMENT flag
+                    dwCreationFlags |= CREATE_UNICODE_ENVIRONMENT;
 
                     bool success = CreateProcess(
                         lpApplicationName: null,
@@ -665,15 +662,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
                         CreateNoWindow = true
                     };
 
-                    // Set environment variables directly on ProcessStartInfo
-                    if (environmentVariables != null)
+                    // Replace the inherited process environment with the caller-provided snapshot.
+                    startInfo.EnvironmentVariables.Clear();
+                    foreach (var kvp in environmentVariables)
                     {
-                        // Replace the inherited process environment with the caller-provided snapshot.
-                        startInfo.EnvironmentVariables.Clear();
-                        foreach (var kvp in environmentVariables)
-                        {
-                            startInfo.EnvironmentVariables[kvp.Key] = kvp.Value;
-                        }
+                        startInfo.EnvironmentVariables[kvp.Key] = kvp.Value;
                     }
 
                     if (Process.Start(startInfo) is { } process)

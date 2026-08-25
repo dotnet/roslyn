@@ -10,10 +10,21 @@ using Microsoft.Build.Framework;
 using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CommandLine;
 
-internal sealed class TaskBuildEnvironment(TaskEnvironment taskEnvironment) : IBuildEnvironment
+internal sealed class TaskBuildEnvironment : IBuildEnvironment
 {
-    internal TaskEnvironment TaskEnvironment { get; } = taskEnvironment;
+    internal TaskEnvironment TaskEnvironment { get; }
     public string CurrentDirectory => TaskEnvironment.ProjectDirectory;
+
+    internal TaskBuildEnvironment(TaskEnvironment taskEnvironment)
+    {
+        TaskEnvironment = taskEnvironment;
+    }
+
+    internal TaskBuildEnvironment(string projectDirectory, Dictionary<string, string> environment)
+        : this(TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(projectDirectory, environment))
+    {
+    }
+
     public string GetFullPath(string path) => TaskEnvironment.GetAbsolutePath(path).Value;
     public string? GetEnvironmentVariable(string name) => TaskEnvironment.GetEnvironmentVariable(name);
     public IReadOnlyDictionary<string, string> GetEnvironmentVariables() => TaskEnvironment.GetEnvironmentVariables();

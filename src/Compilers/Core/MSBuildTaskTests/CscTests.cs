@@ -536,12 +536,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         /// <summary>
-        /// The value of `DOTNET_HOST_PATH` will be prefered as is when present
+        /// The value of `DOTNET_HOST_PATH` will be preffered as is when present
         /// </summary>
         [Fact]
         public void BuiltInToolUsesTaskEnvironmentDotNetHostPathRelative()
         {
             var projectDirectory = Temp.CreateDirectory();
+            var dotnetPath = Path.Combine(TestHelpers.Root, RuntimeHostInfo.DotNetHostExecutableName);
             var csc = new Csc
             {
                 UseAppHost_TestOnly = false,
@@ -549,8 +550,23 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                     projectDirectory.Path,
                     new Dictionary<string, string>
                     {
-                        [RuntimeHostInfo.DotNetHostPathEnvironmentName] = RuntimeHostInfo.DotNetHostExecutableName
+                        [RuntimeHostInfo.DotNetHostPathEnvironmentName] = dotnetPath,
                     }),
+            };
+
+            Assert.Equal(dotnetPath, csc.GeneratePathToTool());
+        }
+
+        [Fact]
+        public void BuiltInToolUsesTaskEnvironmentDotNetHostWhenNull()
+        {
+            var projectDirectory = Temp.CreateDirectory();
+            var csc = new Csc
+            {
+                UseAppHost_TestOnly = false,
+                TaskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(
+                    projectDirectory.Path,
+                    new Dictionary<string, string>())
             };
 
             Assert.Equal(RuntimeHostInfo.DotNetHostExecutableName, csc.GeneratePathToTool());

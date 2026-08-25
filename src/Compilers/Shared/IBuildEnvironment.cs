@@ -23,7 +23,6 @@ internal static class IBuildEnvironmentExtensions
 {
     extension(IBuildEnvironment buildEnvironment)
     {
-
         internal string GetFullPathNoThrow(string path)
         {
             try
