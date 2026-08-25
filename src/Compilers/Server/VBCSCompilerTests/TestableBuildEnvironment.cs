@@ -16,7 +16,7 @@ internal sealed class TestableBuildEnvironment(
     public Dictionary<string, string> EnvironmentVariables { get; } = environmentVariables ?? new Dictionary<string, string>();
     public string? TempPath { get; } = tempPath;
 
-    public string GetFullPath(string path) => Path.Combine(CurrentDirectory, path);
+    public string GetFullyQualifiedPath(string path) => Path.Combine(CurrentDirectory, path);
     public string? GetEnvironmentVariable(string name) => EnvironmentVariables.TryGetValue(name, out var value) ? value : null;
     public IReadOnlyDictionary<string, string> GetEnvironmentVariables() => EnvironmentVariables;
     public string? GetTempPath() => TempPath;

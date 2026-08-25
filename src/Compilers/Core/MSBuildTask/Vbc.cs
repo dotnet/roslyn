@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         // Delete the existing one if it's already there, as Move would otherwise fail
                         if (desiredPdbInfo.Exists)
                         {
-                            TaskEnvironment.DeleteNoThrow(desiredPdbInfo.FullName);
+                            TaskEnvironment.DeleteNoThrow(desiredPdbInfo);
                         }
 
                         // Move the file to where we actually wanted VBC to put it

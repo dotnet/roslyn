@@ -40,7 +40,7 @@ internal static class TaskEnvironmentExtensions
             }
         }
 
-        public void DeleteNoThrow(string path) => taskEnvironment.DeleteNoThrow(taskEnvironment.GetAbsolutePath(path));
+        public void DeleteNoThrow(FileInfo fileInfo) => taskEnvironment.DeleteNoThrow(taskEnvironment.GetAbsolutePath(fileInfo.FullName));
 
         public void DeleteNoThrow(AbsolutePath path)
         {

@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     return null;
                 }
 
-                loggingFilePath = buildEnvironment.GetFullPath(loggingFilePath);
+                loggingFilePath = buildEnvironment.GetFullyQualifiedPath(loggingFilePath);
 
                 // If the environment variable contains the path of a currently existing directory,
                 // then use a process-specific name for the log file and put it in that directory.

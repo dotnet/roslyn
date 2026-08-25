@@ -16,7 +16,7 @@ internal sealed class StandardBuildEnvironment : IBuildEnvironment
 
     public string CurrentDirectory => Directory.GetCurrentDirectory();
     public string? GetTempPath() => Path.GetTempPath();
-    public string GetFullPath(string path) => Path.Combine(CurrentDirectory, path);
+    public string GetFullyQualifiedPath(string path) => Path.Combine(CurrentDirectory, path);
     public string? GetEnvironmentVariable(string name) => Environment.GetEnvironmentVariable(name);
 
     IReadOnlyDictionary<string, string> IBuildEnvironment.GetEnvironmentVariables() => GetEnvironmentVariables();

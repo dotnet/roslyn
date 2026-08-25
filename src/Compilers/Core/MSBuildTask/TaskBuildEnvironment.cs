@@ -25,7 +25,7 @@ internal sealed class TaskBuildEnvironment : IBuildEnvironment
     {
     }
 
-    public string GetFullPath(string path) => TaskEnvironment.GetAbsolutePath(path).Value;
+    public string GetFullyQualifiedPath(string path) => TaskEnvironment.GetAbsolutePath(path).Value;
     public string? GetEnvironmentVariable(string name) => TaskEnvironment.GetEnvironmentVariable(name);
     public IReadOnlyDictionary<string, string> GetEnvironmentVariables() => TaskEnvironment.GetEnvironmentVariables();
     public string? GetTempPath() => TaskEnvironment.GetTempPath();

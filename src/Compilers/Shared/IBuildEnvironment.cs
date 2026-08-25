@@ -14,7 +14,7 @@ internal interface IBuildEnvironment
 {
     public string CurrentDirectory { get; }
     public string? GetTempPath();
-    public string GetFullPath(string path);
+    public string GetFullyQualifiedPath(string path);
     public string? GetEnvironmentVariable(string name);
     public IReadOnlyDictionary<string, string> GetEnvironmentVariables();
 }
@@ -23,11 +23,11 @@ internal static class IBuildEnvironmentExtensions
 {
     extension(IBuildEnvironment buildEnvironment)
     {
-        internal string GetFullPathNoThrow(string path)
+        internal string GetFullyQualifiedPathNoThrow(string path)
         {
             try
             {
-                path = buildEnvironment.GetFullPath(path);
+                path = buildEnvironment.GetFullyQualifiedPath(path);
             }
             catch (Exception)
             {
