@@ -39,6 +39,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void ReportDiagnosticsIfUnsafeMemberAccess<T>(DiagnosticBag diagnostics, Symbol symbol, T arg, Func<T, Location?> location)
         {
+            if (IsInsideNameof)
+            {
+                return;
+            }
+
             var useUpdatedMemorySafetyRules = this.Compilation.SourceModule.UseUpdatedMemorySafetyRules;
             var callerUnsafeMode = symbol.GetCallerUnsafeMode(this.FieldsBeingBound);
             if (!useUpdatedMemorySafetyRules && callerUnsafeMode != CallerUnsafeMode.Implicit)

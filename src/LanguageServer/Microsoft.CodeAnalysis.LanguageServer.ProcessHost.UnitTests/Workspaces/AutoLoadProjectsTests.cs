@@ -100,17 +100,80 @@ public sealed class AutoLoadProjectsTests(ITestOutputHelper testOutputHelper) : 
         await AssertAutoLoadCompletedAsync(testLspServer, GetLoadingFileMessage(testLspServer, "Solutions/App.slnx"), GetLoadedFileMessage(testLspServer, "Solutions/App.slnx"));
     }
 
+    [Fact]
+    public async Task ReportsProgressForExplicitSolutionOpen()
+    {
+        var workspaceContent = LspWorkspaceContent.Empty
+            .WithFile("App.csproj", ProjectContent)
+            .WithFile("App.sln", CreateSolutionFile("App.csproj"))
+            .WithLoadPath("App.sln")
+            .WithRestore();
+
+        await using var testLspServer = await CreateLanguageServerAsync(
+            workspaceContent,
+            new LspServerLaunchOptions(),
+            CreateWorkDoneProgressClientCapabilities());
+
+        await AssertAutoLoadCompletedAsync(testLspServer, GetLoadingFileMessage(testLspServer, "App.sln"), GetLoadedFileMessage(testLspServer, "App.sln"));
+    }
+
+    [Fact]
+    public async Task ReportsProgressForExplicitProjectOpen()
+    {
+        var workspaceContent = LspWorkspaceContent.Empty
+            .WithFile("Project.csproj", ProjectContent)
+            .WithLoadPath("Project.csproj")
+            .WithRestore();
+
+        await using var testLspServer = await CreateLanguageServerAsync(
+            workspaceContent,
+            new LspServerLaunchOptions(),
+            CreateWorkDoneProgressClientCapabilities());
+
+        await AssertAutoLoadCompletedAsync(testLspServer, GetLoadingProjectsMessage(projectCount: 1), GetLoadedProjectsMessage(projectCount: 1));
+    }
+
+    [Fact]
+    public async Task RestoresSolutionInsteadOfIndividualProjectsWhenSolutionLoaded()
+    {
+        // Note: intentionally not pre-restoring the workspace so that loading the solution triggers an automatic restore.
+        var workspaceContent = LspWorkspaceContent.Empty
+            .WithFile("App/App.csproj", ProjectContent)
+            .WithFile("Nested/Nested.csproj", ProjectContent)
+            .WithFile("App.sln", CreateSolutionFile("App/App.csproj", "Nested/Nested.csproj"));
+
+        await using var testLspServer = await CreateAutoLoadLanguageServerAsync(workspaceContent);
+
+        // The single solution file at the root is auto-loaded, which triggers a restore of the unrestored projects.
+        var restoreUnit = await testLspServer.WorkDoneProgress.WaitForWorkDoneProgressCreation(LanguageServerResources.Restore);
+        await restoreUnit.WaitForEndAsync();
+
+        // Verify that the restore ran against the solution as a whole (a single "Restoring App.sln" stage) rather than
+        // restoring each contained project individually (which would report a "Restoring <project>.csproj" stage per project).
+        var restoreStages = restoreUnit.GetProgressReports()
+            .OfType<WorkDoneProgressReport>()
+            .Select(report => report.Message)
+            .Distinct()
+            .ToArray();
+
+        var expectedStage = string.Format(LanguageServerResources.Restoring_0, "App.sln");
+        Assert.Equal(expectedStage, Assert.Single(restoreStages));
+    }
+
     private Task<TestLspClient> CreateAutoLoadLanguageServerAsync(LspWorkspaceContent workspaceContent)
         => CreateLanguageServerAsync(
             workspaceContent,
             new LspServerLaunchOptions { AutoLoadProjects = true },
-            new VSInternalClientCapabilities
+            CreateWorkDoneProgressClientCapabilities());
+
+    private static VSInternalClientCapabilities CreateWorkDoneProgressClientCapabilities()
+        => new()
+        {
+            Window = new WindowClientCapabilities
             {
-                Window = new WindowClientCapabilities
-                {
-                    WorkDoneProgress = true,
-                }
-            });
+                WorkDoneProgress = true,
+            }
+        };
 
     private static LspWorkspaceContent CreateAutoLoadWorkspace()
         => LspWorkspaceContent.Empty.WithRestore();

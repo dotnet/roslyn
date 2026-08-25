@@ -254,7 +254,10 @@ namespace System.Diagnostics.CodeAnalysis
             namespace System.Runtime.CompilerServices
             {
                 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
-                public sealed class IsClosedTypeAttribute : Attribute { }
+                public sealed class IsClosedTypeAttribute : Attribute
+                {
+                    public Type[] DerivedTypes { get; set; }
+                }
             }
             """;
 
