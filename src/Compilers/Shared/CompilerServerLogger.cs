@@ -174,9 +174,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 // If the environment variable contains the path of a currently existing directory,
                 // then use a process-specific name for the log file and put it in that directory.
                 // Otherwise, assume that the environment variable specifies the name of the log file.
-    #pragma warning disable RS0030 // getFullPath guarantees a full path
+#pragma warning disable RS0030 // getFullPath guarantees a full path
                 if (Directory.Exists(loggingFilePath))
-    #pragma warning restore RS0030
+#pragma warning restore RS0030
                 {
                     var processId = Process.GetCurrentProcess().Id;
                     loggingFilePath = Path.Combine(loggingFilePath, $"server.{processId}.log");
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
             catch (Exception e)
             {
-                Debug.Assert(false, e.Message)
+                Debug.Assert(false, e.Message);
                 return null;
             }
         }
