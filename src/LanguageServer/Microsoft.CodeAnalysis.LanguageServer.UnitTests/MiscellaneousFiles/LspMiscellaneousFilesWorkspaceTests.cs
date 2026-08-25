@@ -78,6 +78,15 @@ public sealed partial class LspMiscellaneousFilesWorkspaceProviderTests : Abstra
 
         Assert.NotNull(symbols);
         Assert.Equal("A", Assert.Single(symbols).Name);
+
+        sourceFile.WriteAllText("class B { }");
+        symbols = await testLspServer.ExecuteRequestAsync<LSP.DocumentSymbolParams, LSP.DocumentSymbol[]>(
+            LSP.Methods.TextDocumentDocumentSymbolName,
+            new LSP.DocumentSymbolParams { TextDocument = CreateTextDocumentIdentifier(looseFileUri) },
+            CancellationToken.None);
+
+        Assert.NotNull(symbols);
+        Assert.Equal("B", Assert.Single(symbols).Name);
     }
 
     [Theory, CombinatorialData]
