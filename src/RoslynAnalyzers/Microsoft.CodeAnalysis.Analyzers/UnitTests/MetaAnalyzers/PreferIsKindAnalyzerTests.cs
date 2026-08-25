@@ -251,8 +251,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     Sources = { fixedSource },
                     ExpectedDiagnostics =
                     {
-                        // /0/Test0.cs(8,63): error CS0117: 'CSharpExtensions' does not contain a definition for 'IsKind'
-                        DiagnosticResult.CompilerError("CS0117").WithLocation(0).WithArguments("Microsoft.CodeAnalysis.CSharp.CSharpExtensions", "IsKind"),
+                        // /0/Test0.cs(8,63): error CS1501: No overload for method 'IsKind' takes 2 arguments
+                        DiagnosticResult.CompilerError("CS1501").WithLocation(0).WithArguments("IsKind", "2"),
                     },
                 },
             }.RunAsync();
