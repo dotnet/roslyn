@@ -117,8 +117,8 @@
       "Shipping",
       "NonShipping"
     ],
-    "vsBranch": "rel/insiders",
+    "vsBranch": "rel/stable",
     "insertionCreateDraftPR": false,
-    "insertionTitlePrefix": "[Insiders 18.10]"
+    "insertionTitlePrefix": "[Stable 18.10]"
   }
 }
