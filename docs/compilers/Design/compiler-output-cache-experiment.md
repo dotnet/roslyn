@@ -15,6 +15,10 @@ The current implementation is intentionally scoped as an experiment:
 - it is primarily designed for repeated local or CI builds that produce identical outputs
 - it is expected to evolve as we learn more about correctness, diagnostics, and operational behavior
 
+## Security
+
+The contents of the cache folder are an input to the compilation. When a cache hit occurs, the cached outputs (and their associated metadata) are restored and used as the result of the compilation, so what is stored in the cache directly affects what the build produces. Users of this feature must add appropriate access controls to the cache folder to ensure its contents are trusted to the same degree as any other compilation input, such as source files, references, and analyzers. A cache whose contents can be written or modified by untrusted parties should be treated as an untrusted input.
+
 ## Goals
 
 The experiment has four primary goals:
@@ -166,6 +170,28 @@ While the experiment is active, the compiler server logs notable cache events, i
 When `ROSLYN_CACHE_PATH` is used, the client also logs that it normalized the environment variable into the feature flag sent to the server.
 
 On a miss, Roslyn may also log diffs against recent prior key files for the same output name. This is intended to help explain why two apparently similar builds did not reuse the same cached result.
+
+### Telemetry
+
+When the compilation runs on the server through the MSBuild `Csc`/`Vbc` task and the cache is enabled, the server also produces a structured telemetry event that the task forwards to the host via [`IBuildEngine5.LogTelemetry`](https://learn.microsoft.com/dotnet/api/microsoft.build.framework.ibuildengine5.logtelemetry). This is separate from the diagnostic log above and is intended for aggregate analysis.
+
+The event name is `roslyn/compilercache`. Host telemetry pipelines prefix it:
+
+- Visual Studio: `vs/roslyn/compilercache`
+- dotnet CLI: `dotnet/cli/msbuild/roslyn/compilercache`
+
+The event carries these properties:
+
+| Property | Meaning |
+|----------|---------|
+| `cachestatus` | `hit` or `miss` (always present) |
+| `storeresult` | `none`, `stored`, `skippedrace`, `skippedexists`, or `failed` (always present) |
+| `compileresult` | `succeeded` or `failed`; omitted on a cache hit |
+| `language` | the compiler language (`C#` / `Visual Basic`) (always present) |
+| `keycomputems` | milliseconds spent computing the deterministic key (always present) |
+| `restorems` | milliseconds spent attempting to restore a cached result (always present) |
+| `storems` | milliseconds spent storing the result; omitted when no store was attempted (a hit, or a miss whose compilation failed) |
+| `compilems` | milliseconds spent compiling and emitting on a miss; omitted on a hit |
 
 ## Cache management
 

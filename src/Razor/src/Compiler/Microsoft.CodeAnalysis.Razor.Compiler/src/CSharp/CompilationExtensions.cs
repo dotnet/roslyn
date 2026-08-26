@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 
@@ -67,6 +68,20 @@ internal static class CompilationExtensions
         }
 
         return false;
+    }
+
+    public static bool CanConvertStringLiteral(this Compilation compilation, ITypeSymbol type)
+    {
+        var stringType = compilation.GetSpecialType(SpecialType.System_String);
+
+        if (stringType.TypeKind == TypeKind.Error ||
+            SymbolEqualityComparer.Default.Equals(type, stringType))
+        {
+            return false;
+        }
+
+        var conversion = compilation.ClassifyConversion(source: stringType, destination: type);
+        return conversion.IsImplicit && conversion.IsUnion;
     }
 
     /// <summary>

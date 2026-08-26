@@ -1,0 +1,14 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - Razor
+        RazorSourceChecksumAttribute - 
+        ClassDeclaration -  - public - Template - global::LegacyTemplateBase - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (38:1,0 [2] TestFiles\IntegrationTests\CSharp13LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (38:1,0 [2] TestFiles\IntegrationTests\CSharp13LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                CSharpCode - (42:2,2 [52] TestFiles\IntegrationTests\CSharp13LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (42:2,2 [52] TestFiles\IntegrationTests\CSharp13LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - \n    var value = "\e[31m";\n    _ = value.Length;\n
+                HtmlContent - (97:6,0 [2] TestFiles\IntegrationTests\CSharp13LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (97:6,0 [2] TestFiles\IntegrationTests\CSharp13LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                CSharpExpression - (101:7,2 [8] TestFiles\IntegrationTests\CSharp13LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (101:7,2 [8] TestFiles\IntegrationTests\CSharp13LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - "\e[31m"

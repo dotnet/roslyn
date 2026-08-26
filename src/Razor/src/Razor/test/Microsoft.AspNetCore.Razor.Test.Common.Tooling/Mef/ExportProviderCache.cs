@@ -69,7 +69,15 @@ public static class ExportProviderCache
 
     public static IExportProviderFactory CreateExportProviderFactory(ComposableCatalog catalog)
     {
-        var configuration = CompositionConfiguration.Create(catalog.WithCompositionService());
+        var configuration = CreateCompositionConfiguration(catalog);
+        return CreateExportProviderFactory(configuration);
+    }
+
+    internal static CompositionConfiguration CreateCompositionConfiguration(ComposableCatalog catalog)
+        => CompositionConfiguration.Create(catalog.WithCompositionService());
+
+    internal static IExportProviderFactory CreateExportProviderFactory(CompositionConfiguration configuration)
+    {
         ValidateConfiguration(configuration);
 
         var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);

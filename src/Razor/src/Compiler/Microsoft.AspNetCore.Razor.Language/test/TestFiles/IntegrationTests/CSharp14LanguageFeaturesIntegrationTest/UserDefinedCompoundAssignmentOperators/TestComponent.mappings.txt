@@ -1,0 +1,13 @@
+﻿Source Location: (2:0,2 [79] x:\dir\subdir\Test\TestComponent.razor)
+|
+    var counter = new Counter();
+    counter += 1;
+    _ = counter.Value;
+|
+Generated Location: (733:21,0 [79] )
+|
+    var counter = new Counter();
+    counter += 1;
+    _ = counter.Value;
+|
+

@@ -26,5 +26,3 @@
                             IntermediateToken -  - CSharp - CurrentDate
                             IntermediateToken -  - CSharp - , format: "MM/dd/yyyy"
                             IntermediateToken -  - CSharp - )
-            CSharpCode - (78:1,7 [77] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (78:1,7 [77] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public DateTime CurrentDate { get; set; } = new DateTime(2018, 1, 1);\n

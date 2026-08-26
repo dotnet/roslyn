@@ -36,6 +36,8 @@ pr:
       - docs/*
       - eng/config/OptProf.json
       - eng/config/PublishData.json
+      - eng/pipelines/insert.yml
+      - eng/pipelines/insertion-pr-tagger.yml
       - eng/setup-pr-validation.ps1
       - .vscode/*
       - .github/*
@@ -47,9 +49,7 @@ pr:
       - azure-pipelines-integration-scouting.yml
       - azure-pipelines-official.yml
       - azure-pipelines-pr-validation.yml
-      - CODE-OF-CONDUCT.md
-      - CONTRIBUTING.md
-      - README.md
+      - '*.md'
       - src/Compilers/*
       - src/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework/README.md
 

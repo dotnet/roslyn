@@ -16,7 +16,7 @@ public sealed class ModuleCancellationTests : CSharpTestBase
 {
     private static readonly EmitOptions s_emitOptions = EmitOptions.Default.WithInstrumentationKinds([InstrumentationKind.ModuleCancellation]);
 
-    private CompilationVerifier CompileAndVerify(string source, string? expectedOutput = null, CSharpCompilationOptions? options = null, Verification? verification = null)
+    private CompilationVerifier CompileAndVerify(CSharpTestSource source, string? expectedOutput = null, CSharpCompilationOptions? options = null, Verification? verification = null)
         => CompileAndVerify(
             source,
             options: options ?? (expectedOutput != null ? TestOptions.UnsafeDebugExe : TestOptions.UnsafeDebugDll),
@@ -2800,5 +2800,32 @@ public sealed class ModuleCancellationTests : CSharpTestBase
 
         // definite assignment flow pass doesn't fail
         CompileAndVerify(source).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void UnionDeclaration_01()
+    {
+        var source = """
+            public union TestUnion(string, int);
+            """;
+
+        var verifier = CompileAndVerify([source, UnionAttributeSource, IUnionSource]);
+
+        AssertNotInstrumented(verifier, "TestUnion.Value.get");
+
+        verifier.VerifyIL("TestUnion..ctor(int)", $$"""
+            {
+              // Code size       24 (0x18)
+              .maxstack  2
+              IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0005:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
+              IL_000a:  ldarg.0
+              IL_000b:  ldarg.1
+              IL_000c:  box        "int"
+              IL_0011:  stfld      "object TestUnion.<Value>k__BackingField"
+              IL_0016:  nop
+              IL_0017:  ret
+            }
+            """);
     }
 }

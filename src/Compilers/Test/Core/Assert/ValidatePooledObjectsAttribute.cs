@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Threading;
 using Xunit;
 using Xunit.Sdk;
+using Microsoft.CodeAnalysis;
 
 #if DEBUG
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -42,12 +43,20 @@ public sealed class ValidatePooledObjectsAttribute : BeforeAfterTestAttribute
     /// </summary>
     public string? LeakReason { get; set; }
 
+    /// <summary>
+    /// When set to <see langword="true"/>, waits briefly for outstanding objects to be freed before reporting leaks.
+    /// Command-line tests need this because the analyzer driver has a background task which <see cref="CommonCompiler.Run"/> doesn't always wait for.
+    /// </summary>
+    public bool WaitForOutstandingObjectsToBeFreed { get; set; }
+
 #if DEBUG
     /// <summary>
     /// When a method-level attribute has <see cref="Skip"/> or <see cref="LeakReason"/> set,
     /// this flag suppresses the class-level attribute's validation for the same test.
     /// </summary>
     private static readonly AsyncLocal<bool> s_suppressClassLevelValidation = new();
+
+    private static readonly TimeSpan s_asyncCleanupTimeout = TimeSpan.FromSeconds(5);
 
     private PoolTrackingContext? _context;
 #endif
@@ -82,6 +91,11 @@ public sealed class ValidatePooledObjectsAttribute : BeforeAfterTestAttribute
 
         var context = _context;
         _context = null;
+
+        if (LeakReason is null && !s_suppressClassLevelValidation.Value && WaitForOutstandingObjectsToBeFreed)
+        {
+            context?.WaitForOutstandingObjectsToBeFreed(s_asyncCleanupTimeout);
+        }
 
         PoolTracker.StopTracking();
 

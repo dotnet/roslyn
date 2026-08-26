@@ -1,17 +1,14 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -34,9 +31,6 @@ internal sealed class CohostOnAutoInsertEndpoint(
     IIncompatibleProjectService incompatibleProjectService,
     IRemoteServiceInvoker remoteServiceInvoker,
     IClientSettingsManager clientSettingsManager,
-#pragma warning disable RS0030 // Do not use banned APIs
-    [ImportMany] IEnumerable<IOnAutoInsertTriggerCharacterProvider> onAutoInsertTriggerCharacterProviders,
-#pragma warning restore RS0030 // Do not use banned APIs
     IHtmlRequestInvoker requestInvoker,
     ILoggerFactory loggerFactory)
     : AbstractCohostDocumentEndpoint<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>(incompatibleProjectService), IDynamicRegistrationProvider
@@ -46,22 +40,18 @@ internal sealed class CohostOnAutoInsertEndpoint(
     private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostOnAutoInsertEndpoint>();
 
-    private readonly ImmutableArray<string> _triggerCharacters = CalculateTriggerChars(onAutoInsertTriggerCharacterProviders);
+    private static readonly string[] s_razorOnAutoInsertTriggerCharacters = [">"];
+    private static readonly string[] s_htmlAllowedAutoInsertTriggerCharacters = ["="];
+    private static readonly string[] s_csharpAllowedAutoInsertTriggerCharacters = ["'", "/", "\n", "\""];
 
-    private static ImmutableArray<string> CalculateTriggerChars(IEnumerable<IOnAutoInsertTriggerCharacterProvider> onAutoInsertTriggerCharacterProviders)
-    {
-        var providerTriggerCharacters = onAutoInsertTriggerCharacterProviders.Select((provider) => provider.TriggerCharacter).Distinct();
-
-        ImmutableArray<string> triggerCharacters = [
-            .. providerTriggerCharacters,
+    private static readonly string[] s_triggerCharacters = [
+        .. s_razorOnAutoInsertTriggerCharacters,
 #if !VSCODE
-            // VS Code's auto insert functionality is poly-filled by Roslyn. The Html server has no support for it.
-            .. AutoInsertService.HtmlAllowedAutoInsertTriggerCharacters,
+        // VS Code's auto insert functionality is poly-filled by Roslyn. The Html server has no support for it.
+        .. s_htmlAllowedAutoInsertTriggerCharacters,
 #endif
-            .. AutoInsertService.CSharpAllowedAutoInsertTriggerCharacters ];
-
-        return triggerCharacters;
-    }
+        .. s_csharpAllowedAutoInsertTriggerCharacters
+        ];
 
     protected override bool MutatesSolutionState => false;
 
@@ -75,7 +65,9 @@ internal sealed class CohostOnAutoInsertEndpoint(
             {
                 Method = VSInternalMethods.OnAutoInsertName,
                 RegisterOptions = new VSInternalDocumentOnAutoInsertRegistrationOptions()
-                    .EnableOnAutoInsert(_triggerCharacters)
+                {
+                    TriggerCharacters = s_triggerCharacters
+                }
             }];
         }
 
@@ -85,12 +77,31 @@ internal sealed class CohostOnAutoInsertEndpoint(
     protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalDocumentOnAutoInsertParams request)
         => request.TextDocument;
 
-    protected override async Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(VSInternalDocumentOnAutoInsertParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    protected override Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(VSInternalDocumentOnAutoInsertParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    {
+        var csharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument, cancellationToken);
+        return HandleRequestAsync(request, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
+    }
+
+    private async Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(
+        VSInternalDocumentOnAutoInsertParams request,
+        TextDocument razorDocument,
+        CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions,
+        CancellationToken cancellationToken)
     {
         _logger.LogDebug($"Resolving auto-insertion for {razorDocument.FilePath}");
 
         var clientSettings = _clientSettingsManager.GetClientSettings();
-        var razorFormattingOptions = RazorFormattingOptions.From(request.Options, codeBlockBraceOnNextLine: clientSettings.AdvancedSettings.CodeBlockBraceOnNextLine, attributeIndentStyle: clientSettings.AdvancedSettings.AttributeIndentStyle);
+        var razorFormattingOptions = RazorFormattingOptions.From(
+            request.Options,
+            codeBlockBraceOnNextLine: clientSettings.AdvancedSettings.CodeBlockBraceOnNextLine,
+            attributeIndentStyle: clientSettings.AdvancedSettings.AttributeIndentStyle,
+            csharpSyntaxFormattingOptions);
+        var resolvedCSharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetResolvedCSharpSyntaxFormattingOptions(razorFormattingOptions);
+        razorFormattingOptions = razorFormattingOptions with
+        {
+            CSharpSyntaxFormattingOptions = resolvedCSharpSyntaxFormattingOptions
+        };
 
         _logger.LogDebug($"Calling OOP to resolve insertion at {request.Position} invoked by typing '{request.Character}'");
         var data = await _remoteServiceInvoker.TryInvokeAsync<IRemoteAutoInsertService, Response>(
@@ -164,5 +175,11 @@ internal sealed class CohostOnAutoInsertEndpoint(
             TextDocument razorDocument,
             CancellationToken cancellationToken)
                 => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
+
+        public static string[] GetRazorOnAutoInsertTriggerCharacters() => s_razorOnAutoInsertTriggerCharacters;
+
+        public static string[] GetHtmlAllowedAutoInsertTriggerCharacters() => s_htmlAllowedAutoInsertTriggerCharacters;
+
+        public static string[] GetCSharpAllowedAutoInsertTriggerCharacters() => s_csharpAllowedAutoInsertTriggerCharacters;
     }
 }

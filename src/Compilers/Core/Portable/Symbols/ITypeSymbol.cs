@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -148,9 +149,27 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         bool IsUnion
         {
-            [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/82567")]
             get;
         }
+
+        /// <summary>
+        /// When <see cref="IsUnion"/> is true, returns the case types of the union. Otherwise, returns an empty array.
+        /// </summary>
+        ImmutableArray<ITypeSymbol> UnionCaseTypes
+        {
+            get;
+        }
+
+        /// <summary>
+        /// Indicates that the type is restricted from being inherited from outside its containing module.
+        /// </summary>
+        bool IsClosed { get; }
+
+        /// <summary>
+        /// Gets the direct derived types of a closed type.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">If this is not a closed type.</exception>
+        ClosedDerivedTypeInfo GetClosedDerivedTypeInfo(CancellationToken cancellationToken);
 
         /// <summary>
         /// Converts an <c>ITypeSymbol</c> and a nullable flow state to a string representation.

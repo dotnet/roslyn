@@ -1,0 +1,4 @@
+﻿[0000] OpenElement("button")
+[0001] AddEventPreventDefaultAttribute("onclick", true)
+[0002] AddEventStopPropagationAttribute("onclick", true)
+[0003] AddContent("Click Me")

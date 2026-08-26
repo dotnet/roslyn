@@ -8,7 +8,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -30,8 +29,23 @@ internal class VSCodeRemoteServiceInvoker(
     private readonly VSCodeBrokeredServiceInterceptor _serviceInterceptor = new();
 
     public async ValueTask<TResult?> TryInvokeAsync<TService, TResult>(
+        Func<TService, CancellationToken, ValueTask<TResult>> invocation,
+        CancellationToken cancellationToken,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerMemberName] string? callerMemberName = null) where TService : class
+    {
+        var service = await GetOrCreateServiceAsync<TService>().ConfigureAwait(false);
+        if (service == null)
+        {
+            return default;
+        }
+
+        return await invocation(service, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async ValueTask<TResult?> TryInvokeAsync<TService, TResult>(
         Solution solution,
-        Func<TService, RazorPinnedSolutionInfoWrapper, CancellationToken, ValueTask<TResult>> invocation,
+        Func<TService, RazorSolutionWrapper, CancellationToken, ValueTask<TResult>> invocation,
         CancellationToken cancellationToken,
         [CallerFilePath] string? callerFilePath = null,
         [CallerMemberName] string? callerMemberName = null) where TService : class
@@ -45,7 +59,7 @@ internal class VSCodeRemoteServiceInvoker(
         }
 
         // Get solution info with direct reference stored
-        var solutionInfo = new RazorPinnedSolutionInfoWrapper(checksum: default, solution: solution);
+        var solutionInfo = new RazorSolutionWrapper(checksum: default, solution: solution);
 
         // Invoke the function with the service and solution info
         return await invocation(service, solutionInfo, cancellationToken).ConfigureAwait(false);

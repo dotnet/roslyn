@@ -591,6 +591,16 @@ RoOt = TruE");
         }
 
         [Fact]
+        public void ExcessivelyNestedChoiceIsInvalid()
+        {
+            var sectionName = new string('{', 100_000);
+            var config = ParseConfigFile($"[{sectionName}]\nmy_prop = my_val");
+            var configSet = AnalyzerConfigSet.Create(ImmutableArray.Create(config));
+
+            Assert.Empty(configSet.GetOptionsForSourcePath("/test.cs").AnalyzerOptions);
+        }
+
+        [Fact]
         public void CommaOutsideBraces()
         {
             SectionNameMatcher? matcher = TryCreateSectionNameMatcher("abc,def");

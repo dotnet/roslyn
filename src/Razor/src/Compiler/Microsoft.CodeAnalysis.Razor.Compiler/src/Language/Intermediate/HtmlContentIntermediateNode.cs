@@ -23,6 +23,17 @@ public sealed class HtmlContentIntermediateNode : IntermediateNode
         visitor.VisitHtml(this);
     }
 
+    protected override IntermediateNode CloneNode()
+    {
+        var clone = new HtmlContentIntermediateNode
+        {
+            HasEncodedContent = HasEncodedContent,
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
+
+        return clone;
+    }
+
     public override void FormatNode(IntermediateNodeFormatter formatter)
     {
         formatter.WriteChildren(Children);

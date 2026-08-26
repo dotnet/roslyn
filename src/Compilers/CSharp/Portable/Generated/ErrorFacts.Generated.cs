@@ -346,7 +346,6 @@
                 case ErrorCode.WRN_UnscopedRefAttributeOldRules:
                 case ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature:
                 case ErrorCode.WRN_RedundantPattern:
-                case ErrorCode.WRN_UnsafeMeaningless:
                     return true;
                 default:
                     return false;
@@ -389,7 +388,6 @@
                 case ErrorCode.HDN_UnusedUsingDirective:
                 case ErrorCode.HDN_UnusedExternAlias:
                 case ErrorCode.HDN_DuplicateWithGlobalUsing:
-                case ErrorCode.HDN_RedundantPattern:
                 case ErrorCode.HDN_RedundantPatternStackGuard:
                     return true;
                 default:

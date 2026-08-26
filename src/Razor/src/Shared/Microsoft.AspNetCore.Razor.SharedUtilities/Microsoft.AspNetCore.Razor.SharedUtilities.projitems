@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>dd44bc39-0c38-45fb-b334-4c16651e48c0</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Microsoft.AspNetCore.Razor</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Resources\CollectionUtilitiesSR.resx">
+      <GenerateSource>true</GenerateSource>
+      <Namespace>Microsoft.AspNetCore.Razor.SharedUtilities.Resources</Namespace>
+    </EmbeddedResource>
+    <None Include="$(MSBuildThisFileDirectory)Resources\xlf\CollectionUtilitiesSR*.xlf" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
+    <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)ArgHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Assumed.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Assumed_StringHandlers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BufferExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DictionaryExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EnumerableExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EnumExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FileUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)HashSetExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImmutableArrayExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImmutableArrayExtensions_Unsafe.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InterlockedOperations.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ListExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MemoryBuilderExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MemoryBuilder`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NullableExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Opt`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PathUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageSupport\CallerArgumentExpressionAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\ArrayBuilderPool`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\ArrayBuilderPool`1.Policy.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\CustomObjectPool`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\DefaultPool.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\DictionaryBuilderPool`2.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\DictionaryBuilderPool`2.Policy.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\DictionaryPool`2.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\DictionaryPool`2.Policy.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\Extensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\HashSetPool`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\HashSetPool`1.Policy.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\IPoolableObject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\ListPool`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\ListPool`1.Policy.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\ObjectPool.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledHashSet`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledList`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledList`1.Enumerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledArrayBuilder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledArrayBuilderExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledArrayBuilder`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledArrayBuilder`1.Enumerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledArray`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledDictionaryBuilder`2.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledObject`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\QueuePool`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\QueuePool`1.Policy.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\SpecializedPools.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\SpecializedPools.ReferenceEqualityHashSet`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\SpecializedPools.StringDictionary`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\SpecializedPools.StringHashSet.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\StackPool`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\StackPool`1.Policy.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\StopwatchPool.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\StopwatchPool.Policy.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\StringBuilderPool.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\StringBuilderPool.Policy.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ReadOnlyListExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SpanExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)StringBuilderExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)StringExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Threading\SpecializedTasks.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Threading\TaskExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ThrowHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\NonCopyableAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\PlatformInformation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\ReferenceEqualityComparer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\SortComparer`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\SortHelper`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\SortKey`1.cs" />
+  </ItemGroup>
+</Project>

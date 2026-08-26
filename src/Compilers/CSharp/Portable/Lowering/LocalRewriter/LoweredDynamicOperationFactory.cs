@@ -16,16 +16,16 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly SyntheticBoundNodeFactory _factory;
         private readonly int _methodOrdinal;
-        private readonly int _localFunctionOrdinal;
+        private readonly string? _localFunctionOrdinalOrSuffix;
         private NamedTypeSymbol? _currentDynamicCallSiteContainer;
         private int _callSiteIdDispenser;
 
-        internal LoweredDynamicOperationFactory(SyntheticBoundNodeFactory factory, int methodOrdinal, int localFunctionOrdinal = -1)
+        internal LoweredDynamicOperationFactory(SyntheticBoundNodeFactory factory, int methodOrdinal, string? localFunctionOrdinalOrSuffix = null)
         {
             Debug.Assert(factory != null);
             _factory = factory;
             _methodOrdinal = methodOrdinal;
-            _localFunctionOrdinal = localFunctionOrdinal;
+            _localFunctionOrdinalOrSuffix = localFunctionOrdinalOrSuffix;
         }
 
         public int MethodOrdinal => _methodOrdinal;
@@ -632,7 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_currentDynamicCallSiteContainer is null)
             {
-                _currentDynamicCallSiteContainer = CreateCallSiteContainer(_factory, _methodOrdinal, _localFunctionOrdinal);
+                _currentDynamicCallSiteContainer = CreateCallSiteContainer(_factory, _methodOrdinal, _localFunctionOrdinalOrSuffix);
             }
 
             var containerDef = (SynthesizedContainer)_currentDynamicCallSiteContainer.OriginalDefinition;
@@ -682,7 +682,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return temporariesBuilder.ToImmutableAndFree();
         }
 
-        private static NamedTypeSymbol CreateCallSiteContainer(SyntheticBoundNodeFactory factory, int methodOrdinal, int localFunctionOrdinal)
+        private static NamedTypeSymbol CreateCallSiteContainer(SyntheticBoundNodeFactory factory, int methodOrdinal, string? localFunctionOrdinalOrSuffix)
         {
             Debug.Assert(factory.CompilationState.ModuleBuilderOpt is { });
             Debug.Assert(factory.TopLevelMethod is { });
@@ -690,7 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // We don't reuse call-sites during EnC. Each edit creates a new container and sites.
             int generation = factory.CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal;
-            var containerName = GeneratedNames.MakeDynamicCallSiteContainerName(methodOrdinal, localFunctionOrdinal, generation);
+            var containerName = GeneratedNames.MakeDynamicCallSiteContainerName(methodOrdinal, localFunctionOrdinalOrSuffix, generation);
 
             var synthesizedContainer = new DynamicSiteContainer(containerName, factory.TopLevelMethod, factory.CurrentFunction);
             factory.AddNestedType(synthesizedContainer);

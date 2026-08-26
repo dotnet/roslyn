@@ -7413,13 +7413,7 @@ class C
             compilation.VerifyDiagnostics(
                 // (4,47): warning CS8847: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(null, true, false, true)' is not covered. However, a pattern with a 'when' clause might successfully match this value.
                 //     int M((object?, bool, bool, bool) t) => t switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen, "switch").WithArguments("(null, true, false, true)").WithLocation(4, 47),
-                // (11,18): hidden CS9271: The pattern is redundant.
-                //         ({ }, _, true, _) => 2,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "true").WithLocation(11, 18),
-                // (12,10): hidden CS9271: The pattern is redundant.
-                //         (null, _, _, false) => 7,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(12, 10)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen, "switch").WithArguments("(null, true, false, true)").WithLocation(4, 47)
                 );
         }
 

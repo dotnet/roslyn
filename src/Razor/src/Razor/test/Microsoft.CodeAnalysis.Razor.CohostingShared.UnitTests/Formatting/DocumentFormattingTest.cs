@@ -4,9 +4,8 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
-using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Settings;
+using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -14,6 +13,177 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 
 public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentFormattingTestBase(testOutput)
 {
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
+    public Task DocumentFormatting_UsesNestedEditorConfigs_Razor()
+        => RunFormattingTestAsync(
+            input: """
+                @code {
+                class C
+                {
+                    void M()
+                    {
+                        if (true)
+                        {
+                        }
+                    }
+                }
+                }
+                """,
+            htmlFormatted: """
+                @code {
+                class C
+                {
+                    void M()
+                    {
+                        if (true)
+                        {
+                        }
+                    }
+                }
+                }
+                """,
+            expected: """
+                @code {
+                    class C {
+                        void M() {
+                            if(true) {
+                            }
+                        }
+                    }
+                }
+                """,
+            validateHtmlFormattedMatchesWebTools: false,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_new_line_before_open_brace = none
+                    """),
+                ("Nested/.editorconfig", """
+                    [*.razor]
+                    csharp_space_after_keywords_in_control_flow_statements = false
+                    """)
+            ],
+            documentFilePath: FilePath("Nested/File1.razor"));
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
+    public Task DocumentFormatting_UsesEditorConfig_Cshtml()
+        => RunFormattingTestAsync(
+            input: """
+                @functions {
+                class C
+                {
+                    void M()
+                    {
+                    }
+                }
+                }
+                """,
+            htmlFormatted: """
+                @functions {
+                class C
+                {
+                    void M()
+                    {
+                    }
+                }
+                }
+                """,
+            expected: """
+                @functions {
+                    class C {
+                        void M() {
+                        }
+                    }
+                }
+                """,
+            fileKind: RazorFileKind.Legacy,
+            validateHtmlFormattedMatchesWebTools: false,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.cshtml]
+                    csharp_new_line_before_open_brace = none
+                    """)
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
+    public Task RangeFormatting_UsesEditorConfig_Razor()
+        => RunFormattingTestAsync(
+            input: """
+                @code {
+                    private void M(string [|value|])
+                    {
+                    }
+                }
+                """,
+            htmlFormatted: """
+                @code {
+                    private void M(string value)
+                    {
+                    }
+                }
+                """,
+            expected: """
+                @code {
+                    private void M(string value) {
+                    }
+                }
+                """,
+            validateHtmlFormattedMatchesWebTools: false,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_new_line_before_open_brace = none
+                    """)
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
+    public Task RangeFormatting_UsesEditorConfig_Cshtml()
+        => RunFormattingTestAsync(
+            input: """
+                @functions {
+                    private void M(string [|value|])
+                    {
+                    }
+                }
+                """,
+            htmlFormatted: """
+                @functions {
+                    private void M(string value)
+                    {
+                    }
+                }
+                """,
+            expected: """
+                @functions {
+                    private void M(string value) {
+                    }
+                }
+                """,
+            fileKind: RazorFileKind.Legacy,
+            validateHtmlFormattedMatchesWebTools: false,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.cshtml]
+                    csharp_new_line_before_open_brace = none
+                    """)
+            ]);
+
     [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/9658#issuecomment-3943605712")]
     public async Task MultilineIfStatement()
@@ -121,6 +291,279 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </PageTitle>
                 </PageTitle>
                 """");
+    }
+
+    [Fact]
+    public async Task MultilineRawStringLiteral_CodeBlock()
+    {
+        await RunFormattingTestAsync(
+            input: """"
+                <div></div>
+                @code
+                {
+                    private string _x = """
+                        <FluentButton IconStart="Icons.Create" @onclick="(() => _createDialogBs5?.Show())">Nieuw</FluentButton>
+
+                        <FCBS5Modal @ref="_createDialogBs5" OnClose="() => _createDialogBs5?.Hide()">
+                        <Title>Aanmaak scherm</Title>
+                        <Body>
+                            <label>Vul hier een tekst in</label>
+                            <input @bind=_createItem />
+                        </Body>
+                        <Footer>
+                            <FluentButton IconStart="Icons.Save" @onclick="SaveItem">Opslaan</FluentButton>
+                            <FluentButton IconStart="Icons.Cancel" @onclick="() => _createDialogBs5?.Hide()">Annuleren</FluentButton>
+                        </Footer>
+                        </FCBS5Modal>
+                        """;
+                }
+                """",
+            htmlFormatted: """"
+                <div></div>
+                @code
+                {
+                    private string _x = """
+                        <FluentButton IconStart="Icons.Create" @onclick="(() => _createDialogBs5?.Show())">Nieuw</FluentButton>
+                
+                        <FCBS5Modal @ref="_createDialogBs5" OnClose="() => _createDialogBs5?.Hide()">
+                        <Title>Aanmaak scherm</Title>
+                        <Body>
+                        <label>Vul hier een tekst in</label>
+                        <input @bind=_createItem />
+                        </Body>
+                        <Footer>
+                        <FluentButton IconStart="Icons.Save" @onclick="SaveItem">Opslaan</FluentButton>
+                        <FluentButton IconStart="Icons.Cancel" @onclick="() => _createDialogBs5?.Hide()">Annuleren</FluentButton>
+                        </Footer>
+                        </FCBS5Modal>
+                        """;
+                }
+                """",
+            expected: """"
+                <div></div>
+                @code
+                {
+                    private string _x = """
+                        <FluentButton IconStart="Icons.Create" @onclick="(() => _createDialogBs5?.Show())">Nieuw</FluentButton>
+                
+                        <FCBS5Modal @ref="_createDialogBs5" OnClose="() => _createDialogBs5?.Hide()">
+                        <Title>Aanmaak scherm</Title>
+                        <Body>
+                            <label>Vul hier een tekst in</label>
+                            <input @bind=_createItem />
+                        </Body>
+                        <Footer>
+                            <FluentButton IconStart="Icons.Save" @onclick="SaveItem">Opslaan</FluentButton>
+                            <FluentButton IconStart="Icons.Cancel" @onclick="() => _createDialogBs5?.Hide()">Annuleren</FluentButton>
+                        </Footer>
+                        </FCBS5Modal>
+                        """;
+                }
+                """",
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13192")]
+    public async Task RawStringLiteralWithTabIndents()
+    {
+        await RunFormattingTestAsync(
+            input: """"
+                @code {
+                	string s = $"""
+                			
+                """;
+                }
+                """",
+            htmlFormatted: """"
+                @code {
+                	string s = $"""
+
+                """;
+                }
+                """",
+            expected: """"
+                @code {
+                	string s = $"""
+                			
+                """;
+                }
+                """",
+            insertSpaces: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13192")]
+    public async Task NonInterpolatedRawStringLiteralWithTabIndents()
+    {
+        await RunFormattingTestAsync(
+            input: """"
+                @code {
+                	string s = """
+                			
+                """;
+                }
+                """",
+            htmlFormatted: """"
+                @code {
+                	string s = """
+
+                """;
+                }
+                """",
+            expected: """"
+                @code {
+                	string s = """
+                			
+                """;
+                }
+                """",
+            insertSpaces: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13192")]
+    public async Task Utf8RawStringLiteralWithTabIndents()
+    {
+        await RunFormattingTestAsync(
+            input: """"
+                @code {
+                	ReadOnlySpan<byte> s = """
+                			
+                """u8;
+                }
+                """",
+            htmlFormatted: """"
+                @code {
+                	ReadOnlySpan<byte> s = """
+
+                """u8;
+                }
+                """",
+            expected: """"
+                @code {
+                	ReadOnlySpan<byte> s = """
+                			
+                """u8;
+                }
+                """",
+            insertSpaces: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13192")]
+    public async Task VerbatimStringLiteralWithTabIndents()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @code {
+                	string s = @"
+                			
+                ";
+                }
+                """,
+            htmlFormatted: """
+                @code {
+                	string s = @"
+
+                ";
+                }
+                """,
+            expected: """
+                @code {
+                	string s = @"
+                			
+                ";
+                }
+                """,
+            insertSpaces: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13192")]
+    public async Task DollarAtInterpolatedVerbatimStringLiteralWithTabIndents()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @code {
+                	string s = $@"
+                			
+                ";
+                }
+                """,
+            htmlFormatted: """
+                @code {
+                	string s = $@"
+
+                ";
+                }
+                """,
+            expected: """
+                @code {
+                	string s = $@"
+                			
+                ";
+                }
+                """,
+            insertSpaces: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13192")]
+    public async Task AtDollarInterpolatedVerbatimStringLiteralWithTabIndents()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @code {
+                	string s = @$"
+                			
+                ";
+                }
+                """,
+            htmlFormatted: """
+                @code {
+                	string s = @$"
+
+                ";
+                }
+                """,
+            expected: """
+                @code {
+                	string s = @$"
+                			
+                ";
+                }
+                """,
+            insertSpaces: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13192")]
+    public async Task Utf8VerbatimStringLiteralWithTabIndents()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @code {
+                	ReadOnlySpan<byte> s = @"
+                			
+                "u8;
+                }
+                """,
+            htmlFormatted: """
+                @code {
+                	ReadOnlySpan<byte> s = @"
+
+                "u8;
+                }
+                """,
+            expected: """
+                @code {
+                	ReadOnlySpan<byte> s = @"
+                			
+                "u8;
+                }
+                """,
+            insertSpaces: false);
     }
 
     [Fact]
@@ -538,10 +981,15 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 
                 </div>
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
-            {
-                Spacing = RazorSpacePlacement.AfterDot
-            });
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_space_after_dot = true
+                    """)
+            ]);
     }
 
     [Fact]
@@ -599,10 +1047,15 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
-            {
-                Spacing = RazorSpacePlacement.AfterMethodCallName
-            });
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_space_between_method_call_name_and_opening_parenthesis = true
+                    """)
+            ]);
     }
 
     [Fact]
@@ -660,10 +1113,16 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
-            {
-                Spacing = RazorSpacePlacement.AfterMethodCallName | RazorSpacePlacement.AfterMethodDeclarationName
-            });
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_space_between_method_call_name_and_opening_parenthesis = true
+                    csharp_space_between_method_declaration_name_and_open_parenthesis = true
+                    """)
+            ]);
     }
 
     [Fact]
@@ -717,10 +1176,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = RazorNewLinePlacement.None
-            });
+            additionalFiles: GetNewLinesEditorConfig(openBracePlacement: "none"));
     }
 
     [Fact]
@@ -773,10 +1229,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = RazorNewLinePlacement.None
-            });
+            additionalFiles: GetNewLinesEditorConfig(openBracePlacement: "none"));
     }
 
     [Fact]
@@ -810,10 +1263,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = RazorNewLinePlacement.BeforeOpenBraceInMethods
-            });
+            additionalFiles: GetNewLinesEditorConfig(openBracePlacement: "methods"));
     }
 
     [Fact]
@@ -850,10 +1300,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = RazorNewLinePlacement.BeforeOpenBraceInMethods
-            });
+            additionalFiles: GetNewLinesEditorConfig(openBracePlacement: "methods"));
     }
 
     [Fact]
@@ -890,10 +1337,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = RazorNewLinePlacement.BeforeOpenBraceInMethods
-            });
+            additionalFiles: GetNewLinesEditorConfig(openBracePlacement: "methods"));
     }
 
     [Fact]
@@ -936,10 +1380,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 }
                 </div>
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = RazorNewLinePlacement.BeforeOpenBraceInMethods
-            });
+            additionalFiles: GetNewLinesEditorConfig(openBracePlacement: "methods"));
     }
 
     [Fact]
@@ -972,10 +1413,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = RazorNewLinePlacement.None
-            });
+            additionalFiles: GetNewLinesEditorConfig(openBracePlacement: "none"));
     }
 
     [Fact]
@@ -1096,6 +1534,45 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 }
                 """,
             fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3040290")]
+    public async Task IgnoresHtmlFormatterChangesToNonWhitespaceInScript()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <script>
+                    @if (showGrid)
+                    {
+                        <text>
+                            const ids = grid.getIds();
+                        </text>
+                    }
+                </script>
+                """,
+            htmlFormatted: """
+                <script>
+                    @if (showGrid)
+                    {
+                    <text>
+                    t ids = grid.getIds();
+                    </text>
+                    }
+                </script>
+                """,
+            expected: """
+                <script>
+                    @if (showGrid)
+                    {
+                        <text>
+                              const ids = grid.getIds();
+                        </text>
+                    }
+                </script>
+                """,
+            fileKind: RazorFileKind.Legacy,
+            validateHtmlFormattedMatchesWebTools: false);
     }
 
     [Fact]
@@ -1527,6 +2004,85 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 }
                 """,
             inGlobalNamespace: inGlobalNamespace);
+    }
+
+    [Fact]
+    public async Task CodeBlock_TopLevel_WithMarkupBelow()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @code
+                        {
+                    private int currentCount = 0;
+                }
+
+                <div>
+                <p>Current count: @currentCount</p>
+                </div>
+                """,
+            htmlFormatted: """
+                @code
+                        {
+                    private int currentCount = 0;
+                }
+
+                <div>
+                    <p>Current count: @currentCount</p>
+                </div>
+                """,
+            expected: """
+                @code
+                {
+                    private int currentCount = 0;
+                }
+
+                <div>
+                    <p>Current count: @currentCount</p>
+                </div>
+                """);
+    }
+
+    [Fact]
+    public async Task CodeBlock_TopLevel_WithRazorMarkupBelow()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @code
+                        {
+                    private int currentCount = 0;
+                }
+
+                @if(currentCount>0){
+                <div>
+                <p>Current count: @currentCount</p>
+                </div>
+                }
+                """,
+            htmlFormatted: """
+                @code
+                        {
+                    private int currentCount = 0;
+                }
+
+                @if(currentCount>0){
+                <div>
+                    <p>Current count: @currentCount</p>
+                </div>
+                }
+                """,
+            expected: """
+                @code
+                {
+                    private int currentCount = 0;
+                }
+
+                @if (currentCount > 0)
+                {
+                    <div>
+                        <p>Current count: @currentCount</p>
+                    </div>
+                }
+                """);
     }
 
     [Theory, CombinatorialData]
@@ -2028,6 +2584,50 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     {
                         currentCount++;
                     }
+                }
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    public async Task FunctionsBlock_TopLevel_WithRazorMarkupBelow()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @functions
+                        {
+                    private int currentCount = 0;
+                }
+
+                @if(currentCount>0){
+                <div>
+                <p>Current count: @currentCount</p>
+                </div>
+                }
+                """,
+            htmlFormatted: """
+                @functions
+                        {
+                    private int currentCount = 0;
+                }
+
+                @if(currentCount>0){
+                <div>
+                    <p>Current count: @currentCount</p>
+                </div>
+                }
+                """,
+            expected: """
+                @functions
+                {
+                    private int currentCount = 0;
+                }
+
+                @if (currentCount > 0)
+                {
+                    <div>
+                        <p>Current count: @currentCount</p>
+                    </div>
                 }
                 """,
             fileKind: RazorFileKind.Legacy);
@@ -5427,7 +6027,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             fileKind: RazorFileKind.Component);
     }
 
@@ -5452,7 +6052,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: false),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: false),
             fileKind: RazorFileKind.Component);
     }
 
@@ -5481,7 +6081,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             fileKind: RazorFileKind.Component);
     }
 
@@ -5509,7 +6109,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: false),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: false),
             fileKind: RazorFileKind.Component);
     }
 
@@ -5544,7 +6144,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </button>
                 </div>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             fileKind: RazorFileKind.Component);
     }
 
@@ -5578,7 +6178,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </button>
                 </div>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: false),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: false),
             fileKind: RazorFileKind.Component);
     }
 
@@ -5613,7 +6213,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </button>
                 </div>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             fileKind: RazorFileKind.Component);
     }
 
@@ -5647,7 +6247,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </button>
                 </div>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: false),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: false),
             fileKind: RazorFileKind.Component);
     }
 
@@ -5675,7 +6275,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             fileKind: RazorFileKind.Component);
     }
 
@@ -5702,7 +6302,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: false),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: false),
             fileKind: RazorFileKind.Component);
     }
 
@@ -5739,7 +6339,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </button>
                 </div>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             fileKind: RazorFileKind.Component);
     }
 
@@ -5775,7 +6375,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </button>
                 </div>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: false),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: false),
             fileKind: RazorFileKind.Component);
     }
 
@@ -5802,7 +6402,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             fileKind: RazorFileKind.Component);
     }
 
@@ -5828,7 +6428,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: false),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: false),
             fileKind: RazorFileKind.Component);
     }
 
@@ -5849,7 +6449,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <button @onclick="() => { foo(); }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             fileKind: RazorFileKind.Component);
     }
 
@@ -5870,7 +6470,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <button @onclick="() => { foo(); }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: false),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: false),
             fileKind: RazorFileKind.Component);
     }
 
@@ -6857,6 +7457,136 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    public async Task ExplicitStatement_ShiftedOpeningBrace()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @(booleanValue ?@<br /> : @<br />)
+
+                            @{
+                    if (false)
+                    {
+                        // false
+                    }
+                    else
+                    {
+                        // true
+                    }
+                }
+
+                @code
+                {
+                    private bool booleanValue = true;
+                }
+                """,
+            htmlFormatted: """
+                @(booleanValue ?@
+                <br /> : @
+                <br />)
+
+                            @{
+                    if (false)
+                    {
+                        // false
+                    }
+                    else
+                    {
+                        // true
+                    }
+                }
+
+                @code
+                {
+                    private bool booleanValue = true;
+                }
+                """,
+            expected: """
+                @(booleanValue ?@<br /> : @<br />)
+
+                @{
+                    if (false)
+                    {
+                        // false
+                    }
+                    else
+                    {
+                        // true
+                    }
+                }
+
+                @code
+                {
+                    private bool booleanValue = true;
+                }
+                """);
+    }
+
+    [Fact]
+    public async Task ExplicitStatement_AlreadyFormatted()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @(booleanValue ?@<br /> : @<br />)
+
+                @{
+                    if (false)
+                    {
+                        // false
+                    }
+                    else
+                    {
+                        // true
+                    }
+                }
+
+                @code
+                {
+                    private bool booleanValue = true;
+                }
+                """,
+            htmlFormatted: """
+                @(booleanValue ?@
+                <br /> : @
+                <br />)
+
+                @{
+                    if (false)
+                    {
+                        // false
+                    }
+                    else
+                    {
+                        // true
+                    }
+                }
+
+                @code
+                {
+                    private bool booleanValue = true;
+                }
+                """,
+            expected: """
+                @(booleanValue ?@<br /> : @<br />)
+
+                @{
+                    if (false)
+                    {
+                        // false
+                    }
+                    else
+                    {
+                        // true
+                    }
+                }
+
+                @code
+                {
+                    private bool booleanValue = true;
+                }
+                """);
+    }
+
+    [Fact]
     public async Task Formats_NonCodeBlockDirectives()
     {
         await RunFormattingTestAsync(
@@ -7835,6 +8565,60 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """);
+    }
+
+    [Fact]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3041882")]
+    public async Task IncompleteObjectCreation_UseTabs()
+    {
+        TestCode input = """
+            @code {
+                private void Method()
+                {
+                    value = new object()
+
+                    other = true;
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: input,
+            htmlFormatted: input.Text,
+            expected: """
+                @code {
+                	private void Method()
+                	{
+                		value = new object()
+
+
+                		other = true;
+                	}
+                }
+                """,
+            insertSpaces: false);
+    }
+
+    [Fact]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3041882")]
+    public async Task IncompleteObjectCreation_UseSpaces()
+    {
+        TestCode input = """
+            @code {
+                private void Method()
+                {
+                    value = new object()
+
+                    other = true;
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: input,
+            htmlFormatted: input.Text,
+            expected: input.Text,
+            insertSpaces: true);
     }
 
     [Fact]
@@ -9825,6 +10609,68 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/vscode-csharp/issues/9179")]
+    public async Task Formats_IgnoresHtmlFormatterWrappingInMultilineRazorComment()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @* first
+                asdf asdf asdf asdf asdf asdf asdf asdf asdf asdf asdf asdf *@
+
+                @code {
+                private int count;
+                }
+                """,
+            htmlFormatted: """
+                @* first
+                asdf asdf asdf asdf asdf asdf
+                asdf asdf asdf asdf asdf asdf *@
+
+                @code {
+                private int count;
+                }
+                """,
+            expected: """
+                @* first
+                asdf asdf asdf asdf asdf asdf asdf asdf asdf asdf asdf asdf *@
+
+                @code {
+                    private int count;
+                }
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/vscode-csharp/issues/9179")]
+    public async Task Formats_IgnoresHtmlFormatterChangesInSingleLineRazorComment()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @* first        second *@
+
+                @code {
+                private int count;
+                }
+                """,
+            htmlFormatted: """
+                @* first second *@
+
+                @code {
+                private int count;
+                }
+                """,
+            expected: """
+                @* first        second *@
+
+                @code {
+                    private int count;
+                }
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/6192")]
     public async Task Formats_NoEditsForNoChanges()
     {
@@ -10383,12 +11229,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         </text>;
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = newLineBeforeBraceInLambda
-                    ? RazorCSharpSyntaxFormattingOptions.Default.NewLines | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-            });
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda));
     }
 
     [Theory]
@@ -10469,12 +11310,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         </PageTitle>;
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = newLineBeforeBraceInLambda
-                    ? RazorCSharpSyntaxFormattingOptions.Default.NewLines | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-            });
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda));
     }
 
     [Theory]
@@ -10552,12 +11388,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </text>;
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = newLineBeforeBraceInLambda
-                    ? RazorCSharpSyntaxFormattingOptions.Default.NewLines | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-            });
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda));
     }
 
     [Theory]
@@ -10635,12 +11466,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </text>;
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = newLineBeforeBraceInLambda
-                    ? RazorCSharpSyntaxFormattingOptions.Default.NewLines | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-            });
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda));
     }
 
     [Theory]
@@ -10718,12 +11544,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </text>;
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = newLineBeforeBraceInLambda
-                    ? RazorCSharpSyntaxFormattingOptions.Default.NewLines | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-            });
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda));
     }
 
     [Theory]
@@ -10807,12 +11628,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 ;
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = newLineBeforeBraceInLambda
-                    ? RazorCSharpSyntaxFormattingOptions.Default.NewLines | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-            });
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda));
     }
 
     [Theory]
@@ -10872,12 +11688,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 ;
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = newLineBeforeBraceInLambda
-                    ? RazorCSharpSyntaxFormattingOptions.Default.NewLines | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-            });
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda));
     }
 
     [Fact]
@@ -10947,7 +11758,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
 
     [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/13121")]
-    public async Task MultilineExplicitExpressionInAttribute_DoesNotShiftRight()
+    public async Task TopLevelMultilineExplicitExpressionInSecondAttribute_IsStable()
     {
         var code = """
             <MyComponent Show="@_bool1"
@@ -10964,7 +11775,230 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
 
     [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/13121")]
-    public async Task MultilineExplicitExpressionInAttribute_DoesNotShiftRight_IndentByOne()
+    public async Task NestedMultilineExplicitExpressionInSecondAttribute_IsStable()
+    {
+        var code = """
+            <div>
+                <MyComponent Show="@_bool1"
+                             String="@("foo " +
+                                       "bar " +
+                                       "baz")" />
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineCollectionExpressionInFirstAttribute_IsStable()
+    {
+        var code = """
+            <div>
+                <MyComponent2 Strings="@(["string1",
+                                          "string2",
+                                          "string3"])" />
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedSingleLineCollectionExpressionInFirstAttribute_IsStable()
+    {
+        var code = """
+            <div>
+                <MyComponent2 Strings="@(["string1", "string2", "string3"])" />
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineExplicitExpressionInFirstAttribute_IsStable()
+    {
+        var code = """
+            <div>
+                <MyComponent String="@("foo " +
+                                       "bar " +
+                                       "baz")"
+                             Show="@_bool1" />
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineCollectionExpressionInSecondAttribute_IsStable()
+    {
+        var code = """
+            <div>
+                <MyComponent2 Show="@_bool1"
+                              Strings="@(["string1",
+                                          "string2",
+                                          "string3"])" />
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineCollectionExpressionInFirstAttribute_IsStable()
+    {
+        var code = """
+            <MyComponent2 Strings="@(["string1",
+                                      "string2",
+                                      "string3"])" />
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineCollectionExpressionInFirstAttribute_IsStable_IndentByOne()
+    {
+        var code = """
+            <MyComponent2 Strings="@(["string1",
+                                      "string2",
+                                      "string3"])" />
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code,
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineCollectionExpressionInFirstAttribute_IsStable_IndentByTwo()
+    {
+        var code = """
+            <MyComponent2 Strings="@(["string1",
+                                      "string2",
+                                      "string3"])" />
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code,
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineExplicitExpressionInNonSelfClosingElement_IsStable()
+    {
+        var code = """
+            <div>
+                <MyComponent String="@("foo " +
+                                       "bar " +
+                                       "baz")">
+                    <span>Content</span>
+                </MyComponent>
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineCollectionExpressionInNonSelfClosingElement_IsStable()
+    {
+        var code = """
+            <div>
+                <MyComponent2 Strings="@(["string1",
+                                          "string2",
+                                          "string3"])">
+                    <span>Content</span>
+                </MyComponent2>
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMixedMultilineExplicitAndCollectionExpressions_AreStable()
+    {
+        var code = """
+            <div>
+                <MyComponent String="@("foo " +
+                                       "bar " +
+                                       "baz")"
+                             Strings="@(["string1",
+                                         "string2",
+                                         "string3"])" />
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMixedMultilineCollectionAndExplicitExpressions_AreStable()
+    {
+        var code = """
+            <div>
+                <MyComponent Strings="@(["string1",
+                                         "string2",
+                                         "string3"])"
+                             String="@("foo " +
+                                       "bar " +
+                                       "baz")" />
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineExplicitExpressionInSecondAttribute_IsStable_IndentByOne()
     {
         var code = """
             <MyComponent Show="@_bool1"
@@ -10987,7 +12021,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
 
     [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/13121")]
-    public async Task MultilineExplicitExpressionInAttribute_DoesNotShiftRight_IndentByTwo()
+    public async Task TopLevelMultilineExplicitExpressionInSecondAttribute_IsStable_IndentByTwo()
     {
         var code = """
             <MyComponent Show="@_bool1"
@@ -11006,6 +12040,1320 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineExplicitExpressionInSecondAttribute_FormatsUnindentedInput()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <MyComponent Show="@_bool1"
+                String="@("foo " +
+                "bar " +
+                "baz")" />
+                """,
+            htmlFormatted: """
+                <MyComponent Show="@_bool1"
+                             String="@("foo " +
+                "bar " +
+                "baz")" />
+                """,
+            expected: """
+                <MyComponent Show="@_bool1"
+                             String="@("foo " +
+                             "bar " +
+                             "baz")" />
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineExplicitExpressionInSecondAttribute_FormattedOutputIsStable()
+    {
+        var code = """
+            <MyComponent Show="@_bool1"
+                         String="@("foo " +
+                         "bar " +
+                         "baz")" />
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineExplicitExpressionInSecondAttribute_FormatsUnindentedInput()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <MyComponent Show="@_bool1"
+                String="@("foo " +
+                "bar " +
+                "baz")" />
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <MyComponent Show="@_bool1"
+                                 String="@("foo " +
+                "bar " +
+                "baz")" />
+                </div>
+                """,
+            expected: """
+                <div>
+                    <MyComponent Show="@_bool1"
+                                 String="@("foo " +
+                                 "bar " +
+                                 "baz")" />
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineExplicitExpressionInSecondAttribute_FormattedOutputIsStable()
+    {
+        var code = """
+            <div>
+                <MyComponent Show="@_bool1"
+                             String="@("foo " +
+                             "bar " +
+                             "baz")" />
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineCollectionExpressionInFirstAttribute_FormatsUnindentedInput()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <MyComponent2 Strings="@(["string1",
+                "string2",
+                "string3"])" />
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <MyComponent2 Strings="@(["string1",
+                "string2",
+                "string3"])" />
+                </div>
+                """,
+            expected: """
+                <div>
+                    <MyComponent2 Strings="@(["string1",
+                              "string2",
+                              "string3"])" />
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineCollectionExpressionInFirstAttribute_FormattedOutputIsStable()
+    {
+        var code = """
+            <div>
+                <MyComponent2 Strings="@(["string1",
+                          "string2",
+                          "string3"])" />
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedSingleLineCollectionExpressionInFirstAttribute_FormatsUnindentedInput()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <MyComponent2 Strings="@(["string1", "string2", "string3"])" />
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <MyComponent2 Strings="@(["string1", "string2", "string3"])" />
+                </div>
+                """,
+            expected: """
+                <div>
+                    <MyComponent2 Strings="@(["string1", "string2", "string3"])" />
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineExplicitExpressionInFirstAttribute_FormatsUnindentedInput()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <MyComponent String="@("foo " +
+                "bar " +
+                "baz")"
+                Show="@_bool1" />
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <MyComponent String="@("foo " +
+                "bar " +
+                "baz")"
+                                 Show="@_bool1" />
+                </div>
+                """,
+            expected: """
+                <div>
+                    <MyComponent String="@("foo " +
+                                 "bar " +
+                                 "baz")"
+                                 Show="@_bool1" />
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineExplicitExpressionInFirstAttribute_FormattedOutputIsStable()
+    {
+        var code = """
+            <div>
+                <MyComponent String="@("foo " +
+                             "bar " +
+                             "baz")"
+                             Show="@_bool1" />
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineCollectionExpressionInSecondAttribute_FormatsUnindentedInput()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <MyComponent2 Show="@_bool1"
+                Strings="@(["string1",
+                "string2",
+                "string3"])" />
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <MyComponent2 Show="@_bool1"
+                                  Strings="@(["string1",
+                "string2",
+                "string3"])" />
+                </div>
+                """,
+            expected: """
+                <div>
+                    <MyComponent2 Show="@_bool1"
+                                  Strings="@(["string1",
+                              "string2",
+                              "string3"])" />
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineCollectionExpressionInSecondAttribute_FormattedOutputIsStable()
+    {
+        var code = """
+            <div>
+                <MyComponent2 Show="@_bool1"
+                              Strings="@(["string1",
+                          "string2",
+                          "string3"])" />
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineCollectionExpressionInFirstAttribute_FormatsUnindentedInput()
+    {
+        var input = """
+            <MyComponent2 Strings="@(["string1",
+            "string2",
+            "string3"])" />
+            """;
+
+        await RunFormattingTestAsync(
+            input: input,
+            htmlFormatted: input,
+            expected: """
+                <MyComponent2 Strings="@(["string1",
+                              "string2",
+                              "string3"])" />
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineCollectionExpressionInFirstAttribute_FormattedOutputIsStable()
+    {
+        var code = """
+            <MyComponent2 Strings="@(["string1",
+                          "string2",
+                          "string3"])" />
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineCollectionExpressionInFirstAttribute_FormatsUnindentedInput_IndentByOne()
+    {
+        var input = """
+            <MyComponent2 Strings="@(["string1",
+            "string2",
+            "string3"])" />
+            """;
+
+        await RunFormattingTestAsync(
+            input: input,
+            htmlFormatted: input,
+            expected: """
+                <MyComponent2 Strings="@(["string1",
+                    "string2",
+                    "string3"])" />
+                """,
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineCollectionExpressionInFirstAttribute_FormattedOutputIsStable_IndentByOne()
+    {
+        var code = """
+            <MyComponent2 Strings="@(["string1",
+                "string2",
+                "string3"])" />
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code,
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineCollectionExpressionInFirstAttribute_FormatsUnindentedInput_IndentByTwo()
+    {
+        var input = """
+            <MyComponent2 Strings="@(["string1",
+            "string2",
+            "string3"])" />
+            """;
+
+        await RunFormattingTestAsync(
+            input: input,
+            htmlFormatted: input,
+            expected: """
+                <MyComponent2 Strings="@(["string1",
+                        "string2",
+                        "string3"])" />
+                """,
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineCollectionExpressionInFirstAttribute_FormattedOutputIsStable_IndentByTwo()
+    {
+        var code = """
+            <MyComponent2 Strings="@(["string1",
+                    "string2",
+                    "string3"])" />
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code,
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineExplicitExpressionInNonSelfClosingElement_FormatsUnindentedInput()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <MyComponent String="@("foo " +
+                "bar " +
+                "baz")">
+                <span>Content</span>
+                </MyComponent>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <MyComponent String="@("foo " +
+                "bar " +
+                "baz")">
+                        <span>Content</span>
+                    </MyComponent>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <MyComponent String="@("foo " +
+                                 "bar " +
+                                 "baz")">
+                        <span>Content</span>
+                    </MyComponent>
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineExplicitExpressionInNonSelfClosingElement_FormattedOutputIsStable()
+    {
+        var code = """
+            <div>
+                <MyComponent String="@("foo " +
+                             "bar " +
+                             "baz")">
+                    <span>Content</span>
+                </MyComponent>
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineCollectionExpressionInNonSelfClosingElement_FormatsUnindentedInput()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <MyComponent2 Strings="@(["string1",
+                "string2",
+                "string3"])">
+                <span>Content</span>
+                </MyComponent2>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <MyComponent2 Strings="@(["string1",
+                "string2",
+                "string3"])">
+                        <span>Content</span>
+                    </MyComponent2>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <MyComponent2 Strings="@(["string1",
+                          "string2",
+                          "string3"])">
+                        <span>Content</span>
+                    </MyComponent2>
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineCollectionExpressionInNonSelfClosingElement_FormattedOutputIsStable()
+    {
+        var code = """
+            <div>
+                <MyComponent2 Strings="@(["string1",
+                      "string2",
+                      "string3"])">
+                    <span>Content</span>
+                </MyComponent2>
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineExplicitExpressionInSecondAttribute_FormatsUnindentedInput_IndentByOne()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <MyComponent Show="@_bool1"
+                String="@("foo " +
+                "bar " +
+                "baz")" />
+                """,
+            htmlFormatted: """
+                <MyComponent Show="@_bool1"
+                             String="@("foo " +
+                "bar " +
+                "baz")" />
+                """,
+            expected: """
+                <MyComponent Show="@_bool1"
+                    String="@("foo " +
+                    "bar " +
+                    "baz")" />
+                """,
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineExplicitExpressionInSecondAttribute_FormattedOutputIsStable_IndentByOne()
+    {
+        var code = """
+            <MyComponent Show="@_bool1"
+                String="@("foo " +
+                "bar " +
+                "baz")" />
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                <MyComponent Show="@_bool1"
+                             String="@("foo " +
+                    "bar " +
+                    "baz")" />
+                """,
+            expected: code,
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineExplicitExpressionInSecondAttribute_FormatsUnindentedInput_IndentByTwo()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <MyComponent Show="@_bool1"
+                String="@("foo " +
+                "bar " +
+                "baz")" />
+                """,
+            htmlFormatted: """
+                <MyComponent Show="@_bool1"
+                             String="@("foo " +
+                "bar " +
+                "baz")" />
+                """,
+            expected: """
+                <MyComponent Show="@_bool1"
+                        String="@("foo " +
+                        "bar " +
+                        "baz")" />
+                """,
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineExplicitExpressionInSecondAttribute_FormattedOutputIsStable_IndentByTwo()
+    {
+        var code = """
+            <MyComponent Show="@_bool1"
+                    String="@("foo " +
+                    "bar " +
+                    "baz")" />
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                <MyComponent Show="@_bool1"
+                             String="@("foo " +
+                        "bar " +
+                        "baz")" />
+                """,
+            expected: code,
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaExplicitExpressionInAttribute_DoesNotShiftRight()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <div class="foo"
+                     style=@(() =>
+                     {
+                         Foo();
+                         Bar();
+                     }) title="bar"></div>
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <div class="foo"
+                     style=@(() =>
+                     {
+                     Foo();
+                     Bar();
+                     }) title="bar"></div>
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true));
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaExplicitExpressionInAttribute_DoesNotShiftRight_IndentByOne()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <div class="foo"
+                    style=@(() =>
+                    {
+                        Foo();
+                        Bar();
+                    }) title="bar"></div>
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <div class="foo"
+                     style=@(() =>
+                     {
+                     Foo();
+                     Bar();
+                     }) title="bar"></div>
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaExplicitExpressionInAttribute_DoesNotShiftRight_IndentByTwo()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <div class="foo"
+                        style=@(() =>
+                        {
+                            Foo();
+                            Bar();
+                        }) title="bar"></div>
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <div class="foo"
+                     style=@(() =>
+                     {
+                     Foo();
+                     Bar();
+                     }) title="bar"></div>
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaQuotedExplicitExpressionInAttribute_DoesNotShiftRight()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <div class="foo"
+                     style="@(() =>
+                     {
+                         Foo();
+                         Bar();
+                     })" title="bar"></div>
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <div class="foo"
+                     style="@(() =>
+                         {
+                             Foo();
+                             Bar();
+                         })" title="bar"></div>
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true));
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaQuotedExplicitExpressionInAttribute_DoesNotShiftRight_IndentByOne()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <div class="foo"
+                    style="@(() =>
+                    {
+                        Foo();
+                        Bar();
+                    })" title="bar"></div>
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <div class="foo"
+                     style="@(() =>
+                        {
+                            Foo();
+                            Bar();
+                        })" title="bar"></div>
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaQuotedExplicitExpressionInAttribute_DoesNotShiftRight_IndentByTwo()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <div class="foo"
+                        style="@(() =>
+                        {
+                            Foo();
+                            Bar();
+                        })" title="bar"></div>
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <div class="foo"
+                     style="@(() =>
+                            {
+                                Foo();
+                                Bar();
+                            })" title="bar"></div>
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaQuotedImplicitExpressionInComponentAttribute_DoesNotShiftRight()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick="() =>
+                                {
+                                    Foo();
+                                    Bar();
+                                }" ImgSize=24 />
+            }
+
+            @code {
+                private bool inChatMember = true;
+
+                private void Foo()
+                {
+                }
+
+                private void Bar()
+                {
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: $$"""
+                @if (inChatMember)
+                {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick="() =>
+                                    {
+                                        Foo();
+                                        Bar();
+                                    }" ImgSize=24 />
+                }
+
+                @code {
+                    private bool inChatMember = true;
+
+                    private void Foo()
+                    {
+                    }
+
+                    private void Bar()
+                    {
+                    }
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaQuotedImplicitExpressionInComponentAttribute_DoesNotShiftRight_IndentByOne()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <CheckBoxButton ImageContentSource="foo"
+                    OnClick="() =>
+                    {
+                        Foo();
+                        Bar();
+                    }" ImgSize=24 />
+            }
+
+            @code {
+                private bool inChatMember = true;
+
+                private void Foo()
+                {
+                }
+
+                private void Bar()
+                {
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick="() =>
+                        {
+                            Foo();
+                            Bar();
+                        }" ImgSize=24 />
+                }
+                
+                @code {
+                    private bool inChatMember = true;
+                
+                    private void Foo()
+                    {
+                    }
+                
+                    private void Bar()
+                    {
+                    }
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaQuotedImplicitExpressionInComponentAttribute_DoesNotShiftRight_IndentByTwo()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <CheckBoxButton ImageContentSource="foo"
+                        OnClick="() =>
+                        {
+                            Foo();
+                            Bar();
+                        }" ImgSize=24 />
+            }
+
+            @code {
+                private bool inChatMember = true;
+
+                private void Foo()
+                {
+                }
+
+                private void Bar()
+                {
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick="() =>
+                            {
+                                Foo();
+                                Bar();
+                            }" ImgSize=24 />
+                }
+                
+                @code {
+                    private bool inChatMember = true;
+                
+                    private void Foo()
+                    {
+                    }
+                
+                    private void Bar()
+                    {
+                    }
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaExplicitExpressionInComponentAttribute_DoesNotShiftRight()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick=@(() =>
+                                {
+                                    Foo();
+                                    Bar();
+                                }) ImgSize=24 />
+            }
+
+            @code {
+                private bool inChatMember = true;
+
+                private void Foo()
+                {
+                }
+
+                private void Bar()
+                {
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick=@(() =>
+                                {
+                                Foo();
+                                Bar();
+                                }) ImgSize=24 />
+                }
+                
+                @code {
+                    private bool inChatMember = true;
+                
+                    private void Foo()
+                    {
+                    }
+                
+                    private void Bar()
+                    {
+                    }
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaExplicitExpressionInComponentAttribute_DoesNotShiftRight_IndentByOne()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <CheckBoxButton ImageContentSource="foo"
+                    OnClick=@(() =>
+                    {
+                        Foo();
+                        Bar();
+                    }) ImgSize=24 />
+            }
+
+            @code {
+                private bool inChatMember = true;
+
+                private void Foo()
+                {
+                }
+
+                private void Bar()
+                {
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick=@(() =>
+                                {
+                                Foo();
+                                Bar();
+                                }) ImgSize=24 />
+                }
+                
+                @code {
+                    private bool inChatMember = true;
+                
+                    private void Foo()
+                    {
+                    }
+                
+                    private void Bar()
+                    {
+                    }
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaExplicitExpressionInComponentAttribute_DoesNotShiftRight_IndentByTwo()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <CheckBoxButton ImageContentSource="foo"
+                        OnClick=@(() =>
+                        {
+                            Foo();
+                            Bar();
+                        }) ImgSize=24 />
+            }
+
+            @code {
+                private bool inChatMember = true;
+
+                private void Foo()
+                {
+                }
+
+                private void Bar()
+                {
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick=@(() =>
+                                {
+                                Foo();
+                                Bar();
+                                }) ImgSize=24 />
+                }
+                
+                @code {
+                    private bool inChatMember = true;
+                
+                    private void Foo()
+                    {
+                    }
+                
+                    private void Bar()
+                    {
+                    }
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaQuotedExplicitExpressionInComponentAttribute_DoesNotShiftRight()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick="@(() =>
+                                {
+                                    Foo();
+                                    Bar();
+                                })" ImgSize=24 />
+            }
+
+            @code {
+                private bool inChatMember = true;
+
+                private void Foo()
+                {
+                }
+
+                private void Bar()
+                {
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: $$"""
+                @if (inChatMember)
+                {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick="@(() =>
+                                    {
+                                        Foo();
+                                        Bar();
+                                    })" ImgSize=24 />
+                }
+
+                @code {
+                    private bool inChatMember = true;
+
+                    private void Foo()
+                    {
+                    }
+
+                    private void Bar()
+                    {
+                    }
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaQuotedExplicitExpressionInComponentAttribute_DoesNotShiftRight_IndentByOne()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <CheckBoxButton ImageContentSource="foo"
+                    OnClick="@(() =>
+                    {
+                        Foo();
+                        Bar();
+                    })" ImgSize=24 />
+            }
+
+            @code {
+                private bool inChatMember = true;
+
+                private void Foo()
+                {
+                }
+
+                private void Bar()
+                {
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick="@(() =>
+                        {
+                            Foo();
+                            Bar();
+                        })" ImgSize=24 />
+                }
+                
+                @code {
+                    private bool inChatMember = true;
+                
+                    private void Foo()
+                    {
+                    }
+                
+                    private void Bar()
+                    {
+                    }
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaQuotedExplicitExpressionInComponentAttribute_DoesNotShiftRight_IndentByTwo()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <CheckBoxButton ImageContentSource="foo"
+                        OnClick="@(() =>
+                        {
+                            Foo();
+                            Bar();
+                        })" ImgSize=24 />
+            }
+
+            @code {
+                private bool inChatMember = true;
+
+                private void Foo()
+                {
+                }
+
+                private void Bar()
+                {
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick="@(() =>
+                            {
+                                Foo();
+                                Bar();
+                            })" ImgSize=24 />
+                }
+                
+                @code {
+                    private bool inChatMember = true;
+                
+                    private void Foo()
+                    {
+                    }
+                
+                    private void Bar()
+                    {
+                    }
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
     }
 
     [Fact]
@@ -13012,10 +15360,15 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     <div></div>
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers
-            });
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_new_line_before_open_brace = accessors, types, methods, properties, anonymous_methods, control_blocks, anonymous_types, lambdas
+                    """)
+            ]);
 
     [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/12622")]
@@ -13050,10 +15403,15 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     <div></div>
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers
-            });
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_new_line_before_open_brace = accessors, types, methods, properties, anonymous_methods, control_blocks, anonymous_types, lambdas
+                    """)
+            ]);
 
     [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/12622")]
@@ -13494,11 +15852,57 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """);
     }
 
-    private static RazorCSharpSyntaxFormattingOptions GetNewLineBeforeBraceInLambdaExpressionOptions(bool newLineBeforeBraceInLambda)
-        => RazorCSharpSyntaxFormattingOptions.Default with
-        {
-            NewLines = newLineBeforeBraceInLambda
-                ? RazorCSharpSyntaxFormattingOptions.Default.NewLines | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                : RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-        };
+    private (string fileName, string contents)[] GetCheckBoxButtonComponentFiles()
+        =>
+        [
+            (".editorconfig", """
+                root = true
+
+                [*.razor]
+                csharp_new_line_before_open_brace = all
+                """),
+            (FilePath("CheckBoxButton.razor"), """
+                @using Microsoft.AspNetCore.Components
+
+                @code {
+                    [Parameter] public string? ImageContentSource { get; set; }
+                    [Parameter] public EventCallback OnClick { get; set; }
+                    [Parameter] public int ImgSize { get; set; }
+                }
+                """)
+        ];
+
+    private static (string fileName, string contents)[] GetNewLineBeforeBraceInLambdaExpressionEditorConfig(bool newLineBeforeBraceInLambda)
+    {
+        var openBracePlacement = newLineBeforeBraceInLambda
+            ? "all"
+            : "accessors, types, methods, properties, anonymous_methods, control_blocks, anonymous_types, object_collection_array_initializers";
+
+        return
+        [
+            (".editorconfig", $"""
+                root = true
+
+                [*.razor]
+                csharp_new_line_before_open_brace = {openBracePlacement}
+                """)
+        ];
+    }
+
+    private static (string fileName, string contents)[] GetNewLinesEditorConfig(string openBracePlacement)
+        =>
+        [
+            (".editorconfig", $"""
+                root = true
+
+                [*.razor]
+                csharp_new_line_before_members_in_object_initializers = false
+                csharp_new_line_before_members_in_anonymous_types = false
+                csharp_new_line_before_else = false
+                csharp_new_line_before_catch = false
+                csharp_new_line_before_finally = false
+                csharp_new_line_before_open_brace = {openBracePlacement}
+                csharp_new_line_between_query_expression_clauses = false
+                """)
+        ];
 }

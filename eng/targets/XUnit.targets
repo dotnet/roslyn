@@ -19,7 +19,7 @@
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\config\test\BannedSymbols.txt" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework' AND '$(RoslynAnalyzersProject)' != 'true'">
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework' AND '$(SkipRoslynTestTraceListener)' != 'true'">
     <!--
       For .NET Core, app.config is not available. Languages which support module initializers may provide an
       InstallTraceListener.* source file which gets added to the build for test projects to programmatically install the

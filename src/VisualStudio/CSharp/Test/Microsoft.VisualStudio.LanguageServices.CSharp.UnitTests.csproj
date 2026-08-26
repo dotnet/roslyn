@@ -63,6 +63,7 @@
       <Private>true</Private>
     </Reference>
 
+    <!-- Prevent downstream projects from trying to place the Sqlite assemblies from this package -->
     <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" GeneratePathProperty="true" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>

@@ -1,0 +1,54 @@
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
+
+Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+
+Namespace BasicAnalyzers
+    ''' <summary>
+    ''' Analyzer for reporting syntax node diagnostics.
+    ''' It reports diagnostics for implicitly typed local variables, recommending explicit type specification.
+    ''' </summary>
+    ''' <remarks>
+    ''' For analyzers that requires analyzing symbols or syntax nodes across compilation, see <see cref="CompilationStartedAnalyzer"/> and <see cref="CompilationStartedAnalyzerWithCompilationWideAnalysis"/>.
+    ''' For analyzers that requires analyzing symbols or syntax nodes across a code block, see <see cref="CodeBlockStartedAnalyzer"/>.
+    ''' </remarks>
+    <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+    Public Class SyntaxNodeAnalyzer
+        Inherits DiagnosticAnalyzer
+
+#Region "Descriptor fields"
+        Friend Shared ReadOnly Title As LocalizableString = "Declare explicit type for local declarations"
+        Friend Shared ReadOnly MessageFormat As LocalizableString = "Local '{0}' is implicitly typed. Consider specifying its type explicitly in the declaration."
+        Friend Shared ReadOnly Description As LocalizableString = "Declare explicit type for local declarations."
+
+        Friend Shared Rule As New DiagnosticDescriptor(SyntaxNodeAnalyzerRuleId, Title, MessageFormat, Stateless, DiagnosticSeverity.Warning, isEnabledByDefault:=True, description:=Description)
+#End Region
+
+        Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+            Get
+                Return ImmutableArray.Create(Rule)
+            End Get
+        End Property
+
+        Public Overrides Sub Initialize(context As AnalysisContext)
+            context.RegisterSyntaxNodeAction(AddressOf AnalyzeSyntaxNode, SyntaxKind.VariableDeclarator)
+        End Sub
+
+        Private Shared Sub AnalyzeSyntaxNode(context As SyntaxNodeAnalysisContext)
+            ' Find implicitly typed variable declarations.
+            Dim declaration = DirectCast(context.Node, VariableDeclaratorSyntax)
+            If declaration.AsClause Is Nothing Then
+                For Each variable In declaration.Names
+                    ' For all such locals, report a diagnostic.
+                    Dim diag = Diagnostic.Create(Rule, variable.GetLocation(), variable.Identifier.ValueText)
+                    context.ReportDiagnostic(diag)
+                Next
+            End If
+        End Sub
+    End Class
+End Namespace

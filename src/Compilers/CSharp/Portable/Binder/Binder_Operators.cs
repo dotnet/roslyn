@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 node.Left.CheckDeconstructionCompatibleArgument(diagnostics);
 
-                BoundExpression left = BindValue(node.Left, diagnostics, GetBinaryAssignmentKind(node.Kind()));
+                BoundExpression left = BindValue(node.Left, diagnostics, BindValueKind.CompoundAssignment);
                 ReportSuppressionIfNeeded(left, diagnostics);
                 BoundExpression right = BindValue(node.Right, diagnostics, BindValueKind.RValue);
                 BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind());
@@ -922,8 +922,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (syntaxNodes.Count > 0)
             {
                 BinaryExpressionSyntax syntaxNode = syntaxNodes.Pop();
-                BindValueKind bindValueKind = GetBinaryAssignmentKind(syntaxNode.Kind());
-                BoundExpression left = CheckValue(result, bindValueKind, diagnostics);
+                Debug.Assert(IsSimpleBinaryOperator(syntaxNode.Kind()));
+                BoundExpression left = CheckValue(result, BindValueKind.RValue, diagnostics);
                 BoundExpression right = BindValue(syntaxNode.Right, diagnostics, BindValueKind.RValue);
                 BoundExpression boundOp = BindSimpleBinaryOperator(syntaxNode, diagnostics, left, right, leaveUnconvertedIfInterpolatedString: true);
                 result = boundOp;
@@ -4649,30 +4649,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static BindValueKind GetBinaryAssignmentKind(SyntaxKind kind)
-        {
-            switch (kind)
-            {
-                case SyntaxKind.SimpleAssignmentExpression:
-                    return BindValueKind.Assignable;
-                case SyntaxKind.AddAssignmentExpression:
-                case SyntaxKind.AndAssignmentExpression:
-                case SyntaxKind.DivideAssignmentExpression:
-                case SyntaxKind.ExclusiveOrAssignmentExpression:
-                case SyntaxKind.LeftShiftAssignmentExpression:
-                case SyntaxKind.ModuloAssignmentExpression:
-                case SyntaxKind.MultiplyAssignmentExpression:
-                case SyntaxKind.OrAssignmentExpression:
-                case SyntaxKind.RightShiftAssignmentExpression:
-                case SyntaxKind.UnsignedRightShiftAssignmentExpression:
-                case SyntaxKind.SubtractAssignmentExpression:
-                case SyntaxKind.CoalesceAssignmentExpression:
-                    return BindValueKind.CompoundAssignment;
-                default:
-                    return BindValueKind.RValue;
-            }
-        }
-
         private static BindValueKind GetUnaryAssignmentKind(SyntaxKind kind)
         {
             switch (kind)
@@ -4844,13 +4820,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindIsOperator(BinaryExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
-            var resultType = (TypeSymbol)GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
             var operand = BindRValueWithoutTargetType(node.Left, diagnostics);
             var operandHasErrors = IsOperandErrors(node, ref operand, diagnostics);
 
             TypeSymbol inputType = operand.Type;
-            NamedTypeSymbol unionMatchingInputType;
-            NamedTypeSymbol unionType = null;
 
             // try binding as a type, but back off to binding as an expression if that does not work.
             bool wasUnderscore = IsUnderscore(node.Right);
@@ -4860,84 +4833,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // it did not bind as a type; try binding as a constant expression pattern
                 var isPatternDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
-                if ((object)inputType == null)
-                {
-                    if (!operandHasErrors)
-                    {
-                        isPatternDiagnostics.Add(ErrorCode.ERR_BadPatternExpression, node.Left.Location, operand.Display);
-                    }
 
-                    operand = ToBadExpression(operand);
-                    inputType = operand.Type;
-                }
-
-                if (inputType is not null)
+                if (tryAsConstantPattern(node, operand, operandHasErrors, inputType, isPatternDiagnostics) is { } isPatternExpression)
                 {
-                    unionMatchingInputType = PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(node, ref inputType, ref unionType, isPatternDiagnostics);
-                }
-                else
-                {
-                    unionMatchingInputType = null;
-                }
-
-                bool hasErrors = node.Right.HasErrors;
-                var convertedExpression = BindExpressionForPattern(unionType, inputType, node.Right, ref hasErrors, isPatternDiagnostics, out var constantValueOpt, out var wasExpression, patternExpressionConversion: out _, out BoundExpression originalExpression);
-                if (wasExpression)
-                {
-                    hasErrors |= constantValueOpt is null;
                     isTypeDiagnostics.Free();
                     diagnostics.AddRangeAndFree(isPatternDiagnostics);
-
-                    BoundConstantPattern boundConstantPattern;
-
-                    if (IsClassOrNullableValueTypeUnionNullPatternMatching(unionMatchingInputType, constantValueOpt))
-                    {
-                        // Special case of a null test for a class Union or for a Nullable<Union>.
-                        // For class its meaning is equivalent to: (<union instance> is null or <union instance>.Value is null) 
-                        // For Nullable<Union> its meaning is equivalent to: (<input value> is null or <input value>.GetValueOrDefault().Value is null) 
-                        // Therefore, the type isn't narrowed by this pattern and the following pattern, if any, will do union matching from scratch.
-
-                        // Ensure that the null value can actually be also matched against the original input type, since we are matching it against the input value as well.
-                        if (originalExpression.Type is not null && !originalExpression.Type.Equals(unionMatchingInputType.StrippedType(), TypeCompareKind.AllIgnoreOptions))
-                        {
-                            diagnostics.Add(ErrorCode.ERR_ConstantValueOfTypeExpected, node.Right.Location, unionMatchingInputType.StrippedType());
-                        }
-
-                        boundConstantPattern = new BoundConstantPattern(
-                            node.Right, convertedExpression, constantValueOpt, isUnionMatching: true, inputType: unionMatchingInputType, narrowedType: unionMatchingInputType, hasErrors).MakeCompilerGenerated();
-                    }
-                    else
-                    {
-
-                        boundConstantPattern = new BoundConstantPattern(
-                            node.Right, convertedExpression, constantValueOpt ?? ConstantValue.Bad, isUnionMatching: unionMatchingInputType is not null, inputType: unionMatchingInputType ?? inputType, convertedExpression.Type ?? inputType, hasErrors).MakeCompilerGenerated();
-                    }
-
-                    return MakeIsPatternExpression(node, operand, boundConstantPattern, boundConstantPattern.IsUnionMatching, resultType, operandHasErrors, diagnostics);
+                    return isPatternExpression;
                 }
 
                 isPatternDiagnostics.Free();
             }
 
+            var resultType = (TypeSymbol)GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
             diagnostics.AddRangeAndFree(isTypeDiagnostics);
+
+            if (((CSharpParseOptions)node.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) &&
+                inputType?.IsUnionMatchingInputType(unionType: out _) == true)
+            {
+                var tryUnionMatchingDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
+                NamedTypeSymbol unionType = null;
+                BoundTypePattern typePattern = BindTypePattern(node, node.Right, ref unionType, inputType, typeExpression, hasErrors: false, tryUnionMatchingDiagnostics, out bool hasUnionMatching);
+
+                if (typePattern.IsUnionMatching)
+                {
+                    Debug.Assert(hasUnionMatching);
+                    diagnostics.AddRangeAndFree(tryUnionMatchingDiagnostics);
+                    return MakeIsPatternExpression(node, operand, typePattern.MakeCompilerGenerated(), hasUnionMatching: true, resultType, operandHasErrors, diagnostics);
+                }
+
+                tryUnionMatchingDiagnostics.Free();
+            }
+
             var targetType = typeExpression.Type;
-
-            if (inputType is not null)
-            {
-                unionMatchingInputType = PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(node, ref inputType, ref unionType, diagnostics);
-            }
-            else
-            {
-                unionMatchingInputType = null;
-            }
-
-            if (unionMatchingInputType is not null)
-            {
-                bool hasErrors = CheckValidPatternType(node.Right, unionType, inputType, targetType, diagnostics: diagnostics);
-                var pattern = new BoundTypePattern(node, typeExpression, isExplicitNotNullTest: targetType.SpecialType == SpecialType.System_Object, isUnionMatching: true, inputType: unionMatchingInputType, targetType, hasErrors);
-                return MakeIsPatternExpression(node, operand, pattern.MakeCompilerGenerated(), hasUnionMatching: true, resultType, operandHasErrors, diagnostics);
-            }
-
             var targetTypeWithAnnotations = typeExpression.TypeWithAnnotations;
             if (targetType.IsReferenceType && targetTypeWithAnnotations.NullableAnnotation.IsAnnotated())
             {
@@ -5022,6 +4949,76 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return !(targetType?.IsErrorType() == true && bindAsTypeDiagnostics.HasAnyResolvedErrors());
             }
 
+            BoundExpression tryAsConstantPattern(BinaryExpressionSyntax node, BoundExpression operand, bool operandHasErrors, TypeSymbol inputType, BindingDiagnosticBag diagnostics)
+            {
+                if ((object)inputType == null)
+                {
+                    if (!operandHasErrors)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadPatternExpression, node.Left.Location, operand.Display);
+                    }
+
+                    operand = ToBadExpression(operand);
+                    inputType = operand.Type;
+                }
+
+                NamedTypeSymbol unionMatchingInputType;
+                NamedTypeSymbol unionType = null;
+
+                if (inputType is not null)
+                {
+                    unionMatchingInputType = PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(node, ref inputType, ref unionType, diagnostics);
+                }
+                else
+                {
+                    unionMatchingInputType = null;
+                }
+
+                bool hasErrors = node.Right.HasErrors;
+                var convertedExpression = BindExpressionForPattern(unionType, inputType, node.Right, ref hasErrors, diagnostics, out var constantValueOpt, out var wasExpression, patternExpressionConversion: out _, out BoundExpression originalExpression);
+                if (wasExpression)
+                {
+                    hasErrors |= constantValueOpt is null;
+
+                    BoundConstantPattern boundConstantPattern;
+
+                    if (IsClassOrNullableValueTypeUnionNullPatternMatching(unionMatchingInputType, constantValueOpt))
+                    {
+                        // Special case of a null test for a class Union or for a Nullable<Union>.
+                        // For class its meaning is equivalent to: (<union instance> is null or <union instance>.Value is null) 
+                        // For Nullable<Union> its meaning is equivalent to: (<input value> is null or <input value>.GetValueOrDefault().Value is null) 
+                        // Therefore, the type isn't narrowed by this pattern and the following pattern, if any, will do union matching from scratch.
+
+                        // Ensure that the null value can actually be also matched against the original input type, since we are matching it against the input value as well.
+                        if (originalExpression.Type is not null && !originalExpression.Type.Equals(unionMatchingInputType.StrippedType(), TypeCompareKind.AllIgnoreOptions))
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ConstantValueOfTypeExpected, node.Right.Location, unionMatchingInputType.StrippedType());
+                        }
+
+                        boundConstantPattern = new BoundConstantPattern(
+                            node.Right, convertedExpression, constantValueOpt, unionMatchingMode: UnionMatchingMode.Both, inputType: unionMatchingInputType, narrowedType: unionMatchingInputType, hasErrors).MakeCompilerGenerated();
+                    }
+                    else
+                    {
+
+                        boundConstantPattern = new BoundConstantPattern(
+                            node.Right, convertedExpression,
+                            constantValueOpt ?? ConstantValue.Bad,
+                            unionMatchingMode: unionMatchingInputType is not null ? UnionMatchingMode.UnionValue : UnionMatchingMode.None,
+                            inputType: unionMatchingInputType ?? inputType,
+                            convertedExpression.Type ?? inputType,
+                            hasErrors).MakeCompilerGenerated();
+                    }
+
+                    return MakeIsPatternExpression(
+                        node, operand, boundConstantPattern,
+                        boundConstantPattern.UnionMatchingMode != UnionMatchingMode.None,
+                        boolType: GetSpecialType(SpecialType.System_Boolean, diagnostics, node),
+                        operandHasErrors, diagnostics);
+                }
+
+                return null;
+            }
         }
 
         private static void ReportIsOperatorDiagnostics(
@@ -5848,7 +5845,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             MessageID.IDS_FeatureCoalesceAssignmentExpression.CheckFeatureAvailability(diagnostics, node.OperatorToken);
 
-            BoundExpression leftOperand = BindValue(node.Left, diagnostics, BindValueKind.CompoundAssignment);
+            BoundExpression leftOperand = BindValue(node.Left, diagnostics, BindValueKind.NullCoalescingAssignment);
             ReportSuppressionIfNeeded(leftOperand, diagnostics);
             BoundExpression rightOperand = BindValue(node.Right, diagnostics, BindValueKind.RValue);
 

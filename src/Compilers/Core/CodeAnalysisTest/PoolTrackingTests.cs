@@ -5,6 +5,7 @@
 #if DEBUG
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Xunit;
@@ -44,6 +45,38 @@ public class PoolTrackingTests
         PoolTracker.ForgiveLeaks();
         PoolTracker.StopTracking();
         Assert.False(context.HasLeaks);
+        builder.Free();
+    }
+
+    [Fact]
+    public async Task WaitForOutstandingObjectsToBeFreed_SeesAsyncFree()
+    {
+        PoolTracker.StartTracking(out var context);
+        var builder = ArrayBuilder<int>.GetInstance();
+        using var allowFree = new SemaphoreSlim(0, 1);
+        var task = Task.Run(() =>
+        {
+            allowFree.Wait();
+            builder.Free();
+        });
+
+        Assert.True(context.HasLeaks);
+        allowFree.Release();
+        Assert.True(context.WaitForOutstandingObjectsToBeFreed(TimeSpan.FromSeconds(5)));
+        PoolTracker.StopTracking();
+        await task;
+        Assert.False(context.HasLeaks);
+    }
+
+    [Fact]
+    public void WaitForOutstandingObjectsToBeFreed_TimesOutForLeak()
+    {
+        PoolTracker.StartTracking(out var context);
+        var builder = ArrayBuilder<int>.GetInstance();
+
+        Assert.False(context.WaitForOutstandingObjectsToBeFreed(TimeSpan.Zero));
+        PoolTracker.StopTracking();
+        Assert.True(context.HasLeaks);
         builder.Free();
     }
 

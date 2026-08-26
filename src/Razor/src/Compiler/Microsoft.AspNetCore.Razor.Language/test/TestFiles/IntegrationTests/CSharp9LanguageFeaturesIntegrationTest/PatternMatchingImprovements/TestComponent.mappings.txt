@@ -1,0 +1,43 @@
+﻿Source Location: (2:0,2 [85] x:\dir\subdir\Test\TestComponent.razor)
+|
+    var value = 5;
+    _ = value is > 0 and < 10;
+    _ = value is < 0 or > 10;
+|
+Generated Location: (733:21,0 [85] )
+|
+    var value = 5;
+    _ = value is > 0 and < 10;
+    _ = value is < 0 or > 10;
+|
+
+Source Location: (93:6,1 [31] x:\dir\subdir\Test\TestComponent.razor)
+|if (value is > 0 and < 10)
+{
+|
+Generated Location: (949:32,0 [31] )
+|if (value is > 0 and < 10)
+{
+|
+
+Source Location: (163:9,0 [3] x:\dir\subdir\Test\TestComponent.razor)
+|}
+|
+Generated Location: (1194:42,0 [3] )
+|}
+|
+
+Source Location: (169:11,1 [30] x:\dir\subdir\Test\TestComponent.razor)
+|if (value is < 0 or > 10)
+{
+|
+Generated Location: (1330:50,0 [30] )
+|if (value is < 0 or > 10)
+{
+|
+
+Source Location: (250:14,0 [1] x:\dir\subdir\Test\TestComponent.razor)
+|}|
+Generated Location: (1586:60,0 [1] )
+|}|
+

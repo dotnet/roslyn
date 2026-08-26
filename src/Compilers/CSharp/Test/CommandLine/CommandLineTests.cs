@@ -43,6 +43,7 @@ using static Roslyn.Test.Utilities.SharedResourceHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
+    [ValidatePooledObjects(WaitForOutstandingObjectsToBeFreed = true)]
     public class CommandLineTests : CommandLineTestBase
     {
 #if NET
@@ -1661,7 +1662,7 @@ class C
         [InlineData("iso1")]
         [InlineData("8.1")]
         [InlineData("10.1")]
-        [InlineData("15")]
+        [InlineData("16")]
         [InlineData("1000")]
         public void LangVersion_BadVersion(string value)
         {
@@ -1732,7 +1733,7 @@ class C
             // - [ ] email release management to add to the release notes. See csharp-version in release.json in previous example: https://github.com/dotnet/core/pull/9493
             // - [ ] make csharplang updates documented at https://github.com/dotnet/csharplang/blob/main/Design-Process.md#steps-to-move-a-triaged-feature-to-an-implemented-feature
             // - [ ] push the list of specs to Codex. See previous example: https://devdiv.visualstudio.com/OnlineServices/_git/CodexV2Data/pullrequest/618779
-            AssertEx.SetEqual(["default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "7.3", "8.0", "9.0", "10.0", "11.0", "12.0", "13.0", "14.0", "latest", "latestmajor", "preview"],
+            AssertEx.SetEqual(["default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "7.3", "8.0", "9.0", "10.0", "11.0", "12.0", "13.0", "14.0", "15.0", "latest", "latestmajor", "preview"],
                 Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>().Select(v => v.ToDisplayString()));
             // For minor versions and new major versions, the format should be "x.y", such as "7.1"
         }
@@ -1769,6 +1770,7 @@ class C
                 ErrorCode.ERR_FeatureNotAvailableInVersion12,
                 ErrorCode.ERR_FeatureNotAvailableInVersion13,
                 ErrorCode.ERR_FeatureNotAvailableInVersion14,
+                ErrorCode.ERR_FeatureNotAvailableInVersion15,
             };
 
             AssertEx.SetEqual(versions, errorCodes);
@@ -1795,9 +1797,10 @@ class C
             InlineData(LanguageVersion.CSharp12, LanguageVersion.CSharp12),
             InlineData(LanguageVersion.CSharp13, LanguageVersion.CSharp13),
             InlineData(LanguageVersion.CSharp14, LanguageVersion.CSharp14),
-            InlineData(LanguageVersion.CSharp14, LanguageVersion.LatestMajor),
-            InlineData(LanguageVersion.CSharp14, LanguageVersion.Latest),
-            InlineData(LanguageVersion.CSharp14, LanguageVersion.Default),
+            InlineData(LanguageVersion.CSharp15, LanguageVersion.CSharp15),
+            InlineData(LanguageVersion.CSharp15, LanguageVersion.LatestMajor),
+            InlineData(LanguageVersion.CSharp15, LanguageVersion.Latest),
+            InlineData(LanguageVersion.CSharp15, LanguageVersion.Default),
             InlineData(LanguageVersion.Preview, LanguageVersion.Preview),
             ]
         public void LanguageVersion_MapSpecifiedToEffectiveVersion(LanguageVersion expectedMappedVersion, LanguageVersion input)
@@ -1844,6 +1847,10 @@ class C
             InlineData("12.0", true, LanguageVersion.CSharp12),
             InlineData("13", true, LanguageVersion.CSharp13),
             InlineData("13.0", true, LanguageVersion.CSharp13),
+            InlineData("14", true, LanguageVersion.CSharp14),
+            InlineData("14.0", true, LanguageVersion.CSharp14),
+            InlineData("15", true, LanguageVersion.CSharp15),
+            InlineData("15.0", true, LanguageVersion.CSharp15),
             InlineData("08", false, LanguageVersion.Default),
             InlineData("07.1", false, LanguageVersion.Default),
             InlineData("default", true, LanguageVersion.Default),
@@ -12106,7 +12113,7 @@ class C
             result = ProcessUtilities.Run(cscPath, arguments: "/nologo /t:library unknown.cs", workingDirectory: dir.Path);
             Assert.Equal(1, result.ExitCode);
             AssertEx.Equal(
-                $"Could not load file or assembly '{typeof(ImmutableArray).Assembly.FullName.Replace(".1", ".0")}' or one of its dependencies. The system cannot find the file specified.",
+                $"Could not load file or assembly '{typeof(ImmutableArray).Assembly.FullName.Replace(".10", ".0")}' or one of its dependencies. The system cannot find the file specified.",
                 result.Output.Trim());
         }
 
@@ -12774,7 +12781,6 @@ class C
 
         [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
         [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
-        [ValidatePooledObjects(Skip = "AnalyzerDriver async continuations may not complete before pool validation")]
         public void TestSuppression_CompilerSyntaxParseError_SuppressWarningCaughtDuringParsingStage(bool skipAnalyzers)
         {
             const string SourceCode = @"

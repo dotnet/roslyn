@@ -20,8 +20,8 @@ internal sealed class TestExampleLanguageServer : ExampleLanguageServer
 {
     private readonly JsonRpc _clientRpc;
 
-    public TestExampleLanguageServer(Stream clientSteam, JsonRpc jsonRpc, JsonSerializerOptions options, ILspLogger logger, Action<IServiceCollection>? addExtraHandlers)
-        : base(jsonRpc, options, logger, addExtraHandlers)
+    public TestExampleLanguageServer(Stream clientSteam, JsonRpc jsonRpc, JsonSerializerOptions options, Action<IServiceCollection>? addExtraHandlers)
+        : base(jsonRpc, options, addExtraHandlers)
     {
         _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientSteam, clientSteam, CreateJsonMessageFormatter()))
         {
@@ -106,7 +106,7 @@ internal sealed class TestExampleLanguageServer : ExampleLanguageServer
         return messageFormatter;
     }
 
-    internal static TestExampleLanguageServer CreateBadLanguageServer(ILspLogger logger)
+    internal static TestExampleLanguageServer CreateBadLanguageServer()
     {
         var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
@@ -118,21 +118,21 @@ internal sealed class TestExampleLanguageServer : ExampleLanguageServer
                 serviceCollection.AddSingleton<IMethodHandler, ExtraDidOpenHandler>();
             };
 
-        var server = new TestExampleLanguageServer(clientStream, jsonRpc, messageFormatter.JsonSerializerOptions, logger, extraHandlers);
+        var server = new TestExampleLanguageServer(clientStream, jsonRpc, messageFormatter.JsonSerializerOptions, extraHandlers);
 
         jsonRpc.StartListening();
         server.InitializeTest();
         return server;
     }
 
-    internal static TestExampleLanguageServer CreateLanguageServer(ILspLogger logger)
+    internal static TestExampleLanguageServer CreateLanguageServer()
     {
         var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
         var messageFormatter = CreateJsonMessageFormatter();
         var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(serverStream, serverStream, messageFormatter));
 
-        var server = new TestExampleLanguageServer(clientStream, jsonRpc, messageFormatter.JsonSerializerOptions, logger, addExtraHandlers: null);
+        var server = new TestExampleLanguageServer(clientStream, jsonRpc, messageFormatter.JsonSerializerOptions, addExtraHandlers: null);
 
         jsonRpc.StartListening();
         server.InitializeTest();
