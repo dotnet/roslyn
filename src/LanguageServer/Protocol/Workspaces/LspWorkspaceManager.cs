@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +14,6 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
@@ -282,35 +280,19 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _logger.LogDebug($"Could not find '{textDocumentIdentifier.DocumentUri}'.  Searched {searchedWorkspaceKinds}");
         _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
 
-        // Add the document to our loose files workspace (if we have one). Prefer the text from LSP if the document is
-        // open; otherwise, attempt to read file URIs from disk.
+        // Ask the loose files provider for the document (if we have one). The provider may add tracked documents to
+        // a workspace or return an untracked file URI in a transient solution.
         if (_lspMiscellaneousFilesWorkspaceProvider is not null)
         {
-            TrackedDocumentInfo? documentInfo = null;
-            if (_trackedDocuments.TryGetValue(uri, out var trackedDocument))
-            {
-                documentInfo = trackedDocument;
-            }
-            else if (uri.ParsedUri?.IsFile == true)
-            {
-                var sourceText = IOUtilities.PerformIO(() =>
-                {
-                    using var fileStream = File.OpenRead(uri.GetDocumentFilePathFromUri());
-                    return SourceText.From(fileStream);
-                });
-
-                if (sourceText is not null)
-                    documentInfo = new(sourceText, LanguageId: string.Empty, LspVersion: 0);
-            }
+            TrackedDocumentInfo? documentInfo = _trackedDocuments.TryGetValue(uri, out var trackedDocument)
+                ? trackedDocument
+                : null;
 
             try
             {
-                if (documentInfo is not null)
-                {
-                    var miscDocument = await _lspMiscellaneousFilesWorkspaceProvider.AddDocumentAsync(uri, documentInfo.Value).ConfigureAwait(false);
-                    if (miscDocument is not null)
-                        return (miscDocument.Project.Solution.Workspace, miscDocument.Project.Solution, miscDocument);
-                }
+                var miscDocument = await _lspMiscellaneousFilesWorkspaceProvider.AddDocumentAsync(uri, documentInfo).ConfigureAwait(false);
+                if (miscDocument is not null)
+                    return (miscDocument.Project.Solution.Workspace, miscDocument.Project.Solution, miscDocument);
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex))
             {

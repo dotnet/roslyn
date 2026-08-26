@@ -1,9 +1,10 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System;
 using System.Composition;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Features.Workspaces;
@@ -11,6 +12,8 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.MiscellaneousFiles;
@@ -29,18 +32,42 @@ internal sealed class TestLspMiscellaneousFilesWorkspaceProviderFactory() : ILsp
 
     private class TestLspMiscellaneousFilesWorkspaceProvider(HostServices host) : Workspace(host, WorkspaceKind.MiscellaneousFiles), ILspMiscellaneousFilesWorkspaceProvider
     {
-        public ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo trackedDocumentInfo)
+        public ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo? trackedDocumentInfo)
         {
             var documentFilePath = documentUri.GetDocumentFilePathFromUri();
+            var sourceText = trackedDocumentInfo?.SourceText;
+            if (sourceText is null)
+            {
+                if (documentUri.ParsedUri?.IsFile != true)
+                    return new(result: null);
 
-            var sourceTextLoader = new SourceTextLoader(trackedDocumentInfo.SourceText, documentFilePath);
+                sourceText = IOUtilities.PerformIO(() =>
+                {
+                    using var fileStream = File.OpenRead(documentFilePath);
+                    return SourceText.From(fileStream);
+                });
+            }
 
+            if (sourceText is null)
+                return new(result: null);
+
+            var sourceTextLoader = new SourceTextLoader(sourceText, documentFilePath);
             var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
-                this, documentFilePath, sourceTextLoader, new LanguageInformation(LanguageNames.CSharp, "csx"), trackedDocumentInfo.SourceText.ChecksumAlgorithm, Services.SolutionServices, [], false);
-            OnProjectAdded(projectInfo);
+                this, documentFilePath, sourceTextLoader, new LanguageInformation(LanguageNames.CSharp, "csx"), sourceText.ChecksumAlgorithm, Services.SolutionServices, [], false);
+
+            var solution = CurrentSolution;
+            if (trackedDocumentInfo is not null)
+            {
+                OnProjectAdded(projectInfo);
+                solution = CurrentSolution;
+            }
+            else
+            {
+                solution = solution.AddProject(projectInfo);
+            }
 
             var id = projectInfo.Documents.Single().Id;
-            return new(CurrentSolution.GetRequiredDocument(id));
+            return new(solution.GetRequiredDocument(id));
         }
 
         public async ValueTask CloseDocumentAsync(DocumentUri uri)
@@ -64,4 +91,3 @@ internal sealed class TestLspMiscellaneousFilesWorkspaceProviderFactory() : ILsp
         }
     }
 }
-
