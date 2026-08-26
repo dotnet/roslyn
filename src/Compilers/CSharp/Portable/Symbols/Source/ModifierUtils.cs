@@ -461,9 +461,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var messageId = SyntaxFacts.IsTypeDeclaration(modifier.Parent.Kind()) ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod;
                 messageId.CheckFeatureAvailability(diagnostics, modifier);
 
-                // `partial` normally must be the last modifier. For compatibility, do not report an ordering error
-                // for a trailing `partial async`, which has historically been allowed on ordinary methods. Other
-                // declarations either disallow `partial` or diagnose `async` separately.
+                // `partial` normally must be last. Preserve the historical exception for ordinary methods ending in
+                // `partial async`. Ordinary methods are the only declarations that allow both modifiers; elsewhere,
+                // either `partial` is rejected here or `async` is rejected by ModifierUtils.CheckModifiers.
                 var isLegalLocation =
                     i == modifiers.Count - 1 ||
                     (i == modifiers.Count - 2 && modifiers[i + 1].ContextualKind() is SyntaxKind.AsyncKeyword);
