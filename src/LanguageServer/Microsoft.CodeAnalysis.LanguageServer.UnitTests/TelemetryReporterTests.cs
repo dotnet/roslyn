@@ -5,7 +5,11 @@
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Text.Json.Nodes;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
+using Microsoft.VisualStudio.Telemetry;
+using Microsoft.VisualStudio.Telemetry.Metrics;
+using Microsoft.VisualStudio.Telemetry.Metrics.Events;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -38,12 +42,28 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper) :
         Assert.Contains(AssemblyLoadContext.Default.Assemblies, a => a.GetName().Name == "Microsoft.VisualStudio.Telemetry");
     }
 
+    /// <summary>
+    /// Razor's VS Code extension owns no telemetry session and posts through this host's, via
+    /// <see cref="TelemetryReporterWrapper"/>. Covers both directions of that bridge.
+    /// </summary>
     [Fact]
-    public void TestLog()
+    public void TestRazorBridgePostsThroughTheHostSession()
     {
         using var service = CreateReporter(DefaultServerConfiguration);
         service.InitializeSession("off", "test-session", isDefaultSession: false);
-        service.Log(GetEventName(nameof(TestLog)), []);
+
+        // Constructed the same way as CreateReporter above: the MEF importing constructor is marked
+        // obsolete-as-error, so tests go through Activator rather than calling it directly.
+        var wrapper = (TelemetryReporterWrapper?)Activator.CreateInstance(
+            typeof(TelemetryReporterWrapper), new Lazy<LanguageServerTelemetryService>(() => service));
+        Assert.NotNull(wrapper);
+
+        wrapper.ReportEvent(GetEventName(nameof(TestRazorBridgePostsThroughTheHostSession)), [new("method", "textDocument/hover")]);
+
+        var meter = new VSTelemetryMeterProvider().CreateMeter("test.meter");
+        var histogram = meter.CreateHistogram<long>("Duration");
+        histogram.Record(42);
+        wrapper.ReportMetric(new TelemetryHistogramEvent<long>(new TelemetryEvent(GetEventName("metric")), histogram));
     }
 
     [Theory]

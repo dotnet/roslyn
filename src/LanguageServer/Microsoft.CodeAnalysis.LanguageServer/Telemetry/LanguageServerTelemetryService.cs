@@ -103,29 +103,11 @@ internal sealed class LanguageServerTelemetryService : IDisposable
             : Environment.GetEnvironmentVariable(CopilotTelemetryLevelEnvironmentVariable);
 
     /// <summary>
-    /// Posts an already-named event with already-final property names, on behalf of a component that has
-    /// no session of its own (Razor's VS Code extension, via <c>ILanguageServerTelemetryReporterWrapper</c>).
-    /// Roslyn's own <c>FunctionId</c>-based events do not go through here.
+    /// The active session, for the one component that needs to post through it directly: Razor's VS Code
+    /// extension, which owns no session of its own. Roslyn's own telemetry never uses this - it goes
+    /// through <see cref="RoslynTelemetry"/> and the registered sinks.
     /// </summary>
-    public void Log(string name, List<KeyValuePair<string, object?>> properties)
-    {
-        if (_telemetrySession is null)
-        {
-            return;
-        }
-
-        var telemetryEvent = new TelemetryEvent(name);
-        SetProperties(telemetryEvent, properties);
-        _telemetrySession.PostEvent(telemetryEvent);
-    }
-
-    /// <summary>
-    /// Posts an aggregated measurement on behalf of a component that has no session of its own. The
-    /// event must arrive intact rather than flattened: the aggregated values live on its instrument and
-    /// are only read by <see cref="TelemetrySession.PostMetricEvent"/>.
-    /// </summary>
-    public void PostMetricEvent(TelemetryMetricEvent metricEvent)
-        => _telemetrySession?.PostMetricEvent(metricEvent);
+    internal TelemetrySession? Session => _telemetrySession;
 
     public void Dispose()
     {
@@ -190,14 +172,6 @@ internal sealed class LanguageServerTelemetryService : IDisposable
             }
 
             return '"' + value + '"';
-        }
-    }
-
-    private static void SetProperties(TelemetryEvent telemetryEvent, List<KeyValuePair<string, object?>> properties)
-    {
-        foreach (var property in properties)
-        {
-            telemetryEvent.Properties.Add(property);
         }
     }
 }
