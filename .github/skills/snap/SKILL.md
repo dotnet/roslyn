@@ -279,9 +279,11 @@ After gathering, present **all** planned actions in a numbered list for the user
    - Remove the previous servicing branch's default channel and subscriptions when that flow is being retired.
    - Add a future SDK channel only when it exists and the user confirms the new flow.
 
-8. **Move milestones**: Move merged PRs and closed issues from `Next` milestone to the target milestone (e.g., `18.6`). Create the milestone if it doesn't exist.
+8. **Update the InfraSwat dashboard manually**: After the Maestro configuration PR merges, update the Roslyn build widgets on the [dnceng Roslyn/Razor InfraSwat dashboard](https://dev.azure.com/dnceng/internal/_dashboards/dashboard/7cd4c2dc-8e75-4cb6-9936-e937c0e496c4) so their displayed VS/SDK versions and configured branches match the post-snap state.
 
-9. **Preserve or retire old stable**: If old stable content still serves an SDK band, create `release/<sdk-band>` (for example, `release/10.0.4xx`) directly from the pre-snap `release/stable` commit **before** stable is overwritten. Transfer the SDK flow to that branch. If the previous servicing branch (for example, `release/10.0.3xx`) is no longer needed, retire its default channel and subscriptions. If old stable is fully retired, skip branch creation and remove its obsolete flows.
+9. **Move milestones**: Assign the target milestone (e.g., `18.6`) to the PRs included since the previous snap. Create the milestone if it doesn't exist.
+
+10. **Preserve or retire old stable**: If old stable content still serves an SDK band, create `release/<sdk-band>` (for example, `release/10.0.4xx`) directly from the pre-snap `release/stable` commit **before** stable is overwritten. Transfer the SDK flow to that branch. If the previous servicing branch (for example, `release/10.0.3xx`) is no longer needed, retire its default channel and subscriptions. If old stable is fully retired, skip branch creation and remove its obsolete flows.
 
 **`PublishData.json` interim handling**: During the schedule-defined gap between the Roslyn snap and the snapped version's VS `main` → `rel/insiders` snap, named branches need temporary insertion target overrides because VS branch names haven't shifted yet. These temporary changes are included directly in the snap merge PRs (for non-main branches) and reverted after VS snaps (see step 3.9).
 
@@ -316,6 +318,23 @@ git merge-base --is-ancestor {snapCommitSha} {upstreamRemote}/main
 ```
 
 If the reachability check fails, stop; do not create any branches from the unverified commit.
+
+Before changing `release/insiders`, record the previous snap's source boundary for milestone assignment:
+```powershell
+$previousSnapMergeSha = git log {upstreamRemote}/release/insiders --format=%H --grep="^Merge main into release/insiders$" -n 1
+if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($previousSnapMergeSha)) {
+    throw "Could not find the previous main-to-insiders snap merge"
+}
+
+$parents = (git show -s --format=%P $previousSnapMergeSha).Split(" ", [System.StringSplitOptions]::RemoveEmptyEntries)
+if ($LASTEXITCODE -ne 0 -or $parents.Count -ne 2) {
+    throw "Previous snap merge does not have exactly two parents"
+}
+
+$previousSnapCommitSha = $parents[1]
+```
+
+Persist `$previousSnapCommitSha` with the current `{snapCommitSha}` in the session state.
 
 #### 3.2 Preserve old stable in an SDK servicing branch (if applicable)
 
@@ -616,6 +635,21 @@ if ($pr.isDraft -or $null -eq $pr.autoCompleteSetBy) {
 Write-Output "PR: https://dev.azure.com/dnceng/internal/_git/maestro-configuration/pullrequest/$prId"
 ```
 
+After the Maestro configuration PR merges, manually update the [dnceng Roslyn/Razor InfraSwat dashboard](https://dev.azure.com/dnceng/internal/_dashboards/dashboard/7cd4c2dc-8e75-4cb6-9936-e937c0e496c4). Treat this as a required snap checkpoint. Dashboard widget updates are intentionally manual: the API requires replacing full widget payloads and preserving eTags, layout, and settings, which makes unattended edits unnecessarily risky.
+
+Update the active Roslyn widgets to match the verified post-snap state:
+- `Roslyn main`: update the displayed VS version; preserve its SDK label unless the confirmed SDK flow changed.
+- `Roslyn insiders`: update the displayed VS version.
+- `Roslyn stable`: update the displayed VS version.
+- SDK servicing widget: update both its name and configured `fullBranchName` from the old stable branch to the new `release/<sdk-band>` branch.
+- Remove or repurpose any widget for a retired servicing branch.
+
+Verify each widget still points to the intended build definition and branch after saving. For example, after an 18.11 snap with a 10.0.4xx servicing branch, the expected Roslyn widget state is:
+- `Roslyn main -> main/18.12/11.0.1xx`
+- `Roslyn insiders -> insiders/18.11`
+- `Roslyn stable -> stable/18.10`
+- `Roslyn 10.0.4xx -> 10.0.4xx (2026/08/11)`, with `fullBranchName` = `refs/heads/release/10.0.4xx` (preserve or update the dashboard's date suffix as appropriate)
+
 #### 3.7 Move milestones
 
 Create the target milestone if needed (milestone name is just the version number, e.g., `18.6`):
@@ -623,10 +657,23 @@ Create the target milestone if needed (milestone name is just the version number
 gh api -X POST repos/{owner}/{repo}/milestones --field title="{milestoneName}"
 ```
 
-List merged PRs and closed issues in the `Next` milestone:
-```
-$prs = gh pr list --repo {owner}/{repo} --search "is:merged milestone:Next base:main" --json number --limit 200 | ConvertFrom-Json
-$issues = gh issue list --repo {owner}/{repo} --search "is:closed milestone:Next" --json number --limit 200 | ConvertFrom-Json
+Do not rely on the `Next` milestone to identify included PRs; contributors and automation may not assign it consistently. Use the exact Git ancestry range from the previous snap source commit (exclusive) through the current snap commit (inclusive), then match those merge commits to merged PRs:
+```powershell
+$rangeCommits = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+git rev-list --ancestry-path "{previousSnapCommitSha}..{snapCommitSha}" |
+    ForEach-Object { [void]$rangeCommits.Add($_.Trim()) }
+if ($LASTEXITCODE -ne 0) {
+    throw "Computing snap ancestry failed"
+}
+
+$mergedPrs = gh pr list --repo {owner}/{repo} --search "is:merged base:main" --json number,title,mergeCommit,milestone --limit 1000 | ConvertFrom-Json
+$prs = @($mergedPrs | Where-Object {
+    $null -ne $_.mergeCommit -and $rangeCommits.Contains($_.mergeCommit.oid)
+})
+
+if ($prs.Count -eq 0) {
+    throw "No merged PRs found in the confirmed snap range"
+}
 ```
 
 Get the milestone number for the target milestone:
@@ -634,11 +681,24 @@ Get the milestone number for the target milestone:
 $msNumber = gh api repos/{owner}/{repo}/milestones --jq '.[] | select(.title == "{milestoneName}") | .number'
 ```
 
-Move them using the REST API (more reliable than `gh pr edit` / `gh issue edit` for bulk operations):
+Review the count and boundary PRs before proceeding. Stop if any included PR already has a different milestone. Assign the milestone using the REST API:
+```powershell
+$conflicts = @($prs | Where-Object {
+    $null -ne $_.milestone -and $_.milestone.number -ne [int]$msNumber
+})
+if ($conflicts.Count -ne 0) {
+    throw "Some included PRs already have another milestone"
+}
+
+foreach ($pr in $prs) {
+    gh api repos/{owner}/{repo}/issues/$($pr.number) -X PATCH -F milestone=$msNumber --silent
+    if ($LASTEXITCODE -ne 0) {
+        throw "Updating milestone for PR #$($pr.number) failed"
+    }
+}
 ```
-foreach ($pr in $prs) { gh api repos/{owner}/{repo}/issues/$($pr.number) -X PATCH -f milestone=$msNumber }
-foreach ($iss in $issues) { gh api repos/{owner}/{repo}/issues/$($iss.number) -X PATCH -f milestone=$msNumber }
-```
+
+Verify each assignment through the issue REST endpoint rather than GitHub search, whose milestone index can lag. Do not move unrelated stale items from `Next`. Handle closed issues only when the user provides or confirms an explicit issue set.
 
 #### 3.8 Reply to the snap announcement email
 
