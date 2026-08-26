@@ -622,9 +622,9 @@ partial enum E { }
 ";
 
             CreateCompilation(test).VerifyDiagnostics(
-                // (2,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 // partial enum E { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(2, 14));
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1));
         }
 
         [Fact]
@@ -651,9 +651,9 @@ partial delegate E { }
                 // (2,20): error CS8803: Top-level statements must precede namespace and type declarations.
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "{ }").WithLocation(2, 20),
-                // (2,20): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 // partial delegate E { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "").WithLocation(2, 20),
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
                 // (2,18): error CS0246: The type or namespace name 'E' could not be found (are you missing a using directive or an assembly reference?)
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "E").WithArguments("E").WithLocation(2, 18));
@@ -667,9 +667,9 @@ partial delegate void E();
 ";
 
             CreateCompilation(test).VerifyDiagnostics(
-                // (2,23): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 // partial delegate void E();
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(2, 23));
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1));
         }
 
         // TODO: Extra errors
