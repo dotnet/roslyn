@@ -4,8 +4,13 @@
 
 namespace Microsoft.NET.ProjectData;
 
-public sealed record CachedSourceFile
+internal sealed class ProjectDataDonorIndexEntry
 {
-	public required string FilePath { get; init; }
-	public string? Link { get; init; }
+	public string Path { get; set; } = string.Empty;
+
+	public string? Head { get; set; }
+
+	public long? NewestMtimeMs { get; set; }
+
+	public DateTimeOffset? UpdatedUtc { get; set; }
 }

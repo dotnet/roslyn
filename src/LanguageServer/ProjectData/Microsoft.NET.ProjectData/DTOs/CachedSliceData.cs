@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -21,7 +21,7 @@ public sealed record CachedSliceData
 	public required ImmutableArray<string> AnalyzerConfigFiles { get; init; }
 	public required ImmutableArray<string> AdditionalFiles { get; init; }
 	public ImmutableArray<CachedEmbeddedResource> EmbeddedResources { get; init; } = [];
-	public required ImmutableArray<string> ProjectReferences { get; init; }
+	public required ImmutableArray<CachedProjectReference> ProjectReferences { get; init; }
 	public required ImmutableArray<string> Capabilities { get; init; }
 	public required ImmutableDictionary<string, string> Properties { get; init; }
 	public bool IsPrimary { get; init; }

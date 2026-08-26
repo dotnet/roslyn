@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -26,9 +26,16 @@ public sealed class StringPool
 	private const int StripeMask = StripeCount - 1;
 
 	private readonly ConcurrentDictionary<string, string>[] stripes;
+	private readonly Action? onGetOrAdd;
 
 	public StringPool()
+		: this(onGetOrAdd: null)
 	{
+	}
+
+	internal StringPool(Action? onGetOrAdd)
+	{
+		this.onGetOrAdd = onGetOrAdd;
 		this.stripes = new ConcurrentDictionary<string, string>[StripeCount];
 		for (int i = 0; i < StripeCount; i++)
 			this.stripes[i] = new(StringComparer.Ordinal);
@@ -43,8 +50,8 @@ public sealed class StringPool
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public string GetOrAdd(string value)
 	{
+		this.onGetOrAdd?.Invoke();
 		int stripe = value.GetHashCode() & StripeMask;
 		return this.stripes[stripe].GetOrAdd(value, static v => v);
 	}
 }
-
