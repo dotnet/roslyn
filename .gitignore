@@ -191,6 +191,9 @@ Desktop.ini
 # Recycle Bin used on file shares
 $RECYCLE.BIN/
 
+# Tooling generating a deviceid file on MacOS
+Library/
+
 # Mac desktop service store files
 .DS_Store
 

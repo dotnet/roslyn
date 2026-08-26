@@ -222,6 +222,11 @@
         <target state="translated">O argumento {0} não pode ser passado com o palavra-chave 'ref' na versão {1} da linguagem. Para passar argumentos 'ref' para parâmetros 'in', atualize para a versão {2} ou superior da linguagem.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAwaitInFixed">
+        <source>Cannot await in context of a 'fixed' statement</source>
+        <target state="translated">Não é possível usar await no contexto de uma instrução 'fixed'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
         <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</source>
         <target state="translated">O operador '{0}' não pode ser aplicado a operandos do tipo '{1}' e '{2}' que não são representações de bytes UTF-8</target>
@@ -723,8 +728,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
-        <source>A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.</source>
-        <target state="translated">Uma variável não pode ser declarada dentro de um padrão 'not' ou 'or', nem em uma correspondência de união que envolva a correspondência com a instância ou com seu valor subjacente.</target>
+        <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
+        <target state="translated">Uma variável não pode ser declarada em um padrão 'not' ou 'or'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
@@ -1030,6 +1035,11 @@
       <trans-unit id="ERR_FeatureNotAvailableInVersion14">
         <source>Feature '{0}' is not available in C# 14.0. Please use language version {1} or greater.</source>
         <target state="translated">O recurso "{0}" não está disponível no C# 14.0. Use a versão do idioma {1} ou superior.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion15">
+        <source>Feature '{0}' is not available in C# 15.0. Please use language version {1} or greater.</source>
+        <target state="translated">O recurso '{0}' não está disponível no C# 15.0. Use a versão {1} ou posterior da linguagem.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -1524,7 +1534,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidPropertyUnsafeMods">
         <source>Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</source>
-        <target state="new">Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</target>
+        <target state="translated">Não é possível especificar os modificadores 'unsafe' ou 'safe' na propriedade ou no indexador '{0}' e em seu acessador. Remova um deles.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberProviderInUnionDeclaration">
@@ -2524,12 +2534,12 @@
       </trans-unit>
       <trans-unit id="ERR_SafeModifierCannotBeUsedWithUnsafe">
         <source>The 'safe' and 'unsafe' modifiers cannot be used together.</source>
-        <target state="new">The 'safe' and 'unsafe' modifiers cannot be used together.</target>
+        <target state="translated">Os modificadores 'safe' e 'unsafe' não podem ser usados juntos.</target>
         <note>'safe' and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_SamePropertyUnsafeAccessorMods">
         <source>Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer '{0}'. Instead, put that modifier on the property itself.</source>
-        <target state="new">Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer '{0}'. Instead, put that modifier on the property itself.</target>
+        <target state="translated">Não é possível especificar o mesmo modificador 'unsafe' ou 'safe' em todos os acessadores de uma propriedade ou de um indexador '{0}'. Em vez disso, coloque esse modificador na própria propriedade.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
@@ -11444,11 +11454,6 @@ Forneça ao compilador alguma forma de diferenciar os métodos. Por exemplo, voc
       <trans-unit id="ERR_BadAwaitInStaticVariableInitializer">
         <source>The 'await' operator cannot be used in a static script variable initializer.</source>
         <target state="translated">O operador 'await' não pode ser usado em um inicializador de variável de script estático.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AwaitInUnsafeContext">
-        <source>Cannot await in an unsafe context</source>
-        <target state="translated">Não é possível esperar em um contexto sem segurança</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLacksBody">

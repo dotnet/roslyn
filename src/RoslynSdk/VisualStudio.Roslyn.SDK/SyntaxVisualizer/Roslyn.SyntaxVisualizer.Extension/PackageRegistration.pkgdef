@@ -1,0 +1,6 @@
+[$RootKey$\Menus]
+"{1e4ce699-d626-42c3-9803-cac3cd73ed77}"=", Menus.ctmenu, 1"
+
+[$RootKey$\ToolWindows\{da7e21aa-da94-452d-8aa1-d1b23f73f576}]
+@="{1e4ce699-d626-42c3-9803-cac3cd73ed77}"
+"Name"="Roslyn.SyntaxVisualizer.Extension.SyntaxVisualizerToolWindow"

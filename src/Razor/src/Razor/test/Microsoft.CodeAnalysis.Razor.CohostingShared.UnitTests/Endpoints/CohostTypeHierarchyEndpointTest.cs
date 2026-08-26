@@ -4,6 +4,7 @@
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -88,6 +89,54 @@ public class CohostTypeHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
+    public async Task TypeHierarchySupertypes_RoundTripsMappedItems_Legacy()
+    {
+        TestCode input = """
+            @functions
+            {
+                interface {|topInterfaceDef:ITop|}
+                {
+                }
+
+                interface {|midInterfaceDef:IMid|} : ITop
+                {
+                }
+
+                class {|baseDef:Base|} : IMid
+                {
+                }
+
+                class {|midDef:Mid|} : Base
+                {
+                }
+
+                class {|derivedDef:Der$$ived|} : Mid
+                {
+                }
+            }
+            """;
+
+        var document = CreateProjectAndRazorDocument(input.Text, RazorFileKind.Legacy);
+        var preparedItem = Assert.Single(await GetPreparedItemsAsync(document, input.Position));
+        AssertItems([preparedItem], (document.GetURI(), input, ["derivedDef"]));
+
+        var supertypes = await GetSupertypesAsync(document, preparedItem);
+        AssertItems(supertypes, (document.GetURI(), input, ["midDef"]));
+        var midItem = Assert.Single(supertypes);
+
+        var midSupertypes = await GetSupertypesAsync(document, midItem);
+        AssertItems(midSupertypes, (document.GetURI(), input, ["baseDef"]));
+        var baseItem = Assert.Single(midSupertypes);
+
+        var baseSupertypes = await GetSupertypesAsync(document, baseItem);
+        AssertItems(baseSupertypes, (document.GetURI(), input, ["midInterfaceDef"]));
+        var midInterfaceItem = Assert.Single(baseSupertypes);
+
+        var midInterfaceSupertypes = await GetSupertypesAsync(document, midInterfaceItem);
+        AssertItems(midInterfaceSupertypes, (document.GetURI(), input, ["topInterfaceDef"]));
+    }
+
+    [Fact]
     public async Task TypeHierarchySubtypes_RoundTripsMappedItems()
     {
         TestCode input = """
@@ -120,6 +169,54 @@ public class CohostTypeHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
             """;
 
         var document = CreateProjectAndRazorDocument(input.Text);
+        var preparedItem = Assert.Single(await GetPreparedItemsAsync(document, input.Position));
+        AssertItems([preparedItem], (document.GetURI(), input, ["rootDef"]));
+
+        var subtypes = await GetSubtypesAsync(document, preparedItem);
+        AssertItems(subtypes, (document.GetURI(), input, ["childDef", "directImplDef"]));
+
+        var childItem = Assert.Single(subtypes, item => item.Name == "IChild");
+        var childSubtypes = await GetSubtypesAsync(document, childItem);
+        AssertItems(childSubtypes, (document.GetURI(), input, ["grandchildDef"]));
+        var grandchildItem = Assert.Single(childSubtypes);
+
+        var grandchildSubtypes = await GetSubtypesAsync(document, grandchildItem);
+        AssertItems(grandchildSubtypes, (document.GetURI(), input, ["indirectImplDef"]));
+    }
+
+    [Fact]
+    public async Task TypeHierarchySubtypes_RoundTripsMappedItems_Legacy()
+    {
+        TestCode input = """
+            @functions
+            {
+                interface {|rootDef:IRoot|}
+                {
+                }
+
+                interface {|childDef:IChild|} : IRoot
+                {
+                }
+
+                interface {|grandchildDef:IGrandChild|} : IChild
+                {
+                }
+
+                class {|directImplDef:DirectImplementation|} : IRoot
+                {
+                }
+
+                class {|indirectImplDef:IndirectImplementation|} : IGrandChild
+                {
+                }
+
+                void M(IR$$oot value)
+                {
+                }
+            }
+            """;
+
+        var document = CreateProjectAndRazorDocument(input.Text, RazorFileKind.Legacy);
         var preparedItem = Assert.Single(await GetPreparedItemsAsync(document, input.Position));
         AssertItems([preparedItem], (document.GetURI(), input, ["rootDef"]));
 

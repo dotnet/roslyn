@@ -296,8 +296,7 @@ int b = unsafe(c[null]);
 ***Introduced in Visual Studio 2026 version 18.10***
 
 The compiler now reports CS9398 for an uninitialized non-nullable event instead of
-CS8618. The dedicated diagnostic omits CS8618's suggestion to add the `required`
-modifier, because `required` is not valid on events.
+CS8618.
 
 This change can cause a warning to appear in existing code that suppresses CS8618,
 for example:
@@ -318,3 +317,39 @@ CS9398. Otherwise, make the event nullable or initialize it as appropriate for t
 application.
 
 See also https://github.com/dotnet/roslyn/issues/81679.
+
+## `closed` is a contextual keyword in type declaration contexts
+
+***Introduced in Visual Studio 2026 version 18.10***
+
+In C# 15, a type or alias declaration named `closed` without an `@` escape produces CS9380. In member declaration contexts, `closed` is treated as a modifier, so code that previously used `closed` as a type name may now be parsed as an incomplete declaration and produce CS1519.
+
+To continue using `closed` as an identifier, escape its declaration and references with `@`.
+
+```cs
+class @closed { }
+
+class C
+{
+    closed oldField;      // C# 14: field of type 'closed'; C# 15: parsed as an incomplete declaration
+    @closed currentField; // field of type 'closed'
+}
+```
+
+## `union` is a contextual keyword in type declaration contexts
+
+***Introduced in Visual Studio 2026 version 18.10***
+
+In C# 15, `union` followed by a type name can be parsed as a union declaration. Code that previously used `union` as a type name in a declaration may therefore produce CS9370 instead of declaring a field.
+
+To continue using `union` as an identifier, escape it with `@`.
+
+```cs
+class @union { }
+
+class C
+{
+    union OldField;      // C# 14: field of type 'union'; C# 15: union declaration
+    @union CurrentField; // field of type 'union'
+}
+```

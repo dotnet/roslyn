@@ -63,7 +63,7 @@ public sealed class RemoteHostClientServiceFactoryTests
         // checksum should already exist
         Assert.True(workspace.CurrentSolution.CompilationState.TryGetStateChecksums(out _));
 
-        checksumUpdater.Shutdown();
+        checksumUpdater.Dispose();
     }
 
     [Fact]

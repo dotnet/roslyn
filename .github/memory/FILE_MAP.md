@@ -18,7 +18,7 @@ This file is a **top-level map only**. For per-area directory detail, read the m
 | `Compilers/` | compiler | C#/VB compilers (`Core`, `CSharp`, `VisualBasic`, `Server`). |
 | `Dependencies/` | compiler | High-performance pooled collections & threading. |
 | `ExpressionEvaluator/` | compiler | Debugger expression evaluator. |
-| `Tools/` | compiler | Compiler tooling (BuildBoss, format tools). |
+| `Tools/` | compiler | Compiler and infrastructure tooling (including `dotnet-roslyn-tools`) and benchmark harnesses. |
 | `Workspaces/` | ide | Solution/Project/Document model, MSBuild loading, Remote (OOP). |
 | `Features/`, `EditorFeatures/` | ide | IDE feature logic and editor integration. |
 | `Analyzers/`, `CodeStyle/` | ide | IDE0xxx code-style analyzers & fixes. |
@@ -27,12 +27,13 @@ This file is a **top-level map only**. For per-area directory detail, read the m
 | `Razor/src/` | razor | Razor compiler + tooling (own sub-tree layout). |
 | `Scripting/`, `Interactive/` | — | C#/VB scripting engine and REPL. |
 | `RoslynAnalyzers/` | — | Shipping `Microsoft.CodeAnalysis.*` analyzer packages. |
+| `RoslynSdk/` | — | Analyzer testing libraries, Visual Studio SDK templates, Syntax Visualizer, and Roslyn SDK tests; excluded from source-only builds by its root `Directory.Build.props`. |
 | `Deployment/`, `NuGet/`, `Setup/`, `Test/` | — | Deployment/VSIX, packaging, shared test infrastructure. |
 
 ## Non-source Roots
 
 | Path | Status | Purpose |
 |------|--------|---------|
-| `eng/` | Config / Generated | Arcade build engineering. `eng/common/` is DARC-synced — do not hand-edit. `eng/generate-compiler-code.cs` regenerates compiler code. |
+| `eng/` | Config / Generated | Arcade build engineering. Pipeline definitions and templates live in `eng/pipelines/`; `eng/common/` is DARC-synced and must not be hand-edited. `eng/generate-compiler-code.cs` regenerates compiler code. |
 | `docs/` | Active | Contributor & design docs. New docs use kebab-case filenames in the right subdirectory. |
 | Root | Config | Entry points & solution filters: `build.sh`/`Build.cmd`, `test.sh`/`Test.cmd`, `Roslyn.slnx`, `Compilers.slnf`, `Ide.slnf`, `Razor.slnf`, `global.json`, `Directory.*.props/targets`, `Directory.Packages.props`. |
