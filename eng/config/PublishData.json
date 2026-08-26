@@ -23,6 +23,18 @@
     "Microsoft.CodeAnalysis.CSharp.Scripting": "arcade",
     "Microsoft.CodeAnalysis.CSharp.Workspaces": "vssdk",
     "Microsoft.CodeAnalysis.Test.Utilities": "vs-impl",
+    "Microsoft.CodeAnalysis.Analyzer.Testing": "arcade",
+    "Microsoft.CodeAnalysis.CodeFix.Testing": "arcade",
+    "Microsoft.CodeAnalysis.CodeRefactoring.Testing": "arcade",
+    "Microsoft.CodeAnalysis.CSharp.Analyzer.Testing": "arcade",
+    "Microsoft.CodeAnalysis.CSharp.CodeFix.Testing": "arcade",
+    "Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing": "arcade",
+    "Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing": "arcade",
+    "Microsoft.CodeAnalysis.SourceGenerators.Testing": "arcade",
+    "Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing": "arcade",
+    "Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing": "arcade",
+    "Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing": "arcade",
+    "Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing": "arcade",
     "Microsoft.CodeAnalysis.VisualBasic": "vssdk",
     "Microsoft.CodeAnalysis.VisualBasic.CodeStyle": "arcade",
     "Microsoft.CodeAnalysis.VisualBasic.Features": "arcade",
@@ -119,7 +131,7 @@
       "NonShipping"
     ],
     "vsBranch": "main",
-    "insertionCreateDraftPR": false,
-    "insertionTitlePrefix": "[Main 18.11]"
+    "insertionCreateDraftPR": true,
+    "insertionTitlePrefix": "[Main 18.12]"
   }
 }
