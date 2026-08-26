@@ -470,19 +470,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var i = modifiers.IndexOf(SyntaxKind.PartialKeyword);
                 var modifier = modifiers[i];
 
-                var messageId = isForTypeDeclaration ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod;
-                messageId.CheckFeatureAvailability(diagnostics, modifier);
+                messageId.CheckFeatureAvailability(
+                    diagnostics, isForTypeDeclaration ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod);
 
                 // `partial` normally must be the last modifier. For compatibility, do not report an ordering error
                 // for a trailing `partial async`, which has historically been allowed on ordinary methods. Other
                 // declarations either disallow `partial` or diagnose `async` separately.
-                var isLast = i == modifiers.Count - 1;
-                var isPartialAsync = i == modifiers.Count - 2 && modifiers[i + 1].ContextualKind() is SyntaxKind.AsyncKeyword;
-                if (!allowsPartialModifier || (!isLast && !isPartialAsync))
+                var isLegalLocation =
+                    i == modifiers.Count - 1 ||
+                    (i == modifiers.Count - 2 && modifiers[i + 1].ContextualKind() is SyntaxKind.AsyncKeyword);
+                if (!allowsPartialModifier || !isLegalLocation)
                 {
-                    diagnostics.Add(
-                        ErrorCode.ERR_PartialMisplaced,
-                        modifier.GetLocation());
+                    diagnostics.Add(ErrorCode.ERR_PartialMisplaced, modifier.GetLocation());
                 }
             }
 
