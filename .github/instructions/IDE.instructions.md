@@ -59,14 +59,6 @@ public MyService(IDependency dependency) { }
 
 - ServiceHub components live under `src/Workspaces/Remote/` and have special deployment considerations for .NET Core vs .NET Framework — keep both targets in mind when changing remote services
 
-## Telemetry & Logging
-
-- Record events and scopes with `RoslynTelemetry.Log` / `RoslynTelemetry.LogBlock`; record aggregated measurements with `RoslynTelemetry.Count` / `.Record` / `.RecordBlockTime`, passing dimensions as tags rather than concatenating them into the metric name.
-- `Logger.Log` / `Logger.LogBlock` are a forwarding shim kept so existing call sites did not all have to change at once. Do not add new call sites to them.
-- Sink composition is fixed at host startup. To turn a sink on or off, update its `IsEnabled` predicate on the already-composed instance (`UpdatePredicate`); never add or remove a sink from the list, which is how a sink ends up registered twice and posting everything twice.
-- Consent is a sink-level gate (`session.IsOptedIn`), never a call-site check.
-- Full detail — sink contracts, `VSMetricSink` aggregation invariants, per-host wiring — is in `.github/memory/telemetry.md`. Read it before changing anything under `Internal.Log` or `src/VisualStudio/Core/Def/Telemetry/`.
-
 ## Key Development Patterns
 
 ### TestAccessor Pattern

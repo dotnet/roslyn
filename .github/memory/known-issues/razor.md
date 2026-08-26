@@ -1,4 +1,4 @@
-﻿---
+---
 coverage: Razor-layer (src/Razor) known issues, quirks & workarounds
 ---
 
@@ -76,21 +76,3 @@ the project may be built without being independently published.
 `ComputeResolvedFilesToPublishList`. Set `PostprocessAssembly=true` on managed
 assemblies so ReadyToRun replaces them with the RID-specific output, and preserve
 `RecursiveDir` in satellite-resource `RelativePath` metadata.
-
-## Razor still has its own telemetry aggregation, duplicating `VSMetricSink`
-
-**Affected area:** `Microsoft.VisualStudio.LanguageServices.Razor/Telemetry/`
-**Description:** Razor's `AggregatingTelemetryLog` / `AggregatingTelemetryLogManager`, plus the request
-`Counter` nested in `TelemetryReporter.TelemetrySessionManager`, wrap the same
-`Microsoft.VisualStudio.Telemetry.Metrics` surface that Roslyn's `VSMetricSink` does. The assembly graph
-does *not* prevent sharing: `Microsoft.CodeAnalysis.Remote.ServiceHub` already links
-`src/VisualStudio/Core/Def/Telemetry/Shared/*.cs`, and `Microsoft.CodeAnalysis.Remote.Razor` already has a
-`ProjectReference` to it, so an `InternalsVisibleTo` grant is all that is missing for the VS and OOP hosts.
-
-**What actually blocks it** is the VS Code host. `VSCodeTelemetryReporter` owns no `TelemetrySession`; it
-overrides `Report` / `ReportMetric` to forward flattened events through
-`ILanguageServerTelemetryReporterWrapper` into Roslyn's reporter, and the dependency runs Roslyn → Razor,
-so Razor's VS Code extension cannot reach a Roslyn `IMetricSink` instance. Consolidating requires growing
-that wrapper interface with `Count`/`Record` methods, which changes the emitted shape of Razor's VS Code
-metrics from flattened events on Roslyn's session to metric events — a Razor-owned telemetry change that
-needs its own dashboard validation.
