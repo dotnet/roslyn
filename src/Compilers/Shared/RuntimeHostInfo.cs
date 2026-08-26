@@ -47,8 +47,10 @@ namespace Microsoft.CodeAnalysis
         /// is non-null then it will be a fully qualified path.
         /// </summary>
         internal static string? GetToolDotNetRoot(IBuildEnvironment buildEnvironment, Action<string, object[]>? logger)
+            => GetToolDotNetRoot(GetDotNetHostPath(buildEnvironment), logger);
+
+        internal static string? GetToolDotNetRoot(string dotNetHostPath, Action<string, object[]>? logger)
         {
-            var dotNetHostPath = GetDotNetHostPath(buildEnvironment);
             if (!Path.IsPathFullyQualified(dotNetHostPath))
             {
                 logger?.Invoke("Cannot resolve root as the dotnet path is not fully qualified: {0}", [dotNetHostPath]);
