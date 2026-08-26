@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="SyntaxNodeLabel">
         <source>{0} Node</source>
-        <target state="translated">Узел {0}</target>
+        <target state="new">{0} Node</target>
         <note />
       </trans-unit>
       <trans-unit id="SyntaxTokenLabel">
         <source>'{0}' Token</source>
-        <target state="translated">Токен "{0}"</target>
+        <target state="new">'{0}' Token</target>
         <note />
       </trans-unit>
     </body>
