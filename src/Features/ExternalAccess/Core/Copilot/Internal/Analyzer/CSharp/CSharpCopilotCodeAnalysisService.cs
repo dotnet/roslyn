@@ -45,6 +45,22 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
         GenerateImplementationService = externalCSharpCopilotGenerateImplementationService;
     }
 
+    protected override Task<bool> IsOnTheFlyDocsAvailableCoreAsync(CancellationToken cancellationToken)
+    {
+        if (OnTheFlyDocsService is not null)
+            return OnTheFlyDocsService.IsAvailableAsync(cancellationToken);
+
+        return Task.FromResult(false);
+    }
+
+    protected override Task<bool> IsFileExcludedFromOnTheFlyDocsCoreAsync(string filePath, CancellationToken cancellationToken)
+    {
+        if (OnTheFlyDocsService is not null)
+            return OnTheFlyDocsService.IsFileExcludedAsync(filePath, cancellationToken);
+
+        return Task.FromResult(false);
+    }
+
     protected override Task<string> GetOnTheFlyDocsPromptCoreAsync(OnTheFlyDocsInfo onTheFlyDocsInfo, CancellationToken cancellationToken)
     {
         if (OnTheFlyDocsService is not null)
@@ -61,6 +77,22 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
         return Task.FromResult((string.Empty, false));
     }
 
+    protected override Task<bool> IsGenerateDocumentationCommentAvailableCoreAsync(CancellationToken cancellationToken)
+    {
+        if (GenerateDocumentationService is not null)
+            return GenerateDocumentationService.IsAvailableAsync(cancellationToken);
+
+        return Task.FromResult(false);
+    }
+
+    protected override Task<bool> IsFileExcludedFromDocumentationCommentGenerationCoreAsync(string filePath, CancellationToken cancellationToken)
+    {
+        if (GenerateDocumentationService is not null)
+            return GenerateDocumentationService.IsFileExcludedAsync(filePath, cancellationToken);
+
+        return Task.FromResult(false);
+    }
+
     protected override Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentCoreAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken)
     {
         if (GenerateDocumentationService is not null)
@@ -69,9 +101,12 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
         return Task.FromResult<(Dictionary<string, string>?, bool)>((null, false));
     }
 
-    protected override bool IsImplementNotImplementedExceptionsAvailableCore()
+    protected override Task<bool> IsImplementNotImplementedExceptionsAvailableCoreAsync(CancellationToken cancellationToken)
     {
-        return GenerateImplementationService is not null;
+        if (GenerateImplementationService is not null)
+            return GenerateImplementationService.IsAvailableAsync(cancellationToken);
+
+        return Task.FromResult(false);
     }
 
     protected override async Task<ImmutableDictionary<SyntaxNode, ImplementationDetails>> ImplementNotImplementedExceptionsCoreAsync(

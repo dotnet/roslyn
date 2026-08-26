@@ -19,6 +19,16 @@ namespace Microsoft.CodeAnalysis.Copilot;
 internal interface ICopilotCodeAnalysisService : ILanguageService
 {
     /// <summary>
+    /// Returns true if on-the-fly documentation is available.
+    /// </summary>
+    Task<bool> IsOnTheFlyDocsAvailableAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns true if the given file is excluded from on-the-fly documentation.
+    /// </summary>
+    Task<bool> IsFileExcludedFromOnTheFlyDocsAsync(string filePath, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Retrieves the prompt 
     /// </summary>
     /// <param name="onTheFlyDocsInfo">Type containing code and other context about the symbol being examined.</param>
@@ -30,6 +40,16 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     /// </summary>
     /// <param name="prompt">The input text used to generate the response.</param>
     Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsResponseAsync(string prompt, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns true if documentation-comment generation is available.
+    /// </summary>
+    Task<bool> IsGenerateDocumentationCommentAvailableAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns true if the given file is excluded from documentation-comment generation.
+    /// </summary>
+    Task<bool> IsFileExcludedFromDocumentationCommentGenerationAsync(string filePath, CancellationToken cancellationToken);
 
     /// <summary>
     /// Method to retrieve the documentation comment for a given <paramref name="proposal"/>

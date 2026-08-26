@@ -233,6 +233,10 @@ public sealed class CopilotGenerateDocumentationInlinePromptTests
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestCopilotCodeAnalysisService() { }
 
+        public Task<bool> IsOnTheFlyDocsAvailableAsync(CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<bool> IsFileExcludedFromOnTheFlyDocsAsync(string filePath, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<bool> IsGenerateDocumentationCommentAvailableAsync(CancellationToken cancellationToken) => Task.FromResult(true);
+        public Task<bool> IsFileExcludedFromDocumentationCommentGenerationAsync(string filePath, CancellationToken cancellationToken) => Task.FromResult(false);
 
         public Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken)
             => Task.FromResult<(Dictionary<string, string>?, bool)>((Documentation, false));

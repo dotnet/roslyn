@@ -631,7 +631,19 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
 
         public ImplementationDetails? PrepareUsingSingleFakeResult { get; internal set; }
 
+        public Task<bool> IsOnTheFlyDocsAvailableAsync(CancellationToken cancellationToken)
+            => throw new NotImplementedException();
+
+        public Task<bool> IsFileExcludedFromOnTheFlyDocsAsync(string filePath, CancellationToken cancellationToken)
+            => throw new NotImplementedException();
+
         public Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken)
+            => throw new NotImplementedException();
+
+        public Task<bool> IsGenerateDocumentationCommentAvailableAsync(CancellationToken cancellationToken)
+            => throw new NotImplementedException();
+
+        public Task<bool> IsFileExcludedFromDocumentationCommentGenerationAsync(string filePath, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
         Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> ICopilotCodeAnalysisService.GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken)

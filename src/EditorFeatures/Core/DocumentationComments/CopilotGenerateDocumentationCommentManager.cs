@@ -144,7 +144,13 @@ internal sealed class CopilotGenerateDocumentationCommentManager
             return null;
         }
 
-        return document.GetLanguageService<ICopilotCodeAnalysisService>();
+        if (document.GetLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
+            !await copilotService.IsGenerateDocumentationCommentAvailableAsync(cancellationToken).ConfigureAwait(false))
+        {
+            return null;
+        }
+
+        return copilotService;
     }
 
     private static async Task<ICopilotCodeAnalysisService?> IsGenerateDocumentationAvailableAsync(Document document, SyntaxNode? memberNode, CancellationToken cancellationToken)
@@ -156,6 +162,11 @@ internal sealed class CopilotGenerateDocumentationCommentManager
         }
 
         if (memberNode is null)
+        {
+            return null;
+        }
+
+        if (await copilotService.IsFileExcludedFromDocumentationCommentGenerationAsync(memberNode.SyntaxTree.FilePath, cancellationToken).ConfigureAwait(false))
         {
             return null;
         }

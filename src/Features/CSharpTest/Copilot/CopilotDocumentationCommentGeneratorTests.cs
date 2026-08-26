@@ -121,8 +121,20 @@ public sealed class CopilotDocumentationCommentGeneratorTests
     private sealed class TestCopilotCodeAnalysisService(
         (Dictionary<string, string>? ResponseDictionary, bool IsQuotaExceeded) result) : ICopilotCodeAnalysisService
     {
+        public Task<bool> IsOnTheFlyDocsAvailableAsync(CancellationToken cancellationToken)
+            => throw new NotImplementedException();
+
+        public Task<bool> IsFileExcludedFromOnTheFlyDocsAsync(string filePath, CancellationToken cancellationToken)
+            => throw new NotImplementedException();
+
         public Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken)
             => Task.FromResult((result.ResponseDictionary, result.IsQuotaExceeded));
+
+        public Task<bool> IsGenerateDocumentationCommentAvailableAsync(CancellationToken cancellationToken)
+            => throw new NotImplementedException();
+
+        public Task<bool> IsFileExcludedFromDocumentationCommentGenerationAsync(string filePath, CancellationToken cancellationToken)
+            => throw new NotImplementedException();
 
         public Task<string> GetOnTheFlyDocsPromptAsync(OnTheFlyDocsInfo onTheFlyDocsInfo, CancellationToken cancellationToken)
             => throw new NotImplementedException();

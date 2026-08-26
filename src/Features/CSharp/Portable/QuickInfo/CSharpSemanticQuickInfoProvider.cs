@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -308,8 +309,11 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
         var document = context.Document;
         var position = context.Position;
 
-        if (document.GetLanguageService<ICopilotCodeAnalysisService>() is not { })
+        if (document.GetLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
+            !await copilotService.IsOnTheFlyDocsAvailableAsync(cancellationToken).ConfigureAwait(false))
+        {
             return null;
+        }
 
         if (document.GetLanguageService<ICopilotOptionsService>() is not { } service ||
             !await service.IsOnTheFlyDocsOptionEnabledAsync().ConfigureAwait(false))
@@ -341,6 +345,17 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
         if (symbol.DeclaringSyntaxReferences.Length == 0)
             return null;
 
+        var hasContentExcluded = false;
+        foreach (var syntaxReference in symbol.DeclaringSyntaxReferences)
+        {
+            if (await copilotService.IsFileExcludedFromOnTheFlyDocsAsync(syntaxReference.SyntaxTree.FilePath, cancellationToken).ConfigureAwait(false))
+            {
+                hasContentExcluded = true;
+                Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Content_Excluded, logLevel: LogLevel.Information);
+                break;
+            }
+        }
+
         var solution = document.Project.Solution;
         var declarationCode = symbol.DeclaringSyntaxReferences.SelectAsArray(reference =>
         {
@@ -351,6 +366,6 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
 
         var additionalContext = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, symbol);
 
-        return new OnTheFlyDocsInfo(symbol.ToDisplayString(), declarationCode, symbol.Language, isContentExcluded: false, additionalContext);
+        return new OnTheFlyDocsInfo(symbol.ToDisplayString(), declarationCode, symbol.Language, hasContentExcluded, additionalContext);
     }
 }

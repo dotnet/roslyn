@@ -18,11 +18,21 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.Analyzer;
 /// </summary>
 internal abstract class AbstractCopilotCodeAnalysisService : ICopilotCodeAnalysisService
 {
+    protected abstract Task<bool> IsOnTheFlyDocsAvailableCoreAsync(CancellationToken cancellationToken);
+    protected abstract Task<bool> IsFileExcludedFromOnTheFlyDocsCoreAsync(string filePath, CancellationToken cancellationToken);
     protected abstract Task<string> GetOnTheFlyDocsPromptCoreAsync(OnTheFlyDocsInfo onTheFlyDocsInfo, CancellationToken cancellationToken);
     protected abstract Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsResponseCoreAsync(string prompt, CancellationToken cancellationToken);
+    protected abstract Task<bool> IsGenerateDocumentationCommentAvailableCoreAsync(CancellationToken cancellationToken);
+    protected abstract Task<bool> IsFileExcludedFromDocumentationCommentGenerationCoreAsync(string filePath, CancellationToken cancellationToken);
     protected abstract Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentCoreAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
     protected abstract Task<ImmutableDictionary<SyntaxNode, ImplementationDetails>> ImplementNotImplementedExceptionsCoreAsync(Document document, ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> methodOrProperties, CancellationToken cancellationToken);
-    protected abstract bool IsImplementNotImplementedExceptionsAvailableCore();
+    protected abstract Task<bool> IsImplementNotImplementedExceptionsAvailableCoreAsync(CancellationToken cancellationToken);
+
+    public Task<bool> IsOnTheFlyDocsAvailableAsync(CancellationToken cancellationToken)
+        => IsOnTheFlyDocsAvailableCoreAsync(cancellationToken);
+
+    public Task<bool> IsFileExcludedFromOnTheFlyDocsAsync(string filePath, CancellationToken cancellationToken)
+        => IsFileExcludedFromOnTheFlyDocsCoreAsync(filePath, cancellationToken);
 
     public async Task<string> GetOnTheFlyDocsPromptAsync(OnTheFlyDocsInfo onTheFlyDocsInfo, CancellationToken cancellationToken)
     {
@@ -33,13 +43,19 @@ internal abstract class AbstractCopilotCodeAnalysisService : ICopilotCodeAnalysi
         return await GetOnTheFlyDocsResponseCoreAsync(prompt, cancellationToken).ConfigureAwait(false);
     }
 
+    public Task<bool> IsGenerateDocumentationCommentAvailableAsync(CancellationToken cancellationToken)
+        => IsGenerateDocumentationCommentAvailableCoreAsync(cancellationToken);
+
+    public Task<bool> IsFileExcludedFromDocumentationCommentGenerationAsync(string filePath, CancellationToken cancellationToken)
+        => IsFileExcludedFromDocumentationCommentGenerationCoreAsync(filePath, cancellationToken);
+
     public async Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken)
     {
         return await GetDocumentationCommentCoreAsync(proposal, cancellationToken).ConfigureAwait(false);
     }
 
     public Task<bool> IsImplementNotImplementedExceptionsAvailableAsync(CancellationToken cancellationToken)
-        => Task.FromResult(IsImplementNotImplementedExceptionsAvailableCore());
+        => IsImplementNotImplementedExceptionsAvailableCoreAsync(cancellationToken);
 
     public async Task<ImmutableDictionary<SyntaxNode, ImplementationDetails>> ImplementNotImplementedExceptionsAsync(
         Document document,
