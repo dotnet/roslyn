@@ -450,9 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public static DeclarationModifiers ToDeclarationModifiers(
-            this SyntaxTokenList modifiers,
-            bool allowsPartialModifier,
-            DiagnosticBag diagnostics)
+            this SyntaxTokenList modifiers, bool allowsPartialModifier, DiagnosticBag diagnostics)
         {
             var result = GetDeclarationModifiersAndCheckForDuplicateModifiers(modifiers, diagnostics);
             if ((result & DeclarationModifiers.Partial) == DeclarationModifiers.Partial)
