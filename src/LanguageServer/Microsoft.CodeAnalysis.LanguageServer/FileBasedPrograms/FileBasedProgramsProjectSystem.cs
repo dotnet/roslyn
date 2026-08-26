@@ -235,6 +235,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         var documentFilePath = GetDocumentFilePath(documentUri);
         if (documentInfo is null)
         {
+            Contract.ThrowIfFalse(documentUri.ParsedUri?.IsFile == true);
+
             var sourceText = IOUtilities.PerformIO(() =>
             {
                 using var fileStream = File.OpenRead(documentFilePath);
