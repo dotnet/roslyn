@@ -3541,7 +3541,7 @@ internal class B : I<object>
                 // (10,30): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //     private event D<object?> E;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(10, 30),
-                // (10,30): warning CS9398: Non-nullable event 'E' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                // (10,30): warning CS9400: Non-nullable event 'E' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //     private event D<object?> E;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "E").WithArguments("event", "E").WithLocation(10, 30),
                 // (13,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
@@ -3580,7 +3580,7 @@ internal class B : I<object>
                 // (23,29): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //     public event D<object?> E;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(23, 29),
-                // (23,29): warning CS9398: Non-nullable event 'E' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                // (23,29): warning CS9400: Non-nullable event 'E' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //     public event D<object?> E;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "E").WithArguments("event", "E").WithLocation(23, 29),
                 // (24,31): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
@@ -3604,10 +3604,10 @@ internal class B : I<object>
                 // (10,30): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //     private event D<object?> E;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(10, 30),
-                // (10,30): warning CS9398: Non-nullable event 'E' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                // (10,30): warning CS9400: Non-nullable event 'E' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //     private event D<object?> E;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "E").WithArguments("event", "E").WithLocation(10, 30),
-                // (23,29): warning CS9398: Non-nullable event 'E' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                // (23,29): warning CS9400: Non-nullable event 'E' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //     public event D<object?> E;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "E").WithArguments("event", "E").WithLocation(23, 29)
                 );

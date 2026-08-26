@@ -7279,7 +7279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,39): warning CS9398: Non-nullable event 'E' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                // (5,39): warning CS9400: Non-nullable event 'E' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //     public static event System.Action E; // 1
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "E").WithArguments("event", "E").WithLocation(5, 39),
                 // (10,17): warning CS8625: Cannot convert null literal to non-nullable reference type.

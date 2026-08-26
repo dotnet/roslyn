@@ -1124,7 +1124,7 @@ class Program
     static event D E2;
 }";
             verify(source, expectedAnalyzedKeys: new[] { ".cctor" },
-                // (8,20): warning CS9398: Non-nullable event 'E2' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                // (8,20): warning CS9400: Non-nullable event 'E2' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //     static event D E2;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "E2").WithArguments("event", "E2").WithLocation(8, 20));
 
@@ -1139,7 +1139,7 @@ class Program
     static event D E2;
 }";
             verify(source, expectedAnalyzedKeys: new[] { ".ctor" },
-                // (6,13): warning CS9398: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                // (6,13): warning CS9400: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //     event D E1;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "E1").WithArguments("event", "E1").WithLocation(6, 13));
 
