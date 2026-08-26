@@ -4,15 +4,11 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.Text.Editor;
@@ -32,14 +28,6 @@ internal sealed class CSharpCreateServicesOnTextViewConnection(
     : AbstractCreateServicesOnTextViewConnection(
         workspace, globalOptions, listenerProvider, LanguageNames.CSharp)
 {
-    protected override async Task InitializeServiceForProjectWithOpenedDocumentAsync(Project project)
-    {
-        // Only pre-populate cache if import completion is enabled
-        if (GlobalOptions.GetOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp) != true)
-            return;
-
-        var service = project.GetRequiredLanguageService<ITypeImportCompletionService>();
-        service.QueueCacheWarmUpTask(project);
-        await ExtensionMemberImportCompletionHelper.WarmUpCacheAsync(project, CancellationToken.None).ConfigureAwait(false);
-    }
+    protected override Task InitializeServiceForProjectWithOpenedDocumentAsync(Project project)
+        => Task.CompletedTask;
 }
