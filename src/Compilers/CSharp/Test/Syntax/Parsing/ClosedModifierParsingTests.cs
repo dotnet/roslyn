@@ -158,9 +158,9 @@ public sealed class ClosedModifierParsingTests : ParsingTests
             closed partial enum C { }
             """,
             expectedBindingDiagnostics: [
-                // (1,21): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                // (1,8): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 // closed partial enum C { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "C").WithLocation(1, 21),
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 8),
                 // (1,21): error CS0106: The modifier 'closed' is not valid for this item
                 // closed partial enum C { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("closed").WithLocation(1, 21)
