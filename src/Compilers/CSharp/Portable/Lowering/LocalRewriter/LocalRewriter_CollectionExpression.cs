@@ -397,6 +397,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (_factory.WellKnownMethod(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T, isOptional: true) is { } asSpanMethod)
                 {
+                    // Use CollectionsMarshal.AsSpan(list).Slice(0, list.Count) to avoid copying the underlying array.
+                    // The array is exclusively used by the list and can be safely acquired.
                     BoundLocal temp = _factory.StoreToTemp(list, out var assignment);
                     var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
                     sideEffects.Add(assignment);
@@ -410,6 +412,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (isReadOnlySpan)
                     {
+                        // CollectionsMarshal.AsSpan only has overload to return writable span.
+                        // Cast to ReadOnlySpan when needed.
                         var implicitOperator = _factory.WellKnownMethod(WellKnownMember.System_Span_T__op_Implicit_ReadOnlySpan_T).AsMember((NamedTypeSymbol)listSpanValue.Type);
                         listSpanValue = _factory.Call(null, implicitOperator, listSpanValue);
                     }
@@ -425,6 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    // CollectionsMarshal.AsSpan is not present. Use list.ToArray() as fallback.
                     var listToArray = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__ToArray)).AsMember((NamedTypeSymbol)list.Type);
                     var array = _factory.Call(list, listToArray);
                     return wrapArrayInSpan(array, spanType, isReadOnlySpan);
