@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Concurrent;
 using System.Composition;
 using System.Diagnostics;
 using System.Text;
+using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Telemetry;
@@ -29,8 +30,6 @@ internal sealed class LanguageServerTelemetryReporter : ITelemetryReporter
     /// Collector key used by standalone hosts to send language server telemetry to the Visual Studio cluster.
     /// </summary>
     private const string VSCollectorApiKey = "f3e86b4023cc43f0be495508d51f588a-f70d0e59-0fb0-4473-9f19-b4024cc340be-7296";
-
-    private static readonly ConcurrentDictionary<int, object> s_pendingScopes = new(concurrencyLevel: 2, capacity: 10);
 
     private readonly ServerConfiguration _serverConfiguration;
     private readonly ILogger _logger;
@@ -80,7 +79,10 @@ internal sealed class LanguageServerTelemetryReporter : ITelemetryReporter
 
         _telemetrySession = session;
 
-        TelemetryLogger.Create(session, logDelta: false);
+        // Register the shared FunctionId-based event sink. Previously this instance was created and
+        // then discarded, with RoslynLogger -- an independent, byte-for-byte reimplementation of the
+        // same logic -- registered instead.
+        RoslynTelemetry.SetEventSink(AggregateEventSink.Create(RoslynTelemetry.GetEventSink(), TelemetryLogger.Create(session, logDelta: false)));
 
         FaultReporter.InitializeFatalErrorHandlers();
         FaultReporter.IncludeServiceHubLogFiles = false;
@@ -107,48 +109,17 @@ internal sealed class LanguageServerTelemetryReporter : ITelemetryReporter
         _telemetrySession.PostEvent(telemetryEvent);
     }
 
-    public void LogBlockStart(string eventName, int kind, int blockId)
-    {
-        if (_telemetrySession is null)
-        {
-            return;
-        }
-
-        s_pendingScopes[blockId] = kind switch
-        {
-            0 => _telemetrySession.StartOperation(eventName), // LogType.Trace
-            1 => _telemetrySession.StartUserTask(eventName),  // LogType.UserAction
-            _ => new InvalidOperationException($"Unknown BlockStart kind: {kind}")
-        };
-    }
-
-    public void LogBlockEnd(int blockId, List<KeyValuePair<string, object?>> properties, CancellationToken cancellationToken)
-    {
-        if (!s_pendingScopes.TryRemove(blockId, out var scope))
-        {
-            return;
-        }
-
-        var endEvent = GetEndEvent(scope);
-        SetProperties(endEvent, properties);
-
-        var result = cancellationToken.IsCancellationRequested ? TelemetryResult.UserCancel : TelemetryResult.Success;
-
-        if (scope is TelemetryScope<OperationEvent> operation)
-            operation.End(result);
-        else if (scope is TelemetryScope<UserTaskEvent> userTask)
-            userTask.End(result);
-        else
-            throw new InvalidCastException($"Unexpected value for scope: {scope}");
-    }
-
     public void Dispose()
     {
-        // Ensure that we flush any pending telemetry *before* we dispose of the telemetry session.
-        TelemetryLogging.Flush();
+        // Ensure that telemetry aggregated over this session is reported and flushed *before* we
+        // dispose of the telemetry session.
+        FeaturesSessionTelemetry.Report();
+        RoslynTelemetry.Flush();
 
         if (_telemetrySession is { } session)
         {
+            RoslynTelemetry.SetEventSink(null);
+
             FaultReporter.UnregisterTelemetrySesssion(session);
             session.Dispose();
             _telemetrySession = null;
@@ -203,14 +174,6 @@ internal sealed class LanguageServerTelemetryReporter : ITelemetryReporter
             return '"' + value + '"';
         }
     }
-
-    private static TelemetryEvent GetEndEvent(object scope)
-        => scope switch
-        {
-            TelemetryScope<OperationEvent> operation => operation.EndEvent,
-            TelemetryScope<UserTaskEvent> userTask => userTask.EndEvent,
-            _ => throw new InvalidCastException($"Unexpected value for scope: {scope}")
-        };
 
     private static void SetProperties(TelemetryEvent telemetryEvent, List<KeyValuePair<string, object?>> properties)
     {

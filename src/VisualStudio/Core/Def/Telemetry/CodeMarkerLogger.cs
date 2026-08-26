@@ -11,7 +11,7 @@ using CodeMarkerId = System.Int32;
 
 namespace Microsoft.VisualStudio.LanguageServices.Telemetry;
 
-internal sealed class CodeMarkerLogger : ILogger
+internal sealed class CodeMarkerLogger : IEventSink
 {
     public static readonly CodeMarkerLogger Instance = new();
 

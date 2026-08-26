@@ -80,21 +80,12 @@ internal sealed partial class RemoteProcessTelemetryService(
             var functionIdsSet = new HashSet<FunctionId>(functionIds);
             bool logChecker(FunctionId id) => functionIdsSet.Contains(id);
 
-            // we only support 2 types of loggers
-            SetRoslynLogger(loggerTypeNames, () => new EtwLogger(logChecker));
-            SetRoslynLogger(loggerTypeNames, () => new TraceLogger(logChecker));
+            // Mirrors the VS side: the sinks are composed once and only their enablement changes here.
+            var telemetryService = (RemoteWorkspaceTelemetryService)GetWorkspace().Services.GetRequiredService<IWorkspaceTelemetryService>();
+            telemetryService.UpdateDiagnosticSinkEnablement(
+                etwEnabled: loggerTypeNames.Contains(nameof(EtwLogger)),
+                traceEnabled: loggerTypeNames.Contains(nameof(TraceLogger)),
+                logChecker);
         }, cancellationToken);
-    }
-
-    private static void SetRoslynLogger<T>(ImmutableArray<string> loggerTypes, Func<T> creator) where T : ILogger
-    {
-        if (loggerTypes.Contains(typeof(T).Name))
-        {
-            RoslynLogger.SetLogger(AggregateLogger.AddOrReplace(creator(), RoslynLogger.GetLogger(), l => l is T));
-        }
-        else
-        {
-            RoslynLogger.SetLogger(AggregateLogger.Remove(RoslynLogger.GetLogger(), l => l is T));
-        }
     }
 }

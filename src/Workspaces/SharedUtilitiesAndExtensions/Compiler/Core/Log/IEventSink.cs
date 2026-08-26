@@ -7,27 +7,30 @@ using System.Threading;
 namespace Microsoft.CodeAnalysis.Internal.Log;
 
 /// <summary>
-/// logger interface actual logger should implements
+/// A destination for discrete events and scopes identified by <see cref="FunctionId"/>.
+/// Implementations decide, via <see cref="IsEnabled"/>, whether anything is recorded at all;
+/// that is where consent (for telemetry sinks) and opt-in enablement (for diagnostic sinks) live.
 /// </summary>
-internal interface ILogger
+internal interface IEventSink
 {
     /// <summary>
-    /// answer whether it is enabled or not for the specific function id
+    /// Whether this sink will record anything for <paramref name="functionId"/>. Checked before any
+    /// <see cref="LogMessage"/> is constructed, so returning false makes logging allocation-free.
     /// </summary>
     bool IsEnabled(FunctionId functionId);
 
     /// <summary>
-    /// log a specific event with context message
+    /// Record a discrete event with context message.
     /// </summary>
     void Log(FunctionId functionId, LogMessage logMessage);
 
     /// <summary>
-    /// log a start event with context message
+    /// Record the start of a scope with context message.
     /// </summary>
     void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken);
 
     /// <summary>
-    /// log an end event
+    /// Record the end of a scope.
     /// </summary>
     void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int uniquePairId, int delta, CancellationToken cancellationToken);
 }

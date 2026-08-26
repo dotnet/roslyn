@@ -14,10 +14,12 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
+using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Roslyn.Utilities;
 
 namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages;
@@ -54,54 +56,37 @@ internal sealed class PerformanceLoggersPage : AbstractOptionPage
 
     public static void SetLoggers(IGlobalOptionService globalOptions, IThreadingContext threadingContext, SolutionServices workspaceServices)
     {
-        var loggerTypeNames = GetLoggerTypes(globalOptions).ToImmutableArray();
-
-        // update loggers in VS
         var isEnabled = FunctionIdOptions.CreateFunctionIsEnabledPredicate(globalOptions);
 
-        SetRoslynLogger(loggerTypeNames, () => new EtwLogger(isEnabled));
-        SetRoslynLogger(loggerTypeNames, () => new TraceLogger(isEnabled));
-        SetRoslynLogger(loggerTypeNames, () => new OutputWindowLogger(isEnabled));
+        var etwEnabled = globalOptions.GetOption(LoggerOptionsStorage.EtwLoggerKey);
+        var traceEnabled = globalOptions.GetOption(LoggerOptionsStorage.TraceLoggerKey);
+        var outputWindowEnabled = globalOptions.GetOption(LoggerOptionsStorage.OutputWindowLoggerKey);
+
+        // ETW and Trace sinks are part of VS's default composition, so refresh those instances rather
+        // than constructing competing ones - two registered EtwLoggers would post every event twice.
+        var telemetryService = workspaceServices.GetService<IWorkspaceTelemetryService>() as VisualStudioWorkspaceTelemetryService;
+        telemetryService?.UpdateDiagnosticSinkEnablement(etwEnabled, traceEnabled, isEnabled);
+
+        // The output window sink lives in this (separately shipped) VSIX, so the composition root cannot
+        // reference it. Attach it once, then control it purely through its predicate.
+        OutputWindowLogger.EnsureRegistered();
+        OutputWindowLogger.Instance.UpdatePredicate(outputWindowEnabled ? isEnabled : EtwLogger.DisabledPredicate);
 
         // update loggers in remote process
         var client = threadingContext.JoinableTaskFactory.Run(() => RemoteHostClient.TryGetClientAsync(workspaceServices, CancellationToken.None));
         if (client != null)
         {
+            var loggerTypeNames = ImmutableArray<string>.Empty;
+            if (etwEnabled)
+                loggerTypeNames = loggerTypeNames.Add(nameof(EtwLogger));
+            if (traceEnabled)
+                loggerTypeNames = loggerTypeNames.Add(nameof(TraceLogger));
+
             var functionIds = Enum.GetValues<FunctionId>().WhereAsArray(isEnabled);
 
             threadingContext.JoinableTaskFactory.Run(async () => _ = await client.TryInvokeAsync<IRemoteProcessTelemetryService>(
                 (service, cancellationToken) => service.EnableLoggingAsync(loggerTypeNames, functionIds, cancellationToken),
                 CancellationToken.None).ConfigureAwait(false));
-        }
-    }
-
-    private static IEnumerable<string> GetLoggerTypes(IGlobalOptionService globalOptions)
-    {
-        if (globalOptions.GetOption(LoggerOptionsStorage.EtwLoggerKey))
-        {
-            yield return nameof(EtwLogger);
-        }
-
-        if (globalOptions.GetOption(LoggerOptionsStorage.TraceLoggerKey))
-        {
-            yield return nameof(TraceLogger);
-        }
-
-        if (globalOptions.GetOption(LoggerOptionsStorage.OutputWindowLoggerKey))
-        {
-            yield return nameof(OutputWindowLogger);
-        }
-    }
-
-    private static void SetRoslynLogger<T>(ImmutableArray<string> loggerTypeNames, Func<T> creator) where T : ILogger
-    {
-        if (loggerTypeNames.Contains(typeof(T).Name))
-        {
-            Logger.SetLogger(AggregateLogger.AddOrReplace(creator(), Logger.GetLogger(), l => l is T));
-        }
-        else
-        {
-            Logger.SetLogger(AggregateLogger.Remove(Logger.GetLogger(), l => l is T));
         }
     }
 }

@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
@@ -19,6 +20,7 @@ public sealed class PerfMarginPanel : UserControl
 {
     private static readonly DataModel s_model = new();
     private static readonly PerfEventActivityLogger s_logger = new(s_model);
+    private static int s_registered;
 
     private readonly ListView _mainListView;
     private readonly Grid _mainGrid;
@@ -31,7 +33,10 @@ public sealed class PerfMarginPanel : UserControl
 
     public PerfMarginPanel()
     {
-        Logger.SetLogger(AggregateLogger.AddOrReplace(s_logger, Logger.GetLogger(), l => l is PerfEventActivityLogger));
+        // This panel lives in a separately shipped VSIX, so the composition root cannot reference this
+        // sink. Attach it once; it is never detached.
+        if (Interlocked.CompareExchange(ref s_registered, 1, 0) == 0)
+            RoslynTelemetry.AddEventSink(s_logger);
 
         // grid
         _mainGrid = new Grid();

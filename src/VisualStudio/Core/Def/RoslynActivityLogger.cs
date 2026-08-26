@@ -1,7 +1,8 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -20,54 +21,61 @@ namespace Microsoft.VisualStudio.LanguageServices;
 /// </summary>
 internal static class RoslynActivityLogger
 {
-    private static readonly object s_gate = new();
+    /// <summary>
+    /// A single sink, composed once at startup, whose <em>contents</em> vary rather than its
+    /// registration. Adding and removing a <see cref="TraceSource"/> mutates this set; when the set is
+    /// empty the sink reports itself disabled and costs one array-length check per event.
+    /// </summary>
+    public static readonly TraceSourceSink Sink = new();
 
     public static void SetLogger(TraceSource traceSource)
     {
         Contract.ThrowIfNull(traceSource);
-
-        lock (s_gate)
-        {
-            // internally, it just uses our existing ILogger
-            Logger.SetLogger(AggregateLogger.AddOrReplace(new TraceSourceLogger(traceSource), Logger.GetLogger(), l => (l as TraceSourceLogger)?.TraceSource == traceSource));
-        }
+        Sink.Add(traceSource);
     }
 
     public static void RemoveLogger(TraceSource traceSource)
     {
         Contract.ThrowIfNull(traceSource);
-
-        lock (s_gate)
-        {
-            // internally, it just uses our existing ILogger
-            Logger.SetLogger(AggregateLogger.Remove(Logger.GetLogger(), l => (l as TraceSourceLogger)?.TraceSource == traceSource));
-        }
+        Sink.Remove(traceSource);
     }
 
-    private sealed class TraceSourceLogger : ILogger
+    internal sealed class TraceSourceSink : IEventSink
     {
         private const int LogEventId = 0;
         private const int StartEventId = 1;
         private const int EndEventId = 2;
 
-        public readonly TraceSource TraceSource;
+        private ImmutableArray<TraceSource> _traceSources = [];
 
-        public TraceSourceLogger(TraceSource traceSource)
-            => TraceSource = traceSource;
+        public void Add(TraceSource traceSource)
+            => ImmutableInterlocked.Update(ref _traceSources, static (sources, source) => sources.Contains(source) ? sources : sources.Add(source), traceSource);
+
+        public void Remove(TraceSource traceSource)
+            => ImmutableInterlocked.Update(ref _traceSources, static (sources, source) => sources.Remove(source), traceSource);
 
         public bool IsEnabled(FunctionId functionId)
         {
-            // we log every roslyn activity
-            return true;
+            // we log every roslyn activity, but only while someone is listening
+            return !_traceSources.IsEmpty;
         }
 
         public void Log(FunctionId functionId, LogMessage logMessage)
-            => TraceSource.TraceData(TraceEventType.Verbose, LogEventId, functionId.Convert(), logMessage.GetMessage());
+        {
+            foreach (var traceSource in _traceSources)
+                traceSource.TraceData(TraceEventType.Verbose, LogEventId, functionId.Convert(), logMessage.GetMessage());
+        }
 
         public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken)
-            => TraceSource.TraceData(TraceEventType.Verbose, StartEventId, functionId.Convert(), uniquePairId);
+        {
+            foreach (var traceSource in _traceSources)
+                traceSource.TraceData(TraceEventType.Verbose, StartEventId, functionId.Convert(), uniquePairId);
+        }
 
         public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int uniquePairId, int delta, CancellationToken cancellationToken)
-            => TraceSource.TraceData(TraceEventType.Verbose, EndEventId, functionId.Convert(), uniquePairId, cancellationToken.IsCancellationRequested, delta, logMessage.GetMessage());
+        {
+            foreach (var traceSource in _traceSources)
+                traceSource.TraceData(TraceEventType.Verbose, EndEventId, functionId.Convert(), uniquePairId, cancellationToken.IsCancellationRequested, delta, logMessage.GetMessage());
+        }
     }
 }

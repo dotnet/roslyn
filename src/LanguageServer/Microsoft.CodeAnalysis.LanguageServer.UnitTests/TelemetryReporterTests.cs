@@ -40,15 +40,6 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper) :
     }
 
     [Fact]
-    public void TestBlockLogging()
-    {
-        using var service = CreateReporter(DefaultServerConfiguration);
-        service.InitializeSession("off", "test-session", isDefaultSession: false);
-        service.LogBlockStart(GetEventName(nameof(TestBlockLogging)), kind: 0, blockId: 0);
-        service.LogBlockEnd(blockId: 0, [], CancellationToken.None);
-    }
-
-    [Fact]
     public void TestLog()
     {
         using var service = CreateReporter(DefaultServerConfiguration);

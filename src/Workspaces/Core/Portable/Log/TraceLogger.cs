@@ -9,14 +9,23 @@ using System.Threading;
 namespace Microsoft.CodeAnalysis.Internal.Log;
 
 /// <summary>
-/// Implementation of <see cref="ILogger"/> that produce timing debug output. 
+/// Implementation of <see cref="IEventSink"/> that produces timing debug output. Opt-in, and controlled
+/// the same way as <see cref="EtwLogger"/>: it stays registered and its predicate decides whether
+/// anything is written.
 /// </summary>
-internal sealed class TraceLogger(Func<FunctionId, bool>? isEnabledPredicate) : ILogger
+internal sealed class TraceLogger : IEventSink
 {
-    public static readonly TraceLogger Instance = new(isEnabledPredicate: null);
+    private Func<FunctionId, bool> _isEnabledPredicate;
+
+    public TraceLogger(Func<FunctionId, bool> isEnabledPredicate)
+        => _isEnabledPredicate = isEnabledPredicate;
+
+    /// <inheritdoc cref="EtwLogger.UpdatePredicate"/>
+    public void UpdatePredicate(Func<FunctionId, bool> isEnabledPredicate)
+        => Volatile.Write(ref _isEnabledPredicate, isEnabledPredicate);
 
     public bool IsEnabled(FunctionId functionId)
-        => isEnabledPredicate == null || isEnabledPredicate(functionId);
+        => Volatile.Read(ref _isEnabledPredicate)(functionId);
 
     public void Log(FunctionId functionId, LogMessage logMessage)
         => Trace.WriteLine(string.Format("[{0}] {1} - {2}", Environment.CurrentManagedThreadId, functionId.ToString(), logMessage.GetMessage()));

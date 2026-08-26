@@ -16,19 +16,37 @@ using Microsoft.VisualStudio.Shell.Interop;
 namespace Microsoft.CodeAnalysis.Internal.Log;
 
 /// <summary>
-/// Implementation of <see cref="ILogger"/> that output to output window
+/// Implementation of <see cref="IEventSink"/> that output to output window
 /// </summary>
-internal sealed class OutputWindowLogger : ILogger
+internal sealed class OutputWindowLogger : IEventSink
 {
-    private readonly Func<FunctionId, bool> _isEnabledPredicate;
+    /// <summary>
+    /// Lives in the diagnostics tool window VSIX, which the telemetry composition root cannot reference,
+    /// so this attaches itself once and is thereafter controlled purely by its predicate.
+    /// </summary>
+    public static readonly OutputWindowLogger Instance = new(EtwLogger.DisabledPredicate);
 
-    public OutputWindowLogger(Func<FunctionId, bool> isEnabledPredicate)
+    private static int s_registered;
+
+    private Func<FunctionId, bool> _isEnabledPredicate;
+
+    private OutputWindowLogger(Func<FunctionId, bool> isEnabledPredicate)
     {
         _isEnabledPredicate = isEnabledPredicate;
     }
 
+    public static void EnsureRegistered()
+    {
+        if (Interlocked.CompareExchange(ref s_registered, 1, 0) == 0)
+            RoslynTelemetry.AddEventSink(Instance);
+    }
+
+    /// <inheritdoc cref="EtwLogger.UpdatePredicate"/>
+    public void UpdatePredicate(Func<FunctionId, bool> isEnabledPredicate)
+        => Volatile.Write(ref _isEnabledPredicate, isEnabledPredicate);
+
     public bool IsEnabled(FunctionId functionId)
-        => _isEnabledPredicate(functionId);
+        => Volatile.Read(ref _isEnabledPredicate)(functionId);
 
     public void Log(FunctionId functionId, LogMessage logMessage)
     {

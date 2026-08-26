@@ -17,6 +17,7 @@ This is the loading map for the agent knowledge base under `.github/memory/`. **
 | **`API_MAP.md`** | Build/test entry points & PublicAPI tracking | When changing build, tests, or public APIs |
 | **`KNOWN_ISSUES.md`** | Repo-wide / cross-cutting quirks & workarounds | Always for code review; unfamiliar areas |
 | **`TESTING_STRATEGY.md`** | Test layout, shared authoring conventions & how to run tests | When writing tests or debugging test failures |
+| **`telemetry.md`** | Telemetry & logging: event/metric sinks, composition, consent, per-host wiring | When adding telemetry, changing logging, or touching `Internal.Log` |
 
 ## Layer-specific knowledge
 

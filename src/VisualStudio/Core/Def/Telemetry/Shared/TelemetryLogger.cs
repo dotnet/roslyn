@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Telemetry;
 
-internal abstract class TelemetryLogger : ILogger
+internal abstract class TelemetryLogger : IEventSink
 {
     private sealed class Implementation : TelemetryLogger
     {
@@ -27,15 +27,7 @@ internal abstract class TelemetryLogger : ILogger
         }
 
         public static new Implementation Create(TelemetrySession session, bool logDelta)
-        {
-            var logger = new Implementation(session, logDelta);
-
-            // Two stage initialization as TelemetryLogProvider.Create needs access to
-            //  the ILogger that this class implements.
-            TelemetryLogProvider.Create(session, logger);
-
-            return logger;
-        }
+            => new(session, logDelta);
 
         protected override bool LogDelta { get; }
 
@@ -74,24 +66,13 @@ internal abstract class TelemetryLogger : ILogger
 
     private readonly ConcurrentDictionary<int, object> _pendingScopes = new(concurrencyLevel: 2, capacity: 10);
 
-    private const string EventPrefix = "vs/ide/vbcs/";
-    private const string PropertyPrefix = "vs.ide.vbcs.";
-
-    // these don't have concurrency limit on purpose to reduce chance of lock contention. 
-    // if that becomes a problem - by showing up in our perf investigation, then we will consider adding concurrency limit.
-    private static readonly ConcurrentDictionary<FunctionId, string> s_eventMap = [];
-    private static readonly ConcurrentDictionary<(FunctionId id, string name), string> s_propertyMap = [];
-
     protected abstract bool LogDelta { get; }
 
     internal static string GetEventName(FunctionId id)
-         => s_eventMap.GetOrAdd(id, id => EventPrefix + GetTelemetryName(id, separator: '/'));
+         => TelemetryNaming.GetEventName(id);
 
     internal static string GetPropertyName(FunctionId id, string name)
-        => s_propertyMap.GetOrAdd((id, name), key => PropertyPrefix + GetTelemetryName(id, separator: '.') + "." + key.name.ToLowerInvariant());
-
-    private static string GetTelemetryName(FunctionId id, char separator)
-        => Enum.GetName(typeof(FunctionId), id)!.Replace('_', separator).ToLowerInvariant();
+        => TelemetryNaming.GetPropertyName(id, name);
 
     public static TelemetryLogger Create(TelemetrySession session, bool logDelta)
         => Implementation.Create(session, logDelta);

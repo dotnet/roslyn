@@ -183,7 +183,7 @@ internal sealed class CodeRefactoringService(
         CodeActionRequestPriority? priority,
         CancellationToken cancellationToken)
     {
-        using (TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeRefactoring_Summary, $"Pri{priority.GetPriorityInt()}"))
+        using (RoslynTelemetry.RecordBlockTime(FunctionId.CodeRefactoring_Summary, $"Pri{priority.GetPriorityInt()}"))
         using (Logger.LogBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, cancellationToken))
         {
             using var _ = PooledDictionary<CodeRefactoringProvider, int>.GetInstance(out var providerToIndex);
@@ -208,12 +208,12 @@ internal sealed class CodeRefactoringService(
                     var logMessage = KeyValueLogMessage.Create(static (m, args) =>
                     {
                         var (providerName, document) = args;
-                        m[TelemetryLogging.KeyName] = providerName;
-                        m[TelemetryLogging.KeyLanguageName] = document.Project.Language;
+                        m[TelemetryKeys.Name] = providerName;
+                        m[TelemetryKeys.LanguageName] = document.Project.Language;
                     }, (providerName, document));
 
                     using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
-                    using (TelemetryLogging.LogBlockTime(FunctionId.CodeRefactoring_Delay, logMessage, CodeRefactoringTelemetryDelay))
+                    using (RoslynTelemetry.LogBlockTime(FunctionId.CodeRefactoring_Delay, logMessage, CodeRefactoringTelemetryDelay))
                     {
                         var refactoring = await @this.GetRefactoringFromProviderAsync(
                             document, state, provider, cancellationToken).ConfigureAwait(false);

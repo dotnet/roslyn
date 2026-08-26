@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry;
 /// <summary>
 /// A logger that publishes events to a log file.
 /// </summary>
-internal sealed class FileLogger : ILogger
+internal sealed class FileLogger : IEventSink
 {
     private readonly string _logFilePath;
     private bool _enabled;

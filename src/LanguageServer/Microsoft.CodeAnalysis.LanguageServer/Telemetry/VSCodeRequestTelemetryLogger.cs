@@ -33,15 +33,10 @@ internal sealed class VSCodeRequestTelemetryLogger() : RequestTelemetryLogger(We
 
     protected override void IncreaseFindDocumentCount(string workspaceCountMetricName)
     {
-        TelemetryLogging.LogAggregatedCounter(FunctionId.LSP_FindDocumentInWorkspace, KeyValueLogMessage.Create(m =>
-        {
-            var projectsLoaded = s_initialProjectLoadCompleted;
-            m[TelemetryLogging.KeyName] = ServerTypeName + "." + workspaceCountMetricName + "." + projectsLoaded;
-            m[TelemetryLogging.KeyValue] = 1L;
-            m[TelemetryLogging.KeyMetricName] = workspaceCountMetricName;
-            m["server"] = ServerTypeName;
-            m["workspace"] = workspaceCountMetricName;
-            m["projectsLoaded"] = projectsLoaded;
-        }));
+        var projectsLoaded = s_initialProjectLoadCompleted;
+        RoslynTelemetry.Count(FunctionId.LSP_FindDocumentInWorkspace, workspaceCountMetricName, 1,
+            new("server", ServerTypeName),
+            new("workspace", workspaceCountMetricName),
+            new("projectsLoaded", projectsLoaded));
     }
 }
