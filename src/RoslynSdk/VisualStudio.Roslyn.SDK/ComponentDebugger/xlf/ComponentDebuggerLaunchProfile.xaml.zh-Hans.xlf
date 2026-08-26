@@ -4,27 +4,27 @@
     <body>
       <trans-unit id="DynamicEnumProperty|targetProject|Description">
         <source>A project that uses this component, whose compilation will be debugged.</source>
-        <target state="new">A project that uses this component, whose compilation will be debugged.</target>
+        <target state="translated">将调试使用此组件的项目的编译。</target>
         <note />
       </trans-unit>
       <trans-unit id="DynamicEnumProperty|targetProject|DisplayName">
         <source>Target Project</source>
-        <target state="new">Target Project</target>
+        <target state="translated">目标项目</target>
         <note />
       </trans-unit>
       <trans-unit id="Rule|ComponentDebuggerLaunchProfile|Description">
         <source>Allows a user to debug a Roslyn Component by running it in the context of another projects build.</source>
-        <target state="new">Allows a user to debug a Roslyn Component by running it in the context of another projects build.</target>
+        <target state="translated">允许用户通过在另一个项目生成上下文中运行 Roslyn 组件来调试它。</target>
         <note />
       </trans-unit>
       <trans-unit id="Rule|ComponentDebuggerLaunchProfile|DisplayName">
         <source>Roslyn Component</source>
-        <target state="new">Roslyn Component</target>
+        <target state="translated">Roslyn 组件</target>
         <note />
       </trans-unit>
       <trans-unit id="StringProperty|Description|Description">
         <source>A Roslyn Component can be debugged in the context of compiling a second project that uses it. Ensure your target project is referencing this component for it to appear in the list.</source>
-        <target state="new">A Roslyn Component can be debugged in the context of compiling a second project that uses it. Ensure your target project is referencing this component for it to appear in the list.</target>
+        <target state="translated">可在编译使用它的第二个项目的上下文中调试 Roslyn 组件。请确保目标项目引用此组件，以使其显示在列表中。</target>
         <note />
       </trans-unit>
     </body>
