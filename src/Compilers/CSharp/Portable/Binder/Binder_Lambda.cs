@@ -376,9 +376,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ModifierUtils.ToDeclarationModifiers(
                 syntax.Modifiers,
                 isForTypeDeclaration: false,
-                diagnostics.DiagnosticBag ?? new DiagnosticBag(),
                 isOrdinaryMethod: false,
-                allowsPartialModifier: false);
+                allowsPartialModifier: false,
+                diagnostics.DiagnosticBag ?? new DiagnosticBag());
 
             if (data.HasSignature)
             {

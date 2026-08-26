@@ -26,9 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var diagnosticBag = diagnostics.DiagnosticBag ?? new DiagnosticBag();
             var result = modifiers.ToDeclarationModifiers(
                 isForTypeDeclaration: false,
-                diagnosticBag,
-                isOrdinaryMethod,
-                allowsPartialModifier: (allowedModifiers & DeclarationModifiers.Partial) != 0);
+                isOrdinaryMethod: isOrdinaryMethod,
+                allowsPartialModifier: (allowedModifiers & DeclarationModifiers.Partial) != 0,
+                diagnostics: diagnosticBag);
             result = CheckModifiers(
                 isForTypeDeclaration: false,
                 isForInterfaceMember,
@@ -463,9 +463,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static DeclarationModifiers ToDeclarationModifiers(
             this SyntaxTokenList modifiers,
             bool isForTypeDeclaration,
-            DiagnosticBag diagnostics,
             bool isOrdinaryMethod,
-            bool allowsPartialModifier)
+            bool allowsPartialModifier,
+            DiagnosticBag diagnostics)
         {
             var result = GetDeclarationModifiersAndCheckForDuplicateModifiers(modifiers, diagnostics);
             if ((result & DeclarationModifiers.Partial) == DeclarationModifiers.Partial)

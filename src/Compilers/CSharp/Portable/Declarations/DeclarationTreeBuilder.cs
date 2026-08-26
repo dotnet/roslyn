@@ -787,9 +787,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Extensions never allow 'partial'.
             var modifiers = node.Modifiers.ToDeclarationModifiers(
                 isForTypeDeclaration: true,
-                diagnostics,
                 isOrdinaryMethod: false,
-                allowsPartialModifier: kind != DeclarationKind.Extension);
+                allowsPartialModifier: kind != DeclarationKind.Extension,
+                diagnostics);
 
             var quickAttributes = GetQuickAttributes(node.AttributeLists);
 
@@ -857,9 +857,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var modifiers = node.Modifiers.ToDeclarationModifiers(
                 isForTypeDeclaration: true,
-                diagnostics,
                 isOrdinaryMethod: false,
-                allowsPartialModifier: false);
+                allowsPartialModifier: false,
+                diagnostics);
 
             var quickAttributes = DeclarationTreeBuilder.GetQuickAttributes(node.AttributeLists);
 
@@ -895,9 +895,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var diagnostics = DiagnosticBag.GetInstance();
             var modifiers = node.Modifiers.ToDeclarationModifiers(
                 isForTypeDeclaration: true,
-                diagnostics,
                 isOrdinaryMethod: false,
-                allowsPartialModifier: false);
+                allowsPartialModifier: false,
+                diagnostics);
 
             var quickAttributes = DeclarationTreeBuilder.GetQuickAttributes(node.AttributeLists);
 

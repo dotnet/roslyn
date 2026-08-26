@@ -52,9 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.Private |
                 syntax.Modifiers.ToDeclarationModifiers(
                     isForTypeDeclaration: false,
-                    diagnostics: _declarationDiagnostics,
                     isOrdinaryMethod: false,
-                    allowsPartialModifier: false);
+                    allowsPartialModifier: false,
+                    diagnostics: _declarationDiagnostics);
 
             var diagnostics = BindingDiagnosticBag.GetInstance();
             Debug.Assert(diagnostics.DiagnosticBag is { });
