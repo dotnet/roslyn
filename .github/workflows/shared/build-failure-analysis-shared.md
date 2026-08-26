@@ -44,7 +44,7 @@ of read-only `shell` commands (including `cat`).
      `GH_AW_BINLOG_DIR` = `/data/binlogs`) and query the `binlog-mcp` MCP
      server (`binlog_errors`, `binlog_overview`, `binlog_warnings`, …) with
      `binlog_file` set to each leg's path — a failure usually surfaces in only
-     one leg, so do not analyse just the first. `binlog_errors`,
+     one leg, so do not analyze just the first. `binlog_errors`,
      `binlog_overview`, `binlog_warnings`, … are **MCP tools** provided by the
      `binlog-mcp` server: prefer calling them **directly as MCP tools** (with a
      `binlog_file` argument). A CLI wrapper is also mounted and allowlisted, so
@@ -55,7 +55,7 @@ of read-only `shell` commands (including `cat`).
      queries succeeded, no leg shows errors, and there is no
      failed-target/process evidence, the build compiled cleanly — the
      pipeline failure is then a **non-build** (test/packaging/publishing) failure,
-     which is **out of scope**. This workflow analyses build failures only, so
+     which is **out of scope**. This workflow analyzes build failures only, so
      **post nothing**: call `noop` with a short reason and stop. Do **not**
      post a summary comment and do **not** invent fixes.
    - Post exactly one summary via `add_comment` with structured data

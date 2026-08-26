@@ -15,7 +15,7 @@ description: >-
 # that build's GitHub check reports failure, this workflow uses the Azure
 # DevOps timeline to select the artifacts for failed or canceled jobs
 # (anonymously — dnceng-public/public is a public project), then the agent
-# analyses whichever selected leg(s) contain errors. Reusing the binlogs avoids
+# analyzes whichever selected leg(s) contain errors. Reusing the binlogs avoids
 # a duplicate build: the analysis pipeline only downloads build artifacts
 # (data) and reads them — it does **not** build or execute PR code. (gh-aw's
 # generated agent job **does** check out the repository — via
@@ -35,7 +35,7 @@ on:
   # anyway). This is safe here: the workflow only reads a public binlog and
   # posts advisory comments — it never builds or executes PR code.
   roles: all
-  # Manual entry point for reruns / testing: analyse a specific Azure DevOps
+  # Manual entry point for reruns / testing: analyze a specific Azure DevOps
   # build id and post to a specific PR.
   workflow_dispatch:
     inputs:
@@ -209,7 +209,7 @@ jobs:
             echo "::warning::Resolved PR number '${PR_NUMBER}' is not numeric; refusing."; emit_none
           fi
 
-          # --- 3. Scope check: only analyse PRs targeted by roslyn-CI -------
+          # --- 3. Scope check: only analyze PRs targeted by roslyn-CI -------
           PR_JSON=$(gh api "repos/${GH_AW_REPO}/pulls/${PR_NUMBER}" 2>/dev/null)
           BASE_REF=$(printf '%s' "${PR_JSON}" | jq -r '.base.ref // empty')
           # An empty BASE_REF means the `gh api` call failed or returned no

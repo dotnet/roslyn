@@ -264,7 +264,7 @@ jobs:
             echo "::warning::Resolved PR number '${PR_NUMBER}' is not numeric; refusing."; emit_none
           fi
 
-          # --- Scope check: only analyse PRs targeted by roslyn-CI ---------
+          # --- Scope check: only analyze PRs targeted by roslyn-CI ---------
           PR_JSON=$(gh api "repos/${GH_AW_REPO}/pulls/${PR_NUMBER}" 2>/dev/null)
           BASE_REF=$(printf '%s' "${PR_JSON}" | jq -r '.base.ref // empty')
           # An empty BASE_REF means the `gh api` call failed or returned no
@@ -282,11 +282,11 @@ jobs:
           # --- Find the PR's most recent roslyn-CI build (merge ref) ---------
           # Query the newest build REGARDLESS of status (queue-time desc). If
           # the newest build is still queued/running — e.g. right after a
-          # force-push — skip: analysing an older completed failure now would
+          # force-push — skip: analyzing an older completed failure now would
           # pair a stale binlog with the PR's current head. Only proceed when
           # the newest build is completed AND failed. The head SHA is then
           # anchored to that build's own revision (below), so links/suggestions
-          # always match the analysed binlog.
+          # always match the analyzed binlog.
           builds_json=$(curl -sSL --retry 3 \
             "${ADO_API}/build/builds?definitions=${ADO_BUILD_DEFINITION_ID}&branchName=refs/pull/${PR_NUMBER}/merge&queryOrder=queueTimeDescending&\$top=1&api-version=7.1")
           BUILD_ID=$(printf '%s' "${builds_json}" | jq -r '.value // [] | .[0].id // empty')
@@ -300,11 +300,11 @@ jobs:
             echo "::warning::ADO build id '${BUILD_ID}' is not numeric; refusing."; emit_none
           fi
           if [ "${BUILD_STATUS}" != "completed" ]; then
-            echo "::warning::PR #${PR_NUMBER}'s newest roslyn-CI build (${BUILD_ID}) is still '${BUILD_STATUS}'; wait for it to finish before analysing."
+            echo "::warning::PR #${PR_NUMBER}'s newest roslyn-CI build (${BUILD_ID}) is still '${BUILD_STATUS}'; wait for it to finish before analyzing."
             emit_none
           fi
           if [ "${BUILD_RESULT}" != "failed" ]; then
-            echo "::warning::PR #${PR_NUMBER}'s newest roslyn-CI build (${BUILD_ID}) result is '${BUILD_RESULT}', not failed — the failure looks resolved; nothing to analyse."
+            echo "::warning::PR #${PR_NUMBER}'s newest roslyn-CI build (${BUILD_ID}) result is '${BUILD_RESULT}', not failed — the failure looks resolved; nothing to analyze."
             emit_none
           fi
 
@@ -710,7 +710,7 @@ jobs:
           retention-days: 1
 
 # Steps that run in the agent job. The top-level `if:` gates these on binlogs
-# having been retrieved, so the agent never runs without something to analyse.
+# having been retrieved, so the agent never runs without something to analyze.
 steps:
   - name: Download analysis artifact
     uses: actions/download-artifact@v8.0.1
