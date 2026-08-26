@@ -54,6 +54,18 @@ their original sub-tree layout
   `TagHelperDescriptor`s whose descriptor-level metadata carries the parsed values. A later
   optimization pass reads the full discovered set via `ITagHelperFeature.GetTagHelpers()` (not the
   document's in-scope tag helpers, which are namespace-scoped) and filters by metadata kind.
+- **Tooling consuming runtime-declared attribute lists**: the same scoping caveat applies on the
+  tooling side. `TagHelperDocumentContext.TagHelpers` is the document's *in-scope* set, so a carrier
+  whose declaring type lives in an un-imported namespace is missing from it. Read the project-wide
+  set with `RemoteProjectSnapshot.GetTagHelpersAsync()` instead, or completion and compilation will
+  disagree about what opted in. `AssetPathCompletionInfo` does this for `[AcceptsAssetPath]`.
+- **Project data from the SDK**: MSBuild flows per-project data to tooling either as a
+  `CompilerVisibleProperty` (read from `Project.AnalyzerOptions.AnalyzerConfigOptionsProvider`
+  global options) or as an `AdditionalFiles` item tagged with `CompilerVisibleItemMetadata` (read
+  per-file from the same provider, as the generator does for `TargetPath` / `CssScope`). Prefer the
+  latter for anything file-sized: it rides the workspace snapshot into OOP, so invalidation is by
+  document version with no watcher or disk access. `StaticWebAssetsProvider` reads
+  `staticwebassets.intellisense.json` this way, keyed on `build_metadata.AdditionalFiles.IsStaticWebAssetsManifest`.
 - **Visual Studio options**: Register Razor Advanced settings in
   `Microsoft.VisualStudio.RazorExtension\UnifiedSettings\razor.registration.json`, localize
   their UI text in `VSPackage.resx`, read them through `OptionsStorage`, and add remotely consumed
