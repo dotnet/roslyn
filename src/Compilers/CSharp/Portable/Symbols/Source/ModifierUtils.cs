@@ -24,15 +24,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out bool hasExplicitAccessModifier)
         {
             var diagnosticBag = diagnostics.DiagnosticBag ?? new DiagnosticBag();
-            var result = modifiers.ToDeclarationModifiers(isForTypeDeclaration: false, diagnosticBag);
-            // There is no need to report an ordering error when 'partial' is not allowed.
-            // The invalid modifier is reported below.
-            if ((allowedModifiers & DeclarationModifiers.Partial) != 0)
-            {
-                modifiers.CheckPartialModifierOrder(diagnosticBag, isOrdinaryMethod);
-            }
-
-            result = CheckModifiers(isForTypeDeclaration: false, isForInterfaceMember, result, allowedModifiers, errorLocation, diagnostics, modifiers, out modifierErrors);
+            var result = modifiers.ToDeclarationModifiers(
+                isForTypeDeclaration: false,
+                diagnosticBag,
+                isOrdinaryMethod,
+                allowsPartialModifier: (allowedModifiers & DeclarationModifiers.Partial) != 0);
+            result = CheckModifiers(
+                isForTypeDeclaration: false,
+                isForInterfaceMember,
+                result,
+                allowedModifiers,
+                errorLocation,
+                diagnostics,
+                modifiers,
+                out modifierErrors);
 
             var readonlyToken = modifiers.FirstOrDefault(SyntaxKind.ReadOnlyKeyword);
             if (readonlyToken.Parent is MethodDeclarationSyntax or AccessorDeclarationSyntax or BasePropertyDeclarationSyntax or EventDeclarationSyntax)
@@ -90,8 +95,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (oneError)
                 {
                     case DeclarationModifiers.Partial:
-                        // Provide a specialized error message in the case of partial.
-                        ReportPartialError(errorLocation, diagnostics, modifierTokens);
+                        // ToDeclarationModifiers reports all invalid 'partial' modifiers. That check
+                        // lives there because it validates both whether 'partial' is allowed and
+                        // whether it appears in the correct position.
                         break;
 
                     case DeclarationModifiers.Abstract:
@@ -149,22 +155,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(diagnosticInfo, modifier.GetLocation());
             }
-        }
-
-        private static void ReportPartialError(Location errorLocation, BindingDiagnosticBag diagnostics, SyntaxTokenList? modifierTokens)
-        {
-            // If we can find the 'partial' token, report it on that.
-            if (modifierTokens != null)
-            {
-                var partialToken = modifierTokens.Value.FirstOrDefault(SyntaxKind.PartialKeyword);
-                if (partialToken != default)
-                {
-                    diagnostics.Add(ErrorCode.ERR_PartialMisplaced, partialToken.GetLocation());
-                    return;
-                }
-            }
-
-            diagnostics.Add(ErrorCode.ERR_PartialMisplaced, errorLocation);
         }
 
         internal static void ReportDefaultInterfaceImplementationModifiers(
@@ -473,7 +463,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static DeclarationModifiers ToDeclarationModifiers(
             this SyntaxTokenList modifiers,
             bool isForTypeDeclaration,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            bool isOrdinaryMethod,
+            bool allowsPartialModifier)
         {
             var result = GetDeclarationModifiersAndCheckForDuplicateModifiers(modifiers, diagnostics);
             if ((result & DeclarationModifiers.Partial) == DeclarationModifiers.Partial)
@@ -483,6 +475,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var messageId = isForTypeDeclaration ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod;
                 messageId.CheckFeatureAvailability(diagnostics, modifier);
+
+                // `partial` must always be the last modifier according to the language.  However, there was a bug
+                // where we allowed `partial async` at the end of modifiers on methods. We keep this behavior for
+                // backcompat.
+                var isLast = i == modifiers.Count - 1;
+                var isPartialAsyncMethod = isOrdinaryMethod && i == modifiers.Count - 2 && modifiers[i + 1].ContextualKind() is SyntaxKind.AsyncKeyword;
+                if (!allowsPartialModifier || (!isLast && !isPartialAsyncMethod))
+                {
+                    diagnostics.Add(
+                        ErrorCode.ERR_PartialMisplaced,
+                        modifier.GetLocation());
+                }
             }
 
             switch (result & DeclarationModifiers.AccessibilityMask)
@@ -501,27 +505,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return result;
-        }
-
-        internal static void CheckPartialModifierOrder(this SyntaxTokenList modifiers, DiagnosticBag diagnostics, bool isOrdinaryMethod)
-        {
-            var i = modifiers.IndexOf(SyntaxKind.PartialKeyword);
-            if (i < 0)
-            {
-                return;
-            }
-
-            // `partial` must always be the last modifier according to the language.  However, there was a bug
-            // where we allowed `partial async` at the end of modifiers on methods. We keep this behavior for
-            // backcompat.
-            var isLast = i == modifiers.Count - 1;
-            var isPartialAsyncMethod = isOrdinaryMethod && i == modifiers.Count - 2 && modifiers[i + 1].ContextualKind() is SyntaxKind.AsyncKeyword;
-            if (!isLast && !isPartialAsyncMethod)
-            {
-                diagnostics.Add(
-                    ErrorCode.ERR_PartialMisplaced,
-                    modifiers[i].GetLocation());
-            }
         }
 
         private static void ReportDuplicateModifiers(
