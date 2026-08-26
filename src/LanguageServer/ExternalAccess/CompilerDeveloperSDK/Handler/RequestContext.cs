@@ -11,32 +11,27 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk;
 internal readonly struct RequestContext
 {
     private readonly LspRequestContext _context;
-    private readonly Workspace? _initialWorkspace;
-    private readonly Solution? _initialSolution;
-    private readonly TextDocument? _initialTextDocument;
-    private readonly Document? _initialDocument;
 
     internal RequestContext(LspRequestContext context)
     {
         _context = context;
-        _initialWorkspace = context.GetInitialWorkspace();
-        _initialSolution = context.GetInitialSolution();
-        _initialTextDocument = context.GetInitialTextDocument();
-        _initialDocument = _initialTextDocument as Document;
     }
 
     [Obsolete("Use GetWorkspaceAsync instead.", error: false)]
-    internal Workspace? Workspace => _initialWorkspace;
+    internal Workspace? Workspace
+        => _context.GetWorkspaceSynchronously();
 
     [Obsolete("Use GetSolutionAsync instead.", error: false)]
-    internal Solution? Solution => _initialSolution;
+    internal Solution? Solution
+        => _context.GetSolutionSynchronously();
 
     [Obsolete("Use GetDocumentAsync instead.", error: false)]
-    internal Document? Document => _initialDocument;
+    internal Document? Document
+        => _context.GetDocumentSynchronously();
 
     [Obsolete("Use GetRequiredDocumentAsync instead.", error: false)]
     internal Document GetRequiredDocument()
-        => _initialDocument ?? throw new ArgumentNullException($"{nameof(Document)} is null when it was required for {_context.Method}");
+        => _context.GetRequiredDocumentSynchronously();
 
     internal ValueTask<Solution?> GetSolutionAsync(CancellationToken cancellationToken)
         => _context.GetSolutionAsync(cancellationToken);

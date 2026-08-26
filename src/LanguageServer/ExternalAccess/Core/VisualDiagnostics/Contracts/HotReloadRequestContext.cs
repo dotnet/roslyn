@@ -14,23 +14,21 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts;
 internal sealed class HotReloadRequestContext
 {
     private readonly RequestContext _context;
-    private readonly Solution? _initialSolution;
-    private readonly TextDocument? _initialTextDocument;
 
     public HotReloadRequestContext(RequestContext context)
     {
         _context = context;
-        _initialSolution = context.GetInitialSolution();
-        _initialTextDocument = context.GetInitialTextDocument();
     }
 
     internal LSP.ClientCapabilities ClientCapabilities => _context.GetRequiredClientCapabilities();
 
     [Obsolete("Use GetTextDocumentAsync instead.", error: false)]
-    public TextDocument? TextDocument => _initialTextDocument;
+    public TextDocument? TextDocument
+        => _context.GetTextDocumentSynchronously();
 
     [Obsolete("Use GetSolutionAsync instead.", error: false)]
-    public Solution? Solution => _initialSolution;
+    public Solution? Solution
+        => _context.GetSolutionSynchronously();
 
     public ValueTask<TextDocument?> GetTextDocumentAsync(CancellationToken cancellationToken)
         => _context.GetTextDocumentAsync(cancellationToken);

@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 internal struct XamlRequestContext
 {
     private readonly RequestContext _context;
-    private readonly TextDocument? _initialTextDocument;
 
     public static XamlRequestContext FromRequestContext(RequestContext context)
         => new(context);
@@ -21,13 +20,13 @@ internal struct XamlRequestContext
     private XamlRequestContext(RequestContext context)
     {
         _context = context;
-        _initialTextDocument = context.GetInitialTextDocument();
     }
 
     public readonly LSP.ClientCapabilities ClientCapabilities => _context.GetRequiredClientCapabilities();
 
     [Obsolete("Use GetTextDocumentAsync instead.", error: false)]
-    public readonly TextDocument? TextDocument => _initialTextDocument;
+    public readonly TextDocument? TextDocument
+        => _context.GetTextDocumentSynchronously();
 
     public readonly ValueTask<TextDocument?> GetTextDocumentAsync(CancellationToken cancellationToken)
         => _context.GetTextDocumentAsync(cancellationToken);

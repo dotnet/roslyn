@@ -234,14 +234,23 @@ internal readonly struct RequestContext
         => ValueTask.FromResult(Document
             ?? throw new ArgumentNullException($"{nameof(Document)} is null when it was required for {Method}"));
 
-    internal Workspace? GetInitialWorkspace()
-        => Workspace;
+    internal Workspace? GetWorkspaceSynchronously()
+        => GetWorkspaceAsync(CancellationToken.None).AsTask().WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
 
-    internal Solution? GetInitialSolution()
-        => Solution;
+    internal Solution? GetSolutionSynchronously()
+        => GetSolutionAsync(CancellationToken.None).AsTask().WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
 
-    internal TextDocument? GetInitialTextDocument()
-        => TextDocument;
+    internal Solution GetRequiredSolutionSynchronously()
+        => GetRequiredSolutionAsync(CancellationToken.None).AsTask().WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+
+    internal TextDocument? GetTextDocumentSynchronously()
+        => GetTextDocumentAsync(CancellationToken.None).AsTask().WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+
+    internal Document? GetDocumentSynchronously()
+        => GetDocumentAsync(CancellationToken.None).AsTask().WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+
+    internal Document GetRequiredDocumentSynchronously()
+        => GetRequiredDocumentAsync(CancellationToken.None).AsTask().WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
 
     public Document GetRequiredDocument()
     {
