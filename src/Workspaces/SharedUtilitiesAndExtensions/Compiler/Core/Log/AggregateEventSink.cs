@@ -11,9 +11,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log;
 /// <summary>
 /// Fans an event out to a fixed set of sinks. The set is decided once, when a host composes its
 /// telemetry, and is not mutated afterwards: turning a sink off is that sink's own
-/// <see cref="IEventSink.IsEnabled"/> returning false, not its removal from this list. That keeps a
-/// sink from being registered twice (which would post its events twice) and removes the need for the
-/// predicate-based add/replace/remove that used to live here.
+/// <see cref="IEventSink.IsEnabled"/> returning false. Keeping the set fixed is what guarantees a sink
+/// cannot be registered twice, which would post its events twice.
 /// </summary>
 internal sealed class AggregateEventSink : IEventSink
 {

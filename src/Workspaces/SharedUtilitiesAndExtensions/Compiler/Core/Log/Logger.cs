@@ -8,14 +8,12 @@ using System.Threading;
 namespace Microsoft.CodeAnalysis.Internal.Log;
 
 /// <summary>
-/// Temporary forwarding shim onto <see cref="RoslynTelemetry"/>, kept so that this rename did not have to
-/// touch the 150+ existing <c>Logger.Log</c> / <c>Logger.LogBlock</c> call sites in one change. New
-/// code should call <see cref="RoslynTelemetry"/> directly.
+/// Forwarding shim onto <see cref="RoslynTelemetry"/>. New code should call
+/// <see cref="RoslynTelemetry"/> directly; this exists only to serve existing call sites and is
+/// intended to be deleted once they have been updated.
 /// <para>
-/// This type is intended to be deleted once its call sites have been mechanically updated; see
-/// https://github.com/dotnet/roslyn/issues/ for the tracking issue. It deliberately carries no
-/// <see cref="ObsoleteAttribute"/> because the repository builds with warnings as errors and the
-/// remaining call sites are expected, not accidental.
+/// It carries no <see cref="ObsoleteAttribute"/> because the repository builds with warnings as errors
+/// and its remaining call sites are expected, not accidental.
 /// </para>
 /// </summary>
 internal static class Logger

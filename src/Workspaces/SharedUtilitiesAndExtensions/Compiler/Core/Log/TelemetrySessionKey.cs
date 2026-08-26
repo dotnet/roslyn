@@ -9,11 +9,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log;
 /// <summary>
 /// Identifies the logical telemetry session a measurement belongs to.
 /// <para>
-/// Today there is exactly one per process and this is a constant. It exists so that aggregation state
-/// is never keyed on the assumption of a single session: a host that runs several independent language
-/// servers in one process (daemon mode) needs each server's measurements bucketed - and posted -
-/// separately, and retrofitting that into a single-session aggregation table would be a breaking change
-/// to the aggregation implementation rather than a configuration change.
+/// A host that runs several independent language servers in one process needs each server's
+/// measurements bucketed - and posted - separately, so aggregation state is keyed by this. Today there
+/// is exactly one session per process and this is always <see cref="Default"/>.
 /// </para>
 /// <para>
 /// See <see cref="RoslynTelemetry.CurrentSessionKey"/> for how a key is resolved at record time.

@@ -10,15 +10,14 @@ namespace Microsoft.CodeAnalysis.Internal.Log;
 
 /// <summary>
 /// A sink that publishes events to ETW using an EventSource. Opt-in: enabled per-<see cref="FunctionId"/>
-/// by a predicate that the host can swap at runtime (Tools -> Options -> Performance Loggers). It stays
-/// registered for the lifetime of the process; "disabled" means the predicate rejects everything, which
-/// is what keeps a second instance from ever being composed alongside this one and double-posting.
+/// by a predicate the host can swap at runtime (Tools -&gt; Options -&gt; Performance Loggers). It stays
+/// registered for the lifetime of the process; "disabled" means the predicate rejects everything.
 /// </summary>
 internal sealed class EtwLogger : IEventSink
 {
     /// <summary>
-    /// A predicate that rejects every <see cref="FunctionId"/>. Used as the initial state for sinks
-    /// that are off until a user turns them on.
+    /// A predicate that rejects every <see cref="FunctionId"/>. The initial state for sinks that are off
+    /// until a user turns them on.
     /// </summary>
     public static readonly Func<FunctionId, bool> DisabledPredicate = static _ => false;
 
@@ -32,8 +31,8 @@ internal sealed class EtwLogger : IEventSink
         => _isEnabledPredicate = isEnabledPredicate;
 
     /// <summary>
-    /// Replaces the enablement predicate in place. Callers must refresh the composed instance rather
-    /// than constructing a competing one, or events would be posted twice.
+    /// Replaces the enablement predicate in place. Callers must refresh the composed instance; composing
+    /// a second one alongside it would post every event twice.
     /// </summary>
     public void UpdatePredicate(Func<FunctionId, bool> isEnabledPredicate)
         => Volatile.Write(ref _isEnabledPredicate, isEnabledPredicate);

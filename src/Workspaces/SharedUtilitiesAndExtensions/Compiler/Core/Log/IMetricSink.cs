@@ -11,15 +11,14 @@ namespace Microsoft.CodeAnalysis.Internal.Log;
 /// A destination for aggregated measurements. Implementations accumulate values in memory and post
 /// them in batches when <see cref="Flush"/> is called.
 /// <para>
-/// The contract is deliberately free of any telemetry-backend or BCL-metrics types so that it can live
-/// in the dependency-minimal shared layer, and deliberately keyed by a plain <paramref name="eventName"/>
-/// string rather than <see cref="FunctionId"/> so that Razor - which has no <see cref="FunctionId"/> -
-/// can share the same implementation. Roslyn's <see cref="FunctionId"/>-to-event-name mapping happens
-/// one level up, in <see cref="RoslynTelemetry"/>.
+/// The contract names no telemetry-backend or BCL-metrics type, so it can live in the
+/// dependency-minimal shared layer. It is keyed by a plain <c>eventName</c> string so that one
+/// implementation can serve both Roslyn and Razor; Roslyn's <see cref="FunctionId"/>-to-event-name
+/// mapping happens one level up, in <see cref="RoslynTelemetry"/>.
 /// </para>
 /// <para>
-/// The tag parameter mirrors <c>System.Diagnostics.Metrics.Counter&lt;T&gt;.Add</c> exactly, so that
-/// recording can later be moved onto BCL metric instruments without touching any call site.
+/// The tag parameter mirrors <c>System.Diagnostics.Metrics.Counter&lt;T&gt;.Add</c>, so recording could
+/// move onto BCL metric instruments without touching any call site.
 /// </para>
 /// </summary>
 internal interface IMetricSink

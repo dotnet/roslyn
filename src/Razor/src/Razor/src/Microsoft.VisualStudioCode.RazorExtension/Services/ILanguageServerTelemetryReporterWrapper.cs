@@ -16,9 +16,9 @@ internal interface ILanguageServerTelemetryReporterWrapper
     void ReportEvent(string name, List<KeyValuePair<string, object?>> properties);
 
     /// <summary>
-    /// Posts an aggregated measurement. This must forward the <see cref="TelemetryMetricEvent"/> intact
-    /// rather than flattening it to a name and property bag: the aggregated values live on the event's
-    /// instrument, and only <c>TelemetrySession.PostMetricEvent</c> reads them.
+    /// Posts an aggregated measurement. The event must be forwarded intact: its aggregated values live
+    /// on its instrument, and only <c>TelemetrySession.PostMetricEvent</c> reads them. Flattening it to
+    /// a name and property bag would discard every measurement.
     /// </summary>
     void ReportMetric(TelemetryMetricEvent metricEvent);
 }

@@ -16,9 +16,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 /// The dependency runs Roslyn -&gt; Razor, so Razor declares the contract and this implements it.
 /// <para>
 /// Razor's names and properties are already final when they arrive - they do not go through Roslyn's
-/// <c>FunctionId</c> pipeline - so this posts to the session directly rather than through
-/// <c>RoslynTelemetry</c>. It only reads the session; ownership and disposal stay with
-/// <see cref="LanguageServerTelemetryService"/>.
+/// <c>FunctionId</c> pipeline - so this posts to the session directly. It only reads the session;
+/// ownership and disposal stay with <see cref="LanguageServerTelemetryService"/>.
 /// </para>
 /// </summary>
 [Shared]
@@ -40,9 +39,9 @@ internal sealed class TelemetryReporterWrapper([Import(AllowDefault = true)] Laz
     }
 
     /// <summary>
-    /// Posts an aggregated measurement. The event must arrive intact rather than flattened to a name and
-    /// property bag: the aggregated values live on its instrument and are only read by
-    /// <see cref="TelemetrySession.PostMetricEvent"/>.
+    /// Posts an aggregated measurement. The event must arrive intact: its aggregated values live on its
+    /// instrument, and only <see cref="TelemetrySession.PostMetricEvent"/> reads them. Flattening it to
+    /// a name and property bag would discard every measurement.
     /// </summary>
     public void ReportMetric(TelemetryMetricEvent metricEvent)
         => telemetryService?.Value.Session?.PostMetricEvent(metricEvent);

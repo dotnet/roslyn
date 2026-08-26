@@ -52,8 +52,7 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper) :
         using var service = CreateReporter(DefaultServerConfiguration);
         service.InitializeSession("off", "test-session", isDefaultSession: false);
 
-        // Constructed the same way as CreateReporter above: the MEF importing constructor is marked
-        // obsolete-as-error, so tests go through Activator rather than calling it directly.
+        // The MEF importing constructor is obsolete-as-error, so construct through Activator.
         var wrapper = (TelemetryReporterWrapper?)Activator.CreateInstance(
             typeof(TelemetryReporterWrapper), new Lazy<LanguageServerTelemetryService>(() => service));
         Assert.NotNull(wrapper);

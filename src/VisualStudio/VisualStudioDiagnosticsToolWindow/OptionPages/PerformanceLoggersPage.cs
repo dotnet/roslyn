@@ -62,8 +62,8 @@ internal sealed class PerformanceLoggersPage : AbstractOptionPage
         var traceEnabled = globalOptions.GetOption(LoggerOptionsStorage.TraceLoggerKey);
         var outputWindowEnabled = globalOptions.GetOption(LoggerOptionsStorage.OutputWindowLoggerKey);
 
-        // ETW and Trace sinks are part of VS's default composition, so refresh those instances rather
-        // than constructing competing ones - two registered EtwLoggers would post every event twice.
+        // ETW and Trace sinks are part of VS's default composition, so refresh those instances. Two
+        // registered EtwLoggers would post every event twice.
         var telemetryService = workspaceServices.GetService<IWorkspaceTelemetryService>() as VisualStudioWorkspaceTelemetryService;
         telemetryService?.UpdateDiagnosticSinkEnablement(etwEnabled, traceEnabled, isEnabled);
 

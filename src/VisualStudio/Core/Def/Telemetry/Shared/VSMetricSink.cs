@@ -16,32 +16,31 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Telemetry;
 
 /// <summary>
-/// The single aggregating metric implementation, backed by VS Telemetry's counter/histogram APIs.
+/// The aggregating metric sink, backed by VS Telemetry's counter and histogram APIs.
 /// <para>
-/// Replaces four previously separate wrappers around the same VS Telemetry surface
-/// (<c>AbstractAggregatingLog</c>, <c>AggregatingCounterLog</c>, <c>AggregatingHistogramLog</c>, and
-/// <c>TelemetryLogProvider</c>) as well as Razor's independent copy.
+/// Measurements accumulate in memory against a VS Telemetry instrument and are posted in batches by
+/// <see cref="Flush"/>. Aggregation is keyed by <see cref="TelemetrySessionKey"/> in addition to the
+/// instrument identity, so a process hosting more than one logical session accumulates - and posts -
+/// each session's data separately.
 /// </para>
 /// <para>
-/// Aggregation is keyed by <see cref="TelemetrySessionKey"/> in addition to the instrument identity, so
-/// a process hosting more than one logical session accumulates - and posts - each session's data
-/// separately. <see cref="Flush"/> is deliberately global: it walks every bucket, posts each to the
-/// session that produced it, and clears. Clearing on flush is also what keeps a long-lived process from
-/// accruing buckets for sessions that have ended.
+/// <see cref="Flush"/> is global: it walks every bucket, posts each to the session that produced it, and
+/// clears. Clearing on flush is what keeps a long-lived process from accruing buckets for sessions that
+/// have ended.
 /// </para>
 /// </summary>
 internal sealed class VSMetricSink : IMetricSink
 {
     /// <summary>
-    /// Indicates version information which vs telemetry will use for our aggregated telemetry. This can be used
-    /// by Kusto queries to filter against telemetry versions which have the specified version and thus desired shape.
+    /// Version information which VS Telemetry attaches to our aggregated telemetry, so that Kusto
+    /// queries can filter to the versions whose shape they understand.
     /// </summary>
     private const string MeterVersion = "0.40";
 
     /// <summary>
-    /// The per-session capability this sink actually needs. Exists so that tests can assert exactly how
-    /// many metric events a flush posts without standing up a real, opted-in
-    /// <see cref="TelemetrySession"/> (which would try to send).
+    /// The per-session capability this sink needs. Abstracted so that tests can assert exactly how many
+    /// metric events a flush posts without standing up a real, opted-in <see cref="TelemetrySession"/>
+    /// (which would try to send).
     /// </summary>
     internal interface IMetricPoster
     {
@@ -64,9 +63,10 @@ internal sealed class VSMetricSink : IMetricSink
         public IMetricPoster Poster { get; } = poster;
 
         /// <summary>
-        /// Guards this single aggregation. Paired with <see cref="VSMetricSink._flushLock"/> exactly as the
-        /// previous implementation did - see https://github.com/dotnet/roslyn/pull/71606, which added this
-        /// two-level locking because concurrent <c>PostMetricEvent</c> calls for one instrument were crashing.
+        /// Guards this single aggregation. Held together with <see cref="VSMetricSink._flushLock"/>:
+        /// concurrent <c>PostMetricEvent</c> calls for one instrument crash the VS Telemetry SDK, so a
+        /// flush must exclude both other flushes and any in-flight Add/Record on the same instrument.
+        /// See https://github.com/dotnet/roslyn/pull/71606.
         /// </summary>
         public object Lock { get; } = new();
     }
@@ -132,8 +132,7 @@ internal sealed class VSMetricSink : IMetricSink
 
     public void Flush()
     {
-        // This lock ensures that multiple calls to Flush cannot occur simultaneously. Without it we could
-        // call PostMetricEvent multiple times for the same aggregation.
+        // Excludes other flushes, which would otherwise post the same aggregation twice.
         lock (_flushLock)
         {
             var aggregations = Interlocked.Exchange(ref _aggregations, ImmutableDictionary<AggregationKey, Aggregation>.Empty);
@@ -144,8 +143,8 @@ internal sealed class VSMetricSink : IMetricSink
                 if (!aggregation.Poster.IsOptedIn)
                     continue;
 
-                // This fine-grained lock ensures the aggregation isn't modified (via an Add/Record call)
-                // during the creation of the TelemetryMetricEvent or the PostMetricEvent call on it.
+                // Excludes concurrent Add/Record on this instrument while the metric event is built
+                // from it and posted.
                 lock (aggregation.Lock)
                 {
                     TelemetryMetricEvent metricEvent = aggregation.Instrument switch
@@ -167,8 +166,7 @@ internal sealed class VSMetricSink : IMetricSink
         if (!_posters.TryGetValue(sessionKey, out var poster))
             poster = _defaultPoster;
 
-        // Consent is checked here rather than at the call site so that no telemetry object graph is built
-        // for an opted-out session -- the source of a large amount of throwaway allocation historically.
+        // Checked here so that no telemetry object graph is built for an opted-out session.
         if (!poster.IsOptedIn)
             return null;
 
@@ -207,23 +205,21 @@ internal sealed class VSMetricSink : IMetricSink
             _meterProvider);
 
     /// <summary>
-    /// Reproduces the meter name the previous per-<c>FunctionId</c> implementation produced
-    /// (<c>vs.ide.vbcs.some.operation.meter</c>) from the already-derived event name
-    /// (<c>vs/ide/vbcs/some/operation</c>), so emitted telemetry keeps its existing shape.
+    /// Derives the meter name (<c>vs.ide.vbcs.some.operation.meter</c>) from the event name
+    /// (<c>vs/ide/vbcs/some/operation</c>).
     /// </summary>
     private static string GetMeterName(string eventName)
         => eventName.Replace('/', '.') + ".meter";
 
     /// <summary>
-    /// Reproduces the previous property naming (<c>vs.ide.vbcs.some.operation.tagname</c>).
+    /// Derives a property name (<c>vs.ide.vbcs.some.operation.tagname</c>) from the event name.
     /// </summary>
     private static string GetPropertyName(string eventName, string tagName)
         => eventName.Replace('/', '.') + "." + tagName.ToLowerInvariant();
 
     /// <summary>
-    /// Builds the bucket discriminator from the tag values, in declaration order. This reproduces the
-    /// compound name the previous call sites concatenated by hand (for example
-    /// <c>"server.method.language"</c>) so that measurements aggregate exactly as they did before.
+    /// Builds the bucket discriminator from the tag values, in declaration order, so that measurements
+    /// differing in any dimension aggregate separately.
     /// </summary>
     private static string BuildDimensionKey(ReadOnlySpan<KeyValuePair<string, object?>> tags)
     {

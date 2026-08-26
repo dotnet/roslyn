@@ -80,7 +80,7 @@ internal sealed partial class RemoteProcessTelemetryService(
             var functionIdsSet = new HashSet<FunctionId>(functionIds);
             bool logChecker(FunctionId id) => functionIdsSet.Contains(id);
 
-            // Mirrors the VS side: the sinks are composed once and only their enablement changes here.
+            // The sinks are composed once at startup; only their enablement changes here.
             var telemetryService = (RemoteWorkspaceTelemetryService)GetWorkspace().Services.GetRequiredService<IWorkspaceTelemetryService>();
             telemetryService.UpdateDiagnosticSinkEnablement(
                 etwEnabled: loggerTypeNames.Contains(nameof(EtwLogger)),

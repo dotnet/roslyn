@@ -33,8 +33,8 @@ internal sealed class VisualStudioWorkspaceTelemetryService(
 
     /// <summary>
     /// Opt-in diagnostic sinks. Composed once, at startup, and thereafter enabled or disabled through
-    /// their own predicates by the Performance Loggers options page - never added to or removed from the
-    /// sink list, which is what guarantees each is registered exactly once.
+    /// their own predicates by the Performance Loggers options page. Keeping them in the composed list
+    /// is what guarantees each is registered exactly once.
     /// </summary>
     private EtwLogger? _etwLogger;
     private TraceLogger? _traceLogger;
@@ -55,8 +55,7 @@ internal sealed class VisualStudioWorkspaceTelemetryService(
     }
 
     /// <summary>
-    /// Refreshes the enablement of the composed opt-in sinks. Called by the Performance Loggers options
-    /// page; deliberately updates the existing instances rather than constructing new ones.
+    /// Refreshes the enablement of the composed opt-in sinks, for the Performance Loggers options page.
     /// </summary>
     internal void UpdateDiagnosticSinkEnablement(bool etwEnabled, bool traceEnabled, Func<FunctionId, bool> isEnabled)
     {

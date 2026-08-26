@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 /// Owns the standalone language server host's telemetry session: creates and configures it, registers
 /// the event and metric sinks, and tears everything down on shutdown. The counterpart to
 /// <c>AbstractWorkspaceTelemetryService</c> in the VS and ServiceHub hosts.
-/// </summary>
-[Export, Shared]
+/// </summary>[Export, Shared]
 internal sealed class LanguageServerTelemetryService : IDisposable
 {
     internal const string CopilotTelemetryLevelEnvironmentVariable = "COPILOT_TELEMETRY_LEVEL";
@@ -84,9 +83,6 @@ internal sealed class LanguageServerTelemetryService : IDisposable
 
         _telemetrySession = session;
 
-        // Register the shared FunctionId-based event sink. Previously this instance was created and
-        // then discarded, with RoslynLogger -- an independent, byte-for-byte reimplementation of the
-        // same logic -- registered instead.
         RoslynTelemetry.SetEventSink(AggregateEventSink.Create(RoslynTelemetry.GetEventSink(), TelemetryLogger.Create(session, logDelta: false)));
 
         FaultReporter.InitializeFatalErrorHandlers();
@@ -103,9 +99,9 @@ internal sealed class LanguageServerTelemetryService : IDisposable
             : Environment.GetEnvironmentVariable(CopilotTelemetryLevelEnvironmentVariable);
 
     /// <summary>
-    /// The active session, for the one component that needs to post through it directly: Razor's VS Code
-    /// extension, which owns no session of its own. Roslyn's own telemetry never uses this - it goes
-    /// through <see cref="RoslynTelemetry"/> and the registered sinks.
+    /// The active session, for the one component that posts through it directly: Razor's VS Code
+    /// extension, which owns no session of its own. Roslyn's own telemetry goes through
+    /// <see cref="RoslynTelemetry"/> and the registered sinks.
     /// </summary>
     internal TelemetrySession? Session => _telemetrySession;
 

@@ -13,8 +13,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log;
 /// the same way as <see cref="EtwLogger"/>: it stays registered and its predicate decides whether
 /// anything is written.
 /// </summary>
-internal sealed class TraceLogger : IEventSink
-{
+internal sealed class TraceLogger : IEventSink{
     private Func<FunctionId, bool> _isEnabledPredicate;
 
     public TraceLogger(Func<FunctionId, bool> isEnabledPredicate)

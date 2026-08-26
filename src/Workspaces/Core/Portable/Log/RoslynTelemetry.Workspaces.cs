@@ -20,7 +20,7 @@ internal static class TelemetryKeys
 
 /// <summary>
 /// The parts of <see cref="RoslynTelemetry"/> that need <see cref="KeyValueLogMessage"/>, which lives in
-/// the Workspaces layer rather than the dependency-minimal shared layer.
+/// the Workspaces layer and so is not available in the shared layer.
 /// </summary>
 internal static partial class RoslynTelemetry
 {

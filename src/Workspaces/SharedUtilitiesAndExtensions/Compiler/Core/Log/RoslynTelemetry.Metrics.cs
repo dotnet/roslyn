@@ -24,10 +24,9 @@ internal static partial class RoslynTelemetry
     /// <summary>
     /// The session that measurements recorded on this thread belong to.
     /// <para>
-    /// Ambient routing is not enabled today, so this is always <see cref="TelemetrySessionKey.Default"/>.
-    /// The seam exists so that <see cref="IMetricSink"/> implementations bucket by session from the
-    /// start; enabling it later is a matter of setting <see cref="s_ambientRoutingEnabled"/> and pushing
-    /// keys around the work that belongs to each session, with no change to any call site or to any sink.
+    /// Ambient routing is not enabled, so this is always <see cref="TelemetrySessionKey.Default"/>.
+    /// Enabling it is a matter of setting <see cref="s_ambientRoutingEnabled"/> and pushing keys around
+    /// the work belonging to each session; no call site or sink needs to change.
     /// </para>
     /// </summary>
     internal static TelemetrySessionKey CurrentSessionKey
@@ -45,8 +44,8 @@ internal static partial class RoslynTelemetry
 
     /// <summary>
     /// Posts all pending aggregated measurements. Called on a timer, at shutdown, and when a logical
-    /// session ends. Every session's accumulated data is posted to its own session; it is safe (and
-    /// intentional) for this to flush more than the caller's own session.
+    /// session ends. Every session's accumulated data is posted to its own session, so flushing more
+    /// than the caller's own session is both safe and intended.
     /// </summary>
     public static void Flush()
         => s_currentMetricSink?.Flush();
@@ -86,6 +85,10 @@ internal static partial class RoslynTelemetry
         }
     }
 
+    /// <summary>
+    /// Span-based entry point. Kept private because it is ambiguous with the single-tag overload at call
+    /// sites that use target-typed <c>new(...)</c>.
+    /// </summary>
     private static void CountCore(FunctionId functionId, string metricName, long delta, ReadOnlySpan<KeyValuePair<string, object?>> tags)
     {
         if (s_currentMetricSink is { } sink)

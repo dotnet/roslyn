@@ -22,8 +22,8 @@ internal sealed class VSCodeTelemetryReporter : TelemetryReporter
         _reporter = reporter;
     }
 
-    // This host has no telemetry session of its own - it posts through the language server host's
-    // session. We override the two methods that do the actual reporting and redirect them through our
+    // This host has no telemetry session of its own; it posts through the language server host's
+    // session. Override the two methods that do the actual reporting and redirect them through the
     // wrapper to the Roslyn reporter.
 
     protected override void Report(TelemetryEvent telemetryEvent)
@@ -33,9 +33,9 @@ internal sealed class VSCodeTelemetryReporter : TelemetryReporter
 
     public override void ReportMetric(AggregatingTelemetryLog.TelemetryInstrumentEvent metricEvent)
     {
-        // Forward the metric event intact. Flattening it to name + properties would drop the aggregated
-        // values entirely, because those live on the event's instrument and are only read by
-        // TelemetrySession.PostMetricEvent.
+        // Forwarded intact: the aggregated values live on the event's instrument, and only
+        // TelemetrySession.PostMetricEvent reads them. Flattening to name + properties would discard
+        // every measurement.
         _reporter?.ReportMetric(metricEvent);
     }
 }

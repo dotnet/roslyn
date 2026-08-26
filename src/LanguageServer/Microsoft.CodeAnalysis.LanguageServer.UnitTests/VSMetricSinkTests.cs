@@ -13,9 +13,8 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
 /// <summary>
-/// Guards the aggregation invariants the previous implementation learned the hard way: every recorded
-/// measurement must be posted exactly once per flush - never dropped, never double-counted - and
-/// measurements must land in the right bucket.
+/// Covers the aggregation invariants: every recorded measurement is posted exactly once per flush -
+/// never dropped, never double-counted - and measurements land in the right bucket.
 /// </summary>
 public sealed class VSMetricSinkTests
 {
@@ -28,7 +27,6 @@ public sealed class VSMetricSinkTests
         /// <c>TelemetryMetricEvent</c> does not expose them.
         /// </summary>
         public List<TelemetryEvent> PostedEvents { get; } = [];
-
         public bool IsOptedIn { get; set; } = true;
 
         public void Post(TelemetryEvent telemetryEvent, TelemetryMetricEvent metricEvent)
@@ -50,10 +48,10 @@ public sealed class VSMetricSinkTests
 
         sink.Flush();
 
-        // Two distinct instruments -> exactly two events. Never zero (dropped), never more (double-counted).
+        // Two distinct instruments -> exactly two events.
         Assert.Equal(2, poster.Posted.Count);
 
-        // Flush also clears, so a second flush must not re-post anything.
+        // Flush clears, so a second flush posts nothing.
         poster.Posted.Clear();
         sink.Flush();
         Assert.Empty(poster.Posted);
@@ -65,8 +63,7 @@ public sealed class VSMetricSinkTests
         var poster = new RecordingPoster();
         var sink = new VSMetricSink(poster);
 
-        // Same event and metric, different tag values. These are the dimensions call sites used to
-        // concatenate by hand into a single compound bucket key.
+        // Same event and metric, different tag values: these must aggregate into separate buckets.
         sink.Record("vs/ide/vbcs/lsp/requestduration", "RequestDuration", 10,
             new KeyValuePair<string, object>[] { new("server", "Roslyn"), new("method", "textDocument/hover") });
         sink.Record("vs/ide/vbcs/lsp/requestduration", "RequestDuration", 20,
@@ -80,7 +77,7 @@ public sealed class VSMetricSinkTests
     }
 
     [Fact]
-    public void EventAndPropertyNamesMatchThePreviousShape()
+    public void EventAndPropertyNamesUseTheTelemetryConvention()
     {
         var poster = new RecordingPoster();
         var sink = new VSMetricSink(poster);

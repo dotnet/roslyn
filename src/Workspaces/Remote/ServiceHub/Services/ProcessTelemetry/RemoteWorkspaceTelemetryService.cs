@@ -17,8 +17,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry;
 internal sealed class RemoteWorkspaceTelemetryService() : AbstractWorkspaceTelemetryService
 {
     /// <summary>
-    /// Opt-in diagnostic sinks, mirroring the VS host. Composed once and thereafter toggled through
-    /// their predicates by <c>IRemoteProcessTelemetryService.EnableLoggingAsync</c>.
+    /// Opt-in diagnostic sinks. Composed once, at startup, and thereafter toggled through their
+    /// predicates by <c>IRemoteProcessTelemetryService.EnableLoggingAsync</c>.
     /// </summary>
     private EtwLogger? _etwLogger;
     private TraceLogger? _traceLogger;

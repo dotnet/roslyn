@@ -10,10 +10,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log;
 /// <summary>
 /// Maps <see cref="FunctionId"/> onto the event and property names Roslyn's telemetry backend expects.
 /// <para>
-/// This is deliberately the only place the <c>vs/ide/vbcs/</c> naming convention appears. Sinks receive
-/// already-final names, which is what lets a single sink implementation serve Roslyn (whose identity is
-/// <see cref="FunctionId"/>) and Razor (whose identity is a plain string) without either knowing about
-/// the other's naming.
+/// This is the only place the <c>vs/ide/vbcs/</c> naming convention appears. Sinks receive already-final
+/// names, so one sink implementation can serve both Roslyn, whose identity is <see cref="FunctionId"/>,
+/// and Razor, whose identity is a plain string.
 /// </para>
 /// </summary>
 internal static class TelemetryNaming

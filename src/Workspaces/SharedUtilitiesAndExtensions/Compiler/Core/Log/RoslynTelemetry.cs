@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log;
 /// host's configured <see cref="IEventSink"/>; aggregated measurements go to its <see cref="IMetricSink"/>.
 /// <para>
 /// A host configures this once at startup (see <see cref="SetEventSink"/> / <see cref="SetMetricSink"/>).
-/// With nothing configured every method is a cheap no-op, which is what the build server, the CodeStyle
-/// packages, and most tests rely on.
+/// With nothing configured every method is a cheap no-op, which is the state the build server, the
+/// CodeStyle packages, and most tests run in.
 /// </para>
 /// </summary>
 internal static partial class RoslynTelemetry
@@ -42,8 +42,8 @@ internal static partial class RoslynTelemetry
     /// <summary>
     /// Atomically adds <paramref name="sink"/> alongside whatever is already registered. Used by
     /// diagnostic sinks that live in assemblies the composition root cannot reference (the diagnostics
-    /// tool window, integration tests), which attach once and are thereafter controlled by their own
-    /// <see cref="IEventSink.IsEnabled"/> rather than by being detached.
+    /// tool window, integration tests). Such a sink attaches once and is thereafter controlled by its
+    /// own <see cref="IEventSink.IsEnabled"/>; it is never detached.
     /// </summary>
     public static void AddEventSink(IEventSink sink)
     {
