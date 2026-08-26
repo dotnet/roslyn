@@ -3,7 +3,7 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 
   <PropertyGroup>
-    <RoslynAnalyzersProject>true</RoslynAnalyzersProject>
+    <SkipRoslynTestTraceListener>true</SkipRoslynTestTraceListener>
     <AssetsDir>$(MSBuildThisFileDirectory)assets\</AssetsDir>
 
     <!-- Set 'NoDefaultExcludes' to ensure that we can package .editorconfig files into our analyzer NuGet packages -->
