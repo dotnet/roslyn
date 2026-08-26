@@ -784,13 +784,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MessageID.IDS_FeatureUnions.CheckFeatureAvailability(diagnostics, node, node.Keyword.GetLocation());
             }
 
-            var modifiers = node.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: true, diagnostics: diagnostics);
-            // Extensions never allow 'partial', so there is no need to report an ordering error.
-            // The invalid modifier is reported later.
-            if (kind != DeclarationKind.Extension)
-            {
-                node.Modifiers.CheckPartialModifierOrder(diagnostics, isOrdinaryMethod: false);
-            }
+            // Extensions never allow 'partial'.
+            var modifiers = node.Modifiers.ToDeclarationModifiers(allowsPartialModifier: kind != DeclarationKind.Extension, diagnostics);
 
             if (kind == DeclarationKind.Struct)
             {
@@ -887,7 +882,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
 
-            var modifiers = node.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: true, diagnostics: diagnostics);
+            var modifiers = node.Modifiers.ToDeclarationModifiers(allowsPartialModifier: false, diagnostics);
+
             var quickAttributes = DeclarationTreeBuilder.GetQuickAttributes(node.AttributeLists);
 
             return new SingleTypeDeclaration(
@@ -920,7 +916,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var memberNames = GetEnumMemberNames(node, ref declFlags);
 
             var diagnostics = DiagnosticBag.GetInstance();
-            var modifiers = node.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: true, diagnostics: diagnostics);
+            var modifiers = node.Modifiers.ToDeclarationModifiers(allowsPartialModifier: false, diagnostics);
+
             var quickAttributes = DeclarationTreeBuilder.GetQuickAttributes(node.AttributeLists);
 
             if (node.OpenBraceToken == default && node.CloseBraceToken == default && node.SemicolonToken != default)

@@ -16,6 +16,7 @@
     <ProjectReference Include="..\..\Compilers\Extension\Roslyn.Compilers.Extension.csproj" />
     <ProjectReference Include="..\..\ExpressionEvaluator\Package\ExpressionEvaluatorPackage.csproj" />
     <ProjectReference Include="..\..\Razor\src\Razor\test\Microsoft.VisualStudio.Razor.IntegrationTests\Microsoft.VisualStudio.Razor.IntegrationTests.csproj" />
+    <ProjectReference Include="..\..\RoslynSdk\VisualStudio.Roslyn.SDK\Test\Roslyn.SDK.IntegrationTests\Roslyn.SDK.IntegrationTests.csproj" />
     <!-- Only the dedicated dependency VSIX needs BuildDependencyVsix.
          Scoping the property here avoids duplicate configured builds of shared dependencies that can race on common outputs. -->
     <ProjectReference Include="..\..\Razor\src\Razor\src\Microsoft.VisualStudio.RazorExtension.Dependencies\Microsoft.VisualStudio.RazorExtension.Dependencies.csproj">
