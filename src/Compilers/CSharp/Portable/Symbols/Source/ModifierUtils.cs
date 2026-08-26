@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // `partial` normally must be last. Preserve the historical exception for ordinary methods ending in
                 // `partial async`. Ordinary methods are the only declarations that allow both modifiers; elsewhere,
-                // either `partial` is rejected here or `async` is rejected by normal modifier validation.
+                // either `partial` is rejected here or `async` is rejected by ModifierUtils.CheckModifiers.
                 var isLegalLocation =
                     i == modifiers.Count - 1 ||
                     (i == modifiers.Count - 2 && modifiers[i + 1].ContextualKind() is SyntaxKind.AsyncKeyword);
