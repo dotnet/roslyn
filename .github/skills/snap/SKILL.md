@@ -158,7 +158,7 @@ Two VS versions are involved, and their schedules have different purposes:
 - **Snapped version** (the current `main` version): supplies the upcoming VS `main` → `rel/insiders` snap date and the `release/insiders` QB window. For a snap for 18.11, use the Dev18.11 schedule.
 - **After-snap main version** (current version + 1 minor): supplies the start of the new `main` feature-development cycle. For a snap for 18.11, use Dev18.12 only for this context; do **not** use its later QB dates in the 18.11 announcement.
 
-If the user provides a DevDiv schedule URL, read it directly when supported. Otherwise, use the authenticated Bluebird MCP server:
+Use an MCP server to find the schedule:
 1. Search the `DevDiv.wiki` repository in organization/project `devdiv/DevDiv` for `Dev{version} Schedule` with `project_search` method `wiki`.
 2. Read the returned page path with `code_read` method `content`.
 3. For the snapped version, extract:
