@@ -386,6 +386,350 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         Assert.DoesNotContain("u8)", result.GeneratedSources[0].SourceText.ToString());
     }
 
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3050748")]
+    public async Task Utf8HtmlLiterals_IncrementalUpdate_DoesNotDuplicateComponentTypeInferenceMethods()
+    {
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Components/Page.razor"] = """
+                    @using MyApp
+                    <GenericComponent Value="42" />
+                    """,
+                ["Pages/Index.cshtml"] = """
+                    @inherits MyApp.MyPageBase
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["GenericComponent.cs"] = """
+                    using Microsoft.AspNetCore.Components;
+
+                    namespace MyApp;
+
+                    public sealed class GenericComponent<T> : ComponentBase
+                    {
+                        [Parameter]
+                        public T Value { get; set; } = default!;
+                    }
+                    """,
+                ["MyPageBase.cs"] = """
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    namespace MyApp;
+
+                    public abstract class MyPageBase : RazorPage
+                    {
+                    }
+                    """,
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        var result = RunGenerator(compilation!, ref driver);
+        var originalComponentSource = result.GeneratedSources
+            .Single(s => s.HintName.EndsWith("Page_razor.g.cs", StringComparison.Ordinal))
+            .SourceText;
+
+        var baseClassDocument = project.Documents.Single(d => d.Name == "MyPageBase.cs");
+        project = baseClassDocument.WithText(SourceText.From("""
+                using System;
+                using Microsoft.AspNetCore.Mvc.Razor;
+
+                namespace MyApp;
+
+                public abstract class MyPageBase : RazorPage
+                {
+                    public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                    {
+                        WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                    }
+                }
+                """, Encoding.UTF8)).Project;
+
+        compilation = await project.GetCompilationAsync();
+        result = RunGenerator(compilation!, ref driver);
+
+        var updatedComponentSource = result.GeneratedSources
+            .Single(s => s.HintName.EndsWith("Page_razor.g.cs", StringComparison.Ordinal))
+            .SourceText;
+
+        Assert.Equal(originalComponentSource.ToString(), updatedComponentSource.ToString());
+    }
+
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3050748")]
+    public async Task IncrementalUpdate_WhenInheritsTypeChanges_DoesNotDuplicateComponentTypeInferenceMethods()
+    {
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Components/Page.razor"] = """
+                    @using MyApp
+                    <GenericComponent Value="42" />
+                    """,
+                ["Pages/Index.cshtml"] = """
+                    @inherits PageBaseAlias
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["GenericComponent.cs"] = """
+                    using Microsoft.AspNetCore.Components;
+
+                    namespace MyApp;
+
+                    public sealed class GenericComponent<T> : ComponentBase
+                    {
+                        [Parameter]
+                        public T Value { get; set; } = default!;
+                    }
+                    """,
+                ["PageBases.cs"] = """
+                    global using PageBaseAlias = MyApp.FirstPageBase;
+
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    namespace MyApp;
+
+                    public abstract class FirstPageBase : RazorPage
+                    {
+                    }
+
+                    public abstract class SecondPageBase : RazorPage
+                    {
+                    }
+                    """,
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        var result = RunGenerator(compilation!, ref driver);
+        var originalComponentSource = result.GeneratedSources
+            .Single(s => s.HintName.EndsWith("Page_razor.g.cs", StringComparison.Ordinal))
+            .SourceText;
+
+        var pageBasesDocument = project.Documents.Single(d => d.Name == "PageBases.cs");
+        project = pageBasesDocument.WithText(SourceText.From("""
+                global using PageBaseAlias = MyApp.SecondPageBase;
+
+                using Microsoft.AspNetCore.Mvc.Razor;
+
+                namespace MyApp;
+
+                public abstract class FirstPageBase : RazorPage
+                {
+                }
+
+                public abstract class SecondPageBase : RazorPage
+                {
+                }
+                """, Encoding.UTF8)).Project;
+
+        compilation = await project.GetCompilationAsync();
+        result = RunGenerator(compilation!, ref driver);
+
+        var updatedComponentSource = result.GeneratedSources
+            .Single(s => s.HintName.EndsWith("Page_razor.g.cs", StringComparison.Ordinal))
+            .SourceText;
+
+        Assert.Equal(originalComponentSource.ToString(), updatedComponentSource.ToString());
+    }
+
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3050748")]
+    public async Task Utf8HtmlLiterals_IncrementalUpdate_SwitchesBackToStringLiteralsWhenOverloadRemoved()
+    {
+        // The same driver is reused across runs, and the UTF-8 overload is removed by editing the
+        // base class's .cs file rather than the .cshtml. The .cshtml document is therefore unchanged
+        // and its parsed/optimized output is cached; only the UTF-8 support map changes. Emission
+        // must recompute the decision so support that disappears turns byte literals back off.
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/Index.cshtml"] = """
+                    @inherits MyApp.MyPageBase
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyPageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    namespace MyApp;
+
+                    public abstract class MyPageBase : RazorPage
+                    {
+                        public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                        {
+                            WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                        }
+                    }
+                    """,
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        var result = RunGenerator(compilation!, ref driver, out _, _ => { });
+        Assert.Contains("u8)", result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString());
+
+        var baseClassDocument = project.Documents.Single(d => d.Name == "MyPageBase.cs");
+        project = baseClassDocument.WithText(SourceText.From("""
+                using Microsoft.AspNetCore.Mvc.Razor;
+
+                namespace MyApp;
+
+                public abstract class MyPageBase : RazorPage
+                {
+                }
+                """, Encoding.UTF8)).Project;
+
+        compilation = await project.GetCompilationAsync();
+        result = RunGenerator(compilation!, ref driver, out _, _ => { });
+
+        Assert.DoesNotContain("u8)", result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString());
+    }
+
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3050748")]
+    public async Task Utf8HtmlLiterals_IncrementalUpdate_OnlyReRunsEmissionNotOptimization()
+    {
+        // Adding the UTF-8 overload edits a .cs source, not the .cshtml, so the document's parsed and
+        // optimized intermediate tree is unaffected and only the project-wide UTF-8 support map changes.
+        // The optimization step must stay cached (replaying it is what duplicated appended nodes); only
+        // read-only C# emission re-runs.
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/Index.cshtml"] = """
+                    @inherits MyApp.MyPageBase
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyPageBase.cs"] = """
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    namespace MyApp;
+
+                    public abstract class MyPageBase : RazorPage
+                    {
+                    }
+                    """,
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var (driver, _, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
+
+        var result = RunGenerator(compilation!, ref driver, out _, _ => { });
+        Assert.DoesNotContain("u8)", result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString());
+
+        var baseClassDocument = project.Documents.Single(d => d.Name == "MyPageBase.cs");
+        project = baseClassDocument.WithText(SourceText.From("""
+                using System;
+                using Microsoft.AspNetCore.Mvc.Razor;
+
+                namespace MyApp;
+
+                public abstract class MyPageBase : RazorPage
+                {
+                    public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                    {
+                        WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                    }
+                }
+                """, Encoding.UTF8)).Project;
+
+        compilation = await project.GetCompilationAsync();
+        result = RunGenerator(compilation!, ref driver, out _, _ => { });
+        Assert.Contains("u8)", result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString());
+
+        // The optimized intermediate tree is reused; the UTF-8 decision flips, so only C# emission
+        // re-runs.
+        result.VerifyIncrementalSteps("OptimizedDocuments", IncrementalStepRunReason.Cached);
+        result.VerifyIncrementalSteps("Utf8Documents", IncrementalStepRunReason.Modified);
+        result.VerifyIncrementalSteps("GeneratedCode", IncrementalStepRunReason.Modified);
+    }
+
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3050748")]
+    public async Task Utf8HtmlLiterals_IncrementalUpdate_DoesNotReEmitUnaffectedComponent()
+    {
+        // Editing the .cshtml base class flips only that page's UTF-8 decision. An unrelated generic
+        // component's optimized tree and UTF-8 flag are unchanged, so its C# emission stays cached --
+        // it is neither re-lowered (which duplicated its type-inference methods) nor re-emitted.
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Components/Page.razor"] = """
+                    @using MyApp
+                    <GenericComponent Value="42" />
+                    """,
+                ["Pages/Index.cshtml"] = """
+                    @inherits MyApp.MyPageBase
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["GenericComponent.cs"] = """
+                    using Microsoft.AspNetCore.Components;
+
+                    namespace MyApp;
+
+                    public sealed class GenericComponent<T> : ComponentBase
+                    {
+                        [Parameter]
+                        public T Value { get; set; } = default!;
+                    }
+                    """,
+                ["MyPageBase.cs"] = """
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    namespace MyApp;
+
+                    public abstract class MyPageBase : RazorPage
+                    {
+                    }
+                    """,
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var (driver, _, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
+
+        RunGenerator(compilation!, ref driver, out _, _ => { });
+
+        var baseClassDocument = project.Documents.Single(d => d.Name == "MyPageBase.cs");
+        project = baseClassDocument.WithText(SourceText.From("""
+                using System;
+                using Microsoft.AspNetCore.Mvc.Razor;
+
+                namespace MyApp;
+
+                public abstract class MyPageBase : RazorPage
+                {
+                    public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                    {
+                        WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                    }
+                }
+                """, Encoding.UTF8)).Project;
+
+        compilation = await project.GetCompilationAsync();
+        var result = RunGenerator(compilation!, ref driver, out _, _ => { });
+
+        // Exactly one document (the .cshtml) re-emits; the other (the component) stays cached.
+        var reasons = result.TrackedSteps["GeneratedCode"]
+            .SelectMany(step => step.Outputs.Select(output => output.Reason))
+            .ToArray();
+        Assert.Equal(2, reasons.Length);
+        Assert.Equal(1, reasons.Count(reason => reason == IncrementalStepRunReason.Modified));
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
     public async Task Utf8HtmlLiterals_NoInheritsDirective_UsesStringLiterals()
     {

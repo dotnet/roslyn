@@ -34,21 +34,6 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
     protected override RazorConfiguration Configuration => _configuration;
 
-    protected override void ConfigureProjectEngine(RazorProjectEngineBuilder builder)
-    {
-        base.ConfigureProjectEngine(builder);
-
-        // Register the UTF-8 WriteLiteral feature with a pre-computed support map.
-        var supportMap = new DefaultUtf8WriteLiteralFeature.Utf8SupportMap(
-            ImmutableSortedDictionary<string, string>.Empty,
-            ImmutableSortedDictionary.CreateRange(StringComparer.Ordinal, new[]
-            {
-                new KeyValuePair<string, bool>("MyUtf8PageBase", true),
-                new KeyValuePair<string, bool>("MyPageBase", false),
-            }));
-        builder.Features.Add(new DefaultUtf8WriteLiteralFeature { SupportMap = supportMap });
-    }
-
     #region Runtime
 
     [ConditionalFact(typeof(IsEnglishLocal))]
@@ -959,82 +944,6 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         AssertCSharpDocumentMatchesBaseline(csharp);
         AssertSourceMappingsMatchBaseline(generated.CodeDocument);
         CompileToAssembly(generated, throwOnFailure: false, ignoreRazorDiagnostics: true);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
-    public void Utf8HtmlLiterals_AutoDetectedFromInherits()
-    {
-        // Arrange
-        _configuration = new(RazorLanguageVersion.Preview, "MVC-3.0", Extensions: []);
-
-        AddCSharpSyntaxTree("""
-
-            using System;
-            using System.Threading.Tasks;
-            using Microsoft.AspNetCore.Mvc.Razor;
-
-            public abstract class MyUtf8PageBase : RazorPage
-            {
-                public void WriteLiteral(ReadOnlySpan<byte> value)
-                {
-                    WriteLiteral(System.Text.Encoding.UTF8.GetString(value));
-                }
-            }
-
-            """);
-
-        // Act
-        var generated = CompileToCSharp("""
-            @inherits MyUtf8PageBase
-
-            <html>
-            <body>
-                <h1>Hello World</h1>
-                <p>This is UTF-8 encoded HTML content.</p>
-            </body>
-            </html>
-            """);
-
-        // Assert
-        CompileToAssembly(generated);
-
-        var generatedCode = generated.CodeDocument.GetCSharpDocument().Text.ToString();
-        Assert.Contains("u8)", generatedCode);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
-    public void Utf8HtmlLiterals_WithoutOverload_UsesStringLiterals()
-    {
-        // Arrange
-        _configuration = new(RazorLanguageVersion.Preview, "MVC-3.0", Extensions: []);
-
-        AddCSharpSyntaxTree("""
-
-            using System.Threading.Tasks;
-            using Microsoft.AspNetCore.Mvc.Razor;
-
-            public abstract class MyPageBase : RazorPage
-            {
-            }
-
-            """);
-
-        // Act
-        var generated = CompileToCSharp("""
-            @inherits MyPageBase
-
-            <html>
-            <body>
-                <h1>Hello World</h1>
-            </body>
-            </html>
-            """);
-
-        // Assert
-        CompileToAssembly(generated);
-
-        var generatedCode = generated.CodeDocument.GetCSharpDocument().Text.ToString();
-        Assert.DoesNotContain("u8)", generatedCode);
     }
 
     #endregion

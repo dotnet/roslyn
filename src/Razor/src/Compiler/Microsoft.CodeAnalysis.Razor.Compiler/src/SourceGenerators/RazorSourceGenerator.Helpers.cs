@@ -134,8 +134,6 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     builder.CSharpParseOptions = razorSourceGeneratorOptions.CSharpParseOptions;
                 });
 
-                b.Features.Add(new DefaultUtf8WriteLiteralFeature());
-
                 CompilerFeatures.Register(b);
                 RazorExtensions.Register(b);
 
