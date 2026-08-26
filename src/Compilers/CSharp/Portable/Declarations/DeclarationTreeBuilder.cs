@@ -785,10 +785,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Extensions never allow 'partial'.
-            var modifiers = node.Modifiers.ToDeclarationModifiers(
-                isForTypeDeclaration: true,
-                allowsPartialModifier: kind != DeclarationKind.Extension,
-                diagnostics);
+            var modifiers = node.Modifiers.ToDeclarationModifiers(allowsPartialModifier: kind != DeclarationKind.Extension, diagnostics);
 
             var quickAttributes = GetQuickAttributes(node.AttributeLists);
 
@@ -855,7 +852,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
 
             var modifiers = node.Modifiers.ToDeclarationModifiers(
-                isForTypeDeclaration: true,
                 allowsPartialModifier: false,
                 diagnostics);
 
@@ -891,10 +887,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var memberNames = GetEnumMemberNames(node, ref declFlags);
 
             var diagnostics = DiagnosticBag.GetInstance();
-            var modifiers = node.Modifiers.ToDeclarationModifiers(
-                isForTypeDeclaration: true,
-                allowsPartialModifier: false,
-                diagnostics);
+            var modifiers = node.Modifiers.ToDeclarationModifiers(allowsPartialModifier: false, diagnostics);
 
             var quickAttributes = DeclarationTreeBuilder.GetQuickAttributes(node.AttributeLists);
 

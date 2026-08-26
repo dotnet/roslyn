@@ -375,7 +375,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // are reported now.
             ModifierUtils.ToDeclarationModifiers(
                 syntax.Modifiers,
-                isForTypeDeclaration: false,
                 allowsPartialModifier: false,
                 diagnostics.DiagnosticBag ?? new DiagnosticBag());
 

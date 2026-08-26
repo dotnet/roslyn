@@ -51,7 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _declarationModifiers =
                 DeclarationModifiers.Private |
                 syntax.Modifiers.ToDeclarationModifiers(
-                    isForTypeDeclaration: false,
                     allowsPartialModifier: false,
                     diagnostics: _declarationDiagnostics);
 

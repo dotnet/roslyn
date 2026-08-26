@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var diagnosticBag = diagnostics.DiagnosticBag ?? new DiagnosticBag();
             var result = modifiers.ToDeclarationModifiers(
-                isForTypeDeclaration: false,
                 allowsPartialModifier: (allowedModifiers & DeclarationModifiers.Partial) != 0,
                 diagnostics: diagnosticBag);
             result = CheckModifiers(
@@ -460,7 +459,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static DeclarationModifiers ToDeclarationModifiers(
             this SyntaxTokenList modifiers,
-            bool isForTypeDeclaration,
             bool allowsPartialModifier,
             DiagnosticBag diagnostics)
         {
@@ -470,8 +468,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var i = modifiers.IndexOf(SyntaxKind.PartialKeyword);
                 var modifier = modifiers[i];
 
-                messageId.CheckFeatureAvailability(
-                    diagnostics, isForTypeDeclaration ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod);
+                var messageId = SyntaxFacts.IsTypeDeclaration(modifier.Parent.Kind()) ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod;
+                messageId.CheckFeatureAvailability(diagnostics, modifier);
 
                 // `partial` normally must be the last modifier. For compatibility, do not report an ordering error
                 // for a trailing `partial async`, which has historically been allowed on ordinary methods. Other
