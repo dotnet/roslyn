@@ -376,7 +376,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ModifierUtils.ToDeclarationModifiers(
                 syntax.Modifiers,
                 isForTypeDeclaration: false,
-                isOrdinaryMethod: false,
                 allowsPartialModifier: false,
                 diagnostics.DiagnosticBag ?? new DiagnosticBag());
 

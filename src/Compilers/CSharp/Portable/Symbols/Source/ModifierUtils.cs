@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal static class ModifierUtils
     {
         internal static DeclarationModifiers MakeAndCheckNonTypeMemberModifiers(
-            bool isOrdinaryMethod,
             bool isForInterfaceMember,
             SyntaxTokenList modifiers,
             DeclarationModifiers defaultAccess,
@@ -26,7 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var diagnosticBag = diagnostics.DiagnosticBag ?? new DiagnosticBag();
             var result = modifiers.ToDeclarationModifiers(
                 isForTypeDeclaration: false,
-                isOrdinaryMethod: isOrdinaryMethod,
                 allowsPartialModifier: (allowedModifiers & DeclarationModifiers.Partial) != 0,
                 diagnostics: diagnosticBag);
             result = CheckModifiers(
@@ -463,7 +461,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static DeclarationModifiers ToDeclarationModifiers(
             this SyntaxTokenList modifiers,
             bool isForTypeDeclaration,
-            bool isOrdinaryMethod,
             bool allowsPartialModifier,
             DiagnosticBag diagnostics)
         {
@@ -476,12 +473,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var messageId = isForTypeDeclaration ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod;
                 messageId.CheckFeatureAvailability(diagnostics, modifier);
 
-                // `partial` must always be the last modifier according to the language.  However, there was a bug
-                // where we allowed `partial async` at the end of modifiers on methods. We keep this behavior for
-                // backcompat.
+                // `partial` normally must be the last modifier. For compatibility, do not report an ordering error
+                // for a trailing `partial async`, which has historically been allowed on ordinary methods. Other
+                // declarations either disallow `partial` or diagnose `async` separately.
                 var isLast = i == modifiers.Count - 1;
-                var isPartialAsyncMethod = isOrdinaryMethod && i == modifiers.Count - 2 && modifiers[i + 1].ContextualKind() is SyntaxKind.AsyncKeyword;
-                if (!allowsPartialModifier || (!isLast && !isPartialAsyncMethod))
+                var isPartialAsync = i == modifiers.Count - 2 && modifiers[i + 1].ContextualKind() is SyntaxKind.AsyncKeyword;
+                if (!allowsPartialModifier || (!isLast && !isPartialAsync))
                 {
                     diagnostics.Add(
                         ErrorCode.ERR_PartialMisplaced,
