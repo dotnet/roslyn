@@ -55,7 +55,7 @@ internal sealed partial class EditorSuggestedActionWithNestedFlavors(
     /// </summary>
     public sealed override bool HasActionSets => true;
 
-    public sealed override async Task<IEnumerable<SuggestedActionSet>?> GetActionSetsAsync(CancellationToken cancellationToken)
+    public sealed override Task<IEnumerable<SuggestedActionSet>?> GetActionSetsAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -69,26 +69,26 @@ internal sealed partial class EditorSuggestedActionWithNestedFlavors(
             // Note: We must ensure that CreateAllFlavorsAsync does not perform any expensive
             // long running operations as it will be invoked when a lightbulb preview is brought
             // up for any code action.
-            _nestedFlavors = await extensionManager.PerformFunctionAsync(
-                Provider, CreateAllFlavorsAsync,
-                defaultValue: [], cancellationToken).ConfigureAwait(false);
+            _nestedFlavors = extensionManager.PerformFunction(
+                Provider, CreateAllFlavors,
+                defaultValue: []);
         }
 
         Contract.ThrowIfTrue(_nestedFlavors.IsDefault);
-        return _nestedFlavors;
+        return Task.FromResult<IEnumerable<SuggestedActionSet>?>(_nestedFlavors);
     }
 
-    private async Task<ImmutableArray<SuggestedActionSet>> CreateAllFlavorsAsync(CancellationToken cancellationToken)
+    private ImmutableArray<SuggestedActionSet> CreateAllFlavors()
     {
         using var _ = ArrayBuilder<SuggestedActionSet>.GetInstance(out var builder);
 
-        builder.Add(await GetPrimarySuggestedActionSetAsync(cancellationToken).ConfigureAwait(false));
+        builder.Add(GetPrimarySuggestedActionSet());
         builder.AddIfNotNull(_fixAllFlavors);
 
         return builder.ToImmutableAndClear();
     }
 
-    private async Task<SuggestedActionSet> GetPrimarySuggestedActionSetAsync(CancellationToken cancellationToken)
+    private SuggestedActionSet GetPrimarySuggestedActionSet()
     {
         // In this method we add all the primary flavored suggested actions that need to show up
         // as hyperlinks on the lightbulb preview pane for all code actions.
