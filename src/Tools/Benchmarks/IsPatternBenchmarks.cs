@@ -23,6 +23,10 @@ public enum IsPatternPathInput
     Other,
 }
 
+/// <summary>
+/// The pattern and comparison forms are expected to have equivalent performance when short patterns use linear
+/// lowering. This benchmark detects regressions in that equivalence.
+/// </summary>
 /// <seealso href="https://github.com/dotnet/roslyn/issues/80052"/>
 [EvaluateOverhead(false)]
 public class IsPatternLeadingSlashBenchmarks
@@ -70,6 +74,10 @@ public class IsPatternLeadingSlashBenchmarks
     }
 }
 
+/// <summary>
+/// The pattern and comparison forms are expected to have equivalent performance when short patterns use linear
+/// lowering. This benchmark detects regressions in that equivalence.
+/// </summary>
 /// <seealso href="https://github.com/dotnet/runtime/pull/132452"/>
 [EvaluateOverhead(false)]
 public class IsPatternJsonTerminatorBenchmarks : IsPatternByteInputBenchmarks
@@ -81,7 +89,7 @@ public class IsPatternJsonTerminatorBenchmarks : IsPatternByteInputBenchmarks
     public int Comparisons()
     {
         var value = Value;
-        return value != '.' && value != 'E' && value != 'e'
+        return value != (byte)'.' && value != (byte)'E' && value != (byte)'e'
             ? value + 1
             : value - 1;
     }
@@ -96,6 +104,9 @@ public class IsPatternJsonTerminatorBenchmarks : IsPatternByteInputBenchmarks
     }
 }
 
+/// <summary>
+/// Compares explicit linear tests with general decision-DAG dispatch for four sparse values.
+/// </summary>
 /// <seealso href="https://github.com/dotnet/roslyn/pull/84961"/>
 [EvaluateOverhead(false)]
 public class IsPatternSparseFourValueBenchmarks : IsPatternByteInputBenchmarks
@@ -104,12 +115,15 @@ public class IsPatternSparseFourValueBenchmarks : IsPatternByteInputBenchmarks
     protected override byte LastCase => (byte)'e';
 
     [Benchmark(Baseline = true)]
-    public bool Comparisons() => Guard && (Value == '+' || Value == '.' || Value == 'E' || Value == 'e');
+    public bool Comparisons() => Guard && (Value == (byte)'+' || Value == (byte)'.' || Value == (byte)'E' || Value == (byte)'e');
 
     [Benchmark]
     public bool Pattern() => Guard && Value is (byte)'+' or (byte)'.' or (byte)'E' or (byte)'e';
 }
 
+/// <summary>
+/// Compares explicit linear tests with general decision-DAG dispatch for four dense values.
+/// </summary>
 /// <seealso href="https://github.com/dotnet/roslyn/pull/84961"/>
 [EvaluateOverhead(false)]
 public class IsPatternDenseFourValueBenchmarks : IsPatternByteInputBenchmarks
