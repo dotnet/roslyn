@@ -539,6 +539,82 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         Assert.Equal(originalComponentSource.ToString(), updatedComponentSource.ToString());
     }
 
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3052471")]
+    public async Task Utf8HtmlLiterals_IncrementalUpdate_DoesNotDuplicateMetadataAttributes()
+    {
+        // A change to one .cshtml's @inherits base type flips the project-wide UTF-8 support map,
+        // which re-runs code generation for an unrelated bystander .cshtml. That bystander's
+        // [assembly: RazorCompiledItem(...)] metadata attribute (appended by an optimization pass)
+        // must not be duplicated by the re-run.
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/Bystander.cshtml"] = """
+                    @inherits MyApp.MyPageBase
+                    <h1>Bystander</h1>
+                    """,
+                ["Pages/Index.cshtml"] = """
+                    @inherits MyApp.MyPageBase
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyPageBase.cs"] = """
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    namespace MyApp;
+
+                    public abstract class MyPageBase : RazorPage
+                    {
+                    }
+                    """,
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        var result = RunGenerator(compilation!, ref driver, out _, _ => { });
+        var originalBystanderSource = result.GeneratedSources
+            .Single(s => s.HintName.Contains("Bystander"))
+            .SourceText.ToString();
+        Assert.Equal(1, CountOccurrences(originalBystanderSource, "RazorCompiledItemAttribute("));
+
+        var baseClassDocument = project.Documents.Single(d => d.Name == "MyPageBase.cs");
+        project = baseClassDocument.WithText(SourceText.From("""
+                using System;
+                using Microsoft.AspNetCore.Mvc.Razor;
+
+                namespace MyApp;
+
+                public abstract class MyPageBase : RazorPage
+                {
+                    public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                    {
+                        WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                    }
+                }
+                """, Encoding.UTF8)).Project;
+
+        compilation = await project.GetCompilationAsync();
+        result = RunGenerator(compilation!, ref driver, out _, _ => { });
+
+        var updatedBystanderSource = result.GeneratedSources
+            .Single(s => s.HintName.Contains("Bystander"))
+            .SourceText.ToString();
+        Assert.Equal(1, CountOccurrences(updatedBystanderSource, "RazorCompiledItemAttribute("));
+
+        static int CountOccurrences(string text, string value)
+        {
+            var count = 0;
+            for (var index = text.IndexOf(value, StringComparison.Ordinal); index >= 0; index = text.IndexOf(value, index + value.Length, StringComparison.Ordinal))
+            {
+                count++;
+            }
+            return count;
+        }
+    }
+
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3050748")]
     public async Task Utf8HtmlLiterals_IncrementalUpdate_SwitchesBackToStringLiteralsWhenOverloadRemoved()
     {
