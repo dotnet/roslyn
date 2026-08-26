@@ -34,6 +34,10 @@ $script:skipList = @(
   # Work around the same XLF ResXFileRef determinism issue in Razor's VSIX package resources.
   "Microsoft.VisualStudio.RazorExtension.dll.key",
 
+  # The Syntax Visualizer VSPackage.resx uses ResXFileRef, making its debug-determinism
+  # diagnostic key path-dependent even though the DLL is deterministic.
+  "Roslyn.SyntaxVisualizer.Extension.dll.key",
+
   # Work around resx issues https://github.com/dotnet/roslyn/issues/77544
   "Text.Analyzers.dll.key",
 

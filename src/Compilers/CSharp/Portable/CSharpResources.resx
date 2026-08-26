@@ -3831,8 +3831,8 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   <data name="ERR_BadAwaitInStaticVariableInitializer" xml:space="preserve">
     <value>The 'await' operator cannot be used in a static script variable initializer.</value>
   </data>
-  <data name="ERR_AwaitInUnsafeContext" xml:space="preserve">
-    <value>Cannot await in an unsafe context</value>
+  <data name="ERR_BadAwaitInFixed" xml:space="preserve">
+    <value>Cannot await in context of a 'fixed' statement</value>
   </data>
   <data name="ERR_BadAsyncLacksBody" xml:space="preserve">
     <value>The 'async' modifier can only be used in methods that have a body.</value>
@@ -5680,8 +5680,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InvalidPropertyReadOnlyMods" xml:space="preserve">
     <value>Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</value>
   </data>
+  <data name="ERR_InvalidPropertyUnsafeMods" xml:space="preserve">
+    <value>Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</value>
+  </data>
   <data name="ERR_DuplicatePropertyReadOnlyMods" xml:space="preserve">
     <value>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</value>
+  </data>
+  <data name="ERR_SamePropertyUnsafeAccessorMods" xml:space="preserve">
+    <value>Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer '{0}'. Instead, put that modifier on the property itself.</value>
   </data>
   <data name="ERR_FieldLikeEventCantBeReadOnly" xml:space="preserve">
     <value>Field-like event '{0}' cannot be 'readonly'.</value>
@@ -6441,7 +6447,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Init-only property or indexer '{0}' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.</value>
   </data>
   <data name="ERR_DesignatorBeneathPatternCombinator" xml:space="preserve">
-    <value>A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.</value>
+    <value>A variable may not be declared within a 'not' or 'or' pattern.</value>
   </data>
   <data name="ERR_DesignatorBeforePropertyPattern" xml:space="preserve">
     <value>A variable designator must come after a property pattern.</value>
@@ -6586,6 +6592,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_FeatureNotAvailableInVersion14" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 14.0. Please use language version {1} or greater.</value>
+  </data>
+  <data name="ERR_FeatureNotAvailableInVersion15" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 15.0. Please use language version {1} or greater.</value>
   </data>
   <data name="ERR_UnexpectedArgumentList" xml:space="preserve">
     <value>Unexpected argument list.</value>
@@ -8135,9 +8144,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</value>
     <comment>'RequiresUnsafeAttribute' and 'unsafe' should not be localized.</comment>
   </data>
-  <data name="ERR_SafeModifierUnsupportedTarget" xml:space="preserve">
-    <value>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</value>
-    <comment>'safe', 'extern', and 'unsafe' should not be localized.</comment>
+  <data name="ERR_SafeModifierCannotBeUsedWithUnsafe" xml:space="preserve">
+    <value>The 'safe' and 'unsafe' modifiers cannot be used together.</value>
+    <comment>'safe' and 'unsafe' should not be localized.</comment>
   </data>
   <data name="ERR_ExternMemberRequiresUnsafeOrSafe" xml:space="preserve">
     <value>'extern' member must be marked 'unsafe' or 'safe'.</value>

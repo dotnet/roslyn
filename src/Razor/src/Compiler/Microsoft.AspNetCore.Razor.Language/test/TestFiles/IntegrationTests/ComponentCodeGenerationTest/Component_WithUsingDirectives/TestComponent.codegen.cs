@@ -16,26 +16,6 @@ using Test2
     ;
     #line default
     #line hidden
-    [global::Microsoft.AspNetCore.Components.RouteAttribute(
-    // language=Route,Component
-#nullable restore
-#line (1,7)-(1,16) "x:\dir\subdir\Test\TestComponent.cshtml"
-"/MyPage"
-
-#line default
-#line hidden
-#nullable disable
-    )]
-    [global::Microsoft.AspNetCore.Components.RouteAttribute(
-    // language=Route,Component
-#nullable restore
-#line (2,7)-(2,27) "x:\dir\subdir\Test\TestComponent.cshtml"
-"/AnotherRoute/{id}"
-
-#line default
-#line hidden
-#nullable disable
-    )]
     #nullable restore
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable

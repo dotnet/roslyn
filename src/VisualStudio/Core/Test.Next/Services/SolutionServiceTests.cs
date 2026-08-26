@@ -1198,7 +1198,7 @@ public sealed class SolutionServiceTests
 
         // By creating a checksum updater, we should notify the remote workspace of the active document.
         var listenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
-        var checksumUpdater = new SolutionChecksumUpdater(workspace, listenerProvider, CancellationToken.None);
+        using var checksumUpdater = new SolutionChecksumUpdater(workspace, listenerProvider, CancellationToken.None);
 
         var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
 
@@ -1252,7 +1252,7 @@ public sealed class SolutionServiceTests
         objectReference2_step1.AssertReleased();
 
         var listenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
-        var checksumUpdater = new SolutionChecksumUpdater(workspace, listenerProvider, CancellationToken.None);
+        using var checksumUpdater = new SolutionChecksumUpdater(workspace, listenerProvider, CancellationToken.None);
 
         var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
 

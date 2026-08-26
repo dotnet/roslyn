@@ -1,0 +1,125 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Composition;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
+using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.VisualStudio.Editor.Razor;
+
+namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
+
+#pragma warning disable IDE0065 // Misplaced using directive
+using SyntaxKind = AspNetCore.Razor.Language.SyntaxKind;
+using SyntaxNode = AspNetCore.Razor.Language.Syntax.SyntaxNode;
+#pragma warning restore IDE0065 // Misplaced using directive
+
+[Export(typeof(IRazorCompletionFactsService)), Shared]
+[method: ImportingConstructor]
+internal sealed class RazorCompletionFactsService([ImportMany] IEnumerable<IRazorCompletionItemProvider> providers) : IRazorCompletionFactsService
+{
+    private readonly ImmutableArray<IRazorCompletionItemProvider> _providers = providers.ToImmutableArray();
+
+    public ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
+    {
+        ArgHelper.ThrowIfNull(context);
+        ArgHelper.ThrowIfNull(context.TagHelperDocumentContext);
+
+        // First pass: collect results and total count.
+        // Most providers return empty for any given context, so this is cheap.
+        using var results = new PooledArrayBuilder<ImmutableArray<RazorCompletionItem>>();
+        var totalCount = 0;
+
+        foreach (var provider in _providers)
+        {
+            var items = provider.GetCompletionItems(context);
+            if (items.Length > 0)
+            {
+                results.Add(items);
+                totalCount += items.Length;
+            }
+        }
+
+        if (totalCount == 0)
+        {
+            return [];
+        }
+
+        // Single properly-sized allocation — no builder overhead needed.
+        var array = new RazorCompletionItem[totalCount];
+        var offset = 0;
+
+        foreach (var result in results)
+        {
+            result.CopyTo(array, offset);
+            offset += result.Length;
+        }
+
+        return ImmutableCollectionsMarshal.AsImmutableArray(array);
+    }
+
+    // Internal for testing
+    [return: NotNullIfNotNull(nameof(originalNode))]
+    internal static SyntaxNode? AdjustSyntaxNodeForWordBoundary(SyntaxNode? originalNode, int requestIndex)
+    {
+        if (originalNode == null)
+        {
+            return null;
+        }
+
+        // If we're on a word boundary, ie: <a hr| />, then with `includeWhitespace`, we'll get back back a whitespace node.
+        // For completion purposes, we want to walk one token back in this case. For the scenario like <a hr | />, the start of the
+        // node that FindInnermostNode will return is not the request index, so we won't end up walking that back.
+        // If we ever move to roslyn-style trivia, where whitespace is attached to the token, we can remove this, and simply check
+        // to see whether the absolute index is in the Span of the node in the relevant providers.
+        // Note - this also addresses directives, including with cursor at EOF, e.g. @fun|
+        if (originalNode.SpanStart == requestIndex
+            // allow zero-length tokens for cases when cursor is at EOF,
+            // e.g. see https://github.com/dotnet/razor/issues/9955
+            && originalNode.TryGetFirstToken(includeZeroWidth: true, out var startToken)
+            && startToken.TryGetPreviousToken(out var previousToken))
+        {
+            Debug.Assert(previousToken.Span.End == requestIndex);
+            Debug.Assert(previousToken.Kind != SyntaxKind.Marker);
+
+            return previousToken.Parent.AssumeNotNull();
+        }
+
+        // We also want to walk back for cases like <a hr|/>, which do not involve whitespace at all. For this case, we want
+        // to see if we're on the closing slash or angle bracket of a start or end tag
+        if (HtmlFacts.TryGetElementInfo(originalNode, out _, out _, closingForwardSlashOrCloseAngleToken: out var closingForwardSlashOrCloseAngleToken)
+            && closingForwardSlashOrCloseAngleToken.SpanStart == requestIndex
+            && closingForwardSlashOrCloseAngleToken.TryGetPreviousToken(out var previousToken2))
+        {
+            Debug.Assert(previousToken2.Span.End == requestIndex);
+            return previousToken2.Parent.AssumeNotNull();
+        }
+
+        // If we have @ transition right in front of an existing equals and caret is after @, e.g.
+        // <button @|="OnClick"></button>
+        // we get entire attribute from FindInnermostNode. We always want the attribute name as the context in such cases,
+        // so we adjust it to be the attrbute name node.
+        if (originalNode is MarkupAttributeBlockSyntax markupAttribute
+            && markupAttribute.EqualsToken.SpanStart == requestIndex)
+        {
+            return markupAttribute.Name;
+        }
+
+        // Same as above but for directive attributes with structured colon/parameter, e.g.
+        // <InputText @bind-Value:format|=""> or <InputText @bind-Value|="">
+        // When cursor is at the EqualsToken, walk back to ParameterName (or Name if no parameter).
+        if (originalNode is MarkupTagHelperDirectiveAttributeSyntax directiveAttribute
+            && directiveAttribute.EqualsToken.SpanStart == requestIndex)
+        {
+            return directiveAttribute.ParameterName ?? directiveAttribute.Name;
+        }
+
+        return originalNode;
+    }
+}

@@ -51,10 +51,13 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemb
         => _shadowCopyLoader.Value;
 
     public IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader()
-        => this.WrapLoader(AnalyzerAssemblyLoader.CreateNonLockingLoader(
-                Path.Combine(Path.GetTempPath(), nameof(Roslyn), "AnalyzerAssemblyLoader"),
+    {
+        AnalyzerAssemblyLoader.CleanLegacyShadowCopyDirectoryIfNeeded(Path.Combine(Path.GetTempPath(), nameof(Roslyn), "AnalyzerAssemblyLoader"));
+        return this.WrapLoader(AnalyzerAssemblyLoader.CreateNonLockingLoader(
+                Path.Combine(Path.GetTempPath(), nameof(Roslyn), "AnalyzerPathResolver"),
                 _assemblyPathResolvers,
                 _assemblyResolvers));
+    }
 #else
     private readonly Lazy<IAnalyzerAssemblyLoaderInternal> _shadowCopyLoader;
 
@@ -67,9 +70,12 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemb
         => _shadowCopyLoader.Value;
 
     public IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader()
-        => this.WrapLoader(AnalyzerAssemblyLoader.CreateNonLockingLoader(
-                Path.Combine(Path.GetTempPath(), nameof(Roslyn), "AnalyzerAssemblyLoader"),
+    {
+        AnalyzerAssemblyLoader.CleanLegacyShadowCopyDirectoryIfNeeded(Path.Combine(Path.GetTempPath(), nameof(Roslyn), "AnalyzerAssemblyLoader"));
+        return this.WrapLoader(AnalyzerAssemblyLoader.CreateNonLockingLoader(
+                Path.Combine(Path.GetTempPath(), nameof(Roslyn), "AnalyzerPathResolver"),
                 pathResolvers: default));
+    }
 #endif
 
     protected virtual IAnalyzerAssemblyLoaderInternal WrapLoader(IAnalyzerAssemblyLoaderInternal loader)

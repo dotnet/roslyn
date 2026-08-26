@@ -17,6 +17,7 @@ public sealed record PropertyMetadata() : MetadataObject(MetadataKind.Property)
     public bool IsGenericTyped { get; init; }
     public bool IsInitOnlyProperty { get; init; }
     public bool AcceptsStringLiteral { get; init; }
+    public bool AcceptsAssetPath { get; init; }
 
     internal override bool HasDefaultValue => Equals(Default);
 
@@ -30,6 +31,7 @@ public sealed record PropertyMetadata() : MetadataObject(MetadataKind.Property)
         builder.Append(IsGenericTyped);
         builder.Append(IsInitOnlyProperty);
         builder.Append(AcceptsStringLiteral);
+        builder.Append(AcceptsAssetPath);
     }
 
     public ref struct Builder
@@ -42,6 +44,7 @@ public sealed record PropertyMetadata() : MetadataObject(MetadataKind.Property)
         public bool IsGenericTyped { get; set; }
         public bool IsInitOnlyProperty { get; set; }
         public bool AcceptsStringLiteral { get; set; }
+        public bool AcceptsAssetPath { get; set; }
 
         public readonly PropertyMetadata Build()
             => new()
@@ -54,6 +57,7 @@ public sealed record PropertyMetadata() : MetadataObject(MetadataKind.Property)
                 IsGenericTyped = IsGenericTyped,
                 IsInitOnlyProperty = IsInitOnlyProperty,
                 AcceptsStringLiteral = AcceptsStringLiteral,
+                AcceptsAssetPath = AcceptsAssetPath,
             };
     }
 }

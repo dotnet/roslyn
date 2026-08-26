@@ -41,6 +41,12 @@ var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
 var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
 ```
 
+### Reviewable changes and completion
+
+- Keep each change focused on one coherent concern. Split independently reviewable, validatable, mergeable, or revertible work instead of combining it into a broad diff.
+- Judge change size by cognitive load and validation boundaries, not an arbitrary line count; generated and mechanical updates may be large while still representing one focused change.
+- A change is complete only after applicable formatting, analyzers, affected builds, targeted tests, generated/resource/API updates, final diff review, and documentation freshness work are complete. The canonical ordered checklist is the **Definition of Done** in `.github/copilot-instructions.md`.
+
 ## Patterns Explicitly Avoided
 
 - **No `TODO` or `TODO2` comments** — CI correctness leg flags `TODO`. Track follow-up work as a GitHub issue and link it in code (e.g. `// https://github.com/dotnet/roslyn/issues/NNNN`). Existing `TODO2` markers are a frozen baseline from when enforcement started, not a pattern to follow.
@@ -56,7 +62,7 @@ var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
 
 ## Language / Framework Constraints
 
-- SDK pinned in `global.json` (currently .NET SDK `10.0.x`); VS toolset `17.14`.
+- SDK and VS toolset pinned in `global.json`.
 - Arcade-based build (`Microsoft.DotNet.Arcade.Sdk`); package versions centralized in `Directory.Packages.props`.
 
 ## Documentation Files

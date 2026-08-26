@@ -7,6 +7,7 @@ trigger:
     - release/dev16.*-vs-deps
     - release/dev17.*
     - release/dev18.*
+    - release/*.0.*
     - release/insiders
     - release/stable
     - demos/mvu-experimentation
@@ -57,6 +58,13 @@ parameters:
 - name: VisualStudioCherryPickSHA
   type: string
   default: '(default)'
+
+- name: LocalizableBranches
+  type: object
+  default:
+    - refs/heads/main
+    - refs/heads/release/insiders
+    - refs/heads/release/stable
 
 schedules:
   - cron: "0 8 23-29 * 0"
@@ -146,11 +154,11 @@ extends:
     - ES365AIMigrationTooling
     stages:
 
-    - stage: build
-      displayName: Build and Test
+    - ${{ if containsValue(parameters.LocalizableBranches, variables['Build.SourceBranch']) }}:
+      - stage: localization
+        displayName: Localization
 
-      jobs:
-      - ${{ if or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')) }}:
+        jobs:
         - template: /eng/common/templates-official/job/onelocbuild.yml@self
           parameters:
             MirrorRepo: roslyn
@@ -158,6 +166,11 @@ extends:
             LclSource: lclFilesfromPackage
             LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
+    - stage: build
+      displayName: Build and Test
+      dependsOn: []
+
+      jobs:
       - template: /eng/common/templates-official/jobs/source-build.yml@self
 
       - job: OfficialBuild
@@ -317,14 +330,6 @@ extends:
             version: 3.1.28
             installationPath: '$(Build.SourcesDirectory)\.dotnet'
 
-        # Needed because the build fails the NuGet Tools restore without it
-        - task: UseDotNet@2
-          displayName: 'Use .NET Core sdk'
-          inputs:
-            packageType: sdk
-            useGlobalJson: true
-            workingDirectory: '$(Build.SourcesDirectory)'
-
         - task: MicroBuildSigningPlugin@4
           inputs:
             signType: ${{ parameters.SignType }}
@@ -458,24 +463,7 @@ extends:
     - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
       - template: /eng/common/templates-official/post-build/post-build.yml@self
         parameters:
-          publishingInfraVersion: 3
           publishAssetsImmediately: true
           enableSigningValidation: false
           enableNugetValidation: false
           enableSourceLinkValidation: false
-          # Enable SDL validation, passing through values from the 'DotNet-Roslyn-SDLValidation-Params' group.
-          SDLValidationParameters:
-            enable: true
-            params: >-
-              -SourceToolsList @("policheck","credscan")
-              -ArtifactToolsList @("binskim")
-              -BinskimAdditionalRunConfigParams @("IgnorePdbLoadError < True","Recurse < True","SymbolsPath < SRV*https://msdl.microsoft.com/download/symbols")
-              -TsaInstanceURL $(_TsaInstanceURL)
-              -TsaProjectName $(_TsaProjectName)
-              -TsaNotificationEmail $(_TsaNotificationEmail)
-              -TsaCodebaseAdmin $(_TsaCodebaseAdmin)
-              -TsaBugAreaPath $(_TsaBugAreaPath)
-              -TsaIterationPath $(_TsaIterationPath)
-              -TsaRepositoryName $(_TsaRepositoryName)
-              -TsaCodebaseName $(_TsaCodebaseName)
-              -TsaPublish $True
