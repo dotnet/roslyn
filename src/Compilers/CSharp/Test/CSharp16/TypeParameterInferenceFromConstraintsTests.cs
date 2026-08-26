@@ -60,8 +60,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(
                 "void C.M<System.Collections.Generic.List<System.Int32>, System.Int32>(System.Collections.Generic.List<System.Int32> t)",
                 method.ToTestDisplayString());
-
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [Fact]

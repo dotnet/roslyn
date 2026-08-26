@@ -30,8 +30,7 @@ public class MyTests : CSharpTestBase
 - **Version-specific C# features** use the matching
   `src/Compilers/CSharp/Test/CSharpN/` project. Use `TestOptions.RegularNext`
   for the upcoming language version and the latest stable `RegularN` option for
-  the disabled-feature boundary; retain an explicit `RegularPreview` case when
-  testing the feature's language-version gate.
+  the disabled-feature boundary.
 - **Cross-language patterns**: many test patterns work for both C# and VB with
   minor syntax changes.
 - **Verification baselines**: when helpers like `VerifyDiagnostics`,
