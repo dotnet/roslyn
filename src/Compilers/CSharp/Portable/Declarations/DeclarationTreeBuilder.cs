@@ -851,9 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
 
-            var modifiers = node.Modifiers.ToDeclarationModifiers(
-                allowsPartialModifier: false,
-                diagnostics);
+            var modifiers = node.Modifiers.ToDeclarationModifiers(allowsPartialModifier: false, diagnostics);
 
             var quickAttributes = DeclarationTreeBuilder.GetQuickAttributes(node.AttributeLists);
 

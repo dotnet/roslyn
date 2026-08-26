@@ -26,15 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var result = modifiers.ToDeclarationModifiers(
                 allowsPartialModifier: (allowedModifiers & DeclarationModifiers.Partial) != 0,
                 diagnostics: diagnosticBag);
-            result = CheckModifiers(
-                isForTypeDeclaration: false,
-                isForInterfaceMember,
-                result,
-                allowedModifiers,
-                errorLocation,
-                diagnostics,
-                modifiers,
-                out modifierErrors);
+            result = CheckModifiers(isForTypeDeclaration: false, isForInterfaceMember, result, allowedModifiers, errorLocation, diagnostics, modifiers, out modifierErrors);
 
             var readonlyToken = modifiers.FirstOrDefault(SyntaxKind.ReadOnlyKeyword);
             if (readonlyToken.Parent is MethodDeclarationSyntax or AccessorDeclarationSyntax or BasePropertyDeclarationSyntax or EventDeclarationSyntax)
