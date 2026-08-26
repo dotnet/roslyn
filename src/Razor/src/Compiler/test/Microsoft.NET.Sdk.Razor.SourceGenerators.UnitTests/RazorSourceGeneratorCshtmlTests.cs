@@ -722,12 +722,21 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         compilation = await project.GetCompilationAsync();
         var result = RunGenerator(compilation!, ref driver, out _, _ => { });
 
-        // Exactly one document (the .cshtml) re-emits; the other (the component) stays cached.
-        var reasons = result.TrackedSteps["GeneratedCode"]
-            .SelectMany(step => step.Outputs.Select(output => output.Reason))
-            .ToArray();
-        Assert.Equal(2, reasons.Length);
-        Assert.Equal(1, reasons.Count(reason => reason == IncrementalStepRunReason.Modified));
+        // The .cshtml re-emits (its UTF-8 decision flipped); the unrelated component stays cached.
+        // Key the run reason by source file path so we verify *which* document re-emitted -- the
+        // "GeneratedCode" step output value is a (filePath, document) tuple; grab Item1 by reflection
+        // to avoid naming the internal document type.
+        var reasonsByFile = result.TrackedSteps["GeneratedCode"]
+            .SelectMany(step => step.Outputs)
+            .ToDictionary(
+                output => (string)output.Value.GetType().GetField("Item1")!.GetValue(output.Value)!,
+                output => output.Reason);
+
+        Assert.Equal(2, reasonsByFile.Count);
+        var componentReason = reasonsByFile.Single(kvp => kvp.Key.EndsWith(".razor", StringComparison.Ordinal)).Value;
+        var pageReason = reasonsByFile.Single(kvp => kvp.Key.EndsWith(".cshtml", StringComparison.Ordinal)).Value;
+        Assert.NotEqual(IncrementalStepRunReason.Modified, componentReason);
+        Assert.Equal(IncrementalStepRunReason.Modified, pageReason);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]

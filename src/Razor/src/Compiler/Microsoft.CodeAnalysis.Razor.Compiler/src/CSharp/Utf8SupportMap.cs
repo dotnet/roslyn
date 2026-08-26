@@ -67,7 +67,7 @@ internal sealed class Utf8SupportMap : IEquatable<Utf8SupportMap>
         var typeSupport = ImmutableSortedDictionary.CreateBuilder<string, bool>(StringComparer.Ordinal);
 
         // First pass: resolve fully-qualified names via fast path, collect unresolved entries.
-        List<(int Index, InheritsInfo Info)>? unresolvedEntries = null;
+        using var _1 = ListPool<(int Index, InheritsInfo Info)>.GetPooledObject(out var unresolvedEntries);
 
         for (var i = 0; i < inheritsInfos.Length; i++)
         {
@@ -85,15 +85,15 @@ internal sealed class Utf8SupportMap : IEquatable<Utf8SupportMap>
             }
             else
             {
-                unresolvedEntries ??= [];
                 unresolvedEntries.Add((i, info));
             }
         }
 
         // Second pass: resolve remaining entries via a single augmented compilation.
-        if (unresolvedEntries is { Count: > 0 } && compilation is CSharpCompilation csharpCompilation)
+        if (unresolvedEntries.Count > 0 && compilation is CSharpCompilation csharpCompilation)
         {
-            var resolved = ResolveTypeNamesWithUsings(unresolvedEntries, csharpCompilation);
+            using var _2 = ListPool<(int Index, string Fqn)>.GetPooledObject(out var resolved);
+            ResolveTypeNamesWithUsings(unresolvedEntries, csharpCompilation, resolved);
             foreach (var (index, fqn) in resolved)
             {
                 var info = inheritsInfos[index];
@@ -116,12 +116,11 @@ internal sealed class Utf8SupportMap : IEquatable<Utf8SupportMap>
     /// compilation. Each entry's usings are scoped to a unique namespace block to prevent
     /// cross-contamination.
     /// </summary>
-    private static List<(int Index, string Fqn)> ResolveTypeNamesWithUsings(
+    private static void ResolveTypeNamesWithUsings(
         List<(int Index, InheritsInfo Info)> entries,
-        CSharpCompilation compilation)
+        CSharpCompilation compilation,
+        List<(int Index, string Fqn)> results)
     {
-        var results = new List<(int, string)>();
-
         // Build a single probe tree with namespace-scoped usings for each entry.
         using var _ = StringBuilderPool.GetPooledObject(out var sb);
         for (var i = 0; i < entries.Count; i++)
@@ -174,8 +173,6 @@ internal sealed class Utf8SupportMap : IEquatable<Utf8SupportMap>
 
             entryIndex++;
         }
-
-        return results;
     }
 
     /// <summary>
@@ -186,19 +183,24 @@ internal sealed class Utf8SupportMap : IEquatable<Utf8SupportMap>
     /// </summary>
     private static string GetFullMetadataName(INamedTypeSymbol symbol)
     {
-        var typePart = symbol.MetadataName;
+        string typePart;
 
-        if (symbol.ContainingType is not null)
+        if (symbol.ContainingType is null)
         {
-            // Walk containing types to build Outer`1+Inner chain.
-            var parts = new List<string> { typePart };
+            typePart = symbol.MetadataName;
+        }
+        else
+        {
+            // Walk containing types inner -> outer, prepending each name (and a separating '+')
+            // to build the Outer`1+Inner chain.
+            using var _ = StringBuilderPool.GetPooledObject(out var builder);
+            builder.Append(symbol.MetadataName);
             for (var current = symbol.ContainingType; current is not null; current = current.ContainingType)
             {
-                parts.Add(current.MetadataName);
+                builder.Insert(0, '+').Insert(0, current.MetadataName);
             }
 
-            parts.Reverse();
-            typePart = string.Join("+", parts);
+            typePart = builder.ToString();
         }
 
         return symbol.ContainingNamespace is { IsGlobalNamespace: false } ns
@@ -208,7 +210,9 @@ internal sealed class Utf8SupportMap : IEquatable<Utf8SupportMap>
 
     public bool IsSupported(string? filePath, string baseTypeName)
     {
-        if (filePath is not null && _fileToType.TryGetValue(filePath, out var fqn))
+        // Create() stores keys as (Source.FilePath ?? string.Empty); normalize null the same way
+        // so a document without a file path still hits its per-file entry.
+        if (_fileToType.TryGetValue(filePath ?? string.Empty, out var fqn))
         {
             return _typeSupport.TryGetValue(fqn, out var supported) && supported;
         }
