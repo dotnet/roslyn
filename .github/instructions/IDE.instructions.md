@@ -61,6 +61,9 @@ public MyService(IDependency dependency) { }
 
 ## Key Development Patterns
 
+### Copilot External Access
+Copilot integrations use feature-specific external-access services for documentation, implementation generation, semantic search, completion, and code mapping.
+
 ### TestAccessor Pattern
 Expose internal state to tests without making it public:
 ```csharp

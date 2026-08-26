@@ -20,7 +20,6 @@ using System.Runtime.CompilerServices;
 [assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsRelevantFileInfoWrapper))]
 [assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotUtilities))]
 [assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateImplementation.ImplementationDetailsWrapper))]
-[assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpCopilotCodeAnalysisService))]
 [assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpCopilotGenerateDocumentationService))]
 [assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpCopilotGenerateImplementationService))]
 [assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpOnTheFlyDocsService))]
