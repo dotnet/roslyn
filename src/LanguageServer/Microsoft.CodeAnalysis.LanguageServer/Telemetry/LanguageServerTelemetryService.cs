@@ -6,18 +6,23 @@ using System.Composition;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.Common;
-using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Telemetry;
+using Microsoft.VisualStudio.Telemetry.Metrics.Events;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 
-[Export(typeof(ITelemetryReporter)), Shared]
-internal sealed class LanguageServerTelemetryReporter : ITelemetryReporter
+/// <summary>
+/// Owns the standalone language server host's telemetry session: creates and configures it, registers
+/// the event and metric sinks, and tears everything down on shutdown. The counterpart to
+/// <c>AbstractWorkspaceTelemetryService</c> in the VS and ServiceHub hosts.
+/// </summary>
+[Export, Shared]
+internal sealed class LanguageServerTelemetryService : IDisposable
 {
     internal const string CopilotTelemetryLevelEnvironmentVariable = "COPILOT_TELEMETRY_LEVEL";
 
@@ -37,10 +42,10 @@ internal sealed class LanguageServerTelemetryReporter : ITelemetryReporter
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public LanguageServerTelemetryReporter(ServerConfiguration serverConfiguration, ILoggerFactory loggerFactory)
+    public LanguageServerTelemetryService(ServerConfiguration serverConfiguration, ILoggerFactory loggerFactory)
     {
         _serverConfiguration = serverConfiguration;
-        _logger = loggerFactory.CreateLogger<LanguageServerTelemetryReporter>();
+        _logger = loggerFactory.CreateLogger<LanguageServerTelemetryService>();
     }
 
     public void InitializeSession(string telemetryLevel, string? sessionId, bool isDefaultSession)
@@ -97,6 +102,11 @@ internal sealed class LanguageServerTelemetryReporter : ITelemetryReporter
             ? serverConfiguration.TelemetryLevel
             : Environment.GetEnvironmentVariable(CopilotTelemetryLevelEnvironmentVariable);
 
+    /// <summary>
+    /// Posts an already-named event with already-final property names, on behalf of a component that has
+    /// no session of its own (Razor's VS Code extension, via <c>ILanguageServerTelemetryReporterWrapper</c>).
+    /// Roslyn's own <c>FunctionId</c>-based events do not go through here.
+    /// </summary>
     public void Log(string name, List<KeyValuePair<string, object?>> properties)
     {
         if (_telemetrySession is null)
@@ -108,6 +118,14 @@ internal sealed class LanguageServerTelemetryReporter : ITelemetryReporter
         SetProperties(telemetryEvent, properties);
         _telemetrySession.PostEvent(telemetryEvent);
     }
+
+    /// <summary>
+    /// Posts an aggregated measurement on behalf of a component that has no session of its own. The
+    /// event must arrive intact rather than flattened: the aggregated values live on its instrument and
+    /// are only read by <see cref="TelemetrySession.PostMetricEvent"/>.
+    /// </summary>
+    public void PostMetricEvent(TelemetryMetricEvent metricEvent)
+        => _telemetrySession?.PostMetricEvent(metricEvent);
 
     public void Dispose()
     {

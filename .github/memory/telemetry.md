@@ -91,7 +91,7 @@ flush posts without standing up a real, opted-in `TelemetrySession`.
 |---|---|---|
 | **Visual Studio** | `VisualStudioWorkspaceTelemetryService.CreateLogger` via `AbstractWorkspaceTelemetryService.InitializeTelemetrySession` | `CodeMarkerLogger`, `EtwLogger`, `TraceLogger`, `RoslynActivityLogger.Sink`, `TelemetryLogger`, `FileLogger` + `VSMetricSink` |
 | **ServiceHub / OOP** | `RemoteWorkspaceTelemetryService.CreateLogger`; VS serializes its session and RPCs `InitializeTelemetrySessionAsync` | `EtwLogger`, `TraceLogger`, `TelemetryLogger` + `VSMetricSink` |
-| **Standalone LSP** | `LanguageServerTelemetryReporter.InitializeSession`, called from `Program.cs` | `TelemetryLogger` + `VSMetricSink` |
+| **Standalone LSP** | `LanguageServerTelemetryService.InitializeSession`, called from `Program.cs` | `TelemetryLogger` + `VSMetricSink` |
 | **VBCSCompiler** | `BuildServerController.RunServer` | none — uses `ICompilerServerLogger` only, by design |
 | **Tests** | `UseExportProviderAttribute` resets sinks after every test | none by default |
 
@@ -114,3 +114,10 @@ is already tag-shaped (`Property` is a name/value pair and the overloads are `Re
 It still has its own aggregation implementation (`AggregatingTelemetryLog`,
 `AggregatingTelemetryLogManager`, and the request `Counter` inside `TelemetryReporter`), which duplicates
 `VSMetricSink`. Consolidating it is tracked separately — see `.github/memory/known-issues/razor.md`.
+
+Razor's VS Code extension owns no telemetry session; it posts through the language server host's session
+via `ILanguageServerTelemetryReporterWrapper` (declared in Razor's assembly, implemented on the Roslyn
+side by `TelemetryReporterWrapper`, because the dependency runs Roslyn → Razor). That wrapper forwards
+`TelemetryMetricEvent`s **intact**. Flattening one to a name and property bag silently drops every
+aggregated value, since those live on the event's instrument and are only read by
+`TelemetrySession.PostMetricEvent` — this was a real defect in that path.

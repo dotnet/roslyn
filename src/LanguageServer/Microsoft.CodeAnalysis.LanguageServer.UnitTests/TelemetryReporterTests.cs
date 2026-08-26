@@ -5,7 +5,6 @@
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Text.Json.Nodes;
-using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 using Xunit.Abstractions;
 
@@ -16,12 +15,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 /// </summary>
 public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerHostTests(testOutputHelper)
 {
-    private ITelemetryReporter CreateReporter(ServerConfiguration serverConfiguration)
+    private LanguageServerTelemetryService CreateReporter(ServerConfiguration serverConfiguration)
     {
         // VS Telemetry requires this environment variable to be set.
         Environment.SetEnvironmentVariable("CommonPropertyBagPath", Path.GetTempFileName());
 
-        var reporter = (ITelemetryReporter?)Activator.CreateInstance(typeof(LanguageServerTelemetryReporter), serverConfiguration, LoggerFactory);
+        var reporter = (LanguageServerTelemetryService?)Activator.CreateInstance(typeof(LanguageServerTelemetryService), serverConfiguration, LoggerFactory);
         Assert.NotNull(reporter);
         return reporter;
     }
@@ -60,7 +59,7 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper) :
     [InlineData(null, false)]
     public void TestCopilotCliTelemetryLevelFailsClosed(string? telemetryLevel, bool expected)
     {
-        Assert.Equal(expected, LanguageServerTelemetryReporter.IsCopilotCliTelemetryEnabled(telemetryLevel));
+        Assert.Equal(expected, LanguageServerTelemetryService.IsCopilotCliTelemetryEnabled(telemetryLevel));
     }
 
     [Fact]
@@ -68,7 +67,7 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper) :
     {
         using var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
         var processStartTime = currentProcess.StartTime.ToFileTimeUtc();
-        var serializedSettings = LanguageServerTelemetryReporter.CreateDevKitSessionSettings("error", "test-session");
+        var serializedSettings = LanguageServerTelemetryService.CreateDevKitSessionSettings("error", "test-session");
         var expectedSettings = $$"""
             {"Id":"test-session","HostName":"Default","TelemetryLevel":"error","IsInitialSession":true,"CollectorApiKey":"0c6ae279ed8443289764825290e4f9e2-1a736e7c-1324-4338-be46-fc2a58ae4d14-7255","AppId":1010,"ProcessStartTime":{{processStartTime}}}
             """;
@@ -86,7 +85,7 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper) :
     public void TestDevKitSessionPreservesTelemetryLevelValidation()
     {
         using var session = new Microsoft.VisualStudio.Telemetry.TelemetrySession(
-            LanguageServerTelemetryReporter.CreateDevKitSessionSettings("invalid", "test-session"));
+            LanguageServerTelemetryService.CreateDevKitSessionSettings("invalid", "test-session"));
         session.Start();
 
         Assert.False(session.IsOptedIn);

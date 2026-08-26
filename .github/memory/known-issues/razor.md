@@ -1,4 +1,4 @@
----
+﻿---
 coverage: Razor-layer (src/Razor) known issues, quirks & workarounds
 ---
 

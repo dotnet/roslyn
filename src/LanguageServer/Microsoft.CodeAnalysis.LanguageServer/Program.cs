@@ -8,7 +8,6 @@ using System.IO.Pipes;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
@@ -129,11 +128,11 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
         Directory.CreateDirectory(serverConfiguration.ExtensionLogDirectory);
     }
 
-    var telemetryLevel = LanguageServerTelemetryReporter.GetTelemetryLevel(serverConfiguration);
-    var telemetryReporter = telemetryLevel is not null
-        ? exportProvider.GetExportedValue<ITelemetryReporter>()
+    var telemetryLevel = LanguageServerTelemetryService.GetTelemetryLevel(serverConfiguration);
+    var telemetryService = telemetryLevel is not null
+        ? exportProvider.GetExportedValue<LanguageServerTelemetryService>()
         : null;
-    telemetryReporter?.InitializeSession(telemetryLevel!, serverConfiguration.SessionId, isDefaultSession: true);
+    telemetryService?.InitializeSession(telemetryLevel!, serverConfiguration.SessionId, isDefaultSession: true);
 
     // Build the connection source for the configured mode. Single-server mode (stdio / connect-out pipe) yields
     // exactly one connection; daemon mode accepts many and manages its own idle timeout. Both run through the same
@@ -200,7 +199,7 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
     finally
     {
         // After the LSP server shutdown, report session wide telemetry and dispose the session.
-        telemetryReporter?.Dispose();
+        telemetryService?.Dispose();
     }
 
     return ServerExitCodes.Success;
