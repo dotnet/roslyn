@@ -151,10 +151,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Constraint-derived bounds are used only when the corresponding type parameter
         // has no bounds from ordinary argument or output inference.
-        private readonly HashSet<TypeWithAnnotations>[] _constraintExactBounds;
-        private readonly HashSet<TypeWithAnnotations>[] _constraintUpperBounds;
-        private readonly HashSet<TypeWithAnnotations>[] _constraintLowerBounds;
+#nullable enable
+        private readonly HashSet<TypeWithAnnotations>[]? _constraintExactBounds;
+        private readonly HashSet<TypeWithAnnotations>[]? _constraintUpperBounds;
+        private readonly HashSet<TypeWithAnnotations>[]? _constraintLowerBounds;
         private bool _isInferringFromConstraint;
+#nullable disable
 
         // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-9.0/nullable-reference-types-specification.md#fixing
         // If the resulting candidate is a reference type and *all* of the exact bounds or *any* of
@@ -375,6 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _dependencies = null;
             _dependenciesDirty = false;
         }
+
 #nullable enable
 
 #if DEBUG
@@ -562,7 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void AddBound(
             TypeWithAnnotations addedBound,
             HashSet<TypeWithAnnotations>[] ordinaryBounds,
-            HashSet<TypeWithAnnotations>[] constraintBounds,
+            HashSet<TypeWithAnnotations>[]? constraintBounds,
             TypeWithAnnotations methodTypeParameterWithAnnotations)
         {
             Debug.Assert(IsUnfixedTypeParameter(methodTypeParameterWithAnnotations));
@@ -601,11 +604,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool HasEffectiveBound(int methodTypeParameterIndex)
         {
             Debug.Assert(ValidIndex(methodTypeParameterIndex));
-            return HasOrdinaryBound(methodTypeParameterIndex) ||
-                (_constraintLowerBounds != null &&
-                 (_constraintLowerBounds[methodTypeParameterIndex] != null ||
-                  _constraintUpperBounds[methodTypeParameterIndex] != null ||
-                  _constraintExactBounds[methodTypeParameterIndex] != null));
+            if (HasOrdinaryBound(methodTypeParameterIndex))
+            {
+                return true;
+            }
+
+            if (_constraintLowerBounds is null)
+            {
+                return false;
+            }
+
+            Debug.Assert(_constraintUpperBounds is not null);
+            Debug.Assert(_constraintExactBounds is not null);
+            return _constraintLowerBounds[methodTypeParameterIndex] is not null ||
+                _constraintUpperBounds[methodTypeParameterIndex] is not null ||
+                _constraintExactBounds[methodTypeParameterIndex] is not null;
         }
 
         private TypeSymbol GetFixedDelegateOrFunctionPointer(TypeSymbol delegateOrFunctionPointerType)
@@ -1006,7 +1019,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:     o Xi has a non-empty set of bounds, and
             // SPEC:     o Xi does not depend on any Xj
             // SPEC:   then each such Xi is fixed.
-            return FixParameters((ref MethodTypeInferrer inferrer, int index) => !inferrer.DependsOnAny(index), ref useSiteInfo);
+            return FixParametersMatching((ref MethodTypeInferrer inferrer, int index) => !inferrer.DependsOnAny(index), ref useSiteInfo);
         }
 
         private InferenceResult FixDependentParameters(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -1014,19 +1027,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: * All unfixed type parameters Xi are fixed for which all of the following hold:
             // SPEC:   * There is at least one type parameter Xj that depends on Xi.
             // SPEC:   * Xi has a non-empty set of bounds.
-            return FixParameters((ref MethodTypeInferrer inferrer, int index) => inferrer.AnyDependsOn(index), ref useSiteInfo);
+            return FixParametersMatching((ref MethodTypeInferrer inferrer, int index) => inferrer.AnyDependsOn(index), ref useSiteInfo);
         }
 
         private delegate bool FixParametersPredicate(ref MethodTypeInferrer inferrer, int index);
 
-        private InferenceResult FixParameters(
+        private InferenceResult FixParametersMatching(
             FixParametersPredicate predicate,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // Dependency is only defined for unfixed parameters. Therefore, fixing
             // a parameter may cause all of its dependencies to become no longer
             // dependent on anything. We need to first determine which parameters need to be 
-            // fixed, and then fix them all at once.
+            // fixed before applying the fixing behavior for the active language version.
 
             var needsFixing = BitVector.Create(_methodTypeParameters.Length);
             var result = InferenceResult.NoProgress;
@@ -1046,13 +1059,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (IsFeatureTypeParameterInferenceFromConstraintsEnabled)
             {
-                if (!FixSelectedParameters(needsFixing, ref useSiteInfo))
+                // Constraint propagation can add bounds, so calculate every selected result
+                // from one snapshot before propagating any of them.
+                if (!FixParametersSimultaneously(needsFixing, ref useSiteInfo))
                 {
                     result = InferenceResult.InferenceFailed;
                 }
             }
             else
             {
+                // Preserve the legacy behavior of fixing parameters sequentially.
                 for (int param = 0; param < _methodTypeParameters.Length; param++)
                 {
                     // Fix as much as you can, even if there are errors. That will
@@ -2946,7 +2962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <see langword="true"/> if every selected parameter was fixed; otherwise,
         /// <see langword="false"/>. Successful fixes are still committed for error recovery.
         /// </returns>
-        private bool FixSelectedParameters(BitVector needsFixing, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private bool FixParametersSimultaneously(BitVector needsFixing, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(IsFeatureTypeParameterInferenceFromConstraintsEnabled);
 
@@ -3030,6 +3046,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Debug.Assert(_constraintExactBounds != null);
+                Debug.Assert(_constraintLowerBounds != null);
+                Debug.Assert(_constraintUpperBounds != null);
                 exact = _constraintExactBounds[iParam];
                 lower = _constraintLowerBounds[iParam];
                 upper = _constraintUpperBounds[iParam];
@@ -3496,6 +3514,7 @@ OuterBreak:
 
         ////////////////////////////////////////////////////////////////////////////////
 
+#nullable enable
         private bool InferTypeArgumentsFromFirstArgument(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(!_formalParameterTypes.IsDefault);
@@ -3504,7 +3523,7 @@ OuterBreak:
             Debug.Assert(_arguments.Length >= 1);
             var dest = _formalParameterTypes[0];
             var argument = _arguments[0];
-            TypeSymbol source = argument.Type;
+            TypeSymbol? source = argument.Type;
             // Rule out lambdas, nulls, and so on.
             if (!IsReallyAType(source))
             {
@@ -3525,7 +3544,7 @@ OuterBreak:
                     }
 
                     Debug.Assert(IsUnfixed(iParam));
-                    if (!HasEffectiveBound(iParam) || !FixParameter(iParam, ref useSiteInfo))
+                    if (!HasOrdinaryBound(iParam) || !FixParameter(iParam, ref useSiteInfo))
                     {
                         return false;
                     }
@@ -3553,8 +3572,9 @@ OuterBreak:
                 needsFixing[iParam] = true;
             }
 
-            return FixSelectedParameters(needsFixing, ref useSiteInfo);
+            return FixParametersSimultaneously(needsFixing, ref useSiteInfo);
         }
+#nullable disable
 
 #nullable enable
         /// <summary>

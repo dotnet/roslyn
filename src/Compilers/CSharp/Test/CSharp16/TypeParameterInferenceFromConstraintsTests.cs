@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
+#nullable enable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -19,13 +19,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     /// </summary>
     public class TypeParameterInferenceFromConstraintsTests : CSharpTestBase
     {
-        private static IMethodSymbol GetInferredMethod(CSharpCompilation comp, string methodName = "M")
+        private static IMethodSymbol GetInferredMethod(CSharpCompilation comp)
         {
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var syntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>()
-                .Single(i => model.GetSymbolInfo(i).Symbol is IMethodSymbol { Name: var name } && name == methodName);
-            return (IMethodSymbol)model.GetSymbolInfo(syntax).Symbol;
+                .Single(i => model.GetSymbolInfo(i).Symbol is IMethodSymbol { Name: "M" });
+            return Assert.IsAssignableFrom<IMethodSymbol>(model.GetSymbolInfo(syntax).Symbol);
         }
 
         [Fact]
@@ -491,10 +491,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            var expected = new[]
+            {
                 // (11,9): error CS0311: The type 'System.Collections.Generic.List<int>' cannot be used as type parameter 'TEnumerable' in the generic type or method 'C.M<TEnumerable, TElement>(TEnumerable, TElement)'. There is no implicit reference conversion from 'System.Collections.Generic.List<int>' to 'System.Collections.Generic.IEnumerable<string>'.
                 //         M(new List<int>(), "hello");
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M").WithArguments("C.M<TEnumerable, TElement>(TEnumerable, TElement)", "System.Collections.Generic.IEnumerable<string>", "TEnumerable", "System.Collections.Generic.List<int>").WithLocation(11, 9));
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M").WithArguments("C.M<TEnumerable, TElement>(TEnumerable, TElement)", "System.Collections.Generic.IEnumerable<string>", "TEnumerable", "System.Collections.Generic.List<int>").WithLocation(11, 9)
+            };
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(expected);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expected);
         }
 
         [Fact]
@@ -936,7 +941,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
             var inv = comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
-            var m = (IMethodSymbol)comp.GetSemanticModel(comp.SyntaxTrees.Single()).GetSymbolInfo(inv).Symbol;
+            var m = Assert.IsAssignableFrom<IMethodSymbol>(comp.GetSemanticModel(comp.SyntaxTrees.Single()).GetSymbolInfo(inv).Symbol);
             Assert.Equal("MyList", m.TypeArguments[0].ToTestDisplayString());
             Assert.Equal("MyEnumerator", m.TypeArguments[1].ToTestDisplayString());
             Assert.Equal("System.Int32", m.TypeArguments[2].ToTestDisplayString());
