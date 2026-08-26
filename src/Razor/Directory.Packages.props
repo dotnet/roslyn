@@ -26,7 +26,6 @@
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServices.Implementation.Symbols" Version="$(MicrosoftVisualStudioLanguageServicesPackageVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Shell.Framework" Version="18.9.918" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Implementation" Version="$(VisualStudioEditorPackagesVersion)" NoWarn="NU1701" />
-    <PackageVersion Include="Microsoft.VisualStudio.Validation" Version="18.7.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Web" Version="16.10.0-preview-1-31008-014" />
     <PackageVersion Include="Microsoft.WebTools.Languages.Html" Version="$(_MicrosoftWebToolsPackageVersion)" />
     <PackageVersion Include="Microsoft.WebTools.Languages.Html.Editor" Version="$(_MicrosoftWebToolsPackageVersion)" />
