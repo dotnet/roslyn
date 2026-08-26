@@ -12317,13 +12317,13 @@ class B2 : A
                 // (25,50): warning CS8608: Nullability of reference types in type doesn't match overridden member.
                 //     public override event System.Action<string?> E1; // 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "E1").WithLocation(25, 50),
-                // (25,50): warning CS9398: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                // (25,50): warning CS9400: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //     public override event System.Action<string?> E1; // 2
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "E1").WithArguments("event", "E1").WithLocation(25, 50),
                 // (26,49): warning CS8608: Nullability of reference types in type doesn't match overridden member.
                 //     public override event System.Action<string> E2; // 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "E2").WithLocation(26, 49),
-                // (26,49): warning CS9398: Non-nullable event 'E2' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                // (26,49): warning CS9400: Non-nullable event 'E2' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //     public override event System.Action<string> E2; // 2
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "E2").WithArguments("event", "E2").WithLocation(26, 49)
                 );
@@ -12677,10 +12677,10 @@ class B2 : IA
                 // (18,41): warning CS8612: Nullability of reference types in type of 'event Action<string?> B1.E1' doesn't match implicitly implemented member 'event Action<string> IA.E1'.
                 //     public event System.Action<string?> E1 {add {} remove{}}
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation, "E1").WithArguments("event Action<string?> B1.E1", "event Action<string> IA.E1").WithLocation(18, 41),
-                // (25,41): warning CS9398: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                // (25,41): warning CS9400: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //     public event System.Action<string?> E1; // 2
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "E1").WithArguments("event", "E1").WithLocation(25, 41),
-                // (26,40): warning CS9398: Non-nullable event 'E2' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                // (26,40): warning CS9400: Non-nullable event 'E2' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //     public event System.Action<string> E2; // 2
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "E2").WithArguments("event", "E2").WithLocation(26, 40)
                 );
@@ -75486,13 +75486,13 @@ class Test
                     // (12,9): warning CS8602: Dereference of a possibly null reference.
                     //         E1();
                     Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "E1").WithLocation(12, 9),
-                    // (16,14): warning CS9398: Non-nullable event 'E2' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                    // (16,14): warning CS9400: Non-nullable event 'E2' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                     //     event D2 E2;
                     Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "E2").WithArguments("event", "E2").WithLocation(16, 14),
                     // (20,12): warning CS8625: Cannot convert null literal to non-nullable reference type.
                     //         E2(null);
                     Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(20, 12),
-                    // (24,14): warning CS9398: Non-nullable event 'E3' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                    // (24,14): warning CS9400: Non-nullable event 'E3' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                     //     event D3 E3;
                     Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "E3").WithArguments("event", "E3").WithLocation(24, 14),
                     // (28,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -75656,7 +75656,7 @@ class Test
 " }, options: WithNullableEnable());
 
             c.VerifyDiagnostics(
-                // (8,32): warning CS9398: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                // (8,32): warning CS9400: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //     public event System.Action E1;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "E1").WithArguments("event", "E1").WithLocation(8, 32),
                 // (12,28): warning CS8602: Dereference of a possibly null reference.
@@ -75937,7 +75937,7 @@ class B
             var comp = CreateCompilation(new[] { source }, options: WithNullableEnable());
             // https://github.com/dotnet/roslyn/issues/31018: Report warnings for // 3 and // 4.
             comp.VerifyDiagnostics(
-                // (6,30): warning CS9398: Non-nullable event 'E' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                // (6,30): warning CS9400: Non-nullable event 'E' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //     event Action<A<object?>> E;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "E").WithArguments("event", "E").WithLocation(6, 30),
                 // (10,17): warning CS8622: Nullability of reference types in type of parameter 'a' of 'void B.F1(A<object> a)' doesn't match the target delegate 'Action<A<object?>>' (possibly because of nullability attributes).
@@ -77231,7 +77231,7 @@ class C
         public void NullableAttribute_04()
         {
             var source =
-@"#pragma warning disable 8618, 9398
+@"#pragma warning disable 8618, 9400
 using System.Runtime.CompilerServices;
 
 public abstract class B
@@ -77314,7 +77314,7 @@ public class CL0
 ";
 
             string source1 =
-@"#pragma warning disable 8618, 9398
+@"#pragma warning disable 8618, 9400
 using System;
 
 
@@ -77562,7 +77562,7 @@ partial class C
                 // (8,38): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //         void Test21(CL0.CL1 c, Action? x21) // 4
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 38),
-                // (11,29): warning CS9398: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                // (11,29): warning CS9400: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //         public event Action E1;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "E1").WithArguments("event", "E1").WithLocation(11, 29)
                 );
@@ -77724,7 +77724,7 @@ partial class C
                                                                 options: WithNullableEnable());
 
             c.VerifyDiagnostics(
-                // (9,29): warning CS9398: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                // (9,29): warning CS9400: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //         public event Action E1;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "E1").WithArguments("event", "E1").WithLocation(9, 29),
                 // (9,38): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
@@ -77865,7 +77865,7 @@ partial class C
                                                                 options: WithNullableEnable());
 
             c.VerifyDiagnostics(
-                // (9,29): warning CS9398: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                // (9,29): warning CS9400: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //         public event Action E1;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "E1").WithArguments("event", "E1").WithLocation(9, 29),
                 // (10,38): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
@@ -81902,7 +81902,7 @@ public class D
         public void NonNullTypesInCSharp7_FromMetadata()
         {
             var libSource = @"#nullable enable
-#pragma warning disable 8618, 9398
+#pragma warning disable 8618, 9400
 public class C
 {
     public static string field;
@@ -110294,7 +110294,7 @@ class B
 @"using System;
 #pragma warning disable 0067
 #pragma warning disable 0169
-#pragma warning disable 8618, 9398
+#pragma warning disable 8618, 9400
 delegate T? D<T>();
 class A<T>
 {
@@ -115497,7 +115497,7 @@ class C
         {
             var source =
 @"#pragma warning disable 0649
-#pragma warning disable 8618, 9398
+#pragma warning disable 8618, 9400
 delegate void D();
 class C
 {
@@ -123736,7 +123736,7 @@ class Program
             var comp = CreateCompilation(new[] { source }, options: WithNullableEnable());
             // https://github.com/dotnet/roslyn/issues/31018: Report warnings.
             comp.VerifyDiagnostics(
-                // (5,25): warning CS9398: Non-nullable event 'E' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                // (5,25): warning CS9400: Non-nullable event 'E' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //     internal event D<T> E;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "E").WithArguments("event", "E").WithLocation(5, 25)
                 );

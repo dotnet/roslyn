@@ -48,7 +48,7 @@ class C
 }";
             var comp = CreateCompilation(src, options: WithNullableEnable());
             comp.VerifyDiagnostics(
-                // (15,14): warning CS9398: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                // (15,14): warning CS9400: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //     internal C()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "C").WithArguments("event", "E1").WithLocation(15, 14));
         }
@@ -436,7 +436,7 @@ class C
 }";
             var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
-                // (5,28): warning CS9398: Non-nullable event 'E' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                // (5,28): warning CS9400: Non-nullable event 'E' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //     private static event D E;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "E").WithArguments("event", "E").WithLocation(5, 28));
         }
@@ -701,7 +701,7 @@ class C
 }";
             var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
-                // (12,12): warning CS9398: Non-nullable event 'E4' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                // (12,12): warning CS9400: Non-nullable event 'E4' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //     static C()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "C").WithArguments("event", "E4").WithLocation(12, 12));
         }
@@ -763,7 +763,7 @@ struct S
                 // (10,23): warning CS8618: Non-nullable property 'P1' is uninitialized. Consider declaring the property as nullable.
                 //         static object P1 { get; }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P1").WithArguments("property", "P1").WithLocation(10, 23),
-                // (11,24): warning CS9398: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                // (11,24): warning CS9400: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //         static event D E1;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "E1").WithArguments("event", "E1").WithLocation(11, 24),
                 // (12,16): warning CS8618: Non-nullable field 'F2' is uninitialized. Consider declaring the field as nullable.
@@ -772,7 +772,7 @@ struct S
                 // (13,16): warning CS8618: Non-nullable property 'P2' is uninitialized. Consider declaring the property as nullable.
                 //         object P2 { get; }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P2").WithArguments("property", "P2").WithLocation(13, 16),
-                // (14,17): warning CS9398: Non-nullable event 'E2' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                // (14,17): warning CS9400: Non-nullable event 'E2' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //         event D E2;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "E2").WithArguments("event", "E2").WithLocation(14, 17));
         }
@@ -1990,7 +1990,7 @@ public interface I
                 // (6,26): warning CS8618: Non-nullable property 'F3' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
                 //     public static object F3 { get; set; } // 3
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F3").WithArguments("property", "F3").WithLocation(6, 26),
-                // (7,39): warning CS9398: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                // (7,39): warning CS9400: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //     public static event System.Action E1; // 4, 5
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "E1").WithArguments("event", "E1").WithLocation(7, 39),
                 // (7,39): warning CS0067: The event 'I.E1' is never used
@@ -2033,7 +2033,7 @@ public interface I
                 // (16,12): warning CS8618: Non-nullable property 'F2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
                 //     static I() // 2, 3, 4
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "I").WithArguments("property", "F2").WithLocation(16, 12),
-                // (16,12): warning CS9398: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                // (16,12): warning CS9400: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //     static I() // 2, 3, 4
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "I").WithArguments("event", "E1").WithLocation(16, 12),
                 // (16,12): warning CS8618: Non-nullable field 'F1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.

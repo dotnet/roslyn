@@ -610,7 +610,7 @@ public class C
             VerifyAcrossCompilations(
                 source,
                 new[] { 
-                    // (8,20): warning CS9398: Non-nullable event 'D1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                    // (8,20): warning CS9400: Non-nullable event 'D1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                     //     public event D D1;
                     Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "D1").WithArguments("event", "D1").WithLocation(8, 20),
                     // (13,19): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.

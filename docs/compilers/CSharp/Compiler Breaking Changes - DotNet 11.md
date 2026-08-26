@@ -291,11 +291,11 @@ To fix the violations, use the `unsafe` block or expression, for example:
 int b = unsafe(c[null]);
 ```
 
-## Uninitialized non-nullable events now report CS9398 instead of CS8618
+## Uninitialized non-nullable events now report CS9400 instead of CS8618
 
 ***Introduced in Visual Studio 2026 version 18.10***
 
-The compiler now reports CS9398 for an uninitialized non-nullable event instead of
+The compiler now reports CS9400 for an uninitialized non-nullable event instead of
 CS8618.
 
 This change can cause a warning to appear in existing code that suppresses CS8618,
@@ -307,13 +307,13 @@ for example:
 class C
 {
 #pragma warning disable CS8618
-    public event System.Action E; // warning CS9398
+    public event System.Action E; // warning CS9400
 #pragma warning restore CS8618
 }
 ```
 
 If the event is intentionally left uninitialized, update the suppression to include
-CS9398. Otherwise, make the event nullable or initialize it as appropriate for the
+CS9400. Otherwise, make the event nullable or initialize it as appropriate for the
 application.
 
 See also https://github.com/dotnet/roslyn/issues/81679.
