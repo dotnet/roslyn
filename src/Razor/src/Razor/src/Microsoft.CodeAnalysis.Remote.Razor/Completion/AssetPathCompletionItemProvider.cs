@@ -3,7 +3,6 @@
 
 using System.Collections.Immutable;
 using System.Composition;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Text;
