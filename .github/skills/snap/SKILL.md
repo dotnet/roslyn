@@ -363,6 +363,15 @@ if ($LASTEXITCODE -ne 0 -or $createdSha -ne $oldStableSha) {
 
 Record the branch name and SHA in the session state. If old stable is being retired completely, explicitly record that this step was skipped.
 
+The new branch is SDK-only, but it inherits the old stable branch's automatic VS insertion stage. Open a branch-specific PR that changes the official pipeline's `Insert to VS` stage from a dependency on `build` to a manual trigger:
+```yaml
+    - stage: insert
+      trigger: manual
+      displayName: Insert to VS
+```
+
+This keeps official build and BAR publishing automatic while preventing the older preserved VS packages from being inserted into a newer `rel/stable` branch. Use the prior SDK servicing branch's equivalent change as the pattern (for example, commit `96105ea4e14f7330f111835111edcaefa03b8c88` for `release/10.0.3xx`).
+
 #### 3.3 Merge insiders → stable
 
 ```bash
