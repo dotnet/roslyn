@@ -14,8 +14,8 @@
 
       We should try to keep this version in sync with the version of app-local runtime in VS.
     -->
-    <MicrosoftNetCoreAppRuntimePackagesVersion>10.0.1</MicrosoftNetCoreAppRuntimePackagesVersion>
-    <MicrosoftWindowsDesktopAppRuntimePackagesVersion>10.0.1</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
+    <MicrosoftNetCoreAppRuntimePackagesVersion>10.0.11</MicrosoftNetCoreAppRuntimePackagesVersion>
+    <MicrosoftWindowsDesktopAppRuntimePackagesVersion>10.0.11</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
     <_xunitVersion>2.9.2</_xunitVersion>
     <SqliteVersion>2.1.6</SqliteVersion>
     <!-- HumanizerVersion is referenced from the Text.Analyzers.Package.csproj -->
@@ -144,6 +144,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.Utilities" Version="18.9.918" />
     <PackageVersion Include="Microsoft.VisualStudio.Utilities.Internal" Version="16.3.90" />
     <PackageVersion Include="Nerdbank.Streams" Version="2.13.16" />
+    <PackageVersion Include="Nerdbank.MessagePack" Version="1.2.34" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="StreamJsonRpc" Version="2.26.10" />
 
@@ -162,7 +163,9 @@
 
     <PackageVersion Include="Microsoft.NETCore.App.Runtime.win-arm64" Version="$(MicrosoftNetCoreAppRuntimePackagesVersion)" />
     <PackageVersion Include="Microsoft.NETCore.App.Runtime.win-x64" Version="$(MicrosoftNetCoreAppRuntimePackagesVersion)" />
-    <PackageVersion Include="Microsoft.NETCore.App.crossgen2.win-x64" Version="$(MicrosoftNetCoreAppRuntimePackagesVersion)" />
+    <!-- Pin to 10.0.1 because versions 10.0.2 and later remove READYTORUN_FLAG_SKIP_TYPE_VALIDATION
+         from our binaries, causing additional JIT compilation in VS. -->
+    <PackageVersion Include="Microsoft.NETCore.App.crossgen2.win-x64" Version="10.0.1" />
     <PackageVersion Include="Microsoft.WindowsDesktop.App.Runtime.win-arm64" Version="$(MicrosoftWindowsDesktopAppRuntimePackagesVersion)" />
     <PackageVersion Include="Microsoft.WindowsDesktop.App.Runtime.win-x64" Version="$(MicrosoftWindowsDesktopAppRuntimePackagesVersion)" />
 
@@ -170,7 +173,7 @@
       Language Server
     -->
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" Version="17.10.72-preview" />
-    <PackageVersion Include="NuGet.ProjectModel" Version="6.14.0" />
+    <PackageVersion Include="NuGet.ProjectModel" Version="6.14.3" />
     <PackageVersion Include="Microsoft.TestPlatform.TranslationLayer" Version="$(MicrosoftNETTestSdkVersion)" />
     <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="$(MicrosoftNETTestSdkVersion)" />
 
