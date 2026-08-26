@@ -7,6 +7,7 @@ trigger:
     - release/dev16.*-vs-deps
     - release/dev17.*
     - release/dev18.*
+    - release/*.0.*
     - release/insiders
     - release/stable
     - features/lsp_tools_host
@@ -430,8 +431,7 @@ extends:
             demands: ImageOverride -equals windows.vs2022.amd64
 
     - stage: insert
-      dependsOn:
-      - build
+      trigger: manual
       displayName: Insert to VS
 
       jobs:
