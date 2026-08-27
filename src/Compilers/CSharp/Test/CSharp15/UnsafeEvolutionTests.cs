@@ -49,7 +49,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         DiagnosticDescription[]? expectedLibDiagnostics = null,
         DiagnosticDescription[]? expectedLegacyLibDiagnostics = null,
         AttributeDefinition expectedRulesAttribute = AttributeDefinition.Synthesized,
-        AttributeDefinition expectedRequiresUnsafeAttribute = AttributeDefinition.Synthesized)
+        AttributeDefinition expectedRequiresUnsafeAttribute = AttributeDefinition.Synthesized,
+        Action<Compilation>? legacyLibValidator = null,
+        Action<Compilation>? updatedLibValidator = null)
     {
         optionsDll ??= TestOptions.UnsafeReleaseDll;
         var optionsExe = optionsDll.WithOutputKind(OutputKind.ConsoleApplication);
@@ -90,6 +92,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 parseOptions: parseOptions,
                 options: optionsDll.WithUpdatedMemorySafetyRules())
                 .VerifyDiagnostics(expectedLibDiagnostics ?? []);
+            updatedLibValidator?.Invoke(libUpdated);
             libUpdatedRefs = [libUpdated.ToMetadataReference()];
         }
         else
@@ -101,6 +104,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 verify: verify,
                 symbolValidator: symbolValidator)
                 .VerifyDiagnostics(expectedLibDiagnostics ?? []);
+            updatedLibValidator?.Invoke(libUpdated.Compilation);
             libUpdatedRefs = [libUpdated.GetImageReference(), libUpdated.Compilation.ToMetadataReference()];
         }
 
@@ -125,11 +129,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         if (expectedLegacyLibDiagnostics is { })
         {
-            CreateCompilation([lib, .. additionalSources],
+            var libLegacy = CreateCompilation([lib, .. additionalSources],
                 targetFramework: targetFramework,
                 parseOptions: parseOptions,
                 options: optionsDll)
                 .VerifyDiagnostics(expectedLegacyLibDiagnostics);
+            legacyLibValidator?.Invoke(libLegacy);
         }
         else
         {
@@ -152,17 +157,18 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                         ],
                         expectedDefinition: expectedSourceAttributeDefinition(expectedRequiresUnsafeAttribute));
                 })
-                .VerifyDiagnostics()
-                .GetImageReference();
+                .VerifyDiagnostics();
+            legacyLibValidator?.Invoke(libLegacy.Compilation);
+            var libLegacyRef = libLegacy.GetImageReference();
 
-            CreateCompilation(caller, [libLegacy],
+            CreateCompilation(caller, [libLegacyRef],
                 targetFramework: targetFramework,
                 parseOptions: parseOptions,
                 options: optionsExe.WithUpdatedMemorySafetyRules())
                 .VerifyEmitDiagnostics(expectedDiagnosticsWhenReferencingLegacyLib ?? []);
 
             // Legacy-rules library referenced by legacy-rules caller.
-            CreateCompilation(caller, [libLegacy],
+            CreateCompilation(caller, [libLegacyRef],
                 targetFramework: targetFramework,
                 parseOptions: parseOptions,
                 options: optionsExe)
@@ -475,8 +481,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             parseOptions: TestOptions.Script,
             options: TestOptions.ReleaseModule.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "15.0", "preview").WithLocation(1, 1),
             // error CS0518: Predefined type 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute' is not defined or imported
             Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(1, 1));
 
@@ -4210,10 +4216,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(
             // (7,15): error CS9362: 'C.GetTask()' must be used in an unsafe context because it is marked as 'unsafe'
             //         await GetTask();
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "GetTask()").WithArguments("C.GetTask()").WithLocation(7, 15),
-            // (9,20): error CS4004: Cannot await in an unsafe context
-            //         _ = unsafe(await GetTask());
-            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await GetTask()").WithLocation(9, 20));
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "GetTask()").WithArguments("C.GetTask()").WithLocation(7, 15));
     }
 
     [Fact]
@@ -5078,7 +5081,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
             class C
             {
-                // Await in unsafe block is an error regardless of unsafe modifier.
+                // Await in an unsafe block is allowed under the unsafe evolution feature.
                 async Task M1()
                 {
                     unsafe { await Task.Yield(); }
@@ -5105,21 +5108,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-            // (9,18): error CS4004: Cannot await in an unsafe context
-            //         unsafe { await Task.Yield(); }
-            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(9, 18),
             // (15,18): error CS9238: Cannot use 'yield return' in an 'unsafe' block
             //         unsafe { yield return 1; }
-            Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(15, 18),
-            // (22,9): error CS4004: Cannot await in an unsafe context
-            //         await Task.Yield();
-            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(22, 9));
+            Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(15, 18));
 
         // With updated rules: M3's body is NOT in unsafe context, so await is fine there.
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
-            // (9,18): error CS4004: Cannot await in an unsafe context
-            //         unsafe { await Task.Yield(); }
-            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(9, 18),
             // (15,18): error CS9238: Cannot use 'yield return' in an 'unsafe' block
             //         unsafe { yield return 1; }
             Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(15, 18));
@@ -5819,7 +5813,22 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (2,21): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
                 // public unsafe class C
                 Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "C").WithLocation(2, 21),
-            ]);
+            ],
+            legacyLibValidator: static comp =>
+            {
+                AssertEx.Equal("C", comp.GetTypeByMetadataName("C")!.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C.M1()", comp.GetMember("C.M1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C.M3()", comp.GetMember("C.M3").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+            },
+            updatedLibValidator: static comp =>
+            {
+                AssertEx.Equal("C", comp.GetTypeByMetadataName("C")!.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C.M1()", comp.GetMember("C.M1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+
+                AssertEx.Equal("void C.M3()", comp.GetMember("C.M3").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+                AssertEx.Equal("unsafe void C.M3()", comp.GetMember("C.M3").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("public unsafe void C.M3()", comp.GetMember("C.M3").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers | SymbolDisplayMemberOptions.IncludeAccessibility)));
+            });
     }
 
     [Fact]
@@ -6729,10 +6738,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 """,
             ],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(
-            // (1,10): error CS4004: Cannot await in an unsafe context
-            // unsafe { await new C(); }
-            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await new C()").WithLocation(1, 10));
+            .VerifyDiagnostics();
     }
 
     [Fact]
@@ -6819,10 +6825,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             [corlib],
             parseOptions: WithRuntimeAsync(TestOptions.RegularPreview),
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(
-            // (7,18): error CS4004: Cannot await in an unsafe context
-            //         unsafe { await new Task(); }
-            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await new Task()").WithLocation(7, 18));
+            .VerifyDiagnostics();
     }
 
     [Fact]
@@ -7691,12 +7694,33 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             unsafe static void M1() { }
             static void M2() { }
             """;
-        CreateCompilation([source],
-            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+        var comp = CreateCompilation(source,
+            options: TestOptions.UnsafeDebugExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
             // (1,1): error CS9362: 'M1()' must be used in an unsafe context because it is marked as 'unsafe'
             // M1();
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M1()").WithArguments("M1()").WithLocation(1, 1));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var localFunctions = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Select(s => model.GetDeclaredSymbol(s)!).ToArray();
+        Assert.Equal(2, localFunctions.Length);
+
+        // pre-existing behavior: local functions don't have any modifiers displayed
+        AssertEx.Equal("void M1()", localFunctions[0].ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+        AssertEx.Equal("void M2()", localFunctions[1].ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+
+        comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
+
+        tree = comp.SyntaxTrees.Single();
+        model = comp.GetSemanticModel(tree);
+
+        localFunctions = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Select(s => model.GetDeclaredSymbol(s)!).ToArray();
+        Assert.Equal(2, localFunctions.Length);
+
+        AssertEx.Equal("void M1()", localFunctions[0].ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+        AssertEx.Equal("void M2()", localFunctions[1].ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
     }
 
     [Fact]
@@ -7787,7 +7811,25 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (3,8): error CS9362: 'C.P2.get' must be used in an unsafe context because it is marked as 'unsafe'
                 // c.P2 = c.P2 + 123;
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2.get").WithLocation(3, 8)
-            ]);
+            ],
+            legacyLibValidator: static comp =>
+            {
+                AssertEx.Equal("int C.P1", comp.GetMember("C.P1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("int C.P1.get", comp.GetMember("C.get_P1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C.P1.set", comp.GetMember("C.set_P1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("int C.P2", comp.GetMember("C.P2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("int C.P2.get", comp.GetMember("C.get_P2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C.P2.set", comp.GetMember("C.set_P2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+            },
+            updatedLibValidator: static comp =>
+            {
+                AssertEx.Equal("int C.P1", comp.GetMember("C.P1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("int C.P1.get", comp.GetMember("C.get_P1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C.P1.set", comp.GetMember("C.set_P1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("unsafe int C.P2", comp.GetMember("C.P2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("unsafe int C.P2.get", comp.GetMember("C.get_P2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("unsafe void C.P2.set", comp.GetMember("C.set_P2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+            });
     }
 
     [Fact]
@@ -8008,7 +8050,25 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (3,1): error CS9362: 'C.P2.set' must be used in an unsafe context because it is marked as 'unsafe'
                 // c.P2 = c.P2 + 123;
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2.set").WithLocation(3, 1),
-            ]);
+            ],
+            legacyLibValidator: static comp =>
+            {
+                AssertEx.Equal("int C.P1", comp.GetMember("C.P1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("int C.P1.get", comp.GetMember("C.get_P1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C.P1.set", comp.GetMember("C.set_P1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("int C.P2", comp.GetMember("C.P2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("int C.P2.get", comp.GetMember("C.get_P2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C.P2.set", comp.GetMember("C.set_P2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+            },
+            updatedLibValidator: static comp =>
+            {
+                AssertEx.Equal("int C.P1", comp.GetMember("C.P1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("unsafe int C.P1.get", comp.GetMember("C.get_P1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C.P1.set", comp.GetMember("C.set_P1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("int C.P2", comp.GetMember("C.P2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("int C.P2.get", comp.GetMember("C.get_P2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("unsafe void C.P2.set", comp.GetMember("C.set_P2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+            });
 
         CreateCompilation([lib], parseOptions: TestOptions.Regular14).VerifyEmitDiagnostics(
             // (3,21): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -8629,7 +8689,25 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (4,9): error CS9362: 'C2.this[int].get' must be used in an unsafe context because it is marked as 'unsafe'
                 // c2[0] = c2[0] + 123;
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c2[0]").WithArguments("C2.this[int].get").WithLocation(4, 9),
-            ]);
+            ],
+            legacyLibValidator: static comp =>
+            {
+                AssertEx.Equal("int C1.this[int i]", comp.GetMember("C1.this[]").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("int C1.this[int i].get", comp.GetMember("C1.get_Item").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C1.this[int i].set", comp.GetMember("C1.set_Item").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("int C2.this[int i]", comp.GetMember("C2.this[]").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("int C2.this[int i].get", comp.GetMember("C2.get_Item").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C2.this[int i].set", comp.GetMember("C2.set_Item").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+            },
+            updatedLibValidator: static comp =>
+            {
+                AssertEx.Equal("int C1.this[int i]", comp.GetMember("C1.this[]").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("int C1.this[int i].get", comp.GetMember("C1.get_Item").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C1.this[int i].set", comp.GetMember("C1.set_Item").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("unsafe int C2.this[int i]", comp.GetMember("C2.this[]").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("unsafe int C2.this[int i].get", comp.GetMember("C2.get_Item").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("unsafe void C2.this[int i].set", comp.GetMember("C2.set_Item").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+            });
     }
 
     [Fact]
@@ -8929,7 +9007,25 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (3,6): error CS9362: 'C.E2.add' must be used in an unsafe context because it is marked as 'unsafe'
                 // c.E2 += null;
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "+=").WithArguments("C.E2.add").WithLocation(3, 6),
-            ]);
+            ],
+            legacyLibValidator: static comp =>
+            {
+                AssertEx.Equal("event Action C.E1", comp.GetMember("C.E1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C.E1.add", comp.GetMember("C.add_E1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C.E1.remove", comp.GetMember("C.remove_E1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("event Action C.E2", comp.GetMember("C.E2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C.E2.add", comp.GetMember("C.add_E2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C.E2.remove", comp.GetMember("C.remove_E2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+            },
+            updatedLibValidator: static comp =>
+            {
+                AssertEx.Equal("event Action C.E1", comp.GetMember("C.E1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C.E1.add", comp.GetMember("C.add_E1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C.E1.remove", comp.GetMember("C.remove_E1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("unsafe event Action C.E2", comp.GetMember("C.E2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("unsafe void C.E2.add", comp.GetMember("C.add_E2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("unsafe void C.E2.remove", comp.GetMember("C.remove_E2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+            });
 
         var source = """
             class C
@@ -9320,7 +9416,17 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (6,21): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
                 // public unsafe class C2(int x)
                 Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "C2").WithLocation(6, 21),
-            ]);
+            ],
+            legacyLibValidator: static comp =>
+            {
+                AssertEx.Equal("C.C(int i)", comp.GetTypeByMetadataName("C")!.Constructors.Single(c => c.Parameters.Length == 1).ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("C.C()", comp.GetTypeByMetadataName("C")!.Constructors.Single(c => c.Parameters.Length == 0).ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+            },
+            updatedLibValidator: static comp =>
+            {
+                AssertEx.Equal("C.C(int i)", comp.GetTypeByMetadataName("C")!.Constructors.Single(c => c.Parameters.Length == 1).ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("unsafe C.C()", comp.GetTypeByMetadataName("C")!.Constructors.Single(c => c.Parameters.Length == 0).ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+            });
     }
 
     [Fact]
@@ -10299,7 +10405,17 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (11,21): error CS9362: 'C.F2' must be used in an unsafe context because it is marked as 'unsafe'
                 // _ = new C { F1 = 1, F2 = 2 };
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "F2").WithArguments("C.F2").WithLocation(11, 21),
-            ]);
+            ],
+            legacyLibValidator: static comp =>
+            {
+                AssertEx.Equal("int C.F1", comp.GetMember("C.F1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("int C.F2", comp.GetMember("C.F2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+            },
+            updatedLibValidator: static comp =>
+            {
+                AssertEx.Equal("int C.F1", comp.GetMember("C.F1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("unsafe int C.F2", comp.GetMember("C.F2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+            });
 
         CreateCompilation("""
             public class C
@@ -10984,6 +11100,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics();
         var libRef = AsReference(lib, useCompilationReference);
 
+        AssertEx.Equal("void C.M1(int x)", lib.GetMember("C.M1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+        AssertEx.Equal("void C.M1(int x)", lib.GetMember("C.M1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+        AssertEx.Equal("public void C.M1(int x)", lib.GetMember("C.M1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers | SymbolDisplayMemberOptions.IncludeAccessibility)));
+
+        AssertEx.Equal($"void C.M2({parameterType} y)", lib.GetMember("C.M2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+        AssertEx.Equal($"void C.M2({parameterType} y)", lib.GetMember("C.M2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+        AssertEx.Equal($"public void C.M2({parameterType} y)", lib.GetMember("C.M2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers | SymbolDisplayMemberOptions.IncludeAccessibility)));
+
         var source = """
             var c = new C();
             c.M1(0);
@@ -10998,10 +11122,18 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.M2(null)").WithArguments($"C.M2({parameterType})").WithLocation(3, 1),
         };
 
-        CreateCompilation(source,
+        var comp = CreateCompilation(source,
             [libRef],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(expectedDiagnostics);
+
+        AssertEx.Equal("void C.M1(int x)", comp.GetMember("C.M1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+        AssertEx.Equal("void C.M1(int x)", comp.GetMember("C.M1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+        AssertEx.Equal("public void C.M1(int x)", comp.GetMember("C.M1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers | SymbolDisplayMemberOptions.IncludeAccessibility)));
+
+        AssertEx.Equal($"void C.M2({parameterType} y)", comp.GetMember("C.M2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+        AssertEx.Equal($"void C.M2({parameterType} y)", comp.GetMember("C.M2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+        AssertEx.Equal($"public void C.M2({parameterType} y)", comp.GetMember("C.M2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers | SymbolDisplayMemberOptions.IncludeAccessibility)));
 
         CompileAndVerify("""
             var c = new C();
@@ -11031,10 +11163,18 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // c.M2(null);
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "c.M2(null)").WithLocation(3, 1));
 
-        CreateCompilation(source,
+        comp = CreateCompilation(source,
             [libRef],
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics(expectedDiagnostics);
+
+        AssertEx.Equal("void C.M1(int x)", comp.GetMember("C.M1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+        AssertEx.Equal("void C.M1(int x)", comp.GetMember("C.M1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+        AssertEx.Equal("public void C.M1(int x)", comp.GetMember("C.M1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers | SymbolDisplayMemberOptions.IncludeAccessibility)));
+
+        AssertEx.Equal($"void C.M2({parameterType} y)", comp.GetMember("C.M2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+        AssertEx.Equal($"void C.M2({parameterType} y)", comp.GetMember("C.M2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+        AssertEx.Equal($"public void C.M2({parameterType} y)", comp.GetMember("C.M2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers | SymbolDisplayMemberOptions.IncludeAccessibility)));
 
         CreateCompilation(source,
             [libRef],
@@ -14335,9 +14475,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             parseOptions: TestOptions.RegularNext,
             options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe)).VerifyEmitDiagnostics();
 
-        CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe)).VerifyEmitDiagnostics();
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe)).VerifyEmitDiagnostics();
 
-        CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+        AssertEx.Equal("void C.M()", comp.GetMember("C.M").ToDisplayString(SymbolDisplayFormat.TestFormat));
+        AssertEx.Equal("extern void C.M()", comp.GetMember("C.M").ToDisplayString(SymbolDisplayFormat.TestFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+        AssertEx.Equal("public extern void C.M()", comp.GetMember("C.M").ToDisplayString(SymbolDisplayFormat.TestFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers | SymbolDisplayMemberOptions.IncludeAccessibility)));
+
+        comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
             // (4,12): error CS9389: 'extern' member must be marked 'unsafe' or 'safe'.
             //     public extern void M();
             Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(4, 12),
@@ -14365,6 +14509,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (25,16): error CS9389: 'extern' member must be marked 'unsafe' or 'safe'.
             //         static extern void Local();
             Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(25, 16));
+
+        AssertEx.Equal("void C.M()", comp.GetMember("C.M").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+        AssertEx.Equal("extern void C.M()", comp.GetMember("C.M").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+        AssertEx.Equal("public extern void C.M()", comp.GetMember("C.M").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers | SymbolDisplayMemberOptions.IncludeAccessibility)));
     }
 
     [Fact]
@@ -14415,15 +14563,23 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe, "safe").WithLocation(12, 9),
         };
 
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+        var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
 
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+        AssertEx.Equal("void C.M1()", comp.GetMember("C.M1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+        AssertEx.Equal("extern void C.M1()", comp.GetMember("C.M1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+        AssertEx.Equal("public extern void C.M1()", comp.GetMember("C.M1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers | SymbolDisplayMemberOptions.IncludeAccessibility)));
+
+        comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
             [
                 .. expectedDiagnostics,
                 // (9,10): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
                 //     safe unsafe extern ~C();
                 Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "unsafe").WithLocation(9, 10),
             ]);
+
+        AssertEx.Equal("void C.M1()", comp.GetMember("C.M1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+        AssertEx.Equal("unsafe extern void C.M1()", comp.GetMember("C.M1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+        AssertEx.Equal("public unsafe extern void C.M1()", comp.GetMember("C.M1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers | SymbolDisplayMemberOptions.IncludeAccessibility)));
     }
 
     [Theory, CombinatorialData]
@@ -15184,5 +15340,254 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         comp.VerifyDiagnostics();
         var method = comp.GetTypeByMetadataName("C")!.GetMember("M");
         Assert.False(method.RequiresUnsafeContext);
+    }
+
+    [Fact]
+    public void Await_InUnsafeBlock()
+    {
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+            class C
+            {
+                static async Task Main()
+                {
+                    unsafe
+                    {
+                        await Task.Yield();
+                    }
+                    Console.Write(123);
+                }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
+            // (9,13): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //             await Task.Yield();
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("updated memory safety rules").WithLocation(9, 13));
+
+        var expectedOutput = "123";
+
+        CompileAndVerify(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        CompileAndVerify(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(), expectedOutput: expectedOutput).VerifyDiagnostics();
+        CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(), expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Await_InFixedStatement_Body()
+    {
+        var source = """
+            using System.Threading.Tasks;
+            class C
+            {
+                static async Task M(int[] a)
+                {
+                    unsafe
+                    {
+                        fixed (int* p = a)
+                        {
+                            await Task.Yield();
+                        }
+                    }
+                }
+            }
+            """;
+
+        var expectedDiagnostics = new[]
+        {
+            // (10,17): error CS9398: Cannot await in context of a 'fixed' statement
+            //                 await Task.Yield();
+            Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await").WithLocation(10, 17),
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void Await_InFixedStatement_Body_SafeContext()
+    {
+        var source = """
+            using System.Threading.Tasks;
+            class C
+            {
+                static async Task M(int[] a)
+                {
+                    fixed (int* p = a)
+                    {
+                        await Task.Yield();
+                    }
+                }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            // (6,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //         fixed (int* p = a)
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, @"fixed (int* p = a)
+        {
+            await Task.Yield();
+        }").WithLocation(6, 9),
+            // (6,16): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //         fixed (int* p = a)
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(6, 16),
+            // (8,13): error CS9398: Cannot await in context of a 'fixed' statement
+            //             await Task.Yield();
+            Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await").WithLocation(8, 13));
+
+        var expectedDiagnostics = new[]
+        {
+            // (8,13): error CS9398: Cannot await in context of a 'fixed' statement
+            //             await Task.Yield();
+            Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await").WithLocation(8, 13),
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void Await_InFixedStatement_Initializer()
+    {
+        var source = """
+            using System.Threading.Tasks;
+            class C
+            {
+                static async Task M()
+                {
+                    fixed (byte* p = await GetAsync())
+                    {
+                    }
+                }
+                static Task<byte[]> GetAsync() => null;
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            // (6,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //         fixed (byte* p = await GetAsync())
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, @"fixed (byte* p = await GetAsync())
+        {
+        }").WithLocation(6, 9),
+            // (6,16): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //         fixed (byte* p = await GetAsync())
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "byte*").WithLocation(6, 16),
+            // (6,26): error CS9398: Cannot await in context of a 'fixed' statement
+            //         fixed (byte* p = await GetAsync())
+            Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await").WithLocation(6, 26));
+
+        var expectedDiagnostics = new[]
+        {
+            // (6,26): error CS9398: Cannot await in context of a 'fixed' statement
+            //         fixed (byte* p = await GetAsync())
+            Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await").WithLocation(6, 26),
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void Await_InFixedStatement_Initializer_Multiple()
+    {
+        var source = """
+            using System.Threading.Tasks;
+            class C
+            {
+                static async Task M()
+                {
+                    fixed (byte* p1 = await GetAsync(), p2 = await GetAsync())
+                    {
+                    }
+                }
+                static Task<byte[]> GetAsync() => null;
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            // (6,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //         fixed (byte* p1 = await GetAsync(), p2 = await GetAsync())
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, @"fixed (byte* p1 = await GetAsync(), p2 = await GetAsync())
+        {
+        }").WithLocation(6, 9),
+            // (6,16): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //         fixed (byte* p1 = await GetAsync(), p2 = await GetAsync())
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "byte*").WithLocation(6, 16),
+            // (6,27): error CS9398: Cannot await in context of a 'fixed' statement
+            //         fixed (byte* p1 = await GetAsync(), p2 = await GetAsync())
+            Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await").WithLocation(6, 27),
+            // (6,50): error CS9398: Cannot await in context of a 'fixed' statement
+            //         fixed (byte* p1 = await GetAsync(), p2 = await GetAsync())
+            Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await").WithLocation(6, 50));
+
+        var expectedDiagnostics = new[]
+        {
+            // (6,27): error CS9398: Cannot await in context of a 'fixed' statement
+            //         fixed (byte* p1 = await GetAsync(), p2 = await GetAsync())
+            Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await").WithLocation(6, 27),
+            // (6,50): error CS9398: Cannot await in context of a 'fixed' statement
+            //         fixed (byte* p1 = await GetAsync(), p2 = await GetAsync())
+            Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await").WithLocation(6, 50),
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void Await_InFixedStatement_NestedLambda()
+    {
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+            class C
+            {
+                static async Task M(int[] a)
+                {
+                    fixed (int* p = a)
+                    {
+                        Func<Task> f = async () => { await Task.Yield(); };
+                        await f();
+                    }
+                }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            // (7,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //         fixed (int* p = a)
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, @"fixed (int* p = a)
+        {
+            Func<Task> f = async () => { await Task.Yield(); };
+            await f();
+        }").WithLocation(7, 9),
+            // (7,16): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //         fixed (int* p = a)
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(7, 16),
+            // (10,13): error CS9398: Cannot await in context of a 'fixed' statement
+            //             await f();
+            Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await").WithLocation(10, 13));
+
+        var expectedDiagnostics = new[]
+        {
+            // (10,13): error CS9398: Cannot await in context of a 'fixed' statement
+            //             await f();
+            Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await").WithLocation(10, 13),
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
     }
 }

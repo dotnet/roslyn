@@ -7,5 +7,3 @@
         UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
         ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
             MethodDeclaration -  - protected override - void - BuildRenderTree
-            CSharpCode - (7:0,7 [233] x:\dir\subdir\Test\TestComponent.razor)
-                LazyIntermediateToken - (7:0,7 [233] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n    public ref struct ValueRef\n    {\n        private ref int _value;\n    \n        public ValueRef(ref int value)\n        {\n            _value = ref value;\n        }\n    \n        public ref int Value => ref _value;\n    }\n

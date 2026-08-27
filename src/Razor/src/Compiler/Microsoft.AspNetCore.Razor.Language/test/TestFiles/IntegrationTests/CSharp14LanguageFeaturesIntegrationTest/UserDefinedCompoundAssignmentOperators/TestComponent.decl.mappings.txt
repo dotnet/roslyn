@@ -1,0 +1,25 @@
+﻿Source Location: (93:6,7 [191] x:\dir\subdir\Test\TestComponent.razor)
+|
+    public class Counter
+    {
+        public int Value { get; private set; }
+    
+        public void operator +=(int value)
+        {
+            Value += value;
+        }
+    }
+|
+Generated Location: (557:18,0 [191] )
+|
+    public class Counter
+    {
+        public int Value { get; private set; }
+    
+        public void operator +=(int value)
+        {
+            Value += value;
+        }
+    }
+|
+

@@ -1,0 +1,3 @@
+﻿[0003] AddContent(context.I1.MyClassId)
+[0004] AddContent(" - ")
+[0005] AddContent(context.I2.MyStructId)
