@@ -46,6 +46,14 @@ internal static partial class RoslynTelemetry
         /// set. A sink's <see cref="IEventSink.IsEnabled"/> can change while a block is open -
         /// <c>TelemetryLogger</c>'s tracks the session's opt-in state - and a sink that receives an end
         /// it has no start for either throws or leaks the pending scope.
+        /// <para>
+        /// This records which sinks were started, not where a sink <em>routed</em> that start. A sink
+        /// that resolves a per-session target from an <c>AsyncLocal</c> occupies one bit here, and a
+        /// block is a plain <see cref="IDisposable"/> not bound to an await, so it can be disposed on a
+        /// different execution context than it was created on. Such a sink must capture its resolved
+        /// target per block id at the start and reuse it at the end rather than re-resolving; nothing
+        /// here needs to change for that.
+        /// </para>
         /// </summary>
         private int _startedSinks;
 

@@ -103,4 +103,38 @@ public sealed class VSMetricSinkTests
 
         Assert.Empty(poster.Posted);
     }
+
+    /// <summary>
+    /// The meter and property names are what Kusto queries key off, so they are pinned directly rather
+    /// than inferred from a posted event.
+    /// </summary>
+    [Fact]
+    public void NameDerivationMatchesTheTelemetryConvention()
+    {
+        Assert.Equal("vs.ide.vbcs.lsp.requestduration.meter", VSMetricSink.GetMeterName("vs/ide/vbcs/lsp/requestduration"));
+        Assert.Equal("vs.ide.vbcs.lsp.requestduration.server", VSMetricSink.GetPropertyName("vs/ide/vbcs/lsp/requestduration", "server"));
+
+        // Tag names are lowercased; the event name is already lowercase by construction.
+        Assert.Equal("vs.ide.vbcs.lsp.requestduration.server", VSMetricSink.GetPropertyName("vs/ide/vbcs/lsp/requestduration", "Server"));
+    }
+
+    /// <summary>
+    /// One event and metric name used as both a counter and a distribution must resolve to two
+    /// instruments; sharing one would hand a counter to a histogram cast.
+    /// </summary>
+    [Fact]
+    public void CountersAndDistributionsDoNotShareABucket()
+    {
+        var poster = new RecordingPoster();
+        using var sink = VSMetricSink.GetTestAccessor().CreateSink(poster);
+
+        sink.Count("vs/ide/vbcs/test/both", "Value", 1, default);
+        sink.Record("vs/ide/vbcs/test/both", "Value", 42, default);
+
+        sink.Flush();
+
+        Assert.Equal(2, poster.Posted.Count);
+        Assert.Single(poster.Posted, e => e is TelemetryCounterEvent<long>);
+        Assert.Single(poster.Posted, e => e is TelemetryHistogramEvent<long>);
+    }
 }
