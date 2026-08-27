@@ -423,12 +423,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxTokenList modifiers,
             DiagnosticBag diagnostics)
         {
-            GetDeclarationModifiersAndCheckForDuplicateModifiers(modifiers, diagnostics);
+            GetDeclarationModifiersAndCheckForDuplicateModifiers(modifiers, diagnostics, out _);
         }
 
         private static DeclarationModifiers GetDeclarationModifiersAndCheckForDuplicateModifiers(
             SyntaxTokenList modifiers,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            out bool reportedDiagnostic)
         {
             var allModifiers = DeclarationModifiers.None;
 
@@ -446,15 +447,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allModifiers |= thisModifier;
             }
 
+            reportedDiagnostic = !seenNoDuplicates;
             return allModifiers;
         }
 
         public static DeclarationModifiers ToDeclarationModifiers(
             this SyntaxTokenList modifiers, bool allowsPartialModifier, DiagnosticBag diagnostics)
         {
-            var result = GetDeclarationModifiersAndCheckForDuplicateModifiers(modifiers, diagnostics);
-            reportMisplacedRefModifier();
-            reportMisplacedPartialModifier();
+            var result = GetDeclarationModifiersAndCheckForDuplicateModifiers(modifiers, diagnostics, out var reportedDiagnostic);
+
+            if (!reportedDiagnostic)
+            {
+                reportedDiagnostic = reportMisplacedRefModifier();
+            }
+
+            if (!reportedDiagnostic)
+            {
+                reportedDiagnostic = reportMisplacedPartialModifier();
+            }
 
             switch (result & DeclarationModifiers.AccessibilityMask)
             {
@@ -473,43 +483,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return result;
 
-            void reportMisplacedPartialModifier()
+            bool reportMisplacedPartialModifier()
             {
-                if ((result & DeclarationModifiers.Partial) != DeclarationModifiers.Partial)
-                    return;
-
-                var i = modifiers.IndexOf(SyntaxKind.PartialKeyword);
-                var modifier = modifiers[i];
+                var modifier = modifiers.FirstOrDefault(SyntaxKind.PartialKeyword);
+                if (modifier == default)
+                    return false;
 
                 var messageId = SyntaxFacts.IsTypeDeclaration(modifier.Parent.Kind()) ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod;
-                messageId.CheckFeatureAvailability(diagnostics, modifier);
+                if (!messageId.CheckFeatureAvailability(diagnostics, modifier))
+                    return true;
 
                 // `partial` normally must be last. Preserve the historical exception for ordinary methods ending in
                 // `partial async`. Ordinary methods are the only declarations that allow both modifiers; elsewhere,
                 // either `partial` is rejected here or `async` is rejected by ModifierUtils.CheckModifiers.
+                var i = modifiers.IndexOf(modifier);
                 var isLegalLocation =
                     i == modifiers.Count - 1 ||
                     (i == modifiers.Count - 2 && modifiers[i + 1].ContextualKind() is SyntaxKind.AsyncKeyword);
                 if (!allowsPartialModifier || !isLegalLocation)
                 {
                     diagnostics.Add(ErrorCode.ERR_PartialMisplaced, modifier.GetLocation());
+                    return true;
                 }
+
+                return false;
             }
 
-            void reportMisplacedRefModifier()
+            bool reportMisplacedRefModifier()
             {
                 var refToken = modifiers.FirstOrDefault(SyntaxKind.RefKeyword);
                 if (refToken.Parent is not StructDeclarationSyntax)
-                    return;
+                    return false;
 
                 var refIndex = modifiers.IndexOf(refToken);
-
-                // Leave duplicate 'ref' modifiers to GetDeclarationModifiersAndCheckForDuplicateModifiers.
-                for (var i = refIndex + 1; i < modifiers.Count; i++)
-                {
-                    if (modifiers[i].Kind() == SyntaxKind.RefKeyword)
-                        return;
-                }
 
                 // `ref` normally must be last. It may precede `partial` because `partial` itself must be last, as in
                 // `ref partial struct`.
@@ -519,7 +525,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!isLegalLocation)
                 {
                     diagnostics.Add(ErrorCode.ERR_BadModifierLocation, refToken.GetLocation(), refToken.Text);
+                    return true;
                 }
+
+                return false;
             }
         }
 
