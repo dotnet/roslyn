@@ -31,7 +31,7 @@ internal static partial class RoslynTelemetry
     /// its own event.
     /// </summary>
     public static IDisposable? LogBlockTime(FunctionId functionId, KeyValueLogMessage logMessage, int minThresholdMs = -1)
-        => GetEventSinks().IsEmpty ? null : new TimedEventBlock(functionId, logMessage, minThresholdMs);
+        => TryGetEnabledSinks(functionId, out _) ? new TimedEventBlock(functionId, logMessage, minThresholdMs) : null;
 
     private sealed class TimedEventBlock : IDisposable
     {

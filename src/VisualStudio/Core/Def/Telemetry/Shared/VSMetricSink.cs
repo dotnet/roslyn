@@ -16,17 +16,15 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Telemetry;
 
 /// <summary>
-/// The aggregating metric sink, backed by VS Telemetry's counter and histogram APIs.
+/// The aggregating metric sink for one <see cref="TelemetrySession"/>, backed by VS Telemetry's counter
+/// and histogram APIs.
 /// <para>
 /// Measurements accumulate in memory against a VS Telemetry instrument and are posted in batches by
-/// <see cref="Flush"/>. Aggregation is keyed by <see cref="TelemetrySessionKey"/> in addition to the
-/// instrument identity, so a process hosting more than one logical session accumulates - and posts -
-/// each session's data separately.
+/// <see cref="Flush"/>, which posts everything accumulated so far and clears.
 /// </para>
 /// <para>
-/// <see cref="Flush"/> is global: it walks every bucket, posts each to the session that produced it, and
-/// clears. Clearing on flush is what keeps a long-lived process from accruing buckets for sessions that
-/// have ended.
+/// A host that needs several sessions in one process composes one of these per session behind an
+/// <see cref="IMetricSink"/> that routes between them; nothing here needs to change for that.
 /// </para>
 /// </summary>
 internal sealed class VSMetricSink : IMetricSink
@@ -54,13 +52,12 @@ internal sealed class VSMetricSink : IMetricSink
         public void Post(TelemetryEvent telemetryEvent, TelemetryMetricEvent metricEvent) => session.PostMetricEvent(metricEvent);
     }
 
-    private readonly record struct AggregationKey(TelemetrySessionKey Session, string EventName, string MetricName, string DimensionKey);
+    private readonly record struct AggregationKey(string EventName, string MetricName, string DimensionKey);
 
-    private sealed class Aggregation(IInstrument instrument, TelemetryEvent telemetryEvent, IMetricPoster poster)
+    private sealed class Aggregation(IInstrument instrument, TelemetryEvent telemetryEvent)
     {
         public IInstrument Instrument { get; } = instrument;
         public TelemetryEvent TelemetryEvent { get; } = telemetryEvent;
-        public IMetricPoster Poster { get; } = poster;
 
         /// <summary>
         /// Guards this single aggregation. Held together with <see cref="VSMetricSink._flushLock"/>:
@@ -77,36 +74,18 @@ internal sealed class VSMetricSink : IMetricSink
     private readonly object _flushLock = new();
 
     private readonly VSTelemetryMeterProvider _meterProvider = new();
-    private readonly IMetricPoster _defaultPoster;
+    private readonly IMetricPoster _poster;
 
     private ImmutableDictionary<AggregationKey, Aggregation> _aggregations = ImmutableDictionary<AggregationKey, Aggregation>.Empty;
     private ImmutableDictionary<string, IMeter> _meters = ImmutableDictionary<string, IMeter>.Empty;
-    private ImmutableDictionary<TelemetrySessionKey, IMetricPoster> _posters = ImmutableDictionary<TelemetrySessionKey, IMetricPoster>.Empty;
 
-    internal VSMetricSink(IMetricPoster defaultPoster)
+    public VSMetricSink(TelemetrySession session)
+        : this(new SessionPoster(session))
     {
-        _defaultPoster = defaultPoster;
-        _posters = _posters.Add(TelemetrySessionKey.Default, defaultPoster);
     }
 
-    /// <summary>
-    /// Creates the sink and registers it as the process-wide metric destination.
-    /// </summary>
-    public static VSMetricSink Create(TelemetrySession session)
-    {
-        var sink = new VSMetricSink(new SessionPoster(session));
-        RoslynTelemetry.SetMetricSink(sink);
-        return sink;
-    }
-
-    /// <summary>
-    /// Associates a session with a key, for hosts that run more than one logical session per process.
-    /// </summary>
-    public void RegisterSession(TelemetrySessionKey key, TelemetrySession session)
-    {
-        var poster = new SessionPoster(session);
-        ImmutableInterlocked.AddOrUpdate(ref _posters, key, poster, (_, _) => poster);
-    }
+    internal VSMetricSink(IMetricPoster poster)
+        => _poster = poster;
 
     public void Count(string eventName, string metricName, long delta, ReadOnlySpan<KeyValuePair<string, object?>> tags)
     {
@@ -140,9 +119,6 @@ internal sealed class VSMetricSink : IMetricSink
             foreach (var pair in aggregations)
             {
                 var aggregation = pair.Value;
-                if (!aggregation.Poster.IsOptedIn)
-                    continue;
-
                 // Excludes concurrent Add/Record on this instrument while the metric event is built
                 // from it and posted.
                 lock (aggregation.Lock)
@@ -154,7 +130,7 @@ internal sealed class VSMetricSink : IMetricSink
                         _ => throw ExceptionUtilities.UnexpectedValue(aggregation.Instrument),
                     };
 
-                    aggregation.Poster.Post(aggregation.TelemetryEvent, metricEvent);
+                    _poster.Post(aggregation.TelemetryEvent, metricEvent);
                 }
             }
         }
@@ -162,15 +138,11 @@ internal sealed class VSMetricSink : IMetricSink
 
     private Aggregation? GetOrCreateAggregation(string eventName, string metricName, ReadOnlySpan<KeyValuePair<string, object?>> tags, bool isCounter)
     {
-        var sessionKey = RoslynTelemetry.CurrentSessionKey;
-        if (!_posters.TryGetValue(sessionKey, out var poster))
-            poster = _defaultPoster;
-
         // Checked here so that no telemetry object graph is built for an opted-out session.
-        if (!poster.IsOptedIn)
+        if (!_poster.IsOptedIn)
             return null;
 
-        var key = new AggregationKey(sessionKey, eventName, metricName, BuildDimensionKey(tags));
+        var key = new AggregationKey(eventName, metricName, BuildDimensionKey(tags));
 
         if (_aggregations.TryGetValue(key, out var existing))
             return existing;
@@ -178,11 +150,11 @@ internal sealed class VSMetricSink : IMetricSink
         return ImmutableInterlocked.GetOrAdd(
             ref _aggregations,
             key,
-            static (key, arg) => arg.self.CreateAggregation(key, arg.tags, arg.isCounter, arg.poster),
-            (self: this, tags: tags.ToArray(), isCounter, poster));
+            static (key, arg) => arg.self.CreateAggregation(key, arg.tags, arg.isCounter),
+            (self: this, tags: tags.ToArray(), isCounter));
     }
 
-    private Aggregation CreateAggregation(AggregationKey key, KeyValuePair<string, object?>[] tags, bool isCounter, IMetricPoster poster)
+    private Aggregation CreateAggregation(AggregationKey key, KeyValuePair<string, object?>[] tags, bool isCounter)
     {
         var telemetryEvent = new TelemetryEvent(key.EventName);
 
@@ -194,7 +166,7 @@ internal sealed class VSMetricSink : IMetricSink
             ? meter.CreateCounter<long>(key.MetricName)
             : meter.CreateHistogram<long>(key.MetricName);
 
-        return new Aggregation(instrument, telemetryEvent, poster);
+        return new Aggregation(instrument, telemetryEvent);
     }
 
     private IMeter GetOrCreateMeter(string eventName)

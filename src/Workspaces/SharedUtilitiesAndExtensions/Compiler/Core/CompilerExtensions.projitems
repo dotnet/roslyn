@@ -338,7 +338,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Log\RoslynTelemetry.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\RoslynTelemetry.Metrics.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\TelemetryNaming.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Log\TelemetrySessionKey.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\LogLevel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\RoslynTelemetry.LogBlock.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\LogMessage.cs" />

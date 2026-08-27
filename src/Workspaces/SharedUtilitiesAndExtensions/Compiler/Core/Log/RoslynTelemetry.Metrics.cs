@@ -12,26 +12,6 @@ internal static partial class RoslynTelemetry
 {
     private static IMetricSink? s_currentMetricSink;
 
-    private static readonly AsyncLocal<TelemetrySessionKey?> t_ambientSessionKey = new();
-
-    /// <summary>
-    /// Whether <see cref="CurrentSessionKey"/> consults ambient state. Only a host that actually runs
-    /// more than one logical session per process turns this on; leaving it off keeps the per-record
-    /// cost at a single static bool read.
-    /// </summary>
-    private static bool s_ambientRoutingEnabled;
-
-    /// <summary>
-    /// The session that measurements recorded on this thread belong to.
-    /// <para>
-    /// Ambient routing is not enabled, so this is always <see cref="TelemetrySessionKey.Default"/>.
-    /// Enabling it is a matter of setting <see cref="s_ambientRoutingEnabled"/> and pushing keys around
-    /// the work belonging to each session; no call site or sink needs to change.
-    /// </para>
-    /// </summary>
-    internal static TelemetrySessionKey CurrentSessionKey
-        => s_ambientRoutingEnabled ? (t_ambientSessionKey.Value ?? TelemetrySessionKey.Default) : TelemetrySessionKey.Default;
-
     /// <summary>
     /// Replaces the active metric sink. Hosts call this once during startup; tests reset it to
     /// <see langword="null"/> during teardown.
@@ -39,13 +19,9 @@ internal static partial class RoslynTelemetry
     public static IMetricSink? SetMetricSink(IMetricSink? sink)
         => Interlocked.Exchange(ref s_currentMetricSink, sink);
 
-    public static IMetricSink? GetMetricSink()
-        => s_currentMetricSink;
-
     /// <summary>
     /// Posts all pending aggregated measurements. Called on a timer, at shutdown, and when a logical
-    /// session ends. Every session's accumulated data is posted to its own session, so flushing more
-    /// than the caller's own session is both safe and intended.
+    /// session ends.
     /// </summary>
     public static void Flush()
         => s_currentMetricSink?.Flush();

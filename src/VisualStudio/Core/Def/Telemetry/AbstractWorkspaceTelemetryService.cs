@@ -26,7 +26,7 @@ internal abstract class AbstractWorkspaceTelemetryService : IWorkspaceTelemetryS
         Contract.ThrowIfFalse(CurrentSession is null);
 
         RoslynTelemetry.SetEventSinks(CreateEventSinks(telemetrySession, logDelta));
-        VSMetricSink.Create(telemetrySession);
+        RoslynTelemetry.SetMetricSink(new VSMetricSink(telemetrySession));
         FaultReporter.RegisterTelemetrySesssion(telemetrySession);
 
         CurrentSession = telemetrySession;
