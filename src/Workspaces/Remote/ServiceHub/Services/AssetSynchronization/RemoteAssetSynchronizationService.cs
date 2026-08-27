@@ -24,8 +24,6 @@ internal sealed class RemoteAssetSynchronizationService(in BrokeredServiceBase.S
 {
     private const string SynchronizeTextChangesAsyncSucceededMetricName = "SucceededCount";
     private const string SynchronizeTextChangesAsyncFailedMetricName = "FailedCount";
-    private const string SynchronizeTextChangesAsyncSucceededKeyName = nameof(RemoteAssetSynchronizationService) + "." + SynchronizeTextChangesAsyncSucceededMetricName;
-    private const string SynchronizeTextChangesAsyncFailedKeyName = nameof(RemoteAssetSynchronizationService) + "." + SynchronizeTextChangesAsyncFailedMetricName;
 
     internal sealed class Factory : FactoryBase<IRemoteAssetSynchronizationService>
     {

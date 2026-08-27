@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
@@ -20,7 +19,6 @@ public sealed class PerfMarginPanel : UserControl
 {
     private static readonly DataModel s_model = new();
     private static readonly PerfEventActivityLogger s_logger = new(s_model);
-    private static int s_registered;
 
     private readonly ListView _mainListView;
     private readonly Grid _mainGrid;
@@ -33,11 +31,9 @@ public sealed class PerfMarginPanel : UserControl
 
     public PerfMarginPanel()
     {
-        // The tool window can be closed and reopened, constructing another panel over the same static
-        // model. Attach the sink on the first construction only, and leave it attached so the model
-        // keeps accumulating while the window is closed.
-        if (Interlocked.CompareExchange(ref s_registered, 1, 0) == 0)
-            _ = RoslynTelemetry.AddEventSink(s_logger);
+        // AddEventSink ignores a sink it already holds, so reopening the tool window cannot register
+        // the logger twice. It is never unregistered, so the model keeps accumulating while closed.
+        _ = RoslynTelemetry.AddEventSink(s_logger);
 
         // grid
         _mainGrid = new Grid();

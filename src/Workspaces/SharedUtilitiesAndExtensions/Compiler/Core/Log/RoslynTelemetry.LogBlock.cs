@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -36,23 +37,37 @@ internal static partial class RoslynTelemetry
         private LogMessage? _logMessage;
         private CancellationToken _cancellationToken;
 
+        /// <summary>
+        /// Bit i is set when <c>_sinks[i]</c> received the start, so that the end goes to exactly that
+        /// set. A sink's <see cref="IEventSink.IsEnabled"/> can change while a block is open -
+        /// <c>TelemetryLogger</c>'s tracks the session's opt-in state - and a sink that receives an end
+        /// it has no start for either throws or leaks the pending scope.
+        /// </summary>
+        private int _startedSinks;
+
         private FunctionId _functionId;
         private int _tick;
         private int _blockId;
 
         public void Construct(ImmutableArray<IEventSink> sinks, FunctionId functionId, LogMessage logMessage, int blockId, CancellationToken cancellationToken)
         {
+            Debug.Assert(sinks.Length <= 32, "More sinks than _startedSinks has bits for.");
+
             _sinks = sinks;
             _functionId = functionId;
             _logMessage = logMessage;
             _tick = Environment.TickCount;
             _blockId = blockId;
             _cancellationToken = cancellationToken;
+            _startedSinks = 0;
 
-            foreach (var sink in sinks)
+            for (var i = 0; i < sinks.Length; i++)
             {
-                if (sink.IsEnabled(functionId))
-                    sink.LogBlockStart(functionId, logMessage, blockId, cancellationToken);
+                if (sinks[i].IsEnabled(functionId))
+                {
+                    _startedSinks |= 1 << i;
+                    sinks[i].LogBlockStart(functionId, logMessage, blockId, cancellationToken);
+                }
             }
         }
 
@@ -68,18 +83,17 @@ internal static partial class RoslynTelemetry
             // This delta is valid for durations of < 25 days
             var delta = Environment.TickCount - _tick;
 
-            // Ends on exactly the sinks the block started on: _sinks is the snapshot taken then, so a
-            // sink added or enabled in between cannot see an unpaired end.
-            foreach (var sink in _sinks)
+            for (var i = 0; i < _sinks.Length; i++)
             {
-                if (sink.IsEnabled(_functionId))
-                    sink.LogBlockEnd(_functionId, _logMessage, _blockId, delta, _cancellationToken);
+                if ((_startedSinks & (1 << i)) != 0)
+                    _sinks[i].LogBlockEnd(_functionId, _logMessage, _blockId, delta, _cancellationToken);
             }
 
             // Free this block back to the pool
             _logMessage.Free();
             _logMessage = null;
             _sinks = default;
+            _startedSinks = 0;
             _cancellationToken = default;
 
             pool.Free(this);

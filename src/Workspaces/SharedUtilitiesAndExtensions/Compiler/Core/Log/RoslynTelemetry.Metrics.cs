@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Internal.Log;
 
@@ -126,14 +128,31 @@ internal static partial class RoslynTelemetry
     public static IDisposable? RecordBlockTime(FunctionId functionId, string metricName)
         => s_metricSinks.IsEmpty ? null : new TimedBlock(functionId, metricName);
 
+    /// <summary>
+    /// Whether measurements would be skewed by the environment rather than by the code being measured:
+    /// debug bits are not representative, and a stopped debugger inflates a duration arbitrarily.
+    /// </summary>
+    private static bool IsDebugging
+    {
+        get
+        {
+#if DEBUG
+            return true;
+#else
+            return Debugger.IsAttached;
+#endif
+        }
+    }
+
     private sealed class TimedBlock(FunctionId functionId, string metricName) : IDisposable
     {
-        private readonly int _tick = Environment.TickCount;
+        private readonly SharedStopwatch _stopwatch = SharedStopwatch.StartNew();
 
         public void Dispose()
         {
-            // This delta is valid for durations of < 25 days
-            RecordCore(functionId, metricName, Environment.TickCount - _tick, default);
+            // Don't skew telemetry results by recording in debug bits or under a debugger.
+            if (!IsDebugging)
+                RecordCore(functionId, metricName, (long)_stopwatch.Elapsed.TotalMilliseconds, default);
         }
     }
 }

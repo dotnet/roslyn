@@ -43,8 +43,6 @@ internal sealed class SolutionChecksumUpdater : IDisposable
 
     private const string SynchronizeTextChangesStatusSucceededMetricName = "SucceededCount";
     private const string SynchronizeTextChangesStatusFailedMetricName = "FailedCount";
-    private const string SynchronizeTextChangesStatusSucceededKeyName = nameof(SolutionChecksumUpdater) + "." + SynchronizeTextChangesStatusSucceededMetricName;
-    private const string SynchronizeTextChangesStatusFailedKeyName = nameof(SolutionChecksumUpdater) + "." + SynchronizeTextChangesStatusFailedMetricName;
 
     public SolutionChecksumUpdater(
         Workspace workspace,

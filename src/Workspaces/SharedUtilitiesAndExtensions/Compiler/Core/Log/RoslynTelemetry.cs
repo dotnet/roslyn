@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log;
 /// With nothing configured every method is a cheap no-op, which is the state the build server, the
 /// CodeStyle packages, and most tests run in.
 /// </para>
+/// <para>
+/// This file is linked into several assemblies, so "configured" means configured in the assembly the
+/// caller resolves to. Only the Workspaces copy is wired up by a host; the CodeStyle copies have no
+/// sinks by construction.
+/// </para>
 /// </summary>
 internal static partial class RoslynTelemetry
 {
@@ -182,8 +187,11 @@ internal static partial class RoslynTelemetry
         if (TryGetEnabledSinks(functionId, out var sinks))
         {
             LogToSinks(sinks, functionId, logMessage);
-            logMessage.Free();
         }
+
+        // Freed unconditionally: the caller handed over ownership, so returning it to the pool cannot
+        // depend on whether a sink happened to be listening.
+        logMessage.Free();
     }
 
     /// <summary>

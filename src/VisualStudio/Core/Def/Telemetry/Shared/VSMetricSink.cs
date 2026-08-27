@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Telemetry;
@@ -50,7 +51,11 @@ internal sealed class VSMetricSink : IMetricSink, IDisposable
         public void Post(TelemetryEvent telemetryEvent, TelemetryMetricEvent metricEvent) => session.PostMetricEvent(metricEvent);
     }
 
-    private readonly record struct AggregationKey(string EventName, string MetricName, string DimensionKey);
+    /// <summary>
+    /// Identifies one aggregation bucket. <paramref name="IsCounter"/> participates so that the same
+    /// event and metric name used both ways cannot resolve to an instrument of the wrong type.
+    /// </summary>
+    private readonly record struct AggregationKey(string EventName, string MetricName, string DimensionKey, bool IsCounter);
 
     private sealed class Aggregation(IInstrument instrument, TelemetryEvent telemetryEvent)
     {
@@ -90,7 +95,10 @@ internal sealed class VSMetricSink : IMetricSink, IDisposable
     }
 
     public void Dispose()
-        => _flushLoopCancellation.Cancel();
+    {
+        _flushLoopCancellation.Cancel();
+        _flushLoopCancellation.Dispose();
+    }
 
     private async Task PostCollectedTelemetryAsync()
     {
@@ -99,13 +107,16 @@ internal sealed class VSMetricSink : IMetricSink, IDisposable
             try
             {
                 await Task.Delay(TimeSpan.FromMinutes(30), _flushLoopCancellation.Token).ConfigureAwait(false);
+                Flush();
             }
             catch (OperationCanceledException)
             {
                 return;
             }
-
-            Flush();
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            {
+                // Keep looping: one failed post must not stop every later flush for this session.
+            }
         }
     }
 
@@ -144,7 +155,10 @@ internal sealed class VSMetricSink : IMetricSink, IDisposable
         // Excludes other flushes, which would otherwise post the same aggregation twice.
         lock (_flushLock)
         {
-            var aggregations = Interlocked.Exchange(ref _aggregations, ImmutableDictionary<AggregationKey, Aggregation>.Empty);
+            // Cleared only after every post completes. While a flush is in progress a concurrent
+            // Count/Record still finds the existing aggregation and blocks on its lock, so no second
+            // instrument is created for a name that is currently being posted.
+            var aggregations = _aggregations;
 
             foreach (var pair in aggregations)
             {
@@ -163,6 +177,8 @@ internal sealed class VSMetricSink : IMetricSink, IDisposable
                     _poster.Post(aggregation.TelemetryEvent, metricEvent);
                 }
             }
+
+            _aggregations = ImmutableDictionary<AggregationKey, Aggregation>.Empty;
         }
     }
 
@@ -172,7 +188,7 @@ internal sealed class VSMetricSink : IMetricSink, IDisposable
         if (!_poster.IsOptedIn)
             return null;
 
-        var key = new AggregationKey(eventName, metricName, BuildDimensionKey(tags));
+        var key = new AggregationKey(eventName, metricName, BuildDimensionKey(tags), isCounter);
 
         if (_aggregations.TryGetValue(key, out var existing))
             return existing;
@@ -180,11 +196,11 @@ internal sealed class VSMetricSink : IMetricSink, IDisposable
         return ImmutableInterlocked.GetOrAdd(
             ref _aggregations,
             key,
-            static (key, arg) => arg.self.CreateAggregation(key, arg.tags, arg.isCounter),
-            (self: this, tags: tags.ToArray(), isCounter));
+            static (key, arg) => arg.self.CreateAggregation(key, arg.tags),
+            (self: this, tags: tags.ToArray()));
     }
 
-    private Aggregation CreateAggregation(AggregationKey key, KeyValuePair<string, object?>[] tags, bool isCounter)
+    private Aggregation CreateAggregation(AggregationKey key, KeyValuePair<string, object?>[] tags)
     {
         var telemetryEvent = new TelemetryEvent(key.EventName);
 
@@ -192,7 +208,7 @@ internal sealed class VSMetricSink : IMetricSink, IDisposable
             telemetryEvent.Properties.Add(GetPropertyName(key.EventName, name), value);
 
         var meter = GetOrCreateMeter(key.EventName);
-        IInstrument instrument = isCounter
+        IInstrument instrument = key.IsCounter
             ? meter.CreateCounter<long>(key.MetricName)
             : meter.CreateHistogram<long>(key.MetricName);
 

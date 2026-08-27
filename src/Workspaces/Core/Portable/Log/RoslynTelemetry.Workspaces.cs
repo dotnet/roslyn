@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Internal.Log;
 
@@ -27,51 +28,37 @@ internal static partial class RoslynTelemetry
     /// <summary>
     /// Posts a discrete event carrying the wall-clock duration of the returned scope, but only if it
     /// meets or exceeds <paramref name="minThresholdMs"/>. Unlike
-    /// <see cref="RecordBlockTime(FunctionId, string, int)"/> this is not aggregated - each occurrence is
+    /// <see cref="RecordBlockTime(FunctionId, string)"/> this is not aggregated - each occurrence is
     /// its own event.
     /// </summary>
     public static IDisposable? LogBlockTime(FunctionId functionId, KeyValueLogMessage logMessage, int minThresholdMs = -1)
         => TryGetEnabledSinks(functionId, out _) ? new TimedEventBlock(functionId, logMessage, minThresholdMs) : null;
 
-    private sealed class TimedEventBlock : IDisposable
+    private sealed class TimedEventBlock(FunctionId functionId, KeyValueLogMessage logMessage, int minThresholdMs) : IDisposable
     {
-        private readonly FunctionId _functionId;
-        private readonly KeyValueLogMessage _logMessage;
-        private readonly int _minThresholdMs;
-        private readonly int _tick;
-
-        public TimedEventBlock(FunctionId functionId, KeyValueLogMessage logMessage, int minThresholdMs)
-        {
-            _functionId = functionId;
-            _logMessage = logMessage;
-            _minThresholdMs = minThresholdMs;
-            _tick = Environment.TickCount;
-        }
+        private readonly SharedStopwatch _stopwatch = SharedStopwatch.StartNew();
 
         public void Dispose()
         {
-            // This delta is valid for durations of < 25 days
-            var elapsed = Environment.TickCount - _tick;
-            if (elapsed >= _minThresholdMs)
+            var elapsed = (long)_stopwatch.Elapsed.TotalMilliseconds;
+            if (elapsed >= minThresholdMs)
             {
-                var logMessage = KeyValueLogMessage.Create(static (m, args) =>
+                // Properties is read inside the setter so that the source message's map is only
+                // materialized on the path that actually posts.
+                var message = KeyValueLogMessage.Create(static (m, args) =>
                 {
-                    m[TelemetryKeys.Value] = (long)args.elapsed;
-                    m.AddRange(args.properties);
-                }, (elapsed, properties: _logMessage.Properties));
+                    m[TelemetryKeys.Value] = args.elapsed;
+                    m.AddRange(args.source.Properties);
+                }, (elapsed, source: logMessage));
 
-#if DEBUG
-                logMessage.Free();
-#else
-                // Don't skew telemetry results by logging in debug bits or under debugger.
-                if (Debugger.IsAttached)
-                    logMessage.Free();
+                // Don't skew telemetry results by logging in debug bits or under a debugger.
+                if (IsDebugging)
+                    message.Free();
                 else
-                    Log(_functionId, logMessage);
-#endif
+                    Log(functionId, message);
             }
 
-            _logMessage.Free();
+            logMessage.Free();
         }
     }
 }

@@ -94,7 +94,9 @@ internal sealed class LanguageServerTelemetry : IDisposable
         var metricSink = new VSMetricSink(session);
         _registrations =
         [
-            RoslynTelemetry.AddEventSink(TelemetryLogger.Create(session, logDelta: false)),
+            // logDelta: true because block end events from this host have always carried their
+            // duration; the option that gates it in devenv has no counterpart here.
+            RoslynTelemetry.AddEventSink(TelemetryLogger.Create(session, logDelta: true)),
             RoslynTelemetry.AddMetricSink(metricSink),
             metricSink,
         ];
@@ -121,13 +123,13 @@ internal sealed class LanguageServerTelemetry : IDisposable
 
     public void Dispose()
     {
-        // Ensure that telemetry aggregated over this session is reported and flushed *before* we
-        // dispose of the telemetry session.
-        FeaturesSessionTelemetry.Report();
-        RoslynTelemetry.Flush();
-
         if (_telemetrySession is { } session)
         {
+            // Report before flushing, so that anything the session-wide reporters record is included
+            // in the final batch.
+            FeaturesSessionTelemetry.Report();
+            RoslynTelemetry.Flush();
+
             foreach (var registration in _registrations)
                 registration.Dispose();
 
