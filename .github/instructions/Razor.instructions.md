@@ -38,6 +38,10 @@ their original sub-tree layout
   `GetUnusedDirectives()`) rather than storing computed results as fields.
 - **Razor documents in Roslyn**: Stored as additional documents. Resolve via
   `solution.GetDocumentIdsWithFilePath(filePath)` then `solution.GetAdditionalDocument(documentId)`.
+- **Razor documents with virtual URIs**: Remote Razor document classification preserves the full
+  additional-document `FilePath` for identity. For parseable absolute URI file paths, inspect the
+  URI's local path when checking the `.razor` or `.cshtml` extension; do not strip the query from
+  the stored file path.
 - **Remote services**: Place the public stub method (calling `RunServiceAsync`) directly
   above its private implementation method.
 - **Formatting options across OOP**: Cohost endpoints must resolve
