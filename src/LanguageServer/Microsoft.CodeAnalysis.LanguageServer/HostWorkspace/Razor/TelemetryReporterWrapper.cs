@@ -13,12 +13,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 
 /// <summary>
 /// Lets Razor's VS Code extension post telemetry through this host's session, which it does not own.
-/// The dependency runs Roslyn -&gt; Razor, so Razor declares the contract and this implements it.
-/// <para>
-/// Razor's names and properties are already final when they arrive - they do not go through Roslyn's
-/// <c>FunctionId</c> pipeline - so this posts to the session directly. It only reads the session;
-/// ownership and disposal stay with <see cref="LanguageServerTelemetry"/>.
-/// </para>
 /// </summary>
 [Shared]
 [Export(typeof(ILanguageServerTelemetryReporterWrapper))]
@@ -38,11 +32,6 @@ internal sealed class TelemetryReporterWrapper([Import(AllowDefault = true)] Laz
         session.PostEvent(telemetryEvent);
     }
 
-    /// <summary>
-    /// Posts an aggregated measurement. The event must arrive intact: its aggregated values live on its
-    /// instrument, and only <see cref="TelemetrySession.PostMetricEvent"/> reads them. Flattening it to
-    /// a name and property bag would discard every measurement.
-    /// </summary>
     public void ReportMetric(TelemetryMetricEvent metricEvent)
         => telemetryService?.Value.Session?.PostMetricEvent(metricEvent);
 }

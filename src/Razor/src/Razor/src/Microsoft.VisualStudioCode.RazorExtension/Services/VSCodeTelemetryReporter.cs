@@ -31,9 +31,6 @@ internal sealed class VSCodeTelemetryReporter : TelemetryReporter
 
     public override void ReportMetric(AggregatingTelemetryLog.TelemetryInstrumentEvent metricEvent)
     {
-        // Forwarded intact: flattening to name + properties would discard every measurement.
-        // Unreachable in this host, which constructs the base reporter without a session, so no
-        // AggregatingTelemetryLog is created to call it.
         _reporter?.ReportMetric(metricEvent);
     }
 }

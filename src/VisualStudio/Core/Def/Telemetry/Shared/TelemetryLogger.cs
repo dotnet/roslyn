@@ -122,7 +122,7 @@ internal abstract class TelemetryLogger : IEventSink
             return;
         }
 
-        // LogBlockStart swallows a failure from Start, so the scope can legitimately be missing here.
+        // There might be no start if this sink was enabled or disabled in between.
         if (!_pendingScopes.TryRemove(blockId, out var scope))
             return;
 

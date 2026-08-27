@@ -8,8 +8,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Internal.Log;
 
 /// <summary>
-/// Property names that telemetry consumers depend on by string. Kept as constants so the emitted shape
-/// is stable and greppable.
+/// Property names that telemetry consumers depend on by string.
 /// </summary>
 internal static class TelemetryKeys
 {
@@ -28,8 +27,7 @@ internal static partial class RoslynTelemetry
     /// Posts a discrete event carrying the wall-clock duration of the returned scope, but only if it
     /// meets or exceeds <paramref name="minThresholdMs"/>. Unlike
     /// <see cref="RecordBlockTime(FunctionId, string)"/> this is not aggregated - each occurrence is
-    /// its own event. Takes ownership of <paramref name="logMessage"/> whether or not anything is
-    /// listening.
+    /// its own event.
     /// </summary>
     public static IDisposable? LogBlockTime(FunctionId functionId, KeyValueLogMessage logMessage, int minThresholdMs = -1)
     {

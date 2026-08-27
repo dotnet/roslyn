@@ -21,23 +21,16 @@ namespace Microsoft.CodeAnalysis.Telemetry;
 /// The aggregating metric sink for one <see cref="TelemetrySession"/>, backed by VS Telemetry's counter
 /// and histogram APIs. Measurements accumulate in memory against an instrument and are posted in batches
 /// by <see cref="Flush"/>.
-/// <para>
-/// A host that needs several sessions in one process composes one of these per session behind an
-/// <see cref="IMetricSink"/> that routes between them; nothing here needs to change for that.
-/// </para>
 /// </summary>
 internal sealed class VSMetricSink : IMetricSink, IDisposable
 {
     /// <summary>
-    /// Version information which VS Telemetry attaches to our aggregated telemetry, so that Kusto
-    /// queries can filter to the versions whose shape they understand.
+    /// Version attached to aggregated telemetry so queries filter by versions they understand.
     /// </summary>
     private const string MeterVersion = "0.40";
 
     /// <summary>
-    /// The per-session capability this sink needs. Abstracted so that tests can assert exactly how many
-    /// metric events a flush posts without standing up a real, opted-in <see cref="TelemetrySession"/>
-    /// (which would try to send).
+    /// Abstraction for posting telemetry used for testing.
     /// </summary>
     internal interface IMetricPoster
     {
@@ -89,15 +82,9 @@ internal sealed class VSMetricSink : IMetricSink, IDisposable
     {
         _poster = poster;
 
-        // Owned here so that composing a sink is all a host has to remember. Shutdown paths flush
-        // explicitly as well, since a host can exit too abruptly for a timer.
         _ = PostCollectedTelemetryAsync();
     }
 
-    /// <summary>
-    /// Stops the periodic flush. The cancellation source is deliberately not disposed: the loop reads
-    /// its token on every iteration, and a disposed source would throw there instead of stopping.
-    /// </summary>
     public void Dispose()
         => _flushLoopCancellation.Cancel();
 
@@ -160,9 +147,7 @@ internal sealed class VSMetricSink : IMetricSink, IDisposable
             {
                 var aggregation = pair.Value;
                 // Excludes concurrent Add/Record on this instrument while the metric event is built
-                // from it and posted. The key stays in the map until the post completes, so a
-                // concurrent Count/Record finds this aggregation and blocks here rather than building
-                // a second instrument with the same name.
+                // from it and posted.
                 lock (aggregation.Lock)
                 {
                     TelemetryMetricEvent metricEvent = aggregation.Instrument switch
@@ -184,7 +169,6 @@ internal sealed class VSMetricSink : IMetricSink, IDisposable
 
     private Aggregation? GetOrCreateAggregation(string eventName, string metricName, ReadOnlySpan<KeyValuePair<string, object?>> tags, bool isCounter)
     {
-        // Checked here so that no telemetry object graph is built for an opted-out session.
         if (!_poster.IsOptedIn)
             return null;
 

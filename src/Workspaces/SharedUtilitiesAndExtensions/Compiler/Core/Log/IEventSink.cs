@@ -7,15 +7,12 @@ using System.Threading;
 namespace Microsoft.CodeAnalysis.Internal.Log;
 
 /// <summary>
-/// A destination for discrete events and scopes identified by <see cref="FunctionId"/>.
-/// Implementations decide, via <see cref="IsEnabled"/>, whether anything is recorded at all;
-/// that is where consent (for telemetry sinks) and opt-in enablement (for diagnostic sinks) live.
+/// A destination for events reported by <see cref="RoslynTelemetry"/>.
 /// </summary>
 internal interface IEventSink
 {
     /// <summary>
-    /// Whether this sink will record anything for <paramref name="functionId"/>. Checked before any
-    /// <see cref="LogMessage"/> is constructed, so returning false makes logging allocation-free.
+    /// Whether this sink will record anything for <paramref name="functionId"/>.
     /// </summary>
     bool IsEnabled(FunctionId functionId);
 

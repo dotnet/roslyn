@@ -11,10 +11,7 @@ using Microsoft.CodeAnalysis.Telemetry;
 namespace Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 
 /// <summary>
-/// Exported through a factory rather than as a stateless service so that the logger is created per
-/// server and disposed when that server shuts down. <see cref="LspServices"/> only tracks non-stateless
-/// services for disposal, and <see cref="RequestTelemetryLogger.Dispose"/> is what flushes a server's
-/// aggregated request telemetry.
+/// Exports a stateful <see cref="RequestTelemetryLogger"/> that reports server specific telemetry.
 /// </summary>
 [ExportCSharpVisualBasicLspServiceFactory(typeof(RequestTelemetryLogger), WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared]
 [method: ImportingConstructor]

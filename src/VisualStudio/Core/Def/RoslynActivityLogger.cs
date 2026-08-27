@@ -21,11 +21,6 @@ namespace Microsoft.VisualStudio.LanguageServices;
 /// </summary>
 internal static class RoslynActivityLogger
 {
-    /// <summary>
-    /// A single sink, composed once at startup, whose <em>contents</em> vary. Adding and removing a
-    /// <see cref="TraceSource"/> mutates this set; when the set is empty the sink reports itself
-    /// disabled and costs one array-length check per event.
-    /// </summary>
     public static readonly TraceSourceSink Sink = new();
 
     public static void SetLogger(TraceSource traceSource)

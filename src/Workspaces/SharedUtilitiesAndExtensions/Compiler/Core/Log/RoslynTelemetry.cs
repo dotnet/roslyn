@@ -10,25 +10,14 @@ using System.Threading;
 namespace Microsoft.CodeAnalysis.Internal.Log;
 
 /// <summary>
-/// Roslyn's telemetry entry point. Discrete events and scopes are recorded here and fan out to the
-/// host's configured <see cref="IEventSink"/>s; aggregated measurements go to its <see cref="IMetricSink"/>.
-/// <para>
-/// A host configures this once at startup (see <see cref="AddEventSink"/> / <see cref="AddMetricSink"/>).
-/// With nothing configured every method is a cheap no-op, which is the state the build server, the
-/// CodeStyle packages, and most tests run in.
-/// </para>
-/// <para>
-/// This file is linked into several assemblies, so "configured" means configured in the assembly the
-/// caller resolves to. Only the Workspaces copy is wired up by a host; the CodeStyle copies have no
-/// sinks by construction.
-/// </para>
+/// Telemetry entry point.  Events / metrics are recorded here and fan out to the respective
+/// <see cref="IEventSink"/> or <see cref="IMetricSink"/>.  When no sinks are registered calls are
+/// cheap no-ops.
 /// </summary>
 internal static partial class RoslynTelemetry
 {
     /// <summary>
-    /// The sinks every event fans out to. A sink is added once and stays until its registration is
-    /// disposed; turning one off without removing it is that sink's own
-    /// <see cref="IEventSink.IsEnabled"/> returning false.
+    /// The registered <see cref="IEventSink"/> each event fans out to.
     /// </summary>
     private static ImmutableArray<IEventSink> s_eventSinks = [];
 
@@ -48,9 +37,6 @@ internal static partial class RoslynTelemetry
         return new Registration(() => ImmutableInterlocked.Update(ref s_eventSinks, static (sinks, sink) => sinks.Remove(sink), sink));
     }
 
-    /// <summary>
-    /// Undoes one <see cref="AddEventSink"/> or <see cref="AddMetricSink"/> call.
-    /// </summary>
     private sealed class Registration(Action unregister) : IDisposable
     {
         public void Dispose() => unregister();
@@ -59,7 +45,7 @@ internal static partial class RoslynTelemetry
     /// <summary>
     /// Whether any registered sink wants <paramref name="functionId"/>. Checked before a
     /// <see cref="LogMessage"/> is constructed, so that logging costs nothing when everything is
-    /// disabled - which is the common case, since most sinks are opt-in diagnostics.
+    /// disabled.
     /// </summary>
     private static bool TryGetEnabledSinks(FunctionId functionId, out ImmutableArray<IEventSink> sinks)
     {

@@ -8,8 +8,7 @@ using System.Threading;
 namespace Microsoft.CodeAnalysis.Internal.Log;
 
 /// <summary>
-/// Forwarding shim onto <see cref="RoslynTelemetry"/>, for call sites that have not moved over. New
-/// code should call <see cref="RoslynTelemetry"/> directly.
+/// Forwarding shim onto <see cref="RoslynTelemetry"/>.
 /// </summary>
 internal static class Logger
 {

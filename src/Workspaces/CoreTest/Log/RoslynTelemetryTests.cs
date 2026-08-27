@@ -133,7 +133,7 @@ public sealed class RoslynTelemetryTests
 
     /// <summary>
     /// The duration of a block reaches the event as a <c>delta</c> property, but only for a sink that
-    /// asked for it. The standalone language server host asks for it; devenv gates it on an option.
+    /// asked for it.
     /// </summary>
     [Theory]
     [InlineData(true)]

@@ -9,8 +9,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log;
 
 /// <summary>
 /// Maps <see cref="FunctionId"/> onto the event and property names Roslyn's telemetry backend expects.
-/// Sinks receive already-final names, so one sink implementation can serve both Roslyn, whose identity
-/// is <see cref="FunctionId"/>, and Razor, whose identity is a plain string.
 /// </summary>
 internal static class TelemetryNaming
 {

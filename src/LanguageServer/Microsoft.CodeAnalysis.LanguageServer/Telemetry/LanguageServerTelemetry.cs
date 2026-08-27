@@ -18,9 +18,7 @@ using Microsoft.VisualStudio.Telemetry.Metrics.Events;
 namespace Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 
 /// <summary>
-/// Owns the standalone language server host's telemetry session: creates and configures it, registers
-/// the event and metric sinks, and tears everything down on shutdown. The counterpart to
-/// <c>AbstractWorkspaceTelemetryService</c> in the VS and ServiceHub hosts.
+/// Initializes language server telemetry using a standalone session or from C#DK.  Flushes telemetry on shutdown.
 /// </summary>
 [Export, Shared]
 internal sealed class LanguageServerTelemetry : IDisposable
@@ -42,8 +40,7 @@ internal sealed class LanguageServerTelemetry : IDisposable
     private TelemetrySession? _telemetrySession;
 
     /// <summary>
-    /// Everything this type registered or owns, in the order it must be torn down: sink registrations
-    /// first, then the sinks themselves.
+    /// Ordered list of sinks that must be disposed of on shutdown.
     /// </summary>
     private ImmutableArray<IDisposable> _registrations = [];
 
@@ -94,8 +91,6 @@ internal sealed class LanguageServerTelemetry : IDisposable
         var metricSink = new VSMetricSink(session);
         _registrations =
         [
-            // logDelta: true because block end events from this host have always carried their
-            // duration -- the deleted RoslynLogger added it unconditionally, with no flag involved.
             RoslynTelemetry.AddEventSink(TelemetryLogger.Create(session, logDelta: true)),
             RoslynTelemetry.AddMetricSink(metricSink),
             metricSink,
@@ -114,19 +109,12 @@ internal sealed class LanguageServerTelemetry : IDisposable
             ? serverConfiguration.TelemetryLevel
             : Environment.GetEnvironmentVariable(CopilotTelemetryLevelEnvironmentVariable);
 
-    /// <summary>
-    /// The active session, for the one component that posts through it directly: Razor's VS Code
-    /// extension, which owns no session of its own. Roslyn's own telemetry goes through
-    /// <see cref="RoslynTelemetry"/> and the registered sinks.
-    /// </summary>
     internal TelemetrySession? Session => _telemetrySession;
 
     public void Dispose()
     {
         if (_telemetrySession is { } session)
         {
-            // Report before flushing, so that anything the session-wide reporters record is included
-            // in the final batch.
             FeaturesSessionTelemetry.Report();
             RoslynTelemetry.Flush();
 

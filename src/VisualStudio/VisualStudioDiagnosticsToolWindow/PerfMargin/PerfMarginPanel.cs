@@ -31,8 +31,7 @@ public sealed class PerfMarginPanel : UserControl
 
     public PerfMarginPanel()
     {
-        // AddEventSink ignores a sink it already holds, so reopening the tool window cannot register
-        // the logger twice. It is never unregistered, so the model keeps accumulating while closed.
+        // Register the event sink on open - duplicate registrations are ignored.
         _ = RoslynTelemetry.AddEventSink(s_logger);
 
         // grid

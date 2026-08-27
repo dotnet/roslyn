@@ -13,9 +13,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log;
 internal static partial class RoslynTelemetry
 {
     /// <summary>
-    /// The sinks every measurement fans out to. A sink is added once and stays until its registration
-    /// is disposed. There is one per host today; a host serving several sessions registers a sink that
-    /// routes between them.
+    /// The registered <see cref="IMetricSink"/> each metric fans out to.
     /// </summary>
     private static ImmutableArray<IMetricSink> s_metricSinks = [];
 
@@ -31,8 +29,7 @@ internal static partial class RoslynTelemetry
     }
 
     /// <summary>
-    /// Posts all pending aggregated measurements. Called on a timer, at shutdown, and when a logical
-    /// session ends.
+    /// Posts all pending aggregated measurements.
     /// </summary>
     public static void Flush()
     {
