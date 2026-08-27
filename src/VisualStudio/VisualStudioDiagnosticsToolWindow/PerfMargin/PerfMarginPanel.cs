@@ -33,8 +33,9 @@ public sealed class PerfMarginPanel : UserControl
 
     public PerfMarginPanel()
     {
-        // This panel lives in a separately shipped VSIX, so the composition root cannot reference this
-        // sink. Attach it once; it is never detached.
+        // The tool window can be closed and reopened, constructing another panel over the same static
+        // model. Attach the sink on the first construction only, and leave it attached so the model
+        // keeps accumulating while the window is closed.
         if (Interlocked.CompareExchange(ref s_registered, 1, 0) == 0)
             _ = RoslynTelemetry.AddEventSink(s_logger);
 
