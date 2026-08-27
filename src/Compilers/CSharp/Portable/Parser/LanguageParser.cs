@@ -1489,8 +1489,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 Debug.Assert(this.CurrentToken.Kind == SyntaxKind.RefKeyword);
 
-                // Preserve the existing feature-gated preference for parsing direct 'ref record',
-                // 'ref partial record', 'ref union', and 'ref partial union' as type declarations.
+                // For back compatibility, parse 'ref record', 'ref partial record', 'ref union',
+                // and 'ref partial union' as type declarations when the corresponding feature is enabled.
                 var nextToken = this.PeekToken(1);
                 if (this.IsEnabledRecordOrUnionKeyword(nextToken))
                 {
