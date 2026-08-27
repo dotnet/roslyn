@@ -262,6 +262,27 @@ public class MarkupSplitterComponentTest : RazorIntegrationTestBase
     }
 
     [Fact]
+    public void InjectOnly_SplitsAndCompiles()
+    {
+        // @inject is markup-free descriptor surface (an injected property), so a component whose only
+        // non-C# member is an @inject has no class-body markup and splits -- the injected property and any
+        // other markup-free members stay in the decl half; only the render body lifts to the impl.
+        var generated = CompileToCSharp("""
+            @inject System.IServiceProvider Services
+            @code {
+                [Microsoft.AspNetCore.Components.Parameter] public int Count { get; set; }
+            }
+            <p>@Count</p>
+            """);
+
+        Assert.NotNull(generated.DeclCode);
+        Assert.Contains("Services", generated.DeclCode);
+        Assert.Contains("Count", generated.DeclCode);
+
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
     public void MarkupMethod_InNestedClass_FallsBackAndCompiles()
     {
         // A type declared inside @code is a single class-body member; when it carries markup (here in a
@@ -319,12 +340,10 @@ public class MarkupSplitterComponentTest : RazorIntegrationTestBase
     }
 
     [Fact]
-    public void Inject_AlongsideMarkup_FallsBack()
+    public void Inject_AlongsideMarkup_SplitsAndCompiles()
     {
-        // @inject lowers to a ComponentInjectIntermediateNode (surface, an ExtensionIntermediateNode
-        // like a template). The splitter can't route it, so a component mixing it with markup falls back.
-        // A markup *method* is used so the inject is the unambiguous cause (a markup property would fall
-        // back on its own).
+        // @inject lowers to a ComponentInjectIntermediateNode (a markup-free surface declaration). It has
+        // no markup to lift, so it routes to the decl half while the markup method lifts to the impl half.
         var generated = CompileToCSharp("""
             @inject System.IServiceProvider Services
             @code {
@@ -339,9 +358,17 @@ public class MarkupSplitterComponentTest : RazorIntegrationTestBase
         Assert.NotNull(primaryClass);
         Assert.NotNull(renderMethod);
 
+        // The split routes the markup method to impl and keeps the injected property in decl.
         var decision = MarkupSplitter.Split(primaryClass, renderMethod, generated.CodeDocument.ParserOptions);
-        var fallback = Assert.IsType<SplitDecision.SplitFallback>(decision);
-        Assert.Equal(FallbackReason.UnsupportedClassBodyNode, fallback.Reason);
+        Assert.IsType<SplitDecision.SplitPlan>(decision);
+
+        Assert.NotNull(generated.DeclCode);
+        Assert.Contains("Services", generated.DeclCode);
+        Assert.DoesNotContain("Make", generated.DeclCode);
+        Assert.Contains("Make", generated.Code);
+        Assert.DoesNotContain("Services", generated.Code);
+
+        CompileToAssembly(generated);
     }
 
     [Fact]
