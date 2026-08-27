@@ -171,9 +171,9 @@ sealed class VirtualProjectBuilder
         return Path.Combine(GetTempSubdirectory(dotNetSubdirectory), name);
     }
 
-    public static bool IsValidEntryPointPath(string entryPointFilePath)
+    public static bool IsValidEntryPointPath(string entryPointFilePath, bool requireFileToExist = true)
     {
-        if (!File.Exists(entryPointFilePath))
+        if (requireFileToExist && !File.Exists(entryPointFilePath))
         {
             return false;
         }
@@ -181,6 +181,12 @@ sealed class VirtualProjectBuilder
         if (entryPointFilePath.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
         {
             return true;
+        }
+
+        // If we haven't checked file existence yet, do it before opening the file.
+        if (!requireFileToExist && !File.Exists(entryPointFilePath))
+        {
+            return false;
         }
 
         // Check if the first two characters are #!
@@ -622,19 +628,16 @@ sealed class VirtualProjectBuilder
             Debug.Assert(!string.IsNullOrWhiteSpace(artifactsPath));
             Debug.Assert(entryPointFilePath is not null);
 
-            // Note that ArtifactsPath needs to be specified before Sdk.props
+            // Note that FileBasedAppArtifactsPath needs to be specified before Sdk.props
             // (usually it's recommended to specify it in Directory.Build.props
             // but importing Sdk.props manually afterwards also works).
             writer.WriteLine($"""
                 <Project>
 
                   <PropertyGroup>
-                    <IncludeProjectNameInArtifactsPaths>false</IncludeProjectNameInArtifactsPaths>
-                    <ArtifactsPath>{EscapeValue(artifactsPath)}</ArtifactsPath>
+                    <FileBasedAppArtifactsPath>{EscapeValue(artifactsPath)}</FileBasedAppArtifactsPath>
                     <AssemblyName>{EscapeValue(Path.GetFileNameWithoutExtension(entryPointFilePath))}</AssemblyName>
                     <RootNamespace>$(AssemblyName)</RootNamespace>
-                    <PublishDir>artifacts/$(AssemblyName)</PublishDir>
-                    <PackageOutputPath>artifacts/$(AssemblyName)</PackageOutputPath>
                     <FileBasedProgram>true</FileBasedProgram>
                     <EntryPointFilePath>{EscapeValue(entryPointFilePath)}</EntryPointFilePath>
                     <FileBasedProgramsItemMapping>{CSharpDirective.IncludeOrExclude.DefaultMappingString}</FileBasedProgramsItemMapping>
@@ -860,18 +863,11 @@ sealed class VirtualProjectBuilder
 
             foreach (var package in packageDirectives)
             {
-                if (package.Version is null)
-                {
-                    writer.WriteLine($"""
-                            <PackageReference Include="{EscapeValue(package.Name)}" />
-                        """);
-                }
-                else
-                {
-                    writer.WriteLine($"""
-                            <PackageReference Include="{EscapeValue(package.Name)}" Version="{EscapeValue(package.Version)}" />
-                        """);
-                }
+                string attributes = package.Version is null
+                    ? $"Include=\"{EscapeValue(package.Name)}\""
+                    : $"Include=\"{EscapeValue(package.Name)}\" Version=\"{EscapeValue(package.Version)}\"";
+
+                WriteItem(writer, "PackageReference", attributes, package.Metadata);
 
                 processedDirectives++;
             }
@@ -890,9 +886,7 @@ sealed class VirtualProjectBuilder
 
             foreach (var projectReference in projectDirectives)
             {
-                writer.WriteLine($"""
-                        <ProjectReference Include="{EscapeValue(projectReference.Name)}" />
-                    """);
+                WriteItem(writer, "ProjectReference", $"Include=\"{EscapeValue(projectReference.Name)}\"", projectReference.Metadata);
 
                 processedDirectives++;
             }
@@ -902,9 +896,8 @@ sealed class VirtualProjectBuilder
                 if (refDirective.ResolvedPath is not null)
                 {
                     var virtualProjectPath = GetVirtualProjectPath(refDirective.ResolvedPath);
-                    writer.WriteLine($"""
-                            <ProjectReference Include="{EscapeValue(virtualProjectPath)}" {FromRefDirectiveMetadataName}="{EscapeValue(refDirective.ResolvedPath)}" />
-                        """);
+                    var attributes = $"Include=\"{EscapeValue(virtualProjectPath)}\" {FromRefDirectiveMetadataName}=\"{EscapeValue(refDirective.ResolvedPath)}\"";
+                    WriteItem(writer, "ProjectReference", attributes, refDirective.Metadata);
                 }
 
                 processedDirectives++;
@@ -965,6 +958,23 @@ sealed class VirtualProjectBuilder
             """);
 
         static string EscapeValue(string value) => SecurityElement.Escape(value);
+
+        static void WriteItem(TextWriter writer, string itemType, string attributes, ImmutableArray<(string Name, string Value)> metadata)
+        {
+            if (metadata.IsDefaultOrEmpty)
+            {
+                writer.WriteLine($"    <{itemType} {attributes} />");
+                return;
+            }
+
+            writer.WriteLine($"    <{itemType} {attributes}>");
+            foreach (var (name, value) in metadata)
+            {
+                writer.WriteLine($"      <{name}>{EscapeValue(value)}</{name}>");
+            }
+
+            writer.WriteLine($"    </{itemType}>");
+        }
 
         static void WriteImport(TextWriter writer, string project, CSharpDirective.Sdk sdk)
         {
