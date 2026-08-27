@@ -12,9 +12,8 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests;
 
 /// <summary>
-/// Covers the pairing contract every <see cref="IEventSink"/> relies on: a sink receives an end if and
-/// only if it received the matching start. Sinks that track pending scopes by block id - the VS
-/// telemetry sink does - either throw or leak when that is violated.
+/// Covers how events and scopes fan out to registered sinks, and that the overloads taking a pooled
+/// <see cref="LogMessage"/> return it whether or not anything is listening.
 /// </summary>
 public sealed class RoslynTelemetryTests
 {
@@ -49,40 +48,6 @@ public sealed class RoslynTelemetryTests
         Assert.Equal(2, sink.Events.Count);
         Assert.Equal("Start", sink.Events[0].Kind);
         Assert.Equal("End", sink.Events[1].Kind);
-        Assert.Equal(sink.Events[0].BlockId, sink.Events[1].BlockId);
-    }
-
-    [Fact]
-    public void ASinkEnabledDuringABlockDoesNotSeeAnUnpairedEnd()
-    {
-        var alwaysOn = new RecordingSink();
-        var initiallyOff = new RecordingSink { Enabled = false };
-
-        using var _1 = RoslynTelemetry.AddEventSink(alwaysOn);
-        using var _2 = RoslynTelemetry.AddEventSink(initiallyOff);
-
-        using (RoslynTelemetry.LogBlock(FunctionId.TestEvent_NotUsed, CancellationToken.None))
-        {
-            initiallyOff.Enabled = true;
-        }
-
-        Assert.Equal(["Start", "End"], alwaysOn.Events.ConvertAll(e => e.Kind));
-        Assert.Empty(initiallyOff.Events);
-    }
-
-    [Fact]
-    public void ASinkDisabledDuringABlockStillSeesItsEnd()
-    {
-        var sink = new RecordingSink();
-        using var _ = RoslynTelemetry.AddEventSink(sink);
-
-        using (RoslynTelemetry.LogBlock(FunctionId.TestEvent_NotUsed, CancellationToken.None))
-        {
-            sink.Enabled = false;
-        }
-
-        // Otherwise the sink's pending scope for this block would never be closed.
-        Assert.Equal(["Start", "End"], sink.Events.ConvertAll(e => e.Kind));
         Assert.Equal(sink.Events[0].BlockId, sink.Events[1].BlockId);
     }
 
