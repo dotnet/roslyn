@@ -1423,6 +1423,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     case DeclarationModifiers.Ref:
                         {
+                            // In a member such as `ref int M()`, `ref int` is the return type. Stop parsing modifiers
+                            // so the member parser can consume `ref` as part of that type.
                             if (isRefReturningMember())
                             {
                                 return;
