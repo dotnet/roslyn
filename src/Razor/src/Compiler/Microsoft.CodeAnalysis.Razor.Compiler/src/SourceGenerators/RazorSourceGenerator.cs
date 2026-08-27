@@ -424,7 +424,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     return (projectEngine, filePath, document);
                 })
                 .WithTrackingName("CheckedAndRewrittenTagHelpers")
-                .Select((tuple, cancellationToken) =>
+                .Select(static (tuple, cancellationToken) =>
                 {
                     var (projectEngine, filePath, document) = tuple;
 
@@ -438,7 +438,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
                 // Run UTF-8 detection on its own so a support-map change doesn't replay the cached optimization passes.
                 .Combine(utf8SupportMap)
-                .Select((pair, cancellationToken) =>
+                .Select(static (pair, cancellationToken) =>
                 {
                     var ((projectEngine, filePath, document), utf8SupportMap) = pair;
 
@@ -455,7 +455,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .WithTrackingName("Utf8Documents")
 
                 // Generate the C# for each document.
-                .Select((tuple, cancellationToken) =>
+                .Select(static (tuple, cancellationToken) =>
                 {
                     var (projectEngine, filePath, document, _) = tuple;
 

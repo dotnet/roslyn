@@ -800,12 +800,12 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
 
         // The .cshtml re-emits (its UTF-8 decision flipped); the unrelated component stays cached.
         // Key the run reason by source file path so we verify *which* document re-emitted -- the
-        // "GeneratedCode" step output value is a (filePath, document) tuple; grab Item1 by reflection
-        // to avoid naming the internal document type.
+        // "GeneratedCode" step output value is a (filePath, document) tuple; read the first element
+        // via ITuple to avoid naming the internal document type.
         var reasonsByFile = result.TrackedSteps["GeneratedCode"]
             .SelectMany(step => step.Outputs)
             .ToDictionary(
-                output => (string)output.Value.GetType().GetField("Item1")!.GetValue(output.Value)!,
+                output => (string)((System.Runtime.CompilerServices.ITuple)output.Value)[0]!,
                 output => output.Reason);
 
         Assert.Equal(2, reasonsByFile.Count);

@@ -80,7 +80,9 @@ internal sealed class Utf8SupportMap : IEquatable<Utf8SupportMap>
 
                 if (!typeSupport.ContainsKey(fqn))
                 {
-                    typeSupport[fqn] = compilation.HasCallableUtf8WriteLiteralOverload(fqn);
+                    // Use the resolved symbol directly rather than round-tripping the display name
+                    // back through GetTypeByMetadataName (which expects metadata syntax).
+                    typeSupport[fqn] = compilation.HasCallableUtf8WriteLiteralOverload(type);
                 }
             }
             else
