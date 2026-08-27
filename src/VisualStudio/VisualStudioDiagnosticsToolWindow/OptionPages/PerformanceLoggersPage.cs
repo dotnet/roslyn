@@ -31,6 +31,9 @@ internal sealed class PerformanceLoggersPage : AbstractOptionPage
     private IThreadingContext _threadingContext;
     private SolutionServices _workspaceServices;
 
+    private static IDisposable? s_traceRegistration;
+    private static IDisposable? s_outputWindowRegistration;
+
     protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
     {
         if (_globalOptions == null)
@@ -62,15 +65,16 @@ internal sealed class PerformanceLoggersPage : AbstractOptionPage
         var traceEnabled = globalOptions.GetOption(LoggerOptionsStorage.TraceLoggerKey);
         var outputWindowEnabled = globalOptions.GetOption(LoggerOptionsStorage.OutputWindowLoggerKey);
 
-        // ETW and Trace sinks are part of VS's default composition, so refresh those instances. Two
-        // registered EtwLoggers would post every event twice.
+        // The ETW sink is part of VS's shipping composition, because enabling ETW for one FunctionId on
+        // a customer machine must not require this (non-shipping) VSIX. Its predicate is a snapshot of
+        // the per-FunctionId options, so it is refreshed rather than replaced.
         var telemetryService = workspaceServices.GetService<IWorkspaceTelemetryService>() as VisualStudioWorkspaceTelemetryService;
-        telemetryService?.UpdateDiagnosticSinkEnablement(etwEnabled, traceEnabled, isEnabled);
+        telemetryService?.UpdateEtwEnablement(etwEnabled, isEnabled);
 
-        // The output window sink lives in this (separately shipped) VSIX, so the composition root cannot
-        // reference it. Attach it once, then control it purely through its predicate.
-        OutputWindowLogger.EnsureRegistered();
-        OutputWindowLogger.Instance.UpdatePredicate(outputWindowEnabled ? isEnabled : EtwLogger.DisabledPredicate);
+        // These two exist only for this page, so they are registered while enabled and unregistered
+        // when not.
+        Register(ref s_traceRegistration, traceEnabled, () => new TraceLogger(isEnabled));
+        Register(ref s_outputWindowRegistration, outputWindowEnabled, () => new OutputWindowLogger(isEnabled));
 
         // update loggers in remote process
         var client = threadingContext.JoinableTaskFactory.Run(() => RemoteHostClient.TryGetClientAsync(workspaceServices, CancellationToken.None));
@@ -87,6 +91,11 @@ internal sealed class PerformanceLoggersPage : AbstractOptionPage
             threadingContext.JoinableTaskFactory.Run(async () => _ = await client.TryInvokeAsync<IRemoteProcessTelemetryService>(
                 (service, cancellationToken) => service.EnableLoggingAsync(loggerTypeNames, functionIds, cancellationToken),
                 CancellationToken.None).ConfigureAwait(false));
+        }
+
+        static void Register(ref IDisposable? registration, bool enabled, Func<IEventSink> create)
+        {
+            Interlocked.Exchange(ref registration, enabled ? RoslynTelemetry.AddEventSink(create()) : null)?.Dispose();
         }
     }
 }

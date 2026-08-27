@@ -30,6 +30,8 @@ internal sealed partial class RemoteProcessTelemetryService(
 
     private PerformanceReporter? _performanceReporter;
 
+    private static IDisposable? s_traceRegistration;
+
     public override void Dispose()
     {
         _performanceReporter?.Dispose();
@@ -80,12 +82,11 @@ internal sealed partial class RemoteProcessTelemetryService(
             var functionIdsSet = new HashSet<FunctionId>(functionIds);
             bool logChecker(FunctionId id) => functionIdsSet.Contains(id);
 
-            // The sinks are composed once at startup; only their enablement changes here.
             var telemetryService = (RemoteWorkspaceTelemetryService)GetWorkspace().Services.GetRequiredService<IWorkspaceTelemetryService>();
-            telemetryService.UpdateDiagnosticSinkEnablement(
-                etwEnabled: loggerTypeNames.Contains(nameof(EtwLogger)),
-                traceEnabled: loggerTypeNames.Contains(nameof(TraceLogger)),
-                logChecker);
+            telemetryService.UpdateEtwEnablement(loggerTypeNames.Contains(nameof(EtwLogger)), logChecker);
+
+            var traceEnabled = loggerTypeNames.Contains(nameof(TraceLogger));
+            Interlocked.Exchange(ref s_traceRegistration, traceEnabled ? RoslynTelemetry.AddEventSink(new TraceLogger(logChecker)) : null)?.Dispose();
         }, cancellationToken);
     }
 }

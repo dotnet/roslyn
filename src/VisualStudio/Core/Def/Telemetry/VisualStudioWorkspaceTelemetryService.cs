@@ -33,23 +33,19 @@ internal sealed class VisualStudioWorkspaceTelemetryService(
     private readonly IGlobalOptionService _globalOptions = globalOptions;
 
     /// <summary>
-    /// Opt-in diagnostic sinks. Composed once, at startup, and thereafter enabled or disabled through
-    /// their own predicates by the Performance Loggers options page. Keeping them in the composed list
-    /// is what guarantees each is registered exactly once.
+    /// Composed once, at startup, so that ETW works without the (non-shipping) diagnostics VSIX. Its
+    /// predicate is a snapshot of the per-FunctionId options, refreshed by the Performance Loggers page.
     /// </summary>
     private EtwLogger? _etwLogger;
-    private TraceLogger? _traceLogger;
 
     protected override ImmutableArray<IEventSink> CreateEventSinks(TelemetrySession telemetrySession, bool logDelta)
     {
         _etwLogger = new EtwLogger(FunctionIdOptions.CreateFunctionIsEnabledPredicate(_globalOptions));
-        _traceLogger = new TraceLogger(EtwLogger.DisabledPredicate);
 
         return
         [
             CodeMarkerLogger.Instance,
             _etwLogger,
-            _traceLogger,
             RoslynActivityLogger.Sink,
             TelemetryLogger.Create(telemetrySession, logDelta),
             new FileLogger(_globalOptions, _threadingContext),
@@ -57,13 +53,10 @@ internal sealed class VisualStudioWorkspaceTelemetryService(
     }
 
     /// <summary>
-    /// Refreshes the enablement of the composed opt-in sinks, for the Performance Loggers options page.
+    /// Refreshes the composed ETW sink's enablement, for the Performance Loggers options page.
     /// </summary>
-    internal void UpdateDiagnosticSinkEnablement(bool etwEnabled, bool traceEnabled, Func<FunctionId, bool> isEnabled)
-    {
-        _etwLogger?.UpdatePredicate(etwEnabled ? isEnabled : EtwLogger.DisabledPredicate);
-        _traceLogger?.UpdatePredicate(traceEnabled ? isEnabled : EtwLogger.DisabledPredicate);
-    }
+    internal void UpdateEtwEnablement(bool enabled, Func<FunctionId, bool> isEnabled)
+        => _etwLogger?.UpdatePredicate(enabled ? isEnabled : EtwLogger.DisabledPredicate);
 
     protected override void TelemetrySessionInitialized()
     {

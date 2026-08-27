@@ -18,29 +18,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry;
 internal sealed class RemoteWorkspaceTelemetryService() : AbstractWorkspaceTelemetryService
 {
     /// <summary>
-    /// Opt-in diagnostic sinks. Composed once, at startup, and thereafter toggled through their
-    /// predicates by <c>IRemoteProcessTelemetryService.EnableLoggingAsync</c>.
+    /// Composed once, at startup, mirroring the VS host. Toggled through its predicate by
+    /// <c>IRemoteProcessTelemetryService.EnableLoggingAsync</c>.
     /// </summary>
     private EtwLogger? _etwLogger;
-    private TraceLogger? _traceLogger;
 
     protected override ImmutableArray<IEventSink> CreateEventSinks(TelemetrySession telemetrySession, bool logDelta)
     {
         _etwLogger = new EtwLogger(EtwLogger.DisabledPredicate);
-        _traceLogger = new TraceLogger(EtwLogger.DisabledPredicate);
 
         return
         [
             _etwLogger,
-            _traceLogger,
             TelemetryLogger.Create(telemetrySession, logDelta),
         ];
     }
 
-    /// <inheritdoc cref="VisualStudioWorkspaceTelemetryService.UpdateDiagnosticSinkEnablement"/>
-    internal void UpdateDiagnosticSinkEnablement(bool etwEnabled, bool traceEnabled, Func<FunctionId, bool> isEnabled)
-    {
-        _etwLogger?.UpdatePredicate(etwEnabled ? isEnabled : EtwLogger.DisabledPredicate);
-        _traceLogger?.UpdatePredicate(traceEnabled ? isEnabled : EtwLogger.DisabledPredicate);
-    }
+    /// <inheritdoc cref="VisualStudioWorkspaceTelemetryService.UpdateEtwEnablement"/>
+    internal void UpdateEtwEnablement(bool enabled, Func<FunctionId, bool> isEnabled)
+        => _etwLogger?.UpdatePredicate(enabled ? isEnabled : EtwLogger.DisabledPredicate);
 }
