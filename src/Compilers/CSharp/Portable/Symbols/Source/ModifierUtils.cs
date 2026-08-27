@@ -478,23 +478,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool reportMisplacedPartialModifier()
             {
-                var modifier = modifiers.FirstOrDefault(SyntaxKind.PartialKeyword);
-                if (modifier != default)
+                var partialToken = modifiers.FirstOrDefault(SyntaxKind.PartialKeyword);
+                if (partialToken != default)
                 {
-                    var messageId = SyntaxFacts.IsTypeDeclaration(modifier.Parent.Kind()) ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod;
-                    if (!messageId.CheckFeatureAvailability(diagnostics, modifier))
+                    var messageId = SyntaxFacts.IsTypeDeclaration(partialToken.Parent.Kind()) ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod;
+                    if (!messageId.CheckFeatureAvailability(diagnostics, partialToken))
                         return true;
 
                     // `partial` normally must be last. Preserve the historical exception for ordinary methods ending in
                     // `partial async`. Ordinary methods are the only declarations that allow both modifiers; elsewhere,
                     // either `partial` is rejected here or `async` is rejected by ModifierUtils.CheckModifiers.
-                    var i = modifiers.IndexOf(modifier);
+                    var partialIndex = modifiers.IndexOf(partialToken);
                     var isLegalLocation =
-                        i == modifiers.Count - 1 ||
-                        (i == modifiers.Count - 2 && modifiers[i + 1].ContextualKind() is SyntaxKind.AsyncKeyword);
+                        partialIndex == modifiers.Count - 1 ||
+                        (partialIndex == modifiers.Count - 2 && modifiers[partialIndex + 1].ContextualKind() is SyntaxKind.AsyncKeyword);
                     if (!allowsPartialModifier || !isLegalLocation)
                     {
-                        diagnostics.Add(ErrorCode.ERR_PartialMisplaced, modifier.GetLocation());
+                        diagnostics.Add(ErrorCode.ERR_PartialMisplaced, partialToken.GetLocation());
                         return true;
                     }
                 }
