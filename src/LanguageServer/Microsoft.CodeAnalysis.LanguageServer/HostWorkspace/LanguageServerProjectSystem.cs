@@ -197,7 +197,11 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
             return null;
 
         var projectSnapshots = await CacheFileReader.ReadProjectDataSnapshotsAsync(
-            projectPath, cacheInProject: false, solutionPath: _hostProjectFactory.SolutionPath, cancellationToken: cancellationToken);
+            projectPath,
+            cacheInProject: false,
+            solutionPath: _hostProjectFactory.SolutionPath,
+            stringPool: null,
+            cancellationToken);
 
         if (projectSnapshots.IsEmpty)
             return null;
@@ -223,7 +227,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
                 AdditionalDocuments = GetItems("AdditionalFile").Select(CreateDocumentFileInfo).ToArray(),
                 AnalyzerConfigDocuments = GetItems("AnalyzerConfigFile").Select(CreateDocumentFileInfo).ToArray(),
                 ProjectReferences = GetItems("ProjectReference").Select(item =>
-                    new ProjectFileReference(item.ItemSpec, GetAliases(item), referenceOutputAssembly: true)).ToArray(),
+                    new ProjectFileReference(item.ItemSpec, GetAliases(item), GetReferenceOutputAssembly(item))).ToArray(),
                 MetadataReferences = GetItems("MetadataReference").Select(item =>
                     new MetadataReferenceItem(item.ItemSpec, GetAliases(item))).ToArray(),
                 ProjectCapabilities = [.. snapshot.Capabilities],
@@ -245,4 +249,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
                 => item.Metadata["aliases"] is string aliases ? aliases.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) : [];
         }), _hostProjectFactory);
     }
+
+    internal static bool GetReferenceOutputAssembly(ProjectDataItem item)
+        => !string.Equals(item.Metadata["ReferenceOutputAssembly"], bool.FalseString, StringComparison.OrdinalIgnoreCase);
 }

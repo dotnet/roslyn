@@ -39,7 +39,7 @@ public sealed class UnsupportedProjectDataMarkerTests : IDisposable
 
 		Assert.EndsWith(".unsupported", markerPath);
 		Assert.StartsWith(Path.Combine(this.workDir, "cache"), markerPath);
-		Assert.True(UnsupportedProjectDataMarker.TryReadValid(projectFile, out UnsupportedProjectDataMarkerData marker));
+		Assert.True(UnsupportedProjectDataMarker.TryReadValid(projectFile, TestContext.Current.CancellationToken, out UnsupportedProjectDataMarkerData marker));
 		Assert.Equal("CannotWriteProjectData", marker.Reason);
 		Assert.Equal(markerPath, marker.MarkerFilePath);
 	}
@@ -52,7 +52,7 @@ public sealed class UnsupportedProjectDataMarkerTests : IDisposable
 
 		File.AppendAllText(projectFile, Environment.NewLine);
 
-		Assert.False(UnsupportedProjectDataMarker.TryReadValid(projectFile, out _));
+		Assert.False(UnsupportedProjectDataMarker.TryReadValid(projectFile, TestContext.Current.CancellationToken, out _));
 	}
 
 	[Fact]
@@ -65,7 +65,20 @@ public sealed class UnsupportedProjectDataMarkerTests : IDisposable
 
 		File.WriteAllText(directoryBuildProps, "<Project><PropertyGroup><LangVersion>preview</LangVersion></PropertyGroup></Project>");
 
-		Assert.False(UnsupportedProjectDataMarker.TryReadValid(projectFile, out _));
+		Assert.False(UnsupportedProjectDataMarker.TryReadValid(projectFile, TestContext.Current.CancellationToken, out _));
+	}
+
+	[Fact]
+	public void TryReadValid_CanceledBeforeValidation_Throws()
+	{
+		string projectFile = this.WriteProject("App.csproj");
+		UnsupportedProjectDataMarker.Write(projectFile, "CannotWriteProjectData");
+
+		Assert.Throws<OperationCanceledException>(() =>
+			UnsupportedProjectDataMarker.TryReadValid(
+				projectFile,
+				new CancellationToken(canceled: true),
+				out _));
 	}
 
 	[Fact]
