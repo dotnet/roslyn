@@ -456,15 +456,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var result = GetDeclarationModifiersAndCheckForDuplicateModifiers(modifiers, diagnostics, out var reportedDiagnostic);
 
-            if (!reportedDiagnostic)
-            {
-                reportedDiagnostic = reportMisplacedRefModifier();
-            }
-
-            if (!reportedDiagnostic)
-            {
-                reportedDiagnostic = reportMisplacedPartialModifier();
-            }
+            reportedDiagnostic = reportedDiagnostic || reportMisplacedRefModifier();
+            reportedDiagnostic = reportedDiagnostic || reportMisplacedPartialModifier();
 
             switch (result & DeclarationModifiers.AccessibilityMask)
             {
