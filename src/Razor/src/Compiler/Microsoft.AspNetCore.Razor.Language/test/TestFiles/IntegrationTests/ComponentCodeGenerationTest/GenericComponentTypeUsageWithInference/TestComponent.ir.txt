@@ -10,8 +10,6 @@
                 Component - (88:6,0 [28] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
                     ComponentAttribute - (111:6,23 [1] x:\dir\subdir\Test\TestComponent.cshtml) - MyItem - MyItem - AttributeStructure.DoubleQuotes
                         IntermediateToken - (111:6,23 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - 1
-            CSharpCode - (25:1,7 [58] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (25:1,7 [58] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter]\n    public TItem MyItem { get; set; }\n
     NamespaceDeclaration -  - __Blazor.Test.TestComponent
         ClassDeclaration -  - internal static - TypeInference -  - 
             ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateTestComponent_0

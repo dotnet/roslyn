@@ -226,16 +226,21 @@ public class MarkupSplitterComponentTest : RazorIntegrationTestBase
     }
 
     [Fact]
-    public void MarkupMethod_WithTypeParam_FallsBackAndCompiles()
+    public void MarkupMethod_WithTypeParam_SplitsAndCompiles()
     {
-        // A generic component (@typeparam) with a markup method takes the single-document path: the early
-        // move-based split would give the two partial halves inconsistent arity. Verify it still compiles.
+        // A generic component (@typeparam) with a markup method splits: the markup method lifts to the impl
+        // half and both partials repeat the `<T>` arity, which is legal. Verify it compiles.
         var generated = CompileToCSharp("""
             @typeparam T
             @code {
                 private Microsoft.AspNetCore.Components.RenderFragment Make() => @<p>Hi</p>;
             }
             """);
+
+        // The markup method lifts to the impl half; the decl half keeps none of it.
+        Assert.NotNull(generated.DeclCode);
+        Assert.DoesNotContain("Make", generated.DeclCode);
+        Assert.Contains("Make", generated.Code);
 
         CompileToAssembly(generated);
     }
@@ -444,6 +449,84 @@ public class MarkupSplitterComponentTest : RazorIntegrationTestBase
         var decl = codeDocument.GetDeclCSharpDocument();
         Assert.NotNull(decl);
         Assert.DoesNotContain("Make", decl.Text.ToString());
+    }
+
+    [Fact]
+    public void MarkupFreeImplements_SplitsIntoDeclAndImpl()
+    {
+        // A markup-free @implements component splits: the interface list stays on both partials (partials
+        // may repeat it), and the render-only impl keeps it so the ImplementInterface code action is still
+        // offered against the impl partial. The decl half is the full class surface, not a fallback shell.
+        var generated = CompileToCSharp("""
+            @implements System.IDisposable
+            @code {
+                public void Dispose() { }
+            }
+            """);
+
+        Assert.NotNull(generated.DeclCode);
+        Assert.Contains("IDisposable", generated.DeclCode);
+        Assert.Contains("Dispose", generated.DeclCode);
+
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void MarkupFreeInherits_SplitsIntoDeclAndImpl()
+    {
+        // A markup-free @inherits component splits: the base type stays on both partials, so the impl
+        // stays a component the compiler flags for unimplemented base members (keeping ImplementAbstractClass
+        // offered against it). The decl half carries the full class surface, not a fallback shell.
+        var generated = CompileToCSharp("""
+            @inherits Microsoft.AspNetCore.Components.LayoutComponentBase
+            <p>Hello</p>
+            """);
+
+        Assert.NotNull(generated.DeclCode);
+        Assert.Contains("LayoutComponentBase", generated.DeclCode);
+
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void MarkupFreeTypeParam_SplitsIntoDeclAndImpl()
+    {
+        // A generic component with no class-body markup splits; the type parameter lives on the decl half.
+        // A markup-free @typeparam previously routed to the single-document fallback.
+        var generated = CompileToCSharp("""
+            @typeparam T
+            @code {
+                [Microsoft.AspNetCore.Components.Parameter] public T Value { get; set; }
+            }
+            """);
+
+        Assert.NotNull(generated.DeclCode);
+        Assert.Contains("Value", generated.DeclCode);
+
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void MarkupMethod_WithImplements_SplitsAndCompiles()
+    {
+        // A header directive combined with class-body markup splits: the markup-free members (here the
+        // explicit Dispose) stay in the decl half, the markup method lifts to the impl half, and both
+        // partials repeat the interface list. Verify each half routes correctly and it compiles.
+        var generated = CompileToCSharp("""
+            @implements System.IDisposable
+            @code {
+                public void Dispose() { }
+                private Microsoft.AspNetCore.Components.RenderFragment Make() => @<p>Hi</p>;
+            }
+            """);
+
+        Assert.NotNull(generated.DeclCode);
+        Assert.Contains("IDisposable", generated.DeclCode);
+        Assert.Contains("Dispose", generated.DeclCode);
+        Assert.DoesNotContain("Make", generated.DeclCode);
+        Assert.Contains("Make", generated.Code);
+
+        CompileToAssembly(generated);
     }
 
     private static string Slice(string text, SourceSpan span) => text.Substring(span.AbsoluteIndex, span.Length);

@@ -12,5 +12,3 @@
                         IntermediateToken - (190:10,23 [3] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - int
                     ComponentTypeArgument - (202:10,35 [6] x:\dir\subdir\Test\TestComponent.cshtml) - TItem
                         IntermediateToken - (202:10,35 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - string
-            CSharpCode - (44:2,7 [118] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (44:2,7 [118] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter]\n    public TItem MyItem { get; set; }\n\n    [Parameter]\n    public TItem2 MyItem2 { get; set; }\n
