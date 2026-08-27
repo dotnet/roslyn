@@ -120,6 +120,14 @@ public class RazorIntegrationTestBase
 
     internal virtual string WorkingDirectory { get; }
 
+    /// <summary>
+    /// Whether the project engine opts into the decl/impl markup split. The split is off by default in
+    /// the compiler (only the source generator consumes both halves), but tests assert against split
+    /// output, so they opt in. Override to <see langword="false"/> to exercise the classic,
+    /// non-source-generator compilation shape.
+    /// </summary>
+    internal virtual bool EnableMarkupSplit => true;
+
     // intentionally private - we don't want individual tests messing with the project engine
     private RazorProjectEngine CreateProjectEngine(RazorConfiguration configuration, MetadataReference[] references, bool supportLocalizedComponentNames, CSharpParseOptions? csharpParseOptions)
     {
@@ -143,6 +151,9 @@ public class RazorIntegrationTestBase
                 }
 
                 builder.SuppressUniqueIds = "__UniqueIdSuppressedForTesting__";
+
+                // Tests assert against split output, so they opt in like the source generator does.
+                builder.EnableMarkupSplit = EnableMarkupSplit;
             });
 
             b.Features.Add(new TestImportProjectFeature(ImportItems.ToImmutable()));
