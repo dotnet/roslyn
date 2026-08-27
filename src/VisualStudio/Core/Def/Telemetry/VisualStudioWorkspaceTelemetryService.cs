@@ -47,7 +47,6 @@ internal sealed class VisualStudioWorkspaceTelemetryService(
 
         return
         [
-            .. RoslynTelemetry.GetEventSinks(),
             CodeMarkerLogger.Instance,
             _etwLogger,
             _traceLogger,

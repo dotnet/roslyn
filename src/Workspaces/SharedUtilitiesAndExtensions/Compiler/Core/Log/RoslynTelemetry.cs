@@ -21,12 +21,25 @@ namespace Microsoft.CodeAnalysis.Internal.Log;
 internal static partial class RoslynTelemetry
 {
     /// <summary>
-    /// The sinks every event fans out to. Decided once, when a host composes its telemetry, and not
-    /// mutated afterwards: turning a sink off is that sink's own <see cref="IEventSink.IsEnabled"/>
-    /// returning false. Keeping the set fixed is what guarantees a sink cannot be registered twice,
-    /// which would post its events twice.
+    /// The sinks a host composes for itself. Decided once, at startup, and not mutated afterwards:
+    /// turning a sink off is that sink's own <see cref="IEventSink.IsEnabled"/> returning false.
     /// </summary>
-    private static ImmutableArray<IEventSink> s_eventSinks = [];
+    private static ImmutableArray<IEventSink> s_hostSinks = [];
+
+    /// <summary>
+    /// Sinks attached at runtime by components the host cannot reference (the diagnostics tool window,
+    /// integration tests). Kept separate from <see cref="s_hostSinks"/> so that host composition and
+    /// runtime attachment cannot clobber each other, whichever happens first.
+    /// </summary>
+    private static ImmutableArray<IEventSink> s_dynamicSinks = [];
+
+    /// <summary>
+    /// <see cref="s_hostSinks"/> and <see cref="s_dynamicSinks"/> combined. Maintained on the (rare)
+    /// write path so that recording only ever reads one array.
+    /// </summary>
+    private static ImmutableArray<IEventSink> s_allSinks = [];
+
+    private static readonly object s_sinkGate = new();
 
     /// <summary>
     /// next unique block id that will be given to each LogBlock
@@ -34,23 +47,35 @@ internal static partial class RoslynTelemetry
     private static int s_lastUniqueBlockId;
 
     /// <summary>
-    /// Replaces the active sinks. Hosts call this once during startup; tests reset it to empty during
-    /// teardown. Returns what was previously registered.
+    /// Sets the sinks this host composes. Hosts call this once during startup and pass everything they
+    /// want; tests reset it to empty during teardown. Sinks attached through
+    /// <see cref="AddEventSink"/> are unaffected.
     /// </summary>
-    public static ImmutableArray<IEventSink> SetEventSinks(ImmutableArray<IEventSink> sinks)
-        => ImmutableInterlocked.InterlockedExchange(ref s_eventSinks, sinks);
-
-    public static ImmutableArray<IEventSink> GetEventSinks()
-        => s_eventSinks;
+    public static void SetEventSinks(ImmutableArray<IEventSink> sinks)
+    {
+        lock (s_sinkGate)
+        {
+            s_hostSinks = sinks;
+            s_allSinks = [.. s_hostSinks, .. s_dynamicSinks];
+        }
+    }
 
     /// <summary>
-    /// Atomically adds <paramref name="sink"/> alongside whatever is already registered, ignoring it if
-    /// it is already present. Used by diagnostic sinks that live in assemblies the composition root
-    /// cannot reference (the diagnostics tool window, integration tests). Such a sink attaches once and
+    /// Attaches <paramref name="sink"/> at runtime, ignoring it if it is already present. Used by
+    /// diagnostic sinks that live in assemblies the host cannot reference. Such a sink attaches once and
     /// is thereafter controlled by its own <see cref="IEventSink.IsEnabled"/>; it is never detached.
     /// </summary>
     public static void AddEventSink(IEventSink sink)
-        => ImmutableInterlocked.Update(ref s_eventSinks, static (sinks, sink) => sinks.Contains(sink) ? sinks : sinks.Add(sink), sink);
+    {
+        lock (s_sinkGate)
+        {
+            if (s_dynamicSinks.Contains(sink))
+                return;
+
+            s_dynamicSinks = s_dynamicSinks.Add(sink);
+            s_allSinks = [.. s_hostSinks, .. s_dynamicSinks];
+        }
+    }
 
     /// <summary>
     /// Whether any registered sink wants <paramref name="functionId"/>. Checked before a
@@ -59,7 +84,7 @@ internal static partial class RoslynTelemetry
     /// </summary>
     private static bool TryGetEnabledSinks(FunctionId functionId, out ImmutableArray<IEventSink> sinks)
     {
-        sinks = s_eventSinks;
+        sinks = s_allSinks;
 
         foreach (var sink in sinks)
         {
@@ -76,6 +101,29 @@ internal static partial class RoslynTelemetry
         {
             if (sink.IsEnabled(functionId))
                 sink.Log(functionId, logMessage);
+        }
+    }
+
+    internal static TestAccessor GetTestAccessor() => default;
+
+    internal readonly struct TestAccessor
+    {
+        /// <summary>
+        /// The sinks currently recording, so a test can capture and restore them around a scenario.
+        /// </summary>
+        public ImmutableArray<IEventSink> EventSinks => s_allSinks;
+
+        /// <summary>
+        /// Replaces every sink, host-composed and dynamically attached alike.
+        /// </summary>
+        public void SetAllEventSinks(ImmutableArray<IEventSink> sinks)
+        {
+            lock (s_sinkGate)
+            {
+                s_hostSinks = sinks;
+                s_dynamicSinks = [];
+                s_allSinks = sinks;
+            }
         }
     }
     /// <summary>

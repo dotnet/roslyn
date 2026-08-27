@@ -40,7 +40,7 @@ public sealed class VSMetricSinkTests
     public void RecordedMeasurementsArePostedExactlyOncePerFlush()
     {
         var poster = new RecordingPoster();
-        var sink = new VSMetricSink(poster);
+        using var sink = VSMetricSink.GetTestAccessor().CreateSink(poster);
 
         sink.Count("vs/ide/vbcs/test/counter", "SucceededCount", 1, default);
         sink.Count("vs/ide/vbcs/test/counter", "SucceededCount", 1, default);
@@ -61,7 +61,7 @@ public sealed class VSMetricSinkTests
     public void TagValuesDiscriminateBuckets()
     {
         var poster = new RecordingPoster();
-        var sink = new VSMetricSink(poster);
+        using var sink = VSMetricSink.GetTestAccessor().CreateSink(poster);
 
         // Same event and metric, different tag values: these must aggregate into separate buckets.
         sink.Record("vs/ide/vbcs/lsp/requestduration", "RequestDuration", 10,
@@ -80,7 +80,7 @@ public sealed class VSMetricSinkTests
     public void EventAndPropertyNamesUseTheTelemetryConvention()
     {
         var poster = new RecordingPoster();
-        var sink = new VSMetricSink(poster);
+        using var sink = VSMetricSink.GetTestAccessor().CreateSink(poster);
 
         sink.Count("vs/ide/vbcs/lsp/requestcounter", "SucceededCount", 1,
             new KeyValuePair<string, object>[] { new("server", "Roslyn") });
@@ -96,7 +96,7 @@ public sealed class VSMetricSinkTests
     public void NothingIsRecordedForAnOptedOutSession()
     {
         var poster = new RecordingPoster { IsOptedIn = false };
-        var sink = new VSMetricSink(poster);
+        using var sink = VSMetricSink.GetTestAccessor().CreateSink(poster);
 
         sink.Count("vs/ide/vbcs/test/counter", "SucceededCount", 1, default);
         sink.Flush();

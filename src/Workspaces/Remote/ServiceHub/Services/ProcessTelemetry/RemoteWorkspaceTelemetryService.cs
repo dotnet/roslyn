@@ -31,7 +31,6 @@ internal sealed class RemoteWorkspaceTelemetryService() : AbstractWorkspaceTelem
 
         return
         [
-            .. RoslynTelemetry.GetEventSinks(),
             _etwLogger,
             _traceLogger,
             TelemetryLogger.Create(telemetrySession, logDelta),

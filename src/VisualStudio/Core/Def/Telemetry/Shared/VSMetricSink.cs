@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Telemetry;
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Telemetry;
 /// <see cref="IMetricSink"/> that routes between them; nothing here needs to change for that.
 /// </para>
 /// </summary>
-internal sealed class VSMetricSink : IMetricSink
+internal sealed class VSMetricSink : IMetricSink, IDisposable
 {
     /// <summary>
     /// Version information which VS Telemetry attaches to our aggregated telemetry, so that Kusto
@@ -75,6 +76,7 @@ internal sealed class VSMetricSink : IMetricSink
 
     private readonly VSTelemetryMeterProvider _meterProvider = new();
     private readonly IMetricPoster _poster;
+    private readonly CancellationTokenSource _flushLoopCancellation = new();
 
     private ImmutableDictionary<AggregationKey, Aggregation> _aggregations = ImmutableDictionary<AggregationKey, Aggregation>.Empty;
     private ImmutableDictionary<string, IMeter> _meters = ImmutableDictionary<string, IMeter>.Empty;
@@ -84,8 +86,46 @@ internal sealed class VSMetricSink : IMetricSink
     {
     }
 
-    internal VSMetricSink(IMetricPoster poster)
-        => _poster = poster;
+    private VSMetricSink(IMetricPoster poster)
+    {
+        _poster = poster;
+
+        // Owned here rather than by each host, so composing a sink is all a host has to remember.
+        // Shutdown paths flush explicitly as well, since a host can exit too abruptly for a timer.
+        _ = PostCollectedTelemetryAsync();
+    }
+
+    public void Dispose()
+        => _flushLoopCancellation.Cancel();
+
+    private async Task PostCollectedTelemetryAsync()
+    {
+        while (true)
+        {
+            try
+            {
+                await Task.Delay(TimeSpan.FromMinutes(30), _flushLoopCancellation.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+
+            Flush();
+        }
+    }
+
+    internal static TestAccessor GetTestAccessor() => default;
+
+    internal readonly struct TestAccessor
+    {
+        /// <summary>
+        /// Creates a sink over a caller-supplied poster, so a test can assert exactly how many metric
+        /// events a flush produces without standing up a real, opted-in <see cref="TelemetrySession"/>
+        /// (which would try to send).
+        /// </summary>
+        public VSMetricSink CreateSink(IMetricPoster poster) => new(poster);
+    }
 
     public void Count(string eventName, string metricName, long delta, ReadOnlySpan<KeyValuePair<string, object?>> tags)
     {
