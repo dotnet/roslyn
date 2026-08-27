@@ -31,23 +31,28 @@ internal static class SourceGeneratedDocumentUri
 
     public static DocumentUri Create(SourceGeneratedDocumentIdentity identity)
     {
-#pragma warning disable RS0030 // Do not use banned APIs - EscapeDataString just escapes a string to be compatible with a URI and is safe to use.
-        var hintPath = Uri.EscapeDataString(identity.HintName);
+        var hintPath = EscapeDataString(identity.HintName);
         var projectId = identity.DocumentId.ProjectId.Id.ToString(GuidFormat);
         var documentId = identity.DocumentId.Id.ToString(GuidFormat);
-        var hintName = Uri.EscapeDataString(identity.HintName);
-        var assemblyName = Uri.EscapeDataString(identity.Generator.AssemblyName);
-        var assemblyVersion = Uri.EscapeDataString(identity.Generator.AssemblyVersion.ToString());
-        var typeName = Uri.EscapeDataString(identity.Generator.TypeName);
+        var hintName = EscapeDataString(identity.HintName);
+        var assemblyName = EscapeDataString(identity.Generator.AssemblyName);
+        var assemblyVersion = EscapeDataString(identity.Generator.AssemblyVersion.ToString());
+        var typeName = EscapeDataString(identity.Generator.TypeName);
 
         var uri = $"{Scheme}://{projectId}/{hintPath}?{DocumentIdParam}={documentId}&{HintNameParam}={hintName}&{AssemblyNameParam}={assemblyName}&{AssemblyVersionParam}={assemblyVersion}&{TypeNameParam}={typeName}";
 
         // If we have a path (which is technically optional) also append it
         if (identity.Generator.AssemblyPath != null)
-            uri += $"&{AssemblyPathParam}={Uri.EscapeDataString(identity.Generator.AssemblyPath)}";
-#pragma warning restore RS0030 // Do not use banned APIs
+            uri += $"&{AssemblyPathParam}={EscapeDataString(identity.Generator.AssemblyPath)}";
 
         return new DocumentUri(uri);
+    }
+
+    private static string EscapeDataString(string value)
+    {
+#pragma warning disable RS0030 // Do not use banned APIs - EscapeDataString just escapes a string to be compatible with a URI and is safe to use.
+        return Uri.EscapeDataString(value);
+#pragma warning restore RS0030 // Do not use banned APIs
     }
 
     public static SourceGeneratedDocumentIdentity? DeserializeIdentity(Solution solution, ParsedUri documentUri)

@@ -825,7 +825,7 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
     }
 
     private static bool IsAsciiLetterOrDigit(char ch)
-        => ch is >= 'A' and <= 'Z' or >= 'a' and <= 'z' or >= '0' and <= '9';
+        => ch is (>= 'A' and <= 'Z') or (>= 'a' and <= 'z') or (>= '0' and <= '9');
 
     private static void DecodeURIComponentGraceful(ReadOnlySpan<char> value, StringBuilder result)
     {
