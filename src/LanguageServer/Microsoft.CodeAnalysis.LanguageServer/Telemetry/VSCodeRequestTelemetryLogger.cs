@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -10,9 +10,21 @@ using Microsoft.CodeAnalysis.Telemetry;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(RequestTelemetryLogger), serverKind: WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared]
+/// <summary>
+/// Exported through a factory rather than as a stateless service so that the logger is created per
+/// server and disposed when that server shuts down. <see cref="LspServices"/> only tracks non-stateless
+/// services for disposal, and <see cref="RequestTelemetryLogger.Dispose"/> is what flushes a server's
+/// aggregated request telemetry.
+/// </summary>
+[ExportCSharpVisualBasicLspServiceFactory(typeof(RequestTelemetryLogger), WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class VSCodeRequestTelemetryLoggerFactory() : ILspServiceFactory
+{
+    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        => new VSCodeRequestTelemetryLogger();
+}
+
 internal sealed class VSCodeRequestTelemetryLogger() : RequestTelemetryLogger(WellKnownLspServerKinds.CSharpVisualBasicLspServer.ToTelemetryString())
 {
     /// <summary>
