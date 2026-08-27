@@ -128,9 +128,9 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
         Directory.CreateDirectory(serverConfiguration.ExtensionLogDirectory);
     }
 
-    var telemetryLevel = LanguageServerTelemetryHost.GetTelemetryLevel(serverConfiguration);
+    var telemetryLevel = LanguageServerTelemetry.GetTelemetryLevel(serverConfiguration);
     var telemetryService = telemetryLevel is not null
-        ? exportProvider.GetExportedValue<LanguageServerTelemetryHost>()
+        ? exportProvider.GetExportedValue<LanguageServerTelemetry>()
         : null;
     telemetryService?.InitializeSession(telemetryLevel!, serverConfiguration.SessionId, isDefaultSession: true);
 

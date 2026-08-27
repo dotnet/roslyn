@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Text;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 /// the event and metric sinks, and tears everything down on shutdown. The counterpart to
 /// <c>AbstractWorkspaceTelemetryService</c> in the VS and ServiceHub hosts.
 /// </summary>[Export, Shared]
-internal sealed class LanguageServerTelemetryHost : IDisposable
+internal sealed class LanguageServerTelemetry : IDisposable
 {
     internal const string CopilotTelemetryLevelEnvironmentVariable = "COPILOT_TELEMETRY_LEVEL";
 
@@ -38,16 +39,19 @@ internal sealed class LanguageServerTelemetryHost : IDisposable
     private readonly ServerConfiguration _serverConfiguration;
     private readonly ILogger _logger;
     private TelemetrySession? _telemetrySession;
-    private VSMetricSink? _metricSink;
-    private IDisposable? _metricSinkRegistration;
-    private IDisposable? _eventSinkRegistration;
+
+    /// <summary>
+    /// Everything this type registered or owns, in the order it must be torn down: sink registrations
+    /// first, then the sinks themselves.
+    /// </summary>
+    private ImmutableArray<IDisposable> _registrations = [];
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public LanguageServerTelemetryHost(ServerConfiguration serverConfiguration, ILoggerFactory loggerFactory)
+    public LanguageServerTelemetry(ServerConfiguration serverConfiguration, ILoggerFactory loggerFactory)
     {
         _serverConfiguration = serverConfiguration;
-        _logger = loggerFactory.CreateLogger<LanguageServerTelemetryHost>();
+        _logger = loggerFactory.CreateLogger<LanguageServerTelemetry>();
     }
 
     public void InitializeSession(string telemetryLevel, string? sessionId, bool isDefaultSession)
@@ -86,9 +90,13 @@ internal sealed class LanguageServerTelemetryHost : IDisposable
 
         _telemetrySession = session;
 
-        _eventSinkRegistration = RoslynTelemetry.AddEventSink(TelemetryLogger.Create(session, logDelta: false));
-        _metricSink = new VSMetricSink(session);
-        _metricSinkRegistration = RoslynTelemetry.AddMetricSink(_metricSink);
+        var metricSink = new VSMetricSink(session);
+        _registrations =
+        [
+            RoslynTelemetry.AddEventSink(TelemetryLogger.Create(session, logDelta: false)),
+            RoslynTelemetry.AddMetricSink(metricSink),
+            metricSink,
+        ];
 
         FaultReporter.InitializeFatalErrorHandlers();
         FaultReporter.IncludeServiceHubLogFiles = false;
@@ -119,12 +127,10 @@ internal sealed class LanguageServerTelemetryHost : IDisposable
 
         if (_telemetrySession is { } session)
         {
-            _eventSinkRegistration?.Dispose();
-            _eventSinkRegistration = null;
-            _metricSinkRegistration?.Dispose();
-            _metricSinkRegistration = null;
-            _metricSink?.Dispose();
-            _metricSink = null;
+            foreach (var registration in _registrations)
+                registration.Dispose();
+
+            _registrations = [];
 
             FaultReporter.UnregisterTelemetrySesssion(session);
             session.Dispose();

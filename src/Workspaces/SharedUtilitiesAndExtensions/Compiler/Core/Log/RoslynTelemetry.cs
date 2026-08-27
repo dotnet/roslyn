@@ -40,13 +40,15 @@ internal static partial class RoslynTelemetry
     public static IDisposable AddEventSink(IEventSink sink)
     {
         ImmutableInterlocked.Update(ref s_eventSinks, static (sinks, sink) => sinks.Contains(sink) ? sinks : sinks.Add(sink), sink);
-        return new Registration(sink);
+        return new Registration(() => ImmutableInterlocked.Update(ref s_eventSinks, static (sinks, sink) => sinks.Remove(sink), sink));
     }
 
-    private sealed class Registration(IEventSink sink) : IDisposable
+    /// <summary>
+    /// Undoes one <see cref="AddEventSink"/> or <see cref="AddMetricSink"/> call.
+    /// </summary>
+    private sealed class Registration(Action unregister) : IDisposable
     {
-        public void Dispose()
-            => ImmutableInterlocked.Update(ref s_eventSinks, static (sinks, sink) => sinks.Remove(sink), sink);
+        public void Dispose() => unregister();
     }
 
     /// <summary>

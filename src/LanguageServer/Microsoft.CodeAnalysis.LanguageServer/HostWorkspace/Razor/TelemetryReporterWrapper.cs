@@ -17,14 +17,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 /// <para>
 /// Razor's names and properties are already final when they arrive - they do not go through Roslyn's
 /// <c>FunctionId</c> pipeline - so this posts to the session directly. It only reads the session;
-/// ownership and disposal stay with <see cref="LanguageServerTelemetryHost"/>.
+/// ownership and disposal stay with <see cref="LanguageServerTelemetry"/>.
 /// </para>
 /// </summary>
 [Shared]
 [Export(typeof(ILanguageServerTelemetryReporterWrapper))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class TelemetryReporterWrapper([Import(AllowDefault = true)] Lazy<LanguageServerTelemetryHost>? telemetryService) : ILanguageServerTelemetryReporterWrapper
+internal sealed class TelemetryReporterWrapper([Import(AllowDefault = true)] Lazy<LanguageServerTelemetry>? telemetryService) : ILanguageServerTelemetryReporterWrapper
 {
     public void ReportEvent(string name, List<KeyValuePair<string, object?>> properties)
     {

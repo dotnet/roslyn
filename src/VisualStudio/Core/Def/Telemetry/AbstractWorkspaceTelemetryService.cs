@@ -19,9 +19,11 @@ internal abstract class AbstractWorkspaceTelemetryService : IWorkspaceTelemetryS
 {
     public TelemetrySession? CurrentSession { get; private set; }
 
-    private VSMetricSink? _metricSink;
-    private IDisposable? _metricSinkRegistration;
-    private ImmutableArray<IDisposable> _eventSinkRegistrations = [];
+    /// <summary>
+    /// Everything this service registered or owns, in the order it must be torn down: sink
+    /// registrations first, then the sinks themselves.
+    /// </summary>
+    private ImmutableArray<IDisposable> _registrations = [];
 
     protected abstract ImmutableArray<IEventSink> CreateEventSinks(TelemetrySession telemetrySession, bool logDelta);
 
@@ -29,9 +31,14 @@ internal abstract class AbstractWorkspaceTelemetryService : IWorkspaceTelemetryS
     {
         Contract.ThrowIfFalse(CurrentSession is null);
 
-        _eventSinkRegistrations = CreateEventSinks(telemetrySession, logDelta).SelectAsArray(RoslynTelemetry.AddEventSink);
-        _metricSink = new VSMetricSink(telemetrySession);
-        _metricSinkRegistration = RoslynTelemetry.AddMetricSink(_metricSink);
+        var metricSink = new VSMetricSink(telemetrySession);
+        _registrations =
+        [
+            .. CreateEventSinks(telemetrySession, logDelta).SelectAsArray(RoslynTelemetry.AddEventSink),
+            RoslynTelemetry.AddMetricSink(metricSink),
+            metricSink,
+        ];
+
         FaultReporter.RegisterTelemetrySesssion(telemetrySession);
 
         CurrentSession = telemetrySession;
@@ -65,13 +72,9 @@ internal abstract class AbstractWorkspaceTelemetryService : IWorkspaceTelemetryS
         // It is fine for this to be called multiple times - if telemetry has already been flushed this will no-op.
         RoslynTelemetry.Flush();
 
-        foreach (var registration in _eventSinkRegistrations)
+        foreach (var registration in _registrations)
             registration.Dispose();
 
-        _eventSinkRegistrations = [];
-
-        _metricSinkRegistration?.Dispose();
-        _metricSinkRegistration = null;
-        _metricSink?.Dispose();
+        _registrations = [];
     }
 }

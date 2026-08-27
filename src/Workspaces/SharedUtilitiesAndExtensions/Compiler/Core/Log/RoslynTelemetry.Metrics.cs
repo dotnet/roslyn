@@ -27,13 +27,7 @@ internal static partial class RoslynTelemetry
     public static IDisposable AddMetricSink(IMetricSink sink)
     {
         ImmutableInterlocked.Update(ref s_metricSinks, static (sinks, sink) => sinks.Contains(sink) ? sinks : sinks.Add(sink), sink);
-        return new MetricRegistration(sink);
-    }
-
-    private sealed class MetricRegistration(IMetricSink sink) : IDisposable
-    {
-        public void Dispose()
-            => ImmutableInterlocked.Update(ref s_metricSinks, static (sinks, sink) => sinks.Remove(sink), sink);
+        return new Registration(() => ImmutableInterlocked.Update(ref s_metricSinks, static (sinks, sink) => sinks.Remove(sink), sink));
     }
 
     /// <summary>
