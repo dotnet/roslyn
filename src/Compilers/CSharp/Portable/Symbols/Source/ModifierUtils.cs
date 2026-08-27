@@ -453,10 +453,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this SyntaxTokenList modifiers, bool allowsPartialModifier, DiagnosticBag diagnostics)
         {
             var result = GetDeclarationModifiersAndCheckForDuplicateModifiers(modifiers, diagnostics);
-            ReportMisplacedRef(modifiers, diagnostics);
+            reportMisplacedRefModifier();
+            reportMisplacedPartialModifier();
 
-            if ((result & DeclarationModifiers.Partial) == DeclarationModifiers.Partial)
+            switch (result & DeclarationModifiers.AccessibilityMask)
             {
+                case DeclarationModifiers.Protected | DeclarationModifiers.Internal:
+                    // the two keywords "protected" and "internal" together are treated as one modifier.
+                    result &= ~DeclarationModifiers.AccessibilityMask;
+                    result |= DeclarationModifiers.ProtectedInternal;
+                    break;
+
+                case DeclarationModifiers.Private | DeclarationModifiers.Protected:
+                    // the two keywords "private" and "protected" together are treated as one modifier.
+                    result &= ~DeclarationModifiers.AccessibilityMask;
+                    result |= DeclarationModifiers.PrivateProtected;
+                    break;
+            }
+
+            return result;
+
+            void reportMisplacedPartialModifier()
+            {
+                if ((result & DeclarationModifiers.Partial) != DeclarationModifiers.Partial)
+                    return;
+
                 var i = modifiers.IndexOf(SyntaxKind.PartialKeyword);
                 var modifier = modifiers[i];
 
@@ -475,51 +496,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            switch (result & DeclarationModifiers.AccessibilityMask)
+            void reportMisplacedRefModifier()
             {
-                case DeclarationModifiers.Protected | DeclarationModifiers.Internal:
-                    // the two keywords "protected" and "internal" together are treated as one modifier.
-                    result &= ~DeclarationModifiers.AccessibilityMask;
-                    result |= DeclarationModifiers.ProtectedInternal;
-                    break;
-
-                case DeclarationModifiers.Private | DeclarationModifiers.Protected:
-                    // the two keywords "private" and "protected" together are treated as one modifier.
-                    result &= ~DeclarationModifiers.AccessibilityMask;
-                    result |= DeclarationModifiers.PrivateProtected;
-                    break;
-            }
-
-            return result;
-        }
-
-        private static void ReportMisplacedRef(SyntaxTokenList modifiers, DiagnosticBag diagnostics)
-        {
-            var refToken = modifiers.FirstOrDefault(SyntaxKind.RefKeyword);
-            if (refToken.Parent is not StructDeclarationSyntax)
-                return;
-
-            var refIndex = modifiers.IndexOf(refToken);
-
-            // Leave duplicate 'ref' modifiers to GetDeclarationModifiersAndCheckForDuplicateModifiers.
-            for (var i = refIndex + 1; i < modifiers.Count; i++)
-            {
-                if (modifiers[i].Kind() == SyntaxKind.RefKeyword)
+                var refToken = modifiers.FirstOrDefault(SyntaxKind.RefKeyword);
+                if (refToken.Parent is not StructDeclarationSyntax)
                     return;
+
+                var refIndex = modifiers.IndexOf(refToken);
+
+                // Leave duplicate 'ref' modifiers to GetDeclarationModifiersAndCheckForDuplicateModifiers.
+                for (var i = refIndex + 1; i < modifiers.Count; i++)
+                {
+                    if (modifiers[i].Kind() == SyntaxKind.RefKeyword)
+                        return;
+                }
+
+                // `ref` normally must be last. It may precede `partial` because `partial` itself must be last, as in
+                // `ref partial struct`.
+                var isLegalLocation =
+                    refIndex == modifiers.Count - 1 ||
+                    (refIndex == modifiers.Count - 2 && modifiers[refIndex + 1].ContextualKind() is SyntaxKind.PartialKeyword);
+                if (!isLegalLocation)
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadModifierLocation, refToken.GetLocation(), refToken.Text);
+                }
             }
-
-            // 'ref' is valid when it is the final modifier.
-            if (refIndex == modifiers.Count - 1)
-                return;
-
-            // It is also valid when followed only by 'partial', as in 'ref partial struct'.
-            if (refIndex == modifiers.Count - 2 &&
-                modifiers[refIndex + 1].ContextualKind() == SyntaxKind.PartialKeyword)
-            {
-                return;
-            }
-
-            diagnostics.Add(ErrorCode.ERR_BadModifierLocation, refToken.GetLocation(), refToken.Text);
         }
 
         private static void ReportDuplicateModifiers(
