@@ -106,7 +106,8 @@
       Updating a reference to this package to a newer version of the package may require changes in the referencing project.
       No compatibility guarantees are provided.
     </PackageDescription>
-    <!-- Files must individually enable nullable in source packages -->
+    <!-- Disable project-level nullable to catch packaged files without an explicit directive;
+      consumers may compile them in projects where nullable is disabled.  -->
     <Nullable>disable</Nullable>
   </PropertyGroup>
 
