@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 /// A value-comparable map that determines whether a file's <c>@inherits</c> base type supports
 /// UTF-8 <c>WriteLiteral</c>. Uses a two-level lookup:
 /// <list type="number">
-///   <item>Per-file: maps <c>(filePath, rawInheritsText)</c> to a fully-qualified type name</item>
+///   <item>Per-file: maps <c>filePath</c> to a fully-qualified type name</item>
 ///   <item>Per-type: maps fully-qualified type name to <see langword="bool"/></item>
 /// </list>
 /// This handles cases where the same <c>@inherits</c> text resolves to different types
@@ -233,8 +233,25 @@ internal sealed class Utf8SupportMap : IEquatable<Utf8SupportMap>
             return true;
         }
 
-        return _fileToType.SequenceEqual(other._fileToType) &&
-               _typeSupport.SequenceEqual(other._typeSupport);
+        // _fileToType keys are file paths compared case-insensitively (matching the builder's
+        // OrdinalIgnoreCase comparer and GetHashCode below), so compare via the dictionary's own
+        // lookup rather than SequenceEqual, which would compare keys case-sensitively. _typeSupport
+        // keys are ordinal fully-qualified names, so SequenceEqual is correct there.
+        if (_fileToType.Count != other._fileToType.Count)
+        {
+            return false;
+        }
+
+        foreach (var (filePath, fqn) in _fileToType)
+        {
+            if (!other._fileToType.TryGetValue(filePath, out var otherFqn) ||
+                !string.Equals(fqn, otherFqn, StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+
+        return _typeSupport.SequenceEqual(other._typeSupport);
     }
 
     public override bool Equals(object? obj) => Equals(obj as Utf8SupportMap);
