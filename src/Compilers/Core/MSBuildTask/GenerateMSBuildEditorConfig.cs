@@ -10,6 +10,9 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Roslyn.Utilities;
 
+// https://github.com/dotnet/roslyn/issues/84893
+#pragma warning disable RS0030
+
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
     /// <summary>
