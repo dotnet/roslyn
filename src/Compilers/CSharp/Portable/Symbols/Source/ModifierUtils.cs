@@ -453,6 +453,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this SyntaxTokenList modifiers, bool allowsPartialModifier, DiagnosticBag diagnostics)
         {
             var result = GetDeclarationModifiersAndCheckForDuplicateModifiers(modifiers, diagnostics);
+            ReportMisplacedRef(modifiers, diagnostics);
+
             if ((result & DeclarationModifiers.Partial) == DeclarationModifiers.Partial)
             {
                 var i = modifiers.IndexOf(SyntaxKind.PartialKeyword);
@@ -489,6 +491,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return result;
+        }
+
+        private static void ReportMisplacedRef(SyntaxTokenList modifiers, DiagnosticBag diagnostics)
+        {
+            var refToken = modifiers.FirstOrDefault(SyntaxKind.RefKeyword);
+            if (refToken.Parent is not StructDeclarationSyntax)
+                return;
+
+            var refIndex = modifiers.IndexOf(refToken);
+
+            // Leave duplicate 'ref' modifiers to GetDeclarationModifiersAndCheckForDuplicateModifiers.
+            for (var i = refIndex + 1; i < modifiers.Count; i++)
+            {
+                if (modifiers[i].Kind() == SyntaxKind.RefKeyword)
+                    return;
+            }
+
+            // 'ref' is valid when it is the final modifier.
+            if (refIndex == modifiers.Count - 1)
+                return;
+
+            // It is also valid when followed only by 'partial', as in 'ref partial struct'.
+            if (refIndex == modifiers.Count - 2 &&
+                modifiers[refIndex + 1].ContextualKind() == SyntaxKind.PartialKeyword)
+            {
+                return;
+            }
+
+            diagnostics.Add(ErrorCode.ERR_BadModifierLocation, refToken.GetLocation(), refToken.Text);
         }
 
         private static void ReportDuplicateModifiers(
