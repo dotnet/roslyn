@@ -69,14 +69,12 @@ internal static partial class RoslynTelemetry
         }
     }
 
-    internal static TestAccessor GetTestAccessor() => default;
-
-    internal readonly struct TestAccessor
+    internal static class TestAccessor
     {
         /// <summary>
         /// Unregisters every sink, so that one test cannot leak a sink into the next.
         /// </summary>
-        public void RemoveAllSinks()
+        public static void RemoveAllSinks()
         {
             ImmutableInterlocked.InterlockedExchange(ref s_eventSinks, []);
             ImmutableInterlocked.InterlockedExchange(ref s_metricSinks, []);

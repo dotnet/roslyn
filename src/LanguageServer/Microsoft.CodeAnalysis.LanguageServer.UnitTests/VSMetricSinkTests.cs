@@ -50,7 +50,7 @@ public sealed class VSMetricSinkTests
     public void RecordedMeasurementsArePostedExactlyOncePerFlush()
     {
         var poster = new RecordingPoster();
-        using var sink = VSMetricSink.GetTestAccessor().CreateSink(poster);
+        using var sink = VSMetricSink.TestAccessor.CreateSink(poster);
 
         sink.Count("vs/ide/vbcs/test/counter", "SucceededCount", 1, default);
         sink.Count("vs/ide/vbcs/test/counter", "SucceededCount", 1, default);
@@ -71,7 +71,7 @@ public sealed class VSMetricSinkTests
     public void TagValuesDiscriminateBuckets()
     {
         var poster = new RecordingPoster();
-        using var sink = VSMetricSink.GetTestAccessor().CreateSink(poster);
+        using var sink = VSMetricSink.TestAccessor.CreateSink(poster);
 
         // Same event and metric, different tag values: these must aggregate into separate buckets.
         sink.Record("vs/ide/vbcs/lsp/requestduration", "RequestDuration", 10,
@@ -90,7 +90,7 @@ public sealed class VSMetricSinkTests
     public void EventAndPropertyNamesUseTheTelemetryConvention()
     {
         var poster = new RecordingPoster();
-        using var sink = VSMetricSink.GetTestAccessor().CreateSink(poster);
+        using var sink = VSMetricSink.TestAccessor.CreateSink(poster);
 
         sink.Count("vs/ide/vbcs/lsp/requestcounter", "SucceededCount", 1,
             new KeyValuePair<string, object>[] { new("server", "Roslyn") });
@@ -106,7 +106,7 @@ public sealed class VSMetricSinkTests
     public void NothingIsRecordedForAnOptedOutSession()
     {
         var poster = new RecordingPoster { IsOptedIn = false };
-        using var sink = VSMetricSink.GetTestAccessor().CreateSink(poster);
+        using var sink = VSMetricSink.TestAccessor.CreateSink(poster);
 
         sink.Count("vs/ide/vbcs/test/counter", "SucceededCount", 1, default);
         sink.Flush();
@@ -136,7 +136,7 @@ public sealed class VSMetricSinkTests
     public void CountersAndDistributionsDoNotShareABucket()
     {
         var poster = new RecordingPoster();
-        using var sink = VSMetricSink.GetTestAccessor().CreateSink(poster);
+        using var sink = VSMetricSink.TestAccessor.CreateSink(poster);
 
         sink.Count("vs/ide/vbcs/test/both", "Value", 1, default);
         sink.Record("vs/ide/vbcs/test/both", "Value", 42, default);
@@ -160,7 +160,7 @@ public sealed class VSMetricSinkTests
         var countBlocked = new ManualResetEventSlim();
 
         var poster = new RecordingPoster();
-        using var sink = VSMetricSink.GetTestAccessor().CreateSink(poster);
+        using var sink = VSMetricSink.TestAccessor.CreateSink(poster);
 
         // Post runs while the flush holds the aggregation lock, so it is the point where a concurrent
         // Count is guaranteed to be blocked.

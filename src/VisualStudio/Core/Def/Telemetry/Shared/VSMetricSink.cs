@@ -114,12 +114,10 @@ internal sealed class VSMetricSink : IMetricSink, IDisposable
         }
     }
 
-    internal static TestAccessor GetTestAccessor() => default;
-
-    internal readonly struct TestAccessor
+    internal static class TestAccessor
     {
         /// <inheritdoc cref="IMetricPoster"/>
-        public VSMetricSink CreateSink(IMetricPoster poster) => new(poster);
+        public static VSMetricSink CreateSink(IMetricPoster poster) => new(poster);
     }
 
     public void Count(string eventName, string metricName, long delta, ReadOnlySpan<KeyValuePair<string, object?>> tags)
