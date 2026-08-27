@@ -478,9 +478,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool reportMisplacedPartialModifier()
             {
-                var partialToken = modifiers.FirstOrDefault(SyntaxKind.PartialKeyword);
-                if (partialToken != default)
+                var partialIndex = modifiers.IndexOf(SyntaxKind.PartialKeyword);
+                if (partialIndex >= 0)
                 {
+                    var partialToken = modifiers[partialIndex];
                     var messageId = SyntaxFacts.IsTypeDeclaration(partialToken.Parent.Kind()) ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod;
                     if (!messageId.CheckFeatureAvailability(diagnostics, partialToken))
                         return true;
@@ -488,7 +489,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // `partial` normally must be last. Preserve the historical exception for ordinary methods ending in
                     // `partial async`. Ordinary methods are the only declarations that allow both modifiers; elsewhere,
                     // either `partial` is rejected here or `async` is rejected by ModifierUtils.CheckModifiers.
-                    var partialIndex = modifiers.IndexOf(partialToken);
                     var isLegalLocation =
                         partialIndex == modifiers.Count - 1 ||
                         (partialIndex == modifiers.Count - 2 && modifiers[partialIndex + 1].ContextualKind() is SyntaxKind.AsyncKeyword);
@@ -504,12 +504,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool reportMisplacedRefModifier()
             {
-                var refToken = modifiers.FirstOrDefault(SyntaxKind.RefKeyword);
-                if (refToken.Parent is StructDeclarationSyntax)
+                var refIndex = modifiers.IndexOf(SyntaxKind.RefKeyword);
+                if (refIndex >= 0 && modifiers[refIndex] is var refToken && refToken.Parent is StructDeclarationSyntax)
                 {
                     // `ref` normally must be last. It may precede `partial` because `partial` itself must be last, as in
                     // `ref partial struct`.
-                    var refIndex = modifiers.IndexOf(refToken);
                     var isLegalLocation =
                         refIndex == modifiers.Count - 1 ||
                         (refIndex == modifiers.Count - 2 && modifiers[refIndex + 1].ContextualKind() is SyntaxKind.PartialKeyword);
