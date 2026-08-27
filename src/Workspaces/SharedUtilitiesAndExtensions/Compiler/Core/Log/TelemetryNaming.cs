@@ -26,6 +26,20 @@ internal static class TelemetryNaming
     public static string GetPropertyName(FunctionId id, string name)
         => s_propertyMap.GetOrAdd((id, name), key => PropertyPrefix + GetTelemetryName(key.id, separator: '.') + "." + key.name.ToLowerInvariant());
 
+    /// <summary>
+    /// Derives the meter name (<c>vs.ide.vbcs.some.operation.meter</c>) from an event name already
+    /// produced by <see cref="GetEventName"/> (<c>vs/ide/vbcs/some/operation</c>).
+    /// </summary>
+    public static string GetMeterName(string eventName)
+        => eventName.Replace('/', '.') + ".meter";
+
+    /// <summary>
+    /// Derives a property name (<c>vs.ide.vbcs.some.operation.tagname</c>) from an event name already
+    /// produced by <see cref="GetEventName"/>.
+    /// </summary>
+    public static string GetPropertyName(string eventName, string tagName)
+        => eventName.Replace('/', '.') + "." + tagName.ToLowerInvariant();
+
     private static string GetTelemetryName(FunctionId id, char separator)
         => Enum.GetName(typeof(FunctionId), id)!.Replace('_', separator).ToLowerInvariant();
 }

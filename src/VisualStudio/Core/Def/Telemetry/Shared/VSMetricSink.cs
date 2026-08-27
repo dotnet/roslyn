@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -45,10 +45,16 @@ internal sealed class VSMetricSink : IMetricSink, IDisposable
     }
 
     /// <summary>
-    /// Identifies one aggregation bucket. <paramref name="IsCounter"/> participates so that the same
-    /// event and metric name used both ways cannot resolve to an instrument of the wrong type.
+    /// Identifies one aggregation bucket. <paramref name="Kind"/> participates so that the same event
+    /// and metric name used both ways cannot resolve to an instrument of the wrong type.
     /// </summary>
-    private readonly record struct AggregationKey(string EventName, string MetricName, string DimensionKey, bool IsCounter);
+    private readonly record struct AggregationKey(string EventName, string MetricName, string DimensionKey, InstrumentKind Kind);
+
+    private enum InstrumentKind
+    {
+        Counter,
+        Histogram,
+    }
 
     private sealed class Aggregation(IInstrument instrument, TelemetryEvent telemetryEvent)
     {
@@ -117,24 +123,46 @@ internal sealed class VSMetricSink : IMetricSink, IDisposable
     }
 
     public void Count(string eventName, string metricName, long delta, ReadOnlySpan<KeyValuePair<string, object?>> tags)
-    {
-        if (GetOrCreateAggregation(eventName, metricName, tags, isCounter: true) is not { } aggregation)
-            return;
-
-        lock (aggregation.Lock)
-        {
-            ((ICounter<long>)aggregation.Instrument).Add(delta);
-        }
-    }
+        => Update(eventName, metricName, tags, InstrumentKind.Counter, delta);
 
     public void Record(string eventName, string metricName, long value, ReadOnlySpan<KeyValuePair<string, object?>> tags)
+        => Update(eventName, metricName, tags, InstrumentKind.Histogram, value);
+
+    private void Update(string eventName, string metricName, ReadOnlySpan<KeyValuePair<string, object?>> tags, InstrumentKind kind, long value)
     {
-        if (GetOrCreateAggregation(eventName, metricName, tags, isCounter: false) is not { } aggregation)
+        if (!_poster.IsOptedIn)
             return;
 
-        lock (aggregation.Lock)
+        var key = new AggregationKey(eventName, metricName, BuildDimensionKey(tags), kind);
+
+        while (true)
         {
-            ((IHistogram<long>)aggregation.Instrument).Record(value);
+            var aggregation = GetOrCreateAggregation(key, tags);
+
+            lock (aggregation.Lock)
+            {
+                // A flush posts an aggregation and then removes it, both under this lock. Retry if that
+                // happened while we were waiting, so the measurement lands in an aggregation that is
+                // still going to be posted rather than one already retired.
+                if (!_aggregations.TryGetValue(key, out var current) || current != aggregation)
+                    continue;
+
+                switch (kind)
+                {
+                    case InstrumentKind.Counter:
+                        ((ICounter<long>)aggregation.Instrument).Add(value);
+                        break;
+
+                    case InstrumentKind.Histogram:
+                        ((IHistogram<long>)aggregation.Instrument).Record(value);
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(kind);
+                }
+
+                return;
+            }
         }
     }
 
@@ -167,13 +195,8 @@ internal sealed class VSMetricSink : IMetricSink, IDisposable
         }
     }
 
-    private Aggregation? GetOrCreateAggregation(string eventName, string metricName, ReadOnlySpan<KeyValuePair<string, object?>> tags, bool isCounter)
+    private Aggregation GetOrCreateAggregation(AggregationKey key, ReadOnlySpan<KeyValuePair<string, object?>> tags)
     {
-        if (!_poster.IsOptedIn)
-            return null;
-
-        var key = new AggregationKey(eventName, metricName, BuildDimensionKey(tags), isCounter);
-
         if (_aggregations.TryGetValue(key, out var existing))
             return existing;
 
@@ -189,12 +212,15 @@ internal sealed class VSMetricSink : IMetricSink, IDisposable
         var telemetryEvent = new TelemetryEvent(key.EventName);
 
         foreach (var (name, value) in tags)
-            telemetryEvent.Properties.Add(GetPropertyName(key.EventName, name), value);
+            telemetryEvent.Properties.Add(TelemetryNaming.GetPropertyName(key.EventName, name), value);
 
         var meter = GetOrCreateMeter(key.EventName);
-        IInstrument instrument = key.IsCounter
-            ? meter.CreateCounter<long>(key.MetricName)
-            : meter.CreateHistogram<long>(key.MetricName);
+        IInstrument instrument = key.Kind switch
+        {
+            InstrumentKind.Counter => meter.CreateCounter<long>(key.MetricName),
+            InstrumentKind.Histogram => meter.CreateHistogram<long>(key.MetricName),
+            _ => throw ExceptionUtilities.UnexpectedValue(key.Kind),
+        };
 
         return new Aggregation(instrument, telemetryEvent);
     }
@@ -203,21 +229,8 @@ internal sealed class VSMetricSink : IMetricSink, IDisposable
         => ImmutableInterlocked.GetOrAdd(
             ref _meters,
             eventName,
-            static (eventName, provider) => provider.CreateMeter(GetMeterName(eventName), version: MeterVersion),
+            static (eventName, provider) => provider.CreateMeter(TelemetryNaming.GetMeterName(eventName), version: MeterVersion),
             _meterProvider);
-
-    /// <summary>
-    /// Derives the meter name (<c>vs.ide.vbcs.some.operation.meter</c>) from the event name
-    /// (<c>vs/ide/vbcs/some/operation</c>).
-    /// </summary>
-    internal static string GetMeterName(string eventName)
-        => eventName.Replace('/', '.') + ".meter";
-
-    /// <summary>
-    /// Derives a property name (<c>vs.ide.vbcs.some.operation.tagname</c>) from the event name.
-    /// </summary>
-    internal static string GetPropertyName(string eventName, string tagName)
-        => eventName.Replace('/', '.') + "." + tagName.ToLowerInvariant();
 
     /// <summary>
     /// Builds the bucket discriminator from the tag values, in declaration order, so that measurements
