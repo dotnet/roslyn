@@ -3,12 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.IO;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-
-// https://github.com/dotnet/roslyn/issues/84893
-#pragma warning disable RS0030
+using Microsoft.CodeAnalysis.CommandLine;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -40,16 +37,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         public override bool Execute()
         {
-            var fullSourcePath = string.IsNullOrEmpty(SourcePath) ? SourcePath : TaskEnvironment.GetAbsolutePath(SourcePath);
-            var fullDestinationPath = string.IsNullOrEmpty(DestinationPath) ? DestinationPath : TaskEnvironment.GetAbsolutePath(DestinationPath);
+            AbsolutePath fullSourcePath = TaskEnvironment.GetAbsolutePathNoThrow(SourcePath);
+            AbsolutePath fullDestinationPath = TaskEnvironment.GetAbsolutePathNoThrow(DestinationPath);
 
-            if (!File.Exists(fullSourcePath))
+            if (!TaskEnvironment.FileExists(fullSourcePath))
             {
                 Log.LogErrorWithCodeFromResources("General_ExpectedFileMissing", SourcePath);
                 return false;
             }
 
-            if (File.Exists(fullDestinationPath))
+            if (TaskEnvironment.FileExists(fullDestinationPath))
             {
                 var source = Guid.Empty;
                 try
@@ -77,7 +74,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                             return true;
                         }
 
-                        Log.LogMessageFromResources(MessageImportance.Low, "CopyRefAssembly_Changed", SourcePath, File.GetLastWriteTimeUtc(fullSourcePath).ToString("O"), source, DestinationPath, File.GetLastWriteTimeUtc(fullDestinationPath).ToString("O"), destination);
+                        Log.LogMessageFromResources(MessageImportance.Low, "CopyRefAssembly_Changed", SourcePath, TaskEnvironment.GetLastWriteTimeUtc(fullSourcePath).ToString("O"), source, DestinationPath, TaskEnvironment.GetLastWriteTimeUtc(fullDestinationPath).ToString("O"), destination);
                     }
                     catch (Exception)
                     {
@@ -89,12 +86,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return Copy(fullSourcePath, fullDestinationPath);
         }
 
-        private bool Copy(string fullSourcePath, string fullDestinationPath)
+        private bool Copy(AbsolutePath fullSourcePath, AbsolutePath fullDestinationPath)
         {
             try
             {
                 Log.LogMessageFromResources(MessageImportance.Normal, "CopyRefAssembly_Copying", SourcePath, DestinationPath);
-                File.Copy(fullSourcePath, fullDestinationPath, overwrite: true);
+                TaskEnvironment.FileCopy(
+                    fullSourcePath,
+                    fullDestinationPath,
+                    overwrite: true);
             }
             catch (Exception e)
             {
@@ -106,9 +106,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return true;
         }
 
-        private Guid ExtractMvid(string path)
+        private Guid ExtractMvid(AbsolutePath path)
         {
-            using (FileStream source = File.OpenRead(path))
+            using (var source = TaskEnvironment.FileOpenRead(path))
             {
                 return MvidReader.ReadAssemblyMvidOrEmpty(source);
             }

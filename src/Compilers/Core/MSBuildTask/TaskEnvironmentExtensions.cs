@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -40,6 +40,9 @@ internal static class TaskEnvironmentExtensions
             }
         }
 
+        public AbsolutePath GetAbsolutePathNoThrow(string? path) =>
+            string.IsNullOrEmpty(path) ? default : taskEnvironment.GetAbsolutePath(path);
+
         public void DeleteNoThrow(FileInfo fileInfo) => taskEnvironment.DeleteNoThrow(taskEnvironment.GetAbsolutePath(fileInfo.FullName));
 
         public void DeleteNoThrow(AbsolutePath path)
@@ -62,6 +65,27 @@ internal static class TaskEnvironmentExtensions
         {
 #pragma warning disable RS0030 // Do not used banned APIs
             return File.Exists(path.Value);
+#pragma warning restore RS0030 // Do not used banned APIs
+        }
+
+        public Stream FileOpenRead(AbsolutePath path)
+        {
+#pragma warning disable RS0030 // Do not used banned APIs
+            return File.OpenRead(path.Value);
+#pragma warning restore RS0030 // Do not used banned APIs
+        }
+
+        public DateTime GetLastWriteTimeUtc(AbsolutePath path)
+        {
+#pragma warning disable RS0030 // Do not used banned APIs
+            return File.GetLastWriteTimeUtc(path.Value);
+#pragma warning restore RS0030 // Do not used banned APIs
+        }
+
+        public void FileCopy(AbsolutePath sourceFilePath, AbsolutePath destFilePath, bool overwrite)
+        {
+#pragma warning disable RS0030 // Do not used banned APIs
+            File.Copy(sourceFilePath.Value, destFilePath.Value, overwrite);
 #pragma warning restore RS0030 // Do not used banned APIs
         }
 
