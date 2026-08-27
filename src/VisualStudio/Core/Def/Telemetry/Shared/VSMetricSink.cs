@@ -94,15 +94,16 @@ internal sealed class VSMetricSink : IMetricSink, IDisposable
         _ = PostCollectedTelemetryAsync();
     }
 
+    /// <summary>
+    /// Stops the periodic flush. The cancellation source is deliberately not disposed: the loop reads
+    /// its token on every iteration, and a disposed source would throw there instead of stopping.
+    /// </summary>
     public void Dispose()
-    {
-        _flushLoopCancellation.Cancel();
-        _flushLoopCancellation.Dispose();
-    }
+        => _flushLoopCancellation.Cancel();
 
     private async Task PostCollectedTelemetryAsync()
     {
-        while (true)
+        while (!_flushLoopCancellation.IsCancellationRequested)
         {
             try
             {
