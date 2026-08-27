@@ -25,11 +25,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<Diagnostic> _switchGoverningDiagnostics;
         private ImmutableArray<AssemblySymbol> _switchGoverningDependencies;
 
+        private readonly string _labelName;
+
         private SwitchBinder(Binder next, SwitchStatementSyntax switchSyntax)
             : base(next)
         {
             SwitchSyntax = switchSyntax;
             _breakLabel = new GeneratedLabelSymbol("break");
+            _labelName = switchSyntax.Parent is LabeledStatementSyntax labeled ? labeled.Identifier.ValueText : null;
         }
 
         protected bool PatternsEnabled =>
@@ -163,13 +166,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override GeneratedLabelSymbol BreakLabel
-        {
-            get
-            {
-                return _breakLabel;
-            }
-        }
+#nullable enable
+        internal override GeneratedLabelSymbol? GetBreakLabel(string? labelName)
+            => (labelName is null || labelName == _labelName) ? _breakLabel : NextRequired.GetBreakLabel(labelName);
+#nullable disable
 
         protected override ImmutableArray<LabelSymbol> BuildLabels()
         {
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var matchLabel = (CasePatternSwitchLabelSyntax)labelSyntax;
                         NamedTypeSymbol unionType = null;
                         _ = sectionBinder.BindPattern(
-                            matchLabel.Pattern, ref unionType, SwitchGoverningType, permitDesignations: true, labelSyntax.HasErrors, tempDiagnosticBag, hasUnionMatching: out _);
+                            matchLabel.Pattern, ref unionType, SwitchGoverningType, permitDesignations: true, labelSyntax.HasErrors, tempDiagnosticBag, hasUnionMatching: out _, underIsPattern: false);
                         break;
 
                     default:

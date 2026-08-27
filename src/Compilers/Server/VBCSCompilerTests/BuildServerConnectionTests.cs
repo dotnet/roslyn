@@ -3,12 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Linq;
-using System.Text;
+using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -139,16 +140,55 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84072")]
+        public void LogException_NonFatal()
+        {
+            Logger.Messages.Clear();
+            Logger.LogException(CreateException(), "Testing");
+
+            Assert.DoesNotContain(Logger.Messages, m => m.Contains("Error:"));
+            Assert.Contains(Logger.Messages, m => m.Contains("Exception: 'InvalidOperationException' 'boom' occurred during 'Testing'"));
+        }
+
+        private static Exception CreateException()
+        {
+            try
+            {
+                throw new InvalidOperationException("boom", new Exception("inner"));
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/msbuild/issues/13844")]
+        public async Task WaitForServerProcessExitAsync_CompletesWhenServerMutexIsNotOpen()
+        {
+            var pipeName = ServerUtil.GetPipeName();
+            var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
+            using var currentProcess = Process.GetCurrentProcess();
+            using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            Assert.False(currentProcess.HasExited);
+            Assert.False(BuildServerConnection.WasServerMutexOpen(mutexName));
+
+            var waitTask = BuildServerConnection.WaitForServerProcessExitAsync(pipeName, currentProcess.Id, cancellationTokenSource.Token);
+            var completedTask = await Task.WhenAny(waitTask, Task.Delay(TimeSpan.FromSeconds(5), cancellationTokenSource.Token));
+            Assert.Same(waitTask, completedTask);
+            await waitTask;
+        }
+
+        [Fact]
         public void GetServerEnvironmentVariables_IncludesDotNetRoot()
         {
             // This test verifies that GetServerEnvironmentVariables properly sets up DOTNET_ROOT
             // without modifying the current process environment
-            var currentEnvironment = Environment.GetEnvironmentVariables();
-            var originalDotNetRoot = (string?)currentEnvironment[RuntimeHostInfo.DotNetRootEnvironmentName];
+            var buildEnvironment = StandardBuildEnvironment.Instance;
+            var originalDotNetRoot = buildEnvironment.GetEnvironmentVariable(RuntimeHostInfo.DotNetRootEnvironmentName);
 
-            var envVars = BuildServerConnection.GetServerEnvironmentVariables(currentEnvironment);
+            var envVars = BuildServerConnection.GetServerEnvironmentVariables(buildEnvironment);
 
-            if (BuildServerConnection.IsBuiltinToolRunningOnCoreClr && RuntimeHostInfo.GetToolDotNetRoot(Logger.Log) is { } dotNetRoot)
+            if (BuildServerConnection.IsBuiltinToolRunningOnCoreClr && RuntimeHostInfo.GetToolDotNetRoot(buildEnvironment, Logger.Log) is { } dotNetRoot)
             {
                 // Should have environment variables including DOTNET_ROOT
                 Assert.NotNull(envVars);
@@ -176,11 +216,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var testEnvVars = new[] { "DOTNET_ROOT_X64", "DOTNET_ROOT_X86", "DOTNET_ROOT_ARM64", "DOTNET_ROOT(x86)" };
 
             // Create a test environment with DOTNET_ROOT* variants
-            var testEnvironment = new System.Collections.Hashtable();
-            foreach (System.Collections.DictionaryEntry entry in Environment.GetEnvironmentVariables())
-            {
-                testEnvironment[entry.Key] = entry.Value;
-            }
+            var testEnvironment = StandardBuildEnvironment.GetEnvironmentVariables();
 
             // Add test DOTNET_ROOT* variants
             foreach (var testEnvVar in testEnvVars)
@@ -188,9 +224,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 testEnvironment[testEnvVar] = "test_value";
             }
 
-            var envVars = BuildServerConnection.GetServerEnvironmentVariables(testEnvironment);
+            var buildEnvironment = new TestableBuildEnvironment(Path.GetTempPath(), testEnvironment);
+            var envVars = BuildServerConnection.GetServerEnvironmentVariables(buildEnvironment);
 
-            if (BuildServerConnection.IsBuiltinToolRunningOnCoreClr && RuntimeHostInfo.GetToolDotNetRoot(Logger.Log) != null)
+            if (BuildServerConnection.IsBuiltinToolRunningOnCoreClr && RuntimeHostInfo.GetToolDotNetRoot(buildEnvironment, Logger.Log) != null)
             {
                 Assert.NotNull(envVars);
 

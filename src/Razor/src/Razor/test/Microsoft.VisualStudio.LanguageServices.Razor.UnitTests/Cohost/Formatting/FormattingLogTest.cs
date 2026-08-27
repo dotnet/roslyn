@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -21,7 +22,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 /// Not tests of the formatting log, but tests that use formatting logs sent in
 /// by users reporting issues.
 /// </summary>
-public class FormattingLogTest(ITestOutputHelper testOutput) : DocumentFormattingTestBase(testOutput)
+public partial class FormattingLogTest(ITestOutputHelper testOutput) : DocumentFormattingTestBase(testOutput)
 {
     [Fact]
     [WorkItem("https://github.com/dotnet/vscode-csharp/issues/7264")]
@@ -63,19 +64,36 @@ public class FormattingLogTest(ITestOutputHelper testOutput) : DocumentFormattin
     public async Task GameTracAdmin()
         => Assert.NotNull(await GetFormattingEditsAsync());
 
+    [Fact]
+    [WorkItem("https://github.com/dotnet/vscode-csharp/issues/9179")]
+    public async Task RanOutOfOriginalLinesFullFormatting()
+        => Assert.NotNull(await GetFormattingEditsAsync());
+
+    [Fact]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3040290")]
+    public async Task PageForMultiGrid()
+        => Assert.NotNull(await GetFormattingEditsAsync());
+
+    [Fact]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3040290")]
+    public async Task PageForGrid()
+        => Assert.NotNull(await GetFormattingEditsAsync());
+
+    [Fact]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3041882")]
+    public async Task BoatsSectionRange092858221()
+        => Assert.NotNull(await GetFormattingEditsAsync());
+
     private async Task<TextEdit[]?> GetFormattingEditsAsync([CallerMemberName] string? testName = null)
     {
         var contents = GetResource(testName.AssumeNotNull(), "InitialDocument.txt").AssumeNotNull();
         var document = CreateProjectAndRazorDocument(contents, fileKind: GetFileKind(testName));
         var sourceText = await document.GetTextAsync();
 
-        var options = new RazorFormattingOptions() with
-        {
-            CSharpSyntaxFormattingOptions = CodeAnalysis.ExternalAccess.Razor.Features.RazorCSharpSyntaxFormattingOptions.Default
-        };
+        var options = new RazorFormattingOptions();
         if (GetResource(testName, "Options.json") is { } optionsFile)
         {
-            options = (RazorFormattingOptions)JsonSerializer.Deserialize(optionsFile, typeof(RazorFormattingOptions), JsonHelpers.JsonSerializerOptions).AssumeNotNull();
+            options = DeserializeFormattingOptions(optionsFile);
         }
 
         TextEdit[] htmlEdits = [];
@@ -95,7 +113,7 @@ public class FormattingLogTest(ITestOutputHelper testOutput) : DocumentFormattin
         var formattingService = (RazorFormattingService)OOPExportProvider.GetExportedValue<IRazorFormattingService>();
         formattingService.GetTestAccessor().SetFormattingLoggerFactory(new TestFormattingLoggerFactory(TestOutputHelper));
 
-        var edits = await GetFormattingEditsAsync(document, htmlEdits, span, options.CodeBlockBraceOnNextLine, options.AttributeIndentStyle, options.InsertSpaces, options.TabSize, options.CSharpSyntaxFormattingOptions.AssumeNotNull());
+        var edits = await GetFormattingEditsAsync(document, htmlEdits, span, options.CodeBlockBraceOnNextLine, options.AttributeIndentStyle, options.InsertSpaces, options.TabSize, options.CSharpSyntaxFormattingOptions);
 
         // If we have a FinalFormattedDocument from the user, then we want this test to fail until the bug is fixed, and the output changes
         if (edits is not null && GetResource(testName, "FinalFormattedDocument.txt") is { } finalFormattedDocumentFile)
@@ -107,6 +125,33 @@ public class FormattingLogTest(ITestOutputHelper testOutput) : DocumentFormattin
         }
 
         return edits;
+    }
+
+    private static RazorFormattingOptions DeserializeFormattingOptions(string optionsFile)
+    {
+        var hasCSharpSyntaxFormattingOptions = HasCSharpSyntaxFormattingOptions(optionsFile);
+
+        try
+        {
+            var options = JsonSerializer.Deserialize<RazorFormattingOptions>(optionsFile, JsonHelpers.JsonSerializerOptions);
+            if (!hasCSharpSyntaxFormattingOptions || options.CSharpSyntaxFormattingOptions is not null)
+            {
+                return options;
+            }
+        }
+        catch (JsonException)
+        {
+        }
+
+        var legacyOptions = JsonSerializer.Deserialize<LegacyRazorFormattingOptions>(optionsFile, JsonHelpers.JsonSerializerOptions);
+        return legacyOptions.ToRazorFormattingOptions();
+    }
+
+    private static bool HasCSharpSyntaxFormattingOptions(string optionsFile)
+    {
+        using var document = JsonDocument.Parse(optionsFile);
+        return document.RootElement.ValueKind == JsonValueKind.Object &&
+            document.RootElement.TryGetProperty(nameof(RazorFormattingOptions.CSharpSyntaxFormattingOptions), out _);
     }
 
     private RazorFileKind? GetFileKind(string testName)

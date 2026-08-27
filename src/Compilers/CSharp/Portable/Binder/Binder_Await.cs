@@ -218,9 +218,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>True if errors were found.</returns>
         private bool ReportBadAwaitContext(SyntaxNodeOrToken nodeOrToken, BindingDiagnosticBag diagnostics)
         {
-            if (this.InUnsafeRegion && !this.Flags.Includes(BinderFlags.AllowAwaitInUnsafeContext))
+            // Better error location than `nodeOrToken` but using it only for new diagnostics to avoid test churn.
+            var awaitNodeOrToken = nodeOrToken.AsNode() is AwaitExpressionSyntax awaitExpression ? awaitExpression.AwaitKeyword : nodeOrToken;
+
+            if (this.Flags.Includes(BinderFlags.InFixedStatement) && !this.Flags.Includes(BinderFlags.AllowAwaitInUnsafeContext))
             {
-                Error(diagnostics, ErrorCode.ERR_AwaitInUnsafeContext, nodeOrToken.GetLocation()!);
+                Error(diagnostics, ErrorCode.ERR_BadAwaitInFixed, awaitNodeOrToken);
                 return true;
             }
             else if (this.Flags.Includes(BinderFlags.InLockBody))
@@ -231,6 +234,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (this.Flags.Includes(BinderFlags.InCatchFilter))
             {
                 Error(diagnostics, ErrorCode.ERR_BadAwaitInCatchFilter, nodeOrToken.GetLocation()!);
+                return true;
+            }
+            else if (this.InUnsafeRegion && !this.Flags.Includes(BinderFlags.AllowAwaitInUnsafeContext) &&
+                !CheckFeatureAvailability(awaitNodeOrToken, MessageID.IDS_FeatureUnsafeEvolution, diagnostics))
+            {
                 return true;
             }
             else if (this.Flags.Includes(BinderFlags.InFinallyBlock) &&
@@ -295,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (expression.HasDynamicType())
             {
-                // https://github.com/dotnet/roslyn/issues/79762: Handle runtime async here
+                // Runtime async dynamic await lowering is handled in RuntimeAsyncRewriter.
                 isDynamic = true;
                 return true;
             }

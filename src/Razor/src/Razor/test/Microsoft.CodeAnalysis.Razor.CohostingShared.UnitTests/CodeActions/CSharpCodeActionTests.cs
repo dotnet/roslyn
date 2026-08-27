@@ -3,7 +3,9 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -11,6 +13,87 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.CodeActions;
 
 public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostCodeActionsEndpointTestBase(testOutputHelper)
 {
+    [Fact]
+    public async Task ShowAllCSharpCodeActions_ControlsUnsupportedActions()
+    {
+        var input = """
+            @code
+            {
+                void M(bool value)
+                {
+                    [||]if (value)
+                    {
+                    }
+                    else
+                    {
+                    }
+                }
+            }
+            """;
+
+        var document = CreateRazorDocument(input);
+
+        var hiddenActions = await GetCodeActionsAsync(document, input);
+        Assert.NotNull(hiddenActions);
+        Assert.DoesNotContain(hiddenActions, action => ((RazorVSInternalCodeAction)action.Value!).Name == PredefinedCodeRefactoringProviderNames.InvertIf);
+
+        var advancedSettings = ClientSettingsManager.GetClientSettings().AdvancedSettings;
+        ClientSettingsManager.Update(advancedSettings with { ShowAllCSharpCodeActions = true });
+
+        var shownActions = await GetCodeActionsAsync(document, input);
+        Assert.NotNull(shownActions);
+        var invertIfAction = Assert.Single(shownActions, action => ((RazorVSInternalCodeAction)action.Value!).Name == PredefinedCodeRefactoringProviderNames.InvertIf);
+    }
+
+    [Fact]
+    public async Task InvertIf_ExplicitStatement()
+    {
+        var input = """
+            @(booleanValue ?@<br /> : @<br />)
+
+            @{
+                [||]if (true)
+                {
+                    // true
+                }
+                else
+                {
+                    // false
+                }
+            }
+
+            @code
+            {
+                private bool booleanValue = true;
+            }
+            """;
+
+        var expected = """
+            @(booleanValue ?@<br /> : @<br />)
+
+            @{
+                if (false)
+                {
+                    // false
+                }
+                else
+                {
+                    // true
+                }
+            }
+
+            @code
+            {
+                private bool booleanValue = true;
+            }
+            """;
+
+        var advancedSettings = ClientSettingsManager.GetClientSettings().AdvancedSettings;
+        ClientSettingsManager.Update(advancedSettings with { ShowAllCSharpCodeActions = true });
+
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.InvertIf);
+    }
+
     [Fact]
     public async Task GenerateConstructor()
     {
@@ -43,7 +126,68 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
 
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers);
+    }
+
+    [Fact]
+    public async Task InvertIf_UsesCSharpFormattingOptions()
+    {
+        var input = """
+            @(booleanValue ?@<br /> : @<br />)
+
+            @{
+                [||]if (true)
+                {
+                    // true
+                }
+                else
+                {
+                    // false
+                }
+            }
+
+            @code
+            {
+                private bool booleanValue = true;
+            }
+            """;
+
+        var expected = """
+            @(booleanValue ?@<br /> : @<br />)
+
+            @{
+                if (false)
+                    {
+                    // false
+                    }
+                else
+                    {
+                    // true
+                    }
+            }
+
+            @code
+            {
+                private bool booleanValue = true;
+            }
+            """;
+
+        var advancedSettings = ClientSettingsManager.GetClientSettings().AdvancedSettings;
+        ClientSettingsManager.Update(advancedSettings with { ShowAllCSharpCodeActions = true });
+
+        await VerifyCodeActionAsync(
+            input,
+            expected,
+            PredefinedCodeRefactoringProviderNames.InvertIf,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_indent_braces = true
+                    """)
+            ]);
     }
 
     [Fact]
@@ -76,7 +220,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
 
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.UseExpressionBody);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.UseExpressionBody);
     }
 
     [Fact]
@@ -123,7 +267,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
 
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.IntroduceVariable);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.IntroduceVariable);
     }
 
     [Fact]
@@ -170,7 +314,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
 
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.IntroduceVariable, childActionIndex: 1);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.IntroduceVariable, childActionIndex: 1);
     }
 
     [Fact]
@@ -188,7 +332,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertConcatenationToInterpolatedString);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.ConvertConcatenationToInterpolatedString);
     }
 
     [Fact]
@@ -202,7 +346,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             @($"hello{Environment.NewLine}world")
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertConcatenationToInterpolatedString);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.ConvertConcatenationToInterpolatedString);
     }
 
     [Fact]
@@ -222,7 +366,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertConcatenationToInterpolatedString);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.ConvertConcatenationToInterpolatedString);
     }
 
     [Fact]
@@ -242,7 +386,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimInterpolatedString);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimInterpolatedString);
     }
 
     [Fact]
@@ -262,7 +406,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimInterpolatedString);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimInterpolatedString);
     }
 
     [Fact]
@@ -282,7 +426,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimString);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimString);
     }
 
     [Fact]
@@ -302,7 +446,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimString);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimString);
     }
 
     [Fact]
@@ -322,7 +466,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertPlaceholderToInterpolatedString);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.ConvertPlaceholderToInterpolatedString);
     }
 
     [Fact]
@@ -342,7 +486,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertToInterpolatedString);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.ConvertToInterpolatedString);
     }
 
     [Fact]
@@ -371,7 +515,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.AddDebuggerDisplay);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.AddDebuggerDisplay);
     }
 
     [Fact]
@@ -400,7 +544,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.AddDebuggerDisplay, fileKind: AspNetCore.Razor.Language.RazorFileKind.Legacy);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.AddDebuggerDisplay, fileKind: AspNetCore.Razor.Language.RazorFileKind.Legacy);
     }
 
     [Fact]
@@ -423,7 +567,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.AddDebuggerDisplay);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.AddDebuggerDisplay);
     }
 
     [Fact]
@@ -449,7 +593,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
         await VerifyCodeActionAsync(
             input,
             expected,
-            RazorPredefinedCodeRefactoringProviderNames.AddDebuggerDisplay,
+            PredefinedCodeRefactoringProviderNames.AddDebuggerDisplay,
             fileKind: RazorFileKind.Legacy);
     }
 
@@ -475,7 +619,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeFixProviderNames.RemoveUnusedVariable);
     }
 
     [Fact]
@@ -491,7 +635,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeFixProviderNames.RemoveUnusedVariable);
     }
 
     [Fact]
@@ -505,7 +649,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             @{}
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeFixProviderNames.RemoveUnusedVariable);
     }
 
     [Fact]
@@ -524,6 +668,6 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeFixProviderNames.RemoveUnusedVariable);
     }
 }

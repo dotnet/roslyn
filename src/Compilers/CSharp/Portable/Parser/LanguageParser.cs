@@ -1350,6 +1350,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             return DeclarationModifiers.File;
                         case SyntaxKind.ClosedKeyword:
                             return DeclarationModifiers.Closed;
+                        case SyntaxKind.SafeKeyword:
+                            return DeclarationModifiers.Safe;
                     }
 
                     goto default;
@@ -1358,10 +1360,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private void ParseModifiers(SyntaxListBuilder tokens, bool forAccessors, bool forTopLevelStatements, out bool isPossibleTypeDeclaration)
+        private void ParseModifiers(SyntaxListBuilder tokens, bool forTopLevelStatements, out bool isPossibleTypeDeclaration)
         {
-            Debug.Assert(!(forAccessors && forTopLevelStatements));
-
             isPossibleTypeDeclaration = true;
 
             while (true)
@@ -1371,15 +1371,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 Debug.Assert(newMod != DeclarationModifiers.Scoped);
                 if (newMod == DeclarationModifiers.None)
                 {
-                    if (!forAccessors)
+                    SyntaxToken scopedKeyword = ParsePossibleScopedKeyword(isFunctionPointerParameter: false, isLambdaParameter: false);
+                    if (scopedKeyword != null)
                     {
-                        SyntaxToken scopedKeyword = ParsePossibleScopedKeyword(isFunctionPointerParameter: false, isLambdaParameter: false);
-
-                        if (scopedKeyword != null)
-                        {
-                            isPossibleTypeDeclaration = false;
-                            tokens.Add(scopedKeyword);
-                        }
+                        isPossibleTypeDeclaration = false;
+                        tokens.Add(scopedKeyword);
                     }
 
                     break;
@@ -1427,11 +1423,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             {
                                 modTok = this.EatToken();
                             }
-                            else if (forAccessors && this.IsPossibleAccessorModifier())
-                            {
-                                // Accept ref as a modifier for properties and event accessors, to produce an error later during binding.
-                                modTok = this.EatToken();
-                            }
                             else
                             {
                                 return;
@@ -1466,6 +1457,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                         break;
 
+                    case DeclarationModifiers.Safe:
+                        if (!parseAsModifier(MessageID.IDS_FeatureUnsafeEvolution, out modTok))
+                            return;
+
+                        break;
+
                     default:
                         modTok = this.EatToken();
                         break;
@@ -1494,33 +1491,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             bool isStructOrRecordOrUnionKeyword(SyntaxToken token)
             {
-                if (token.Kind == SyntaxKind.StructKeyword)
-                {
-                    return true;
-                }
+                return token.Kind == SyntaxKind.StructKeyword || IsEnabledRecordOrUnionKeyword(token);
+            }
+        }
 
-                switch (token.ContextualKind)
-                {
-                    case SyntaxKind.RecordKeyword:
-                        {
-                            // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                            // does not support a feature, but in this case we are effectively making a language breaking
-                            // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
-                            // older code that is not using C# 9 we conditionally parse based on langversion
-                            return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
-                        }
-
-                    case SyntaxKind.UnionKeyword:
-                        {
-                            // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                            // does not support a feature, but in this case we are effectively making a language breaking
-                            // change to consider "union" a type declaration in all ambiguous cases. To avoid breaking
-                            // older code that is not using C# 15 we conditionally parse based on langversion
-                            return IsFeatureEnabled(MessageID.IDS_FeatureUnions);
-                        }
-                }
-
-                return false;
+        private void ParseAccessorModifiers(SyntaxListBuilder tokens)
+        {
+            // We intentionally avoid using ParseModifiers here because that method must disambiguate
+            // contextual keywords that may instead be type names, such as `async M()` declaring a
+            // method that returns `async`, and tokens such as `ref` that may be a modifier or part of
+            // a ref return type. An accessor has no type before its name, so consume all modifier-like
+            // tokens here for better recovery. Binding reports any modifiers that are invalid on the accessor.
+            while (GetModifierExcludingScoped(this.CurrentToken) != DeclarationModifiers.None ||
+                   this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
+            {
+                var token = this.EatToken();
+                tokens.Add(token.Kind == SyntaxKind.IdentifierToken ? ConvertToKeyword(token) : token);
             }
         }
 
@@ -1642,10 +1628,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return !SyntaxFacts.IsContextualKeyword(nextToken.ContextualKind) && GetModifierExcludingScoped(nextToken) != DeclarationModifiers.None;
         }
 
+        private bool IsEnabledRecordOrUnionKeyword(SyntaxToken token)
+        {
+            // Normally the parser recognizes unsupported features and binding reports a language-version
+            // diagnostic. Record and union are contextual keywords, however, so treating them as type
+            // declarations in every ambiguous context would break older code. Only recognize them here
+            // when the corresponding feature is enabled.
+            return token.ContextualKind switch
+            {
+                SyntaxKind.RecordKeyword => IsFeatureEnabled(MessageID.IDS_FeatureRecords),
+                SyntaxKind.UnionKeyword => IsFeatureEnabled(MessageID.IDS_FeatureUnions),
+                _ => false,
+            };
+        }
+
         private bool IsPartialType()
         {
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
-            var nextToken = this.PeekToken(1);
+
+            var peekIndex = 1;
+            while (this.PeekToken(peekIndex).ContextualKind == SyntaxKind.PartialKeyword)
+            {
+                peekIndex++;
+            }
+
+            var nextToken = this.PeekToken(peekIndex);
             switch (nextToken.Kind)
             {
                 case SyntaxKind.StructKeyword:
@@ -1654,28 +1661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return true;
             }
 
-            switch (nextToken.ContextualKind)
-            {
-                case SyntaxKind.RecordKeyword:
-                    {
-                        // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                        // does not support a feature, but in this case we are effectively making a language breaking
-                        // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
-                        // older code that is not using C# 9 we conditionally parse based on langversion
-                        return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
-                    }
-
-                case SyntaxKind.UnionKeyword:
-                    {
-                        // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                        // does not support a feature, but in this case we are effectively making a language breaking
-                        // change to consider "union" a type declaration in all ambiguous cases. To avoid breaking
-                        // older code that is not using C# 15 we conditionally parse based on langversion
-                        return IsFeatureEnabled(MessageID.IDS_FeatureUnions);
-                    }
-            }
-
-            return false;
+            return this.IsEnabledRecordOrUnionKeyword(nextToken);
         }
 
         private bool IsPartialMember()
@@ -1964,10 +1950,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             semicolon);
 
                     case SyntaxKind.StructKeyword:
-                    case SyntaxKind.UnionKeyword:
                         Debug.Assert(name is not null);
                         return syntaxFactory.StructDeclaration(
-                            keyword.Kind is SyntaxKind.UnionKeyword ? SyntaxKind.UnionDeclaration : SyntaxKind.StructDeclaration,
+                            attributes,
+                            modifiersList,
+                            keyword,
+                            name,
+                            typeParameters,
+                            paramList,
+                            baseList,
+                            constraintsList,
+                            openBrace,
+                            membersList,
+                            closeBrace,
+                            semicolon);
+
+                    case SyntaxKind.UnionKeyword:
+                        Debug.Assert(name is not null);
+                        return syntaxFactory.UnionDeclaration(
                             attributes,
                             modifiersList,
                             keyword,
@@ -2147,14 +2147,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 : _syntaxFactory.SimpleBaseType(firstType));
 
             // Parse any optional base types that follow.
-            while (true)
+            while (this.CurrentToken.Kind is not (SyntaxKind.OpenBraceToken or SyntaxKind.SemicolonToken) &&
+                !this.IsCurrentTokenWhereOfConstraintClause())
             {
-                if (this.CurrentToken.Kind is SyntaxKind.OpenBraceToken or SyntaxKind.SemicolonToken ||
-                    this.IsCurrentTokenWhereOfConstraintClause())
-                {
-                    break;
-                }
-
                 if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
                     list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
@@ -2460,25 +2455,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 case SyntaxKind.IdentifierToken:
 
-                    switch (CurrentToken.ContextualKind)
+                    if (this.IsEnabledRecordOrUnionKeyword(this.CurrentToken))
                     {
-                        case SyntaxKind.RecordKeyword:
-                            {
-                                // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                                // does not support a feature, but in this case we are effectively making a language breaking
-                                // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
-                                // older code that is not using C# 9 we conditionally parse based on langversion
-                                return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
-                            }
-
-                        case SyntaxKind.UnionKeyword:
-                            {
-                                // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                                // does not support a feature, but in this case we are effectively making a language breaking
-                                // change to consider "union" a type declaration in all ambiguous cases. To avoid breaking
-                                // older code that is not using C# 15 we conditionally parse based on langversion
-                                return IsFeatureEnabled(MessageID.IDS_FeatureUnions);
-                            }
+                        return true;
                     }
 
                     if (IsExtensionContainerStart())
@@ -2597,6 +2576,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Doing this before parsing modifiers simplifies further analysis since some of these keywords can act as modifiers as well.
                 //
                 // unsafe { ... }
+                // unsafe (...)
                 // fixed (...) { ... } 
                 // delegate (...) { ... }
                 // delegate { ... }
@@ -2616,6 +2596,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             if (this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
                             {
                                 return _syntaxFactory.GlobalStatement(ParseUnsafeStatement(attributes));
+                            }
+                            else if (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
+                            {
+                                return _syntaxFactory.GlobalStatement(ParseExpressionStatementOrLocalFunctionStartingWithUnsafe(attributes));
                             }
                             break;
 
@@ -2647,7 +2631,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 // All modifiers that might start an expression are processed above.
                 bool isPossibleTypeDeclaration;
-                this.ParseModifiers(modifiers, forAccessors: false, forTopLevelStatements: true, out isPossibleTypeDeclaration);
+                this.ParseModifiers(modifiers, forTopLevelStatements: true, out isPossibleTypeDeclaration);
                 bool haveModifiers = (modifiers.Count > 0);
                 MemberDeclarationSyntax result;
 
@@ -3001,7 +2985,7 @@ parse_member_name:;
         private bool IsMisplacedModifier(SyntaxListBuilder modifiers, SyntaxList<AttributeListSyntax> attributes, TypeSyntax type, out MemberDeclarationSyntax result)
         {
             if (GetModifierExcludingScoped(this.CurrentToken) != DeclarationModifiers.None &&
-                this.CurrentToken.ContextualKind is not (SyntaxKind.PartialKeyword or SyntaxKind.AsyncKeyword or SyntaxKind.RequiredKeyword or SyntaxKind.FileKeyword or SyntaxKind.ClosedKeyword) &&
+                this.CurrentToken.ContextualKind is not (SyntaxKind.PartialKeyword or SyntaxKind.AsyncKeyword or SyntaxKind.RequiredKeyword or SyntaxKind.FileKeyword or SyntaxKind.ClosedKeyword or SyntaxKind.SafeKeyword) &&
                 IsComplete(type))
             {
                 var misplacedModifier = this.CurrentToken;
@@ -3234,7 +3218,7 @@ parse_member_name:;
                 var attributes = this.ParseAttributeDeclarations(inExpressionContext: false);
 
                 bool isPossibleTypeDeclaration;
-                this.ParseModifiers(modifiers, forAccessors: false, forTopLevelStatements: false, out isPossibleTypeDeclaration);
+                this.ParseModifiers(modifiers, forTopLevelStatements: false, out isPossibleTypeDeclaration);
 
                 if (IsExtensionContainerStart())
                 {
@@ -3751,48 +3735,39 @@ parse_member_name:;
                     {
                         // Scan possible ExplicitInterfaceSpecifier
 
-                        while (true)
+                        while (this.CurrentToken.Kind != SyntaxKind.OperatorKeyword)
                         {
                             // now, scan past the next name.  if it's followed by a dot then
                             // it's part of the explicit name we're building up.  Otherwise,
                             // it should be an operator token
 
-                            if (this.CurrentToken.Kind == SyntaxKind.OperatorKeyword)
-                            {
-                                // We're past any explicit interface portion
-                                break;
-                            }
-                            else
-                            {
-                                using var scanNamePartPoint = GetDisposableResetPoint(resetOnDispose: false);
+                            using var scanNamePartPoint = GetDisposableResetPoint(resetOnDispose: false);
 
-                                int lastTokenPosition = -1;
-                                IsMakingProgress(ref lastTokenPosition, assertIfFalse: true);
-                                ScanNamedTypePart();
+                            int lastTokenPosition = -1;
+                            IsMakingProgress(ref lastTokenPosition, assertIfFalse: true);
+                            ScanNamedTypePart();
 
-                                if (IsDotOrColonColon() ||
-                                    (IsMakingProgress(ref lastTokenPosition, assertIfFalse: false) && this.CurrentToken.Kind != SyntaxKind.OpenParenToken))
+                            if (IsDotOrColonColon() ||
+                                (IsMakingProgress(ref lastTokenPosition, assertIfFalse: false) && this.CurrentToken.Kind != SyntaxKind.OpenParenToken))
+                            {
+                                haveExplicitInterfaceName = true;
+
+                                if (IsDotOrColonColon())
                                 {
-                                    haveExplicitInterfaceName = true;
-
-                                    if (IsDotOrColonColon())
-                                    {
-                                        separatorKind = this.CurrentToken.Kind;
-                                        EatToken();
-                                    }
-                                    else
-                                    {
-                                        separatorKind = SyntaxKind.None;
-                                    }
-
+                                    separatorKind = this.CurrentToken.Kind;
+                                    EatToken();
                                 }
                                 else
                                 {
-                                    scanNamePartPoint.Reset();
-
-                                    // We're past any explicit interface portion
-                                    break;
+                                    separatorKind = SyntaxKind.None;
                                 }
+                            }
+                            else
+                            {
+                                scanNamePartPoint.Reset();
+
+                                // We're past any explicit interface portion
+                                break;
                             }
                         }
                     }
@@ -4369,13 +4344,9 @@ parse_member_name:;
                 // parse property accessors
                 var builder = _pool.Allocate<AccessorDeclarationSyntax>();
 
-                while (true)
+                while (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
                 {
-                    if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
-                    {
-                        break;
-                    }
-                    else if (this.IsPossibleAccessor())
+                    if (this.IsPossibleAccessor())
                     {
                         var acc = this.ParseAccessorDeclaration(declaringKind);
                         builder.Add(acc);
@@ -4424,63 +4395,50 @@ parse_member_name:;
 
         private bool IsPossibleAccessor()
         {
-            return this.CurrentToken.Kind == SyntaxKind.IdentifierToken
-                || IsPossibleAttributeDeclaration()
-                || SyntaxFacts.GetAccessorDeclarationKind(this.CurrentToken.ContextualKind) != SyntaxKind.None
-                || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken  // for accessor blocks w/ missing keyword
-                || this.CurrentToken.Kind == SyntaxKind.SemicolonToken // for empty body accessors w/ missing keyword
-                || IsPossibleAccessorModifier();
-        }
+            // An attribute list can begin an accessor declaration.
+            if (IsPossibleAttributeDeclaration())
+                return true;
 
-        private bool IsPossibleAccessorModifier()
-        {
-            // We only want to accept a modifier as the start of an accessor if the modifiers are
-            // actually followed by "get/set/add/remove".  Otherwise, we might thing think we're 
-            // starting an accessor when we're actually starting a normal class member.  For example:
-            //
-            //      class C {
-            //          public int Prop { get { this.
-            //          private DateTime x;
-            //
-            // We don't want to think of the "private" in "private DateTime x" as starting an accessor
-            // here.  If we do, we'll get totally thrown off in parsing the remainder and that will
-            // throw off the rest of the features that depend on a good syntax tree.
-            // 
-            // Note: we allow all modifiers here.  That's because we want to parse things like
-            // "abstract get" as an accessor.  This way we can provide a good error message
-            // to the user that this is not allowed.
+            // There may be an arbitrary number of modifiers before the accessor, as in
+            // `{ private readonly get; }`. Look past all of them before checking what follows,
+            // retaining even invalid modifiers on the accessor so they can be diagnosed during binding.
+            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+            var modifiers = _pool.Allocate();
+            this.ParseAccessorModifiers(modifiers);
+            var parsedModifiers = modifiers.Count > 0;
+            _pool.Free(modifiers);
 
-            if (GetModifierExcludingScoped(this.CurrentToken) == DeclarationModifiers.None)
+            // A recognized accessor name is always sufficient.
+            if (SyntaxFacts.GetAccessorDeclarationKind(this.CurrentToken.ContextualKind) != SyntaxKind.None)
+                return true;
+
+            // Recover an accessor with a missing name when its body is present.
+            if (IsAccessorBodyStart(this.CurrentToken))
+                return true;
+
+            if (parsedModifiers)
             {
+                // In `{ protected }`, parsing an accessor consumes `protected` and creates a missing name.
+                if (this.CurrentToken.Kind is SyntaxKind.CloseBraceToken or SyntaxKind.EndOfFileToken)
+                    return true;
+
+                // In `{ partial unknown; }`, `unknown` is an accessor with a modifier. Conversely,
+                // `{ private int F;` should remain a following member.
+                if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && IsAccessorBodyStart(PeekToken(1)))
+                    return true;
+
                 return false;
             }
-
-            var peekIndex = 1;
-            while (GetModifierExcludingScoped(this.PeekToken(peekIndex)) != DeclarationModifiers.None)
+            else
             {
-                peekIndex++;
-            }
-
-            var token = this.PeekToken(peekIndex);
-            if (token.Kind is SyntaxKind.CloseBraceToken or SyntaxKind.EndOfFileToken)
-            {
-                // If we see "{ get { } public }
-                // then we will think that "public" likely starts an accessor.
-                return true;
-            }
-
-            switch (token.ContextualKind)
-            {
-                case SyntaxKind.GetKeyword:
-                case SyntaxKind.SetKeyword:
-                case SyntaxKind.InitKeyword:
-                case SyntaxKind.AddKeyword:
-                case SyntaxKind.RemoveKeyword:
-                    return true;
-                default:
-                    return false;
+                // Without modifiers, an arbitrary identifier can be consumed as an unknown accessor,
+                // as in `{ unknown; }`.
+                return this.CurrentToken.Kind == SyntaxKind.IdentifierToken;
             }
         }
+
+        private static bool IsAccessorBodyStart(SyntaxToken token)
+            => token.Kind is SyntaxKind.OpenBraceToken or SyntaxKind.SemicolonToken or SyntaxKind.EqualsGreaterThanToken;
 
         private enum PostSkipAction
         {
@@ -4645,7 +4603,7 @@ parse_member_name:;
             var accMods = _pool.Allocate();
 
             var accAttrs = this.ParseAttributeDeclarations(inExpressionContext: false);
-            this.ParseModifiers(accMods, forAccessors: true, forTopLevelStatements: false, isPossibleTypeDeclaration: out _);
+            this.ParseAccessorModifiers(accMods);
 
             var accessorName = this.EatToken(SyntaxKind.IdentifierToken,
                 declaringKind == AccessorDeclaringKind.Event ? ErrorCode.ERR_AddOrRemoveExpected : ErrorCode.ERR_GetOrSetExpected);
@@ -4695,22 +4653,22 @@ parse_member_name:;
             }
             else
             {
-                // We didn't get something we recognized.  If we got an accessor type we 
-                // recognized (i.e. get/set/init/add/remove) then try to parse out a block.
-                // Only do this if it doesn't seem like we're at the end of the accessor/property.
-                // for example, if we have "get set", don't actually try to parse out the 
-                // block.  Otherwise we'll consume the 'set'.  In that case, just end the
-                // current accessor with a semicolon so we can properly consume the next
-                // in the calling method's loop.
                 if (accessorKind != SyntaxKind.UnknownAccessorDeclaration)
                 {
-                    if (!IsTerminator())
+                    if (IsTerminator())
                     {
-                        blockBody = this.ParseMethodOrAccessorBodyBlock(attributes: default, isAccessorBody: true);
+                        // The accessor has no body before the list ends, as in `{ get }`.
+                        semicolon = EatAccessorSemicolon();
+                    }
+                    else if (IsPossibleAccessor())
+                    {
+                        // Keep a following accessor separate, as in `{ get set { } }`.
+                        semicolon = EatAccessorSemicolon();
                     }
                     else
                     {
-                        semicolon = EatAccessorSemicolon();
+                        // Recover a body with a missing `{`, as in `{ get return 0; }`.
+                        blockBody = this.ParseMethodOrAccessorBodyBlock(attributes: default, isAccessorBody: true);
                     }
                 }
                 else
@@ -5323,13 +5281,9 @@ parse_member_name:;
                 return;
             }
 
-            while (true)
+            while (this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
             {
-                if (this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
-                {
-                    break;
-                }
-                else if (stopOnCloseParen && this.CurrentToken.Kind == SyntaxKind.CloseParenToken)
+                if (stopOnCloseParen && this.CurrentToken.Kind == SyntaxKind.CloseParenToken)
                 {
                     break;
                 }
@@ -6590,13 +6544,8 @@ parse_member_name:;
             types.Add(this.ParseTypeArgument());
 
             // remaining types & commas
-            while (true)
+            while (this.CurrentToken.Kind != SyntaxKind.GreaterThanToken)
             {
-                if (this.CurrentToken.Kind == SyntaxKind.GreaterThanToken)
-                {
-                    break;
-                }
-
                 // We prefer early terminating the argument list over parsing until exhaustion
                 // for better error recovery
                 if (tokenBreaksTypeArgumentList(this.CurrentToken))
@@ -8488,9 +8437,30 @@ done:
         private StatementSyntax ParseStatementStartingWithUsing(SyntaxList<AttributeListSyntax> attributes)
             => PeekToken(1).Kind == SyntaxKind.OpenParenToken ? ParseUsingStatement(attributes) : ParseLocalDeclarationStatement(attributes);
 
-        // Checking for brace to disambiguate between unsafe statement and unsafe local function
+        // Checking for brace or parentheses to disambiguate between unsafe statement, unsafe expression, and unsafe local function
         private StatementSyntax TryParseStatementStartingWithUnsafe(SyntaxList<AttributeListSyntax> attributes)
-            => IsPossibleUnsafeStatement() ? ParseUnsafeStatement(attributes) : null;
+        {
+            return PeekToken(1).Kind switch
+            {
+                SyntaxKind.OpenParenToken => ParseExpressionStatementOrLocalFunctionStartingWithUnsafe(attributes),
+                SyntaxKind.OpenBraceToken => ParseUnsafeStatement(attributes),
+                _ => null,
+            };
+        }
+
+        private StatementSyntax ParseExpressionStatementOrLocalFunctionStartingWithUnsafe(SyntaxList<AttributeListSyntax> attributes)
+        {
+            using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
+
+            var result = ParseLocalDeclarationStatement(attributes);
+            if (result is LocalFunctionStatementSyntax)
+            {
+                return result;
+            }
+
+            resetPoint.Reset();
+            return ParseExpressionStatement(attributes);
+        }
 
         private bool IsPossibleAwaitUsing()
             => CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword && PeekToken(1).Kind == SyntaxKind.UsingKeyword;
@@ -8498,11 +8468,6 @@ done:
         private bool IsPossibleLabeledStatement()
         {
             return this.PeekToken(1).Kind == SyntaxKind.ColonToken && this.IsTrueIdentifier();
-        }
-
-        private bool IsPossibleUnsafeStatement()
-        {
-            return this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken;
         }
 
         private bool IsPossibleYieldStatement()
@@ -8549,7 +8514,7 @@ done:
 
             var isPossibleModifier =
                 IsAdditionalLocalFunctionModifier(tk)
-                && (tk is not (SyntaxKind.AsyncKeyword or SyntaxKind.ScopedKeyword) || ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: true));
+                && (tk is not (SyntaxKind.AsyncKeyword or SyntaxKind.SafeKeyword or SyntaxKind.ScopedKeyword) || ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: true));
             if (isPossibleModifier)
             {
                 return true;
@@ -9342,6 +9307,7 @@ done:
             return _syntaxFactory.BreakStatement(
                 attributes,
                 this.EatToken(SyntaxKind.BreakKeyword),
+                this.IsTrueIdentifier() ? this.ParseIdentifierName() : null,
                 this.EatToken(SyntaxKind.SemicolonToken));
         }
 
@@ -9350,6 +9316,7 @@ done:
             return _syntaxFactory.ContinueStatement(
                 attributes,
                 this.EatToken(SyntaxKind.ContinueKeyword),
+                this.IsTrueIdentifier() ? this.ParseIdentifierName() : null,
                 this.EatToken(SyntaxKind.SemicolonToken));
         }
 
@@ -10811,7 +10778,7 @@ done:
             while (IsDeclarationModifier(k = this.CurrentToken.ContextualKind) || IsAdditionalLocalFunctionModifier(k))
             {
                 SyntaxToken mod;
-                if (k == SyntaxKind.AsyncKeyword)
+                if (k is SyntaxKind.AsyncKeyword or SyntaxKind.SafeKeyword)
                 {
                     // check for things like "async async()" where async is the type and/or the function name
                     if (!shouldTreatAsModifier())
@@ -10894,6 +10861,7 @@ done:
                 case SyntaxKind.StaticKeyword:
                 case SyntaxKind.AsyncKeyword:
                 case SyntaxKind.UnsafeKeyword:
+                case SyntaxKind.SafeKeyword:
                 case SyntaxKind.ExternKeyword:
                 // Not a valid modifier, but we should parse to give a good
                 // error message
@@ -10959,6 +10927,9 @@ done:
                         forceLocalFunc = true;
                         continue;
                     case SyntaxKind.UnsafeKeyword:
+                        forceLocalFunc = true;
+                        continue;
+                    case SyntaxKind.SafeKeyword:
                         forceLocalFunc = true;
                         continue;
                     case SyntaxKind.ReadOnlyKeyword:
@@ -11100,6 +11071,7 @@ done:
                 case SyntaxKind.RefTypeKeyword:
                 case SyntaxKind.CheckedKeyword:
                 case SyntaxKind.UncheckedKeyword:
+                case SyntaxKind.UnsafeKeyword:
                 case SyntaxKind.RefValueKeyword:
                 case SyntaxKind.ArgListKeyword:
                 case SyntaxKind.BaseKeyword:
@@ -11295,6 +11267,7 @@ done:
                 case SyntaxKind.SizeOfExpression:
                 case SyntaxKind.CheckedExpression:
                 case SyntaxKind.UncheckedExpression:
+                case SyntaxKind.UnsafeExpression:
                 case SyntaxKind.MakeRefExpression:
                 case SyntaxKind.RefValueExpression:
                 case SyntaxKind.RefTypeExpression:
@@ -11968,6 +11941,8 @@ done:
                     case SyntaxKind.CheckedKeyword:
                     case SyntaxKind.UncheckedKeyword:
                         return this.ParseCheckedOrUncheckedExpression();
+                    case SyntaxKind.UnsafeKeyword:
+                        return this.ParseUnsafeExpression();
                     case SyntaxKind.RefValueKeyword:
                         return this.ParseRefValueExpression();
                     case SyntaxKind.ColonColonToken:
@@ -12683,6 +12658,15 @@ done:
             return _syntaxFactory.CheckedExpression(
                 kind,
                 checkedOrUnchecked,
+                this.EatToken(SyntaxKind.OpenParenToken),
+                this.ParseExpressionForParenthesizedConstruct(),
+                this.EatToken(SyntaxKind.CloseParenToken));
+        }
+
+        private UnsafeExpressionSyntax ParseUnsafeExpression()
+        {
+            return _syntaxFactory.UnsafeExpression(
+                this.EatToken(SyntaxKind.UnsafeKeyword),
                 this.EatToken(SyntaxKind.OpenParenToken),
                 this.ParseExpressionForParenthesizedConstruct(),
                 this.EatToken(SyntaxKind.CloseParenToken));

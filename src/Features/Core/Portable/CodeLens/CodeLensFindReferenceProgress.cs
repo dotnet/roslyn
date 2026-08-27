@@ -120,6 +120,15 @@ internal sealed class CodeLensFindReferencesProgress(
         // Invocations to implicit parameterless constructors need to be included too.
         var isConstructorInvocation = _queriedSymbol.Kind == SymbolKind.NamedType &&
                                       (definition as IMethodSymbol)?.MethodKind == MethodKind.Constructor;
+
+        // Extension block methods have an implicitly declared implementation method generated on the containing
+        // type. When the method is called in static form, the call resolves to the
+        // implementation method. We should still count these references for CodeLens on the extension member.
+        var isExtensionImplementationMethod = definition is IMethodSymbol method &&
+                                              method.TryGetCorrespondingExtensionBlockMethod() != null;
+        if (isExtensionImplementationMethod)
+            return !reference.Location.IsInSource;
+
         return (isImplicitlyDeclared && !isConstructorInvocation) ||
                !reference.Location.IsInSource ||
                !definition.Locations.Any(static loc => loc.IsInSource);

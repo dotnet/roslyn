@@ -4,31 +4,20 @@ applyTo: "src/Razor/**/*.{cs,vb}"
 
 # Razor Tooling and Compiler Instructions for AI Coding Agents
 
-These instructions complement the repository-wide `copilot-instructions.md` and apply to
-all Razor sources under `src/Razor/`. Razor was merged into the Roslyn repo from
-`dotnet/razor`, and most files keep their original sub-tree layout
+Razor was merged into the Roslyn repo from `dotnet/razor`, and most files keep
+their original sub-tree layout
 (`src/Razor/src/Razor/...`, `src/Razor/src/Compiler/...`, `src/Razor/src/Shared/...`,
 `src/Razor/src/Analyzers/...`).
 
 ## Critical Rules
 
-- **Build wrappers**: Be careful passing `-projects` through `build.cmd` or PowerShell wrappers.
-  Do not pass a semicolon-delimited project list through a nested PowerShell command invocation,
-  because PowerShell can treat `;` as a statement separator and open `.csproj` files in
-  Visual Studio. Prefer a single project at a time, or invoke the underlying script in a way
-  that preserves the full `-projects` value as one argument.
 - **Bug fixes**: Look for existing code that already handles the scenario before adding new code.
   The bug is more likely in existing logic than a missing feature.
 - **Helpers**: Review existing helpers (`UsingDirectiveHelper`, `AddUsingsHelper`, etc.)
   before writing new utility methods. Don't duplicate.
-- **Shared projects need `.projitems` entries**: Files under
-  `src\Razor\src\Razor\src\Microsoft.CodeAnalysis.Razor.CohostingShared\` and
-  `src\Razor\src\Razor\test\Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests\`
-  are compiled through their `.projitems` files. Adding a new `.cs` file in either shared
-  tree is not enough by itself. You must also add a matching `<Compile Include="...">`
-  entry to `Microsoft.CodeAnalysis.Razor.CohostingShared.projitems` or
-  `Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests.projitems`, or the file will not
-  be built or tested by the importing projects.
+- **Warning levels**: Track warnings with non-zero `RazorWarningLevel` values in
+  [`docs/razor/warning-levels.md`](../../docs/razor/warning-levels.md), including the diagnostic
+  ID, warning level, exact message, and trigger condition.
 
 ## File Types
 
@@ -49,22 +38,30 @@ all Razor sources under `src/Razor/`. Razor was merged into the Roslyn repo from
   `GetUnusedDirectives()`) rather than storing computed results as fields.
 - **Razor documents in Roslyn**: Stored as additional documents. Resolve via
   `solution.GetDocumentIdsWithFilePath(filePath)` then `solution.GetAdditionalDocument(documentId)`.
+- **Razor documents with virtual URIs**: Remote Razor document classification preserves the full
+  additional-document `FilePath` for identity. For parseable absolute URI file paths, inspect the
+  URI's local path when checking the `.razor` or `.cshtml` extension; do not strip the query from
+  the stored file path.
 - **Remote services**: Place the public stub method (calling `RunServiceAsync`) directly
   above its private implementation method.
-
-## Testing
-
-- Place `[WorkItem("url")]` on tests that track a specific issue (GitHub or DevOps URL).
-- Use `TestCode` with `[|...|]` span markers for before/after test scenarios. Access
-  `input.Text` (cleaned) and `input.Span` (marked range).
-- Prefer raw string literals (`"""..."""`) over verbatim strings (`@"..."`).
-- Test end-user scenarios, not implementation details.
-- Verify/helper methods go at the bottom of test files. New test methods go above them.
-- New tooling tests go in
-  `src\Razor\src\Razor\test\Microsoft.VisualStudioCode.RazorExtension.UnitTests`
-  (Cohosting architecture).
-- Integration tests using `AdditionalSyntaxTrees` for tag helper discovery must set
-  `UseTwoPhaseCompilation => true` (see `ComponentDiscoveryIntegrationTest`).
+- **Formatting options across OOP**: Cohost endpoints must resolve
+  `CSharpSyntaxFormattingOptions` from the Razor document's analyzer-config options with
+  `CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument, cancellationToken)`.
+  This applies `.editorconfig` sections matching the `.razor` or `.cshtml` path and falls back to
+  the user's global C# options. Include the resolved options in `RazorFormattingOptions` sent to
+  remote formatting consumers; remote `IClientSettingsManager` state does not contain the user's
+  C# formatting preferences.
+- **Runtime-declared attribute lists**: When the runtime declares a set the compiler must read
+  (e.g. `[EventHandler]`, `[AcceptsAssetPath]`), it applies the attributes to a public type with
+  a well-known name (`EventHandlers`, `AssetPathAttributes`). A `TagHelperProducer` under
+  `Language/TagHelpers/Producers/` keys off that type name (`IsCandidateType`) and emits carrier
+  `TagHelperDescriptor`s whose descriptor-level metadata carries the parsed values. A later
+  optimization pass reads the full discovered set via `ITagHelperFeature.GetTagHelpers()` (not the
+  document's in-scope tag helpers, which are namespace-scoped) and filters by metadata kind.
+- **Visual Studio options**: Register Razor Advanced settings in
+  `Microsoft.VisualStudio.RazorExtension\UnifiedSettings\razor.registration.json`, localize
+  their UI text in `VSPackage.resx`, read them through `OptionsStorage`, and add remotely consumed
+  values to `ClientAdvancedSettings` so `IClientSettingsManager` synchronizes changes live.
 
 ## Adding OOP Remote Services
 

@@ -5,8 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
-using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,15 +14,14 @@ using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
@@ -34,37 +31,22 @@ internal sealed class CodeActionsService(
     IDocumentMappingService documentMappingService,
     [ImportMany] IEnumerable<IRazorCodeActionProvider> razorCodeActionProviders,
     [ImportMany] IEnumerable<ICSharpCodeActionProvider> csharpCodeActionProviders,
-    [ImportMany] IEnumerable<IHtmlCodeActionProvider> htmlCodeActionProviders,
-    LanguageServerFeatureOptions languageServerFeatureOptions) : ICodeActionsService
+    [ImportMany] IEnumerable<IHtmlCodeActionProvider> htmlCodeActionProviders) : ICodeActionsService
 {
-    private static readonly ImmutableHashSet<string> s_allAvailableCodeActionNames = GetAllAvailableCodeActionNames();
-
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly IEnumerable<IRazorCodeActionProvider> _razorCodeActionProviders = razorCodeActionProviders;
     private readonly IEnumerable<ICSharpCodeActionProvider> _csharpCodeActionProviders = csharpCodeActionProviders;
     private readonly IEnumerable<IHtmlCodeActionProvider> _htmlCodeActionProviders = htmlCodeActionProviders;
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
 
-    public async Task<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(VSCodeActionParams request, RemoteDocumentSnapshot documentSnapshot, RazorVSInternalCodeAction[] delegatedCodeActions, Uri? delegatedDocumentUri, bool supportsCodeActionResolve, CancellationToken cancellationToken)
+    public async Task<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(VSCodeActionParams request, RemoteDocumentSnapshot documentSnapshot, RazorVSInternalCodeAction[] htmlCodeActions, RazorVSInternalCodeAction[] csharpCodeActions, RazorVSInternalCodeAction[] csharpDeclCodeActions, bool supportsCodeActionResolve, CancellationToken cancellationToken)
     {
-        var razorCodeActionContext = await GenerateRazorCodeActionContextAsync(request, documentSnapshot, delegatedDocumentUri, supportsCodeActionResolve, cancellationToken).ConfigureAwait(false);
+        var razorCodeActionContext = await GenerateRazorCodeActionContextAsync(request, documentSnapshot, supportsCodeActionResolve, cancellationToken).ConfigureAwait(false);
         if (razorCodeActionContext is null)
         {
             return null;
         }
 
-        delegatedCodeActions = razorCodeActionContext.LanguageKind switch
-        {
-            RazorLanguageKind.CSharp => ExtractCSharpCodeActionNamesFromData(delegatedCodeActions),
-            RazorLanguageKind.Html => delegatedCodeActions,
-            _ => []
-        };
-
         var razorCodeActions = await GetRazorCodeActionsAsync(razorCodeActionContext, cancellationToken).ConfigureAwait(false);
-
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var filteredCodeActions = await FilterDelegatedCodeActionsAsync(razorCodeActionContext, [.. delegatedCodeActions], cancellationToken).ConfigureAwait(false);
 
         cancellationToken.ThrowIfCancellationRequested();
         using var commandsOrCodeActions = new PooledArrayBuilder<SumType<Command, CodeAction>>();
@@ -73,11 +55,43 @@ internal sealed class CodeActionsService(
         // by title. The latter is bad for us because it can put "Remove <div>" at the top in some locales, and our fully
         // qualify component code action at the bottom, depending on the users namespace.
         ConvertCodeActionsToSumType(razorCodeActions, "A-Razor");
-        ConvertCodeActionsToSumType(filteredCodeActions, "B-Delegated");
+
+        if (razorCodeActionContext.LanguageKind == RazorLanguageKind.Html)
+        {
+            var filteredHtmlCodeActions = await FilterDelegatedCodeActionsAsync(razorCodeActionContext, [.. htmlCodeActions], cancellationToken).ConfigureAwait(false);
+            ConvertCodeActionsToSumType(filteredHtmlCodeActions, "B-Delegated");
+        }
+        else if (razorCodeActionContext.LanguageKind == RazorLanguageKind.CSharp)
+        {
+            // Code actions from the impl and decl C# documents can be duplicates after mapping. If a Razor position maps to both C#
+            // documents, we assume those generated positions represent the same Razor thing semantically. So code actions with the same
+            // title reported by Roslyn should perform actions in different C# documents that map back to the same Razor action.
+            // It should be safe to dedupe based on title.
+            using var _ = SpecializedPools.StringHashSet.GetPooledObject(out var seenTitles);
+
+            if (csharpCodeActions.Length > 0)
+            {
+                await ProcessCSharpCodeActionsAsync(seenTitles, csharpCodeActions, declarationDocument: false).ConfigureAwait(false);
+            }
+
+            if (csharpDeclCodeActions.Length > 0)
+            {
+                await ProcessCSharpCodeActionsAsync(seenTitles, csharpDeclCodeActions, declarationDocument: true).ConfigureAwait(false);
+            }
+        }
 
         return commandsOrCodeActions.ToArray();
 
-        void ConvertCodeActionsToSumType(ImmutableArray<RazorVSInternalCodeAction> codeActions, string groupName)
+        async Task ProcessCSharpCodeActionsAsync(HashSet<string> seenTitles, RazorVSInternalCodeAction[] codeActions, bool declarationDocument)
+        {
+            var csharpDocument = await documentSnapshot.GetGeneratedDocumentAsync(declarationDocument, cancellationToken).ConfigureAwait(false);
+            var csharpDocumentUri = csharpDocument.GetURI();
+            var context = razorCodeActionContext with { DelegatedDocumentUri = csharpDocumentUri };
+            var filteredCodeActions = await FilterDelegatedCodeActionsAsync(context, [.. ExtractCSharpCodeActionNamesFromData(codeActions)], cancellationToken).ConfigureAwait(false);
+            ConvertCodeActionsToSumType(filteredCodeActions, "B-Delegated", csharpDocumentUri, seenTitles);
+        }
+
+        void ConvertCodeActionsToSumType(ImmutableArray<RazorVSInternalCodeAction> codeActions, string groupName, DocumentUri? csharpDocumentUri = null, HashSet<string>? seenTitles = null)
         {
             // We must cast the RazorCodeAction into a platform compliant code action
             // For VS (SupportsCodeActionResolve = true) this means just encapsulating the RazorCodeAction in the `CommandOrCodeAction` struct
@@ -86,6 +100,11 @@ internal sealed class CodeActionsService(
             {
                 foreach (var action in codeActions)
                 {
+                    if (seenTitles is not null && !seenTitles.Add(action.Title ?? string.Empty))
+                    {
+                        continue;
+                    }
+
                     // Make sure we honour the grouping that a delegated server may have created
                     action.Group = groupName + (action.Group ?? string.Empty);
                     commandsOrCodeActions.Add(action);
@@ -95,7 +114,12 @@ internal sealed class CodeActionsService(
             {
                 foreach (var action in codeActions)
                 {
-                    commandsOrCodeActions.Add(action.AsVSCodeCommandOrCodeAction(request.TextDocument, delegatedDocumentUri));
+                    if (seenTitles is not null && !seenTitles.Add(action.Title ?? string.Empty))
+                    {
+                        continue;
+                    }
+
+                    commandsOrCodeActions.Add(action.AsVSCodeCommandOrCodeAction(request.TextDocument, csharpDocumentUri));
                 }
             }
         }
@@ -104,7 +128,6 @@ internal sealed class CodeActionsService(
     private async Task<RazorCodeActionContext?> GenerateRazorCodeActionContextAsync(
         VSCodeActionParams request,
         RemoteDocumentSnapshot documentSnapshot,
-        Uri? delegatedDocumentUri,
         bool supportsCodeActionResolve,
         CancellationToken cancellationToken)
     {
@@ -126,22 +149,21 @@ internal sealed class CodeActionsService(
             request,
             documentSnapshot,
             codeDocument,
-            delegatedDocumentUri,
+            DelegatedDocumentUri: null,
             startLocation,
             endLocation,
             languageKind,
             sourceText,
-            _languageServerFeatureOptions.SupportsFileManipulation,
             supportsCodeActionResolve);
 
         return context;
     }
 
-    public async Task<VSCodeActionParams?> GetCSharpCodeActionsRequestAsync(RemoteDocumentSnapshot documentSnapshot, VSCodeActionParams request, CancellationToken cancellationToken)
+    public async Task<VSCodeActionParams?> GetCSharpCodeActionsRequestAsync(RemoteDocumentSnapshot documentSnapshot, VSCodeActionParams request, bool inDeclDocument, CancellationToken cancellationToken)
     {
         // For C# we have to map the ranges to the generated document
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
+        var csharpDocument = codeDocument.GetRequiredCSharpDocument(inDeclDocument);
         if (!_documentMappingService.TryMapToCSharpDocumentRange(csharpDocument, request.Range, out var projectedRange))
         {
             return null;
@@ -157,7 +179,7 @@ internal sealed class CodeActionsService(
 
         // @inherits projects onto the base type only (ie, just "Base" in `Component : Base`), but some Roslyn code actions are only
         // offered on the class declaration itself (ie, "Component" in above). In this case we widen the request to the whole declaration.
-        if (await TryExpandInheritsDirectiveRangeToWholeDeclarationAsync(documentSnapshot, codeDocument, request.Range, projectedRange, cancellationToken).ConfigureAwait(false) is { } inheritsDirectiveRange)
+        if (await TryExpandInheritsDirectiveRangeToWholeDeclarationAsync(documentSnapshot, codeDocument, inDeclDocument, request.Range, projectedRange, cancellationToken).ConfigureAwait(false) is { } inheritsDirectiveRange)
         {
             projectedRange = inheritsDirectiveRange;
 
@@ -183,6 +205,7 @@ internal sealed class CodeActionsService(
     private static async Task<LspRange?> TryExpandInheritsDirectiveRangeToWholeDeclarationAsync(
         RemoteDocumentSnapshot documentSnapshot,
         RazorCodeDocument codeDocument,
+        bool inDeclDocument,
         LspRange razorRange,
         LspRange projectedRange,
         CancellationToken cancellationToken)
@@ -196,7 +219,7 @@ internal sealed class CodeActionsService(
             return null;
         }
 
-        var csharpSyntaxTree = await documentSnapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var csharpSyntaxTree = await documentSnapshot.GetCSharpSyntaxTreeAsync(inDeclDocument, cancellationToken).ConfigureAwait(false);
         var csharpRoot = await csharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
         var csharpText = await csharpSyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var projectedStart = csharpText.GetRequiredAbsoluteIndex(projectedRange.Start);
@@ -216,7 +239,7 @@ internal sealed class CodeActionsService(
         return csharpText.GetRange(TextSpan.FromBounds(classDeclaration.Identifier.SpanStart, baseType.Type.Span.End));
     }
 
-    private RazorVSInternalCodeAction[] ExtractCSharpCodeActionNamesFromData(RazorVSInternalCodeAction[] codeActions)
+    private static RazorVSInternalCodeAction[] ExtractCSharpCodeActionNamesFromData(RazorVSInternalCodeAction[] codeActions)
     {
         using var actions = new PooledArrayBuilder<RazorVSInternalCodeAction>();
 
@@ -229,14 +252,7 @@ internal sealed class CodeActionsService(
                 continue;
             }
 
-            foreach (var tag in tags)
-            {
-                if (s_allAvailableCodeActionNames.Contains(tag))
-                {
-                    codeAction.Name = tag;
-                    break;
-                }
-            }
+            codeAction.Name = GetCodeActionName(tags);
 
             if (string.IsNullOrEmpty(codeAction.Name))
             {
@@ -256,6 +272,33 @@ internal sealed class CodeActionsService(
         }
 
         return actions.ToArray();
+    }
+
+    private static string? GetCodeActionName(string[] tags)
+    {
+        foreach (var tag in tags)
+        {
+            // VS Code can send these type-accessibility actions with this synthetic marker instead of
+            // a Roslyn provider name. Keep it so the later Razor-specific filtering can recognize the
+            // special path and turn the delegated action into our AddUsing/FullyQualify experience.
+            if (tag == LanguageServerConstants.CodeActions.CodeActionFromVSCode)
+            {
+                return tag;
+            }
+        }
+
+        // Roslyn appends the provider name to CustomTags, and the other known custom tag in this flow
+        // is the high-priority GUID tag. Walk backwards so inlined nested actions still resolve to the provider name.
+        for (var i = tags.Length - 1; i >= 0; i--)
+        {
+            var tag = tags[i];
+            if (!Guid.TryParse(tag, out _))
+            {
+                return tag;
+            }
+        }
+
+        return null;
     }
 
     private async Task<ImmutableArray<RazorVSInternalCodeAction>> FilterDelegatedCodeActionsAsync(
@@ -316,27 +359,5 @@ internal sealed class CodeActionsService(
         }
 
         return codeActions.ToImmutableOrderedByAndClear(static r => r.Order);
-    }
-
-    private static ImmutableHashSet<string> GetAllAvailableCodeActionNames()
-    {
-        using var _ = ArrayBuilderPool<string>.GetPooledObject(out var availableCodeActionNames);
-
-        var refactoringProviderNames = typeof(RazorPredefinedCodeRefactoringProviderNames)
-            .GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Static | BindingFlags.Public)
-            .Where(property => property.PropertyType == typeof(string))
-            .Select(property => property.GetValue(null) as string)
-            .WhereNotNull();
-        var codeFixProviderNames = typeof(RazorPredefinedCodeFixProviderNames)
-            .GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Static | BindingFlags.Public)
-            .Where(property => property.PropertyType == typeof(string))
-            .Select(property => property.GetValue(null) as string)
-            .WhereNotNull();
-
-        availableCodeActionNames.AddRange(refactoringProviderNames);
-        availableCodeActionNames.AddRange(codeFixProviderNames);
-        availableCodeActionNames.Add(LanguageServerConstants.CodeActions.CodeActionFromVSCode);
-
-        return availableCodeActionNames.ToImmutableHashSet();
     }
 }

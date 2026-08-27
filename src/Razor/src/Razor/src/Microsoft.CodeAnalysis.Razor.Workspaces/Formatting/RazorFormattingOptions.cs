@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Razor.Settings;
+using LspFormattingOptions = Roslyn.LanguageServer.Protocol.FormattingOptions;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
@@ -20,7 +20,7 @@ internal readonly record struct RazorFormattingOptions
     [DataMember(Order = 3)]
     public AttributeIndentStyle AttributeIndentStyle { get; init; } = AttributeIndentStyle.AlignWithFirst;
     [DataMember(Order = 4)]
-    public RazorCSharpSyntaxFormattingOptions? CSharpSyntaxFormattingOptions { get; init; }
+    public CSharpSyntaxFormattingOptions CSharpSyntaxFormattingOptions { get; init; } = CSharpSyntaxFormattingOptions.Default;
     [DataMember(Order = 5)]
     public bool FromPaste { get; init; } = false;
 
@@ -28,16 +28,7 @@ internal readonly record struct RazorFormattingOptions
     {
     }
 
-    public static RazorFormattingOptions From(FormattingOptions options, bool codeBlockBraceOnNextLine, AttributeIndentStyle attributeIndentStyle)
-        => new()
-        {
-            InsertSpaces = options.InsertSpaces,
-            TabSize = options.TabSize,
-            CodeBlockBraceOnNextLine = codeBlockBraceOnNextLine,
-            AttributeIndentStyle = attributeIndentStyle,
-        };
-
-    public static RazorFormattingOptions From(FormattingOptions options, bool codeBlockBraceOnNextLine, AttributeIndentStyle attributeIndentStyle, RazorCSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions)
+    public static RazorFormattingOptions From(LspFormattingOptions options, bool codeBlockBraceOnNextLine, AttributeIndentStyle attributeIndentStyle, CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions)
         => new()
         {
             InsertSpaces = options.InsertSpaces,
@@ -47,7 +38,7 @@ internal readonly record struct RazorFormattingOptions
             CSharpSyntaxFormattingOptions = csharpSyntaxFormattingOptions,
         };
 
-    public static RazorFormattingOptions From(FormattingOptions options, bool codeBlockBraceOnNextLine, AttributeIndentStyle attributeIndentStyle, RazorCSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions, bool fromPaste)
+    public static RazorFormattingOptions From(LspFormattingOptions options, bool codeBlockBraceOnNextLine, AttributeIndentStyle attributeIndentStyle, CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions, bool fromPaste)
         => new()
         {
             InsertSpaces = options.InsertSpaces,
@@ -58,13 +49,7 @@ internal readonly record struct RazorFormattingOptions
             FromPaste = fromPaste
         };
 
-    public RazorIndentationOptions ToIndentationOptions()
-        => new(
-            UseTabs: !InsertSpaces,
-            TabSize: TabSize,
-            IndentationSize: TabSize);
-
-    public FormattingOptions ToLspFormattingOptions()
+    public LspFormattingOptions ToLspFormattingOptions()
         => new()
         {
             InsertSpaces = InsertSpaces,

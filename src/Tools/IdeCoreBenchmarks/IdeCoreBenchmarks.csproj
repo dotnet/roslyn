@@ -21,11 +21,32 @@
     <ExcludeFromBuild Condition="'$(DotNetBuildTests)' == 'false'">true</ExcludeFromBuild>
   </PropertyGroup>
 
+  <!-- The VS DiagnosticsHub adapter requires BenchmarkDotNet 0.15.x, which does not recognize a .NET 11 host.
+       Imports.targets assigns the shared major-roll-forward template after this project is evaluated, so override it just before generation. -->
+  <Target Name="UseIdeCoreBenchmarksRuntimeConfig" BeforeTargets="_GenerateRuntimeConfigurationFilesInputCache" Condition="'$(TargetFramework)' == '$(NetRoslyn)'">
+    <PropertyGroup>
+      <UserRuntimeConfig></UserRuntimeConfig>
+      <RollForward>LatestPatch</RollForward>
+    </PropertyGroup>
+  </Target>
+
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" />
-    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" />
+    <!-- Keep these overrides aligned with the BenchmarkDotNet 0.15 dependency of the VS DiagnosticsHub adapter. -->
+    <PackageReference Include="BenchmarkDotNet" VersionOverride="0.15.8" />
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" VersionOverride="0.15.8" />
     <PackageReference Include="Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers" />
     <PackageReference Include="Microsoft.VisualStudio.Cache" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- BenchmarkDotNet generates runner projects beneath TargetDir. Give those projects a local package policy
+         so central transitive pinning does not replace this project's BenchmarkDotNet 0.15 override with 0.16. -->
+    <None Include="BenchmarkDotNet.Directory.Packages.props" CopyToOutputDirectory="PreserveNewest" TargetPath="Directory.Packages.props" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <!-- Exclude the Index and Range implementations since we inherit ones from M.CA.Workspace -->
+    <PackageReference Include="Microsoft.Bcl.Memory" ExcludeAssets="compile" />
   </ItemGroup>
 
   <ItemGroup>
@@ -36,6 +57,8 @@
     <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
     <ProjectReference Include="..\..\Workspaces\MSBuild\Core\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
+    <!-- Workspaces.MSBuild embeds Contracts privately (it's not a transitive reference), so reference it directly to deploy it next to MSBuildWorkspace at runtime. An extern alias prevents ambiguity between shared projects linked to both Workspace and BuildHost. -->
+    <ProjectReference Include="..\..\Workspaces\MSBuild\Contracts\Microsoft.CodeAnalysis.Workspaces.MSBuild.Contracts.csproj" Aliases="Contracts" />
     <ProjectReference Include="..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
     <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
     <ProjectReference Include="..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
@@ -49,11 +72,31 @@
     <ProjectReference Include="..\AnalyzerRunner\AnalyzerRunner.csproj" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' == '$(NetRoslyn)'">
+    <ProjectReference Include="..\..\LanguageServer\Microsoft.CodeAnalysis.LanguageServer.UnitTests\Microsoft.CodeAnalysis.LanguageServer.UnitTests.csproj" />
+    <ProjectReference Include="..\..\LanguageServer\Protocol.TestUtilities\Microsoft.CodeAnalysis.LanguageServer.Protocol.Test.Utilities.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <Compile Remove="LanguageServer\**\*.cs" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <!-- These aren't used by the build, but it allows the tool to locate dependencies of the built-in analyzers. -->
     <ProjectReference Include="..\..\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" />
     <ProjectReference Include="..\..\EditorFeatures\CSharp\Microsoft.CodeAnalysis.CSharp.EditorFeatures.csproj" />
     <ProjectReference Include="..\..\EditorFeatures\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.vbproj" />
+  </ItemGroup>
+
+  <!-- Microsoft.CodeAnalysis.LanguageServer only targets .NET, so its assets reader is linked in (rather
+       than referenced) and benchmarked on .NET only. ProjectAssetsReaderBenchmarks.cs is guarded to match.
+       The Using items mirror the global usings the linked file relies on in its own project. -->
+  <ItemGroup Condition="'$(TargetFramework)' != 'net472'">
+    <PackageReference Include="NuGet.ProjectModel" />
+    <Compile Include="..\..\LanguageServer\Microsoft.CodeAnalysis.LanguageServer\HostWorkspace\ProjectAssetsReader.cs" Link="Lsp\ProjectAssetsReader.cs" />
+    <Using Include="System" />
+    <Using Include="System.IO" />
+    <Using Include="Roslyn.Utilities" />
   </ItemGroup>
 
 </Project>

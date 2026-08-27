@@ -95,6 +95,7 @@ public class ClientSettingsManagerTest(ITestOutputHelper testOutput) : VisualStu
             SnippetSetting: SnippetSetting.All,
             LogLevel: LogLevel.None,
             FormatOnPaste: false,
+            ShowAllCSharpCodeActions: true,
             TaskListDescriptors: []);
 
         // Act

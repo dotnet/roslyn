@@ -8,10 +8,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Remote.Razor.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
@@ -26,20 +25,20 @@ internal sealed class RemoteRemoveAndSortUsingsService(in ServiceArgs args) : Ra
     }
 
     public ValueTask<ImmutableArray<TextChange>> GetRemoveAndSortUsingsEditsAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId documentId,
         CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => GetRemoveAndSortUsingsEditsAsync(context, cancellationToken),
+            snapshot => GetRemoveAndSortUsingsEditsAsync(snapshot, cancellationToken),
             cancellationToken);
 
     private static async ValueTask<ImmutableArray<TextChange>> GetRemoveAndSortUsingsEditsAsync(
-        RemoteDocumentContext context,
+        RemoteDocumentSnapshot snapshot,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var sourceText = codeDocument.Source.Text;
         var syntaxTree = codeDocument.GetRequiredTagHelperRewrittenSyntaxTree();
         var allUsingDirectives = syntaxTree.GetUsingDirectives();
@@ -71,20 +70,20 @@ internal sealed class RemoteRemoveAndSortUsingsService(in ServiceArgs args) : Ra
     }
 
     public ValueTask<ImmutableArray<TextChange>> GetSortUsingsEditsAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId documentId,
         CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => GetSortUsingsEditsAsync(context, cancellationToken),
+            snapshot => GetSortUsingsEditsAsync(snapshot, cancellationToken),
             cancellationToken);
 
     private static async ValueTask<ImmutableArray<TextChange>> GetSortUsingsEditsAsync(
-        RemoteDocumentContext context,
+        RemoteDocumentSnapshot snapshot,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var textEdits = UsingDirectiveHelper.GetSortAndConsolidateEdits(codeDocument);
         return textEdits.SelectAsArray(codeDocument.Source.Text.GetTextChange);

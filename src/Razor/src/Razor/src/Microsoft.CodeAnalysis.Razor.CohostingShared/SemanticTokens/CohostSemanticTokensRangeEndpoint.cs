@@ -1,16 +1,17 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 
@@ -19,70 +20,51 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 #pragma warning disable RS0030 // Do not use banned APIs
 [Shared]
 [CohostEndpoint(Methods.TextDocumentSemanticTokensRangeName)]
+[Export(typeof(IDynamicRegistrationProvider))]
 [ExportRazorStatelessLspService(typeof(CohostSemanticTokensRangeEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostSemanticTokensRangeEndpoint(
     IIncompatibleProjectService incompatibleProjectService,
     IRemoteServiceInvoker remoteServiceInvoker,
-    ITelemetryReporter telemetryReporter)
-    : AbstractCohostDocumentEndpoint<SemanticTokensRangeParams, SemanticTokens?>(incompatibleProjectService)
+    ITelemetryReporter telemetryReporter,
+    ISemanticTokensLegendService semanticTokensLegendService)
+    : CohostSemanticTokensEndpointBase<SemanticTokensRangeParams>(incompatibleProjectService, remoteServiceInvoker, telemetryReporter), IDynamicRegistrationProvider
 {
-    private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
-    private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
+    private readonly ISemanticTokensLegendService _semanticTokensLegendService = semanticTokensLegendService;
 
-    protected override bool MutatesSolutionState => false;
-    protected override bool RequiresLSPSolution => true;
+    protected override string LspMethodName => Methods.TextDocumentSemanticTokensRangeName;
 
-    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(SemanticTokensRangeParams request)
-        => request.TextDocument;
-
-    protected override async Task<SemanticTokens?> HandleRequestAsync(SemanticTokensRangeParams request, RequestContext context, TextDocument razorDocument, CancellationToken cancellationToken)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
     {
-        var result = await HandleRequestAsync(request, razorDocument, cancellationToken).ConfigureAwait(false);
-
-        if (result is not null)
+        if (clientCapabilities.TextDocument?.SemanticTokens?.DynamicRegistration == true)
         {
-            // Roslyn uses frozen semantics for semantic tokens, so it could return results from an older project state.
-            // Every time they get a request they queue up a refresh, which will check the project checksums, and if there
-            // hasn't been any changes, will no-op. We call into that same logic here to ensure everything is up to date.
-            // See: https://github.com/dotnet/roslyn/blob/bb57f4643bb3d52eb7626f9863da177d9e219f1e/src/LanguageServer/Protocol/Handler/SemanticTokens/SemanticTokensHelpers.cs#L48-L52
-            var semanticTokensWrapperService = context.GetRequiredService<IRazorSemanticTokensRefreshQueue>();
-            await semanticTokensWrapperService.TryEnqueueRefreshComputationAsync(razorDocument.Project, cancellationToken).ConfigureAwait(false);
-        }
+            var semanticTokensRefreshQueue = requestContext.GetRequiredService<IRazorSemanticTokensRefreshQueue>();
+            semanticTokensRefreshQueue.Initialize(clientCapabilities);
 
-        return result;
-    }
+            // We prefer Range over Full for performance reasons, so only advertise full support if Range isn't
+            // available. The Range capability is SumType<bool, object> which is why the check is a bit odd.
+            var supportsSemanticTokensRange = clientCapabilities.TextDocument?.SemanticTokens?.Requests?.Range?.Value is not (false or null);
 
-    protected override Task<SemanticTokens?> HandleRequestAsync(SemanticTokensRangeParams request, TextDocument razorDocument, CancellationToken cancellationToken)
-        => HandleRequestAsync(razorDocument, request.Range.ToLinePositionSpan(), cancellationToken);
-
-    private async Task<SemanticTokens?> HandleRequestAsync(TextDocument razorDocument, LinePositionSpan span, CancellationToken cancellationToken)
-    {
-        var correlationId = Guid.NewGuid();
-        using var _ = _telemetryReporter.TrackLspRequest(Methods.TextDocumentSemanticTokensRangeName, RazorLSPConstants.CohostLanguageServerName, TelemetryThresholds.SemanticTokensRazorTelemetryThreshold, correlationId);
-
-        var tokens = await _remoteServiceInvoker.TryInvokeAsync<IRemoteSemanticTokensService, int[]?>(
-            razorDocument.Project.Solution,
-            (service, solutionInfo, cancellationToken) => service.GetSemanticTokensDataAsync(solutionInfo, razorDocument.Id, span, correlationId, cancellationToken),
-            cancellationToken).ConfigureAwait(false);
-
-        if (tokens is not null)
-        {
-            return new SemanticTokens
+            return [new Registration()
             {
-                Data = tokens
-            };
+                Method = Methods.TextDocumentSemanticTokensName,
+                RegisterOptions = new SemanticTokensRegistrationOptions()
+                    .EnableSemanticTokens(_semanticTokensLegendService, supportsSemanticTokensRange)
+            }];
         }
 
-        return null;
+        return [];
     }
+
+    protected override Task<LinePositionSpan> GetRequestSpanAsync(SemanticTokensRangeParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+        => Task.FromResult(request.Range.ToLinePositionSpan());
 
     internal TestAccessor GetTestAccessor() => new(this);
 
     internal readonly struct TestAccessor(CohostSemanticTokensRangeEndpoint instance)
     {
         public Task<SemanticTokens?> HandleRequestAsync(TextDocument razorDocument, LinePositionSpan span, CancellationToken cancellationToken)
-            => instance.HandleRequestAsync(razorDocument, span, cancellationToken);
+            => instance.HandleRequestAsync(new SemanticTokensRangeParams { Range = span.ToRange() }, razorDocument, cancellationToken);
     }
 }

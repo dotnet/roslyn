@@ -1,0 +1,11 @@
+﻿Source Location: (2:0,2 [47] x:\dir\subdir\Test\TestComponent.razor)
+|
+    var value = 1;
+    _ = value.Double();
+|
+Generated Location: (733:21,0 [47] )
+|
+    var value = 1;
+    _ = value.Double();
+|
+

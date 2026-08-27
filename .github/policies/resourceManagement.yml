@@ -153,7 +153,7 @@ configuration:
               issueAuthor: False
         - not:
             isActivitySender:
-              user: github-actions[bot]
+              user: dotnet-oneloc-localization[bot]
               issueAuthor: False
       then:
       - addLabel:
@@ -369,7 +369,7 @@ configuration:
       - addLabel:
           label: Second Signoff Requested
       - addReply:
-          reply: "@roslyn-compiler this PR needs a second sign-off"
+          reply: "@dotnet/roslyn-compiler this PR needs a second sign-off"
 
 onFailure: 
 onSuccess:

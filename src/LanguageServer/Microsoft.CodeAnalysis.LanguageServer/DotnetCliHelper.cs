@@ -6,24 +6,33 @@ using System.Composition;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-[Export, Shared]
-internal sealed class DotnetCliHelper
+[ExportCSharpVisualBasicLspServiceFactory(typeof(DotnetCliHelper)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class DotnetCliHelperFactory() : ILspServiceFactory
+{
+    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        => new DotnetCliHelper(lspServices.GetRequiredService<ILoggerFactory>());
+}
+
+internal sealed class DotnetCliHelper : ILspService
 {
     internal const string DotnetRootEnvVar = "DOTNET_ROOT";
+    private const string DotnetCliForceUtf8EncodingEnvVar = "DOTNET_CLI_FORCE_UTF8_ENCODING";
+    private const string DotnetCliConsoleUseDefaultEncodingEnvVar = "DOTNET_CLI_CONSOLE_USE_DEFAULT_ENCODING";
 
     private readonly ILogger _logger;
     private readonly Lazy<string> _dotnetExecutablePath;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public DotnetCliHelper(ILoggerFactory loggerFactory)
     {
-        _logger = loggerFactory.CreateLogger<DotnetCliHelper>();
+        _logger = loggerFactory.CreateLogger(".NET CLI Helper");
         _dotnetExecutablePath = new Lazy<string>(() => GetDotNetPathOrDefault());
     }
 
@@ -72,6 +81,7 @@ internal sealed class DotnetCliHelper
     {
         _logger.LogDebug($"Running dotnet CLI command at {_dotnetExecutablePath.Value} in directory {workingDirectory} with arguments '{string.Join(' ', arguments)}'");
 
+        // Avoid mojibake when dotnet writes UTF-8 but Process would decode redirected output using the server's console encoding.
         var startInfo = new ProcessStartInfo(_dotnetExecutablePath.Value)
         {
             CreateNoWindow = true,
@@ -79,6 +89,8 @@ internal sealed class DotnetCliHelper
             RedirectStandardInput = true,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8,
         };
 
         startInfo.ArgumentList.AddRange(arguments);
@@ -99,10 +111,15 @@ internal sealed class DotnetCliHelper
             startInfo.Environment["DOTNET_CLI_UI_LANGUAGE"] = "en-US";
         }
 
+        startInfo.Environment[DotnetCliForceUtf8EncodingEnvVar] = "true";
+        startInfo.Environment.Remove(DotnetCliConsoleUseDefaultEncodingEnvVar);
+
         // Since we depend on MSBuild APIs, the following environment variables get set to the version of dotnet that runs this server.
         // However want to use the user specified dotnet version to run the tests, so we need to unset these.
         startInfo.Environment.Remove("MSBUILD_EXE_PATH");
         startInfo.Environment.Remove("MSBuildExtensionsPath");
+
+        startInfo.RemoveInheritedDotNetDiagnosticPorts();
 
         var process = Process.Start(startInfo);
         Contract.ThrowIfNull(process, $"Unable to start dotnet CLI at {_dotnetExecutablePath.Value} with arguments {arguments} in directory {workingDirectory}");

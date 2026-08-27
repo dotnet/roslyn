@@ -1011,7 +1011,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets the first token of the tree rooted by this node. Skips zero-width tokens.
+        /// Gets the first token of the tree rooted by this node. Skips zero-width tokens by default.
         /// </summary>
         /// <returns>The first token or <c>default(SyntaxToken)</c> if it doesn't exist.</returns>
         public SyntaxToken GetFirstToken(bool includeZeroWidth = false, bool includeSkipped = false, bool includeDirectives = false, bool includeDocumentationComments = false)
@@ -1020,7 +1020,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets the last token of the tree rooted by this node. Skips zero-width tokens.
+        /// Gets the last token of the tree rooted by this node. Skips zero-width tokens by default.
         /// </summary>
         /// <returns>The last token or <c>default(SyntaxToken)</c> if it doesn't exist.</returns>
         public SyntaxToken GetLastToken(bool includeZeroWidth = false, bool includeSkipped = false, bool includeDirectives = false, bool includeDocumentationComments = false)

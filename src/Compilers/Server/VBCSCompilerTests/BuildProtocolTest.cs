@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
@@ -39,6 +40,41 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             Assert.Equal(42, read.ReturnCode);
             Assert.False(read.Utf8Output);
             Assert.Equal("a string", read.Output);
+            Assert.Empty(read.TelemetryEvents);
+        }
+
+        [Fact]
+        public async Task ReadWriteCompleted_WithTelemetryEvents()
+        {
+            var events = new[]
+            {
+                new BuildTelemetryEvent("roslyn/compilercache", new Dictionary<string, string>
+                {
+                    ["cachestatus"] = "hit",
+                    ["language"] = "C#",
+                    ["restorems"] = "12",
+                }),
+                new BuildTelemetryEvent("roslyn/other", new Dictionary<string, string>()),
+            };
+
+            var response = new CompletedBuildResponse(0, utf8output: true, output: "out", telemetryEvents: events);
+            var memoryStream = new MemoryStream();
+            await response.WriteAsync(memoryStream, CancellationToken.None);
+            memoryStream.Position = 0;
+            var read = (CompletedBuildResponse)await BuildResponse.ReadAsync(memoryStream, CancellationToken.None);
+
+            Assert.Equal(0, read.ReturnCode);
+            Assert.True(read.Utf8Output);
+            Assert.Equal("out", read.Output);
+            Assert.Equal(2, read.TelemetryEvents.Count);
+
+            Assert.Equal("roslyn/compilercache", read.TelemetryEvents[0].EventName);
+            Assert.Equal("hit", read.TelemetryEvents[0].Properties["cachestatus"]);
+            Assert.Equal("C#", read.TelemetryEvents[0].Properties["language"]);
+            Assert.Equal("12", read.TelemetryEvents[0].Properties["restorems"]);
+
+            Assert.Equal("roslyn/other", read.TelemetryEvents[1].EventName);
+            Assert.Empty(read.TelemetryEvents[1].Properties);
         }
 
         [Fact]

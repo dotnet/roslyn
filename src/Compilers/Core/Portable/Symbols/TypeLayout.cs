@@ -10,15 +10,20 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Type layout information.
+    /// <para>
+    /// Type layout information - this retrieves the <see cref="StructLayoutAttribute" /> information from the type definition, or the default that the compiler emits if absent.
+    /// </para>
+    /// <para>
+    /// In particular, it has the layout kind, the packing size, and the size of the type, as defined in metadata or source - it does not compute the actual size of a type for example.
+    /// </para>
     /// </summary>
-    internal readonly struct TypeLayout : IEquatable<TypeLayout>
+    public readonly struct TypeLayout : IEquatable<TypeLayout>
     {
         private readonly byte _kind;
-        private readonly short _alignment;
+        private readonly ushort _packingSize;
         private readonly int _size;
 
-        public TypeLayout(LayoutKind kind, int size, byte alignment)
+        internal TypeLayout(LayoutKind kind, int size, byte alignment)
         {
             Debug.Assert(size >= 0 && (int)kind >= 0 && (int)kind <= 3);
 
@@ -27,7 +32,7 @@ namespace Microsoft.CodeAnalysis
             _kind = (byte)(kind + 1);
 
             _size = size;
-            _alignment = alignment;
+            _packingSize = alignment;
         }
 
         /// <summary>
@@ -43,15 +48,15 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Field alignment (PackingSize field in metadata).
+        /// Packing size (PackingSize field in metadata).
         /// </summary>
-        public short Alignment
+        public ushort PackingSize
         {
-            get { return _alignment; }
+            get { return _packingSize; }
         }
 
         /// <summary>
-        /// Size of the type.
+        /// Size of the type (Size field in metadata).
         /// </summary>
         public int Size
         {
@@ -61,8 +66,8 @@ namespace Microsoft.CodeAnalysis
         public bool Equals(TypeLayout other)
         {
             return _size == other._size
-                && _alignment == other._alignment
-                && _kind == other._kind;
+                && _packingSize == other._packingSize
+                && Kind == other.Kind;
         }
 
         public override bool Equals(object? obj)
@@ -72,7 +77,23 @@ namespace Microsoft.CodeAnalysis
 
         public override int GetHashCode()
         {
-            return Hash.Combine(Hash.Combine(this.Size, this.Alignment), _kind);
+            return Hash.Combine(Hash.Combine(this.Size, this.PackingSize), (int)this.Kind);
+        }
+
+        /// <summary>
+        /// Compares two <see cref="TypeLayout" /> instances for equality.
+        /// </summary>
+        public static bool operator ==(TypeLayout left, TypeLayout right)
+        {
+            return left.Equals(right);
+        }
+
+        /// <summary>
+        /// Compares two <see cref="TypeLayout" /> instances for inequality.
+        /// </summary>
+        public static bool operator !=(TypeLayout left, TypeLayout right)
+        {
+            return !left.Equals(right);
         }
     }
 }

@@ -25,6 +25,8 @@ public abstract class RecommenderTests : TestBase
 {
     protected static readonly CSharpParseOptions CSharp9ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9);
     protected static readonly CSharpParseOptions CSharp14ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp14);
+    protected static readonly CSharpParseOptions CSharp15ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp15);
+    protected static readonly CSharpParseOptions CSharp15ScriptParseOptions = Options.Script.WithLanguageVersion(LanguageVersion.CSharp15);
     protected static readonly CSharpParseOptions CSharpNextParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext);
     protected static readonly CSharpParseOptions CSharpNextScriptParseOptions = Options.Script.WithLanguageVersion(LanguageVersionExtensions.CSharpNext);
 
