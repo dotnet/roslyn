@@ -5,8 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.Immutable;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Internal.Log;
 
@@ -66,8 +64,8 @@ internal static partial class RoslynTelemetry
     }
 
     /// <summary>
-    /// Span-based entry point. Kept private because it is ambiguous with the single-tag overload at call
-    /// sites that use target-typed <c>new(...)</c>.
+    /// Span-based entry point, shared by the fixed-arity overloads above. Not public: it is ambiguous
+    /// with the single-tag overload at call sites that use target-typed <c>new(...)</c>.
     /// </summary>
     private static void CountCore(FunctionId functionId, string metricName, long delta, ReadOnlySpan<KeyValuePair<string, object?>> tags)
     {
@@ -121,42 +119,21 @@ internal static partial class RoslynTelemetry
     #endregion
 
     /// <summary>
-    /// Records the wall-clock duration of the returned scope into a distribution, but only if it meets
-    /// or exceeds <paramref name="minThresholdMs"/>. Returns <see langword="null"/> when no metric sink
-    /// is configured, so callers can <c>using</c> the result unconditionally.
+    /// Records the wall-clock duration of the returned scope into a distribution. Returns
+    /// <see langword="null"/> when no metric sink is configured, so callers can <c>using</c> the result
+    /// unconditionally.
     /// </summary>
-    public static IDisposable? RecordBlockTime(FunctionId functionId, string metricName, int minThresholdMs = -1)
-        => s_metricSinks.IsEmpty ? null : new TimedBlock(functionId, metricName, minThresholdMs, default);
+    public static IDisposable? RecordBlockTime(FunctionId functionId, string metricName)
+        => s_metricSinks.IsEmpty ? null : new TimedBlock(functionId, metricName);
 
-    /// <inheritdoc cref="RecordBlockTime(FunctionId, string, int)"/>
-    public static IDisposable? RecordBlockTime(FunctionId functionId, string metricName, int minThresholdMs, params KeyValuePair<string, object?>[] tags)
-        => s_metricSinks.IsEmpty ? null : new TimedBlock(functionId, metricName, minThresholdMs, tags);
-
-    private sealed class TimedBlock : IDisposable
+    private sealed class TimedBlock(FunctionId functionId, string metricName) : IDisposable
     {
-        private readonly FunctionId _functionId;
-        private readonly string _metricName;
-        private readonly int _minThresholdMs;
-        private readonly KeyValuePair<string, object?>[]? _tags;
-        private readonly int _tick;
-
-        public TimedBlock(FunctionId functionId, string metricName, int minThresholdMs, KeyValuePair<string, object?>[]? tags)
-        {
-            _functionId = functionId;
-            _metricName = metricName;
-            _minThresholdMs = minThresholdMs;
-            _tags = tags;
-            _tick = Environment.TickCount;
-        }
+        private readonly int _tick = Environment.TickCount;
 
         public void Dispose()
         {
             // This delta is valid for durations of < 25 days
-            var delta = Environment.TickCount - _tick;
-            if (delta < _minThresholdMs)
-                return;
-
-            RecordCore(_functionId, _metricName, delta, _tags is null ? default : _tags.AsSpan());
+            RecordCore(functionId, metricName, Environment.TickCount - _tick, default);
         }
     }
 }

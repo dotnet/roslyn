@@ -18,11 +18,8 @@ namespace Microsoft.CodeAnalysis.Telemetry;
 
 /// <summary>
 /// The aggregating metric sink for one <see cref="TelemetrySession"/>, backed by VS Telemetry's counter
-/// and histogram APIs.
-/// <para>
-/// Measurements accumulate in memory against a VS Telemetry instrument and are posted in batches by
-/// <see cref="Flush"/>, which posts everything accumulated so far and clears.
-/// </para>
+/// and histogram APIs. Measurements accumulate in memory against an instrument and are posted in batches
+/// by <see cref="Flush"/>.
 /// <para>
 /// A host that needs several sessions in one process composes one of these per session behind an
 /// <see cref="IMetricSink"/> that routes between them; nothing here needs to change for that.
@@ -69,9 +66,6 @@ internal sealed class VSMetricSink : IMetricSink, IDisposable
         public object Lock { get; } = new();
     }
 
-    /// <summary>
-    /// Ensures two flushes cannot run at once, which would post the same aggregation twice.
-    /// </summary>
     private readonly object _flushLock = new();
 
     private readonly VSTelemetryMeterProvider _meterProvider = new();
@@ -90,8 +84,8 @@ internal sealed class VSMetricSink : IMetricSink, IDisposable
     {
         _poster = poster;
 
-        // Owned here rather than by each host, so composing a sink is all a host has to remember.
-        // Shutdown paths flush explicitly as well, since a host can exit too abruptly for a timer.
+        // Owned here so that composing a sink is all a host has to remember. Shutdown paths flush
+        // explicitly as well, since a host can exit too abruptly for a timer.
         _ = PostCollectedTelemetryAsync();
     }
 
@@ -119,11 +113,7 @@ internal sealed class VSMetricSink : IMetricSink, IDisposable
 
     internal readonly struct TestAccessor
     {
-        /// <summary>
-        /// Creates a sink over a caller-supplied poster, so a test can assert exactly how many metric
-        /// events a flush produces without standing up a real, opted-in <see cref="TelemetrySession"/>
-        /// (which would try to send).
-        /// </summary>
+        /// <inheritdoc cref="IMetricPoster"/>
         public VSMetricSink CreateSink(IMetricPoster poster) => new(poster);
     }
 

@@ -19,18 +19,17 @@ internal interface IEventSink
     /// </summary>
     bool IsEnabled(FunctionId functionId);
 
-    /// <summary>
-    /// Record a discrete event with context message.
-    /// </summary>
     void Log(FunctionId functionId, LogMessage logMessage);
 
     /// <summary>
-    /// Record the start of a scope with context message.
+    /// Records the start of a scope. <paramref name="uniquePairId"/> pairs this call with the
+    /// <see cref="LogBlockEnd"/> that closes it.
     /// </summary>
     void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Record the end of a scope.
+    /// Records the end of the scope opened by <see cref="LogBlockStart"/> with the same
+    /// <paramref name="uniquePairId"/>. <paramref name="delta"/> is the elapsed milliseconds.
     /// </summary>
     void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int uniquePairId, int delta, CancellationToken cancellationToken);
 }

@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log;
 /// </summary>
 internal static class TelemetryNaming
 {
-    public const string EventPrefix = "vs/ide/vbcs/";
-    public const string PropertyPrefix = "vs.ide.vbcs.";
+    private const string EventPrefix = "vs/ide/vbcs/";
+    private const string PropertyPrefix = "vs.ide.vbcs.";
 
     // these don't have concurrency limit on purpose to reduce chance of lock contention.
     // if that becomes a problem - by showing up in our perf investigation, then we will consider adding concurrency limit.

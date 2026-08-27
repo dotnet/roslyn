@@ -198,7 +198,6 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
     }
     finally
     {
-        // After the LSP server shutdown, report session wide telemetry and dispose the session.
         telemetryService?.Dispose();
     }
 

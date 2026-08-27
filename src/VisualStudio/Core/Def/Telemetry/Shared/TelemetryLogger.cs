@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -68,12 +68,6 @@ internal abstract class TelemetryLogger : IEventSink
 
     protected abstract bool LogDelta { get; }
 
-    internal static string GetEventName(FunctionId id)
-         => TelemetryNaming.GetEventName(id);
-
-    internal static string GetPropertyName(FunctionId id, string name)
-        => TelemetryNaming.GetPropertyName(id, name);
-
     public static TelemetryLogger Create(TelemetrySession session, bool logDelta)
         => Implementation.Create(session, logDelta);
 
@@ -90,7 +84,7 @@ internal abstract class TelemetryLogger : IEventSink
             return;
         }
 
-        var telemetryEvent = new TelemetryEvent(GetEventName(functionId));
+        var telemetryEvent = new TelemetryEvent(TelemetryNaming.GetEventName(functionId));
         SetProperties(telemetryEvent, functionId, logMessage);
 
         try
@@ -109,7 +103,7 @@ internal abstract class TelemetryLogger : IEventSink
             return;
         }
 
-        var eventName = GetEventName(functionId);
+        var eventName = TelemetryNaming.GetEventName(functionId);
         var kind = GetKind(logMessage);
 
         try
@@ -167,14 +161,14 @@ internal abstract class TelemetryLogger : IEventSink
             var message = logMessage.GetMessage();
             if (!string.IsNullOrWhiteSpace(message))
             {
-                var propertyName = GetPropertyName(functionId, "Message");
+                var propertyName = TelemetryNaming.GetPropertyName(functionId, "Message");
                 telemetryEvent.Properties.Add(propertyName, message);
             }
         }
 
         if (delta.HasValue)
         {
-            var propertyName = GetPropertyName(functionId, "Delta");
+            var propertyName = TelemetryNaming.GetPropertyName(functionId, "Delta");
             telemetryEvent.Properties.Add(propertyName, delta.Value);
         }
     }
@@ -188,7 +182,7 @@ internal abstract class TelemetryLogger : IEventSink
             // 
             // numeric data will show up in ES with measurement prefix.
 
-            telemetryEvent.Properties.Add(GetPropertyName(functionId, name), value switch
+            telemetryEvent.Properties.Add(TelemetryNaming.GetPropertyName(functionId, name), value switch
             {
                 PiiValue pii => new TelemetryPiiProperty(pii.Value),
                 IEnumerable<object> items => new TelemetryComplexProperty(items.Select(item => (item is PiiValue pii) ? new TelemetryPiiProperty(pii.Value) : item)),

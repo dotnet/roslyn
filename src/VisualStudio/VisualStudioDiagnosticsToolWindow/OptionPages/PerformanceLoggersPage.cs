@@ -65,9 +65,9 @@ internal sealed class PerformanceLoggersPage : AbstractOptionPage
         var traceEnabled = globalOptions.GetOption(LoggerOptionsStorage.TraceLoggerKey);
         var outputWindowEnabled = globalOptions.GetOption(LoggerOptionsStorage.OutputWindowLoggerKey);
 
-        // The ETW sink is part of VS's shipping composition, because enabling ETW for one FunctionId on
-        // a customer machine must not require this (non-shipping) VSIX. Its predicate is a snapshot of
-        // the per-FunctionId options, so it is refreshed rather than replaced.
+        // Its predicate is a snapshot of the per-FunctionId options, so a registered instance has to be
+        // told about changes. ETW is registered by the shipping VS composition, because enabling it for
+        // one FunctionId on a customer machine must not require this (non-shipping) VSIX.
         var telemetryService = workspaceServices.GetService<IWorkspaceTelemetryService>() as VisualStudioWorkspaceTelemetryService;
         telemetryService?.UpdateEtwEnablement(etwEnabled, isEnabled);
 

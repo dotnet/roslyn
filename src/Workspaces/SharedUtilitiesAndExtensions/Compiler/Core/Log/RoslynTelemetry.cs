@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log;
 /// Roslyn's telemetry entry point. Discrete events and scopes are recorded here and fan out to the
 /// host's configured <see cref="IEventSink"/>s; aggregated measurements go to its <see cref="IMetricSink"/>.
 /// <para>
-/// A host configures this once at startup (see <see cref="SetEventSinks"/> / <see cref="SetMetricSink"/>).
+/// A host configures this once at startup (see <see cref="AddEventSink"/> / <see cref="AddMetricSink"/>).
 /// With nothing configured every method is a cheap no-op, which is the state the build server, the
 /// CodeStyle packages, and most tests run in.
 /// </para>
