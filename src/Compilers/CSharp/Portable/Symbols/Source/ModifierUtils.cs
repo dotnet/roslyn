@@ -479,24 +479,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool reportMisplacedPartialModifier()
             {
                 var modifier = modifiers.FirstOrDefault(SyntaxKind.PartialKeyword);
-                if (modifier == default)
-                    return false;
-
-                var messageId = SyntaxFacts.IsTypeDeclaration(modifier.Parent.Kind()) ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod;
-                if (!messageId.CheckFeatureAvailability(diagnostics, modifier))
-                    return true;
-
-                // `partial` normally must be last. Preserve the historical exception for ordinary methods ending in
-                // `partial async`. Ordinary methods are the only declarations that allow both modifiers; elsewhere,
-                // either `partial` is rejected here or `async` is rejected by ModifierUtils.CheckModifiers.
-                var i = modifiers.IndexOf(modifier);
-                var isLegalLocation =
-                    i == modifiers.Count - 1 ||
-                    (i == modifiers.Count - 2 && modifiers[i + 1].ContextualKind() is SyntaxKind.AsyncKeyword);
-                if (!allowsPartialModifier || !isLegalLocation)
+                if (modifier != default)
                 {
-                    diagnostics.Add(ErrorCode.ERR_PartialMisplaced, modifier.GetLocation());
-                    return true;
+                    var messageId = SyntaxFacts.IsTypeDeclaration(modifier.Parent.Kind()) ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod;
+                    if (!messageId.CheckFeatureAvailability(diagnostics, modifier))
+                        return true;
+
+                    // `partial` normally must be last. Preserve the historical exception for ordinary methods ending in
+                    // `partial async`. Ordinary methods are the only declarations that allow both modifiers; elsewhere,
+                    // either `partial` is rejected here or `async` is rejected by ModifierUtils.CheckModifiers.
+                    var i = modifiers.IndexOf(modifier);
+                    var isLegalLocation =
+                        i == modifiers.Count - 1 ||
+                        (i == modifiers.Count - 2 && modifiers[i + 1].ContextualKind() is SyntaxKind.AsyncKeyword);
+                    if (!allowsPartialModifier || !isLegalLocation)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_PartialMisplaced, modifier.GetLocation());
+                        return true;
+                    }
                 }
 
                 return false;
@@ -505,20 +505,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool reportMisplacedRefModifier()
             {
                 var refToken = modifiers.FirstOrDefault(SyntaxKind.RefKeyword);
-                if (refToken.Parent is not StructDeclarationSyntax)
-                    return false;
-
-                var refIndex = modifiers.IndexOf(refToken);
-
-                // `ref` normally must be last. It may precede `partial` because `partial` itself must be last, as in
-                // `ref partial struct`.
-                var isLegalLocation =
-                    refIndex == modifiers.Count - 1 ||
-                    (refIndex == modifiers.Count - 2 && modifiers[refIndex + 1].ContextualKind() is SyntaxKind.PartialKeyword);
-                if (!isLegalLocation)
+                if (refToken.Parent is StructDeclarationSyntax)
                 {
-                    diagnostics.Add(ErrorCode.ERR_BadModifierLocation, refToken.GetLocation(), refToken.Text);
-                    return true;
+                    // `ref` normally must be last. It may precede `partial` because `partial` itself must be last, as in
+                    // `ref partial struct`.
+                    var refIndex = modifiers.IndexOf(refToken);
+                    var isLegalLocation =
+                        refIndex == modifiers.Count - 1 ||
+                        (refIndex == modifiers.Count - 2 && modifiers[refIndex + 1].ContextualKind() is SyntaxKind.PartialKeyword);
+                    if (!isLegalLocation)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadModifierLocation, refToken.GetLocation(), refToken.Text);
+                        return true;
+                    }
                 }
 
                 return false;
