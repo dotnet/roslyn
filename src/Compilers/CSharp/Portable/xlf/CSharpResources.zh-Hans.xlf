@@ -222,6 +222,11 @@
         <target state="translated">不能在语言版本 {1} 中使用 “ref” 关键字传递参数 {0}。要将 “ref” 参数传递给 “in” 参数，请升级到语言版本 {2} 或更高版本。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAwaitInFixed">
+        <source>Cannot await in context of a 'fixed' statement</source>
+        <target state="translated">无法在 "fixed" 语句的上下文中使用 await</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
         <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</source>
         <target state="translated">运算符 "{0}" 不能应用于类型为 "{1}" 和 "{2}" 的非 UTF-8 字节表示形式的操作数</target>
@@ -723,8 +728,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
-        <source>A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.</source>
-        <target state="translated">变量不能在 "not" 或 "or" 模式中声明，也不能在涉及匹配实例或其基础值的联合匹配中声明。</target>
+        <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
+        <target state="translated">在“not”或“or”模式中不能声明变量。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
@@ -1030,6 +1035,11 @@
       <trans-unit id="ERR_FeatureNotAvailableInVersion14">
         <source>Feature '{0}' is not available in C# 14.0. Please use language version {1} or greater.</source>
         <target state="translated">功能 '{0}' 在 C# 14.0 中不可用。请使用语言版本 {1} 或更高版本。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion15">
+        <source>Feature '{0}' is not available in C# 15.0. Please use language version {1} or greater.</source>
+        <target state="translated">功能“{0}”在 C# 15.0 中不可用。请使用语言版本 {1} 或更高版本。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -11434,11 +11444,6 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       <trans-unit id="ERR_BadAwaitInStaticVariableInitializer">
         <source>The 'await' operator cannot be used in a static script variable initializer.</source>
         <target state="translated">静态脚本变量初始值设定项中不可使用 "await" 运算符。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AwaitInUnsafeContext">
-        <source>Cannot await in an unsafe context</source>
-        <target state="translated">无法在不安全的上下文中等待</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLacksBody">

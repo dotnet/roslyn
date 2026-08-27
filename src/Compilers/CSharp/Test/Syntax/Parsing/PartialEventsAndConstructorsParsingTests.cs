@@ -632,16 +632,31 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     [Theory, CombinatorialData]
     public void Event_Implementation_PartialAccessors([CSharp14_Preview] LanguageVersion langVersion)
     {
-        UsingDeclaration("""
-            partial event Action E { partial add; partial remove; }
-            """,
-            TestOptions.Regular.WithLanguageVersion(langVersion),
-            // (1,26): error CS1055: An add or remove accessor expected
-            // partial event Action E { partial add; partial remove; }
-            Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "partial").WithLocation(1, 26),
-            // (1,39): error CS1055: An add or remove accessor expected
-            // partial event Action E { partial add; partial remove; }
-            Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "partial").WithLocation(1, 39));
+        const string source = "partial event Action E { partial add; partial remove; }";
+        var parseOptions = TestOptions.Regular.WithLanguageVersion(langVersion);
+
+        UsingDeclaration(source, parseOptions);
+        CreateCompilation($$"""
+            using System;
+
+            partial class C
+            {
+                partial event Action E;
+                {{source}}
+            }
+            """, parseOptions: parseOptions).VerifyDiagnostics(
+            // (6,30): error CS1609: Modifiers cannot be placed on event accessor declarations
+            //     partial event Action E { partial add; partial remove; }
+            Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "partial").WithLocation(6, 30),
+            // (6,41): error CS0073: An add or remove accessor must have a body
+            //     partial event Action E { partial add; partial remove; }
+            Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 41),
+            // (6,43): error CS1609: Modifiers cannot be placed on event accessor declarations
+            //     partial event Action E { partial add; partial remove; }
+            Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "partial").WithLocation(6, 43),
+            // (6,57): error CS0073: An add or remove accessor must have a body
+            //     partial event Action E { partial add; partial remove; }
+            Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 57));
 
         N(SyntaxKind.EventDeclaration);
         {
@@ -655,21 +670,15 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
             N(SyntaxKind.AccessorList);
             {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.UnknownAccessorDeclaration);
-                {
-                    N(SyntaxKind.IdentifierToken, "partial");
-                }
                 N(SyntaxKind.AddAccessorDeclaration);
                 {
+                    N(SyntaxKind.PartialKeyword);
                     N(SyntaxKind.AddKeyword);
                     N(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.UnknownAccessorDeclaration);
-                {
-                    N(SyntaxKind.IdentifierToken, "partial");
-                }
                 N(SyntaxKind.RemoveAccessorDeclaration);
                 {
+                    N(SyntaxKind.PartialKeyword);
                     N(SyntaxKind.RemoveKeyword);
                     N(SyntaxKind.SemicolonToken);
                 }

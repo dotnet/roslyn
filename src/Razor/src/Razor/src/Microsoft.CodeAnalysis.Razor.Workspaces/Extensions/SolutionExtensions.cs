@@ -72,23 +72,24 @@ internal static class SolutionExtensions
         return result is not null;
     }
 
-    public static Document GetRequiredDocument(this Solution solution, DocumentId documentId)
-    {
-        return solution.GetDocument(documentId)
-            ?? ThrowHelper.ThrowInvalidOperationException<Document>($"The document {documentId} did not exist in {solution.FilePath ?? "solution"}.");
-    }
-
-    public static bool TryGetSourceGeneratedDocumentIdentity(this Solution solution, Uri generatedDocumentUri, out SourceGeneratedDocumentIdentity identity)
+    public static bool TryGetSourceGeneratedDocumentIdentity(this Solution solution, DocumentUri generatedDocumentUri, out SourceGeneratedDocumentIdentity identity)
     {
         identity = default;
-        if (!ProtocolConversions.IsSourceGeneratedScheme(generatedDocumentUri.Scheme))
+
+        // Generated document Uris are computed by Roslyn so should always be parsable
+        if (generatedDocumentUri.ParsedUri is not { } parsedUri)
         {
             return false;
         }
 
-        if (SourceGeneratedDocumentUri.DeserializeIdentity(solution, generatedDocumentUri) is not { } docIdentity)
+        if (!ProtocolConversions.IsSourceGeneratedScheme(parsedUri.Scheme))
         {
-            throw new InvalidOperationException($"Could not deserialize Uri into a source generated Uri: {generatedDocumentUri}");
+            return false;
+        }
+
+        if (SourceGeneratedDocumentUri.DeserializeIdentity(solution, parsedUri) is not { } docIdentity)
+        {
+            throw new InvalidOperationException($"Could not deserialize Uri into a source generated Uri: {parsedUri}");
         }
 
         identity = docIdentity;
@@ -100,7 +101,7 @@ internal static class SolutionExtensions
         return true;
     }
 
-    public static async Task<SourceGeneratedDocument?> TryGetSourceGeneratedDocumentAsync(this Solution solution, Uri generatedDocumentUri, CancellationToken cancellationToken)
+    public static async Task<SourceGeneratedDocument?> TryGetSourceGeneratedDocumentAsync(this Solution solution, DocumentUri generatedDocumentUri, CancellationToken cancellationToken)
     {
         if (!solution.TryGetSourceGeneratedDocumentIdentity(generatedDocumentUri, out var identity) ||
             !solution.TryGetProject(identity.DocumentId.ProjectId, out var project))

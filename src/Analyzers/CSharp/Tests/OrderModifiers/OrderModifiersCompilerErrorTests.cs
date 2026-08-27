@@ -30,4 +30,9 @@ public sealed class OrderModifiersCompilerErrorTests : AbstractCSharpDiagnosticP
         => TestInRegularAndScriptAsync(
 @"[|partial|] public class C { }",
 @"public partial class C { }");
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+    public Task PartialBeforeRefStruct()
+        => TestMissingAsync(
+@"[||]partial ref struct S { }");
 }

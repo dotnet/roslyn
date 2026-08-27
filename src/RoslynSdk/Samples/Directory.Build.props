@@ -1,0 +1,32 @@
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project>
+
+  <PropertyGroup>
+    <ImportNetSdkFromRepoToolset>false</ImportNetSdkFromRepoToolset>
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+
+    <!-- Some legacy sample dependencies require compatible framework fallback. -->
+    <NoWarn>NU1701;$(NoWarn)</NoWarn>
+
+    <!-- Workaround for https://github.com/dotnet/sdk/issues/24747 -->
+    <DisableCheckingDuplicateNuGetItems>true</DisableCheckingDuplicateNuGetItems>
+
+    <!-- Opt-out repo features -->
+    <UsingToolXliff>false</UsingToolXliff>
+  </PropertyGroup>
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+  <Import Project="$(RepositoryEngineeringDir)Versions.props" />
+
+  <PropertyGroup>
+    <SkipRoslynTestTraceListener>true</SkipRoslynTestTraceListener>
+    <UsingToolXliff>false</UsingToolXliff>
+    <EnableXlfLocalization>false</EnableXlfLocalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Net.Http" PrivateAssets="all" ExcludeAssets="all" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" />
+    <PackageReference Include="xunit.assert" Condition="$(MSBuildProjectName.EndsWith('.UnitTests'))" />
+  </ItemGroup>
+
+</Project>

@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using Microsoft.CodeAnalysis.CommandLine;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         [return: NotNullIfNotNull(nameof(path))]
         private string? NormalizePath(string? path)
         {
-            return string.IsNullOrEmpty(path) ? path : EnsureEndsWithSlash(Utilities.GetFullPathNoThrow(TaskEnvironment.GetAbsolutePath(path)));
+            return string.IsNullOrEmpty(path) ? path : EnsureEndsWithSlash(TaskEnvironment.GetFullPathNoThrow(path));
         }
 
         private static string EnsureEndsWithSlash(string path)
@@ -190,7 +191,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                             // Normalize nested root.
                             if (Utilities.TryCombine(containingRoot, nestedRoot, out var combinedPath))
                             {
-                                var fullOriginalPath = Utilities.GetFullPathNoThrow(combinedPath);
+                                var fullOriginalPath = TaskEnvironment.GetFullPathNoThrow(combinedPath);
                                 if (fullOriginalPath.StartsWith(containingRoot, StringComparison.OrdinalIgnoreCase))
                                 {
                                     nestedRoot = fullOriginalPath.Substring(containingRoot.Length);
