@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -227,8 +226,10 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             return null;
 
         var languageInfoProvider = _lspServices.GetRequiredService<ILanguageInfoProvider>();
-        if (!languageInfoProvider.TryGetLanguageInformation(documentUri, documentInfo?.LanguageId ?? string.Empty, out var languageInformation))
+        if (!languageInfoProvider.TryGetLanguageInformation(documentUri, documentInfo?.LanguageId, out var languageInformation))
         {
+            // Requests are invalid when the client specifies an unsupported language, or when it omits the language
+            // and we cannot infer one from the URI path.
             Contract.Fail($"Could not find language information for '{documentUri}'");
         }
 
@@ -237,18 +238,9 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         {
             Contract.ThrowIfFalse(documentUri.ParsedUri?.IsFile == true);
 
-            var sourceText = IOUtilities.PerformIO(() =>
-            {
-                using var fileStream = File.OpenRead(documentFilePath);
-                return SourceText.From(fileStream);
-            });
-
-            if (sourceText is null)
-                return null;
-
-            var projectInfo = CreateMiscellaneousProjectInfo(new SourceTextLoader(sourceText, documentFilePath), sourceText.ChecksumAlgorithm);
+            var projectInfo = CreateMiscellaneousProjectInfo(new FileTextLoader(documentFilePath, defaultEncoding: null), SourceHashAlgorithms.Default);
             var solution = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace.CurrentSolution.AddProject(projectInfo);
-            return LookupExistingDocument(solution.GetRequiredProject(projectInfo.Id));
+            return solution.GetTextDocuments(documentUri).Single();
         }
 
         var sourceTextLoader = new SourceTextLoader(documentInfo.Value.SourceText, documentFilePath);
@@ -263,10 +255,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             return MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
                 projectFactory.Workspace, documentFilePath, textLoader, languageInformation, checksumAlgorithm, projectFactory.Workspace.Services.SolutionServices, [], enableFileBasedPrograms);
         }
-
-        TextDocument? LookupExistingDocument(Project project)
-            => project.Documents.FirstOrDefault(document => document.FilePath == documentFilePath)
-                ?? project.AdditionalDocuments.FirstOrDefault(document => document.FilePath == documentFilePath);
     }
 
     /// <summary>
