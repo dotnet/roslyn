@@ -35,7 +35,12 @@ internal abstract class AbstractGoToDefinitionHandler : ILspServiceDocumentReque
 
     public abstract Task<LSP.Location[]?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken);
 
-    protected async Task<LSP.Location[]?> GetDefinitionAsync(LSP.TextDocumentPositionParams request, bool forSymbolType, RequestContext context, CancellationToken cancellationToken)
+    protected async Task<LSP.Location[]?> GetDefinitionAsync(
+        LSP.TextDocumentPositionParams request,
+        string method,
+        bool forSymbolType,
+        RequestContext context,
+        CancellationToken cancellationToken)
     {
         var workspace = context.Workspace;
         var document = context.Document;
@@ -44,7 +49,11 @@ internal abstract class AbstractGoToDefinitionHandler : ILspServiceDocumentReque
 
         var linePosition = ProtocolConversions.PositionToLinePosition(request.Position);
 
-        return await GetDefinitionsAsync(_globalOptions, _metadataAsSourceFileService, workspace, document, forSymbolType, linePosition, cancellationToken).ConfigureAwait(false);
+        var locations = await GetDefinitionsAsync(_globalOptions, _metadataAsSourceFileService, workspace, document, forSymbolType, linePosition, cancellationToken).ConfigureAwait(false);
+        if (locations is null or [])
+            await SymbolRequestTelemetryLogger.ReportEmptyResultAsync(method, document, linePosition, cancellationToken).ConfigureAwait(false);
+
+        return locations;
     }
 
     internal static async Task<LSP.Location[]?> GetDefinitionsAsync(IGlobalOptionService globalOptions, IMetadataAsSourceFileService? metadataAsSourceFileService, Workspace workspace, Document document, bool forSymbolType, LinePosition linePosition, CancellationToken cancellationToken)
