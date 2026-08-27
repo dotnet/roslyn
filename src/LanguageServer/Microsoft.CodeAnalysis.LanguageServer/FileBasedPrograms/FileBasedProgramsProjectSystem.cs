@@ -238,8 +238,9 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         {
             Contract.ThrowIfFalse(documentUri.ParsedUri?.IsFile == true);
 
-            var projectInfo = CreateMiscellaneousProjectInfo(new FileTextLoader(documentFilePath, defaultEncoding: null), SourceHashAlgorithms.Default);
-            var solution = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace.CurrentSolution.AddProject(projectInfo);
+            var projectFactory = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory;
+            var projectInfo = CreateMiscellaneousProjectInfo(projectFactory.CreateFileTextLoader(documentFilePath), SourceHashAlgorithms.Default);
+            var solution = projectFactory.Workspace.CurrentSolution.AddProject(projectInfo);
             return solution.GetTextDocuments(documentUri).Single();
         }
 
