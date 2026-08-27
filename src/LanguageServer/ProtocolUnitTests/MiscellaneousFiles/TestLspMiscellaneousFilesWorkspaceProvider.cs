@@ -4,7 +4,6 @@
 
 using System;
 using System.Composition;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Features.Workspaces;
@@ -12,8 +11,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.MiscellaneousFiles;
@@ -34,40 +31,17 @@ internal sealed class TestLspMiscellaneousFilesWorkspaceProviderFactory() : ILsp
     {
         public ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo? trackedDocumentInfo)
         {
-            var documentFilePath = documentUri.GetDocumentFilePathFromUri();
-            var sourceText = trackedDocumentInfo?.SourceText;
-            if (sourceText is null)
-            {
-                if (documentUri.ParsedUri?.IsFile != true)
-                    return new(result: null);
-
-                sourceText = IOUtilities.PerformIO(() =>
-                {
-                    using var fileStream = File.OpenRead(documentFilePath);
-                    return SourceText.From(fileStream);
-                });
-            }
-
-            if (sourceText is null)
+            if (trackedDocumentInfo is null)
                 return new(result: null);
 
-            var sourceTextLoader = new SourceTextLoader(sourceText, documentFilePath);
+            var documentFilePath = documentUri.GetDocumentFilePathFromUri();
+            var sourceTextLoader = new SourceTextLoader(trackedDocumentInfo.Value.SourceText, documentFilePath);
             var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
-                this, documentFilePath, sourceTextLoader, new LanguageInformation(LanguageNames.CSharp, "csx"), sourceText.ChecksumAlgorithm, Services.SolutionServices, [], false);
-
-            var solution = CurrentSolution;
-            if (trackedDocumentInfo is not null)
-            {
-                OnProjectAdded(projectInfo);
-                solution = CurrentSolution;
-            }
-            else
-            {
-                solution = solution.AddProject(projectInfo);
-            }
+                this, documentFilePath, sourceTextLoader, new LanguageInformation(LanguageNames.CSharp, "csx"), trackedDocumentInfo.Value.SourceText.ChecksumAlgorithm, Services.SolutionServices, [], false);
+            OnProjectAdded(projectInfo);
 
             var id = projectInfo.Documents.Single().Id;
-            return new(solution.GetRequiredDocument(id));
+            return new(CurrentSolution.GetRequiredDocument(id));
         }
 
         public async ValueTask CloseDocumentAsync(DocumentUri uri)
