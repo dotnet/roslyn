@@ -20,6 +20,7 @@ internal abstract class AbstractWorkspaceTelemetryService : IWorkspaceTelemetryS
     public TelemetrySession? CurrentSession { get; private set; }
 
     private VSMetricSink? _metricSink;
+    private IDisposable? _metricSinkRegistration;
     private ImmutableArray<IDisposable> _eventSinkRegistrations = [];
 
     protected abstract ImmutableArray<IEventSink> CreateEventSinks(TelemetrySession telemetrySession, bool logDelta);
@@ -30,7 +31,7 @@ internal abstract class AbstractWorkspaceTelemetryService : IWorkspaceTelemetryS
 
         _eventSinkRegistrations = CreateEventSinks(telemetrySession, logDelta).SelectAsArray(RoslynTelemetry.AddEventSink);
         _metricSink = new VSMetricSink(telemetrySession);
-        RoslynTelemetry.SetMetricSink(_metricSink);
+        _metricSinkRegistration = RoslynTelemetry.AddMetricSink(_metricSink);
         FaultReporter.RegisterTelemetrySesssion(telemetrySession);
 
         CurrentSession = telemetrySession;
@@ -68,6 +69,9 @@ internal abstract class AbstractWorkspaceTelemetryService : IWorkspaceTelemetryS
             registration.Dispose();
 
         _eventSinkRegistrations = [];
+
+        _metricSinkRegistration?.Dispose();
+        _metricSinkRegistration = null;
         _metricSink?.Dispose();
     }
 }

@@ -4,61 +4,71 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Collections.Immutable;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Internal.Log;
 
 internal static partial class RoslynTelemetry
 {
-    private static IMetricSink? s_currentMetricSink;
+    /// <summary>
+    /// The sinks every measurement fans out to. A sink is added once and stays until its registration
+    /// is disposed. There is one per host today; a host serving several sessions registers a sink that
+    /// routes between them.
+    /// </summary>
+    private static ImmutableArray<IMetricSink> s_metricSinks = [];
 
     /// <summary>
-    /// Replaces the active metric sink. Hosts call this once during startup; tests reset it to
-    /// <see langword="null"/> during teardown.
+    /// Registers <paramref name="sink"/> to receive measurements, ignoring it if it is already
+    /// registered. Dispose the result to unregister it; a host that keeps its sink for the life of the
+    /// process can simply never dispose.
     /// </summary>
-    public static IMetricSink? SetMetricSink(IMetricSink? sink)
-        => Interlocked.Exchange(ref s_currentMetricSink, sink);
+    public static IDisposable AddMetricSink(IMetricSink sink)
+    {
+        ImmutableInterlocked.Update(ref s_metricSinks, static (sinks, sink) => sinks.Contains(sink) ? sinks : sinks.Add(sink), sink);
+        return new MetricRegistration(sink);
+    }
+
+    private sealed class MetricRegistration(IMetricSink sink) : IDisposable
+    {
+        public void Dispose()
+            => ImmutableInterlocked.Update(ref s_metricSinks, static (sinks, sink) => sinks.Remove(sink), sink);
+    }
 
     /// <summary>
     /// Posts all pending aggregated measurements. Called on a timer, at shutdown, and when a logical
     /// session ends.
     /// </summary>
     public static void Flush()
-        => s_currentMetricSink?.Flush();
+    {
+        foreach (var sink in s_metricSinks)
+            sink.Flush();
+    }
 
     #region Counters
 
     public static void Count(FunctionId functionId, string metricName, long delta = 1)
     {
-        if (s_currentMetricSink is { } sink)
-            sink.Count(TelemetryNaming.GetEventName(functionId), metricName, delta, default);
+        CountCore(functionId, metricName, delta, default);
     }
 
     public static void Count(FunctionId functionId, string metricName, long delta, KeyValuePair<string, object?> tag)
     {
-        if (s_currentMetricSink is { } sink)
-        {
-            Span<KeyValuePair<string, object?>> tags = [tag];
-            sink.Count(TelemetryNaming.GetEventName(functionId), metricName, delta, tags);
-        }
+        Span<KeyValuePair<string, object?>> tags = [tag];
+        CountCore(functionId, metricName, delta, tags);
     }
 
     public static void Count(FunctionId functionId, string metricName, long delta, KeyValuePair<string, object?> tag1, KeyValuePair<string, object?> tag2)
     {
-        if (s_currentMetricSink is { } sink)
-        {
-            Span<KeyValuePair<string, object?>> tags = [tag1, tag2];
-            sink.Count(TelemetryNaming.GetEventName(functionId), metricName, delta, tags);
-        }
+        Span<KeyValuePair<string, object?>> tags = [tag1, tag2];
+        CountCore(functionId, metricName, delta, tags);
     }
 
     public static void Count(FunctionId functionId, string metricName, long delta, KeyValuePair<string, object?> tag1, KeyValuePair<string, object?> tag2, KeyValuePair<string, object?> tag3)
     {
-        if (s_currentMetricSink is { } sink)
-        {
-            Span<KeyValuePair<string, object?>> tags = [tag1, tag2, tag3];
-            sink.Count(TelemetryNaming.GetEventName(functionId), metricName, delta, tags);
-        }
+        Span<KeyValuePair<string, object?>> tags = [tag1, tag2, tag3];
+        CountCore(functionId, metricName, delta, tags);
     }
 
     /// <summary>
@@ -67,8 +77,13 @@ internal static partial class RoslynTelemetry
     /// </summary>
     private static void CountCore(FunctionId functionId, string metricName, long delta, ReadOnlySpan<KeyValuePair<string, object?>> tags)
     {
-        if (s_currentMetricSink is { } sink)
-            sink.Count(TelemetryNaming.GetEventName(functionId), metricName, delta, tags);
+        var sinks = s_metricSinks;
+        if (sinks.IsEmpty)
+            return;
+
+        var eventName = TelemetryNaming.GetEventName(functionId);
+        foreach (var sink in sinks)
+            sink.Count(eventName, metricName, delta, tags);
     }
 
     #endregion
@@ -77,41 +92,36 @@ internal static partial class RoslynTelemetry
 
     public static void Record(FunctionId functionId, string metricName, long value)
     {
-        if (s_currentMetricSink is { } sink)
-            sink.Record(TelemetryNaming.GetEventName(functionId), metricName, value, default);
+        RecordCore(functionId, metricName, value, default);
     }
 
     public static void Record(FunctionId functionId, string metricName, long value, KeyValuePair<string, object?> tag)
     {
-        if (s_currentMetricSink is { } sink)
-        {
-            Span<KeyValuePair<string, object?>> tags = [tag];
-            sink.Record(TelemetryNaming.GetEventName(functionId), metricName, value, tags);
-        }
+        Span<KeyValuePair<string, object?>> tags = [tag];
+        RecordCore(functionId, metricName, value, tags);
     }
 
     public static void Record(FunctionId functionId, string metricName, long value, KeyValuePair<string, object?> tag1, KeyValuePair<string, object?> tag2)
     {
-        if (s_currentMetricSink is { } sink)
-        {
-            Span<KeyValuePair<string, object?>> tags = [tag1, tag2];
-            sink.Record(TelemetryNaming.GetEventName(functionId), metricName, value, tags);
-        }
+        Span<KeyValuePair<string, object?>> tags = [tag1, tag2];
+        RecordCore(functionId, metricName, value, tags);
     }
 
     public static void Record(FunctionId functionId, string metricName, long value, KeyValuePair<string, object?> tag1, KeyValuePair<string, object?> tag2, KeyValuePair<string, object?> tag3)
     {
-        if (s_currentMetricSink is { } sink)
-        {
-            Span<KeyValuePair<string, object?>> tags = [tag1, tag2, tag3];
-            sink.Record(TelemetryNaming.GetEventName(functionId), metricName, value, tags);
-        }
+        Span<KeyValuePair<string, object?>> tags = [tag1, tag2, tag3];
+        RecordCore(functionId, metricName, value, tags);
     }
 
     private static void RecordCore(FunctionId functionId, string metricName, long value, ReadOnlySpan<KeyValuePair<string, object?>> tags)
     {
-        if (s_currentMetricSink is { } sink)
-            sink.Record(TelemetryNaming.GetEventName(functionId), metricName, value, tags);
+        var sinks = s_metricSinks;
+        if (sinks.IsEmpty)
+            return;
+
+        var eventName = TelemetryNaming.GetEventName(functionId);
+        foreach (var sink in sinks)
+            sink.Record(eventName, metricName, value, tags);
     }
 
     #endregion
@@ -122,11 +132,11 @@ internal static partial class RoslynTelemetry
     /// is configured, so callers can <c>using</c> the result unconditionally.
     /// </summary>
     public static IDisposable? RecordBlockTime(FunctionId functionId, string metricName, int minThresholdMs = -1)
-        => s_currentMetricSink is null ? null : new TimedBlock(functionId, metricName, minThresholdMs, default);
+        => s_metricSinks.IsEmpty ? null : new TimedBlock(functionId, metricName, minThresholdMs, default);
 
     /// <inheritdoc cref="RecordBlockTime(FunctionId, string, int)"/>
     public static IDisposable? RecordBlockTime(FunctionId functionId, string metricName, int minThresholdMs, params KeyValuePair<string, object?>[] tags)
-        => s_currentMetricSink is null ? null : new TimedBlock(functionId, metricName, minThresholdMs, tags);
+        => s_metricSinks.IsEmpty ? null : new TimedBlock(functionId, metricName, minThresholdMs, tags);
 
     private sealed class TimedBlock : IDisposable
     {

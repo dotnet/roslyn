@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 /// the event and metric sinks, and tears everything down on shutdown. The counterpart to
 /// <c>AbstractWorkspaceTelemetryService</c> in the VS and ServiceHub hosts.
 /// </summary>[Export, Shared]
-internal sealed class LanguageServerTelemetryService : IDisposable
+internal sealed class LanguageServerTelemetryHost : IDisposable
 {
     internal const string CopilotTelemetryLevelEnvironmentVariable = "COPILOT_TELEMETRY_LEVEL";
 
@@ -39,14 +39,15 @@ internal sealed class LanguageServerTelemetryService : IDisposable
     private readonly ILogger _logger;
     private TelemetrySession? _telemetrySession;
     private VSMetricSink? _metricSink;
+    private IDisposable? _metricSinkRegistration;
     private IDisposable? _eventSinkRegistration;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public LanguageServerTelemetryService(ServerConfiguration serverConfiguration, ILoggerFactory loggerFactory)
+    public LanguageServerTelemetryHost(ServerConfiguration serverConfiguration, ILoggerFactory loggerFactory)
     {
         _serverConfiguration = serverConfiguration;
-        _logger = loggerFactory.CreateLogger<LanguageServerTelemetryService>();
+        _logger = loggerFactory.CreateLogger<LanguageServerTelemetryHost>();
     }
 
     public void InitializeSession(string telemetryLevel, string? sessionId, bool isDefaultSession)
@@ -87,7 +88,7 @@ internal sealed class LanguageServerTelemetryService : IDisposable
 
         _eventSinkRegistration = RoslynTelemetry.AddEventSink(TelemetryLogger.Create(session, logDelta: false));
         _metricSink = new VSMetricSink(session);
-        RoslynTelemetry.SetMetricSink(_metricSink);
+        _metricSinkRegistration = RoslynTelemetry.AddMetricSink(_metricSink);
 
         FaultReporter.InitializeFatalErrorHandlers();
         FaultReporter.IncludeServiceHubLogFiles = false;
@@ -120,7 +121,8 @@ internal sealed class LanguageServerTelemetryService : IDisposable
         {
             _eventSinkRegistration?.Dispose();
             _eventSinkRegistration = null;
-            RoslynTelemetry.SetMetricSink(null);
+            _metricSinkRegistration?.Dispose();
+            _metricSinkRegistration = null;
             _metricSink?.Dispose();
             _metricSink = null;
 

@@ -83,9 +83,13 @@ internal static partial class RoslynTelemetry
         /// <summary>
         /// Unregisters every sink, so that one test cannot leak a sink into the next.
         /// </summary>
-        public void RemoveAllEventSinks()
-            => ImmutableInterlocked.InterlockedExchange(ref s_eventSinks, []);
+        public void RemoveAllSinks()
+        {
+            ImmutableInterlocked.InterlockedExchange(ref s_eventSinks, []);
+            ImmutableInterlocked.InterlockedExchange(ref s_metricSinks, []);
+        }
     }
+
     /// <summary>
     /// log a specific event with a simple context message which should be very cheap to create
     /// </summary>
