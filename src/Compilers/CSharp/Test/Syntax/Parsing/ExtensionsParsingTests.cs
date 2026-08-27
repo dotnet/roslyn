@@ -2092,9 +2092,9 @@ static class C
 
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,13): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
             //     partial extension(Type) { }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "extension").WithLocation(3, 13),
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
             // (3,23): error CS0246: The type or namespace name 'Type' could not be found (are you missing a using directive or an assembly reference?)
             //     partial extension(Type) { }
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type").WithArguments("Type").WithLocation(3, 23)
