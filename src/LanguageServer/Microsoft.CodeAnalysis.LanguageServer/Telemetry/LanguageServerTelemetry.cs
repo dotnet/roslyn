@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 /// Owns the standalone language server host's telemetry session: creates and configures it, registers
 /// the event and metric sinks, and tears everything down on shutdown. The counterpart to
 /// <c>AbstractWorkspaceTelemetryService</c> in the VS and ServiceHub hosts.
-/// </summary>[Export, Shared]
+/// </summary>
+[Export, Shared]
 internal sealed class LanguageServerTelemetry : IDisposable
 {
     internal const string CopilotTelemetryLevelEnvironmentVariable = "COPILOT_TELEMETRY_LEVEL";
