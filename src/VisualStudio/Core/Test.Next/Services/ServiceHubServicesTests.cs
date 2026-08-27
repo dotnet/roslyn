@@ -1949,13 +1949,12 @@ public sealed partial class ServiceHubServicesTests
         Assert.Equal("CSharp.ConflictMarkerResolution.CSharpResolveConflictMarkerCodeFixProvider", result.CodeFixAnalysis.DiagnosticIdToProviderName["CS8300"].Single());
 
         var logger = new TestTelemetryLogger();
-        RoslynTelemetry.GetTestAccessor().SetAllEventSinks([logger]);
+        using var _ = RoslynTelemetry.AddEventSink(logger);
         TestTelemetryLogger.TestScope scope;
         using (CopilotChangeAnalysisUtilities.LogCopilotChangeAnalysis("TestCode", accepted: true, "TestProposalId", result, CancellationToken.None))
         {
             scope = logger.OpenedScopes.Single();
         }
-        RoslynTelemetry.GetTestAccessor().SetAllEventSinks([]);
 
         var endEvent = scope.EndEvent;
         Assert.Equal("vs/ide/vbcs/copilot/analyzechange", endEvent.Name);

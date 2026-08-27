@@ -36,7 +36,7 @@ public sealed class PerfMarginPanel : UserControl
         // This panel lives in a separately shipped VSIX, so the composition root cannot reference this
         // sink. Attach it once; it is never detached.
         if (Interlocked.CompareExchange(ref s_registered, 1, 0) == 0)
-            RoslynTelemetry.AddEventSink(s_logger);
+            _ = RoslynTelemetry.AddEventSink(s_logger);
 
         // grid
         _mainGrid = new Grid();

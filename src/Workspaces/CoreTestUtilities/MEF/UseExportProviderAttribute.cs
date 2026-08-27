@@ -101,7 +101,7 @@ public class UseExportProviderAttribute : BeforeAfterTestAttribute
             // Reset static state variables.
             _hostServices = null;
             ExportProviderCache.SetEnabled_OnlyUseExportProviderAttributeCanCall(false);
-            RoslynTelemetry.GetTestAccessor().SetAllEventSinks([]);
+            RoslynTelemetry.GetTestAccessor().RemoveAllEventSinks();
         }
     }
 

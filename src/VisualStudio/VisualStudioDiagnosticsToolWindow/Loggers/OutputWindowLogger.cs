@@ -38,7 +38,7 @@ internal sealed class OutputWindowLogger : IEventSink
     public static void EnsureRegistered()
     {
         if (Interlocked.CompareExchange(ref s_registered, 1, 0) == 0)
-            RoslynTelemetry.AddEventSink(Instance);
+            _ = RoslynTelemetry.AddEventSink(Instance);
     }
 
     /// <inheritdoc cref="EtwLogger.UpdatePredicate"/>

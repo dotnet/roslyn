@@ -39,6 +39,7 @@ internal sealed class LanguageServerTelemetryService : IDisposable
     private readonly ILogger _logger;
     private TelemetrySession? _telemetrySession;
     private VSMetricSink? _metricSink;
+    private IDisposable? _eventSinkRegistration;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -84,7 +85,7 @@ internal sealed class LanguageServerTelemetryService : IDisposable
 
         _telemetrySession = session;
 
-        RoslynTelemetry.SetEventSinks([TelemetryLogger.Create(session, logDelta: false)]);
+        _eventSinkRegistration = RoslynTelemetry.AddEventSink(TelemetryLogger.Create(session, logDelta: false));
         _metricSink = new VSMetricSink(session);
         RoslynTelemetry.SetMetricSink(_metricSink);
 
@@ -117,7 +118,8 @@ internal sealed class LanguageServerTelemetryService : IDisposable
 
         if (_telemetrySession is { } session)
         {
-            RoslynTelemetry.SetEventSinks([]);
+            _eventSinkRegistration?.Dispose();
+            _eventSinkRegistration = null;
             RoslynTelemetry.SetMetricSink(null);
             _metricSink?.Dispose();
             _metricSink = null;
