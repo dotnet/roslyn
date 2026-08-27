@@ -505,10 +505,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool reportMisplacedRefModifier()
             {
                 var refIndex = modifiers.IndexOf(SyntaxKind.RefKeyword);
-                if (refIndex >= 0 && modifiers[refIndex].Parent is StructDeclarationSyntax)
+                if (refIndex >= 0 && modifiers[refIndex] is var refToken && refToken.Parent is StructDeclarationSyntax)
                 {
-                    var refToken = modifiers[refIndex];
-
                     // `ref` normally must be last. It may precede `partial` because `partial` itself must be last, as in
                     // `ref partial struct`.
                     var isLegalLocation =
