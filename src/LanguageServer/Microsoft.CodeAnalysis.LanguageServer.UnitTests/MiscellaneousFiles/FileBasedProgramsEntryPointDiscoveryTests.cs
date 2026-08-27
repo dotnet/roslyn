@@ -311,9 +311,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
         await discovery.FindAndLoadEntryPointsAsync();
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
-        var (workspace, document) = await GetLspWorkspaceAndDocumentAsync(CreateAbsoluteDocumentUri(appFile.Path), testLspServer);
-        Assert.Null(workspace);
-        Assert.Null(document);
+        AssertDocumentNotPersisted(testLspServer, CreateAbsoluteDocumentUri(appFile.Path));
     }
 
     [Fact]
@@ -335,9 +333,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
         await discovery.FindAndLoadEntryPointsAsync();
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
-        var (workspace, document) = await GetLspWorkspaceAndDocumentAsync(CreateAbsoluteDocumentUri(appFile.Path), testLspServer);
-        Assert.Null(workspace);
-        Assert.Null(document);
+        AssertDocumentNotPersisted(testLspServer, CreateAbsoluteDocumentUri(appFile.Path));
     }
 
     [Fact]
@@ -376,6 +372,13 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         });
         DeferDeleteCacheDirectory(testLspServer, workspacePath);
         return testLspServer;
+    }
+
+    private static void AssertDocumentNotPersisted(TestLspServer testLspServer, DocumentUri documentUri)
+    {
+        var workspaceFactory = testLspServer.GetRequiredLspService<LanguageServerWorkspaceFactory>();
+        Assert.Empty(workspaceFactory.HostWorkspace.CurrentSolution.GetDocumentIds(documentUri));
+        Assert.Empty(workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace.CurrentSolution.GetDocumentIds(documentUri));
     }
 
     private static async Task<(Workspace? workspace, Document? document)> GetLspWorkspaceAndDocumentAsync(DocumentUri uri, TestLspServer testLspServer)
