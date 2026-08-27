@@ -5,7 +5,7 @@
   <!-- Roslyn version -->
   <PropertyGroup>
     <MajorVersion>5</MajorVersion>
-    <MinorVersion>11</MinorVersion>
+    <MinorVersion>12</MinorVersion>
     <PatchVersion>0</PatchVersion>
     <PreReleaseVersionLabel>1</PreReleaseVersionLabel>
     <PreReleaseVersionLabel Condition="'$(DotNetSignType)' == 'test'">$(PreReleaseVersionLabel)-test</PreReleaseVersionLabel>
@@ -30,8 +30,8 @@
 
   <!-- Razor tooling version -->
   <PropertyGroup>
-    <RazorVsixVersionPrefix>18.11.1</RazorVsixVersionPrefix>
-    <RazorAddinMajorVersion>18.11</RazorAddinMajorVersion>
+    <RazorVsixVersionPrefix>18.12.1</RazorVsixVersionPrefix>
+    <RazorAddinMajorVersion>18.12</RazorAddinMajorVersion>
     <RazorAddinVersion>$(RazorAddinMajorVersion)</RazorAddinVersion>
     <RazorAddinVersion Condition="'$(OfficialBuildId)' != ''">$(RazorAddinVersion).$(OfficialBuildId)</RazorAddinVersion>
     <RazorAddinVersion Condition="'$(OfficialBuildId)' == ''">$(RazorAddinVersion).42424242.42</RazorAddinVersion>

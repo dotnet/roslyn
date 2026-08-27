@@ -224,7 +224,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadAwaitInFixed">
         <source>Cannot await in context of a 'fixed' statement</source>
-        <target state="new">Cannot await in context of a 'fixed' statement</target>
+        <target state="translated">Non è possibile usare await nel contesto di un'istruzione 'fixed'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
@@ -728,8 +728,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
-        <source>A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.</source>
-        <target state="translated">Una variabile non può essere dichiarata all'interno di un criterio 'not' o 'or' né in una corrispondenza di unione che prevede il confronto con l'istanza o con il relativo valore sottostante.</target>
+        <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
+        <target state="translated">Non è possibile dichiarare una variabile all'interno di un criterio 'not' o 'or'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
@@ -1039,7 +1039,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion15">
         <source>Feature '{0}' is not available in C# 15.0. Please use language version {1} or greater.</source>
-        <target state="new">Feature '{0}' is not available in C# 15.0. Please use language version {1} or greater.</target>
+        <target state="translated">La funzionalità '{0}' non è disponibile in C# 15.0. Usare la versione del linguaggio {1} o versione successiva.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">

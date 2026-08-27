@@ -1,0 +1,5 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Settings name="Main">
+  <Setting name="FirstRun" type="bool">false</Setting>
+  <Setting name="CacheSize" type="int">1234</Setting>
+</Settings>

@@ -19,8 +19,6 @@
                     ComponentAttribute - (26:0,26 [8] x:\dir\subdir\Test\TestComponent.cshtml) - ValueExpression - ValueExpression - AttributeStructure.DoubleQuotes
                         CSharpExpression - 
                             IntermediateToken -  - CSharp - () => Selected
-            CSharpCode - (49:2,7 [64] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (49:2,7 [64] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    string[] Selected { get; set; } = Array.Empty<string>();\n
     NamespaceDeclaration -  - __Blazor.Test.TestComponent
         ClassDeclaration -  - internal static - TypeInference -  - 
             ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateMyComponent_0

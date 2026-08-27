@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(CodeLensHandler)), Shared]
 [Method(LSP.Methods.TextDocumentCodeLensName)]
-internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.CodeLensParams, LSP.CodeLens[]?>
+internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.CodeLensParams, LSP.CodeLens[]>
 {
     public const string RunTestsCommandIdentifier = "dotnet.test.run";
 
@@ -42,10 +42,10 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
     public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.CodeLensParams request)
         => request.TextDocument;
 
-    public async Task<LSP.CodeLens[]?> HandleRequestAsync(LSP.CodeLensParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<LSP.CodeLens[]> HandleRequestAsync(LSP.CodeLensParams request, RequestContext context, CancellationToken cancellationToken)
         => await GetCodeLensAsync(request.TextDocument, await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false), _globalOptionService, cancellationToken).ConfigureAwait(false);
 
-    internal static async Task<LSP.CodeLens[]?> GetCodeLensAsync(LSP.TextDocumentIdentifier textDocumentIdentifier, Document document, IGlobalOptionService globalOptionService, CancellationToken cancellationToken)
+    internal static async Task<LSP.CodeLens[]> GetCodeLensAsync(LSP.TextDocumentIdentifier textDocumentIdentifier, Document document, IGlobalOptionService globalOptionService, CancellationToken cancellationToken)
     {
         var referencesCodeLensEnabled = globalOptionService.GetOption(LspOptionsStorage.LspEnableReferencesCodeLens, document.Project.Language);
         var testsCodeLensEnabled = globalOptionService.GetOption(LspOptionsStorage.LspEnableTestsCodeLens, document.Project.Language);
@@ -200,4 +200,3 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
         }
     }
 }
-
