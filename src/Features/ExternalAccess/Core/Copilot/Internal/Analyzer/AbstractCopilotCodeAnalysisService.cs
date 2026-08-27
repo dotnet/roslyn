@@ -31,26 +31,43 @@ internal abstract class AbstractCopilotCodeAnalysisService : ICopilotCodeAnalysi
     public Task<bool> IsOnTheFlyDocsAvailableAsync(CancellationToken cancellationToken)
         => IsOnTheFlyDocsAvailableCoreAsync(cancellationToken);
 
-    public Task<bool> IsFileExcludedFromOnTheFlyDocsAsync(string filePath, CancellationToken cancellationToken)
-        => IsFileExcludedFromOnTheFlyDocsCoreAsync(filePath, cancellationToken);
+    public async Task<bool> IsFileExcludedFromOnTheFlyDocsAsync(string filePath, CancellationToken cancellationToken)
+    {
+        if (!await IsOnTheFlyDocsAvailableAsync(cancellationToken).ConfigureAwait(false))
+            return false;
+
+        return await IsFileExcludedFromOnTheFlyDocsCoreAsync(filePath, cancellationToken).ConfigureAwait(false);
+    }
 
     public async Task<string> GetOnTheFlyDocsPromptAsync(OnTheFlyDocsInfo onTheFlyDocsInfo, CancellationToken cancellationToken)
     {
         return await GetOnTheFlyDocsPromptCoreAsync(onTheFlyDocsInfo, cancellationToken).ConfigureAwait(false);
     }
+
     public async Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsResponseAsync(string prompt, CancellationToken cancellationToken)
     {
+        if (!await IsOnTheFlyDocsAvailableAsync(cancellationToken).ConfigureAwait(false))
+            return (string.Empty, false);
+
         return await GetOnTheFlyDocsResponseCoreAsync(prompt, cancellationToken).ConfigureAwait(false);
     }
 
     public Task<bool> IsGenerateDocumentationCommentAvailableAsync(CancellationToken cancellationToken)
         => IsGenerateDocumentationCommentAvailableCoreAsync(cancellationToken);
 
-    public Task<bool> IsFileExcludedFromDocumentationCommentGenerationAsync(string filePath, CancellationToken cancellationToken)
-        => IsFileExcludedFromDocumentationCommentGenerationCoreAsync(filePath, cancellationToken);
+    public async Task<bool> IsFileExcludedFromDocumentationCommentGenerationAsync(string filePath, CancellationToken cancellationToken)
+    {
+        if (!await IsGenerateDocumentationCommentAvailableAsync(cancellationToken).ConfigureAwait(false))
+            return false;
+
+        return await IsFileExcludedFromDocumentationCommentGenerationCoreAsync(filePath, cancellationToken).ConfigureAwait(false);
+    }
 
     public async Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken)
     {
+        if (!await IsGenerateDocumentationCommentAvailableAsync(cancellationToken).ConfigureAwait(false))
+            return (null, false);
+
         return await GetDocumentationCommentCoreAsync(proposal, cancellationToken).ConfigureAwait(false);
     }
 
