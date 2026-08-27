@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -39,19 +40,21 @@ internal sealed class VisualStudioWorkspaceTelemetryService(
     private EtwLogger? _etwLogger;
     private TraceLogger? _traceLogger;
 
-    protected override IEventSink CreateLogger(TelemetrySession telemetrySession, bool logDelta)
+    protected override ImmutableArray<IEventSink> CreateEventSinks(TelemetrySession telemetrySession, bool logDelta)
     {
         _etwLogger = new EtwLogger(FunctionIdOptions.CreateFunctionIsEnabledPredicate(_globalOptions));
         _traceLogger = new TraceLogger(EtwLogger.DisabledPredicate);
 
-        return AggregateEventSink.Create(
+        return
+        [
+            .. RoslynTelemetry.GetEventSinks(),
             CodeMarkerLogger.Instance,
             _etwLogger,
             _traceLogger,
             RoslynActivityLogger.Sink,
             TelemetryLogger.Create(telemetrySession, logDelta),
             new FileLogger(_globalOptions, _threadingContext),
-            RoslynTelemetry.GetEventSink());
+        ];
     }
 
     /// <summary>

@@ -83,7 +83,7 @@ internal sealed class LanguageServerTelemetryService : IDisposable
 
         _telemetrySession = session;
 
-        RoslynTelemetry.SetEventSink(AggregateEventSink.Create(RoslynTelemetry.GetEventSink(), TelemetryLogger.Create(session, logDelta: false)));
+        RoslynTelemetry.SetEventSinks([.. RoslynTelemetry.GetEventSinks(), TelemetryLogger.Create(session, logDelta: false)]);
 
         FaultReporter.InitializeFatalErrorHandlers();
         FaultReporter.IncludeServiceHubLogFiles = false;
@@ -114,7 +114,7 @@ internal sealed class LanguageServerTelemetryService : IDisposable
 
         if (_telemetrySession is { } session)
         {
-            RoslynTelemetry.SetEventSink(null);
+            RoslynTelemetry.SetEventSinks([]);
 
             FaultReporter.UnregisterTelemetrySesssion(session);
             session.Dispose();

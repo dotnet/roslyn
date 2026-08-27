@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
@@ -18,13 +19,13 @@ internal abstract class AbstractWorkspaceTelemetryService : IWorkspaceTelemetryS
 {
     public TelemetrySession? CurrentSession { get; private set; }
 
-    protected abstract IEventSink CreateLogger(TelemetrySession telemetrySession, bool logDelta);
+    protected abstract ImmutableArray<IEventSink> CreateEventSinks(TelemetrySession telemetrySession, bool logDelta);
 
     public void InitializeTelemetrySession(TelemetrySession telemetrySession, bool logDelta)
     {
         Contract.ThrowIfFalse(CurrentSession is null);
 
-        RoslynTelemetry.SetEventSink(CreateLogger(telemetrySession, logDelta));
+        RoslynTelemetry.SetEventSinks(CreateEventSinks(telemetrySession, logDelta));
         VSMetricSink.Create(telemetrySession);
         FaultReporter.RegisterTelemetrySesssion(telemetrySession);
 

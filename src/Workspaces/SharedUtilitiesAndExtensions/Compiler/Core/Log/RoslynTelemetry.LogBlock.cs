@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -16,12 +17,10 @@ internal static partial class RoslynTelemetry
     // Use an object pool since we may be logging up to 1-10k events/second
     private static readonly ObjectPool<RoslynLogBlock> s_pool = new(() => new RoslynLogBlock(s_pool!), Math.Min(Environment.ProcessorCount * 8, 256));
 
-    public static IDisposable CreateLogBlock(IEventSink sink, FunctionId functionId, LogMessage message, int blockId, CancellationToken cancellationToken)
+    public static IDisposable CreateLogBlock(ImmutableArray<IEventSink> sinks, FunctionId functionId, LogMessage message, int blockId, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(sink);
-
         var block = s_pool.Allocate();
-        block.Construct(sink, functionId, message, blockId, cancellationToken);
+        block.Construct(sinks, functionId, message, blockId, cancellationToken);
         return block;
     }
 
@@ -33,7 +32,7 @@ internal static partial class RoslynTelemetry
     {
 
         // these need to be cleared before putting back to pool
-        private IEventSink? _sink;
+        private ImmutableArray<IEventSink> _sinks;
         private LogMessage? _logMessage;
         private CancellationToken _cancellationToken;
 
@@ -41,21 +40,25 @@ internal static partial class RoslynTelemetry
         private int _tick;
         private int _blockId;
 
-        public void Construct(IEventSink sink, FunctionId functionId, LogMessage logMessage, int blockId, CancellationToken cancellationToken)
+        public void Construct(ImmutableArray<IEventSink> sinks, FunctionId functionId, LogMessage logMessage, int blockId, CancellationToken cancellationToken)
         {
-            _sink = sink;
+            _sinks = sinks;
             _functionId = functionId;
             _logMessage = logMessage;
             _tick = Environment.TickCount;
             _blockId = blockId;
             _cancellationToken = cancellationToken;
 
-            sink.LogBlockStart(functionId, logMessage, blockId, cancellationToken);
+            foreach (var sink in sinks)
+            {
+                if (sink.IsEnabled(functionId))
+                    sink.LogBlockStart(functionId, logMessage, blockId, cancellationToken);
+            }
         }
 
         public void Dispose()
         {
-            if (_sink == null)
+            if (_sinks.IsDefaultOrEmpty)
             {
                 return;
             }
@@ -65,12 +68,18 @@ internal static partial class RoslynTelemetry
             // This delta is valid for durations of < 25 days
             var delta = Environment.TickCount - _tick;
 
-            _sink.LogBlockEnd(_functionId, _logMessage, _blockId, delta, _cancellationToken);
+            // Ends on exactly the sinks the block started on: _sinks is the snapshot taken then, so a
+            // sink added or enabled in between cannot see an unpaired end.
+            foreach (var sink in _sinks)
+            {
+                if (sink.IsEnabled(_functionId))
+                    sink.LogBlockEnd(_functionId, _logMessage, _blockId, delta, _cancellationToken);
+            }
 
             // Free this block back to the pool
             _logMessage.Free();
             _logMessage = null;
-            _sink = null;
+            _sinks = default;
             _cancellationToken = default;
 
             pool.Free(this);

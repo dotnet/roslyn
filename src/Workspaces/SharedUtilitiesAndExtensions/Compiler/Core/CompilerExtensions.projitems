@@ -332,7 +332,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\RemoveUnnecessaryImports\AbstractUnnecessaryImportsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\EmptyLogBlock.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\FunctionId.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Log\AggregateEventSink.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\IEventSink.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\IMetricSink.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\Logger.cs" />
