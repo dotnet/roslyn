@@ -38,19 +38,6 @@ Increment
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (3,8)-(9,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    private int counter;
-    private Task Increment() {
-        counter++;
-        return Task.CompletedTask;
-    }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

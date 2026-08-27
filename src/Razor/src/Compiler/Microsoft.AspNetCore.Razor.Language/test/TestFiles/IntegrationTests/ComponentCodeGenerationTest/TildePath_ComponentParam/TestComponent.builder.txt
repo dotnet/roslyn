@@ -1,0 +1,2 @@
+﻿[0000] OpenComponent<global::Test.Image>()
+[0001] AddComponentParameter(nameof(global::Test.Image. Source ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.String>(Assets[@"images/logo.png"]))

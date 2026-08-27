@@ -44,19 +44,6 @@ Increment
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (4,8)-(10,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    private int counter;
-    private Task Increment(MouseEventArgs e) {
-        counter++;
-        return Task.CompletedTask;
-    }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

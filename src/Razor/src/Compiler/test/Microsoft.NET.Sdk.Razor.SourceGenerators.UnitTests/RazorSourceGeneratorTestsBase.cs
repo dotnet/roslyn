@@ -444,6 +444,7 @@ internal static class Extensions
 
     public static GeneratorRunResult VerifyPageOutput(this GeneratorRunResult result, params string[] expectedOutput)
     {
+        Assert.Null(result.Exception);
         if (expectedOutput.Length == 1 && string.IsNullOrWhiteSpace(expectedOutput[0]))
         {
             Assert.Fail(GenerateExpectedPageOutput(result));
@@ -451,15 +452,86 @@ internal static class Extensions
         else
         {
             Assert.Equal(expectedOutput.Length, result.GeneratedSources.Length);
-            for (int i = 0; i < result.GeneratedSources.Length; i++)
+
+            // Match expected/actual as a set, not by position. Decl sources are emitted via
+            // RegisterPreCompilationSourceOutput and impl sources via RegisterImplementationSourceOutput;
+            // that puts all decls together before all impls in result.GeneratedSources, which doesn't match
+            // the older test convention of interleaved decl/impl pairs.
+            var remainingActual = new List<GeneratedSourceResult>(result.GeneratedSources);
+            for (int i = 0; i < expectedOutput.Length; i++)
             {
-                var text = TrimChecksum(result.GeneratedSources[i].SourceText.ToString());
-                AssertEx.AssertEqualToleratingWhitespaceDifferences(TrimChecksum(expectedOutput[i]), text);
+                var expected = TrimChecksum(expectedOutput[i]);
+                var matchIndex = -1;
+                for (int j = 0; j < remainingActual.Count; j++)
+                {
+                    var actual = TrimChecksum(remainingActual[j].SourceText.ToString());
+                    if (string.Equals(
+                            CollapseWhitespace(expected),
+                            CollapseWhitespace(actual),
+                            StringComparison.Ordinal))
+                    {
+                        matchIndex = j;
+                        break;
+                    }
+                }
+
+                if (matchIndex < 0)
+                {
+                    // No match for this expected entry -- fall back to positional comparison so we get a
+                    // useful diff error message.
+                    var text = TrimChecksum(result.GeneratedSources[i].SourceText.ToString());
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, text);
+                    return result;
+                }
+
+                remainingActual.RemoveAt(matchIndex);
             }
         }
 
         return result;
     }
+
+    private static string CollapseWhitespace(string value)
+    {
+        // Mirror AssertEqualToleratingWhitespaceDifferences semantics: collapse all whitespace runs to a
+        // single space so test expected strings don't have to match exact whitespace.
+        var builder = new StringBuilder(value.Length);
+        bool lastWasWhitespace = false;
+        foreach (var ch in value)
+        {
+            if (char.IsWhiteSpace(ch))
+            {
+                if (!lastWasWhitespace)
+                {
+                    builder.Append(' ');
+                    lastWasWhitespace = true;
+                }
+            }
+            else
+            {
+                builder.Append(ch);
+                lastWasWhitespace = false;
+            }
+        }
+
+        return builder.ToString();
+    }
+
+    /// <summary>
+    /// For component documents, the source generator now emits two files per <c>.razor</c>:
+    /// the impl (e.g. <c>Foo_razor.g.cs</c>) and the decl (e.g. <c>Foo_razor.g.cs.decl.g.cs</c>).
+    /// Returns just the impl results so existing tests can keep asserting on the primary
+    /// output without caring about the decl half.
+    /// </summary>
+    public static IEnumerable<GeneratedSourceResult> ImplGeneratedSources(this GeneratorRunResult result)
+        => result.GeneratedSources.Where(s => !s.HintName.EndsWith(".decl.g.cs", StringComparison.Ordinal));
+
+    /// <summary>
+    /// Returns just the decl results -- one per splittable component document, none for
+    /// non-components or documents whose primary method body is being suppressed.
+    /// </summary>
+    public static IEnumerable<GeneratedSourceResult> DeclGeneratedSources(this GeneratorRunResult result)
+        => result.GeneratedSources.Where(s => s.HintName.EndsWith(".decl.g.cs", StringComparison.Ordinal));
 
     private static string CreateBaselineDirectory(string testPath, string testName, string suffix)
     {
@@ -570,7 +642,15 @@ internal static class Extensions
         var trimmed = text.Trim('\r', '\n')                                // start and end
             .Replace("\r\n", "\r").Replace('\n', '\r').Replace('\r', '\n') // regular new-lines
             .Replace("\\r\\n", "\\n");                                     // embedded new-lines
-        Assert.StartsWith("#pragma", trimmed);
+
+        // Decl outputs intentionally omit the #pragma checksum so the decl SourceText is byte-stable
+        // across markup-only edits (see DefaultRazorMarkupSplitPhase). The impl half still emits the
+        // checksum, so trim it only when present.
+        if (!trimmed.StartsWith("#pragma", StringComparison.Ordinal))
+        {
+            return trimmed;
+        }
+
         return trimmed.Substring(trimmed.IndexOf('\n') + 1);
     }
 
