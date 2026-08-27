@@ -8,13 +8,8 @@ using System.Threading;
 namespace Microsoft.CodeAnalysis.Internal.Log;
 
 /// <summary>
-/// Forwarding shim onto <see cref="RoslynTelemetry"/>. New code should call
-/// <see cref="RoslynTelemetry"/> directly; this exists only to serve existing call sites and is
-/// intended to be deleted once they have been updated.
-/// <para>
-/// It carries no <see cref="ObsoleteAttribute"/> because the repository builds with warnings as errors
-/// and its remaining call sites are expected, not accidental.
-/// </para>
+/// Forwarding shim onto <see cref="RoslynTelemetry"/>, for call sites that have not moved over. New
+/// code should call <see cref="RoslynTelemetry"/> directly.
 /// </summary>
 internal static class Logger
 {

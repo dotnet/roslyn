@@ -126,8 +126,8 @@ internal static partial class RoslynTelemetry
     /// unconditionally.
     /// <para>
     /// Unlike <see cref="Count(FunctionId, string, long)"/> and <see cref="Record(FunctionId, string, long)"/>
-    /// this takes no tags, so the metric name is the whole bucket and call sites build compound names by
-    /// hand. Migrating it would repartition existing buckets, so it is deliberately left alone.
+    /// this takes no tags: the metric name is the whole bucket, so call sites that need dimensions build
+    /// a compound name.
     /// </para>
     /// </summary>
     public static IDisposable? RecordBlockTime(FunctionId functionId, string metricName)
