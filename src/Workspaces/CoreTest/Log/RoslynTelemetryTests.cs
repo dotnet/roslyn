@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.UnitTests.Logging;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
@@ -22,7 +24,7 @@ public sealed class RoslynTelemetryTests
 
         public List<(string Kind, int BlockId)> Events { get; } = [];
 
-        public bool IsEnabled(FunctionId functionId) => Enabled;
+        public bool IsEnabled(FunctionId functionId) => Enabled && functionId == FunctionId.TestEvent_NotUsed;
 
         public void Log(FunctionId functionId, LogMessage logMessage)
             => Events.Add(("Log", 0));
@@ -128,5 +130,65 @@ public sealed class RoslynTelemetryTests
 
         // Disposing a second time must not disturb anything.
         registration.Dispose();
+    }
+
+    /// <summary>
+    /// The overloads that take an already-built <see cref="LogMessage"/> own it, so they must return it
+    /// to the pool even when nothing is listening - otherwise the pool is defeated on exactly the hosts
+    /// that register no sinks. Observed through the pool handing back the most recently freed instance.
+    /// </summary>
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void MessagePassingOverloadsFreeTheMessage(bool anySinkEnabled)
+    {
+        var sink = new RecordingSink { Enabled = anySinkEnabled };
+        using var _ = RoslynTelemetry.AddEventSink(sink);
+
+        AssertReturnedToPool(message => RoslynTelemetry.Log(FunctionId.TestEvent_NotUsed, message));
+        AssertReturnedToPool(message =>
+        {
+            using var block = RoslynTelemetry.LogBlock(FunctionId.TestEvent_NotUsed, message, CancellationToken.None);
+        });
+        AssertReturnedToPool(message =>
+        {
+            using var block = RoslynTelemetry.LogBlockTime(FunctionId.TestEvent_NotUsed, message);
+        });
+
+        static void AssertReturnedToPool(Action<KeyValueLogMessage> log)
+        {
+            var message = KeyValueLogMessage.Create(static m => m["key"] = "value");
+            log(message);
+
+            var next = KeyValueLogMessage.Create(static m => m["key"] = "value");
+            Assert.Same(message, next);
+            next.Free();
+        }
+    }
+
+    /// <summary>
+    /// The duration of a block reaches the event as a <c>delta</c> property, but only for a sink that
+    /// asked for it. The standalone language server host asks for it; devenv gates it on an option.
+    /// </summary>
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void BlockEndCarriesDeltaOnlyWhenLogDeltaIsSet(bool logDelta)
+    {
+        var logger = new TestTelemetryLogger(logDelta);
+        using var _ = RoslynTelemetry.AddEventSink(logger);
+
+        TestTelemetryLogger.TestScope scope;
+
+        // LogType.UserAction carries LogLevel.Information; anything lower is dropped by the sink.
+        using (RoslynTelemetry.LogBlock(
+            FunctionId.TestEvent_NotUsed,
+            KeyValueLogMessage.Create(LogType.UserAction),
+            CancellationToken.None))
+        {
+            scope = Assert.Single(logger.OpenedScopes);
+        }
+
+        Assert.Equal(logDelta, scope.EndEvent.Properties.ContainsKey("vs.ide.vbcs.testevent.notused.delta"));
     }
 }

@@ -122,7 +122,9 @@ internal abstract class TelemetryLogger : IEventSink
             return;
         }
 
-        Contract.ThrowIfFalse(_pendingScopes.TryRemove(blockId, out var scope));
+        // LogBlockStart swallows a failure from Start, so the scope can legitimately be missing here.
+        if (!_pendingScopes.TryRemove(blockId, out var scope))
+            return;
 
         var endEvent = GetEndEvent(scope);
         SetProperties(endEvent, functionId, logMessage, LogDelta ? delta : null);

@@ -104,7 +104,10 @@ internal static partial class RoslynTelemetry
     {
         if (TryGetEnabledSinks(functionId, out var sinks))
         {
-            LogToSinks(sinks, functionId, LogMessage.Create(message ?? "", logLevel: logLevel));
+            var logMessage = LogMessage.Create(message ?? "", logLevel: logLevel);
+            LogToSinks(sinks, functionId, logMessage);
+
+            logMessage.Free();
         }
     }
 
@@ -260,10 +263,15 @@ internal static partial class RoslynTelemetry
             : EmptyLogBlock.Instance;
 
     /// <summary>
-    /// log a start and end pair with a context message.
+    /// log a start and end pair with a context message. Takes ownership of <paramref name="logMessage"/>
+    /// whether or not anything is listening.
     /// </summary>
     public static IDisposable LogBlock(FunctionId functionId, LogMessage logMessage, CancellationToken token)
-        => TryGetEnabledSinks(functionId, out var sinks)
-            ? CreateLogBlock(sinks, functionId, logMessage, GetNextUniqueBlockId(), token)
-            : EmptyLogBlock.Instance;
+    {
+        if (TryGetEnabledSinks(functionId, out var sinks))
+            return CreateLogBlock(sinks, functionId, logMessage, GetNextUniqueBlockId(), token);
+
+        logMessage.Free();
+        return EmptyLogBlock.Instance;
+    }
 }

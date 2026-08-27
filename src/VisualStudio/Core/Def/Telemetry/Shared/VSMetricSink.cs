@@ -156,16 +156,13 @@ internal sealed class VSMetricSink : IMetricSink, IDisposable
         // Excludes other flushes, which would otherwise post the same aggregation twice.
         lock (_flushLock)
         {
-            // Cleared only after every post completes. While a flush is in progress a concurrent
-            // Count/Record still finds the existing aggregation and blocks on its lock, so no second
-            // instrument is created for a name that is currently being posted.
-            var aggregations = _aggregations;
-
-            foreach (var pair in aggregations)
+            foreach (var pair in _aggregations)
             {
                 var aggregation = pair.Value;
                 // Excludes concurrent Add/Record on this instrument while the metric event is built
-                // from it and posted.
+                // from it and posted. The key stays in the map until the post completes, so a
+                // concurrent Count/Record finds this aggregation and blocks here rather than building
+                // a second instrument with the same name.
                 lock (aggregation.Lock)
                 {
                     TelemetryMetricEvent metricEvent = aggregation.Instrument switch
@@ -176,10 +173,12 @@ internal sealed class VSMetricSink : IMetricSink, IDisposable
                     };
 
                     _poster.Post(aggregation.TelemetryEvent, metricEvent);
+
+                    // Removed per key rather than clearing at the end, so measurements recorded under a
+                    // new key while this loop runs survive to the next flush.
+                    ImmutableInterlocked.TryRemove(ref _aggregations, pair.Key, out _);
                 }
             }
-
-            _aggregations = ImmutableDictionary<AggregationKey, Aggregation>.Empty;
         }
     }
 
@@ -227,13 +226,13 @@ internal sealed class VSMetricSink : IMetricSink, IDisposable
     /// Derives the meter name (<c>vs.ide.vbcs.some.operation.meter</c>) from the event name
     /// (<c>vs/ide/vbcs/some/operation</c>).
     /// </summary>
-    private static string GetMeterName(string eventName)
+    internal static string GetMeterName(string eventName)
         => eventName.Replace('/', '.') + ".meter";
 
     /// <summary>
     /// Derives a property name (<c>vs.ide.vbcs.some.operation.tagname</c>) from the event name.
     /// </summary>
-    private static string GetPropertyName(string eventName, string tagName)
+    internal static string GetPropertyName(string eventName, string tagName)
         => eventName.Replace('/', '.') + "." + tagName.ToLowerInvariant();
 
     /// <summary>

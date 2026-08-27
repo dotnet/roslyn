@@ -32,31 +32,14 @@ internal sealed class VisualStudioWorkspaceTelemetryService(
     private readonly Lazy<VisualStudioWorkspace> _workspace = workspace;
     private readonly IGlobalOptionService _globalOptions = globalOptions;
 
-    /// <summary>
-    /// Composed once, at startup, so that ETW works without the (non-shipping) diagnostics VSIX. Its
-    /// predicate is a snapshot of the per-FunctionId options, refreshed by the Performance Loggers page.
-    /// </summary>
-    private EtwLogger? _etwLogger;
-
     protected override ImmutableArray<IEventSink> CreateEventSinks(TelemetrySession telemetrySession, bool logDelta)
-    {
-        _etwLogger = new EtwLogger(FunctionIdOptions.CreateFunctionIsEnabledPredicate(_globalOptions));
-
-        return
+        =>
         [
             CodeMarkerLogger.Instance,
-            _etwLogger,
             RoslynActivityLogger.Sink,
             TelemetryLogger.Create(telemetrySession, logDelta),
             new FileLogger(_globalOptions, _threadingContext),
         ];
-    }
-
-    /// <summary>
-    /// Refreshes the composed ETW sink's enablement, for the Performance Loggers options page.
-    /// </summary>
-    internal void UpdateEtwEnablement(bool enabled, Func<FunctionId, bool> isEnabled)
-        => _etwLogger?.UpdatePredicate(enabled ? isEnabled : EtwLogger.DisabledPredicate);
 
     protected override void TelemetrySessionInitialized()
     {

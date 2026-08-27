@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
@@ -31,6 +30,7 @@ internal sealed class PerformanceLoggersPage : AbstractOptionPage
     private IThreadingContext _threadingContext;
     private SolutionServices _workspaceServices;
 
+    private static IDisposable? s_etwRegistration;
     private static IDisposable? s_traceRegistration;
     private static IDisposable? s_outputWindowRegistration;
 
@@ -65,14 +65,10 @@ internal sealed class PerformanceLoggersPage : AbstractOptionPage
         var traceEnabled = globalOptions.GetOption(LoggerOptionsStorage.TraceLoggerKey);
         var outputWindowEnabled = globalOptions.GetOption(LoggerOptionsStorage.OutputWindowLoggerKey);
 
-        // Its predicate is a snapshot of the per-FunctionId options, so a registered instance has to be
-        // told about changes. ETW is registered by the shipping VS composition, because enabling it for
-        // one FunctionId on a customer machine must not require this (non-shipping) VSIX.
-        var telemetryService = workspaceServices.GetService<IWorkspaceTelemetryService>() as VisualStudioWorkspaceTelemetryService;
-        telemetryService?.UpdateEtwEnablement(etwEnabled, isEnabled);
-
-        // These two exist only for this page, so they are registered while enabled and unregistered
-        // when not.
+        // These sinks exist only for this page, so each is registered while enabled and unregistered
+        // when not. isEnabled is a snapshot of the per-FunctionId options, which is why a fresh sink is
+        // built on every apply.
+        Register(ref s_etwRegistration, etwEnabled, () => new EtwLogger(isEnabled));
         Register(ref s_traceRegistration, traceEnabled, () => new TraceLogger(isEnabled));
         Register(ref s_outputWindowRegistration, outputWindowEnabled, () => new OutputWindowLogger(isEnabled));
 

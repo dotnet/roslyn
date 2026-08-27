@@ -87,6 +87,8 @@ internal sealed partial class RemoteProcessTelemetryService(
             Register(ref s_traceRegistration, loggerTypeNames.Contains(nameof(TraceLogger)), () => new TraceLogger(logChecker));
         }, cancellationToken);
 
+        // Its predicate is a snapshot of the per-FunctionId options, so a fresh sink is built on every
+        // apply. Mirrors the Performance Loggers page, which is the only way these get enabled.
         static void Register(ref IDisposable? registration, bool enabled, Func<IEventSink> create)
             => Interlocked.Exchange(ref registration, enabled ? RoslynTelemetry.AddEventSink(create()) : null)?.Dispose();
     }

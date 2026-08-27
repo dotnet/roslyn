@@ -95,7 +95,7 @@ internal sealed class LanguageServerTelemetry : IDisposable
         _registrations =
         [
             // logDelta: true because block end events from this host have always carried their
-            // duration; the option that gates it in devenv has no counterpart here.
+            // duration -- the deleted RoslynLogger added it unconditionally, with no flag involved.
             RoslynTelemetry.AddEventSink(TelemetryLogger.Create(session, logDelta: true)),
             RoslynTelemetry.AddMetricSink(metricSink),
             metricSink,

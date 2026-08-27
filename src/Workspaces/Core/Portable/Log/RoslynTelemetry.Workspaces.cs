@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Internal.Log;
@@ -29,10 +28,17 @@ internal static partial class RoslynTelemetry
     /// Posts a discrete event carrying the wall-clock duration of the returned scope, but only if it
     /// meets or exceeds <paramref name="minThresholdMs"/>. Unlike
     /// <see cref="RecordBlockTime(FunctionId, string)"/> this is not aggregated - each occurrence is
-    /// its own event.
+    /// its own event. Takes ownership of <paramref name="logMessage"/> whether or not anything is
+    /// listening.
     /// </summary>
     public static IDisposable? LogBlockTime(FunctionId functionId, KeyValueLogMessage logMessage, int minThresholdMs = -1)
-        => TryGetEnabledSinks(functionId, out _) ? new TimedEventBlock(functionId, logMessage, minThresholdMs) : null;
+    {
+        if (TryGetEnabledSinks(functionId, out _))
+            return new TimedEventBlock(functionId, logMessage, minThresholdMs);
+
+        logMessage.Free();
+        return null;
+    }
 
     private sealed class TimedEventBlock(FunctionId functionId, KeyValueLogMessage logMessage, int minThresholdMs) : IDisposable
     {

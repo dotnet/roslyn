@@ -10,34 +10,16 @@ namespace Microsoft.CodeAnalysis.Internal.Log;
 
 /// <summary>
 /// A sink that publishes events to ETW using an EventSource. Opt-in per <see cref="FunctionId"/>, via
-/// Tools -&gt; Options -&gt; Performance Loggers or the corresponding registry keys.
+/// Tools -&gt; Options -&gt; Performance Loggers.
 /// </summary>
-internal sealed class EtwLogger : IEventSink
+internal sealed class EtwLogger(Func<FunctionId, bool> isEnabledPredicate) : IEventSink
 {
-    /// <summary>
-    /// A predicate that rejects every <see cref="FunctionId"/>, for switching a registered instance off.
-    /// </summary>
-    public static readonly Func<FunctionId, bool> DisabledPredicate = static _ => false;
-
     // Due to ETW specifics, RoslynEventSource.Instance needs to be initialized during EtwLogger construction 
     // so that we can enable the listeners synchronously before any events are logged.
     private readonly RoslynEventSource _source = RoslynEventSource.Instance;
 
-    private Func<FunctionId, bool> _isEnabledPredicate;
-
-    public EtwLogger(Func<FunctionId, bool> isEnabledPredicate)
-        => _isEnabledPredicate = isEnabledPredicate;
-
-    /// <summary>
-    /// Swaps the enablement predicate. Needed because
-    /// <c>FunctionIdOptions.CreateFunctionIsEnabledPredicate</c> captures a snapshot of the per-
-    /// <see cref="FunctionId"/> options, so an instance built from it does not observe later changes.
-    /// </summary>
-    public void UpdatePredicate(Func<FunctionId, bool> isEnabledPredicate)
-        => Volatile.Write(ref _isEnabledPredicate, isEnabledPredicate);
-
     public bool IsEnabled(FunctionId functionId)
-        => _source.IsEnabled() && Volatile.Read(ref _isEnabledPredicate)(functionId);
+        => _source.IsEnabled() && isEnabledPredicate(functionId);
 
     public void Log(FunctionId functionId, LogMessage logMessage)
         => _source.Log(GetMessage(logMessage), functionId);

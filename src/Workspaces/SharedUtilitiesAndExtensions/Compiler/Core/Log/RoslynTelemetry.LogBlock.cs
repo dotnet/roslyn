@@ -31,6 +31,10 @@ internal static partial class RoslynTelemetry
     /// </summary>
     private sealed class RoslynLogBlock(ObjectPool<RoslynLogBlock> pool) : IDisposable
     {
+        /// <summary>
+        /// How many sinks <see cref="_startedSinks"/> can track, i.e. its bit width.
+        /// </summary>
+        private const int MaxTrackedSinks = 32;
 
         // these need to be cleared before putting back to pool
         private ImmutableArray<IEventSink> _sinks;
@@ -51,7 +55,7 @@ internal static partial class RoslynTelemetry
 
         public void Construct(ImmutableArray<IEventSink> sinks, FunctionId functionId, LogMessage logMessage, int blockId, CancellationToken cancellationToken)
         {
-            Debug.Assert(sinks.Length <= 32, "More sinks than _startedSinks has bits for.");
+            Debug.Assert(sinks.Length <= MaxTrackedSinks, "More sinks than _startedSinks has bits for.");
 
             _sinks = sinks;
             _functionId = functionId;
@@ -61,7 +65,11 @@ internal static partial class RoslynTelemetry
             _cancellationToken = cancellationToken;
             _startedSinks = 0;
 
-            for (var i = 0; i < sinks.Length; i++)
+            // Bounded by the bitmask width: a sink past it gets neither start nor end, which keeps the
+            // pairing correct. Shifting past the width would instead alias onto bit 0 and hand some
+            // other sink an end it never started.
+            var trackable = Math.Min(sinks.Length, MaxTrackedSinks);
+            for (var i = 0; i < trackable; i++)
             {
                 if (sinks[i].IsEnabled(functionId))
                 {
@@ -83,7 +91,8 @@ internal static partial class RoslynTelemetry
             // This delta is valid for durations of < 25 days
             var delta = Environment.TickCount - _tick;
 
-            for (var i = 0; i < _sinks.Length; i++)
+            var trackable = Math.Min(_sinks.Length, MaxTrackedSinks);
+            for (var i = 0; i < trackable; i++)
             {
                 if ((_startedSinks & (1 << i)) != 0)
                     _sinks[i].LogBlockEnd(_functionId, _logMessage, _blockId, delta, _cancellationToken);
