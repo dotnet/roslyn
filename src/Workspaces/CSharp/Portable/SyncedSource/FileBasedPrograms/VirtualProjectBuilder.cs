@@ -39,6 +39,8 @@ sealed class VirtualProjectBuilder
 
     private (ImmutableArray<CSharpDirective> Original, ImmutableArray<CSharpDirective> Evaluated)? _evaluatedDirectives;
 
+    private bool? _useLegacyArtifactsPath;
+
     internal string EntryPointFileFullPath { get; }
 
     internal SourceFile EntryPointSourceFile
@@ -484,6 +486,7 @@ sealed class VirtualProjectBuilder
                 isVirtualProject: true,
                 entryPointFilePath: EntryPointFileFullPath,
                 artifactsPath: ArtifactsPath,
+                useLegacyArtifactsPath: _useLegacyArtifactsPath == true,
                 includeRuntimeConfigInformation: RequestedTargets?.Any(static t => t is "Publish" or "Pack") != true);
 
             var projectFileText = projectFileWriter.ToString();
@@ -499,6 +502,22 @@ sealed class VirtualProjectBuilder
             var project = await _buildService.CreateProjectInstanceFromProjectRootElementAsync(projectRoot, projectCollection, additionalGlobalProperties).ConfigureAwait(false);
 
             lastProject = (projectFileText, project, projectRoot);
+
+            // Preserve the legacy artifacts behavior when the .NET SDK imported its artifacts props but selected no layout.
+            if (_useLegacyArtifactsPath is null)
+            {
+                var defaultArtifactsPathPropsImported = await project.GetPropertyValueAsync("_DefaultArtifactsPathPropsImported").ConfigureAwait(false);
+                var artifactsPathLocationType = await project.GetPropertyValueAsync("_ArtifactsPathLocationType").ConfigureAwait(false);
+
+                _useLegacyArtifactsPath =
+                    string.Equals(defaultArtifactsPathPropsImported, bool.TrueString, StringComparison.OrdinalIgnoreCase) &&
+                    string.IsNullOrEmpty(artifactsPathLocationType);
+
+                if (_useLegacyArtifactsPath == true)
+                {
+                    return await CreateProjectInstanceNoEvaluation(projectCollection, directives, additionalGlobalProperties).ConfigureAwait(false);
+                }
+            }
 
             return (project, projectRoot);
 
@@ -592,6 +611,7 @@ sealed class VirtualProjectBuilder
         bool isVirtualProject,
         string? entryPointFilePath = null,
         string? artifactsPath = null,
+        bool useLegacyArtifactsPath = false,
         bool includeRuntimeConfigInformation = true,
         string? userSecretsId = null,
         ImmutableArray<ExplicitProjectItem> explicitProjectItems = default)
@@ -628,14 +648,32 @@ sealed class VirtualProjectBuilder
             Debug.Assert(!string.IsNullOrWhiteSpace(artifactsPath));
             Debug.Assert(entryPointFilePath is not null);
 
-            // Note that FileBasedAppArtifactsPath needs to be specified before Sdk.props
+            // Note that the artifacts properties need to be specified before Sdk.props
             // (usually it's recommended to specify it in Directory.Build.props
             // but importing Sdk.props manually afterwards also works).
-            writer.WriteLine($"""
+            writer.WriteLine("""
                 <Project>
 
                   <PropertyGroup>
-                    <FileBasedAppArtifactsPath>{EscapeValue(artifactsPath)}</FileBasedAppArtifactsPath>
+                """);
+
+            if (useLegacyArtifactsPath)
+            {
+                writer.WriteLine($"""
+                        <IncludeProjectNameInArtifactsPaths>false</IncludeProjectNameInArtifactsPaths>
+                        <ArtifactsPath>{EscapeValue(artifactsPath)}</ArtifactsPath>
+                        <PublishDir>artifacts/$(AssemblyName)</PublishDir>
+                        <PackageOutputPath>artifacts/$(AssemblyName)</PackageOutputPath>
+                    """);
+            }
+            else
+            {
+                writer.WriteLine($"""
+                        <FileBasedAppArtifactsPath>{EscapeValue(artifactsPath)}</FileBasedAppArtifactsPath>
+                    """);
+            }
+
+            writer.WriteLine($"""
                     <AssemblyName>{EscapeValue(Path.GetFileNameWithoutExtension(entryPointFilePath))}</AssemblyName>
                     <RootNamespace>$(AssemblyName)</RootNamespace>
                     <FileBasedProgram>true</FileBasedProgram>
