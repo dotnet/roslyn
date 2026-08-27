@@ -341,8 +341,7 @@ internal static class FormattingUtilities
                     while (iFormatted + 1 < formattedText.Lines.Count &&
                         formattedText.Lines[iFormatted + 1].Span.Length == 0 &&
                         iOriginal + 1 < originalText.Lines.Count &&
-                        originalText.Lines[iOriginal + 1] is { } nextOriginalLine &&
-                        nextOriginalLine.Span.Length != 0)
+                        originalText.Lines[iOriginal + 1].GetFirstNonWhitespaceOffset() is not null)
                     {
                         // Next formatted line is blank but next original line isn't, so the
                         // formatter inserted a blank line. Consume it and preserve it in the output.
@@ -353,14 +352,15 @@ internal static class FormattingUtilities
                     }
                 }
             }
-            else if (originalText.Lines[iOriginal] is { } blankOriginalLine &&
+            else if (iOriginal + 1 < originalText.Lines.Count &&
+                originalText.Lines[iOriginal] is { } blankOriginalLine &&
                 blankOriginalLine.GetFirstNonWhitespaceOffset() is null)
             {
                 // The current lines are an aligned blank pair. Consume any additional formatted blank lines
-                // before the next non-blank original line so the line mapping remains synchronized.
+                // before the next non-blank mapped original line so the line mapping remains synchronized.
                 while (iFormatted + 1 < formattedText.Lines.Count &&
                     formattedText.Lines[iFormatted + 1].Span.Length == 0 &&
-                    iOriginal + 1 < originalText.Lines.Count &&
+                    (formattedLineInfo[iOriginal + 1].ProcessIndentation || formattedLineInfo[iOriginal + 1].ProcessFormatting) &&
                     originalText.Lines[iOriginal + 1].GetFirstNonWhitespaceOffset() is not null)
                 {
                     iFormatted++;
