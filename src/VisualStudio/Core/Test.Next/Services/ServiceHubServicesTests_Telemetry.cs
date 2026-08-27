@@ -4,17 +4,12 @@
 
 #nullable disable
 
-using System;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
-using Microsoft.CodeAnalysis.Telemetry;
-using Microsoft.CodeAnalysis.UnitTests.Logging;
-using Microsoft.VisualStudio.Telemetry;
 using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Remote;
@@ -22,37 +17,45 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote;
 public sealed partial class ServiceHubServicesTests
 {
     /// <summary>
-    /// Covers the OOP process's half of telemetry setup: initializing a session over the brokered
-    /// service configures the remote host, and telemetry logged there reaches the configured sinks.
+    /// The Performance Loggers options page pushes diagnostic logger enablement into the OOP process
+    /// over this API. Covers that the remote host registers a sink while it is enabled and unregisters
+    /// it when it is not, observed through whether anything is listening for a given
+    /// <see cref="FunctionId"/> - which is also what makes logging free when nothing is.
     /// </summary>
     [Fact]
-    public async Task TestRemoteProcessTelemetrySessionInitialization()
+    public async Task TestRemoteProcessEnableLogging()
     {
         using var workspace = CreateWorkspace();
         using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
 
-        var logger = new TestTelemetryLogger();
-        using var registration = RoslynTelemetry.AddEventSink(logger);
+        Assert.False(AnythingIsListening(FunctionId.TestEvent_NotUsed));
 
-        // Stands in for the settings the VS host serializes across. The collector key is a syntactically
-        // valid placeholder and the level is off, so the real sink this also installs in the remote host
-        // has nothing to send and nowhere to send it.
-        var processStartTime = Process.GetCurrentProcess().StartTime.ToFileTimeUtc();
-        var settings = $$"""
-            {"Id":"{{Guid.NewGuid()}}","HostName":"Default","AppId":1000,"TelemetryLevel":"off","CollectorApiKey":"00000000000000000000000000000000-00000000-0000-0000-0000-000000000000-0000","ProcessStartTime":{{processStartTime}}}
-            """;
-        var hostProcessId = Process.GetCurrentProcess().Id;
+        Assert.True(await SetRemoteLoggingAsync([nameof(TraceLogger)], [FunctionId.TestEvent_NotUsed]));
+        Assert.True(AnythingIsListening(FunctionId.TestEvent_NotUsed));
 
-        var succeeded = await client.TryInvokeAsync<IRemoteProcessTelemetryService>(
-            (service, cancellationToken) => service.InitializeTelemetrySessionAsync(
-                hostProcessId, settings, logDelta: false, cancellationToken),
-            CancellationToken.None);
+        // The sink was built with a predicate covering only the requested ids.
+        Assert.False(AnythingIsListening(FunctionId.RemoteHost_Connect));
 
-        Assert.True(succeeded);
+        Assert.True(await SetRemoteLoggingAsync([], []));
+        Assert.False(AnythingIsListening(FunctionId.TestEvent_NotUsed));
 
-        // The remote host logs that it connected as the last step of initialization.
-        var connect = Assert.Single(logger.PostedEvents, e => e.Name == "vs/ide/vbcs/remotehost/connect");
-        Assert.Equal(hostProcessId, connect.Properties["vs.ide.vbcs.remotehost.connect.host"]);
-        Assert.Equal(RuntimeInformation.FrameworkDescription, connect.Properties["vs.ide.vbcs.remotehost.connect.framework"]);
+        Task<bool> SetRemoteLoggingAsync(ImmutableArray<string> loggerTypeNames, ImmutableArray<FunctionId> functionIds)
+            => client.TryInvokeAsync<IRemoteProcessTelemetryService>(
+                (service, cancellationToken) => service.EnableLoggingAsync(loggerTypeNames, functionIds, cancellationToken),
+                CancellationToken.None).AsTask();
+
+        // RoslynTelemetry only builds a message when some sink is enabled for the id, so the message
+        // factory running is exactly "a sink is registered and wants this id".
+        static bool AnythingIsListening(FunctionId functionId)
+        {
+            var listening = false;
+            RoslynTelemetry.Log(functionId, () =>
+            {
+                listening = true;
+                return string.Empty;
+            });
+
+            return listening;
+        }
     }
 }
