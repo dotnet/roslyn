@@ -1403,13 +1403,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         }
 
                         if (this.IsPartialModifierInDeclarationHead(allowMembers: true))
-                        {
                             modTok = ConvertToKeyword(this.EatToken());
-                        }
                         else
-                        {
                             return;
-                        }
 
                         break;
 
@@ -1579,9 +1575,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 // In 'closed partial ref struct', the declaration makes 'partial' a modifier too.
                 if (this.IsPartialModifierInDeclarationHead(allowMembers: true))
-                {
                     return true;
-                }
 
                 this.EatToken(); // "partial" doesn't affect our remaining heuristics, so look past it.
             }
@@ -1717,9 +1711,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 this.EatToken();
                 if (this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName())
-                {
                     return true;
-                }
 
                 resetPoint.Reset();
             }
@@ -1730,25 +1722,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var nextMod = GetModifierExcludingScoped(this.CurrentToken);
                 if (nextMod == DeclarationModifiers.None)
-                {
                     break;
-                }
 
                 // In 'partial public int M()', 'public' proves this is a member declaration.
                 // At namespace scope, keep looking for a type declaration instead.
                 if (allowMembers && this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
-                {
                     return true;
-                }
 
                 // In 'partial partial()', the second 'partial' is the constructor name. Do not skip
                 // it unless the remaining tokens instead form a declaration such as 'partial partial M()'.
-                if (allowMembers && this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
+                if (allowMembers &&
+                    this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword &&
+                    this.IsPartialIdentifierDeclarationHead())
                 {
-                    if (this.IsPartialIdentifierDeclarationHead())
-                    {
-                        return true;
-                    }
+                    return true;
                 }
 
                 this.EatToken();
@@ -1756,36 +1743,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // 'partial public class C' reaches 'class' here.
             if (this.IsTypeDeclarationStart())
-            {
                 return true;
-            }
 
             // Parse 'partial public namespace N' as a namespace so binding can report the misplaced
             // modifier instead of producing cascading parser errors.
             if (this.CurrentToken.Kind == SyntaxKind.NamespaceKeyword)
-            {
                 return true;
-            }
 
             // The remaining checks recognize member declarations, which namespace lookahead must not accept.
             if (!allowMembers)
-            {
                 return false;
-            }
 
             // 'event' cannot begin another member form, so parse 'partial event' as an event in every
             // language version. Binding reports the feature diagnostic when necessary.
             if (this.CurrentToken.Kind == SyntaxKind.EventKeyword)
-            {
                 return true;
-            }
 
             // Before partial constructors, 'partial C()' is a method returning 'partial'. Only prefer
             // the constructor interpretation when the feature is enabled.
             if (this.IsPartialConstructorName(peekIndex: 0))
-            {
                 return true;
-            }
 
             // Otherwise, require a return type followed by a member name, as in 'partial int M()'.
             return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
@@ -1801,19 +1778,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
 
             if (this.IsTypeDeclarationAfterPartialModifiers(peekIndex: 0))
-            {
                 return false;
-            }
 
             if (this.IsPartialConstructor(peekIndex: 0))
-            {
                 return false;
-            }
 
             if (this.IsPartialConstructorName(peekIndex: 0))
-            {
                 return true;
-            }
 
             using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
             return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
@@ -1824,9 +1795,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(this.PeekToken(peekIndex).ContextualKind == SyntaxKind.PartialKeyword);
 
             do
-            {
                 peekIndex++;
-            }
             while (this.PeekToken(peekIndex).ContextualKind == SyntaxKind.PartialKeyword);
 
             return this.IsClassStructInterfaceRecordOrUnionKeyword(this.PeekToken(peekIndex));
@@ -1878,9 +1847,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // Check for constructor:
             //   partial Identifier(
             if (this.IsPartialConstructor(peekIndex: 0))
-            {
                 return true;
-            }
 
             // Check for method/property:
             //   partial ReturnType MemberName
