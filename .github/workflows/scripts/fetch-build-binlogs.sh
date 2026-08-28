@@ -215,8 +215,9 @@ MAX_TOTAL_BYTES=4294967296  # 4 GB extracted across all artifacts
 # the sum across artifacts. Cap the total download too, and charge it *before*
 # each transfer (see ZIP_CAP below) rather than after, so the last artifact
 # can't start just under the limit and still pull a full MAX_ZIP_BYTES.
-# This is a budget, not a byte-exact ceiling: `ulimit -f` works in 512-byte
-# blocks and rounds up, so a transfer can overshoot its cap by up to 511 bytes
+# This is a budget, not a byte-exact ceiling: bash's `ulimit -f` works in
+# 1024-byte units (not the POSIX 512-byte block) and this rounds up, so a
+# transfer can overshoot its cap by up to 1023 bytes
 # before the size check below rejects it. That slack is under 512 bytes per
 # selected artifact, so at any plausible artifact count it stays in the
 # kilobytes — irrelevant next to a 3 GB budget, and far cheaper than the
@@ -234,10 +235,10 @@ ZIP_TMP=$(mktemp) || { echo "::warning::Could not create a temporary file for do
 # transfer's budget from what is left of it, so no combination of slow
 # artifacts and retries can take the job down before the controlled no-op.
 # `timeout` around each transfer makes the deadline hard, so the whole phase
-# really is bounded by DOWNLOAD_BUDGET rather than by it plus a last attempt.
-DOWNLOAD_BUDGET=420             # 7 minutes for all artifact transfers
+# really is bounded by FETCH_BUDGET rather than by it plus a last attempt.
+FETCH_BUDGET=420               # 7 minutes for all transfers *and* extraction
 MAX_ATTEMPT_SECONDS=120         # per attempt; the full set really takes ~30s
-DOWNLOAD_DEADLINE=$(( $(date +%s) + DOWNLOAD_BUDGET ))
+FETCH_DEADLINE=$(( $(date +%s) + FETCH_BUDGET ))
 REMAINING_BYTES="${MAX_TOTAL_BYTES}"
 mkdir -p "${BINLOG_DIR}"
 # Only binlogs extracted by this run may be analyzed. Anything left in
@@ -268,9 +269,9 @@ for name in "${names[@]}"; do
   fi
   # Bound this transfer by the time left as well, and never start one with no
   # time to finish in.
-  TIME_LEFT=$(( DOWNLOAD_DEADLINE - $(date +%s) ))
+  TIME_LEFT=$(( FETCH_DEADLINE - $(date +%s) ))
   if [ "${TIME_LEFT}" -le 0 ]; then
-    echo "::warning::Download time budget ${DOWNLOAD_BUDGET}s exhausted before ${safe_name}; stopping downloads."
+    echo "::warning::Download time budget ${FETCH_BUDGET}s exhausted before ${safe_name}; stopping downloads."
     break
   fi
   ATTEMPT_SECONDS="${MAX_ATTEMPT_SECONDS}"
@@ -281,18 +282,18 @@ for name in "${names[@]}"; do
   # `ulimit -f` is a disk backstop for responses that declare no Content-Length;
   # the size check below is authoritative. Round the block count UP so any
   # positive ZIP_CAP yields at least one block: dividing down would give a
-  # 0-block limit for a sub-512-byte remainder and fail every write.
+  # 0-unit limit for a sub-KiB remainder and fail every write.
   # SIGXFSZ is ignored so hitting the cap is an ordinary write error.
   # `--retry-max-time` only gates whether curl may *start* another retry, so a
   # retry begun just inside it can still run a further `--max-time`. `timeout`
-  # around the whole invocation is what makes DOWNLOAD_DEADLINE a real deadline
+  # around the whole invocation is what makes FETCH_DEADLINE a real deadline
   # rather than a scheduling hint; a killed transfer is treated like any other
   # failed one and the leg is reported as missing, which fails closed.
   (
     # Fail the leg rather than the backstop: if the shell will not apply the
     # limit, downloading anyway would leave a response with no usable
     # Content-Length free to fill the disk before the size check below runs.
-    ulimit -f $(( (ZIP_CAP + 511) / 512 )) || exit 1
+    ulimit -f $(( (ZIP_CAP + 1023) / 1024 )) || exit 1
     trap '' XFSZ
     timeout "${TIME_LEFT}" curl -sSL --fail --retry 3 --retry-delay 2 \
       --connect-timeout 15 --max-time "${ATTEMPT_SECONDS}" \
@@ -303,7 +304,7 @@ for name in "${names[@]}"; do
   # Charge the budget with the bytes retained on disk, including those of an
   # artifact about to be skipped. This is a disk and extraction budget, not a
   # meter of network egress: `-o` truncates before each retry, so failed
-  # attempts are not counted here. What bounds those is DOWNLOAD_DEADLINE via
+  # attempts are not counted here. What bounds those is FETCH_DEADLINE via
   # the `timeout` wrapper, plus `ulimit -f`, which caps every individual
   # attempt at ZIP_CAP.
   TOTAL_ZIP_BYTES=$((TOTAL_ZIP_BYTES + ZIP_BYTES))
@@ -320,7 +321,16 @@ for name in "${names[@]}"; do
   # The extractor writes generated `<ai>_<n>.binlog` names straight into
   # BINLOG_DIR and stops once it has written REMAINING_BYTES, so it bounds both
   # where bytes land and how many there are.
-  extract_out=$(timeout 300 python3 "${SCRIPT_DIR}/extract-binlogs.py" \
+  # Extraction shares the deadline with the transfers. Otherwise a run that
+  # spent most of its budget downloading could still queue one bounded
+  # extraction per artifact and walk the job past `timeout-minutes` without
+  # ever reaching the controlled no-op below.
+  TIME_LEFT=$(( FETCH_DEADLINE - $(date +%s) ))
+  if [ "${TIME_LEFT}" -le 0 ]; then
+    echo "::warning::Fetch budget exhausted before extracting ${safe_name}; stopping."; break
+  fi
+  [ "${TIME_LEFT}" -gt 300 ] && TIME_LEFT=300
+  extract_out=$(timeout "${TIME_LEFT}" python3 "${SCRIPT_DIR}/extract-binlogs.py" \
     "${ZIP_TMP}" "${BINLOG_DIR}" "${ai}" "${REMAINING_BYTES}")
   extract_rc=$?
   if [ "${extract_rc}" -ne 0 ]; then

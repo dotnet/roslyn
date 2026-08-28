@@ -2,7 +2,7 @@
 # Focused checks for the guards added in response to review:
 #   1. GITHUB_OUTPUT must be set AND writable.
 #   2. Downloads stop only once the remaining compressed allowance is
-#      non-positive, and `ulimit -f $(( (ZIP_CAP + 511) / 512 ))` rounds up so
+#      non-positive, and `ulimit -f $(( (ZIP_CAP + 1023) / 1024 ))` rounds up so
 #      any accepted cap still buys at least one 512-byte block.
 #   3. The download phase fits inside the job's timeout, and no retrying curl
 #      is left without a bound on its whole retry window.
@@ -72,13 +72,13 @@ echo "PASS no accepted cap yields a zero ulimit"
 
 # --- 3. The download phase must fit inside the job timeout ------------------
 JOB_TIMEOUT_MIN=$(grep -m1 -E '^\s+timeout-minutes:' "${WORKFLOW}" | awk '{print $2}')
-DOWNLOAD_BUDGET=$(grep -m1 '^DOWNLOAD_BUDGET=' "${SCRIPT}" | cut -d= -f2 | awk '{print $1}')
+FETCH_BUDGET=$(grep -m1 '^FETCH_BUDGET=' "${SCRIPT}" | cut -d= -f2 | awk '{print $1}')
 MAX_ATTEMPT_SECONDS=$(grep -m1 '^MAX_ATTEMPT_SECONDS=' "${SCRIPT}" | cut -d= -f2 | awk '{print $1}')
 
 # `--max-time` is per attempt, so the worst case is the whole download window
 # plus one final attempt that started just inside it, and the metadata calls.
 META_WORST=$((3 * (40 + 20)))
-WORST=$((DOWNLOAD_BUDGET + MAX_ATTEMPT_SECONDS + META_WORST))
+WORST=$((FETCH_BUDGET + MAX_ATTEMPT_SECONDS + META_WORST))
 check "job declares a timeout" "$([ -n "${JOB_TIMEOUT_MIN}" ] && echo yes)" "yes"
 check "worst-case fetch fits in the job timeout" \
   "$([ "${WORST}" -lt $((JOB_TIMEOUT_MIN * 60)) ] && echo yes)" "yes"
@@ -101,7 +101,7 @@ check "the download is wrapped in timeout" \
   "$(printf '%s' "${dl_curl}" | grep -c 'timeout "${TIME_LEFT}" curl')" "1"
 # With a hard deadline the whole phase is bounded by the budget alone.
 check "download phase is bounded by the budget alone" \
-  "$([ "${DOWNLOAD_BUDGET}" -lt $((JOB_TIMEOUT_MIN * 60)) ] && echo yes)" "yes"
+  "$([ "${FETCH_BUDGET}" -lt $((JOB_TIMEOUT_MIN * 60)) ] && echo yes)" "yes"
 
 # --- 4. Retries must never concatenate two responses ------------------------
 # `curl --retry` can only rewind seekable output. Through a pipe or a command
@@ -144,5 +144,19 @@ fixed_tmp=$(grep -c 'curl[^|]*-o /tmp/\|-o /tmp/[A-Za-z]' "${SCRIPT}" || true)
 check "no curl writes to a fixed /tmp path" "${fixed_tmp}" "0"
 check "scratch files come from mktemp" \
   "$(grep -cE '=\$\(mktemp\)' "${SCRIPT}")" "2"
+
+# --- Section 7: the deadline covers extraction too -------------------------
+# bash's `ulimit -f` is in 1024-byte units, not POSIX 512-byte blocks; using
+# 512 here would have made the real cap twice the requested one.
+check "ulimit uses bash's KiB unit" \
+  "$(grep -c 'ulimit -f \$(( (ZIP_CAP + 1023) / 1024 ))' "${SCRIPT}")" "1"
+check "no 512-byte block arithmetic remains" \
+  "$(grep -c 'ZIP_CAP + 511) / 512' "${SCRIPT}" || true)" "0"
+# A near-budget download phase must not still be able to queue a bounded
+# extraction per artifact and run the job past timeout-minutes.
+check "extraction is bounded by the shared deadline" \
+  "$(grep -c 'timeout "${TIME_LEFT}" python3' "${SCRIPT}")" "1"
+check "extraction re-reads the deadline first" \
+  "$(awk '/TIME_LEFT=\$\(\( FETCH_DEADLINE/{n++} END{print n+0}' "${SCRIPT}")" "2"
 
 exit "${fail}"
