@@ -19,7 +19,10 @@
 set +e
 set +o pipefail
 
-[ -z "${GITHUB_OUTPUT}" ] && { echo "::error::GITHUB_OUTPUT is not set; refusing to run without a way to emit step outputs." >&2; exit 1; }
+if [ -z "${GITHUB_OUTPUT}" ] || ! printf '' >> "${GITHUB_OUTPUT}" 2>/dev/null; then
+  echo "::error::GITHUB_OUTPUT is unset or not writable; refusing to run without a way to emit step outputs." >&2
+  exit 1
+fi
 
 emit_none() { echo "binlog-found=false" >> "$GITHUB_OUTPUT"; exit 0; }
 
@@ -193,6 +196,11 @@ MAX_TOTAL_BYTES=4294967296  # 4 GB extracted across all artifacts
 # each transfer (see ZIP_CAP below) rather than after, so the last artifact
 # can't start just under the limit and still pull a full MAX_ZIP_BYTES.
 MAX_TOTAL_ZIP_BYTES=3221225472  # 3 GB compressed downloaded across all artifacts
+# A transfer smaller than this can't yield a usable archive, and `ulimit -f`
+# works in 512-byte blocks, so a cap under 512 bytes would floor to a 0-block
+# file limit and fail every write. Treat a remaining allowance below this as
+# exhausted instead of starting a transfer that is guaranteed to be discarded.
+MIN_ZIP_BYTES=1048576           # 1 MB
 TOTAL_ZIP_BYTES=0
 REMAINING_BYTES="${MAX_TOTAL_BYTES}"
 mkdir -p "${BINLOG_DIR}"
@@ -214,8 +222,8 @@ for name in "${names[@]}"; do
   ZIP_CAP="${MAX_ZIP_BYTES}"
   ZIP_ALLOWANCE=$((MAX_TOTAL_ZIP_BYTES - TOTAL_ZIP_BYTES))
   [ "${ZIP_ALLOWANCE}" -lt "${ZIP_CAP}" ] && ZIP_CAP="${ZIP_ALLOWANCE}"
-  if [ "${ZIP_CAP}" -le 0 ]; then
-    echo "::warning::Cumulative compressed download budget ${MAX_TOTAL_ZIP_BYTES} exhausted before ${safe_name}; stopping downloads."
+  if [ "${ZIP_CAP}" -lt "${MIN_ZIP_BYTES}" ]; then
+    echo "::warning::Cumulative compressed download budget ${MAX_TOTAL_ZIP_BYTES} is exhausted before ${safe_name}; stopping downloads."
     break
   fi
   # Download to a file, never a pipe: curl can only rewind seekable output, so
