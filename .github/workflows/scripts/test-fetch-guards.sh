@@ -159,4 +159,18 @@ check "extraction is bounded by the shared deadline" \
 check "extraction re-reads the deadline first" \
   "$(awk '/TIME_LEFT=\$\(\( FETCH_DEADLINE/{n++} END{print n+0}' "${SCRIPT}")" "2"
 
+# --- Section 8: unit and log-injection hygiene ------------------------------
+# bash counts `ulimit -f` in 1024-byte units, except in POSIX mode where it
+# counts 512-byte blocks. Pinning the mode is what makes Section 7's
+# arithmetic unambiguous.
+check "posix mode is pinned before ulimit" \
+  "$(grep -c 'set +o posix' "${SCRIPT}")" "1"
+check "posix pin precedes the ulimit call" \
+  "$([ "$(grep -n 'set +o posix' "${SCRIPT}" | cut -d: -f1)" -lt \
+      "$(grep -n 'ulimit -f \$((' "${SCRIPT}" | head -1 | cut -d: -f1)" ] && echo yes)" "yes"
+# Artifact names are Azure DevOps metadata and reach the log as workflow
+# commands, so only the sanitized copy may be interpolated.
+check "no raw artifact name in a workflow command" \
+  "$(grep -c '::warning::[^"]*${name}' "${SCRIPT}" || true)" "0"
+
 exit "${fail}"

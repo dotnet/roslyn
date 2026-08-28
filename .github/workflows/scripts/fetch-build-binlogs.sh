@@ -293,6 +293,10 @@ for name in "${names[@]}"; do
     # Fail the leg rather than the backstop: if the shell will not apply the
     # limit, downloading anyway would leave a response with no usable
     # Content-Length free to fill the disk before the size check below runs.
+    # bash counts `ulimit -f` in 1024-byte units, except in POSIX mode where
+    # it counts 512-byte blocks. Pin the mode so this arithmetic means one
+    # thing regardless of how the runner's shell was invoked.
+    set +o posix
     ulimit -f $(( (ZIP_CAP + 1023) / 1024 )) || exit 1
     trap '' XFSZ
     timeout "${TIME_LEFT}" curl -sSL --fail --retry 3 --retry-delay 2 \
