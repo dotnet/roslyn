@@ -3,7 +3,7 @@
 #   1. GITHUB_OUTPUT must be set AND writable.
 #   2. Downloads stop only once the remaining compressed allowance is
 #      non-positive, and `ulimit -f $(( (ZIP_CAP + 1023) / 1024 ))` rounds up so
-#      any accepted cap still buys at least one 512-byte block.
+#      any accepted cap still buys at least one 1024-byte block.
 #   3. The download phase fits inside the job's timeout, and no retrying curl
 #      is left without a bound on its whole retry window.
 set -u
@@ -46,18 +46,21 @@ clamp() { # $1 = bytes already downloaded -> "break" or the ulimit block count
   cap="${MAX_ZIP_BYTES}"
   allowance=$((MAX_TOTAL_ZIP_BYTES - total))
   [ "${allowance}" -lt "${cap}" ] && cap="${allowance}"
-  if [ "${cap}" -le 0 ]; then echo "break"; else echo $(( (cap + 511) / 512 )); fi
+  if [ "${cap}" -le 0 ]; then echo "break"; else echo $(( (cap + 1023) / 1024 )); fi
 }
 
-check "fresh budget clamps to the per-artifact cap" "$(clamp 0)" "$(((MAX_ZIP_BYTES + 511) / 512))"
-check "partial budget clamps to the remainder" "$(clamp $((MAX_TOTAL_ZIP_BYTES - 1048576)))" "$((1048576 / 512))"
+check "fresh budget clamps to the per-artifact cap" "$(clamp 0)" "$(((MAX_ZIP_BYTES + 1023) / 1024))"
+check "partial budget clamps to the remainder" "$(clamp $((MAX_TOTAL_ZIP_BYTES - 1048576)))" "$((1048576 / 1024))"
 check "exhausted budget stops downloads" "$(clamp "${MAX_TOTAL_ZIP_BYTES}")" "break"
 check "over-spent budget stops downloads" "$(clamp $((MAX_TOTAL_ZIP_BYTES + 5000)))" "break"
 
 # A small archive must still be attempted while any budget remains: stopping
 # early would drop a leg that fits and disable the analysis for it.
-check "512 KB remaining still downloads" "$(clamp $((MAX_TOTAL_ZIP_BYTES - 524288)))" "$((524288 / 512))"
-check "1 KB remaining still downloads" "$(clamp $((MAX_TOTAL_ZIP_BYTES - 1024)))" "2"
+check "512 KB remaining still downloads" "$(clamp $((MAX_TOTAL_ZIP_BYTES - 524288)))" "$((524288 / 1024))"
+check "1 KB remaining still downloads" "$(clamp $((MAX_TOTAL_ZIP_BYTES - 1024)))" "1"
+# Rounding up is what keeps a sub-KiB remainder from becoming a 0 block cap,
+# which `ulimit -f 0` would turn into "no writes at all".
+check "sub-KiB remainder rounds up to one block" "$(clamp $((MAX_TOTAL_ZIP_BYTES - 1)))" "1"
 
 # The regression the review found: every accepted cap must give a non-zero
 # ulimit, or every write fails and the artifact is dropped after being paid for.
@@ -152,6 +155,12 @@ check "ulimit uses bash's KiB unit" \
   "$(grep -c 'ulimit -f \$(( (ZIP_CAP + 1023) / 1024 ))' "${SCRIPT}")" "1"
 check "no 512-byte block arithmetic remains" \
   "$(grep -c 'ZIP_CAP + 511) / 512' "${SCRIPT}" || true)" "0"
+# The `clamp` model above must round in the same unit as production, or it
+# would keep passing while the real cap silently drifted by 2x. Derive the
+# divisor from the script itself instead of hard-coding it here.
+prod_div="$(grep -o 'ZIP_CAP + [0-9]*) / [0-9]*' "${SCRIPT}" | head -1 | grep -o '/ [0-9]*' | tr -dc '0-9')"
+check "the clamp model matches production units" \
+  "$(clamp 0)" "$(( (MAX_ZIP_BYTES + prod_div - 1) / prod_div ))"
 # A near-budget download phase must not still be able to queue a bounded
 # extraction per artifact and run the job past timeout-minutes.
 check "extraction is bounded by the shared deadline" \
