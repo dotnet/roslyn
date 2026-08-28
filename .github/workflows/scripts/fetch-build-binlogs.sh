@@ -180,7 +180,12 @@ mapfile -t names < <(
 echo "Selected ${#names[@]} of ${#all_names[@]} build-log artifacts for ${#failed_job_names[@]} failed or canceled jobs."
 
 # --- 7. Download and extract each selected artifact ------------------------
-MAX_ZIP_BYTES=524288000     # 500 MB compressed per artifact
+# Per-artifact compressed cap. Roslyn's `Correctness_Analyzers` log artifact is
+# routinely ~600 MB, so this has to be well clear of that or the workflow
+# silently skips exactly the correctness legs it exists to diagnose. Only one
+# archive is on disk at a time (each is deleted before the next download), so
+# this bounds peak zip disk use, not the sum across artifacts.
+MAX_ZIP_BYTES=2147483648    # 2 GB compressed per artifact
 MAX_TOTAL_BYTES=4294967296  # 4 GB extracted across all artifacts
 REMAINING_BYTES="${MAX_TOTAL_BYTES}"
 mkdir -p "${BINLOG_DIR}"
@@ -206,7 +211,7 @@ for name in "${names[@]}"; do
   (
     ulimit -f $((MAX_ZIP_BYTES / 512))
     trap '' XFSZ
-    curl -sSL --fail --retry 3 --retry-delay 2 --connect-timeout 15 --max-time 600 -o /tmp/a.zip "${url}"
+    curl -sSL --fail --retry 3 --retry-delay 2 --connect-timeout 15 --max-time 1200 -o /tmp/a.zip "${url}"
   ) 2>/dev/null
   curl_rc=$?
   ZIP_BYTES=$(stat -c%s /tmp/a.zip 2>/dev/null || echo 0)
