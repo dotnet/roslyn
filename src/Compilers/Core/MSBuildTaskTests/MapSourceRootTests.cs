@@ -15,8 +15,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
     public sealed class MapSourceRootsTests
     {
-        private static string GetFullPathNoThrow(string path)
-            => MapSourceRoots.GetFullPathNoThrow(path);
+        private static string GetFullPathNoThrow(string path) => TaskEnvironment.Fallback.GetAbsolutePath(path);
 
         private string InspectSourceRoot(ITaskItem sourceRoot)
             => $"'{sourceRoot.ItemSpec}'" +

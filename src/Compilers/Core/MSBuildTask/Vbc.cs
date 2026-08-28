@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             // Get the name of the output assembly because the pdb will be written beside it and will have the same name
             if (string.IsNullOrEmpty(PdbFile) ||
                 string.IsNullOrEmpty(OutputAssembly?.ItemSpec) ||
-                TaskEnvironment.GetFullPathNoThrow(OutputAssembly!.ItemSpec) is not string outputAssembly)
+                OutputAssembly!.GetMetadata("FullPath") is not string outputAssembly)
             {
                 return;
             }

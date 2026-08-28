@@ -364,7 +364,7 @@ build_metadata.Compile.ToRetrieve = abc123
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
                 PropertyItems = new[] { property1, property2 },
-                FileName = new TaskItem(fileName)
+                FileName = new(fileName)
             };
             configTask.Execute();
 

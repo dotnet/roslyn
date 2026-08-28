@@ -528,7 +528,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 var requestId = getRequestId();
                 logger.Log($"Compilation request {requestId}, PathToTool={pathToTool}");
 
-                string? tempDirectory = TaskEnvironment.GetTempPath();
+#pragma warning disable MSBuildTask0002 // API requires TaskEnvironment alternative in MSBuild tasks, waiting for https://github.com/dotnet/msbuild/issues/14583
+                string? tempDirectory = Path.GetTempPath();
+#pragma warning restore MSBuildTask0002 // API requires TaskEnvironment alternative in MSBuild tasks, waiting for https://github.com/dotnet/msbuild/issues/14583
 
                 if (!UseSharedCompilation ||
                     !UsingBuiltinTool ||
@@ -1114,7 +1116,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             foreach (var item in taskItems)
             {
-                item.ItemSpec = TaskEnvironment.GetFullPathNoThrow(item.ItemSpec);
+                item.ItemSpec = item.GetMetadata("FullPath");
             }
         }
 

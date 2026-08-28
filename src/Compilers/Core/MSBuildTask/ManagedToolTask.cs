@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// Base class for the MSBuild tasks that run the built-in managed compilers (<c>Csc</c>, <c>Vbc</c>,
     /// <c>Csi</c>).
     /// </summary>
-    public abstract class ManagedToolTask : ToolTask
+    public abstract class ManagedToolTask : ToolTask, IMultiThreadableTask
     {
         private bool? _useAppHost;
         internal readonly PropertyDictionary _store = new PropertyDictionary();

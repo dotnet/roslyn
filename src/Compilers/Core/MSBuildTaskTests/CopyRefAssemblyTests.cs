@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var task = new CopyRefAssembly()
             {
                 BuildEngine = engine,
-                SourcePath = Path.Combine(dir.Path, "does_not_exist.dll")
+                SourcePath = new(Path.Combine(dir.Path, "does_not_exist.dll"))
             };
 
             Assert.False(task.Execute());
@@ -49,8 +49,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var task = new CopyRefAssembly()
             {
                 BuildEngine = engine,
-                SourcePath = file.Path,
-                DestinationPath = null!,
+                SourcePath = new(file.Path),
             };
 
             Assert.False(task.Execute());
@@ -68,8 +67,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var task = new CopyRefAssembly()
             {
                 BuildEngine = engine,
-                SourcePath = file.Path,
-                DestinationPath = dest,
+                SourcePath = new(file.Path),
+                DestinationPath = new(dest),
             };
 
             Assert.True(task.Execute());
@@ -89,8 +88,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var task = new CopyRefAssembly()
             {
                 BuildEngine = engine,
-                SourcePath = source.Path,
-                DestinationPath = dest.Path,
+                SourcePath = new(source.Path),
+                DestinationPath = new(dest.Path),
             };
 
             Assert.True(task.Execute());
@@ -120,8 +119,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var task = new CopyRefAssembly()
             {
                 BuildEngine = engine,
-                SourcePath = source.Path,
-                DestinationPath = dest.Path,
+                SourcePath = new(source.Path),
+                DestinationPath = new(dest.Path),
             };
 
             Assert.True(task.Execute());
