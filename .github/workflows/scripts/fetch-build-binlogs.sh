@@ -33,7 +33,15 @@ emit_none() { echo "binlog-found=false" >> "$GITHUB_OUTPUT"; exit 0; }
 # Sets a non-zero return rather than calling emit_none directly, because a call
 # in a command substitution would only exit the subshell.
 ado_get() {
-  local what="$1" url="$2" rc tmp=/tmp/ado-response.json
+  local what="$1" url="$2" rc tmp
+  # `mktemp` rather than a fixed /tmp name: a predictable path is one
+  # pre-created symlink -- or one collision with another job sharing the
+  # runner -- away from being someone else's file. It costs nothing to not
+  # care whether this box is ephemeral.
+  tmp=$(mktemp) || {
+    echo "::warning::Could not create a temporary file for the ${what}; treating as a data-resolution failure."
+    return 1
+  }
   # These are small JSON documents; cap them so a stalled endpoint fails in
   # seconds rather than hanging the job until its overall timeout. `--max-time`
   # is per attempt, so `--retry-max-time` is what actually bounds the call:
@@ -46,7 +54,6 @@ ado_get() {
   # yield two concatenated documents, `jq` would reject them, and the run would
   # be reported as a data-resolution failure. With `-o` curl truncates the file
   # before each attempt, so only the last response survives.
-  rm -f "${tmp}"
   timeout 60 curl -sSL --fail --retry 3 --connect-timeout 10 \
     --max-time 20 --retry-max-time 40 -o "${tmp}" "${url}"
   rc=$?
@@ -217,6 +224,10 @@ MAX_TOTAL_BYTES=4294967296  # 4 GB extracted across all artifacts
 # dropping a leg that would still fit.
 MAX_TOTAL_ZIP_BYTES=3221225472  # 3 GB compressed downloaded across all artifacts
 TOTAL_ZIP_BYTES=0
+# One private scratch file for every download. A fixed /tmp name is a
+# pre-created symlink, or a second job on the same runner, away from being
+# someone else's file.
+ZIP_TMP=$(mktemp) || { echo "::warning::Could not create a temporary file for downloads."; emit_none; }
 # `--max-time` is per attempt, so `--retry N` multiplies it: the whole download
 # phase, not one transfer, is what has to fit inside this job's
 # `timeout-minutes: 15`. Give the loop a wall-clock deadline and derive every
@@ -244,7 +255,7 @@ for name in "${names[@]}"; do
   url=$(printf '%s' "${artifacts_json}" | jq -r --arg n "${name}" '.value[] | select(.name==$n) | .resource.downloadUrl // empty')
   [ -z "${url}" ] && { echo "::warning::Skipping ${safe_name}: no download URL."; continue; }
 
-  rm -f /tmp/a.zip
+  : > "${ZIP_TMP}"
   # Bound this transfer by whatever is left of the cumulative budget as well as
   # by the per-artifact cap, so the two limits together are a real ceiling on
   # bytes pulled rather than `MAX_TOTAL_ZIP_BYTES + MAX_ZIP_BYTES`.
@@ -282,10 +293,10 @@ for name in "${names[@]}"; do
     trap '' XFSZ
     timeout "${TIME_LEFT}" curl -sSL --fail --retry 3 --retry-delay 2 \
       --connect-timeout 15 --max-time "${ATTEMPT_SECONDS}" \
-      --retry-max-time "${TIME_LEFT}" -o /tmp/a.zip "${url}"
+      --retry-max-time "${TIME_LEFT}" -o "${ZIP_TMP}" "${url}"
   ) 2>/dev/null
   curl_rc=$?
-  ZIP_BYTES=$(stat -c%s /tmp/a.zip 2>/dev/null || echo 0)
+  ZIP_BYTES=$(stat -c%s "${ZIP_TMP}" 2>/dev/null || echo 0)
   # Charge the budget with the bytes that actually crossed the wire, including
   # those of an artifact that is about to be skipped.
   TOTAL_ZIP_BYTES=$((TOTAL_ZIP_BYTES + ZIP_BYTES))
@@ -303,7 +314,7 @@ for name in "${names[@]}"; do
   # BINLOG_DIR and stops once it has written REMAINING_BYTES, so it bounds both
   # where bytes land and how many there are.
   extract_out=$(timeout 300 python3 "${SCRIPT_DIR}/extract-binlogs.py" \
-    /tmp/a.zip "${BINLOG_DIR}" "${ai}" "${REMAINING_BYTES}")
+    "${ZIP_TMP}" "${BINLOG_DIR}" "${ai}" "${REMAINING_BYTES}")
   extract_rc=$?
   if [ "${extract_rc}" -ne 0 ]; then
     # A failed or timed-out extraction may have left partial files behind.
@@ -325,7 +336,7 @@ for name in "${names[@]}"; do
   staged_legs=$((staged_legs + 1))
   echo "Extracted ${extracted} binlog(s) (${written} bytes) from ${safe_name}."
 done
-rm -f /tmp/a.zip
+rm -f "${ZIP_TMP}"
 
 echo "Extracted ${count} binlog(s) from ${staged_legs}/${#names[@]} selected artifacts into ${BINLOG_DIR}:"
 ls -la "${BINLOG_DIR}" || true

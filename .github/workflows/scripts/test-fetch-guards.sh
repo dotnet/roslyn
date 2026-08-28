@@ -96,7 +96,7 @@ check "every curl retries" "${retrying}" "${total_curl}"
 
 # `--retry-max-time` only gates whether a *new* retry may start, so the deadline
 # is only real if the whole invocation is also wrapped in `timeout`.
-dl_curl=$(printf '%s\n' "${curl_cmds}" | grep -- '-o /tmp/a.zip')
+dl_curl=$(printf '%s\n' "${curl_cmds}" | grep -- '-o "${ZIP_TMP}"')
 check "the download is wrapped in timeout" \
   "$(printf '%s' "${dl_curl}" | grep -c 'timeout "${TIME_LEFT}" curl')" "1"
 # With a hard deadline the whole phase is bounded by the budget alone.
@@ -132,5 +132,17 @@ check "cleared before anything is extracted into it" \
 extract_line=$(grep -n 'unzip\|BINLOG_DIR}"/\|extract-binlogs' "${SCRIPT}" | awk -F: -v c="${clear_line:-0}" '$1 > c {print $1; exit}')
 check "clear precedes the first extraction" \
   "$([ -n "${extract_line}" ] && [ "${extract_line}" -gt "${clear_line}" ] && echo yes)" "yes"
+
+# --- Section 6: temporary files are private ---------------------------------
+# A fixed path under /tmp is one pre-created symlink -- or one collision with
+# another job sharing a runner -- away from writing to, or reading back,
+# someone else's file. Every scratch file this script creates comes from
+# `mktemp`. BINLOG_DIR is deliberately exempt: it is an interface, passed in
+# by the workflow and read by the upload step, and it is created and cleared
+# rather than written through.
+fixed_tmp=$(grep -c 'curl[^|]*-o /tmp/\|-o /tmp/[A-Za-z]' "${SCRIPT}" || true)
+check "no curl writes to a fixed /tmp path" "${fixed_tmp}" "0"
+check "scratch files come from mktemp" \
+  "$(grep -cE '=\$\(mktemp\)' "${SCRIPT}")" "2"
 
 exit "${fail}"
