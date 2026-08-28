@@ -218,7 +218,7 @@ MAX_TOTAL_BYTES=4294967296  # 4 GB extracted across all artifacts
 # This is a budget, not a byte-exact ceiling: bash's `ulimit -f` works in
 # 1024-byte units (not the POSIX 512-byte block) and this rounds up, so a
 # transfer can overshoot its cap by up to 1023 bytes
-# before the size check below rejects it. That slack is under 512 bytes per
+# before the size check below rejects it. That slack is under 1 KiB per
 # selected artifact, so at any plausible artifact count it stays in the
 # kilobytes — irrelevant next to a 3 GB budget, and far cheaper than the
 # alternative of treating a small remaining allowance as exhausted and
