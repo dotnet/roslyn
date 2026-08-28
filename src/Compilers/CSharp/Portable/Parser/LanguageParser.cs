@@ -1731,12 +1731,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 // In 'partial partial()', the second 'partial' is the constructor name. Do not skip
                 // it unless the remaining tokens instead form a declaration such as 'partial partial M()'.
-                if (allowMembers &&
-                    this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword &&
-                    this.IsPartialIdentifierDeclarationHead())
-                {
+                if (allowMembers && isPartialIdentifierDeclarationHead())
                     return true;
-                }
 
                 this.EatToken();
             }
@@ -1766,39 +1762,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // Otherwise, require a return type followed by a member name, as in 'partial int M()'.
             return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
-        }
 
-        /// <summary>
-        /// Returns true when this <c>partial</c> should remain an identifier, as in
-        /// <c>partial partial()</c>. With partial constructors enabled, it returns false for
-        /// <c>partial partial M()</c> so both tokens become modifiers.
-        /// </summary>
-        private bool IsPartialIdentifierDeclarationHead()
-        {
-            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
+            // Keep the second 'partial' as an identifier in 'partial partial()'. Consume it as a
+            // modifier in a declaration such as 'partial partial M()'.
+            bool isPartialIdentifierDeclarationHead()
+            {
+                if (this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword)
+                    return false;
 
-            if (this.IsTypeDeclarationAfterPartialModifiers(peekIndex: 0))
-                return false;
+                if (isTypeDeclarationAfterPartialModifiers(peekIndex: 0))
+                    return false;
 
-            if (this.IsPartialConstructor(peekIndex: 0))
-                return false;
+                if (this.IsPartialConstructor(peekIndex: 0))
+                    return false;
 
-            if (this.IsPartialConstructorName(peekIndex: 0))
-                return true;
+                if (this.IsPartialConstructorName(peekIndex: 0))
+                    return true;
 
-            using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
-            return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
-        }
+                using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
+                return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
+            }
 
-        private bool IsTypeDeclarationAfterPartialModifiers(int peekIndex)
-        {
-            Debug.Assert(this.PeekToken(peekIndex).ContextualKind == SyntaxKind.PartialKeyword);
+            bool isTypeDeclarationAfterPartialModifiers(int peekIndex)
+            {
+                Debug.Assert(this.PeekToken(peekIndex).ContextualKind == SyntaxKind.PartialKeyword);
 
-            do
-                peekIndex++;
-            while (this.PeekToken(peekIndex).ContextualKind == SyntaxKind.PartialKeyword);
+                do
+                {
+                    peekIndex++;
+                }
+                while (this.PeekToken(peekIndex).ContextualKind == SyntaxKind.PartialKeyword);
 
-            return this.IsClassStructInterfaceRecordOrUnionKeyword(this.PeekToken(peekIndex));
+                return this.IsClassStructInterfaceRecordOrUnionKeyword(this.PeekToken(peekIndex));
+            }
         }
 
         private bool IsPartialType()
