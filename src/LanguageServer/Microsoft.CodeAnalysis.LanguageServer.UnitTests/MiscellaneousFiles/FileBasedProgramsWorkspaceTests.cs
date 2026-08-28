@@ -265,9 +265,8 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
 
         await testLspServer.CloseDocumentAsync(looseFileUri);
 
-        (workspace, document) = await GetLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
-        Assert.Null(workspace);
-        Assert.Null(document);
+        Assert.Empty(GetHostWorkspace(testLspServer).CurrentSolution.GetDocumentIds(looseFileUri));
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
     }
 
     [Theory, CombinatorialData]
@@ -327,9 +326,8 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         await testLspServer.CloseDocumentAsync(looseFileUri);
 
         // Project is unloaded because automatic discovery is disabled.
-        (workspace, document) = await GetLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
-        Assert.Null(workspace);
-        Assert.Null(document);
+        Assert.Empty(GetHostWorkspace(testLspServer).CurrentSolution.GetDocumentIds(looseFileUri));
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
     }
 
     /// <summary>Test that a document which does not have an on-disk path, is never treated as a file-based program.</summary>

@@ -220,19 +220,42 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         }
     }
 
-    public async ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo documentInfo)
+    public async ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo? documentInfo)
     {
+        if (documentInfo is null && documentUri.ParsedUri?.IsFile != true)
+            return null;
+
         var languageInfoProvider = _lspServices.GetRequiredService<ILanguageInfoProvider>();
-        if (!languageInfoProvider.TryGetLanguageInformation(documentUri, documentInfo.LanguageId, out var languageInformation))
+        if (!languageInfoProvider.TryGetLanguageInformation(documentUri, documentInfo?.LanguageId, out var languageInformation))
         {
+            // Requests are invalid when the client specifies an unsupported language, or when it omits the language
+            // and we cannot infer one from the URI path.
             Contract.Fail($"Could not find language information for '{documentUri}'");
         }
 
         var documentFilePath = GetDocumentFilePath(documentUri);
-        var sourceTextLoader = new SourceTextLoader(documentInfo.SourceText, documentFilePath);
+        if (documentInfo is null)
+        {
+            Contract.ThrowIfFalse(documentUri.ParsedUri?.IsFile == true);
+
+            var projectFactory = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory;
+            var projectInfo = CreateMiscellaneousProjectInfo(projectFactory.CreateFileTextLoader(documentFilePath), SourceHashAlgorithms.Default);
+            var solution = projectFactory.Workspace.CurrentSolution.AddProject(projectInfo);
+            return solution.GetTextDocuments(documentUri).Single();
+        }
+
+        var sourceTextLoader = new SourceTextLoader(documentInfo.Value.SourceText, documentFilePath);
         var doDesignTimeBuild = !ClassifyAsMiscellaneousFileWithNoReferences(documentFilePath, languageInformation);
         return await this.GetOrLoadEntryPointDocumentAsync(
-            documentFilePath, sourceTextLoader, languageInformation, documentInfo.SourceText.ChecksumAlgorithm, doDesignTimeBuild);
+            documentFilePath, sourceTextLoader, languageInformation, documentInfo.Value.SourceText.ChecksumAlgorithm, doDesignTimeBuild);
+
+        ProjectInfo CreateMiscellaneousProjectInfo(TextLoader textLoader, SourceHashAlgorithm checksumAlgorithm)
+        {
+            var enableFileBasedPrograms = GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms);
+            var projectFactory = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory;
+            return MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
+                projectFactory.Workspace, documentFilePath, textLoader, languageInformation, checksumAlgorithm, projectFactory.Workspace.Services.SolutionServices, [], enableFileBasedPrograms);
+        }
     }
 
     /// <summary>
