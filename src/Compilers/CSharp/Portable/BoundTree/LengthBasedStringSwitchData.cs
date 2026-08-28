@@ -143,6 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Smaller switches need at least three cases, all sharing a single non-null string length.
+            // This lets one length check send every differently sized input directly to the default case.
             return labelsCount >= 3 && LengthBasedJumpTable.LengthCaseLabels.Length == 1;
         }
 
