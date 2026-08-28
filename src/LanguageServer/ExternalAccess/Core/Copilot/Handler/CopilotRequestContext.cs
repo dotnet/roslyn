@@ -12,31 +12,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot;
 /// <summary>
 /// Context for requests handled by <see cref="AbstractCopilotLspServiceDocumentRequestHandler{TRequest, TResponse}"/>
 /// </summary>
-internal readonly struct CopilotRequestContext
+internal readonly struct CopilotRequestContext(RequestContext context)
 {
-    private readonly RequestContext _context;
-
-    public CopilotRequestContext(RequestContext context)
-    {
-        _context = context;
-    }
-
     /// <summary>
     /// The solution state that the request should operate on.
     /// </summary>
     [Obsolete("Use GetSolutionAsync instead.", error: false)]
-    public Solution Solution
-        => _context.GetRequiredSolutionSynchronously();
+    public Solution Solution => context.GetRequiredSolutionSynchronously();
 
     [Obsolete("Use GetDocumentAsync instead.", error: false)]
-    public Document? Document
-        => _context.GetDocumentSynchronously();
+    public Document? Document => context.GetDocumentSynchronously();
 
     public ValueTask<Solution> GetSolutionAsync(CancellationToken cancellationToken)
-        => _context.GetRequiredSolutionAsync(cancellationToken);
+        => context.GetRequiredSolutionAsync(cancellationToken);
 
     public ValueTask<Document?> GetDocumentAsync(CancellationToken cancellationToken)
-        => _context.GetDocumentAsync(cancellationToken);
+        => context.GetDocumentAsync(cancellationToken);
 
-    public T GetRequiredService<T>() where T : class => _context.GetRequiredService<T>();
+    public T GetRequiredService<T>() where T : class => context.GetRequiredService<T>();
 }

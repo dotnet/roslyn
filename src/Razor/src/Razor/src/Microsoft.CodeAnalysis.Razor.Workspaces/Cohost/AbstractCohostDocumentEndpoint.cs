@@ -32,7 +32,7 @@ internal abstract class AbstractCohostDocumentEndpoint<TRequest, TResponse>(
         {
             await _incompatibleProjectService.HandleMissingDocumentAsync(GetRazorTextDocumentIdentifier(request), context, cancellationToken).ConfigureAwait(false);
 
-            return await SpecializedTasks.Default<TResponse>().ConfigureAwait(false);
+            return default;
         }
 
         return await HandleRequestAsync(request, context, textDocument, cancellationToken).ConfigureAwait(false);

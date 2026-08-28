@@ -8,45 +8,34 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk;
 
-internal readonly struct RequestContext
+internal readonly struct RequestContext(LspRequestContext context)
 {
-    private readonly LspRequestContext _context;
-
-    internal RequestContext(LspRequestContext context)
-    {
-        _context = context;
-    }
-
     [Obsolete("Use GetWorkspaceAsync instead.", error: false)]
-    internal Workspace? Workspace
-        => _context.GetWorkspaceSynchronously();
+    internal Workspace? Workspace => context.GetWorkspaceSynchronously();
 
     [Obsolete("Use GetSolutionAsync instead.", error: false)]
-    internal Solution? Solution
-        => _context.GetSolutionSynchronously();
+    internal Solution? Solution => context.GetSolutionSynchronously();
 
     [Obsolete("Use GetDocumentAsync instead.", error: false)]
-    internal Document? Document
-        => _context.GetDocumentSynchronously();
+    internal Document? Document => context.GetDocumentSynchronously();
 
     [Obsolete("Use GetRequiredDocumentAsync instead.", error: false)]
-    internal Document GetRequiredDocument()
-        => _context.GetRequiredDocumentSynchronously();
+    internal Document GetRequiredDocument() => context.GetRequiredDocumentSynchronously();
 
     internal ValueTask<Solution?> GetSolutionAsync(CancellationToken cancellationToken)
-        => _context.GetSolutionAsync(cancellationToken);
+        => context.GetSolutionAsync(cancellationToken);
 
     internal ValueTask<Workspace?> GetWorkspaceAsync(CancellationToken cancellationToken)
-        => _context.GetWorkspaceAsync(cancellationToken);
+        => context.GetWorkspaceAsync(cancellationToken);
 
     internal ValueTask<Workspace> GetRequiredWorkspaceAsync(CancellationToken cancellationToken)
-        => _context.GetRequiredWorkspaceAsync(cancellationToken);
+        => context.GetRequiredWorkspaceAsync(cancellationToken);
 
     internal ValueTask<Document?> GetDocumentAsync(CancellationToken cancellationToken)
-        => _context.GetDocumentAsync(cancellationToken);
+        => context.GetDocumentAsync(cancellationToken);
 
     internal ValueTask<Document> GetRequiredDocumentAsync(CancellationToken cancellationToken)
-        => _context.GetRequiredDocumentAsync(cancellationToken);
+        => context.GetRequiredDocumentAsync(cancellationToken);
 
-    internal T GetRequiredService<T>() where T : class => _context.GetRequiredService<T>();
+    internal T GetRequiredService<T>() where T : class => context.GetRequiredService<T>();
 }

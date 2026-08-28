@@ -11,30 +11,21 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts;
 
-internal sealed class HotReloadRequestContext
+internal sealed class HotReloadRequestContext(RequestContext context)
 {
-    private readonly RequestContext _context;
-
-    public HotReloadRequestContext(RequestContext context)
-    {
-        _context = context;
-    }
-
-    internal LSP.ClientCapabilities ClientCapabilities => _context.GetRequiredClientCapabilities();
+    internal LSP.ClientCapabilities ClientCapabilities => context.GetRequiredClientCapabilities();
 
     [Obsolete("Use GetTextDocumentAsync instead.", error: false)]
-    public TextDocument? TextDocument
-        => _context.GetTextDocumentSynchronously();
+    public TextDocument? TextDocument => context.GetTextDocumentSynchronously();
 
     [Obsolete("Use GetSolutionAsync instead.", error: false)]
-    public Solution? Solution
-        => _context.GetSolutionSynchronously();
+    public Solution? Solution => context.GetSolutionSynchronously();
 
     public ValueTask<TextDocument?> GetTextDocumentAsync(CancellationToken cancellationToken)
-        => _context.GetTextDocumentAsync(cancellationToken);
+        => context.GetTextDocumentAsync(cancellationToken);
 
     public ValueTask<Solution?> GetSolutionAsync(CancellationToken cancellationToken)
-        => _context.GetSolutionAsync(cancellationToken);
+        => context.GetSolutionAsync(cancellationToken);
 
-    public bool IsTracking(TextDocument textDocument) => _context.IsTracking(textDocument.GetURI());
+    public bool IsTracking(TextDocument textDocument) => context.IsTracking(textDocument.GetURI());
 }
