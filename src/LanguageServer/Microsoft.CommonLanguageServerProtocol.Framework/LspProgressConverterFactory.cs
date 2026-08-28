@@ -94,13 +94,20 @@ internal sealed class LspProgressConverter<T> : JsonConverter<IProgress<T>>
 
     private sealed class LspProgress : IProgress<T>
     {
+        private static readonly IReadOnlyDictionary<string, Type> s_argumentDeclaredTypes =
+            new Dictionary<string, Type>
+            {
+                { "token", typeof(JsonElement) },
+                { "value", typeof(T) },
+            };
+
         private readonly JsonRpc _jsonRpc;
-        private readonly JsonElement _token;
+        private readonly object _boxedToken;
 
         public LspProgress(JsonRpc jsonRpc, JsonElement token)
         {
             _jsonRpc = jsonRpc;
-            _token = token;
+            _boxedToken = token;
         }
 
         public void Report(T value)
@@ -111,20 +118,14 @@ internal sealed class LspProgressConverter<T> : JsonConverter<IProgress<T>>
             // requires $/progress to carry a named parameter object with 'token' and 'value' properties.
             var arguments = new Dictionary<string, object?>
             {
-                { "token", _token },
+                { "token", _boxedToken },
                 { "value", value },
             };
 
             // Unlike streamjsonrpc we declare the token as a JsonElement rather than its CLR type, since we
             // hold onto the raw token to echo back whichever form (integer or string) the client sent.
-            var argumentDeclaredTypes = new Dictionary<string, Type>
-            {
-                { "token", typeof(JsonElement) },
-                { "value", typeof(T) },
-            };
-
             var notifyTask = _jsonRpc.NotifyWithParameterObjectAsync(
-                MessageFormatterProgressTracker.ProgressRequestSpecialMethod, arguments, argumentDeclaredTypes);
+                MessageFormatterProgressTracker.ProgressRequestSpecialMethod, arguments, s_argumentDeclaredTypes);
 
             // Progress notifications are fire and forget - trace failures (including the ObjectDisposedException
             // raised when the connection is torn down mid-request) instead of faulting the request that produced
