@@ -214,10 +214,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 // native AOT host, so it does not need to satisfy the IL3000 single-file analyzer.
                 if (!NoConfig)
                 {
-                    var rspFile = Path.Combine(Path.GetDirectoryName(typeof(ManagedCompiler).Assembly.Location)!, "csc.rsp");
-                    if (TaskEnvironment.FileExists(rspFile))
+                    var rspFile = new FileInfo(TaskEnvironment.GetAbsolutePath(Path.Combine(Path.GetDirectoryName(typeof(ManagedCompiler).Assembly.Location)!, "csc.rsp")));
+                    if (rspFile.Exists)
                     {
-                        commandLine.AppendSwitchIfNotNull("@", rspFile);
+                        commandLine.AppendSwitchIfNotNull("@", rspFile.FullName);
                     }
                 }
 #else

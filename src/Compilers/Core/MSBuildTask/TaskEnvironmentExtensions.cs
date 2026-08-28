@@ -39,52 +39,5 @@ internal static class TaskEnvironmentExtensions
                 return path;
             }
         }
-
-        public void DeleteNoThrow(FileInfo fileInfo) => taskEnvironment.DeleteNoThrow(taskEnvironment.GetAbsolutePath(fileInfo.FullName));
-
-        public void DeleteNoThrow(AbsolutePath path)
-        {
-#pragma warning disable RS0030 // Do not used banned APIs
-            try
-            {
-                File.Delete(path.Value);
-            }
-            catch (Exception)
-            {
-
-            }
-#pragma warning restore RS0030 // Do not used banned APIs
-        }
-
-        public bool FileExists(string path) => taskEnvironment.FileExists(taskEnvironment.GetAbsolutePath(path));
-
-        public bool FileExists(AbsolutePath path)
-        {
-#pragma warning disable RS0030 // Do not used banned APIs
-            return File.Exists(path.Value);
-#pragma warning restore RS0030 // Do not used banned APIs
-        }
-
-        public void FileMove(string sourceFileName, string destFileName) =>
-            taskEnvironment.FileMove(
-                taskEnvironment.GetAbsolutePath(sourceFileName),
-                taskEnvironment.GetAbsolutePath(destFileName));
-
-        public void FileMove(AbsolutePath sourceFilePath, AbsolutePath destFilePath)
-        {
-#pragma warning disable RS0030 // Do not used banned APIs
-            File.Move(sourceFilePath.Value, destFilePath.Value);
-#pragma warning restore RS0030 // Do not used banned APIs
-        }
-
-        public FileInfo CreateFileInfo(string path) => taskEnvironment.CreateFileInfo(taskEnvironment.GetAbsolutePath(path));
-
-        public FileInfo CreateFileInfo(AbsolutePath path)
-        {
-#pragma warning disable RS0030 // Do not used banned APIs
-            return new FileInfo(path.Value);
-#pragma warning restore RS0030 // Do not used banned APIs
-        }
-
     }
 }

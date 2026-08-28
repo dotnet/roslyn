@@ -1235,12 +1235,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             foreach (ITaskItem reference in References)
             {
-                var itemSpec = reference.ItemSpec;
+                var referenceFullPath = reference.GetMetadata("FullPath");
 
-                if (string.IsNullOrEmpty(itemSpec) || !TaskEnvironment.FileExists(itemSpec))
+                if (string.IsNullOrEmpty(referenceFullPath) || File.Exists(referenceFullPath))
                 {
                     success = false;
-                    Log.LogErrorWithCodeFromResources("General_ReferenceDoesNotExist", itemSpec);
+                    Log.LogErrorWithCodeFromResources("General_ReferenceDoesNotExist", referenceFullPath);
                 }
             }
 

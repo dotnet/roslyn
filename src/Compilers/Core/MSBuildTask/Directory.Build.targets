@@ -6,6 +6,7 @@
     <PackageReference Include="Microsoft.Build.Tasks.Core" ExcludeAssets="Runtime" />
     <PackageReference Include="System.Memory" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
+    <PackageReference Include="Microsoft.Build.TaskAuthoring.Analyzer" />
     <CompilerVersionTargetsFile Include="$(IntermediateOutputPath)Microsoft.Managed.Core.CurrentVersions.targets" />
   </ItemGroup>
   <Target Name="GenerateCompilerVersionTargets" BeforeTargets="AssignTargetPaths" DependsOnTargets="GenerateCompilerVersionTargetsFile">

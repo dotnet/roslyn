@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 string actualPdb = Path.ChangeExtension(outputAssembly, ".pdb"); // This is the pdb that the compiler generated
 
-                FileInfo actualPdbInfo = TaskEnvironment.CreateFileInfo(actualPdb);
+                FileInfo actualPdbInfo = new(TaskEnvironment.GetAbsolutePath(actualPdb));
 
                 string desiredLocation = PdbFile;
                 if (!desiredLocation.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase))
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     desiredLocation += ".pdb";
                 }
 
-                FileInfo desiredPdbInfo = TaskEnvironment.CreateFileInfo(desiredLocation);
+                FileInfo desiredPdbInfo = new(TaskEnvironment.GetAbsolutePath(desiredLocation));
 
                 // If the compiler generated a pdb..
                 if (actualPdbInfo.Exists)
@@ -325,11 +325,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         // Delete the existing one if it's already there, as Move would otherwise fail
                         if (desiredPdbInfo.Exists)
                         {
-                            TaskEnvironment.DeleteNoThrow(desiredPdbInfo);
+                            try
+                            {
+                                desiredPdbInfo.Delete();
+                            }
+                            catch (Exception)
+                            {
+                            }
                         }
 
                         // Move the file to where we actually wanted VBC to put it
-                        TaskEnvironment.FileMove(actualPdbInfo.FullName, desiredLocation);
+                        File.Move(actualPdbInfo.FullName, desiredPdbInfo.FullName);
                     }
                 }
             }
@@ -400,10 +406,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 // native AOT host, so it does not need to satisfy the IL3000 single-file analyzer.
                 if (!NoConfig)
                 {
-                    var rspFile = Path.Combine(Path.GetDirectoryName(typeof(ManagedCompiler).Assembly.Location)!, "vbc.rsp");
-                    if (TaskEnvironment.FileExists(rspFile))
+                    var rspFile = new FileInfo(TaskEnvironment.GetAbsolutePath(Path.Combine(Path.GetDirectoryName(typeof(ManagedCompiler).Assembly.Location)!, "vbc.rsp")));
+                    if (rspFile.Exists)
                     {
-                        commandLine.AppendSwitchIfNotNull("@", rspFile);
+                        commandLine.AppendSwitchIfNotNull("@", rspFile.FullName);
                     }
                 }
 #else

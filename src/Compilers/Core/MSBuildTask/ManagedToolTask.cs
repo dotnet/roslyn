@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 if (_useAppHost is not { } useAppHost)
                 {
-                    _useAppHost = useAppHost = TaskEnvironment.FileExists(Path.Combine(GetToolDirectory(), AppHostToolName));
+                    _useAppHost = useAppHost = new FileInfo(TaskEnvironment.GetAbsolutePath(Path.Combine(GetToolDirectory(), AppHostToolName))).Exists;
                     Debug.Assert(IsBuiltinToolRunningOnCoreClr || useAppHost);
                 }
 
