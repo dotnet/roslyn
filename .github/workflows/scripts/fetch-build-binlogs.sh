@@ -33,16 +33,25 @@ emit_none() { echo "binlog-found=false" >> "$GITHUB_OUTPUT"; exit 0; }
 # Sets a non-zero return rather than calling emit_none directly, because a call
 # in a command substitution would only exit the subshell.
 ado_get() {
-  local what="$1" url="$2" rc
+  local what="$1" url="$2" rc tmp=/tmp/ado-response.json
   # These are small JSON documents; cap them so a stalled endpoint fails in
   # seconds rather than hanging the job until its overall timeout. `--max-time`
   # is per attempt, so `--retry-max-time` is what actually bounds the call:
   # without it these few metadata fetches could cumulatively consume the job's
   # `timeout-minutes` on their own. The artifact download below sets its own,
   # much larger, budget.
-  ADO_DOC=$(curl -sSL --fail --retry 3 --connect-timeout 10 \
-    --max-time 20 --retry-max-time 40 "${url}")
+  # Write to a file rather than capturing stdout: `curl --retry` can only rewind
+  # seekable output, and command-substitution stdout is a pipe. A retry after a
+  # partial or error body would append to it, so a *successful* retry would
+  # yield two concatenated documents, `jq` would reject them, and the run would
+  # be reported as a data-resolution failure. With `-o` curl truncates the file
+  # before each attempt, so only the last response survives.
+  rm -f "${tmp}"
+  timeout 60 curl -sSL --fail --retry 3 --connect-timeout 10 \
+    --max-time 20 --retry-max-time 40 -o "${tmp}" "${url}"
   rc=$?
+  ADO_DOC=$(cat "${tmp}" 2>/dev/null)
+  rm -f "${tmp}"
   if [ "${rc}" -ne 0 ] || [ -z "${ADO_DOC}" ]; then
     echo "::warning::Could not fetch the ${what} from Azure DevOps (curl exit ${rc}); treating as a data-resolution failure."
     return 1

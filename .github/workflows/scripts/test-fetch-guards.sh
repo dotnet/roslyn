@@ -103,7 +103,22 @@ check "the download is wrapped in timeout" \
 check "download phase is bounded by the budget alone" \
   "$([ "${DOWNLOAD_BUDGET}" -lt $((JOB_TIMEOUT_MIN * 60)) ] && echo yes)" "yes"
 
-# --- 4. Only this run's binlogs may be analyzed -----------------------------
+# --- 4. Retries must never concatenate two responses ------------------------
+# `curl --retry` can only rewind seekable output. Through a pipe or a command
+# substitution, a retry appends to whatever the failed attempt already wrote,
+# so a *successful* retry yields a corrupt two-response body. Every retrying
+# curl must therefore write to a file with `-o`.
+piped=$(printf '%s\n' "${curl_cmds}" | grep -- '--retry [0-9]' | grep -c -- '|')
+captured=$(printf '%s\n' "${curl_cmds}" | grep -c -- '=\$(curl')
+to_file=$(printf '%s\n' "${curl_cmds}" | grep -- '--retry [0-9]' | grep -c -- ' -o ')
+check "no retrying curl streams through a pipe" "${piped}" "0"
+check "no retrying curl is captured by substitution" "${captured}" "0"
+check "every retrying curl writes to a file" "${to_file}" "${retrying}"
+# HTTP error bodies must not be mistaken for content.
+failing=$(printf '%s\n' "${curl_cmds}" | grep -c -- '--fail')
+check "every curl rejects HTTP error bodies" "${failing}" "${total_curl}"
+
+# --- 5. Only this run's binlogs may be analyzed -----------------------------
 # The extract loop globs the whole directory, so anything a previous run left
 # behind would be uploaded and attributed to this build.
 mkdir_line=$(grep -n 'mkdir -p "${BINLOG_DIR}"' "${SCRIPT}" | head -1 | cut -d: -f1)
