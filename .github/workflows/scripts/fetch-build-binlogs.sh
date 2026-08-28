@@ -212,6 +212,10 @@ MAX_ATTEMPT_SECONDS=120         # per attempt; the full set really takes ~30s
 DOWNLOAD_DEADLINE=$(( $(date +%s) + DOWNLOAD_BUDGET ))
 REMAINING_BYTES="${MAX_TOTAL_BYTES}"
 mkdir -p "${BINLOG_DIR}"
+# Only binlogs extracted by this run may be analyzed. Anything left in
+# the directory by an earlier run on the same runner would otherwise be
+# uploaded and attributed to this build.
+rm -f "${BINLOG_DIR}"/*.binlog
 count=0
 staged_legs=0
 ai=0

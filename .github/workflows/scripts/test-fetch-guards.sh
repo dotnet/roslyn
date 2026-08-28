@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
-# Focused checks for the two guards added in response to review:
+# Focused checks for the guards added in response to review:
 #   1. GITHUB_OUTPUT must be set AND writable.
-#   2. A remaining compressed allowance below MIN_ZIP_BYTES stops downloads,
-#      so `ulimit -f $((ZIP_CAP / 512))` can never floor to 0 blocks.
+#   2. Downloads stop only once the remaining compressed allowance is
+#      non-positive, and `ulimit -f $(( (ZIP_CAP + 511) / 512 ))` rounds up so
+#      any accepted cap still buys at least one 512-byte block.
+#   3. The download phase fits inside the job's timeout, and no retrying curl
+#      is left without a bound on its whole retry window.
 set -u
 SCRIPT="$1"
 WORKFLOW="${2:-.github/workflows/build-failure-analysis.agent.md}"
@@ -90,5 +93,20 @@ retrying=$(printf '%s\n' "${curl_cmds}" | grep -c -- '--retry [0-9]')
 check "every curl invocation was found" "$([ "${total_curl}" -ge 2 ] && echo yes)" "yes"
 check "every retrying curl bounds its retry window" "${bounded}" "${retrying}"
 check "every curl retries" "${retrying}" "${total_curl}"
+
+# --- 4. Only this run's binlogs may be analyzed -----------------------------
+# The extract loop globs the whole directory, so anything a previous run left
+# behind would be uploaded and attributed to this build.
+mkdir_line=$(grep -n 'mkdir -p "${BINLOG_DIR}"' "${SCRIPT}" | head -1 | cut -d: -f1)
+clear_line=$(grep -n 'rm -f "${BINLOG_DIR}"/\*.binlog' "${SCRIPT}" | head -1 | cut -d: -f1)
+check "binlog directory is created" "$([ -n "${mkdir_line}" ] && echo yes)" "yes"
+check "stale binlogs are cleared" "$([ -n "${clear_line}" ] && echo yes)" "yes"
+check "cleared before anything is extracted into it" \
+  "$([ -n "${clear_line}" ] && [ -n "${mkdir_line}" ] && [ "${clear_line}" -gt "${mkdir_line}" ] && echo yes)" "yes"
+# The clear has to precede the first extraction, or it would delete the very
+# binlogs this run just wrote.
+extract_line=$(grep -n 'unzip\|BINLOG_DIR}"/\|extract-binlogs' "${SCRIPT}" | awk -F: -v c="${clear_line:-0}" '$1 > c {print $1; exit}')
+check "clear precedes the first extraction" \
+  "$([ -n "${extract_line}" ] && [ "${extract_line}" -gt "${clear_line}" ] && echo yes)" "yes"
 
 exit "${fail}"
