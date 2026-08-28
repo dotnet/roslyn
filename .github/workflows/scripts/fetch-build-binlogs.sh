@@ -289,7 +289,10 @@ for name in "${names[@]}"; do
   # rather than a scheduling hint; a killed transfer is treated like any other
   # failed one and the leg is reported as missing, which fails closed.
   (
-    ulimit -f $(( (ZIP_CAP + 511) / 512 ))
+    # Fail the leg rather than the backstop: if the shell will not apply the
+    # limit, downloading anyway would leave a response with no usable
+    # Content-Length free to fill the disk before the size check below runs.
+    ulimit -f $(( (ZIP_CAP + 511) / 512 )) || exit 1
     trap '' XFSZ
     timeout "${TIME_LEFT}" curl -sSL --fail --retry 3 --retry-delay 2 \
       --connect-timeout 15 --max-time "${ATTEMPT_SECONDS}" \
