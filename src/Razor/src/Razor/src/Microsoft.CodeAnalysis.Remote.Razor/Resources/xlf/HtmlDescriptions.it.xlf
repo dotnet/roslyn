@@ -647,7 +647,7 @@ Definisce un [cookie](https://developer.mozilla.org/en-US/docs/cookie) per la pa
 * `chapters`
 * I titoli dei capitoli sono pensati per essere usati quando l'utente naviga nella risorsa multimediale.
 * `metadata`
-* Tracce usate dagli script. Non visibili all'utente.</target>
+* Tracce usate dagli script. Non visibile all'utente.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_label">
