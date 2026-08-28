@@ -90,7 +90,7 @@ When starting any task or answering any question about this repo:
 Every task that changes code must end with a doc pass:
 - Added or moved files? → Update `.github/memory/FILE_MAP.md` (top-level) and the matching `.github/instructions/<area>.instructions.md` (directory detail).
 - Changed a public interface, diagnostic ID, or API? → Update the relevant `.github/instructions/<area>.instructions.md` and `PublicAPI.Unshipped.txt`.
-- Hit something surprising or undocumented? → file a tracking issue and add a local code comment with the issue link where it matters.
+- Hit something surprising or undocumented? → Ask the user how they want it documented. Do not file an issue automatically.
 - Established a new pattern? → Repo-wide → `.github/memory/CONVENTIONS.md`; layer-specific → the matching `.github/instructions/<area>.instructions.md`.
 - Changed test base classes or conventions? → Repo-wide layout → `.github/memory/TESTING_STRATEGY.md`; layer-specific → `.github/memory/testing/<area>.md`.
 - Added/removed/renamed a memory file? → Update `.github/memory/INDEX.md`.
