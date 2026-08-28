@@ -13,6 +13,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
 public class CodeGenLengthBasedSwitchTests : CSharpTestBase
 {
     [Fact]
+    public void SmallSwitchExclusions()
+    {
+        var source = """
+public static class C
+{
+    public static byte TwoSameLength(string str) => str switch
+    {
+        "one" => 1,
+        "two" => 2,
+        _ => 0
+    };
+
+    public static byte ThreeMixedLengths(string str) => str switch
+    {
+        "a" => 1,
+        "two" => 2,
+        "four" => 4,
+        _ => 0
+    };
+
+    public static byte NullAndTwoSameLength(string str) => str switch
+    {
+        null => 0,
+        "one" => 1,
+        "two" => 2,
+        _ => 3
+    };
+}
+""";
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll);
+        verifyLinearDispatch("C.TwoSameLength");
+        verifyLinearDispatch("C.ThreeMixedLengths");
+        verifyLinearDispatch("C.NullAndTwoSameLength");
+
+        void verifyLinearDispatch(string methodName)
+        {
+            string il = verifier.VisualizeIL(methodName);
+            Assert.Contains("string.op_Equality", il, System.StringComparison.Ordinal);
+            Assert.DoesNotContain("string.Length.get", il, System.StringComparison.Ordinal);
+            Assert.DoesNotContain("string.this[int].get", il, System.StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
     public void SmallSwitchWithSingleLength()
     {
         var source = """
