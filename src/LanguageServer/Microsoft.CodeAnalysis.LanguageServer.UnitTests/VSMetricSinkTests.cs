@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -29,7 +27,7 @@ public sealed class VSMetricSinkTests
         /// <summary>
         /// Runs inside the aggregation lock a flush holds while posting.
         /// </summary>
-        public Action OnPost { get; set; }
+        public Action? OnPost { get; set; }
 
         /// <summary>
         /// The telemetry events carried by <see cref="Posted"/>, captured at post time because
@@ -75,11 +73,11 @@ public sealed class VSMetricSinkTests
 
         // Same event and metric, different tag values: these must aggregate into separate buckets.
         sink.Record("vs/ide/vbcs/lsp/requestduration", "RequestDuration", 10,
-            new KeyValuePair<string, object>[] { new("server", "Roslyn"), new("method", "textDocument/hover") });
+            new KeyValuePair<string, object?>[] { new("server", "Roslyn"), new("method", "textDocument/hover") });
         sink.Record("vs/ide/vbcs/lsp/requestduration", "RequestDuration", 20,
-            new KeyValuePair<string, object>[] { new("server", "Roslyn"), new("method", "textDocument/completion") });
+            new KeyValuePair<string, object?>[] { new("server", "Roslyn"), new("method", "textDocument/completion") });
         sink.Record("vs/ide/vbcs/lsp/requestduration", "RequestDuration", 30,
-            new KeyValuePair<string, object>[] { new("server", "Roslyn"), new("method", "textDocument/hover") });
+            new KeyValuePair<string, object?>[] { new("server", "Roslyn"), new("method", "textDocument/hover") });
 
         sink.Flush();
 
@@ -93,7 +91,7 @@ public sealed class VSMetricSinkTests
         using var sink = VSMetricSink.TestAccessor.CreateSink(poster);
 
         sink.Count("vs/ide/vbcs/lsp/requestcounter", "SucceededCount", 1,
-            new KeyValuePair<string, object>[] { new("server", "Roslyn") });
+            new KeyValuePair<string, object?>[] { new("server", "Roslyn") });
 
         sink.Flush();
 
