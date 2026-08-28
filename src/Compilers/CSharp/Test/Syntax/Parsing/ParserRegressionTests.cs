@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void PartialLocationInModifierList()
         {
-            var src = @"
+            var comp = CreateCompilation(@"
 class Program
 {
     partial abstract class A {}
@@ -39,9 +39,8 @@ class Program
 
     partial abstract struct S {}
     partial abstract struct S {}
-}";
-
-            CreateCompilation(src).VerifyDiagnostics(
+}");
+            comp.VerifyDiagnostics(
                 // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial abstract class A {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),

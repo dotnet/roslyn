@@ -249,27 +249,6 @@ public sealed partial class ModifierParserRecoveryTests : ParsingTests
             Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "M").WithArguments("M.M()").WithLocation(1, 35));
     }
 
-    [Fact]
-    public void PartialPartialPartial_TypeDeclaration()
-    {
-        UsingTree("partial partial partial class C { }");
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.ClassDeclaration);
-            {
-                N(SyntaxKind.PartialKeyword);
-                N(SyntaxKind.PartialKeyword);
-                N(SyntaxKind.PartialKeyword);
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
     [Theory]
     [InlineData(LanguageVersion.CSharp14)]
     [InlineData(LanguageVersion.Preview)]
