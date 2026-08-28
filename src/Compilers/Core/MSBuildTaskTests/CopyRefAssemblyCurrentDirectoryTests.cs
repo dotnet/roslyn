@@ -22,8 +22,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
     /// This test mutates the process-global current working directory, so it is pinned to a non-parallel
     /// collection to avoid flaking sibling tests that also depend on the current directory.
     /// </remarks>
-    [CollectionDefinition(nameof(CopyRefAssemblyCurrentDirectoryTests), DisableParallelization = true)]
-    [Collection(nameof(CopyRefAssemblyCurrentDirectoryTests))]
+    [CollectionDefinition(CopyRefAssemblyCurrentDirectoryTestCollection.Name, DisableParallelization = true)]
+    public sealed class CopyRefAssemblyCurrentDirectoryTestCollection
+    {
+        public const string Name = nameof(CopyRefAssemblyCurrentDirectoryTestCollection);
+    }
+
+    [Collection(CopyRefAssemblyCurrentDirectoryTestCollection.Name)]
     public sealed class CopyRefAssemblyCurrentDirectoryTests : IDisposable
     {
         private readonly TempRoot _tempRoot = new TempRoot();
