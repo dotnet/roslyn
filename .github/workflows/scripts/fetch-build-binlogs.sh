@@ -35,9 +35,13 @@ emit_none() { echo "binlog-found=false" >> "$GITHUB_OUTPUT"; exit 0; }
 ado_get() {
   local what="$1" url="$2" rc
   # These are small JSON documents; cap them so a stalled endpoint fails in
-  # seconds rather than hanging the job until its overall timeout. The artifact
-  # download below sets its own, much larger, budget.
-  ADO_DOC=$(curl -sSL --fail --retry 3 --connect-timeout 15 --max-time 60 "${url}")
+  # seconds rather than hanging the job until its overall timeout. `--max-time`
+  # is per attempt, so `--retry-max-time` is what actually bounds the call:
+  # without it these few metadata fetches could cumulatively consume the job's
+  # `timeout-minutes` on their own. The artifact download below sets its own,
+  # much larger, budget.
+  ADO_DOC=$(curl -sSL --fail --retry 3 --connect-timeout 10 \
+    --max-time 20 --retry-max-time 40 "${url}")
   rc=$?
   if [ "${rc}" -ne 0 ] || [ -z "${ADO_DOC}" ]; then
     echo "::warning::Could not fetch the ${what} from Azure DevOps (curl exit ${rc}); treating as a data-resolution failure."
@@ -196,12 +200,16 @@ MAX_TOTAL_BYTES=4294967296  # 4 GB extracted across all artifacts
 # each transfer (see ZIP_CAP below) rather than after, so the last artifact
 # can't start just under the limit and still pull a full MAX_ZIP_BYTES.
 MAX_TOTAL_ZIP_BYTES=3221225472  # 3 GB compressed downloaded across all artifacts
-# A transfer smaller than this can't yield a usable archive, and `ulimit -f`
-# works in 512-byte blocks, so a cap under 512 bytes would floor to a 0-block
-# file limit and fail every write. Treat a remaining allowance below this as
-# exhausted instead of starting a transfer that is guaranteed to be discarded.
-MIN_ZIP_BYTES=1048576           # 1 MB
 TOTAL_ZIP_BYTES=0
+# `--max-time` is per attempt, so `--retry N` multiplies it: the whole download
+# phase, not one transfer, is what has to fit inside this job's
+# `timeout-minutes: 15`. Give the loop a wall-clock deadline and derive every
+# transfer's budget from what is left of it, so no combination of slow
+# artifacts and retries can take the job down before the controlled no-op.
+# Worst case is DOWNLOAD_BUDGET plus one final attempt, well inside the job.
+DOWNLOAD_BUDGET=420             # 7 minutes for all artifact transfers
+MAX_ATTEMPT_SECONDS=120         # per attempt; the full set really takes ~30s
+DOWNLOAD_DEADLINE=$(( $(date +%s) + DOWNLOAD_BUDGET ))
 REMAINING_BYTES="${MAX_TOTAL_BYTES}"
 mkdir -p "${BINLOG_DIR}"
 count=0
@@ -222,25 +230,36 @@ for name in "${names[@]}"; do
   ZIP_CAP="${MAX_ZIP_BYTES}"
   ZIP_ALLOWANCE=$((MAX_TOTAL_ZIP_BYTES - TOTAL_ZIP_BYTES))
   [ "${ZIP_ALLOWANCE}" -lt "${ZIP_CAP}" ] && ZIP_CAP="${ZIP_ALLOWANCE}"
-  if [ "${ZIP_CAP}" -lt "${MIN_ZIP_BYTES}" ]; then
+  if [ "${ZIP_CAP}" -le 0 ]; then
     echo "::warning::Cumulative compressed download budget ${MAX_TOTAL_ZIP_BYTES} is exhausted before ${safe_name}; stopping downloads."
     break
   fi
+  # Bound this transfer by the time left as well, and never start one with no
+  # time to finish in.
+  TIME_LEFT=$(( DOWNLOAD_DEADLINE - $(date +%s) ))
+  if [ "${TIME_LEFT}" -le 0 ]; then
+    echo "::warning::Download time budget ${DOWNLOAD_BUDGET}s exhausted before ${safe_name}; stopping downloads."
+    break
+  fi
+  ATTEMPT_SECONDS="${MAX_ATTEMPT_SECONDS}"
+  [ "${TIME_LEFT}" -lt "${ATTEMPT_SECONDS}" ] && ATTEMPT_SECONDS="${TIME_LEFT}"
   # Download to a file, never a pipe: curl can only rewind seekable output, so
   # through a pipe a retried body is appended and a 503 page followed by a retry
   # yields a corrupt `<error page><zip>` that still exits 0.
   # `ulimit -f` is a disk backstop for responses that declare no Content-Length;
-  # the size check below is authoritative. Divide by 512 so the cap is >=
-  # ZIP_CAP under either block size (bash uses 1024, POSIX 512). SIGXFSZ
-  # is ignored so hitting the cap is an ordinary write error.
-  # `--max-time` must stay comfortably below this job's `timeout-minutes`, or a
-  # stalled transfer takes the whole job down instead of letting the script emit
-  # its controlled no-op. Real downloads here take ~30s for the full artifact
-  # set, so 5 minutes per artifact is already very generous.
+  # the size check below is authoritative. Round the block count UP so any
+  # positive ZIP_CAP yields at least one block: dividing down would give a
+  # 0-block limit for a sub-512-byte remainder and fail every write.
+  # SIGXFSZ is ignored so hitting the cap is an ordinary write error.
+  # `--retry-max-time` bounds the whole retry window, and `--max-time` one
+  # attempt; without the former, `--retry 3` alone would permit four full
+  # attempts plus backoff and could outlive this job's `timeout-minutes`.
   (
-    ulimit -f $((ZIP_CAP / 512))
+    ulimit -f $(( (ZIP_CAP + 511) / 512 ))
     trap '' XFSZ
-    curl -sSL --fail --retry 3 --retry-delay 2 --connect-timeout 15 --max-time 300 -o /tmp/a.zip "${url}"
+    curl -sSL --fail --retry 3 --retry-delay 2 --connect-timeout 15 \
+      --max-time "${ATTEMPT_SECONDS}" --retry-max-time "${TIME_LEFT}" \
+      -o /tmp/a.zip "${url}"
   ) 2>/dev/null
   curl_rc=$?
   ZIP_BYTES=$(stat -c%s /tmp/a.zip 2>/dev/null || echo 0)
