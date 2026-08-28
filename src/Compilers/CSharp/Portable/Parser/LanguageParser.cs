@@ -886,22 +886,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword)
                 return false;
 
-            // Look through modifiers in cases such as 'partial public class C'.
-            if (this.IsPartialType())
-                return true;
-
-            var nextToken = this.PeekToken(1);
-
-            // 'partial namespace N' cannot have another interpretation. Parse it as a namespace so
-            // binding can report the misplaced modifier instead of producing cascading parser errors.
-            if (nextToken.Kind == SyntaxKind.NamespaceKeyword)
-                return true;
-
-            // IsPartialType stops at 'ref' because 'partial ref int M()' starts a partial member with
-            // a ref return type. Use the broader lookahead to distinguish that from 'partial ref struct S'
-            // and to handle cases such as 'partial unsafe enum E'.
-            return GetModifierExcludingScoped(nextToken) != DeclarationModifiers.None
-                && this.IsPartialModifierInDeclarationHead(allowMembers: false);
+            return this.IsPartialModifierInDeclarationHead(allowMembers: false);
         }
 
         public bool IsEndOfNamespace()
@@ -1770,7 +1755,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword)
                     return false;
 
-                if (isTypeDeclarationAfterPartialModifiers(peekIndex: 0))
+                if (this.IsPartialType())
                     return false;
 
                 if (this.IsPartialConstructor(peekIndex: 0))
@@ -1781,19 +1766,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
                 return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
-            }
-
-            bool isTypeDeclarationAfterPartialModifiers(int peekIndex)
-            {
-                Debug.Assert(this.PeekToken(peekIndex).ContextualKind == SyntaxKind.PartialKeyword);
-
-                do
-                {
-                    peekIndex++;
-                }
-                while (this.PeekToken(peekIndex).ContextualKind == SyntaxKind.PartialKeyword);
-
-                return this.IsClassStructInterfaceRecordOrUnionKeyword(this.PeekToken(peekIndex));
             }
         }
 
