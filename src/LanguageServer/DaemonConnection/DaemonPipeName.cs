@@ -77,8 +77,8 @@ internal static class DaemonPipeName
     }
 
     /// <summary>
-    /// Name of the mutex held by the daemon for its entire lifetime; its existence means a daemon
-    /// is running for this pipe.
+    /// Name of the mutex held while the daemon is accepting connections; its existence means a daemon
+    /// is available for this pipe.
     /// </summary>
     public static string GetServerMutexName(string pipeName)
         => $"{GlobalMutexPrefix}{pipeName}.server";

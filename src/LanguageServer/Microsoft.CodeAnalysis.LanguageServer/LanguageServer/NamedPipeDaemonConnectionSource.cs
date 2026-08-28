@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -21,8 +21,8 @@ using NamedPipeUtil = MSBuildWorkspaces::Microsoft.CodeAnalysis.NamedPipeUtil;
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 /// <summary>
-/// A connection source for daemon mode: owns the server mutex (which signals "a daemon is running" for
-/// this pipe) and accepts client connections on a named pipe, handing each a dedicated, independent
+/// A connection source for daemon mode: owns the server mutex (which signals that a daemon is accepting
+/// connections for this pipe) and accepts clients on a named pipe, handing each a dedicated, independent
 /// <see cref="System.IO.Pipes.NamedPipeServerStream"/>.
 /// </summary>
 internal sealed class NamedPipeDaemonConnectionSource : ILanguageServerConnectionSource, IDisposable
@@ -31,10 +31,11 @@ internal sealed class NamedPipeDaemonConnectionSource : ILanguageServerConnectio
 
     private readonly string _pipeName;
     private readonly ILogger _logger;
-    private readonly Mutex _serverMutex;
     private readonly ConnectionIdleTimeout _idleTimeout;
 
+    private Mutex? _serverMutex;
     private Action? _onConnectionAccepted;
+    private Action? _onServerMutexReleased;
 
     private NamedPipeDaemonConnectionSource(
         string pipeName,
@@ -101,7 +102,16 @@ internal sealed class NamedPipeDaemonConnectionSource : ILanguageServerConnectio
             catch (OperationCanceledException) when (timeoutToken.IsCancellationRequested)
             {
                 await pipeStream.DisposeAsync().ConfigureAwait(false);
-                _idleTimeout.CommitTimeout();
+                try
+                {
+                    _idleTimeout.CommitTimeout();
+                }
+                finally
+                {
+                    ReleaseServerMutex();
+                    _onServerMutexReleased?.Invoke();
+                }
+
                 yield break;
             }
             catch (Exception ex)
@@ -138,6 +148,11 @@ internal sealed class NamedPipeDaemonConnectionSource : ILanguageServerConnectio
         {
             set => _instance._onConnectionAccepted = value;
         }
+
+        internal Action? OnServerMutexReleased
+        {
+            set => _instance._onServerMutexReleased = value;
+        }
     }
 
     private sealed class ConnectionResource(IDisposable resource, NamedPipeDaemonConnectionSource source) : IDisposable
@@ -164,6 +179,9 @@ internal sealed class NamedPipeDaemonConnectionSource : ILanguageServerConnectio
     public void Dispose()
     {
         _idleTimeout.Dispose();
-        _serverMutex.Dispose();
+        ReleaseServerMutex();
     }
+
+    private void ReleaseServerMutex()
+        => Interlocked.Exchange(ref _serverMutex, null)?.Dispose();
 }
