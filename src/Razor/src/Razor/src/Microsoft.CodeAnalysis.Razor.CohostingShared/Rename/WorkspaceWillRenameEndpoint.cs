@@ -4,7 +4,6 @@
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -30,7 +29,7 @@ internal sealed class WorkspaceWillRenameEndpoint(
         if (solution is null)
         {
             _logger.LogWarning($"Got a didRenameFiles notification but didn't get a solution to work with.");
-            return await SpecializedTasks.Null<WorkspaceEdit>().ConfigureAwait(false);
+            return null;
         }
 
         return await HandleRequestAsync(request, solution, cancellationToken).ConfigureAwait(false);
