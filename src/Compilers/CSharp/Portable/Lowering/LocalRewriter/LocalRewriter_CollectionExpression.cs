@@ -397,18 +397,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (_factory.WellKnownMethod(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T, isOptional: true) is { } asSpanMethod)
                 {
-                    // Use CollectionsMarshal.AsSpan(list).Slice(0, list.Count) to avoid copying the underlying array.
+                    // Use CollectionsMarshal.AsSpan(list) to avoid copying the underlying array.
                     // The array is exclusively used by the list and can be safely acquired.
-                    BoundLocal temp = _factory.StoreToTemp(list, out var assignment);
-                    var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
-                    sideEffects.Add(assignment);
 
                     Debug.Assert(list.Type is { });
                     Debug.Assert(list.Type.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T), TypeCompareKind.AllIgnoreOptions));
 
-                    var listSpanValue = _factory.Call(null, asSpanMethod.Construct(elementType.Type), temp);
-                    var getCount = ((PropertySymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__Count)).AsMember((NamedTypeSymbol)list.Type);
-                    var count = _factory.Property(temp, getCount);
+                    var listSpanValue = _factory.Call(null, asSpanMethod.Construct(elementType.Type), list);
 
                     if (isReadOnlySpan)
                     {
@@ -418,14 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         listSpanValue = _factory.Call(null, implicitOperator, listSpanValue);
                     }
 
-                    var sliceMethod = _factory.WellKnownMethod(isReadOnlySpan ? WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int : WellKnownMember.System_Span_T__Slice_Int_Int).AsMember(spanType);
-                    var result = _factory.Call(listSpanValue, sliceMethod, _factory.Literal(0), count);
-                    return new BoundSequence(
-                        node.Syntax,
-                        [temp.LocalSymbol],
-                        sideEffects.ToImmutableAndFree(),
-                        result,
-                        spanType);
+                    return listSpanValue;
                 }
                 else
                 {
