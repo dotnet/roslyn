@@ -26,7 +26,7 @@ internal struct XamlRequestContext
 
     [Obsolete("Use GetTextDocumentAsync instead.", error: false)]
     public readonly TextDocument? TextDocument
-        => _context.GetTextDocumentSynchronously();
+        => _context.GetTextDocumentAsync(CancellationToken.None).AsTask().GetAwaiter().GetResult();
 
     public readonly ValueTask<TextDocument?> GetTextDocumentAsync(CancellationToken cancellationToken)
         => _context.GetTextDocumentAsync(cancellationToken);

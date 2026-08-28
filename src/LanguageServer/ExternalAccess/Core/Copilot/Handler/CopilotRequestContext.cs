@@ -18,10 +18,10 @@ internal readonly struct CopilotRequestContext(RequestContext context)
     /// The solution state that the request should operate on.
     /// </summary>
     [Obsolete("Use GetSolutionAsync instead.", error: false)]
-    public Solution Solution => context.GetRequiredSolutionSynchronously();
+    public Solution Solution => context.GetRequiredSolutionAsync(CancellationToken.None).AsTask().GetAwaiter().GetResult();
 
     [Obsolete("Use GetDocumentAsync instead.", error: false)]
-    public Document? Document => context.GetDocumentSynchronously();
+    public Document? Document => context.GetDocumentAsync(CancellationToken.None).AsTask().GetAwaiter().GetResult();
 
     public ValueTask<Solution> GetSolutionAsync(CancellationToken cancellationToken)
         => context.GetRequiredSolutionAsync(cancellationToken);

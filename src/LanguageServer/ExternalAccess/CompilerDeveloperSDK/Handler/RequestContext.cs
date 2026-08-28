@@ -11,16 +11,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk;
 internal readonly struct RequestContext(LspRequestContext context)
 {
     [Obsolete("Use GetWorkspaceAsync instead.", error: false)]
-    internal Workspace? Workspace => context.GetWorkspaceSynchronously();
+    internal Workspace? Workspace => context.GetWorkspaceAsync(CancellationToken.None).AsTask().GetAwaiter().GetResult();
 
     [Obsolete("Use GetSolutionAsync instead.", error: false)]
-    internal Solution? Solution => context.GetSolutionSynchronously();
+    internal Solution? Solution => context.GetSolutionAsync(CancellationToken.None).AsTask().GetAwaiter().GetResult();
 
     [Obsolete("Use GetDocumentAsync instead.", error: false)]
-    internal Document? Document => context.GetDocumentSynchronously();
+    internal Document? Document => context.GetDocumentAsync(CancellationToken.None).AsTask().GetAwaiter().GetResult();
 
     [Obsolete("Use GetRequiredDocumentAsync instead.", error: false)]
-    internal Document GetRequiredDocument() => context.GetRequiredDocumentSynchronously();
+    internal Document GetRequiredDocument() => context.GetRequiredDocumentAsync(CancellationToken.None).AsTask().GetAwaiter().GetResult();
 
     internal ValueTask<Solution?> GetSolutionAsync(CancellationToken cancellationToken)
         => context.GetSolutionAsync(cancellationToken);

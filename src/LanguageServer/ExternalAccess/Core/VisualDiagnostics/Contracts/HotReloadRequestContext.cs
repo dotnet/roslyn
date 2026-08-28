@@ -16,10 +16,10 @@ internal sealed class HotReloadRequestContext(RequestContext context)
     internal LSP.ClientCapabilities ClientCapabilities => context.GetRequiredClientCapabilities();
 
     [Obsolete("Use GetTextDocumentAsync instead.", error: false)]
-    public TextDocument? TextDocument => context.GetTextDocumentSynchronously();
+    public TextDocument? TextDocument => context.GetTextDocumentAsync(CancellationToken.None).AsTask().GetAwaiter().GetResult();
 
     [Obsolete("Use GetSolutionAsync instead.", error: false)]
-    public Solution? Solution => context.GetSolutionSynchronously();
+    public Solution? Solution => context.GetSolutionAsync(CancellationToken.None).AsTask().GetAwaiter().GetResult();
 
     public ValueTask<TextDocument?> GetTextDocumentAsync(CancellationToken cancellationToken)
         => context.GetTextDocumentAsync(cancellationToken);
