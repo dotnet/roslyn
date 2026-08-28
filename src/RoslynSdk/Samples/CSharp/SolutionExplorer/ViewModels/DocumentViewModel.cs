@@ -28,7 +28,7 @@ namespace MSBuildWorkspaceTester.ViewModels
 
         public async Task<string> GetSourceTextAsync()
         {
-            Microsoft.CodeAnalysis.Text.SourceText text = await GetDocument().GetTextAsync();
+            Microsoft.CodeAnalysis.Text.SourceText text = await GetDocument().GetTextAsync().ConfigureAwait(false);
             return text.ToString();
         }
 
