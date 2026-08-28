@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.BuildTasks;
 using Roslyn.Utilities;
@@ -62,6 +63,20 @@ internal static class TaskEnvironmentExtensions
         {
 #pragma warning disable RS0030 // Do not used banned APIs
             return File.Exists(path.Value);
+#pragma warning restore RS0030 // Do not used banned APIs
+        }
+
+        public string FileReadAllText(AbsolutePath path)
+        {
+#pragma warning disable RS0030 // Do not used banned APIs
+            return File.ReadAllText(path.Value);
+#pragma warning restore RS0030 // Do not used banned APIs
+        }
+
+        public void FileWriteAllText(AbsolutePath path, string contents, Encoding encoding)
+        {
+#pragma warning disable RS0030 // Do not used banned APIs
+            File.WriteAllText(path.Value, contents, encoding);
 #pragma warning restore RS0030 // Do not used banned APIs
         }
 
