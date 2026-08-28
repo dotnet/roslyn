@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// The Microsoft.Managed.Core.targets calls this task with the collected results of the <c>AnalyzerProperty</c> and 
     /// <c>AnalyzerItemMetadata</c> item groups. 
     /// </remarks>
+    [MSBuildMultiThreadableTask]
     public sealed class GenerateMSBuildEditorConfig : Task
     {
         /// <remarks>
@@ -55,14 +56,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         [Required]
         public ITaskItem[] PropertyItems { get; set; }
 
-        public ITaskItem FileName { get; set; }
+        public AbsolutePath FileName { get; set; }
 
         public GenerateMSBuildEditorConfig()
         {
             ConfigFileContents = string.Empty;
             MetadataItems = Array.Empty<ITaskItem>();
             PropertyItems = Array.Empty<ITaskItem>();
-            FileName = new TaskItem();
         }
 
         public override bool Execute()
@@ -109,24 +109,23 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
 
             ConfigFileContents = builder.ToString();
-            return string.IsNullOrEmpty(FileName.ItemSpec) ? true : WriteMSBuildEditorConfig();
+            return string.IsNullOrEmpty(FileName) ? true : WriteMSBuildEditorConfig();
         }
 
         internal bool WriteMSBuildEditorConfig()
         {
             try
             {
-                var targetFileName = FileName.ItemSpec;
-                if (File.Exists(targetFileName))
+                if (File.Exists(FileName))
                 {
-                    string existingContents = File.ReadAllText(targetFileName);
+                    string existingContents = File.ReadAllText(FileName);
                     if (existingContents.Equals(ConfigFileContents))
                     {
                         return true;
                     }
                 }
                 var encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
-                File.WriteAllText(targetFileName, ConfigFileContents, encoding);
+                File.WriteAllText(FileName, ConfigFileContents, encoding);
                 return true;
             }
             catch (IOException ex)

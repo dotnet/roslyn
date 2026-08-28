@@ -16,22 +16,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// By default, this task copies the source over to the destination. 
     /// But if we're able to check that they are identical, the destination is left untouched.
     /// </summary>
+    [MSBuildMultiThreadableTask]
     public sealed class CopyRefAssembly : Task
     {
         [Required]
-        public string SourcePath { get; set; }
+        public AbsolutePath SourcePath { get; set; }
 
         [Output]
         [Required]
-        public string DestinationPath { get; set; }
+        public AbsolutePath DestinationPath { get; set; }
 
         public CopyRefAssembly()
             : base(ErrorString.ResourceManager)
         {
-            // These required properties will all be assigned by MSBuild. Suppress warnings about leaving them with
-            // their default values.
-            SourcePath = null!;
-            DestinationPath = null!;
         }
 
         public override bool Execute()
@@ -99,7 +96,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return true;
         }
 
-        private Guid ExtractMvid(string path)
+        private Guid ExtractMvid(AbsolutePath path)
         {
             using (FileStream source = File.OpenRead(path))
             {
