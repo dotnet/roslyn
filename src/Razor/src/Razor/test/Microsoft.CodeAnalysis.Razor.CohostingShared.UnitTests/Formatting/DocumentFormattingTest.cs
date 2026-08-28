@@ -15852,6 +15852,113 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """);
     }
 
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84601")]
+    public Task RazorCommentWithInternalBlankLine()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    @* Comment
+
+                    More comment *@
+                }
+                <div></div>
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                    @* Comment
+
+                    More comment *@
+                }
+                <div></div>
+                """,
+            expected: """
+                @if (true)
+                {
+                    @* Comment
+
+                    More comment *@
+                }
+                <div></div>
+                """,
+            fileKind: RazorFileKind.Legacy,
+            validateHtmlFormattedMatchesWebTools: true);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84601")]
+    public Task RazorCommentWithInternalBlankLine_NestedInHtml()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                @* Comment
+
+                More comment *@
+                @if (true)
+                {
+                <span></span>
+                }
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    @* Comment
+
+                    More comment *@
+                    @if (true)
+                    {
+                    <span></span>
+                    }
+                </div>
+                """,
+            expected: """
+                <div>
+                    @* Comment
+
+                More comment *@
+                    @if (true)
+                    {
+                        <span></span>
+                    }
+                </div>
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84601")]
+    public Task WhitespaceOnlyLineBeforeCodeBlockClose()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @{
+                    Method();
+                  
+                }
+                <div></div>
+                """,
+            htmlFormatted: """
+                @{
+                    Method();
+
+                }
+                <div></div>
+                """,
+            expected: """
+                @{
+                    Method();
+                  
+                }
+                <div></div>
+                """,
+            fileKind: RazorFileKind.Legacy,
+            validateHtmlFormattedMatchesWebTools: true);
+    }
+
     private (string fileName, string contents)[] GetCheckBoxButtonComponentFiles()
         =>
         [

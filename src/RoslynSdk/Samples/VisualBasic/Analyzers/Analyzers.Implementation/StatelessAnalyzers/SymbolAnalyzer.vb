@@ -20,7 +20,7 @@ Namespace BasicAnalyzers
 
 #Region "Descriptor fields"
         Friend Shared ReadOnly Title As LocalizableString = "Do not declare members with same name as containing type"
-        Friend Shared ReadOnly MessageFormat As LocalizableString = "Type '{0}' has one or more members with the same name, considering renaming the type or the members."
+        Friend Shared ReadOnly MessageFormat As LocalizableString = "Type '{0}' has one or more members with the same name, considering renaming the type or the members"
         Friend Shared ReadOnly Description As LocalizableString = "Do not declare members with same name as containing type."
 
         Friend Shared Rule As New DiagnosticDescriptor(DiagnosticIds.SymbolAnalyzerRuleId, Title, MessageFormat, DiagnosticCategories.Stateless, DiagnosticSeverity.Warning, isEnabledByDefault:=True, description:=Description)
@@ -33,6 +33,8 @@ Namespace BasicAnalyzers
         End Property
 
         Public Overrides Sub Initialize(context As AnalysisContext)
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None)
+            context.EnableConcurrentExecution()
             context.RegisterSymbolAction(AddressOf AnalyzeSymbol, SymbolKind.NamedType)
         End Sub
 

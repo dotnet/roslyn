@@ -2396,8 +2396,10 @@ class C
     [Fact]
     public void WithModifiers_Ref_CSharp13()
     {
+        const string source = "class C { ref extension(Type) { } }";
+
         UsingTree(
-            "class C { ref extension(Type) { } }",
+            source,
             TestOptions.Regular13,
             // (1,29): error CS1001: Identifier expected
             // class C { ref extension(Type) { } }
@@ -2437,6 +2439,20 @@ class C
             N(SyntaxKind.EndOfFileToken);
         }
         EOF();
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (1,11): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+            // class C { ref extension(Type) { } }
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "ref extension(Type) { }").WithArguments("extensions", "14.0").WithLocation(1, 11),
+            // (1,15): error CS0106: The modifier 'ref' is not valid for this item
+            // class C { ref extension(Type) { } }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("ref").WithLocation(1, 15),
+            // (1,25): error CS0246: The type or namespace name 'Type' could not be found (are you missing a using directive or an assembly reference?)
+            // class C { ref extension(Type) { } }
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type").WithArguments("Type").WithLocation(1, 25),
+            // (1,29): error CS1001: Identifier expected
+            // class C { ref extension(Type) { } }
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 29));
     }
 
     [Fact]
@@ -2544,7 +2560,11 @@ class C
         UsingTree(
             source,
             TestOptions.Regular13,
+            // (1,14): error CS1001: Identifier expected
+            // ref extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 14),
+            // (1,21): error CS1001: Identifier expected
+            // ref extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 21));
         N(SyntaxKind.CompilationUnit);
         {
@@ -2586,9 +2606,17 @@ class C
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (1,5): error CS0246: The type or namespace name 'extension' could not be found (are you missing a using directive or an assembly reference?)
+            // ref extension(object) { }
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "extension").WithArguments("extension").WithLocation(1, 5),
+            // (1,14): error CS1001: Identifier expected
+            // ref extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 14),
+            // (1,14): error CS0161: '(object)': not all code paths return a value
+            // ref extension(object) { }
             Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("(object)").WithLocation(1, 14),
+            // (1,21): error CS1001: Identifier expected
+            // ref extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 21));
     }
 
@@ -2599,7 +2627,11 @@ class C
         UsingTree(
             source,
             TestOptions.Regular13,
+            // (1,23): error CS1001: Identifier expected
+            // ref readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 23),
+            // (1,30): error CS1001: Identifier expected
+            // ref readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 30));
         N(SyntaxKind.CompilationUnit);
         {
@@ -2642,9 +2674,17 @@ class C
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (1,14): error CS0246: The type or namespace name 'extension' could not be found (are you missing a using directive or an assembly reference?)
+            // ref readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "extension").WithArguments("extension").WithLocation(1, 14),
+            // (1,23): error CS1001: Identifier expected
+            // ref readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 23),
+            // (1,23): error CS0161: '(object)': not all code paths return a value
+            // ref readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("(object)").WithLocation(1, 23),
+            // (1,30): error CS1001: Identifier expected
+            // ref readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 30));
     }
 
@@ -2709,7 +2749,11 @@ class C
         UsingTree(
             source,
             TestOptions.Regular14,
+            // (1,14): error CS1001: Identifier expected
+            // ref extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 14),
+            // (1,21): error CS1001: Identifier expected
+            // ref extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 21));
         N(SyntaxKind.CompilationUnit);
         {
@@ -2751,9 +2795,17 @@ class C
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            // (1,5): error CS0246: The type or namespace name 'extension' could not be found (are you missing a using directive or an assembly reference?)
+            // ref extension(object) { }
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "extension").WithArguments("extension").WithLocation(1, 5),
+            // (1,14): error CS1001: Identifier expected
+            // ref extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 14),
+            // (1,14): error CS0161: '(object)': not all code paths return a value
+            // ref extension(object) { }
             Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("(object)").WithLocation(1, 14),
+            // (1,21): error CS1001: Identifier expected
+            // ref extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 21));
     }
 
@@ -2764,7 +2816,11 @@ class C
         UsingTree(
             source,
             TestOptions.Regular14,
+            // (1,23): error CS1001: Identifier expected
+            // ref readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 23),
+            // (1,30): error CS1001: Identifier expected
+            // ref readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 30));
         N(SyntaxKind.CompilationUnit);
         {
@@ -2807,9 +2863,17 @@ class C
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            // (1,14): error CS0246: The type or namespace name 'extension' could not be found (are you missing a using directive or an assembly reference?)
+            // ref readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "extension").WithArguments("extension").WithLocation(1, 14),
+            // (1,23): error CS1001: Identifier expected
+            // ref readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 23),
+            // (1,23): error CS0161: '(object)': not all code paths return a value
+            // ref readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("(object)").WithLocation(1, 23),
+            // (1,30): error CS1001: Identifier expected
+            // ref readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 30));
     }
 
@@ -2870,6 +2934,8 @@ class C
         UsingTree(
             source,
             TestOptions.Regular13,
+            // (1,31): error CS1001: Identifier expected
+            // class C { ref extension(object) { } }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 31));
         N(SyntaxKind.CompilationUnit);
         {
@@ -2908,8 +2974,14 @@ class C
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (1,11): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+            // class C { ref extension(object) { } }
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "ref extension(object) { }").WithArguments("extensions", "14.0").WithLocation(1, 11),
+            // (1,15): error CS0106: The modifier 'ref' is not valid for this item
+            // class C { ref extension(object) { } }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("ref").WithLocation(1, 15),
+            // (1,31): error CS1001: Identifier expected
+            // class C { ref extension(object) { } }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 31));
     }
 
@@ -2920,6 +2992,8 @@ class C
         UsingTree(
             source,
             TestOptions.Regular13,
+            // (1,40): error CS1001: Identifier expected
+            // class C { ref readonly extension(object) { } }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 40));
         N(SyntaxKind.CompilationUnit);
         {
@@ -2959,9 +3033,17 @@ class C
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (1,11): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+            // class C { ref readonly extension(object) { } }
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "ref readonly extension(object) { }").WithArguments("extensions", "14.0").WithLocation(1, 11),
+            // (1,24): error CS0106: The modifier 'readonly' is not valid for this item
+            // class C { ref readonly extension(object) { } }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("readonly").WithLocation(1, 24),
+            // (1,24): error CS0106: The modifier 'ref' is not valid for this item
+            // class C { ref readonly extension(object) { } }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("ref").WithLocation(1, 24),
+            // (1,40): error CS1001: Identifier expected
+            // class C { ref readonly extension(object) { } }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 40));
     }
 
@@ -3260,7 +3342,11 @@ class C
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            // (1,31): error CS0106: The modifier 'readonly' is not valid for this item
+            // static class C { ref readonly extension(object) { } }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("readonly").WithLocation(1, 31),
+            // (1,31): error CS0106: The modifier 'ref' is not valid for this item
+            // static class C { ref readonly extension(object) { } }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("ref").WithLocation(1, 31));
     }
 
@@ -4404,7 +4490,7 @@ static class C
                 ref extension(Type) { }
             }
             """;
-        UsingTree(source);
+        UsingTree(source, TestOptions.RegularPreview);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
@@ -4437,7 +4523,7 @@ static class C
         }
         EOF();
 
-        CreateCompilation(source).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
             // (3,9): error CS0106: The modifier 'ref' is not valid for this item
             //     ref extension(Type) { }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("ref").WithLocation(3, 9),

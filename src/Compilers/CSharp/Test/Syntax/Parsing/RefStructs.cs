@@ -119,7 +119,9 @@ class Program
             EOF();
 
             CreateCompilation(source).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("ref"));
+                // (1,11): error CS0106: The modifier 'ref' is not valid for this item
+                // ref class C { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("ref").WithLocation(1, 11));
         }
 
         [Fact]
@@ -142,7 +144,9 @@ class Program
             EOF();
 
             CreateCompilation(source).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I").WithArguments("ref"));
+                // (1,15): error CS0106: The modifier 'ref' is not valid for this item
+                // ref interface I { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I").WithArguments("ref").WithLocation(1, 15));
         }
 
         [Fact]
@@ -165,7 +169,9 @@ class Program
             EOF();
 
             CreateCompilation(source).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("ref"));
+                // (1,10): error CS0106: The modifier 'ref' is not valid for this item
+                // ref enum E { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("ref").WithLocation(1, 10));
         }
 
         [Fact]
@@ -196,7 +202,9 @@ class Program
             EOF();
 
             CreateCompilation(source).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "D").WithArguments("ref"));
+                // (1,19): error CS0106: The modifier 'ref' is not valid for this item
+                // ref delegate void D();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "D").WithArguments("ref").WithLocation(1, 19));
         }
 
         [Fact]
@@ -624,7 +632,11 @@ class Program
             const string source = "ref class R { } class C { ref class R { } }";
 
             CreateCompilation(source).VerifyDiagnostics(
+                // (1,11): error CS0106: The modifier 'ref' is not valid for this item
+                // ref class R { } class C { ref class R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 11),
+                // (1,37): error CS0106: The modifier 'ref' is not valid for this item
+                // ref class R { } class C { ref class R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 37));
             UsingTree(source);
             N(SyntaxKind.CompilationUnit);
@@ -663,9 +675,17 @@ class Program
             const string source = "ref readonly class R { } class C { ref readonly class R { } }";
 
             CreateCompilation(source).VerifyDiagnostics(
+                // (1,20): error CS0106: The modifier 'readonly' is not valid for this item
+                // ref readonly class R { } class C { ref readonly class R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 20),
+                // (1,20): error CS0106: The modifier 'ref' is not valid for this item
+                // ref readonly class R { } class C { ref readonly class R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 20),
+                // (1,55): error CS0106: The modifier 'readonly' is not valid for this item
+                // ref readonly class R { } class C { ref readonly class R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 55),
+                // (1,55): error CS0106: The modifier 'ref' is not valid for this item
+                // ref readonly class R { } class C { ref readonly class R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 55));
             UsingTree(source);
             N(SyntaxKind.CompilationUnit);
@@ -780,7 +800,11 @@ class Program
             const string source = "ref readonly struct R { } class C { ref readonly struct R { } }";
 
             CreateCompilation(source).VerifyDiagnostics(
+                // (1,1): error CS1585: Member modifier 'ref' must precede the member type and name
+                // ref readonly struct R { } class C { ref readonly struct R { } }
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 1),
+                // (1,37): error CS1585: Member modifier 'ref' must precede the member type and name
+                // ref readonly struct R { } class C { ref readonly struct R { } }
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 37));
             UsingTree(source);
             N(SyntaxKind.CompilationUnit);
@@ -860,7 +884,11 @@ class Program
             const string source = "ref interface R { } class C { ref interface R { } }";
 
             CreateCompilation(source).VerifyDiagnostics(
+                // (1,15): error CS0106: The modifier 'ref' is not valid for this item
+                // ref interface R { } class C { ref interface R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 15),
+                // (1,45): error CS0106: The modifier 'ref' is not valid for this item
+                // ref interface R { } class C { ref interface R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 45));
             UsingTree(source);
             N(SyntaxKind.CompilationUnit);
@@ -899,9 +927,17 @@ class Program
             const string source = "ref readonly interface R { } class C { ref readonly interface R { } }";
 
             CreateCompilation(source).VerifyDiagnostics(
+                // (1,24): error CS0106: The modifier 'readonly' is not valid for this item
+                // ref readonly interface R { } class C { ref readonly interface R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 24),
+                // (1,24): error CS0106: The modifier 'ref' is not valid for this item
+                // ref readonly interface R { } class C { ref readonly interface R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 24),
+                // (1,63): error CS0106: The modifier 'readonly' is not valid for this item
+                // ref readonly interface R { } class C { ref readonly interface R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 63),
+                // (1,63): error CS0106: The modifier 'ref' is not valid for this item
+                // ref readonly interface R { } class C { ref readonly interface R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 63));
             UsingTree(source);
             N(SyntaxKind.CompilationUnit);
@@ -981,7 +1017,11 @@ class Program
             const string source = "ref enum R { } class C { ref enum R { } }";
 
             CreateCompilation(source).VerifyDiagnostics(
+                // (1,10): error CS0106: The modifier 'ref' is not valid for this item
+                // ref enum R { } class C { ref enum R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 10),
+                // (1,35): error CS0106: The modifier 'ref' is not valid for this item
+                // ref enum R { } class C { ref enum R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 35));
             UsingTree(source);
             N(SyntaxKind.CompilationUnit);
@@ -1020,9 +1060,17 @@ class Program
             const string source = "ref readonly enum R { } class C { ref readonly enum R { } }";
 
             CreateCompilation(source).VerifyDiagnostics(
+                // (1,19): error CS0106: The modifier 'readonly' is not valid for this item
+                // ref readonly enum R { } class C { ref readonly enum R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 19),
+                // (1,19): error CS0106: The modifier 'ref' is not valid for this item
+                // ref readonly enum R { } class C { ref readonly enum R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 19),
+                // (1,53): error CS0106: The modifier 'readonly' is not valid for this item
+                // ref readonly enum R { } class C { ref readonly enum R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 53),
+                // (1,53): error CS0106: The modifier 'ref' is not valid for this item
+                // ref readonly enum R { } class C { ref readonly enum R { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 53));
             UsingTree(source);
             N(SyntaxKind.CompilationUnit);
@@ -1118,7 +1166,11 @@ class Program
             const string source = "ref delegate void R(); class C { ref delegate void R(); }";
 
             CreateCompilation(source).VerifyDiagnostics(
+                // (1,19): error CS0106: The modifier 'ref' is not valid for this item
+                // ref delegate void R(); class C { ref delegate void R(); }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 19),
+                // (1,52): error CS0106: The modifier 'ref' is not valid for this item
+                // ref delegate void R(); class C { ref delegate void R(); }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 52));
             UsingTree(source);
             N(SyntaxKind.CompilationUnit);
@@ -1173,9 +1225,17 @@ class Program
             const string source = "ref readonly delegate void R(); class C { ref readonly delegate void R(); }";
 
             CreateCompilation(source).VerifyDiagnostics(
+                // (1,28): error CS0106: The modifier 'readonly' is not valid for this item
+                // ref readonly delegate void R(); class C { ref readonly delegate void R(); }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 28),
+                // (1,28): error CS0106: The modifier 'ref' is not valid for this item
+                // ref readonly delegate void R(); class C { ref readonly delegate void R(); }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 28),
+                // (1,70): error CS0106: The modifier 'readonly' is not valid for this item
+                // ref readonly delegate void R(); class C { ref readonly delegate void R(); }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 70),
+                // (1,70): error CS0106: The modifier 'ref' is not valid for this item
+                // ref readonly delegate void R(); class C { ref readonly delegate void R(); }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 70));
             UsingTree(source);
             N(SyntaxKind.CompilationUnit);
@@ -1974,7 +2034,9 @@ class C
             EOF();
 
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref"));
+                // (1,11): error CS1585: Member modifier 'ref' must precede the member type and name
+                // class C { ref unsafe struct S {} }
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 11));
         }
 
         [Fact]
@@ -2006,7 +2068,9 @@ class C
             EOF();
 
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref"));
+                // (1,11): error CS1585: Member modifier 'ref' must precede the member type and name
+                // class C { ref readonly struct S {} }
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 11));
         }
 
         [Fact]
@@ -2039,19 +2103,55 @@ class C
             EOF();
 
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref"));
+                // (1,11): error CS1585: Member modifier 'ref' must precede the member type and name
+                // class C { ref unsafe readonly struct S {} }
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 11));
         }
 
         [Fact]
         public void RefReadonlyStruct_RemainsRejected()
         {
-            CreateCompilation("""
+            const string source = """
                 ref readonly struct R { }
                 class C
                 {
                     ref readonly struct S { }
                 }
-                """).VerifyDiagnostics(
+                """;
+
+            UsingTree(source);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.StructDeclaration);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.StructKeyword);
+                        N(SyntaxKind.IdentifierToken, "S");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            CreateCompilation(source).VerifyDiagnostics(
                 // (1,1): error CS1585: Member modifier 'ref' must precede the member type and name
                 // ref readonly struct R { }
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 1),
@@ -2170,15 +2270,9 @@ class C
                 // (4,5): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     ref partial readonly struct S {}
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 5),
-                // (4,9): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 9),
                 // (5,5): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 5),
-                // (5,9): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 9));
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 5));
         }
 
         [Fact]
@@ -2260,15 +2354,9 @@ class C
             EOF();
 
             CreateCompilation(text).VerifyDiagnostics(
-                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                //     partial ref readonly struct S {}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
                 // (4,13): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     partial ref readonly struct S {}
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 13),
-                // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                //     partial ref readonly struct S {}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
                 // (5,13): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     partial ref readonly struct S {}
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 13));

@@ -5,7 +5,7 @@
 Imports Microsoft.CodeAnalysis
 
 Namespace VisualBasicToCSharpConverter
-    Partial Public Class Converter
+    Partial Public NotInheritable Class Converter
         Public Shared Function Convert(
                             tree As SyntaxTree,
                             Optional identifierMap As IDictionary(Of String, String) = Nothing,

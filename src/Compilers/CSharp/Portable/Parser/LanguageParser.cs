@@ -1418,6 +1418,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     case DeclarationModifiers.Ref:
                         {
+                            // In a member such as `ref int M()`, `ref int` is the return type. Stop parsing modifiers
+                            // so the member parser can consume `ref` as part of that type.
                             if (isRefReturningMember())
                             {
                                 return;
@@ -1686,6 +1688,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 SyntaxKind.UnionKeyword => IsFeatureEnabled(MessageID.IDS_FeatureUnions),
                 _ => false,
             };
+        }
+
+        private bool IsClassStructInterfaceRecordOrUnionKeyword(SyntaxToken token)
+        {
+            return token.Kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword or SyntaxKind.InterfaceKeyword ||
+                this.IsEnabledRecordOrUnionKeyword(token);
         }
 
         private bool IsPartialType()
