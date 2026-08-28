@@ -215,7 +215,7 @@ internal readonly struct RequestContext
     public ValueTask<Workspace> GetRequiredWorkspaceAsync(CancellationToken cancellationToken)
 #pragma warning restore IDE0060 // Remove unused parameter
         => ValueTask.FromResult(Workspace
-            ?? throw new ArgumentNullException($"{nameof(Workspace)} is null when it was required for {Method}"));
+            ?? throw new InvalidOperationException($"{nameof(Workspace)} is null when it was required for {Method}"));
 
 #pragma warning disable IDE0060 // Remove unused parameter
     public ValueTask<Solution?> GetSolutionAsync(CancellationToken cancellationToken)
@@ -226,7 +226,7 @@ internal readonly struct RequestContext
     public ValueTask<Solution> GetRequiredSolutionAsync(CancellationToken cancellationToken)
 #pragma warning restore IDE0060 // Remove unused parameter
         => ValueTask.FromResult(Solution
-            ?? throw new ArgumentNullException($"{nameof(Solution)} is null when it was required for {Method}"));
+            ?? throw new InvalidOperationException($"{nameof(Solution)} is null when it was required for {Method}"));
 
 #pragma warning disable IDE0060 // Remove unused parameter
     public ValueTask<TextDocument?> GetTextDocumentAsync(CancellationToken cancellationToken)
@@ -237,7 +237,7 @@ internal readonly struct RequestContext
     public ValueTask<TextDocument> GetRequiredTextDocumentAsync(CancellationToken cancellationToken)
 #pragma warning restore IDE0060 // Remove unused parameter
         => ValueTask.FromResult(TextDocument
-            ?? throw new ArgumentNullException($"{nameof(TextDocument)} is null when it was required for {Method}"));
+            ?? throw new InvalidOperationException($"{nameof(TextDocument)} is null when it was required for {Method}"));
 
 #pragma warning disable IDE0060 // Remove unused parameter
     public ValueTask<Document?> GetDocumentAsync(CancellationToken cancellationToken)
@@ -248,7 +248,7 @@ internal readonly struct RequestContext
     public ValueTask<Document> GetRequiredDocumentAsync(CancellationToken cancellationToken)
 #pragma warning restore IDE0060 // Remove unused parameter
         => ValueTask.FromResult(Document
-            ?? throw new ArgumentNullException($"{nameof(Document)} is null when it was required for {Method}"));
+            ?? throw new InvalidOperationException($"{nameof(Document)} is null when it was required for {Method}"));
 
     internal Workspace? GetWorkspaceSynchronously()
         => GetWorkspaceAsync(CancellationToken.None).AsTask().WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
