@@ -65,7 +65,7 @@ internal sealed class FindAllReferencesHandler : ILspServiceDocumentRequestHandl
 
         var references = progress.GetFlattenedValues();
         if (!hasReferences)
-            await SymbolRequestTelemetryLogger.ReportEmptyResultAsync(LSP.Methods.TextDocumentReferencesName, document, linePosition, cancellationToken).ConfigureAwait(false);
+            await context.GetRequiredLspService<RequestTelemetryLogger>().ReportEmptySymbolResultAsync(LSP.Methods.TextDocumentReferencesName, document, linePosition, cancellationToken).ConfigureAwait(false);
 
         return references;
     }

@@ -17,7 +17,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Telemetry;
 
 [UseExportProvider]
-public sealed class SymbolRequestTelemetryLoggerTests
+public sealed class RequestTelemetryLoggerTests
 {
     [Fact]
     public async Task ReportsEmptyResultPosition()
@@ -32,8 +32,9 @@ public sealed class SymbolRequestTelemetryLoggerTests
         var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
         var logger = new TestTelemetryLogger();
 
-        await SymbolRequestTelemetryLogger.ReportEmptyResultAsync(
+        await RequestTelemetryLogger.ReportEmptySymbolResultAsync(
             logger,
+            WellKnownLspServerKinds.CSharpVisualBasicLspServer.ToTelemetryString(),
             Methods.TextDocumentDefinitionName,
             document,
             new LinePosition(line: 2, character: 0),
@@ -54,17 +55,18 @@ public sealed class SymbolRequestTelemetryLoggerTests
         Assert.Equal(0, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.linelength"]);
         Assert.Equal(Methods.TextDocumentDefinitionName, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.method"]);
         Assert.Equal("EndOfLine", properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.positionkind"]);
+        Assert.Equal(WellKnownLspServerKinds.CSharpVisualBasicLspServer.ToTelemetryString(), properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.server"]);
         Assert.Equal(root!.FindToken(absolutePosition, findInsideTrivia: true).RawKind, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.tokenrawkind"]);
         Assert.Equal(document.Project.Solution.WorkspaceKind, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.workspacekind"]);
     }
 }
 
-[CollectionDefinition(nameof(SymbolRequestTelemetryHandlerTests), DisableParallelization = true)]
-public sealed class SymbolRequestTelemetryHandlerTestsCollection;
+[CollectionDefinition(nameof(RequestTelemetryHandlerTests), DisableParallelization = true)]
+public sealed class RequestTelemetryHandlerTestsCollection;
 
-[Collection(nameof(SymbolRequestTelemetryHandlerTests))]
+[Collection(nameof(RequestTelemetryHandlerTests))]
 [UseExportProvider]
-public sealed class SymbolRequestTelemetryHandlerTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
+public sealed class RequestTelemetryHandlerTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
     [Theory, CombinatorialData]
     public async Task StreamedReferencesWithResultsAreNotReportedAsEmpty(bool mutatingLspWorkspace)

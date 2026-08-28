@@ -3,8 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
@@ -53,6 +57,58 @@ internal class RequestTelemetryLogger : IDisposable, ILspService
             m["server"] = ServerTypeName;
             m["usedForkedSolution"] = usedForkedSolution;
         }));
+    }
+
+    public async Task ReportEmptySymbolResultAsync(
+        string method,
+        Document document,
+        LinePosition linePosition,
+        CancellationToken cancellationToken)
+    {
+        var logger = Logger.GetLogger();
+        if (logger?.IsEnabled(FunctionId.LSP_SymbolRequest_EmptyResult) != true)
+            return;
+
+        await ReportEmptySymbolResultAsync(logger, ServerTypeName, method, document, linePosition, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal static async Task ReportEmptySymbolResultAsync(
+        ILogger logger,
+        string serverTypeName,
+        string method,
+        Document document,
+        LinePosition linePosition,
+        CancellationToken cancellationToken)
+    {
+        var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+        var line = text.Lines[linePosition.Line];
+        var absolutePosition = text.Lines.GetPosition(linePosition);
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var token = root.FindToken(absolutePosition, findInsideTrivia: true);
+
+        var logMessage = KeyValueLogMessage.Create(static (properties, args) =>
+        {
+            properties["server"] = args.serverTypeName;
+            properties["method"] = args.method;
+            properties["line"] = args.linePosition.Line;
+            properties["character"] = args.linePosition.Character;
+            properties["lineCount"] = args.text.Lines.Count;
+            properties["lineLength"] = args.line.Span.Length;
+            properties["absolutePosition"] = args.absolutePosition;
+            properties["language"] = args.document.Project.Language;
+            properties["workspaceKind"] = args.document.Project.Solution.WorkspaceKind;
+            properties["positionKind"] = RequestTelemetryLogger.GetPositionKind(args.text, args.line, args.absolutePosition, args.token);
+            properties["tokenRawKind"] = args.token.RawKind;
+        }, (serverTypeName, method, document, linePosition, text, line, absolutePosition, token), logLevel: LogLevel.Information);
+
+        try
+        {
+            logger.Log(FunctionId.LSP_SymbolRequest_EmptyResult, logMessage);
+        }
+        finally
+        {
+            logMessage.Free();
+        }
     }
 
     public void UpdateTelemetryData(
@@ -105,6 +161,20 @@ internal class RequestTelemetryLogger : IDisposable, ILspService
         // Ensure that telemetry logged for this server instance is flushed before potentially creating a new instance.
         // This is also called on disposal of the telemetry session, but will no-op if already flushed.
         TelemetryLogging.Flush();
+    }
+
+    private static string GetPositionKind(SourceText text, TextLine line, int absolutePosition, SyntaxToken token)
+    {
+        if (absolutePosition == text.Length)
+            return "EndOfFile";
+
+        if (absolutePosition == line.End)
+            return "EndOfLine";
+
+        if (char.IsWhiteSpace(text[absolutePosition]))
+            return "Whitespace";
+
+        return token.Span.Contains(absolutePosition) ? "Token" : "Trivia";
     }
 
     internal enum Result
