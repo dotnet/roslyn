@@ -31,7 +31,10 @@ emit_none() { echo "binlog-found=false" >> "$GITHUB_OUTPUT"; exit 0; }
 # in a command substitution would only exit the subshell.
 ado_get() {
   local what="$1" url="$2" rc
-  ADO_DOC=$(curl -sSL --fail --retry 3 "${url}")
+  # These are small JSON documents; cap them so a stalled endpoint fails in
+  # seconds rather than hanging the job until its overall timeout. The artifact
+  # download below sets its own, much larger, budget.
+  ADO_DOC=$(curl -sSL --fail --retry 3 --connect-timeout 15 --max-time 60 "${url}")
   rc=$?
   if [ "${rc}" -ne 0 ] || [ -z "${ADO_DOC}" ]; then
     echo "::warning::Could not fetch the ${what} from Azure DevOps (curl exit ${rc}); treating as a data-resolution failure."
@@ -203,7 +206,7 @@ for name in "${names[@]}"; do
   (
     ulimit -f $((MAX_ZIP_BYTES / 512))
     trap '' XFSZ
-    curl -sSL --fail --retry 3 --retry-delay 2 --max-time 600 -o /tmp/a.zip "${url}"
+    curl -sSL --fail --retry 3 --retry-delay 2 --connect-timeout 15 --max-time 600 -o /tmp/a.zip "${url}"
   ) 2>/dev/null
   curl_rc=$?
   ZIP_BYTES=$(stat -c%s /tmp/a.zip 2>/dev/null || echo 0)
