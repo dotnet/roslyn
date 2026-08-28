@@ -143,12 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Smaller switches need at least three cases, all sharing a single non-null string length.
-            if (labelsCount < 3)
-            {
-                return false;
-            }
-
-            return LengthBasedJumpTable.LengthCaseLabels.Length == 1;
+            return labelsCount >= 3 && LengthBasedJumpTable.LengthCaseLabels.Length == 1;
         }
 
         internal static LengthBasedStringSwitchData Create(ImmutableArray<(ConstantValue value, LabelSymbol label)> inputCases)
