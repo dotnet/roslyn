@@ -187,6 +187,13 @@ echo "Selected ${#names[@]} of ${#all_names[@]} build-log artifacts for ${#faile
 # this bounds peak zip disk use, not the sum across artifacts.
 MAX_ZIP_BYTES=2147483648    # 2 GB compressed per artifact
 MAX_TOTAL_BYTES=4294967296  # 4 GB extracted across all artifacts
+# Raising the per-artifact cap would otherwise raise the worst-case number of
+# bytes pulled over the network by the same factor, since nothing else bounds
+# the sum across artifacts. Cap the total download too, and charge it *before*
+# each transfer (see ZIP_CAP below) rather than after, so the last artifact
+# can't start just under the limit and still pull a full MAX_ZIP_BYTES.
+MAX_TOTAL_ZIP_BYTES=3221225472  # 3 GB compressed downloaded across all artifacts
+TOTAL_ZIP_BYTES=0
 REMAINING_BYTES="${MAX_TOTAL_BYTES}"
 mkdir -p "${BINLOG_DIR}"
 count=0
@@ -201,25 +208,42 @@ for name in "${names[@]}"; do
   [ -z "${url}" ] && { echo "::warning::Skipping ${safe_name}: no download URL."; continue; }
 
   rm -f /tmp/a.zip
+  # Bound this transfer by whatever is left of the cumulative budget as well as
+  # by the per-artifact cap, so the two limits together are a real ceiling on
+  # bytes pulled rather than `MAX_TOTAL_ZIP_BYTES + MAX_ZIP_BYTES`.
+  ZIP_CAP="${MAX_ZIP_BYTES}"
+  ZIP_ALLOWANCE=$((MAX_TOTAL_ZIP_BYTES - TOTAL_ZIP_BYTES))
+  [ "${ZIP_ALLOWANCE}" -lt "${ZIP_CAP}" ] && ZIP_CAP="${ZIP_ALLOWANCE}"
+  if [ "${ZIP_CAP}" -le 0 ]; then
+    echo "::warning::Cumulative compressed download budget ${MAX_TOTAL_ZIP_BYTES} exhausted before ${safe_name}; stopping downloads."
+    break
+  fi
   # Download to a file, never a pipe: curl can only rewind seekable output, so
   # through a pipe a retried body is appended and a 503 page followed by a retry
   # yields a corrupt `<error page><zip>` that still exits 0.
   # `ulimit -f` is a disk backstop for responses that declare no Content-Length;
   # the size check below is authoritative. Divide by 512 so the cap is >=
-  # MAX_ZIP_BYTES under either block size (bash uses 1024, POSIX 512). SIGXFSZ
+  # ZIP_CAP under either block size (bash uses 1024, POSIX 512). SIGXFSZ
   # is ignored so hitting the cap is an ordinary write error.
+  # `--max-time` must stay comfortably below this job's `timeout-minutes`, or a
+  # stalled transfer takes the whole job down instead of letting the script emit
+  # its controlled no-op. Real downloads here take ~30s for the full artifact
+  # set, so 5 minutes per artifact is already very generous.
   (
-    ulimit -f $((MAX_ZIP_BYTES / 512))
+    ulimit -f $((ZIP_CAP / 512))
     trap '' XFSZ
-    curl -sSL --fail --retry 3 --retry-delay 2 --connect-timeout 15 --max-time 1200 -o /tmp/a.zip "${url}"
+    curl -sSL --fail --retry 3 --retry-delay 2 --connect-timeout 15 --max-time 300 -o /tmp/a.zip "${url}"
   ) 2>/dev/null
   curl_rc=$?
   ZIP_BYTES=$(stat -c%s /tmp/a.zip 2>/dev/null || echo 0)
+  # Charge the budget with the bytes that actually crossed the wire, including
+  # those of an artifact that is about to be skipped.
+  TOTAL_ZIP_BYTES=$((TOTAL_ZIP_BYTES + ZIP_BYTES))
   if [ "${ZIP_BYTES}" -eq 0 ]; then
     echo "::warning::Skipping ${safe_name}: empty or failed download."; continue
   fi
-  if [ "${ZIP_BYTES}" -ge "${MAX_ZIP_BYTES}" ]; then
-    echo "::warning::Skipping ${safe_name}: download reached the ${MAX_ZIP_BYTES}-byte cap."; continue
+  if [ "${ZIP_BYTES}" -ge "${ZIP_CAP}" ]; then
+    echo "::warning::Skipping ${safe_name}: download reached the ${ZIP_CAP}-byte cap."; continue
   fi
   if [ "${curl_rc}" -ne 0 ]; then
     echo "::warning::Skipping ${safe_name}: download failed or was truncated (curl exit ${curl_rc})."; continue
