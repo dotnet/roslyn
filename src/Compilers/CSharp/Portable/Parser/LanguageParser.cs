@@ -884,21 +884,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private bool IsPartialInNamespaceMemberDeclaration()
         {
             if (this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword)
-            {
                 return false;
-            }
 
+            // Recognize declarations whose type keyword is visible through the modifier list, such as
+            // 'partial class C' and 'partial public class C'.
             if (this.IsPartialType())
-            {
                 return true;
-            }
 
             var nextToken = this.PeekToken(1);
-            if (nextToken.Kind == SyntaxKind.NamespaceKeyword)
-            {
-                return true;
-            }
 
+            // 'partial namespace N' cannot have another interpretation. Parse it as a namespace so
+            // binding can report the misplaced modifier instead of producing cascading parser errors.
+            if (nextToken.Kind == SyntaxKind.NamespaceKeyword)
+                return true;
+
+            // The broader lookahead is intentionally permissive, so use it here only when 'partial'
+            // begins a modifier chain. This recovers cases such as 'partial ref struct S' and
+            // 'partial unsafe enum E' without treating every 'partial'-prefixed sequence as a declaration.
             return GetModifierExcludingScoped(nextToken) != DeclarationModifiers.None
                 && this.IsPartialModifierInDeclarationHead(allowMembers: false);
         }
