@@ -897,8 +897,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (nextToken.Kind == SyntaxKind.NamespaceKeyword)
                 return true;
 
-            // IsPartialType stops at 'ref' and does not recognize enum or delegate declarations.
-            // Use the broader lookahead for cases such as 'partial ref struct S' and 'partial unsafe enum E'.
+            // IsPartialType stops at 'ref' because 'partial ref int M()' starts a partial member with
+            // a ref return type. Use the broader lookahead to distinguish that from 'partial ref struct S'
+            // and to handle cases such as 'partial unsafe enum E'.
             return GetModifierExcludingScoped(nextToken) != DeclarationModifiers.None
                 && this.IsPartialModifierInDeclarationHead(allowMembers: false);
         }
