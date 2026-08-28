@@ -21,7 +21,7 @@ namespace Sample.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class SyntaxNodeAnalyzer : DiagnosticAnalyzer
     {
-        private const string Title = "Declare explicit type for local declarations.";
+        private const string Title = "Declare explicit type for local declarations";
         public const string MessageFormat = "Local '{0}' is implicitly typed. Consider specifying its type explicitly in the declaration.";
         private const string Description = "Declare explicit type for local declarations.";
 

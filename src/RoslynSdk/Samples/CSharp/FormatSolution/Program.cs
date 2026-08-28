@@ -21,7 +21,7 @@ static class Program
         MSBuildWorkspace workspace = MSBuildWorkspace.Create();
 
         // Open the solution within the workspace.
-        Solution originalSolution = await workspace.OpenSolutionAsync(args[0]);
+        Solution originalSolution = await workspace.OpenSolutionAsync(args[0]).ConfigureAwait(false);
 
         // Declare a variable to store the intermediate solution snapshot at each step.
         Solution newSolution = originalSolution;
@@ -42,7 +42,7 @@ static class Program
 
                 // Get a transformed version of the document (a new solution snapshot is created
                 // under the covers to contain it - none of the existing objects are modified).
-                Document newDocument = await Formatter.FormatAsync(document);
+                Document newDocument = await Formatter.FormatAsync(document).ConfigureAwait(false);
 
                 // Store the solution implicitly constructed in the previous step as the latest
                 // one so we can continue building it up in the next iteration.

@@ -5782,11 +5782,9 @@ partial class PartialPartial
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
                 // (5,13): error CS1004: Duplicate 'partial' modifier
                 //     partial partial void PM();
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(5, 13),
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(6, 5),
                 // (6,13): error CS1004: Duplicate 'partial' modifier
                 //     partial partial void PM()
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(6, 13));

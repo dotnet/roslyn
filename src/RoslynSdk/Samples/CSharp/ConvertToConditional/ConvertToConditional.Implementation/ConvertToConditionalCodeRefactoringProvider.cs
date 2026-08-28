@@ -58,7 +58,7 @@ namespace ConvertToConditional
                                               StatementSyntax replacementStatement,
                                               CancellationToken cancellationToken)
         {
-            SyntaxNode oldRoot = semanticModel.SyntaxTree.GetRoot();
+            SyntaxNode oldRoot = semanticModel.SyntaxTree.GetRoot(cancellationToken);
             SyntaxNode newRoot = oldRoot.ReplaceNode(
                 oldNode: ifStatement,
                 newNode: replacementStatement.WithAdditionalAnnotations(Formatter.Annotation));

@@ -21,7 +21,7 @@ namespace Sample.Analyzers
     public class CompilationAnalyzer : DiagnosticAnalyzer
     {
         private const string Title = "Dont suppress analyzer diagnostics";
-        public const string MessageFormat = "Analyzer diagnostic '{0}' is suppressed, consider removing this compilation wide suppression.";
+        public const string MessageFormat = "Analyzer diagnostic '{0}' is suppressed, consider removing this compilation wide suppression";
         private const string Description = "Dont suppress analyzer diagnostics.";
 
         internal static DiagnosticDescriptor Rule =

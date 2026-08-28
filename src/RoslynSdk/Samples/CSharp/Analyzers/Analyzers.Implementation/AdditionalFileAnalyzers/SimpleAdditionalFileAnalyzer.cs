@@ -22,7 +22,7 @@ namespace Sample.Analyzers
     class SimpleAdditionalFileAnalyzer : DiagnosticAnalyzer
     {
         private const string Title = "Type name contains invalid term";
-        private const string MessageFormat = "The term '{0}' is not allowed in a type name.";
+        private const string MessageFormat = "The term '{0}' is not allowed in a type name";
 
         private static readonly DiagnosticDescriptor Rule =
             new DiagnosticDescriptor(

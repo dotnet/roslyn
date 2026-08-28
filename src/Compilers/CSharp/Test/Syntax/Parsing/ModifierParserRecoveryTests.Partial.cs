@@ -167,7 +167,6 @@ public sealed partial class ModifierParserRecoveryTests : ParsingTests
     public void PartialPartial_ContextualTypeDeclaration_BindingDiagnostics()
     {
         CreateCompilation("partial partial record C;", parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1),
             Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(1, 9));
     }
 
@@ -242,9 +241,6 @@ public sealed partial class ModifierParserRecoveryTests : ParsingTests
         CreateCompilation(
             "partial class M { partial partial M(); }",
             parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-            // (1,19): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-            // partial class M { partial partial M(); }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 19),
             // (1,27): error CS1004: Duplicate 'partial' modifier
             // partial class M { partial partial M(); }
             Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(1, 27),

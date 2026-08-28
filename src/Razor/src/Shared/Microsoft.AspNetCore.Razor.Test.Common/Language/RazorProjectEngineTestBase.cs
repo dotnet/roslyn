@@ -22,7 +22,11 @@ public abstract class RazorProjectEngineTestBase
 
             RazorProjectEngine CreateProjectEngine()
             {
-                return RazorProjectEngine.Create(Configuration, RazorProjectFileSystem.Empty, ConfigureProjectEngine);
+                return RazorProjectEngine.Create(Configuration, RazorProjectFileSystem.Empty, builder =>
+                {
+                    EnableMarkupSplit(builder);
+                    ConfigureProjectEngine(builder);
+                });
             }
         }
     }
@@ -104,6 +108,8 @@ public abstract class RazorProjectEngineTestBase
     protected RazorProjectEngine CreateProjectEngine(Action<RazorProjectEngineBuilder> configure)
         => RazorProjectEngine.Create(Configuration, RazorProjectFileSystem.Empty, builder =>
         {
+            EnableMarkupSplit(builder);
+
             // Ensure that tests are using the Roslyn tokenizer by default.
             builder.ConfigureParserOptions(builder =>
             {
@@ -113,6 +119,13 @@ public abstract class RazorProjectEngineTestBase
             ConfigureProjectEngine(builder);
             configure.Invoke(builder);
         });
+
+    /// <summary>
+    ///  Opts the engine into the decl/impl markup split. The split is off by default in the compiler
+    ///  (only the source generator consumes both halves), but tests assert against split output.
+    /// </summary>
+    private static void EnableMarkupSplit(RazorProjectEngineBuilder builder)
+        => builder.ConfigureCodeGenerationOptions(static options => options.EnableMarkupSplit = true);
 
     /// <summary>
     ///  Finds the first descendant node of the specified type using a depth-first search.
