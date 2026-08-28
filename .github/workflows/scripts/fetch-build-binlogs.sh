@@ -19,7 +19,30 @@
 set +e
 set +o pipefail
 
+[ -z "${GITHUB_OUTPUT}" ] && { echo "::error::GITHUB_OUTPUT is not set; refusing to run without a way to emit step outputs." >&2; exit 1; }
+
 emit_none() { echo "binlog-found=false" >> "$GITHUB_OUTPUT"; exit 0; }
+
+# Fetch an Azure DevOps API document into ADO_DOC. A network failure or a
+# non-JSON body is a data-resolution failure, not evidence that there is
+# nothing to analyze, so it is reported as such instead of falling through to
+# an empty `.records`/`.value` and a misleading "no failed jobs" warning.
+# Sets a non-zero return rather than calling emit_none directly, because a call
+# in a command substitution would only exit the subshell.
+ado_get() {
+  local what="$1" url="$2" rc
+  ADO_DOC=$(curl -sSL --fail --retry 3 "${url}")
+  rc=$?
+  if [ "${rc}" -ne 0 ] || [ -z "${ADO_DOC}" ]; then
+    echo "::warning::Could not fetch the ${what} from Azure DevOps (curl exit ${rc}); treating as a data-resolution failure."
+    return 1
+  fi
+  if ! printf '%s' "${ADO_DOC}" | jq -e . >/dev/null 2>&1; then
+    echo "::warning::Azure DevOps returned a non-JSON ${what}; treating as a data-resolution failure."
+    return 1
+  fi
+  return 0
+}
 
 # --- 1. Validate the PR number ---------------------------------------------
 # It is interpolated into GitHub API paths and into the `refs/pull/<n>/merge`
@@ -51,8 +74,9 @@ case "${RESOLVE_MODE}" in
     # Take the newest build regardless of status. If it is still running — e.g.
     # right after a force-push — skip rather than pair an older failure with the
     # PR's current head.
-    builds_json=$(curl -sSL --retry 3 \
-      "${ADO_API}/build/builds?definitions=${ADO_BUILD_DEFINITION_ID}&branchName=refs/pull/${PR_NUMBER}/merge&queryOrder=queueTimeDescending&\$top=1&api-version=7.1")
+    ado_get "build list for PR #${PR_NUMBER}" \
+      "${ADO_API}/build/builds?definitions=${ADO_BUILD_DEFINITION_ID}&branchName=refs/pull/${PR_NUMBER}/merge&queryOrder=queueTimeDescending&\$top=1&api-version=7.1" || emit_none
+    builds_json="${ADO_DOC}"
     BUILD_ID=$(printf '%s' "${builds_json}" | jq -r '.value // [] | .[0].id // empty')
     BUILD_STATUS=$(printf '%s' "${builds_json}" | jq -r '.value // [] | .[0].status // empty')
     echo "Newest roslyn-CI build for PR #${PR_NUMBER}: id='${BUILD_ID}' status='${BUILD_STATUS}'"
@@ -74,7 +98,8 @@ fi
 # On `check_run` the build id comes from a payload we don't fully trust; on
 # dispatch the build id and PR number are independent inputs. Either way the
 # build must be roslyn-CI, must have failed, and must belong to this PR.
-build_json=$(curl -sSL --retry 3 "${ADO_API}/build/builds/${BUILD_ID}?api-version=7.1")
+ado_get "details of build ${BUILD_ID}" "${ADO_API}/build/builds/${BUILD_ID}?api-version=7.1" || emit_none
+build_json="${ADO_DOC}"
 RESULT=$(printf '%s' "${build_json}" | jq -r '.result // empty')
 DEF_ID=$(printf '%s' "${build_json}" | jq -r '.definition.id // empty')
 SRC_BRANCH=$(printf '%s' "${build_json}" | jq -r '.sourceBranch // empty')
@@ -113,7 +138,8 @@ echo "Analyzing build ${BUILD_ID} at PR head revision '${HEAD_SHA}'."
 # Roslyn publishes "<job> Attempt <N> Logs" for most jobs, with explicit
 # exceptions for Source Build and the bootstrap-correctness leg. Bases are
 # matched exactly, and every retry attempt is kept.
-timeline_json=$(curl -sSL --fail --retry 3 "${ADO_API}/build/builds/${BUILD_ID}/timeline?api-version=7.1")
+ado_get "timeline of build ${BUILD_ID}" "${ADO_API}/build/builds/${BUILD_ID}/timeline?api-version=7.1" || emit_none
+timeline_json="${ADO_DOC}"
 mapfile -t failed_job_names < <(
   printf '%s' "${timeline_json}" |
     jq -r '.records // [] | map(select(.type == "Job" and (.result == "failed" or .result == "canceled"))) | .[].name' |
@@ -121,7 +147,8 @@ mapfile -t failed_job_names < <(
 )
 [ "${#failed_job_names[@]}" -eq 0 ] && { echo "::warning::No failed or canceled jobs in the timeline for build ${BUILD_ID}."; emit_none; }
 
-artifacts_json=$(curl -sSL --fail --retry 3 "${ADO_API}/build/builds/${BUILD_ID}/artifacts?api-version=7.1")
+ado_get "artifact list of build ${BUILD_ID}" "${ADO_API}/build/builds/${BUILD_ID}/artifacts?api-version=7.1" || emit_none
+artifacts_json="${ADO_DOC}"
 mapfile -t all_names < <(
   printf '%s' "${artifacts_json}" |
     jq -r '.value // [] | map(select(.name | test(" Attempt [0-9]+ Logs$") or test("^BuildLogs_SourceBuild_Managed_Attempt[0-9]+$"))) | .[].name'

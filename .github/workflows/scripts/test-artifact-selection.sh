@@ -4,22 +4,31 @@
 # artifacts get analyzed. Network-dependent; run manually.
 set -uo pipefail
 
+# ADO_API and BUILD_ID are consumed by the sourced selector, which shellcheck
+# cannot see into.
+# shellcheck disable=SC2034
 ADO_API="https://dev.azure.com/dnceng-public/public/_apis"
 SCRIPT_PATH="$(cd "$(dirname "$0")" && pwd)/fetch-build-binlogs.sh"
 
 # Extract the selector from the real script so this test cannot drift from it.
+# `ado_get` is pulled in as well, so the replay exercises the script's own
+# fetch-and-validate path rather than a stubbed copy of it.
 # It is sourced rather than eval'd: eval would strip the backslash-escaped
 # spaces in the `[[ =~ ]]` pattern and silently change the regex.
 SELECTOR_FILE=$(mktemp)
 trap 'rm -f "${SELECTOR_FILE}"' EXIT
-awk '/^# --- 6\. Select/,/^# --- 7\. Download/' "${SCRIPT_PATH}" | sed '$d' > "${SELECTOR_FILE}"
+awk '/^ado_get\(\) \{/,/^\}/' "${SCRIPT_PATH}" > "${SELECTOR_FILE}"
+awk '/^# --- 6\. Select/,/^# --- 7\. Download/' "${SCRIPT_PATH}" | sed '$d' >> "${SELECTOR_FILE}"
+grep -q '^ado_get() {' "${SELECTOR_FILE}" || { echo "could not extract ado_get from ${SCRIPT_PATH}"; exit 1; }
+grep -q 'failed_job_names' "${SELECTOR_FILE}" || { echo "could not extract the selector from ${SCRIPT_PATH}"; exit 1; }
 
 failures=0
 
 # On Windows (Git Bash) jq writes CRLF, which would leave a stray CR on every
 # artifact name and break the selector's `... Logs$` anchor. Runners are Linux,
 # where jq writes LF, so strip CR here rather than in the production script.
-REAL_JQ=$(command -v jq)
+REAL_JQ=$(command -v jq) || true
+[ -n "${REAL_JQ}" ] || { echo "jq is required to run this test but was not found on PATH"; exit 1; }
 jq() { "${REAL_JQ}" "$@" | tr -d '\r'; }
 
 replay() {
@@ -27,12 +36,9 @@ replay() {
   local result_file got
   result_file=$(mktemp)
   (
+    # shellcheck disable=SC2034
     BUILD_ID="${build_id}"
-    # These are consumed by the sourced selector, which shellcheck can't see.
-    # shellcheck disable=SC2034
-    timeline_json=$(curl -sSL --fail --retry 3 "${ADO_API}/build/builds/${BUILD_ID}/timeline?api-version=7.1")
-    # shellcheck disable=SC2034
-    artifacts_json=$(curl -sSL --fail --retry 3 "${ADO_API}/build/builds/${BUILD_ID}/artifacts?api-version=7.1")
+    # Section 6 fetches the timeline and artifact list itself via ado_get.
     # In the real script `emit_none` exits after reporting no usable data. The
     # count goes to a file because the selector's own stdout is discarded.
     emit_none() { echo 0 > "${result_file}"; exit 0; }
