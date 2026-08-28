@@ -37330,6 +37330,121 @@ partial class Program
         }
 
         [Fact]
+        public void IEnumerableToSpan_Spreads()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        List<int> list1 = [1, 2, 3];
+                        List<int> list2 = [4, 5, 6];
+                        M(list1, list2);
+                    }
+
+                    static void M(IEnumerable<int> e1, IEnumerable<int> e2)
+                    {
+                        Span<int> result = [..e1, ..e2];
+                        result.ReportSpan();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("[1, 2, 3, 4, 5, 6], "), targetFramework: TargetFramework.Net80);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+                {
+                  // Code size       50 (0x32)
+                  .maxstack  3
+                  .locals init (System.Span<int> V_0, //result
+                                System.Collections.Generic.List<int> V_1,
+                                System.Span<int> V_2)
+                  IL_0000:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                  IL_0005:  dup
+                  IL_0006:  ldarg.0
+                  IL_0007:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
+                  IL_000c:  dup
+                  IL_000d:  ldarg.1
+                  IL_000e:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
+                  IL_0013:  stloc.1
+                  IL_0014:  ldloc.1
+                  IL_0015:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
+                  IL_001a:  stloc.2
+                  IL_001b:  ldloca.s   V_2
+                  IL_001d:  ldc.i4.0
+                  IL_001e:  ldloc.1
+                  IL_001f:  callvirt   "int System.Collections.Generic.List<int>.Count.get"
+                  IL_0024:  call       "System.Span<int> System.Span<int>.Slice(int, int)"
+                  IL_0029:  stloc.0
+                  IL_002a:  ldloca.s   V_0
+                  IL_002c:  call       "void CollectionExtensions.ReportSpan<int>(in System.Span<int>)"
+                  IL_0031:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void IEnumerableToReadOnlySpan_Spreads()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        List<int> list1 = [1, 2, 3];
+                        List<int> list2 = [4, 5, 6];
+                        M(list1, list2);
+                    }
+
+                    static void M(IEnumerable<int> e1, IEnumerable<int> e2)
+                    {
+                        ReadOnlySpan<int> result = [..e1, ..e2];
+                        result.Report();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("[1, 2, 3, 4, 5, 6], "), targetFramework: TargetFramework.Net80);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+                {
+                  // Code size       55 (0x37)
+                  .maxstack  3
+                  .locals init (System.ReadOnlySpan<int> V_0, //result
+                                System.Collections.Generic.List<int> V_1,
+                                System.ReadOnlySpan<int> V_2)
+                  IL_0000:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                  IL_0005:  dup
+                  IL_0006:  ldarg.0
+                  IL_0007:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
+                  IL_000c:  dup
+                  IL_000d:  ldarg.1
+                  IL_000e:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
+                  IL_0013:  stloc.1
+                  IL_0014:  ldloc.1
+                  IL_0015:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
+                  IL_001a:  call       "System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)"
+                  IL_001f:  stloc.2
+                  IL_0020:  ldloca.s   V_2
+                  IL_0022:  ldc.i4.0
+                  IL_0023:  ldloc.1
+                  IL_0024:  callvirt   "int System.Collections.Generic.List<int>.Count.get"
+                  IL_0029:  call       "System.ReadOnlySpan<int> System.ReadOnlySpan<int>.Slice(int, int)"
+                  IL_002e:  stloc.0
+                  IL_002f:  ldloca.s   V_0
+                  IL_0031:  call       "void CollectionExtensions.Report<int>(in System.ReadOnlySpan<int>)"
+                  IL_0036:  ret
+                }
+                """);
+        }
+
+        [Fact]
         public void List_Spread_Mutation()
         {
             var source = """
