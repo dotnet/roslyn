@@ -504,6 +504,7 @@ sealed class VirtualProjectBuilder
             lastProject = (projectFileText, project, projectRoot);
 
             // Preserve the legacy artifacts behavior when the .NET SDK imported its artifacts props but selected no layout.
+            // dotnet CLI has the latest SDK imported but other hosts like MSBuildWorkspace may not.
             if (_useLegacyArtifactsPath is null)
             {
                 var defaultArtifactsPathPropsImported = await project.GetPropertyValueAsync("_DefaultArtifactsPathPropsImported").ConfigureAwait(false);
