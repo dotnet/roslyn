@@ -698,6 +698,16 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
             N(SyntaxKind.SemicolonToken);
         }
         EOF();
+
+        CreateCompilation(
+            "class C { public safe partial C(); }",
+            parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            // (1,18): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // class C { public safe partial C(); }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(1, 18),
+            // (1,31): error CS9275: Partial member 'C.C()' must have an implementation part.
+            // class C { public safe partial C(); }
+            Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "C").WithArguments("C.C()").WithLocation(1, 31));
     }
 
     [Theory, CombinatorialData]

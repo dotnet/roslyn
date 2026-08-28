@@ -431,6 +431,34 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
             N(SyntaxKind.SemicolonToken);
         }
         EOF();
+
+        var compilation = CreateCompilation(
+            "partial class C { partial partial event System.Action E; }",
+            parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+
+        if (langVersion == LanguageVersion.CSharp13)
+        {
+            compilation.VerifyDiagnostics(
+                // (1,27): error CS1004: Duplicate 'partial' modifier
+                // partial class C { partial partial event System.Action E; }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(1, 27),
+                // (1,55): error CS9275: Partial member 'C.E' must have an implementation part.
+                // partial class C { partial partial event System.Action E; }
+                Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "E").WithArguments("C.E").WithLocation(1, 55),
+                // (1,55): error CS8703: The modifier 'partial' is not valid for this item in C# 13.0. Please use language version '14.0' or greater.
+                // partial class C { partial partial event System.Action E; }
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "E").WithArguments("partial", "13.0", "14.0").WithLocation(1, 55));
+        }
+        else
+        {
+            compilation.VerifyDiagnostics(
+                // (1,27): error CS1004: Duplicate 'partial' modifier
+                // partial class C { partial partial event System.Action E; }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(1, 27),
+                // (1,55): error CS9275: Partial member 'C.E' must have an implementation part.
+                // partial class C { partial partial event System.Action E; }
+                Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "E").WithArguments("C.E").WithLocation(1, 55));
+        }
     }
 
     [Theory, CombinatorialData]
