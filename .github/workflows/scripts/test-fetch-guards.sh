@@ -94,6 +94,15 @@ check "every curl invocation was found" "$([ "${total_curl}" -ge 2 ] && echo yes
 check "every retrying curl bounds its retry window" "${bounded}" "${retrying}"
 check "every curl retries" "${retrying}" "${total_curl}"
 
+# `--retry-max-time` only gates whether a *new* retry may start, so the deadline
+# is only real if the whole invocation is also wrapped in `timeout`.
+dl_curl=$(printf '%s\n' "${curl_cmds}" | grep -- '-o /tmp/a.zip')
+check "the download is wrapped in timeout" \
+  "$(printf '%s' "${dl_curl}" | grep -c 'timeout "${TIME_LEFT}" curl')" "1"
+# With a hard deadline the whole phase is bounded by the budget alone.
+check "download phase is bounded by the budget alone" \
+  "$([ "${DOWNLOAD_BUDGET}" -lt $((JOB_TIMEOUT_MIN * 60)) ] && echo yes)" "yes"
+
 # --- 4. Only this run's binlogs may be analyzed -----------------------------
 # The extract loop globs the whole directory, so anything a previous run left
 # behind would be uploaded and attributed to this build.

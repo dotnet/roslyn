@@ -199,6 +199,12 @@ MAX_TOTAL_BYTES=4294967296  # 4 GB extracted across all artifacts
 # the sum across artifacts. Cap the total download too, and charge it *before*
 # each transfer (see ZIP_CAP below) rather than after, so the last artifact
 # can't start just under the limit and still pull a full MAX_ZIP_BYTES.
+# This is a budget, not a byte-exact ceiling: `ulimit -f` works in 512-byte
+# blocks and rounds up, so a transfer can overshoot its cap by up to 511 bytes
+# before the size check below rejects it. That slack is per artifact and
+# bounded by MAX_ARTIFACTS, i.e. under 20 KB overall — irrelevant next to a
+# 3 GB budget, and far cheaper than the alternative of treating a small
+# remaining allowance as exhausted and dropping a leg that would still fit.
 MAX_TOTAL_ZIP_BYTES=3221225472  # 3 GB compressed downloaded across all artifacts
 TOTAL_ZIP_BYTES=0
 # `--max-time` is per attempt, so `--retry N` multiplies it: the whole download
@@ -206,7 +212,8 @@ TOTAL_ZIP_BYTES=0
 # `timeout-minutes: 15`. Give the loop a wall-clock deadline and derive every
 # transfer's budget from what is left of it, so no combination of slow
 # artifacts and retries can take the job down before the controlled no-op.
-# Worst case is DOWNLOAD_BUDGET plus one final attempt, well inside the job.
+# `timeout` around each transfer makes the deadline hard, so the whole phase
+# really is bounded by DOWNLOAD_BUDGET rather than by it plus a last attempt.
 DOWNLOAD_BUDGET=420             # 7 minutes for all artifact transfers
 MAX_ATTEMPT_SECONDS=120         # per attempt; the full set really takes ~30s
 DOWNLOAD_DEADLINE=$(( $(date +%s) + DOWNLOAD_BUDGET ))
@@ -255,15 +262,17 @@ for name in "${names[@]}"; do
   # positive ZIP_CAP yields at least one block: dividing down would give a
   # 0-block limit for a sub-512-byte remainder and fail every write.
   # SIGXFSZ is ignored so hitting the cap is an ordinary write error.
-  # `--retry-max-time` bounds the whole retry window, and `--max-time` one
-  # attempt; without the former, `--retry 3` alone would permit four full
-  # attempts plus backoff and could outlive this job's `timeout-minutes`.
+  # `--retry-max-time` only gates whether curl may *start* another retry, so a
+  # retry begun just inside it can still run a further `--max-time`. `timeout`
+  # around the whole invocation is what makes DOWNLOAD_DEADLINE a real deadline
+  # rather than a scheduling hint; a killed transfer is treated like any other
+  # failed one and the leg is reported as missing, which fails closed.
   (
     ulimit -f $(( (ZIP_CAP + 511) / 512 ))
     trap '' XFSZ
-    curl -sSL --fail --retry 3 --retry-delay 2 --connect-timeout 15 \
-      --max-time "${ATTEMPT_SECONDS}" --retry-max-time "${TIME_LEFT}" \
-      -o /tmp/a.zip "${url}"
+    timeout "${TIME_LEFT}" curl -sSL --fail --retry 3 --retry-delay 2 \
+      --connect-timeout 15 --max-time "${ATTEMPT_SECONDS}" \
+      --retry-max-time "${TIME_LEFT}" -o /tmp/a.zip "${url}"
   ) 2>/dev/null
   curl_rc=$?
   ZIP_BYTES=$(stat -c%s /tmp/a.zip 2>/dev/null || echo 0)
