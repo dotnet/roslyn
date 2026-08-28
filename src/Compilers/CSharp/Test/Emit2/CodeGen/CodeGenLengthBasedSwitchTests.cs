@@ -12,6 +12,88 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
 
 public class CodeGenLengthBasedSwitchTests : CSharpTestBase
 {
+    [Fact]
+    public void SmallSwitchWithSingleLength()
+    {
+        var source = """
+System.Console.Write($"{C.Decode("one")} {C.Decode("two")} {C.Decode("six")} {C.Decode("ten")} {C.Decode("four")} {C.Decode(null)}");
+
+public static class C
+{
+    public static byte Decode(string str) => str switch
+    {
+        "one" => 1,
+        "two" => 2,
+        "six" => 6,
+        _ => 0
+    };
+}
+""";
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+        comp.VerifyEmitDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "1 2 6 0 0 0");
+        verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName + "(string)", expected: false);
+        verifier.VerifyIL("C.Decode", """
+{
+  // Code size      100 (0x64)
+  .maxstack  2
+  .locals init (byte V_0,
+                int V_1,
+                char V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0060
+  IL_0003:  ldarg.0
+  IL_0004:  call       "int string.Length.get"
+  IL_0009:  stloc.1
+  IL_000a:  ldloc.1
+  IL_000b:  ldc.i4.3
+  IL_000c:  bne.un.s   IL_0060
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.0
+  IL_0010:  call       "char string.this[int].get"
+  IL_0015:  stloc.2
+  IL_0016:  ldloc.2
+  IL_0017:  ldc.i4.s   111
+  IL_0019:  beq.s      IL_0027
+  IL_001b:  ldloc.2
+  IL_001c:  ldc.i4.s   115
+  IL_001e:  beq.s      IL_0045
+  IL_0020:  ldloc.2
+  IL_0021:  ldc.i4.s   116
+  IL_0023:  beq.s      IL_0036
+  IL_0025:  br.s       IL_0060
+  IL_0027:  ldarg.0
+  IL_0028:  ldstr      "one"
+  IL_002d:  call       "bool string.op_Equality(string, string)"
+  IL_0032:  brtrue.s   IL_0054
+  IL_0034:  br.s       IL_0060
+  IL_0036:  ldarg.0
+  IL_0037:  ldstr      "two"
+  IL_003c:  call       "bool string.op_Equality(string, string)"
+  IL_0041:  brtrue.s   IL_0058
+  IL_0043:  br.s       IL_0060
+  IL_0045:  ldarg.0
+  IL_0046:  ldstr      "six"
+  IL_004b:  call       "bool string.op_Equality(string, string)"
+  IL_0050:  brtrue.s   IL_005c
+  IL_0052:  br.s       IL_0060
+  IL_0054:  ldc.i4.1
+  IL_0055:  stloc.0
+  IL_0056:  br.s       IL_0062
+  IL_0058:  ldc.i4.2
+  IL_0059:  stloc.0
+  IL_005a:  br.s       IL_0062
+  IL_005c:  ldc.i4.6
+  IL_005d:  stloc.0
+  IL_005e:  br.s       IL_0062
+  IL_0060:  ldc.i4.0
+  IL_0061:  stloc.0
+  IL_0062:  ldloc.0
+  IL_0063:  ret
+}
+""");
+    }
+
     [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
     public void MixOfBucketSizes()
     {

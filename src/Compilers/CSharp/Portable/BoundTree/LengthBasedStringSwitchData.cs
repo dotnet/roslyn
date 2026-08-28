@@ -130,7 +130,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         // when buckets have 6 candidates or more.
         internal bool ShouldGenerateLengthBasedSwitch(int labelsCount)
         {
-            return SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(labelsCount) &&
+            // Smaller switches still benefit when a single length check can reject all cases.
+            return (SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(labelsCount) ||
+                    labelsCount >= 3 && LengthBasedJumpTable.LengthCaseLabels.Length == 1) &&
                 StringBasedJumpTables.All(t => t.StringCaseLabels.Length <= 5);
         }
 
