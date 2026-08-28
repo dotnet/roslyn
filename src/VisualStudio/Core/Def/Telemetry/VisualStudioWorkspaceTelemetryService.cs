@@ -33,8 +33,7 @@ internal sealed class VisualStudioWorkspaceTelemetryService(
     private readonly IGlobalOptionService _globalOptions = globalOptions;
 
     protected override ImmutableArray<IEventSink> CreateEventSinks(TelemetrySession telemetrySession, bool logDelta)
-        =>
-        [
+        => [
             CodeMarkerLogger.Instance,
             RoslynActivityLogger.Sink,
             TelemetryLogger.Create(telemetrySession, logDelta),

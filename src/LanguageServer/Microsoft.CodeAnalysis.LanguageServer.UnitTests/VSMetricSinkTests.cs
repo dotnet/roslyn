@@ -29,7 +29,7 @@ public sealed class VSMetricSinkTests
         /// <summary>
         /// Runs inside the aggregation lock a flush holds while posting.
         /// </summary>
-        public Action? OnPost { get; set; }
+        public Action OnPost { get; set; }
 
         /// <summary>
         /// The telemetry events carried by <see cref="Posted"/>, captured at post time because

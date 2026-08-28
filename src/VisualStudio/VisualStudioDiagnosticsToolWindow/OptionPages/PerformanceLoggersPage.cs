@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -30,9 +30,9 @@ internal sealed class PerformanceLoggersPage : AbstractOptionPage
     private IThreadingContext _threadingContext;
     private SolutionServices _workspaceServices;
 
-    private static IDisposable? s_etwRegistration;
-    private static IDisposable? s_traceRegistration;
-    private static IDisposable? s_outputWindowRegistration;
+    private static IDisposable s_etwRegistration;
+    private static IDisposable s_traceRegistration;
+    private static IDisposable s_outputWindowRegistration;
 
     protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
     {
@@ -89,7 +89,7 @@ internal sealed class PerformanceLoggersPage : AbstractOptionPage
                 CancellationToken.None).ConfigureAwait(false));
         }
 
-        static void Register(ref IDisposable? registration, bool enabled, Func<IEventSink> create)
+        static void Register(ref IDisposable registration, bool enabled, Func<IEventSink> create)
         {
             Interlocked.Exchange(ref registration, enabled ? RoslynTelemetry.AddEventSink(create()) : null)?.Dispose();
         }
