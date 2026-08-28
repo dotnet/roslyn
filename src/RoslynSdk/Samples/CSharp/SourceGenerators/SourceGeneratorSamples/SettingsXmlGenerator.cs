@@ -43,7 +43,6 @@ namespace Analyzer1
                 return;
             }
 
-
             // create a class in the XmlSetting class that represnts this entry, and a static field that contains a singleton instance.
             string fileName = Path.GetFileName(xmlFile.Path);
             string name = xmlDoc.DocumentElement.GetAttribute("name");

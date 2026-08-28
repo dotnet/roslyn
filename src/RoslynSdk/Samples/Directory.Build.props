@@ -16,9 +16,9 @@
   </PropertyGroup>
 
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
-  <Import Project="$(RepositoryEngineeringDir)Versions.props" />
 
   <PropertyGroup>
+    <Nullable>disable</Nullable>
     <SkipRoslynTestTraceListener>true</SkipRoslynTestTraceListener>
     <UsingToolXliff>false</UsingToolXliff>
     <EnableXlfLocalization>false</EnableXlfLocalization>

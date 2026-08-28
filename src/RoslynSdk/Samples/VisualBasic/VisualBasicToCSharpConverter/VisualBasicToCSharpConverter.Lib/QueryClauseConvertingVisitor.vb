@@ -24,9 +24,9 @@ Namespace VisualBasicToCSharpConverter
 
                 Private IsFirstAfterSelect As Boolean
                 Private InitialClause As CS.Syntax.FromClauseSyntax
-                Private Clauses As New List(Of CS.Syntax.QueryClauseSyntax)()
+                Private ReadOnly Clauses As New List(Of CS.Syntax.QueryClauseSyntax)()
                 Private Expression As CS.Syntax.ExpressionSyntax
-                Private RangeVariablesInScope As New List(Of String)()
+                Private ReadOnly RangeVariablesInScope As New List(Of String)()
                 Private SelectOrGroupClause As CS.Syntax.SelectOrGroupClauseSyntax
                 Private Continuation As CS.Syntax.QueryContinuationSyntax
 
@@ -147,7 +147,6 @@ Namespace VisualBasicToCSharpConverter
                     Return From node In nodes Select VisitOrdering(node)
 
                 End Function
-
 
                 Public Overrides Function VisitSelectClause(node As VB.Syntax.SelectClauseSyntax) As Object
 

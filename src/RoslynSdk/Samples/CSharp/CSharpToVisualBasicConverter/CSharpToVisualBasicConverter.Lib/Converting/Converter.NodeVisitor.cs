@@ -376,23 +376,6 @@ namespace CSharpToVisualBasicConverter
                 return VB.SyntaxFactory.TypeParameterList(parameters);
             }
 
-            private VB.Syntax.TypeParameterListSyntax ConvertTypeParameters(SeparatedSyntaxList<CS.Syntax.TypeParameterSyntax> list)
-            {
-                VB.Syntax.TypeParameterSyntax[] parameters = list.Select(t =>
-                {
-                    SyntaxToken variance = t.VarianceKeyword.IsKind(CS.SyntaxKind.None)
-                        ? new SyntaxToken()
-                        : t.VarianceKeyword.IsKind(CS.SyntaxKind.InKeyword)
-                            ? VB.SyntaxFactory.Token(VB.SyntaxKind.InKeyword)
-                            : VB.SyntaxFactory.Token(VB.SyntaxKind.OutKeyword);
-
-                    // TODO: get the constraints.
-                    return VB.SyntaxFactory.TypeParameter(ConvertIdentifier(t.Identifier)).WithVarianceKeyword(variance);
-                }).ToArray();
-
-                return VB.SyntaxFactory.TypeParameterList(parameters);
-            }
-
             public override SyntaxNode VisitNamespaceDeclaration(CS.Syntax.NamespaceDeclarationSyntax node)
             {
                 return VB.SyntaxFactory.NamespaceBlock(
