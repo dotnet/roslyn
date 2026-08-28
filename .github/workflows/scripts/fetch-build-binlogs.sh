@@ -300,8 +300,12 @@ for name in "${names[@]}"; do
   ) 2>/dev/null
   curl_rc=$?
   ZIP_BYTES=$(stat -c%s "${ZIP_TMP}" 2>/dev/null || echo 0)
-  # Charge the budget with the bytes that actually crossed the wire, including
-  # those of an artifact that is about to be skipped.
+  # Charge the budget with the bytes retained on disk, including those of an
+  # artifact about to be skipped. This is a disk and extraction budget, not a
+  # meter of network egress: `-o` truncates before each retry, so failed
+  # attempts are not counted here. What bounds those is DOWNLOAD_DEADLINE via
+  # the `timeout` wrapper, plus `ulimit -f`, which caps every individual
+  # attempt at ZIP_CAP.
   TOTAL_ZIP_BYTES=$((TOTAL_ZIP_BYTES + ZIP_BYTES))
   if [ "${ZIP_BYTES}" -eq 0 ]; then
     echo "::warning::Skipping ${safe_name}: empty or failed download."; continue
