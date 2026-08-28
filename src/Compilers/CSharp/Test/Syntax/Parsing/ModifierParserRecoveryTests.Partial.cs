@@ -270,6 +270,103 @@ public sealed partial class ModifierParserRecoveryTests : ParsingTests
         EOF();
     }
 
+    [Theory]
+    [InlineData(LanguageVersion.CSharp14)]
+    [InlineData(LanguageVersion.Preview)]
+    public void PartialPartialPartial_ConstructorDeclaration(LanguageVersion languageVersion)
+    {
+        const string source = "class Holder { partial partial partial M(); }";
+        var parseOptions = TestOptions.Regular.WithLanguageVersion(languageVersion);
+
+        UsingTree(source, parseOptions);
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "Holder");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ConstructorDeclaration);
+                {
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        CreateCompilation(source, parseOptions: parseOptions).VerifyDiagnostics(
+            // (1,24): error CS1004: Duplicate 'partial' modifier
+            // class Holder { partial partial partial M(); }
+            Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(1, 24),
+            // (1,40): error CS1520: Method must have a return type
+            // class Holder { partial partial partial M(); }
+            Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(1, 40),
+            // (1,40): error CS0751: A partial member must be declared within a partial type
+            // class Holder { partial partial partial M(); }
+            Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "M").WithLocation(1, 40),
+            // (1,40): error CS9275: Partial member 'Holder.Holder()' must have an implementation part.
+            // class Holder { partial partial partial M(); }
+            Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "M").WithArguments("Holder.Holder()").WithLocation(1, 40));
+    }
+
+    [Theory]
+    [InlineData(LanguageVersion.CSharp14)]
+    [InlineData(LanguageVersion.Preview)]
+    public void PartialPartialPartial_TopLevelMethod(LanguageVersion languageVersion)
+    {
+        const string source = "partial partial partial int M();";
+        var parseOptions = TestOptions.Regular.WithLanguageVersion(languageVersion);
+
+        UsingTree(source, parseOptions);
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        CreateCompilation(source, parseOptions: parseOptions).VerifyDiagnostics(
+            // (1,9): error CS1004: Duplicate 'partial' modifier
+            // partial partial partial int M();
+            Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(1, 9),
+            // (1,29): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
+            // partial partial partial int M();
+            Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "M").WithLocation(1, 29),
+            // (1,29): error CS0751: A partial member must be declared within a partial type
+            // partial partial partial int M();
+            Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "M").WithLocation(1, 29),
+            // (1,29): error CS8796: Partial method '<invalid-global-code>.M()' must have accessibility modifiers because it has a non-void return type.
+            // partial partial partial int M();
+            Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "M").WithArguments("<invalid-global-code>.M()").WithLocation(1, 29));
+    }
+
     // ---------- partial on methods ----------
 
     [Fact]

@@ -1370,7 +1370,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private void ParseModifiers(SyntaxListBuilder tokens, bool forTopLevelStatements, out bool isPossibleTypeDeclaration)
         {
             isPossibleTypeDeclaration = true;
-            var seenPartial = false;
 
             while (true)
             {
@@ -1399,22 +1398,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // required to be the last modifier; that restriction is enforced by the binder in
                         // ModifierUtils.ToDeclarationModifiers.
                         if (forTopLevelStatements &&
-                            !seenPartial &&
                             this.IsPartialConstructor(peekIndex: 1))
                         {
                             // At top level, preserve the existing statement/member ambiguity rather than
                             // committing the first 'partial' as a declaration modifier.
                             return;
                         }
-                        if (seenPartial && this.IsPartialIdentifierDeclarationHead())
-                        {
-                            return;
-                        }
 
                         if (this.IsPartialModifierInDeclarationHead(allowMembers: true))
                         {
                             modTok = ConvertToKeyword(this.EatToken());
-                            seenPartial = true;
                         }
                         else
                         {
