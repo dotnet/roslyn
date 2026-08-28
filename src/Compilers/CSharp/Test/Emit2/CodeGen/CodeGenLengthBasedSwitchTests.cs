@@ -138,6 +138,95 @@ public static class C
 """);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void SmallSwitchWithSingleLength_Span(bool useReadonly)
+    {
+        var keyType = useReadonly ? "System.ReadOnlySpan<char>" : "System.Span<char>";
+        var source = $$"""
+System.Console.Write($"{decode("one")} {decode("two")} {decode("six")} {decode("ten")} {decode("four")}");
+
+static byte decode(string input) => C.Decode(new {{keyType}}(input.ToCharArray()));
+
+public static class C
+{
+    public static byte Decode({{keyType}} str) => str switch
+    {
+        "one" => 1,
+        "two" => 2,
+        "six" => 6,
+        _ => 0
+    };
+}
+""";
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe);
+        comp.VerifyEmitDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "1 2 6 0 0", verify: Verification.Skipped);
+        var indexer = useReadonly ? $$"""ref readonly char {{keyType}}.this[int].get""" : $$"""ref char {{keyType}}.this[int].get""";
+        verifier.VerifyIL("C.Decode", $$"""
+{
+  // Code size      115 (0x73)
+  .maxstack  2
+  .locals init (byte V_0,
+                int V_1,
+                char V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       "int {{keyType}}.Length.get"
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
+  IL_0009:  ldc.i4.3
+  IL_000a:  bne.un.s   IL_006f
+  IL_000c:  ldarga.s   V_0
+  IL_000e:  ldc.i4.0
+  IL_000f:  call       "{{indexer}}"
+  IL_0014:  ldind.u2
+  IL_0015:  stloc.2
+  IL_0016:  ldloc.2
+  IL_0017:  ldc.i4.s   111
+  IL_0019:  beq.s      IL_0027
+  IL_001b:  ldloc.2
+  IL_001c:  ldc.i4.s   115
+  IL_001e:  beq.s      IL_004f
+  IL_0020:  ldloc.2
+  IL_0021:  ldc.i4.s   116
+  IL_0023:  beq.s      IL_003b
+  IL_0025:  br.s       IL_006f
+  IL_0027:  ldarg.0
+  IL_0028:  ldstr      "one"
+  IL_002d:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0032:  call       "bool System.MemoryExtensions.SequenceEqual<char>({{keyType}}, System.ReadOnlySpan<char>)"
+  IL_0037:  brtrue.s   IL_0063
+  IL_0039:  br.s       IL_006f
+  IL_003b:  ldarg.0
+  IL_003c:  ldstr      "two"
+  IL_0041:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0046:  call       "bool System.MemoryExtensions.SequenceEqual<char>({{keyType}}, System.ReadOnlySpan<char>)"
+  IL_004b:  brtrue.s   IL_0067
+  IL_004d:  br.s       IL_006f
+  IL_004f:  ldarg.0
+  IL_0050:  ldstr      "six"
+  IL_0055:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_005a:  call       "bool System.MemoryExtensions.SequenceEqual<char>({{keyType}}, System.ReadOnlySpan<char>)"
+  IL_005f:  brtrue.s   IL_006b
+  IL_0061:  br.s       IL_006f
+  IL_0063:  ldc.i4.1
+  IL_0064:  stloc.0
+  IL_0065:  br.s       IL_0071
+  IL_0067:  ldc.i4.2
+  IL_0068:  stloc.0
+  IL_0069:  br.s       IL_0071
+  IL_006b:  ldc.i4.6
+  IL_006c:  stloc.0
+  IL_006d:  br.s       IL_0071
+  IL_006f:  ldc.i4.0
+  IL_0070:  stloc.0
+  IL_0071:  ldloc.0
+  IL_0072:  ret
+}
+""");
+    }
+
     [Fact, WorkItem(56374, "https://github.com/dotnet/roslyn/issues/56374")]
     public void MixOfBucketSizes()
     {

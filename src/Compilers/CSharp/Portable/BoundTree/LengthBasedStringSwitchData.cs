@@ -126,8 +126,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // Based on benchmarks, the previous hashcode-based approach arguably performs better
-        // when buckets have 6 candidates or more.
+        // Prefer length-based dispatch when it avoids either a hash-based switch or a linear
+        // sequence of comparisons without leaving more than five candidates in a final bucket.
         internal bool ShouldGenerateLengthBasedSwitch(int labelsCount)
         {
             // Hash-based dispatch is cheaper when a final string bucket has more than five candidates.
