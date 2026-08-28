@@ -201,10 +201,11 @@ MAX_TOTAL_BYTES=4294967296  # 4 GB extracted across all artifacts
 # can't start just under the limit and still pull a full MAX_ZIP_BYTES.
 # This is a budget, not a byte-exact ceiling: `ulimit -f` works in 512-byte
 # blocks and rounds up, so a transfer can overshoot its cap by up to 511 bytes
-# before the size check below rejects it. That slack is per artifact and
-# bounded by MAX_ARTIFACTS, i.e. under 20 KB overall — irrelevant next to a
-# 3 GB budget, and far cheaper than the alternative of treating a small
-# remaining allowance as exhausted and dropping a leg that would still fit.
+# before the size check below rejects it. That slack is under 512 bytes per
+# selected artifact, so at any plausible artifact count it stays in the
+# kilobytes — irrelevant next to a 3 GB budget, and far cheaper than the
+# alternative of treating a small remaining allowance as exhausted and
+# dropping a leg that would still fit.
 MAX_TOTAL_ZIP_BYTES=3221225472  # 3 GB compressed downloaded across all artifacts
 TOTAL_ZIP_BYTES=0
 # `--max-time` is per attempt, so `--retry N` multiplies it: the whole download
