@@ -130,22 +130,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         // when buckets have 6 candidates or more.
         internal bool ShouldGenerateLengthBasedSwitch(int labelsCount)
         {
+            // Hash-based dispatch is cheaper when a final string bucket has more than five candidates.
             if (StringBasedJumpTables.Any(table => table.StringCaseLabels.Length > 5))
             {
                 return false;
             }
 
+            // Large switches already qualify for the existing length-based strategy.
             if (SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(labelsCount))
             {
                 return true;
             }
 
+            // Smaller switches need at least three cases, all sharing a single non-null string length.
             if (labelsCount < 3)
             {
                 return false;
             }
 
-            // Smaller switches still benefit when a single length check can reject all cases.
             return LengthBasedJumpTable.LengthCaseLabels.Length == 1;
         }
 
