@@ -2657,7 +2657,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     [Fact]
     public void ContextualKeywordTypeFollowingProperty()
     {
-        const string source = "class C { int P { get; } partial unknown; }";
+        const string source = "class C { int P { get; } @partial unknown; }";
 
         UsingDeclaration(source);
         N(SyntaxKind.ClassDeclaration);
@@ -2689,7 +2689,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
                 {
                     N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierToken, "partial");
+                        N(SyntaxKind.IdentifierToken, "@partial");
                     }
                     N(SyntaxKind.VariableDeclarator);
                     {
