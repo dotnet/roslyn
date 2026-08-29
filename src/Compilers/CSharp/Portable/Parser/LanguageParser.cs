@@ -1379,11 +1379,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             return;
                         }
 
-                        if (this.IsPartialModifierInDeclarationHead(allowMembers: true))
-                            modTok = ConvertToKeyword(this.EatToken());
-                        else
+                        // Leave 'partial' as an identifier if the remaining tokens do not form a declaration.
+                        if (!this.IsPartialModifierInDeclarationHead(allowMembers: true))
                             return;
 
+                        modTok = ConvertToKeyword(this.EatToken());
                         break;
 
                     case DeclarationModifiers.Ref:
@@ -1549,6 +1549,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (!parsingStatementNotDeclaration)
             {
+                // If 'partial' starts a declaration, the preceding token is also a modifier,
+                // as in 'closed partial ref struct'.
                 if (this.IsPartialModifierInDeclarationHead(allowMembers: true))
                     return true;
 
