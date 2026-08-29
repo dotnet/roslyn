@@ -13,8 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class LocalRewriter
     {
         /// <summary>
-        /// Benchmark results (see https://github.com/dotnet/roslyn/pull/84961) show that short patterns can be more
-        /// efficient when emitted as comparisons. Larger patterns can benefit from switch dispatch.
+        /// Benchmarks in <c>src/Tools/Benchmarks/IsPatternBenchmarks.cs</c> show that short sparse patterns can be more
+        /// efficient as comparisons, while the sparse and dense four-value cases show that larger patterns can benefit
+        /// from general decision-DAG dispatch.
         /// </summary>
         private const int MaxTestsForInvertedLinearSequence = 3;
 

@@ -61,6 +61,11 @@ try {
   " --exclude net472\Roslyn.VisualStudio.DiagnosticsWindow.dll" +
   # Match Roslyn's existing WindowsDesktop VS package exclusions, which still rebuild with output differences.
   " --exclude net472\Microsoft.VisualStudio.RazorExtension.dll" +
+  # BuildValidator cannot reliably replay Roslyn SDK WindowsDesktop VS extension builds because
+  # WindowsDesktop references are available from multiple target packs.
+  " --exclude net472\Roslyn.ComponentDebugger.dll" +
+  " --exclude net472\Roslyn.SyntaxVisualizer.Control.dll" +
+  " --exclude net472\Roslyn.SyntaxVisualizer.Extension.dll" +
 
 # Rebuilds with compilation errors
 # Rebuilds with missing references
