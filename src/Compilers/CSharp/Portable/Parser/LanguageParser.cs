@@ -875,18 +875,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.NamespaceKeyword:
                     return true;
                 case SyntaxKind.IdentifierToken:
-                    return IsPartialInNamespaceMemberDeclaration();
+                    return this.IsPartialModifierInDeclarationHead(allowMembers: false);
                 default:
                     return IsPossibleStartOfTypeDeclaration(this.CurrentToken.Kind);
             }
-        }
-
-        private bool IsPartialInNamespaceMemberDeclaration()
-        {
-            if (this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword)
-                return false;
-
-            return this.IsPartialModifierInDeclarationHead(allowMembers: false);
         }
 
         public bool IsEndOfNamespace()
@@ -1555,14 +1547,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             this.EatToken(); //move past contextual token
 
-            if (!parsingStatementNotDeclaration &&
-                (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword))
+            if (!parsingStatementNotDeclaration)
             {
-                // In 'closed partial ref struct', the declaration makes 'partial' a modifier too.
                 if (this.IsPartialModifierInDeclarationHead(allowMembers: true))
                     return true;
 
-                this.EatToken(); // "partial" doesn't affect our remaining heuristics, so look past it.
+                // 'partial' does not affect the remaining heuristics, so look past it.
+                if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
+                    this.EatToken();
             }
 
             // ... 'TOKEN' [partial] <typedecl> ...
@@ -1683,7 +1675,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         private bool IsPartialModifierInDeclarationHead(bool allowMembers)
         {
-            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
+            if (this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword)
+                return false;
 
             using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
 
