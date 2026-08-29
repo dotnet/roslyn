@@ -22,7 +22,7 @@ Run at the end of every task that changes code. This is not optional.
 
 **New pattern established?** → If repo-wide, add to `.github/memory/CONVENTIONS.md`; if layer-specific, add to the matching `.github/instructions/<area>.instructions.md`.
 
-**Surprising or undocumented behavior found?** → Repo-wide → `.github/memory/KNOWN_ISSUES.md`; layer-specific → `.github/memory/known-issues/<area>.md`.
+**Surprising or undocumented behavior found?** → Ask the user how they want it documented.
 
 **Changed test base classes, locations, or how to run a suite?** → Repo-wide layout → `.github/memory/TESTING_STRATEGY.md`; layer-specific bases/conventions → `.github/memory/testing/<area>.md`.
 

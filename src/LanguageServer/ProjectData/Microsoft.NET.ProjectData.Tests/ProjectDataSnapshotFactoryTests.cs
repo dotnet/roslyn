@@ -56,11 +56,43 @@ public class ProjectDataSnapshotFactoryTests
 		Assert.False(snapshot.Properties.TryGetValue("SolutionPath", out _));
 	}
 
+	[Fact]
+	public void CreateSnapshot_PreservesProjectReferenceOutputAssemblyMetadata()
+	{
+		CachedSliceData slice = CreateSlice(
+			projectReferences:
+			[
+				new CachedProjectReference
+				{
+					FilePath = @"C:\repo\BuildOnly\BuildOnly.csproj",
+					ReferenceOutputAssembly = false,
+				},
+				new CachedProjectReference
+				{
+					FilePath = @"C:\repo\Library\Library.csproj",
+					ReferenceOutputAssembly = true,
+				},
+				new CachedProjectReference
+				{
+					FilePath = @"C:\repo\Legacy\Legacy.csproj",
+				},
+			]);
+
+		ProjectDataSnapshot snapshot = ProjectDataSnapshotFactory.CreateSnapshot(slice);
+		ImmutableArray<ProjectDataItem> references = snapshot.ItemsByType["ProjectReference"];
+
+		Assert.Equal(3, references.Length);
+		Assert.Equal("false", references[0].Metadata["ReferenceOutputAssembly"]);
+		Assert.Equal("true", references[1].Metadata["ReferenceOutputAssembly"]);
+		Assert.False(references[2].Metadata.TryGetValue("ReferenceOutputAssembly", out _));
+	}
+
 	private static CachedSliceData CreateSlice(
 		Dictionary<string, string>? sliceDimensions = null,
 		Dictionary<string, string>? properties = null,
 		ImmutableArray<CachedSourceFile> sourceFiles = default,
-		ImmutableArray<CachedMetadataReference> metadataReferences = default)
+		ImmutableArray<CachedMetadataReference> metadataReferences = default,
+		ImmutableArray<CachedProjectReference> projectReferences = default)
 		=> new()
 		{
 			LanguageName = "C#",
@@ -73,7 +105,7 @@ public class ProjectDataSnapshotFactoryTests
 			AnalyzerConfigFiles = [],
 			AdditionalFiles = [],
 			EmbeddedResources = [],
-			ProjectReferences = [],
+			ProjectReferences = projectReferences.IsDefault ? [] : projectReferences,
 			Capabilities = [],
 			Properties = (properties ?? []).ToImmutableDictionary(),
 		};

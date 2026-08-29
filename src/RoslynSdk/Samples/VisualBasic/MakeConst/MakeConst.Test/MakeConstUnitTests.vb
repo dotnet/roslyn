@@ -1,4 +1,8 @@
-﻿Imports Xunit
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
+
+Imports Xunit
 Imports Verify = Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicCodeFixVerifier(Of MakeConst.VisualBasic.MakeConstAnalyzer, MakeConst.VisualBasic.MakeConstCodeFixProvider, Microsoft.CodeAnalysis.Testing.DefaultVerifier)
 
 Namespace MakeConst.Test
@@ -14,7 +18,6 @@ Namespace MakeConst.Test
         'Diagnostic And CodeFix both triggered And checked for
         <Fact>
         Public Sub TestMethod2()
-
 
         End Sub
 
