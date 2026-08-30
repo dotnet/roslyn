@@ -220,7 +220,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         var upperCaseUri = new DocumentUri(@"file:///C:/Users/dabarbet/source/repos/XUnitApp1/UnitTest1.cs");
-        var lowerCaseUri = new DocumentUri(@"file:///c:/Users/dabarbet/source/repos/XUnitApp1/UnitTest1.cs");
+        var lowerCaseUri = new DocumentUri(@"file:///c:/users/dabarbet/source/repos/xunitapp1/unittest1.cs");
 
         // Execute the request as JSON directly to avoid the test client serializing System.Uri.
         var requestJson = $$$"""

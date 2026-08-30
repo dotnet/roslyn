@@ -192,21 +192,44 @@ public sealed class SharedMetadataReferenceCacheTests : TestBase
         Assert.NotSame(assemblyReference.GetMetadataId(), moduleReference.GetMetadataId());
     }
 
-    [ConditionalFact(typeof(LinuxOnly))]
-    public void PathsDifferingOnlyByCase_DoNotShareReferenceOnCaseSensitiveFileSystem()
+    [Fact]
+    public void PathsDifferingOnlyByCase_ShareReference()
     {
         var cache = new SharedMetadataReferenceCache();
         var directory = Temp.CreateDirectory();
         var lowerCasePath = Path.Combine(directory.Path, "reference.dll");
         var upperCasePath = Path.Combine(directory.Path, "REFERENCE.dll");
+        var timestamp = new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         File.Copy(typeof(object).Assembly.Location, lowerCasePath);
-        File.Copy(typeof(object).Assembly.Location, upperCasePath);
+        File.SetLastWriteTimeUtc(lowerCasePath, timestamp);
+
+        // On a case-insensitive file system these paths refer to the same file. On a case-sensitive
+        // file system, create the second path so both cache lookups observe the same file timestamp.
+        if (!File.Exists(upperCasePath))
+        {
+            File.Copy(lowerCasePath, upperCasePath);
+            File.SetLastWriteTimeUtc(upperCasePath, timestamp);
+        }
 
         var lowerCaseReference = GetReference(cache, lowerCasePath);
         var upperCaseReference = GetReference(cache, upperCasePath);
 
-        Assert.NotSame(lowerCaseReference, upperCaseReference);
-        Assert.Equal(2, cache.GetTestAccessor().EntryCount);
+        Assert.Same(lowerCaseReference, upperCaseReference);
+        Assert.Equal(1, cache.GetTestAccessor().EntryCount);
+    }
+
+    [ConditionalFact(typeof(WindowsOnly))]
+    public void PathsDifferingOnlyByDirectorySeparator_ShareReference()
+    {
+        var cache = new SharedMetadataReferenceCache();
+        var path = typeof(object).Assembly.Location;
+        var alternatePath = path.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+        var reference = GetReference(cache, path);
+        var alternateReference = GetReference(cache, alternatePath);
+
+        Assert.Same(reference, alternateReference);
+        Assert.Equal(1, cache.GetTestAccessor().EntryCount);
     }
 
     [Fact]

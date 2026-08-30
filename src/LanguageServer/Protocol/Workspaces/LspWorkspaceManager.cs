@@ -62,7 +62,8 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// the URI.
     /// <para/> Access to this is guaranteed to be serial by the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
-    private ImmutableDictionary<DocumentUri, TrackedDocumentInfo> _trackedDocuments = ImmutableDictionary<DocumentUri, TrackedDocumentInfo>.Empty;
+    private ImmutableDictionary<DocumentUri, TrackedDocumentInfo> _trackedDocuments =
+        ImmutableDictionary<DocumentUri, TrackedDocumentInfo>.Empty.WithComparers(DocumentUriComparer.Instance);
 
     private readonly ILspLogger _logger;
     private readonly ILspMiscellaneousFilesWorkspaceProvider? _lspMiscellaneousFilesWorkspaceProvider;
