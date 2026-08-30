@@ -49,6 +49,8 @@ internal sealed partial class LoadedProject : IAsyncDisposable
 
     private readonly List<Target> _targets = [];
     private (ProjectSystemProjectFactory ProjectFactory, ProjectId Id)? _primordialProjectInfo;
+    private readonly TaskCompletionSource _initialLoadCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private bool _designTimeBuildStarted;
 
     private bool _reportedTelemetry = false;
     private Guid? _projectGuidForTelemetry = null;
@@ -77,6 +79,36 @@ internal sealed partial class LoadedProject : IAsyncDisposable
     /// Raised any time this project (or any of its targets) needs a reload. The parameter includes the file path that triggered a reload.
     /// </summary>
     public event EventHandler<string>? NeedsReload;
+
+    public async ValueTask<bool> TryBeginLoadAsync()
+    {
+        using (await _gate.DisposableWaitAsync())
+        {
+            if (_disposed)
+                return false;
+
+            if (_designTimeBuildStarted)
+            {
+                return false;
+            }
+
+            _designTimeBuildStarted = true;
+            return true;
+        }
+    }
+
+    public async ValueTask<bool> WaitForLoadAsync(CancellationToken cancellationToken)
+    {
+        await _initialLoadCompletionSource.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        using (await _gate.DisposableWaitAsync(cancellationToken))
+        {
+            return !_disposed && (_primordialProjectInfo.HasValue || _targets.Count > 0);
+        }
+    }
+
+    public void CompleteInitialLoad()
+        => _initialLoadCompletionSource.TrySetResult();
 
     private void ProjectFileChangeContext_FileChanged(object? sender, FileChangedEventArgs e)
     {
@@ -322,6 +354,8 @@ internal sealed partial class LoadedProject : IAsyncDisposable
             if (_disposed)
                 return;
 
+            _initialLoadCompletionSource.TrySetResult();
+
             _sourceFileCreatedOrDeletedChangeContext?.Dispose();
             _projectFileChangeContext.Dispose();
 
@@ -338,6 +372,13 @@ internal sealed partial class LoadedProject : IAsyncDisposable
 
             _disposed = true;
         }
+    }
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(LoadedProject loadedProject)
+    {
+        public void RaiseNeedsReload() => loadedProject.NeedsReload?.Invoke(loadedProject, loadedProject.ProjectFilePath);
     }
 
     private sealed class DocumentFileInfoComparer : IEqualityComparer<DocumentFileInfo>
