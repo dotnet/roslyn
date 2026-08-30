@@ -194,6 +194,31 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
     internal Task<LoadedProject> BeginLoadingProjectAsync(string projectFilePath)
         => BeginLoadingProjectAsync(projectFilePath, projectGuid: null);
 
+    internal async Task<ImmutableArray<string>> GetProjectReferencesAsync(LoadedProject loadedProject)
+    {
+        var references = ImmutableArray.CreateBuilder<string>();
+        var solution = _hostProjectFactory.Workspace.CurrentSolution;
+        foreach (var loadedProjectTarget in await loadedProject.GetExistingProjectsAsync())
+        {
+            var project = solution.GetProject(loadedProjectTarget.Id);
+            if (project is null)
+                continue;
+
+            foreach (var projectReference in project.ProjectReferences)
+            {
+                var referencedProjectPath = solution.GetProject(projectReference.ProjectId)?.FilePath;
+                if (referencedProjectPath is not null &&
+                    PathUtilities.IsAbsolute(referencedProjectPath) &&
+                    GetLanguageNameForRegisteredProjectPath(referencedProjectPath) is not null)
+                {
+                    references.Add(Path.GetFullPath(referencedProjectPath));
+                }
+            }
+        }
+
+        return references.Distinct(PathUtilities.Comparer).ToImmutableArray();
+    }
+
     internal ImmutableArray<string> GetSupportedProjectFileExtensions()
     {
         var supportedLanguages = _hostProjectFactory.Workspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>();
@@ -201,11 +226,25 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
             extension => _projectFileExtensionRegistry.TryGetLanguageNameFromExtension(extension, out var languageName) && supportedLanguages.Contains(languageName));
     }
 
+    private string? GetLanguageNameForRegisteredProjectPath(string projectPath)
+    {
+        var extension = Path.GetExtension(projectPath);
+        if (extension is ['.', .. var extensionWithoutDot])
+            extension = extensionWithoutDot;
+
+        return _projectFileExtensionRegistry.TryGetLanguageNameFromExtension(extension, out var languageName)
+            ? languageName
+            : null;
+    }
+
+    internal TestAccessor GetTestAccessor()
+        => new(this);
+
     protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken)
     {
         Contract.ThrowIfFalse(PathUtilities.IsAbsolute(projectPath));
-        if (!_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out var languageName))
+        if (GetLanguageNameForRegisteredProjectPath(projectPath) is not { } languageName)
             return null;
 
         var preferredBuildHostKind = BuildHostProcessManager.GetKindForProject(projectPath);
@@ -229,7 +268,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
 
     protected override async Task<(ImmutableArray<ProjectFileInfo>, ProjectSystemProjectFactory)?> TryLoadProjectFromCacheAsync(string projectPath, CancellationToken cancellationToken)
     {
-        if (!_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out var languageName))
+        if (GetLanguageNameForRegisteredProjectPath(projectPath) is not { } languageName)
             return null;
 
         var projectSnapshots = await CacheFileReader.ReadProjectDataSnapshotsAsync(
@@ -288,4 +327,10 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
 
     internal static bool GetReferenceOutputAssembly(ProjectDataItem item)
         => !string.Equals(item.Metadata["ReferenceOutputAssembly"], bool.FalseString, StringComparison.OrdinalIgnoreCase);
+
+    internal readonly struct TestAccessor(LanguageServerProjectSystem projectSystem)
+    {
+        internal string? GetLanguageNameForRegisteredProjectPath(string projectPath)
+            => projectSystem.GetLanguageNameForRegisteredProjectPath(projectPath);
+    }
 }

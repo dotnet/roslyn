@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Composition;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -12,12 +14,16 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.UnitTests.MiscellaneousFiles;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using StreamJsonRpc;
 using StreamJsonRpc.Protocol;
+using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -61,6 +67,305 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     }
 
     [Theory, CombinatorialData]
+    public async Task AsyncContextDoesNotBlockLaterRequestsAndUsesRequestTimeText(bool mutatingLspWorkspace)
+    {
+        var composition = Composition.AddParts(typeof(TestOnDemandProjectLoaderFactory));
+        await using var server = await CreateTestLspServerAsync(
+            "request text",
+            mutatingLspWorkspace,
+            new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer },
+            composition);
+        var document = server.GetCurrentSolution().Projects.Single().Documents.Single();
+        var documentUri = document.GetURI();
+        await server.OpenDocumentAsync(documentUri, "request text");
+
+        var handlerStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        TestConfigurableDocumentHandler.ConfigureHandler(
+            server,
+            mutatesSolutionState: false,
+            requiresLspSolution: true,
+            async (context, cancellationToken) =>
+            {
+                handlerStarted.TrySetResult(true);
+                var workspace = await context.GetRequiredWorkspaceAsync(cancellationToken).ConfigureAwait(false);
+                var requestDocument = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
+                Assert.Same(workspace, requestDocument.Project.Solution.Workspace);
+                var text = await requestDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                return new TestConfigurableResponse(text.ToString());
+            });
+
+        var request = new TestRequestWithDocument(new TextDocumentIdentifier { DocumentUri = documentUri });
+        var responseTask = server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(
+            TestConfigurableDocumentHandler.MethodName, request, CancellationToken.None);
+        await handlerStarted.Task.WithTimeout(TestHelpers.HangMitigatingTimeout);
+
+        var controlRequest = new TestRequestTypeOne(new TextDocumentIdentifier { DocumentUri = documentUri });
+        var nonMutatingResponse = await server.ExecuteRequestAsync<TestRequestTypeOne, string>(
+            TestNonMutatingDocumentHandler.MethodName, controlRequest, CancellationToken.None);
+        await server.InsertTextAsync(documentUri, (0, 0, "later "));
+        var mutatingResponse = await server.ExecuteRequest0Async<string>(TestRequestHandlerWithNoParams.MethodName, CancellationToken.None);
+
+        Assert.Equal(nameof(TestRequestHandlerWithNoParams), mutatingResponse);
+        Assert.Equal(nameof(TestNonMutatingDocumentHandler), nonMutatingResponse);
+        Assert.False(responseTask.IsCompleted);
+
+        var loader = Assert.IsType<TestOnDemandProjectLoader>(server.GetRequiredLspService<IOnDemandProjectLoader>());
+        loader.Complete();
+
+        var response = await responseTask;
+        Assert.NotNull(response);
+        Assert.Equal("request text", response.Response);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task AsyncContextRetainsRequestTimeMiscellaneousDocumentAfterDidClose(bool mutatingLspWorkspace)
+    {
+        var composition = Composition.AddParts(
+            typeof(TestOnDemandProjectLoaderFactory),
+            typeof(TestLspMiscellaneousFilesWorkspaceProviderFactory));
+        await using var server = await CreateTestLspServerAsync(
+            [],
+            mutatingLspWorkspace,
+            new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer },
+            composition);
+        var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(TestHelpers.CreateAbsolutePath("Loose.cs"));
+        await server.OpenDocumentAsync(documentUri, "request text");
+
+        var handlerStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        TestConfigurableDocumentHandler.ConfigureHandler(
+            server,
+            mutatesSolutionState: false,
+            requiresLspSolution: true,
+            async (context, cancellationToken) =>
+            {
+                Assert.Equal(WorkspaceKind.MiscellaneousFiles, context.GetInitialWorkspace()?.Kind);
+                handlerStarted.TrySetResult(true);
+                var requestDocument = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
+                var text = await requestDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                return new TestConfigurableResponse(text.ToString());
+            });
+
+        var request = new TestRequestWithDocument(new TextDocumentIdentifier { DocumentUri = documentUri });
+        var responseTask = server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(
+            TestConfigurableDocumentHandler.MethodName, request, CancellationToken.None);
+        await handlerStarted.Task.WithTimeout(TestHelpers.HangMitigatingTimeout);
+
+        await server.CloseDocumentAsync(documentUri);
+        Assert.Empty(server.GetTrackedTexts());
+
+        var loader = Assert.IsType<TestOnDemandProjectLoader>(server.GetRequiredLspService<IOnDemandProjectLoader>());
+        loader.Complete();
+
+        var response = await responseTask.WithTimeout(TestHelpers.HangMitigatingTimeout);
+        Assert.NotNull(response);
+        Assert.Equal("request text", response.Response);
+        Assert.Empty(await server.GetManagerAccessor().GetMiscellaneousDocumentsAsync(static p => p.Documents).ToImmutableArrayAsync(CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task CancelingAsyncContextWaitDoesNotCancelOnDemandLoading()
+    {
+        var composition = Composition.AddParts(typeof(TestOnDemandProjectLoaderFactory));
+        await using var server = await CreateTestLspServerAsync(
+            "request text",
+            mutatingLspWorkspace: false,
+            new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer },
+            composition);
+        var document = server.GetCurrentSolution().Projects.Single().Documents.Single();
+        var documentUri = document.GetURI();
+        await server.OpenDocumentAsync(documentUri, "request text");
+
+        var requestCount = 0;
+        var secondHandlerStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        TestConfigurableDocumentHandler.ConfigureHandler(
+            server,
+            mutatesSolutionState: false,
+            requiresLspSolution: true,
+            async (context, cancellationToken) =>
+            {
+                if (Interlocked.Increment(ref requestCount) == 2)
+                    secondHandlerStarted.TrySetResult(true);
+
+                var requestDocument = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
+                var text = await requestDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                return new TestConfigurableResponse(text.ToString());
+            });
+
+        var loader = Assert.IsType<TestOnDemandProjectLoader>(server.GetRequiredLspService<IOnDemandProjectLoader>());
+        var request = new TestRequestWithDocument(new TextDocumentIdentifier { DocumentUri = documentUri });
+        using var cancellationSource = new CancellationTokenSource();
+        var canceledRequest = server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(
+            TestConfigurableDocumentHandler.MethodName, request, cancellationSource.Token);
+        await loader.Started.WithTimeout(TestHelpers.HangMitigatingTimeout);
+
+        cancellationSource.Cancel();
+        var exception = await Record.ExceptionAsync(async () =>
+            await canceledRequest.WithTimeout(TestHelpers.HangMitigatingTimeout));
+        Assert.True(
+            exception is OperationCanceledException or StreamJsonRpc.RemoteInvocationException,
+            exception?.ToString());
+        Assert.False(loader.IsCompleted);
+
+        var successfulRequest = server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(
+            TestConfigurableDocumentHandler.MethodName, request, CancellationToken.None);
+        await secondHandlerStarted.Task.WithTimeout(TestHelpers.HangMitigatingTimeout);
+        Assert.False(successfulRequest.IsCompleted);
+
+        loader.Complete();
+
+        var response = await successfulRequest.WithTimeout(TestHelpers.HangMitigatingTimeout);
+        Assert.NotNull(response);
+        Assert.Equal("request text", response.Response);
+        Assert.True(loader.StartCount >= 2);
+    }
+
+    [Fact]
+    public async Task CanceledOnDemandLoadFallsBackWithoutReportingFatalError()
+    {
+        var composition = Composition.AddParts(typeof(TestOnDemandProjectLoaderFactory));
+        await using var server = await CreateTestLspServerAsync(
+            "request text",
+            mutatingLspWorkspace: false,
+            new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer },
+            composition);
+        var document = server.GetCurrentSolution().Projects.Single().Documents.Single();
+        var documentUri = document.GetURI();
+        var didReportCancellation = false;
+        FatalError.OverwriteHandler((exception, severity, dumps) =>
+        {
+            if (exception is OperationCanceledException)
+                didReportCancellation = true;
+        });
+        TestConfigurableDocumentHandler.ConfigureHandler(
+            server,
+            mutatesSolutionState: false,
+            requiresLspSolution: true,
+            async (context, cancellationToken) =>
+            {
+                var requestDocument = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
+                var text = await requestDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                return new TestConfigurableResponse(text.ToString());
+            });
+
+        var request = new TestRequestWithDocument(new TextDocumentIdentifier { DocumentUri = documentUri });
+        var responseTask = server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(
+            TestConfigurableDocumentHandler.MethodName, request, CancellationToken.None);
+        var loader = Assert.IsType<TestOnDemandProjectLoader>(server.GetRequiredLspService<IOnDemandProjectLoader>());
+        await loader.Started.WithTimeout(TestHelpers.HangMitigatingTimeout);
+
+        loader.Cancel();
+
+        var response = await responseTask.WithTimeout(TestHelpers.HangMitigatingTimeout);
+        Assert.NotNull(response);
+        Assert.Equal("request text", response.Response);
+        Assert.False(didReportCancellation);
+    }
+
+    [Fact]
+    public async Task RequiredAsyncContextAccessorsThrowInvalidOperationExceptionWhenContextIsUnavailable()
+    {
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace: false);
+        var documentUri = server.GetCurrentSolution().Projects.Single().Documents.Single().GetURI();
+        TestConfigurableDocumentHandler.ConfigureHandler(
+            server,
+            mutatesSolutionState: false,
+            requiresLspSolution: false,
+            async (context, cancellationToken) =>
+            {
+                await Assert.ThrowsAsync<InvalidOperationException>(async () => await context.GetRequiredWorkspaceAsync(cancellationToken));
+                await Assert.ThrowsAsync<InvalidOperationException>(async () => await context.GetRequiredSolutionAsync(cancellationToken));
+                await Assert.ThrowsAsync<InvalidOperationException>(async () => await context.GetRequiredTextDocumentAsync(cancellationToken));
+                await Assert.ThrowsAsync<InvalidOperationException>(async () => await context.GetRequiredDocumentAsync(cancellationToken));
+                return new TestConfigurableResponse("");
+            });
+
+        var request = new TestRequestWithDocument(new TextDocumentIdentifier { DocumentUri = documentUri });
+        var response = await server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(
+            TestConfigurableDocumentHandler.MethodName, request, CancellationToken.None);
+
+        Assert.NotNull(response);
+    }
+
+    [Fact]
+    public async Task MutatingContextAsyncAccessorDoesNotWaitForOnDemandLoading()
+    {
+        var composition = Composition.AddParts(typeof(TestOnDemandProjectLoaderFactory));
+        await using var server = await CreateTestLspServerAsync(
+            "request text",
+            mutatingLspWorkspace: false,
+            new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer },
+            composition);
+        var document = server.GetCurrentSolution().Projects.Single().Documents.Single();
+        var documentUri = document.GetURI();
+        await server.OpenDocumentAsync(documentUri, "request text");
+
+        TestConfigurableDocumentHandler.ConfigureHandler(
+            server,
+            mutatesSolutionState: true,
+            requiresLspSolution: true,
+            async (context, cancellationToken) =>
+            {
+                var requestDocument = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
+                var text = await requestDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                return new TestConfigurableResponse(text.ToString());
+            });
+
+        var loader = Assert.IsType<TestOnDemandProjectLoader>(server.GetRequiredLspService<IOnDemandProjectLoader>());
+        var startCountBeforeRequest = loader.StartCount;
+        try
+        {
+            var request = new TestRequestWithDocument(new TextDocumentIdentifier { DocumentUri = documentUri });
+            var response = await server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(
+                TestConfigurableDocumentHandler.MethodName, request, CancellationToken.None).WithTimeout(TestHelpers.HangMitigatingTimeout);
+
+            Assert.NotNull(response);
+            Assert.Equal("request text", response.Response);
+            Assert.Equal(startCountBeforeRequest + 1, loader.StartCount);
+            Assert.False(loader.IsCompleted);
+        }
+        finally
+        {
+            loader.Complete();
+        }
+    }
+
+    [Fact]
+    public async Task ClearSolutionContextClearsInitialAndCurrentValues()
+    {
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace: false);
+        var document = server.GetCurrentSolution().Projects.Single().Documents.Single();
+        var documentUri = document.GetURI();
+
+        TestConfigurableDocumentHandler.ConfigureHandler(
+            server,
+            mutatesSolutionState: false,
+            requiresLspSolution: true,
+            async (context, cancellationToken) =>
+            {
+                Assert.NotNull(context.GetInitialWorkspace());
+                Assert.NotNull(context.GetInitialSolution());
+                Assert.NotNull(context.GetInitialTextDocument());
+
+                var contextCopy = context;
+                context.ClearSolutionContext();
+
+                Assert.Throws<InvalidOperationException>(() => contextCopy.GetInitialWorkspace());
+                Assert.Throws<InvalidOperationException>(() => contextCopy.GetInitialSolution());
+                Assert.Throws<InvalidOperationException>(() => contextCopy.GetInitialTextDocument());
+                await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                    await contextCopy.GetSolutionAsync(cancellationToken));
+
+                return new TestConfigurableResponse("");
+            });
+
+        var request = new TestRequestWithDocument(new TextDocumentIdentifier { DocumentUri = documentUri });
+        var response = await server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(
+            TestConfigurableDocumentHandler.MethodName, request, CancellationToken.None);
+
+        Assert.NotNull(response);
+    }
+
+    [Theory, CombinatorialData]
     public async Task CanExecuteRequestHandler(bool mutatingLspWorkspace)
     {
         await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
@@ -72,6 +377,42 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
 
         var response = await server.ExecuteRequestAsync<TestRequestTypeOne, string>(TestDocumentHandler.MethodName, request, CancellationToken.None);
         Assert.Equal(typeof(TestDocumentHandler).Name, response);
+    }
+
+    [ExportCSharpVisualBasicLspServiceFactory(typeof(IOnDemandProjectLoader)), PartNotDiscoverable, Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    private sealed class TestOnDemandProjectLoaderFactory() : ILspServiceFactory
+    {
+        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+            => new TestOnDemandProjectLoader();
+    }
+
+    private sealed class TestOnDemandProjectLoader : IOnDemandProjectLoader
+    {
+        private readonly TaskCompletionSource<bool> _completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource<bool> _started = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private int _startCount;
+
+        public Task Started => _started.Task;
+        public int StartCount => Volatile.Read(ref _startCount);
+        public bool IsCompleted => _completion.Task.IsCompleted;
+
+        public OnDemandProjectLoadOperation StartLoading(DocumentUri uri, ImmutableHashSet<string> workspaceFolders)
+        {
+            Interlocked.Increment(ref _startCount);
+            _started.TrySetResult(true);
+            return new(_completion.Task);
+        }
+
+        public OnDemandProjectLoadOperation GetWorkspaceLoadOperation()
+            => OnDemandProjectLoadOperation.Completed;
+
+        public void Complete()
+            => _completion.TrySetResult(true);
+
+        public void Cancel()
+            => _completion.TrySetCanceled();
     }
 
     [Theory, CombinatorialData]

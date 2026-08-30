@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 
@@ -19,7 +21,7 @@ internal sealed class RequestContextFactory : AbstractRequestContextFactory<Requ
         _lspServices = lspServices;
     }
 
-    public override Task<RequestContext> CreateRequestContextAsync<TRequestParam>(QueueItem<RequestContext> queueItem, IMethodHandler methodHandler, TRequestParam requestParam, CancellationToken cancellationToken)
+    public override async Task<RequestContext> CreateRequestContextAsync<TRequestParam>(QueueItem<RequestContext> queueItem, IMethodHandler methodHandler, TRequestParam requestParam, CancellationToken cancellationToken)
     {
         var clientCapabilitiesManager = _lspServices.GetRequiredService<IInitializeManager>();
         var clientCapabilities = clientCapabilitiesManager.TryGetClientCapabilities();
@@ -68,7 +70,18 @@ internal sealed class RequestContextFactory : AbstractRequestContextFactory<Requ
             throw new InvalidOperationException($"{nameof(IMethodHandler)} implementation {methodHandler.GetType()} does not implement {nameof(ISolutionRequiredHandler)}");
         }
 
-        return RequestContext.CreateAsync(
+        var workspaceFolders = queueItem.MethodName == Methods.InitializeName
+            ? ImmutableHashSet<string>.Empty
+            : _lspServices.GetRequiredService<IWorkspaceFolderTracker>().GetRequiredWorkspaceFolderPaths();
+        var onDemandProjectLoader = _lspServices.GetService<IOnDemandProjectLoader>();
+        var loadOperation = textDocumentIdentifier is not null
+            ? onDemandProjectLoader?.StartLoading(textDocumentIdentifier.DocumentUri, workspaceFolders) ?? OnDemandProjectLoadOperation.Completed
+            : requiresLSPSolution && !methodHandler.MutatesSolutionState
+                ? onDemandProjectLoader?.GetWorkspaceLoadOperation() ?? OnDemandProjectLoadOperation.Completed
+                : OnDemandProjectLoadOperation.Completed;
+        var trackedDocuments = _lspServices.GetRequiredService<LspWorkspaceManager>().GetTrackedLspText();
+
+        var requestContext = await RequestContext.CreateAsync(
             methodHandler.MutatesSolutionState,
             requiresLSPSolution,
             textDocumentIdentifier,
@@ -78,6 +91,10 @@ internal sealed class RequestContextFactory : AbstractRequestContextFactory<Requ
             _lspServices,
             logger,
             queueItem.MethodName,
-            cancellationToken);
+            loadOperation,
+            trackedDocuments,
+            cancellationToken).ConfigureAwait(false);
+
+        return requestContext;
     }
 }
