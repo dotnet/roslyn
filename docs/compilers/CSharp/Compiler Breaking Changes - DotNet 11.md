@@ -293,7 +293,7 @@ int b = unsafe(c[null]);
 
 ## Uninitialized non-nullable events now report CS9400 instead of CS8618
 
-***Introduced in Visual Studio 2026 version 18.10***
+***Introduced in Visual Studio 2026 version 18.12***
 
 The compiler now reports CS9400 for an uninitialized non-nullable event instead of
 CS8618.
