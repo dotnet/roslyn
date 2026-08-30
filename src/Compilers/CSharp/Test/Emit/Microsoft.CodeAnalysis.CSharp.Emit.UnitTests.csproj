@@ -17,11 +17,6 @@
     <ProjectReference Include="..\..\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Core\MSBuildTask\MvidReader.cs">
-      <Link>Emit\MvidReader.cs</Link>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" />
     <PackageReference Include="Microsoft.DiaSymReader" />
     <PackageReference Include="Basic.Reference.Assemblies.Net50" />
