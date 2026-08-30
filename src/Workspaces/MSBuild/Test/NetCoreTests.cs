@@ -747,7 +747,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         var sourceFilePath = GetSolutionFileName("Program.cs");
 
         using var workspace = CreateMSBuildWorkspace();
-        workspace.AssociateFileExtensionWithLanguage("cs", LanguageNames.CSharp);
+        workspace.AssociateFileExtensionWithLanguage(".cs", LanguageNames.CSharp);
         await workspace.OpenProjectAsync(sourceFilePath);
 
         // [Failure] Msbuild failed when processing the file 'Program.cs' with message:

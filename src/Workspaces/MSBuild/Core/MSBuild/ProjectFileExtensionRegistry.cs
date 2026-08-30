@@ -4,7 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.CodeAnalysis.FileBasedPrograms;
@@ -41,38 +41,55 @@ internal sealed class ProjectFileExtensionRegistry
     {
         using (_dataGuard.DisposableWait())
         {
-            _extensionToLanguageMap[fileExtension] = language;
+            _extensionToLanguageMap[RemoveLeadingDot(fileExtension)] = language;
         }
     }
 
-    public bool TryGetLanguageNameFromProjectPath(string? projectFilePath, DiagnosticReportingMode mode, [NotNullWhen(true)] out string? languageName)
+    /// <summary>
+    /// Gets the registered project file extensions without a leading '.'.
+    /// </summary>
+    public ImmutableArray<string> GetRegisteredProjectFileExtensions()
     {
-        return TryGetLanguageNameFromProjectPath(projectFilePath, mode, out languageName, out _);
+        using (_dataGuard.DisposableWait())
+        {
+            return [.. _extensionToLanguageMap.Keys];
+        }
     }
 
-    public bool TryGetLanguageNameFromProjectPath(string? projectFilePath, DiagnosticReportingMode mode, [NotNullWhen(true)] out string? languageName, out bool isFileBasedApp)
+    public bool TryGetLanguageNameFromExtension(string extension, [NotNullWhen(true)] out string? languageName)
     {
-        var extension = Path.GetExtension(projectFilePath);
-        if (extension is null)
+        using (_dataGuard.DisposableWait())
+        {
+            return _extensionToLanguageMap.TryGetValue(RemoveLeadingDot(extension), out languageName);
+        }
+    }
+
+    private static string RemoveLeadingDot(string extension)
+        => extension is ['.', .. var rest] ? rest : extension;
+
+    public bool TryGetLanguageNameFromProjectPath(string? projectFilePath, DiagnosticReportingMode mode, [NotNullWhen(true)] out string? languageName)
+        => TryGetLanguageNameFromProjectPath(projectFilePath, mode, out languageName, out _);
+
+    public bool TryGetLanguageNameFromProjectPath(
+        string? projectFilePath,
+        DiagnosticReportingMode mode,
+        [NotNullWhen(true)] out string? languageName,
+        out bool isFileBasedApp)
+    {
+        if (projectFilePath is null)
         {
             languageName = null;
             isFileBasedApp = false;
-            _diagnosticReporter.Report(mode, $"Project file path was 'null'");
+            _diagnosticReporter.Report(mode, "Project file path is null.");
             return false;
         }
 
-        Debug.Assert(projectFilePath != null);
+        var projectFileExtension = Path.GetExtension(projectFilePath);
 
-        if (extension is ['.', .. var rest])
-            extension = rest;
-
-        using (_dataGuard.DisposableWait())
+        if (TryGetLanguageNameFromExtension(projectFileExtension, out languageName))
         {
-            if (_extensionToLanguageMap.TryGetValue(extension, out languageName))
-            {
-                isFileBasedApp = false;
-                return true;
-            }
+            isFileBasedApp = false;
+            return true;
         }
 
         if (_fileBasedProgramService?.IsValidEntryPointPath(projectFilePath) == true)
@@ -83,7 +100,7 @@ internal sealed class ProjectFileExtensionRegistry
         }
 
         isFileBasedApp = false;
-        _diagnosticReporter.Report(mode, string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projectFilePath, Path.GetExtension(projectFilePath)));
+        _diagnosticReporter.Report(mode, string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projectFilePath, projectFileExtension));
         return false;
     }
 }
