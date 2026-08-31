@@ -1786,6 +1786,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // Otherwise, require a return type followed by a member name, as in 'partial int M()'.
             return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
 
+            // Checks whether 'partial' begins a type declaration, looking through intervening modifiers.
             bool isPartialType()
             {
                 Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
