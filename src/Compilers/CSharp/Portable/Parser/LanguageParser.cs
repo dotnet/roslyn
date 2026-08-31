@@ -875,9 +875,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.NamespaceKeyword:
                     return true;
                 case SyntaxKind.IdentifierToken:
-                    // Namespace lookahead accepts only type or namespace declarations. Include misplaced
-                    // modifiers so those declarations still reach binding for diagnostics. This is not
-                    // top-level statement disambiguation.
+                    // Do not look for type members because this is namespace-member lookahead. Recognize
+                    // misplaced modifiers, as in 'partial public class C', so binding can diagnose them.
+                    // This call is not disambiguating top-level statements.
                     return this.IsPartialModifierInDeclarationHead(
                         allowMembers: false,
                         allowMisplacedModifiers: true,
