@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         public override bool Execute()
         {
-            AbsolutePath fullSourcePath = TaskEnvironment.GetAbsolutePathNoThrow(SourcePath);
-            AbsolutePath fullDestinationPath = TaskEnvironment.GetAbsolutePathNoThrow(DestinationPath);
+            AbsolutePath fullSourcePath = string.IsNullOrEmpty(SourcePath) ? default : TaskEnvironment.GetAbsolutePath(SourcePath);
+            AbsolutePath fullDestinationPath = string.IsNullOrEmpty(DestinationPath) ? default : TaskEnvironment.GetAbsolutePath(DestinationPath);
 
             if (!TaskEnvironment.FileExists(fullSourcePath))
             {
