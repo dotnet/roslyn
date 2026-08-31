@@ -1687,7 +1687,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return false;
 
             // First recognize the established forms shared by modifier and identifier parsing.
-            if (this.IsPartialType() || (allowMembers && this.IsPartialMember()))
+            if (isPartialType() || (allowMembers && isPartialMember()))
                 return true;
 
             // Only modifier recovery recognizes the additional noncanonical forms below.
@@ -1728,7 +1728,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (allowMembers &&
                     this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
                 {
-                    if (!this.IsPartialType() &&
+                    if (!isPartialType() &&
                         !this.IsPartialConstructor(peekIndex: 0))
                     {
                         if (this.IsPartialConstructorName(peekIndex: 0))
@@ -1768,28 +1768,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // Otherwise, require a return type followed by a member name, as in 'partial int M()'.
             return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
-        }
 
-        /// <remarks>
-        /// Call only from <see cref="IsPartialModifierInDeclarationHead"/> so all parser paths use
-        /// the same classification.
-        /// </remarks>
-        private bool IsPartialType()
-        {
-            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
-
-            var peekIndex = 1;
-
-            // Look through intervening modifiers to determine whether 'partial' belongs to a type
-            // declaration. Stop at 'ref' because it may instead begin a ref-returning member;
-            // ParseModifiers handles that ambiguity separately.
-            while (GetModifierExcludingScoped(this.PeekToken(peekIndex)) is
-                   not (DeclarationModifiers.None or DeclarationModifiers.Ref))
+            bool isPartialType()
             {
-                peekIndex++;
+                Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
+
+                var peekIndex = 1;
+
+                // Look through intervening modifiers to determine whether 'partial' belongs to a type
+                // declaration. Stop at 'ref' because it may instead begin a ref-returning member;
+                // ParseModifiers handles that ambiguity separately.
+                while (GetModifierExcludingScoped(this.PeekToken(peekIndex)) is
+                       not (DeclarationModifiers.None or DeclarationModifiers.Ref))
+                    peekIndex++;
+
+                return this.IsClassStructInterfaceRecordOrUnionKeyword(this.PeekToken(peekIndex));
             }
 
-            return this.IsClassStructInterfaceRecordOrUnionKeyword(this.PeekToken(peekIndex));
+            bool isPartialMember()
+            {
+                Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
+
+                // Check for:
+                //   partial event
+                if (this.PeekToken(1).Kind == SyntaxKind.EventKeyword)
+                    return true;
+
+                // Check for constructor:
+                //   partial Identifier(
+                if (this.IsPartialConstructor(peekIndex: 0))
+                    return true;
+
+                // Check for method/property:
+                //   partial ReturnType MemberName
+                using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+
+                this.EatToken(); // partial
+
+                if (this.ScanType() == ScanTypeFlags.NotType)
+                    return false;
+
+                return IsPossibleMemberName();
+            }
         }
 
         private bool IsPartialConstructor(int peekIndex)
@@ -1804,40 +1824,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return this.PeekToken(peekIndex).Kind == SyntaxKind.IdentifierToken &&
                 this.PeekToken(peekIndex + 1).Kind == SyntaxKind.OpenParenToken &&
                 IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors);
-        }
-
-        /// <remarks>
-        /// Call only from <see cref="IsPartialModifierInDeclarationHead"/> so all parser paths use
-        /// the same classification.
-        /// </remarks>
-        private bool IsPartialMember()
-        {
-            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
-
-            // Check for:
-            //   partial event
-            if (this.PeekToken(1).Kind == SyntaxKind.EventKeyword)
-            {
-                return true;
-            }
-
-            // Check for constructor:
-            //   partial Identifier(
-            if (this.IsPartialConstructor(peekIndex: 0))
-                return true;
-
-            // Check for method/property:
-            //   partial ReturnType MemberName
-            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
-
-            this.EatToken(); // partial
-
-            if (this.ScanType() == ScanTypeFlags.NotType)
-            {
-                return false;
-            }
-
-            return IsPossibleMemberName();
         }
 
         private bool IsPossibleMemberName()
