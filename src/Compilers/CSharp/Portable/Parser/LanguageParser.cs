@@ -1450,16 +1450,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 Debug.Assert(this.CurrentToken.Kind == SyntaxKind.RefKeyword);
 
-                // For back compatibility, parse 'ref record', 'ref partial record', 'ref union',
-                // and 'ref partial union' as type declarations when the corresponding feature is enabled.
+                // For back compatibility, parse 'ref record' and 'ref union' as type declarations
+                // when the corresponding feature is enabled.
                 var nextToken = this.PeekToken(1);
                 if (this.IsEnabledRecordOrUnionKeyword(nextToken))
-                {
-                    return false;
-                }
-
-                if (nextToken.ContextualKind == SyntaxKind.PartialKeyword &&
-                    this.IsEnabledRecordOrUnionKeyword(this.PeekToken(2)))
                 {
                     return false;
                 }
