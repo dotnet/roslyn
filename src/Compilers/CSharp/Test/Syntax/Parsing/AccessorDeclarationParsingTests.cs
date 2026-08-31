@@ -2659,6 +2659,56 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     {
         const string source = "class C { int P { get; } partial unknown; }";
 
+        UsingDeclaration(
+            source,
+            options: null,
+            // (1,41): error CS1519: Invalid token ';' in a member declaration
+            // class C { int P { get; } partial unknown; }
+            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(1, 41),
+            // (1,41): error CS1519: Invalid token ';' in a member declaration
+            // class C { int P { get; } partial unknown; }
+            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(1, 41));
+        N(SyntaxKind.ClassDeclaration);
+        {
+            N(SyntaxKind.ClassKeyword);
+            N(SyntaxKind.IdentifierToken, "C");
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.PropertyDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "P");
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            N(SyntaxKind.IncompleteMember);
+            {
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "unknown");
+                }
+            }
+            N(SyntaxKind.CloseBraceToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void EscapedContextualKeywordTypeFollowingProperty()
+    {
+        const string source = "class C { int P { get; } @partial unknown; }";
+
         UsingDeclaration(source);
         N(SyntaxKind.ClassDeclaration);
         {
@@ -2689,7 +2739,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
                 {
                     N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierToken, "partial");
+                        N(SyntaxKind.IdentifierToken, "@partial");
                     }
                     N(SyntaxKind.VariableDeclarator);
                     {
