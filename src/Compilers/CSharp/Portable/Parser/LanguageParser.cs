@@ -1647,12 +1647,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             };
         }
 
-        private bool IsClassStructInterfaceRecordOrUnionKeyword(SyntaxToken token)
-        {
-            return token.Kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword or SyntaxKind.InterfaceKeyword ||
-                this.IsEnabledRecordOrUnionKeyword(token);
-        }
-
         /// <summary>
         /// Classifies <c>partial</c> in a declaration head, including misplaced forms for binding to diagnose.
         /// </summary>
