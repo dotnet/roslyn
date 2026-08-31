@@ -14,9 +14,7 @@ scriptroot="$( cd -P "$( dirname "$source" )" && pwd )"
 
 verbosity='minimal'
 warn_as_error=true
-# Empty means "not specified"; tools.sh defaults these to on for local builds and off on CI.
-node_reuse=''
-msbuild_multi_threaded=''
+node_reuse=true
 prepare_machine=false
 extra_args=''
 
@@ -35,10 +33,6 @@ while (($# > 0)); do
       node_reuse=$2
       shift 2
       ;;
-    --msbuildmultithreaded|--mt)
-      msbuild_multi_threaded=$2
-      shift 2
-      ;;
     --ci)
       ci=true
       shift 1
@@ -55,6 +49,10 @@ while (($# > 0)); do
 done
 
 . "$scriptroot/tools.sh"
+
+if [[ "$ci" == true ]]; then
+  node_reuse=false
+fi
 
 MSBuild $extra_args
 ExitWithExitCode 0

@@ -3,7 +3,6 @@ Param(
   [string] $verbosity = 'minimal',
   [bool] $warnAsError = $true,
   [bool] $nodeReuse = $true,
-  [bool][Alias('mt')]$msbuildMultiThreaded = $false,
   [switch] $ci,
   [switch] $prepareMachine,
   [switch] $excludePrereleaseVS,
@@ -14,8 +13,7 @@ Param(
 . $PSScriptRoot\tools.ps1
 
 try {
-  # Node reuse isn't used on CI unless it was explicitly requested via -nodeReuse.
-  if ($ci -and -not $PSBoundParameters.ContainsKey('nodeReuse')) {
+  if ($ci) {
     $nodeReuse = $false
   }
 
