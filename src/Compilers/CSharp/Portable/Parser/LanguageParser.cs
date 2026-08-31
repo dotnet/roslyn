@@ -875,9 +875,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.NamespaceKeyword:
                     return true;
                 case SyntaxKind.IdentifierToken:
-                    // Do not look for type members because this is namespace-member lookahead. Recognize
-                    // misplaced modifiers, as in 'partial public class C', so binding can diagnose them.
-                    // This call is not disambiguating top-level statements.
+                    // `allowMembers: false`: Do not look for type members in namespace-member lookahead.
+                    // `allowMisplacedModifiers: true`: Recognize 'partial public class C' so binding can diagnose it.
+                    // `forTopLevelStatements: false`: This call is not disambiguating top-level statements.
                     return this.IsPartialModifierInDeclarationHead(
                         allowMembers: false,
                         allowMisplacedModifiers: true,
@@ -1374,11 +1374,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 switch (newMod)
                 {
                     case DeclarationModifiers.Partial:
-                        // Treat 'partial' as a modifier when the remaining tokens unambiguously form a declaration.
-                        // Binding reports an error if it is not in a legal position.
-                        // Leave 'partial' as an identifier if the remaining tokens do not form a declaration.
-                        // Modifiers can introduce types or members here, including misplaced forms that
-                        // binding will diagnose. At the top level, preserve statement ambiguities.
+                        // `allowMembers: true`: Modifiers can introduce either types or members here.
+                        // `allowMisplacedModifiers: true`: Recognize misplaced forms for binding to diagnose.
+                        // `forTopLevelStatements: forTopLevelStatements`: Preserve statement ambiguities at the top level.
                         if (!this.IsPartialModifierInDeclarationHead(
                                 allowMembers: true,
                                 allowMisplacedModifiers: true,
@@ -1555,8 +1553,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 // If 'partial' starts a declaration, the preceding token is also a modifier,
                 // as in 'closed partial ref struct'.
-                // This lookahead covers both types and members, including misplaced forms that binding
-                // will diagnose. It is not choosing between a declaration and a top-level statement.
+                // `allowMembers: true`: Look for both types and members after the preceding modifier.
+                // `allowMisplacedModifiers: true`: Recognize misplaced forms for binding to diagnose.
+                // `forTopLevelStatements: false`: This call is not disambiguating top-level statements.
                 if (this.IsPartialModifierInDeclarationHead(
                         allowMembers: true,
                         allowMisplacedModifiers: true,
@@ -6207,9 +6206,9 @@ parse_member_name:;
 
         private bool IsCurrentTokenPartialKeywordOfPartialMemberOrType()
         {
-            // Identifier parsing must recognize established type and member forms, but not the additional
-            // misplaced forms accepted only for modifier recovery. It is not choosing between a declaration
-            // and a top-level statement.
+            // `allowMembers: true`: Recognize established partial type and member forms.
+            // `allowMisplacedModifiers: false`: Do not treat recovery-only forms as keywords during identifier parsing.
+            // `forTopLevelStatements: false`: This call is not disambiguating top-level statements.
             return this.IsPartialModifierInDeclarationHead(
                 allowMembers: true,
                 allowMisplacedModifiers: false,
