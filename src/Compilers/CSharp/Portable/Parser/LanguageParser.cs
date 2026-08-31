@@ -1471,7 +1471,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 // Speculatively scan the complete ref type and check for a following member name.
                 // If both are present, leave 'ref' unconsumed so the return-type parser handles it.
-                using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
                 return this.IsTypeFollowedByMemberName();
             }
 
@@ -1739,7 +1738,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             if (isPartialConstructorName(peekIndex: 0))
                                 return true;
 
-                            using var identifierResetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
                             if (this.IsTypeFollowedByMemberName())
                                 return true;
                         }
@@ -1844,11 +1842,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         /// <summary>
-        /// Scans a type and checks whether the following token can be a member name.
+        /// Checks for a type followed by a possible member name without advancing the parser.
         /// Examples include <c>int M()</c> and <c>int this[int i]</c>.
         /// </summary>
         private bool IsTypeFollowedByMemberName()
         {
+            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
             return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
         }
 
