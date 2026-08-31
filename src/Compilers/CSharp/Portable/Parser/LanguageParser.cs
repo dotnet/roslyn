@@ -1472,7 +1472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Speculatively scan the complete ref type and check for a following member name.
                 // If both are present, leave 'ref' unconsumed so the return-type parser handles it.
                 using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
-                return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
+                return this.ScanTypeAndCheckForMemberName();
             }
 
             bool shouldConsumeRefAtTopLevel()
@@ -1715,7 +1715,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 GetModifierExcludingScoped(nextToken) != DeclarationModifiers.None)
             {
                 this.EatToken();
-                if (this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName())
+                if (this.ScanTypeAndCheckForMemberName())
                     return true;
 
                 resetPoint.Reset();
@@ -1746,7 +1746,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 return true;
 
                             using var identifierResetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
-                            if (this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName())
+                            if (this.ScanTypeAndCheckForMemberName())
                                 return true;
                         }
                     }
@@ -1779,7 +1779,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return true;
 
             // Otherwise, require a return type followed by a member name, as in 'partial int M()'.
-            return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
+            return this.ScanTypeAndCheckForMemberName();
 
             // Checks whether 'partial' begins a type declaration, looking through intervening modifiers.
             bool isPartialType()
@@ -1839,6 +1839,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     this.PeekToken(peekIndex + 1).Kind == SyntaxKind.OpenParenToken &&
                     IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors);
             }
+        }
+
+        /// <summary>
+        /// Scans a type and checks whether the following token can be a member name.
+        /// </summary>
+        private bool ScanTypeAndCheckForMemberName()
+        {
+            return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
         }
 
         private bool IsPossibleMemberName()
