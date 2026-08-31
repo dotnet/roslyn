@@ -1734,25 +1734,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (nextMod == DeclarationModifiers.None)
                     break;
 
-                // In 'partial public int M()', 'public' proves this is a member declaration.
-                // At namespace scope, keep looking for a type declaration instead.
-                if (allowMembers && this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
-                    return true;
-
-                // In 'partial partial()', the second 'partial' is the constructor name. Do not skip
-                // it unless the remaining tokens instead form a declaration such as 'partial partial M()'.
-                if (allowMembers &&
-                    this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
+                if (allowMembers)
                 {
-                    if (!isPartialType() &&
-                        !isPartialConstructor(peekIndex: 0))
-                    {
-                        if (isPartialConstructorName(peekIndex: 0))
-                            return true;
+                    // In 'partial public int M()', 'public' proves this is a member declaration.
+                    if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
+                        return true;
 
-                        using var identifierResetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
-                        if (this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName())
-                            return true;
+                    // In 'partial partial()', the second 'partial' is the constructor name. Do not skip
+                    // it unless the remaining tokens instead form a declaration such as 'partial partial M()'.
+                    if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
+                    {
+                        if (!isPartialType() &&
+                            !isPartialConstructor(peekIndex: 0))
+                        {
+                            if (isPartialConstructorName(peekIndex: 0))
+                                return true;
+
+                            using var identifierResetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
+                            if (this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName())
+                                return true;
+                        }
                     }
                 }
 
