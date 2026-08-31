@@ -65,7 +65,7 @@ internal static class TaskEnvironmentExtensions
 #pragma warning restore RS0030 // Do not used banned APIs
         }
 
-        public Stream FileOpenRead(AbsolutePath path)
+        public FileStream FileOpenRead(AbsolutePath path)
         {
 #pragma warning disable RS0030 // Do not used banned APIs
             return File.OpenRead(path.Value);
