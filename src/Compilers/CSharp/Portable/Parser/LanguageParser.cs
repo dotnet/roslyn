@@ -1759,13 +1759,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (this.CurrentToken.Kind == SyntaxKind.EventKeyword)
                 return true;
 
-            // Parse 'partial implicit operator' and 'partial explicit operator' as conversion operators
-            // so binding can report the misplaced modifier.
-            if (this.CurrentToken.Kind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword &&
-                this.PeekToken(1).Kind == SyntaxKind.OperatorKeyword)
-            {
+            // 'implicit' and 'explicit' can only start conversion operators, so 'partial' is a modifier
+            // even when the operator declaration is incomplete.
+            if (this.CurrentToken.Kind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword)
                 return true;
-            }
 
             // Before partial constructors, 'partial C()' is a method returning 'partial'. Only prefer
             // the constructor interpretation when the feature is enabled.
