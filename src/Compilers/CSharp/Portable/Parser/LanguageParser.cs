@@ -1373,8 +1373,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // 'partial class C' and 'partial void M()'.
                         // At the top level, preserve the statement interpretation of
                         // 'partial partial C()' for compatibility.
-                        if ((forTopLevelStatements && this.ShouldTreatPartialPartialAsExecutableCode()) ||
-                            !this.IsPartialModifierInDeclarationHead(allowMembers: true))
+                        if (forTopLevelStatements && this.ShouldTreatPartialPartialAsExecutableCode())
+                        {
+                            return;
+                        }
+
+                        if (!this.IsPartialModifierInDeclarationHead(allowMembers: true))
                         {
                             return;
                         }
