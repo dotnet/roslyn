@@ -247,7 +247,7 @@ public static class Program
 
                       <!-- Check whether the analysis level is high enough that we should include the analyzer configuration.
                            From .NET 12, the global config is systematically added if the file exists. Please check https://github.com/dotnet/roslyn/pull/71173 for more info. -->
-                      <_IncludeStyleConfiguration Condition="'$(EffectiveAnalysisLevelStyle)' != '' and $([MSBuild]::VersionGreaterThanOrEquals('$(EffectiveAnalysisLevelStyle)', '12.0'))">true<_IncludeStyleConfiguration>
+                      <_IncludeStyleConfiguration Condition="'$(EffectiveAnalysisLevelStyle)' != '' and $([MSBuild]::VersionGreaterThanOrEquals('$(EffectiveAnalysisLevelStyle)', '12.0'))">true</_IncludeStyleConfiguration>
 
                       <!-- Set the default analysis mode, if not set by the user -->
                       <_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle>$(AnalysisModeStyle)</_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle>
