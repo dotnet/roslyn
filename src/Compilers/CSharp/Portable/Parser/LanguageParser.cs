@@ -876,13 +876,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return true;
                 case SyntaxKind.IdentifierToken:
                     // `allowMembers: false`: A type member such as 'partial int M()' cannot start a namespace body.
-                    // `allowMisplacedModifiers: true`: 'partial public class C' should remain one declaration so
-                    // binding can report the misplaced modifier instead of the parser producing cascading errors.
                     // `forTopLevelStatements: false`: Namespace members cannot be top-level statements, so the
                     // compatibility exception for top-level 'partial partial C()' does not apply.
                     return this.IsPartialModifierInDeclarationHead(
                         allowMembers: false,
-                        allowMisplacedModifiers: true,
                         forTopLevelStatements: false);
                 default:
                     return IsPossibleStartOfTypeDeclaration(this.CurrentToken.Kind);
@@ -1378,13 +1375,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case DeclarationModifiers.Partial:
                         // `allowMembers: true`: ParseModifiers is shared by types and members, such as
                         // 'partial class C' and 'partial void M()'.
-                        // `allowMisplacedModifiers: true`: Keeping 'partial public class C' as one declaration lets
-                        // binding report the misplaced modifier instead of the parser producing cascading errors.
                         // `forTopLevelStatements: forTopLevelStatements`: Only top-level parsing must preserve the
                         // statement interpretation of 'partial partial C()' for compatibility.
                         if (!this.IsPartialModifierInDeclarationHead(
                                 allowMembers: true,
-                                allowMisplacedModifiers: true,
                                 forTopLevelStatements: forTopLevelStatements))
                         {
                             return;
@@ -1560,13 +1554,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // as in 'closed partial ref struct'.
                 // `allowMembers: true`: The preceding modifier may belong to either a type or a member, such as
                 // 'public partial class C' or 'public partial void M()'.
-                // `allowMisplacedModifiers: true`: In 'closed partial ref struct S', 'closed' must remain attached
-                // to the declaration instead of being parsed as an identifier.
                 // `forTopLevelStatements: false`: The surrounding check has already excluded statement parsing,
                 // so the top-level statement compatibility exception must not suppress declaration recognition.
                 if (this.IsPartialModifierInDeclarationHead(
                         allowMembers: true,
-                        allowMisplacedModifiers: true,
                         forTopLevelStatements: false))
                 {
                     return true;
@@ -1690,12 +1681,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         /// <summary>
-        /// Classifies <c>partial</c> in a declaration head. Established forms are always recognized.
-        /// Modifier recovery can also recognize misplaced forms for binding to diagnose.
+        /// Classifies <c>partial</c> in a declaration head, including misplaced forms for binding to diagnose.
         /// </summary>
         private bool IsPartialModifierInDeclarationHead(
             bool allowMembers,
-            bool allowMisplacedModifiers,
             bool forTopLevelStatements)
         {
             if (this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword)
@@ -1713,10 +1702,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (allowMembers && isPartialMember())
                 return true;
-
-            // Only modifier recovery recognizes the additional noncanonical forms below.
-            if (!allowMisplacedModifiers)
-                return false;
 
             using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
 
@@ -6215,16 +6200,12 @@ parse_member_name:;
 
         private bool IsCurrentTokenPartialKeywordOfPartialMemberOrType()
         {
-            // `allowMembers: true`: When an enclosing construct is incomplete, identifier parsing must stop before
-            // either an established type or member form, such as 'partial class C' or 'partial void M()'.
-            // `allowMisplacedModifiers: false`: This is also called while parsing identifiers in expressions and
-            // types. Declaration recovery would misclassify the first 'partial' in 'new partial partial Goo()'
-            // and produce cascading diagnostics.
+            // `allowMembers: true`: Identifier parsing must stop before a type or member declaration, such as
+            // 'partial class C' or 'partial public void M()'.
             // `forTopLevelStatements: false`: This generic identifier check does not know whether it is at the top
             // level. ParseModifiers applies the 'partial partial C()' compatibility exception with that context.
             return this.IsPartialModifierInDeclarationHead(
                 allowMembers: true,
-                allowMisplacedModifiers: false,
                 forTopLevelStatements: false);
         }
 

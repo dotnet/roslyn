@@ -827,23 +827,26 @@ new partial partial Goo();
             }
 
             tree = UsingTree(src,
-                // (1,13): error CS1525: Invalid expression term 'partial'
+                // (1,5): error CS1031: Type expected
                 // new partial partial Goo();
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 13),
-                // (1,13): error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(1, 5),
+                // (1,5): error CS1525: Invalid expression term 'partial'
                 // new partial partial Goo();
-                Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(1, 13));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 5),
+                // (1,5): error CS1003: Syntax error, ',' expected
+                // new partial partial Goo();
+                Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(1, 5));
 
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.FieldDeclaration);
                 {
                     N(SyntaxKind.NewKeyword);
-                    N(SyntaxKind.VariableDeclaration);
+                    M(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        M(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken, "partial");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         M(SyntaxKind.VariableDeclarator);
                         {
@@ -2479,12 +2482,15 @@ partial partial<int> Goo() { }
                 // (11,9): error CS1520: Method must have a return type
                 // partial Goo() { } 
                 Diagnostic(ErrorCode.ERR_MemberNeedsType, "Goo").WithLocation(11, 9),
-                // (12,9): error CS1525: Invalid expression term 'partial'
-                // partial partial Goo() { } 
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(12, 9),
-                // (12,9): error CS1003: Syntax error, ',' expected
-                // partial partial Goo() { } 
-                Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(12, 9),
+                // (11,18): error CS1031: Type expected
+                // partial Goo() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(11, 18),
+                // (11,18): error CS1525: Invalid expression term 'partial'
+                // partial Goo() { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("partial").WithLocation(11, 18),
+                // (11,18): error CS1003: Syntax error, ',' expected
+                // partial Goo() { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(11, 18),
                 // (12,17): error CS1002: ; expected
                 // partial partial Goo() { } 
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "Goo").WithLocation(12, 17),
@@ -2666,13 +2672,13 @@ partial partial<int> Goo() { }
                         N(SyntaxKind.CloseBraceToken);
                     }
                 }
-                N(SyntaxKind.FieldDeclaration);
+                M(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.VariableDeclaration);
+                    M(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        M(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken, "partial");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         M(SyntaxKind.VariableDeclarator);
                         {
