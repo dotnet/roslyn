@@ -641,20 +641,72 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
             Diagnostic(ErrorCode.ERR_NameNotInContext, "partial").WithArguments("partial").WithLocation(1, 1));
     }
 
-    [Theory]
-    [InlineData("file")]
-    [InlineData("file async required")]
-    public void PartialThenContextualChain_NoDeclHead_FallsBackToIdentifier(string chain)
+    [Fact]
+    public void PartialThenFile_NoDeclHead_FallsBackToIdentifier()
     {
-        var src = $"partial {chain};";
-        var tree = SyntaxFactory.ParseSyntaxTree(src);
-        var root = tree.GetCompilationUnitRoot();
-        foreach (var member in root.Members)
+        UsingTree("partial file;");
+        N(SyntaxKind.CompilationUnit);
         {
-            Assert.False(
-                member is MemberDeclarationSyntax mem && mem.Modifiers.Any(SyntaxKind.PartialKeyword),
-                $"'partial' should not have been consumed as a modifier; got: {member.Kind()}");
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalDeclarationStatement);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "partial");
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "file");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
         }
+        EOF();
+    }
+
+    [Fact]
+    public void PartialThenContextualChain_NoDeclHead_FallsBackToIdentifier()
+    {
+        UsingTree(
+            "partial file async required;",
+            // (1,1): error CS1031: Type expected
+            // partial file async required;
+            Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(1, 1),
+            // (1,1): error CS1525: Invalid expression term 'partial'
+            // partial file async required;
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 1),
+            // (1,1): error CS1003: Syntax error, ',' expected
+            // partial file async required;
+            Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(1, 1));
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalDeclarationStatement);
+                {
+                    M(SyntaxKind.VariableDeclaration);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
     }
 
     [Fact]
@@ -775,15 +827,87 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
     }
 
     [Theory]
-    [InlineData("required")]
-    [InlineData("file")]
-    [InlineData("closed")]
-    [InlineData("safe")]
-    public void PartialContextualModifierConstructorName_MakesProgress(string name)
+    [InlineData("required", SyntaxKind.RequiredKeyword, 43)]
+    [InlineData("file", SyntaxKind.FileKeyword, 35)]
+    [InlineData("closed", SyntaxKind.ClosedKeyword, 39)]
+    public void PartialContextualModifierConstructorName(
+        string name,
+        SyntaxKind keywordKind,
+        int closeParenColumn)
     {
-        var src = $"partial class {name} {{ partial {name}(); }}";
-        var root = SyntaxFactory.ParseSyntaxTree(src).GetRoot();
-        Assert.Equal(src, root.ToFullString());
+        var source = $"partial class {name} {{ partial {name}(); }}";
+        UsingTree(
+            source,
+            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, closeParenColumn),
+            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(1, closeParenColumn + 1));
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, name);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.PartialKeyword);
+                    N(keywordKind);
+                    N(SyntaxKind.TupleType);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.TupleElement);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        M(SyntaxKind.TupleElement);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void PartialSafeConstructorName()
+    {
+        UsingTree("partial class safe { partial safe(); }");
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "safe");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ConstructorDeclaration);
+                {
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.IdentifierToken, "safe");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
     }
 
     [Fact]
