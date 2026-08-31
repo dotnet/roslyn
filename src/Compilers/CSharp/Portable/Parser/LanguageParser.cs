@@ -875,6 +875,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.NamespaceKeyword:
                     return true;
                 case SyntaxKind.IdentifierToken:
+                    // Namespace lookahead accepts only type or namespace declarations. Include misplaced
+                    // modifiers so those declarations still reach binding for diagnostics.
                     return this.IsPartialModifierInDeclarationHead(allowMembers: false, allowMisplacedModifiers: true);
                 default:
                     return IsPossibleStartOfTypeDeclaration(this.CurrentToken.Kind);
@@ -1380,6 +1382,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         }
 
                         // Leave 'partial' as an identifier if the remaining tokens do not form a declaration.
+                        // Modifiers can introduce types or members here, including misplaced forms that
+                        // binding will diagnose.
                         if (!this.IsPartialModifierInDeclarationHead(allowMembers: true, allowMisplacedModifiers: true))
                             return;
 
@@ -1551,6 +1555,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 // If 'partial' starts a declaration, the preceding token is also a modifier,
                 // as in 'closed partial ref struct'.
+                // This lookahead covers both types and members, including misplaced forms that binding
+                // will diagnose.
                 if (this.IsPartialModifierInDeclarationHead(allowMembers: true, allowMisplacedModifiers: true))
                     return true;
 
@@ -6195,6 +6201,8 @@ parse_member_name:;
 
         private bool IsCurrentTokenPartialKeywordOfPartialMemberOrType()
         {
+            // Identifier parsing must recognize established type and member forms, but not the additional
+            // misplaced forms accepted only for modifier recovery.
             return this.IsPartialModifierInDeclarationHead(allowMembers: true, allowMisplacedModifiers: false);
         }
 
