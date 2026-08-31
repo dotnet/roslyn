@@ -1667,6 +1667,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // instead begin the member itself, such as 'ref' in 'partial ref int M()'.
             while (GetModifierExcludingScoped(this.CurrentToken) != DeclarationModifiers.None)
             {
+                // Do not reinterpret 'partial static () => { }' as a member.
+                if (isPossibleStaticLambdaStart())
+                    return false;
+
                 // For example, 'async' starts the return type in 'partial async M()'.
                 if (isMemberDeclarationStartBeforeConsumingModifier())
                     return true;
@@ -1685,18 +1689,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             return isMemberDeclarationStart();
 
+            bool isPossibleStaticLambdaStart() =>
+                this.CurrentToken.Kind == SyntaxKind.StaticKeyword &&
+                this.PeekToken(1).Kind == SyntaxKind.OpenParenToken;
+
             bool isMemberDeclarationStartBeforeConsumingModifier()
             {
                 if (!allowMembers)
                     return false;
 
                 // A non-contextual modifier proves that the initial 'partial' belongs to a member.
-                // The exception is an incomplete lambda such as 'partial static () => { }'.
-                if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken &&
-                    this.PeekToken(1).Kind != SyntaxKind.OpenParenToken)
-                {
+                if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
                     return true;
-                }
 
                 // A different contextual modifier may instead start the member's return type,
                 // such as 'async' in 'partial async M()'.
