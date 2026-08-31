@@ -876,9 +876,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return true;
                 case SyntaxKind.IdentifierToken:
                     // `allowMembers: false`: A type member such as 'partial int M()' cannot start a namespace body.
-                    // `lookPastModifiers: true`: A misplaced modifier may separate 'partial' from a type declaration,
-                    // as in 'partial public class C'.
-                    return this.IsPartialModifierInDeclarationHead(allowMembers: false, lookPastModifiers: true);
+                    return this.IsPartialModifierInDeclarationHead(allowMembers: false);
                 default:
                     return IsPossibleStartOfTypeDeclaration(this.CurrentToken.Kind);
             }
@@ -1373,9 +1371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case DeclarationModifiers.Partial:
                         // `allowMembers: true`: ParseModifiers is shared by types and members, such as
                         // 'partial class C' and 'partial void M()'.
-                        // `lookPastModifiers: true`: Modifier order is validated by the binder, so declarations such
-                        // as 'partial public class C' must remain declarations here.
-                        if (!this.IsPartialModifierInDeclarationHead(allowMembers: true, lookPastModifiers: true))
+                        if (!this.IsPartialModifierInDeclarationHead(allowMembers: true))
                             return;
 
                         modTok = ConvertToKeyword(this.EatToken());
@@ -1539,10 +1535,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // as in 'closed partial ref struct'.
             // `allowMembers: true`: The preceding modifier may belong to either a type or a member, such as
             // 'public partial class C' or 'public partial void M()'.
-            // `lookPastModifiers: true`: Another misplaced modifier may follow 'partial', as in
-            // 'public partial static void M()'.
             if (!parsingStatementNotDeclaration &&
-                this.IsPartialModifierInDeclarationHead(allowMembers: true, lookPastModifiers: true))
+                this.IsPartialModifierInDeclarationHead(allowMembers: true))
             {
                 return true;
             }
@@ -1656,7 +1650,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <summary>
         /// Classifies <c>partial</c> in a declaration head, including misplaced forms for binding to diagnose.
         /// </summary>
-        private bool IsPartialModifierInDeclarationHead(bool allowMembers, bool lookPastModifiers)
+        private bool IsPartialModifierInDeclarationHead(bool allowMembers)
         {
             if (this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword)
                 return false;
@@ -1671,14 +1665,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // Look through following modifiers for the declaration head. A contextual modifier may
             // instead begin the member itself, such as 'ref' in 'partial ref int M()'.
-            while (lookPastModifiers &&
-                GetModifierExcludingScoped(this.CurrentToken) != DeclarationModifiers.None)
+            while (GetModifierExcludingScoped(this.CurrentToken) != DeclarationModifiers.None)
             {
                 if (allowMembers)
                 {
                     // A non-contextual modifier proves that the initial 'partial' belongs to a member.
-                    if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
+                    // The exception is an incomplete lambda such as 'partial static () => { }'.
+                    if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken &&
+                        this.PeekToken(1).Kind != SyntaxKind.OpenParenToken)
+                    {
                         return true;
+                    }
 
                     if (isMemberDeclarationStartBeforeConsumingModifier())
                         return true;
@@ -6120,10 +6117,8 @@ parse_member_name:;
         private bool IsCurrentTokenPartialKeywordOfPartialMemberOrType()
         {
             // `allowMembers: true`: Identifier parsing must stop before a type or member declaration, such as
-            // 'partial class C' or 'partial void M()'.
-            // `lookPastModifiers: false`: In an expression such as 'partial static () => { }', treating 'static'
-            // as part of a declaration would incorrectly end the containing member.
-            return this.IsPartialModifierInDeclarationHead(allowMembers: true, lookPastModifiers: false);
+            // 'partial class C' or 'partial public void M()'.
+            return this.IsPartialModifierInDeclarationHead(allowMembers: true);
         }
 
         private bool IsCurrentTokenFieldInKeywordContext()
