@@ -494,6 +494,8 @@ public sealed partial class ModifierParserRecoveryTests : ParsingTests
     }
 
     [Theory]
+    [InlineData("partial", LanguageVersion.CSharp13)]
+    [InlineData("async", LanguageVersion.CSharp13)]
     [InlineData("required", LanguageVersion.CSharp10)]
     [InlineData("file", LanguageVersion.CSharp10)]
     [InlineData("closed", LanguageVersion.CSharp14)]
