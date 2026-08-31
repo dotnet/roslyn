@@ -42,7 +42,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     [MSBuildMultiThreadableTask]
     public sealed class GenerateMSBuildEditorConfig : Task, IMultiThreadableTask
     {
-        /// <inheritdoc />
         public TaskEnvironment TaskEnvironment { get; set; } = TaskEnvironment.Fallback;
 
         /// <remarks>
