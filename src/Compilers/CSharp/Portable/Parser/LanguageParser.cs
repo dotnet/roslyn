@@ -1677,6 +1677,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         return true;
                     }
 
+                    // For example, 'async' starts the return type in 'partial async M()'.
                     if (isMemberDeclarationStartBeforeConsumingModifier())
                         return true;
                 }
@@ -1706,7 +1707,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 // In C# 14, prefer the duplicate-modifier constructor interpretation of
                 // 'partial partial C()' over treating the second 'partial' as a return type.
-                if (partialConstructorsEnabled && isIdentifierFollowedByOpenParen(peekIndex: 1))
+                if (canStartPartialConstructor(peekIndex: 1))
                     return true;
 
                 // Process longer modifier chains one token at a time rather than recursively
@@ -1729,18 +1730,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 // Before partial constructors, 'partial C()' is a method returning 'partial'. Only prefer
                 // the constructor interpretation when the feature is enabled.
-                if (partialConstructorsEnabled && isIdentifierFollowedByOpenParen(peekIndex: 0))
+                if (canStartPartialConstructor(peekIndex: 0))
                     return true;
 
                 // Otherwise, require a return type followed by a member name, as in 'partial int M()'.
                 return this.IsTypeFollowedByMemberName();
             }
 
-            // Checks for the identifier and open parenthesis that begin a constructor declaration.
-            // The surrounding checks establish the preceding 'partial' modifier and feature availability.
-            bool isIdentifierFollowedByOpenParen(int peekIndex)
+            // The surrounding checks establish the preceding 'partial' modifier. This returns true only
+            // when partial constructors are enabled and the following tokens can start the constructor.
+            bool canStartPartialConstructor(int peekIndex)
             {
-                return this.PeekToken(peekIndex).Kind == SyntaxKind.IdentifierToken &&
+                return partialConstructorsEnabled &&
+                    this.PeekToken(peekIndex).Kind == SyntaxKind.IdentifierToken &&
                     this.PeekToken(peekIndex + 1).Kind == SyntaxKind.OpenParenToken;
             }
         }
