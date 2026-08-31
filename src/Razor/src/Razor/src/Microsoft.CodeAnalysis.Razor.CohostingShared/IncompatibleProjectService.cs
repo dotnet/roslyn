@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -21,9 +23,9 @@ internal sealed class IncompatibleProjectService(IIncompatibleProjectNotifier in
 
     private ImmutableHashSet<ProjectId> _incompatibleProjectIds = [];
 
-    public void HandleMissingDocument(TextDocumentIdentifier? textDocumentIdentifier, RequestContext context)
+    public async Task HandleMissingDocumentAsync(TextDocumentIdentifier? textDocumentIdentifier, RequestContext context, CancellationToken cancellationToken)
     {
-        if (context.Solution is null)
+        if (await context.GetSolutionAsync(cancellationToken).ConfigureAwait(false) is not Solution solution)
         {
             // If the solution is null, we have no idea what is going on, so err on the side of ignoring this request
             // and not annoying the user.
@@ -42,14 +44,16 @@ internal sealed class IncompatibleProjectService(IIncompatibleProjectNotifier in
 
         var filePath = uri.GetDocumentFilePathFromUri();
         var filePathSpan = filePath.AsSpan();
-        foreach (var project in context.Solution.Projects)
+        foreach (var project in solution.Projects)
         {
             if (project.FilePath is null)
             {
                 continue;
             }
 
-            if (filePathSpan.StartsWith(PathUtilities.GetDirectoryName(project.FilePath.AsSpan()), PathUtilities.OSSpecificPathComparison))
+            if (filePathSpan.StartsWith(
+                PathUtilities.GetDirectoryName(project.FilePath.AsSpan()),
+                PathUtilities.OSSpecificPathComparison))
             {
                 if (!project.State.HasAllInformation)
                 {

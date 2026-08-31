@@ -873,9 +873,9 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         var fileChangeWatcher = testLspServer.GetRequiredLspService<IFileChangeWatcher>();
         using var fileChangeContext = fileChangeWatcher.CreateContext([new WatchedDirectory(Path.GetDirectoryName(appCsFile.Path)!, extensionFilters: [])]);
         var fileChangeTcs = new TaskCompletionSource();
-        fileChangeContext.FileChanged += (_, path) =>
+        fileChangeContext.FileChanged += (_, e) =>
         {
-            if (path == appCsFile.Path)
+            if (e.FilePath == appCsFile.Path)
                 fileChangeTcs.TrySetResult();
         };
 
