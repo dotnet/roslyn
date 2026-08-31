@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     [MSBuildMultiThreadableTask]
     public sealed class MapSourceRoots : Task, IMultiThreadableTask
     {
-        /// <inheritdoc />
         public TaskEnvironment TaskEnvironment { get; set; } = TaskEnvironment.Fallback;
 
         public MapSourceRoots()
