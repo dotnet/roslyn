@@ -264,7 +264,7 @@ public static class Program
                     </PropertyGroup>
 
                     <!-- Add the analyzer configuration. -->
-                    <ItemGroup Condition="Exists('$(_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle)') and '$(_IncludeStyleConfiguration)' == 'true')">
+                    <ItemGroup Condition="Exists('$(_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle)') and '$(_IncludeStyleConfiguration)' == 'true'">
                       <EditorConfigFiles Include="$(_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle)" />
                     </ItemGroup>
 
