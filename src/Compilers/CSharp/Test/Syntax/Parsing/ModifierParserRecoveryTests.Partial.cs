@@ -349,34 +349,41 @@ public sealed partial class ModifierParserRecoveryTests : ParsingTests
     [Theory]
     [InlineData(LanguageVersion.CSharp14)]
     [InlineData(LanguageVersion.Preview)]
-    public void PartialPartial_TopLevelExecutableCode(LanguageVersion languageVersion)
+    public void PartialPartial_TopLevel(LanguageVersion languageVersion)
     {
         const string source = "partial partial C();";
         UsingTree(
             source,
             TestOptions.Regular.WithLanguageVersion(languageVersion),
-            // (1,9): error CS1525: Invalid expression term 'partial'
+            // (1,17): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
             // partial partial C();
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 9),
-            // (1,9): error CS1003: Syntax error, ',' expected
+            Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "C").WithLocation(1, 17),
+            // (1,19): error CS1525: Invalid expression term ')'
             // partial partial C();
-            Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(1, 9));
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 19));
         N(SyntaxKind.CompilationUnit);
         {
+            N(SyntaxKind.IncompleteMember);
+            {
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "C");
+                }
+            }
             N(SyntaxKind.GlobalStatement);
             {
-                N(SyntaxKind.LocalDeclarationStatement);
+                N(SyntaxKind.ExpressionStatement);
                 {
-                    N(SyntaxKind.VariableDeclaration);
+                    N(SyntaxKind.ParenthesizedExpression);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "partial");
-                        }
-                        M(SyntaxKind.VariableDeclarator);
+                        N(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.IdentifierName);
                         {
                             M(SyntaxKind.IdentifierToken);
                         }
+                        N(SyntaxKind.CloseParenToken);
                     }
                     N(SyntaxKind.SemicolonToken);
                 }

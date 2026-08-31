@@ -1371,17 +1371,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case DeclarationModifiers.Partial:
                         // `allowMembers: true`: ParseModifiers is shared by types and members, such as
                         // 'partial class C' and 'partial void M()'.
-                        // At the top level, preserve the statement interpretation of
-                        // 'partial partial C()' for compatibility.
-                        if (forTopLevelStatements && this.ShouldTreatPartialPartialAsExecutableCode())
-                        {
-                            return;
-                        }
-
                         if (!this.IsPartialModifierInDeclarationHead(allowMembers: true))
-                        {
                             return;
-                        }
 
                         modTok = ConvertToKeyword(this.EatToken());
                         break;
@@ -1660,15 +1651,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             return token.Kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword or SyntaxKind.InterfaceKeyword ||
                 this.IsEnabledRecordOrUnionKeyword(token);
-        }
-
-        private bool ShouldTreatPartialPartialAsExecutableCode()
-        {
-            return IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors) &&
-                this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword &&
-                this.PeekToken(1).ContextualKind == SyntaxKind.PartialKeyword &&
-                this.PeekToken(2).Kind == SyntaxKind.IdentifierToken &&
-                this.PeekToken(3).Kind == SyntaxKind.OpenParenToken;
         }
 
         /// <summary>
@@ -6175,11 +6157,6 @@ parse_member_name:;
 
         private bool IsCurrentTokenPartialKeywordOfPartialMemberOrType()
         {
-            // This helper is also used while parsing executable code, where the first 'partial' in
-            // 'partial partial C()' must remain an identifier for compatibility.
-            if (this.ShouldTreatPartialPartialAsExecutableCode())
-                return false;
-
             // `allowMembers: true`: Identifier parsing must stop before a type or member declaration, such as
             // 'partial class C' or 'partial public void M()'.
             return this.IsPartialModifierInDeclarationHead(allowMembers: true);
