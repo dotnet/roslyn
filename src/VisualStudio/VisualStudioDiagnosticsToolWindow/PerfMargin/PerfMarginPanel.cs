@@ -29,11 +29,14 @@ public sealed class PerfMarginPanel : UserControl
     private ListView _detailsListView;
     private bool _stopTimer;
 
+    static PerfMarginPanel()
+    {
+        // Keep collecting into the process-wide model while the tool window is closed.
+        _ = RoslynTelemetry.AddEventSink(s_logger);
+    }
+
     public PerfMarginPanel()
     {
-        // Register the event sink on open - duplicate registrations are ignored.
-        _ = RoslynTelemetry.AddEventSink(s_logger);
-
         // grid
         _mainGrid = new Grid();
         _mainGrid.ColumnDefinitions.Add(new ColumnDefinition());

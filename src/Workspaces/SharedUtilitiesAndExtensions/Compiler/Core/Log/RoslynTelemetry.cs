@@ -27,19 +27,31 @@ internal static partial class RoslynTelemetry
     private static int s_lastUniqueBlockId;
 
     /// <summary>
-    /// Registers <paramref name="sink"/> to receive events, ignoring it if it is already registered.
-    /// Dispose the result to unregister it; a host that keeps its sinks for the life of the process can
-    /// simply never dispose.
+    /// Registers <paramref name="sink"/> to receive events. A sink instance may have only one active
+    /// registration. Dispose the result to unregister it; a host that keeps its sinks for the life of
+    /// the process can simply never dispose.
     /// </summary>
     public static IDisposable AddEventSink(IEventSink sink)
     {
-        ImmutableInterlocked.Update(ref s_eventSinks, static (sinks, sink) => sinks.Contains(sink) ? sinks : sinks.Add(sink), sink);
-        return new Registration(() => ImmutableInterlocked.Update(ref s_eventSinks, static (sinks, sink) => sinks.Remove(sink), sink));
+        ImmutableInterlocked.Update(ref s_eventSinks, static (sinks, sink) => AddSink(sinks, sink), sink);
+        return new Registration(() => ImmutableInterlocked.Update(ref s_eventSinks, static (sinks, sink) => sinks.Remove(sink, ReferenceEqualityComparer.Instance), sink));
+    }
+
+    private static ImmutableArray<TSink> AddSink<TSink>(ImmutableArray<TSink> sinks, TSink sink)
+        where TSink : class
+    {
+        foreach (var registeredSink in sinks)
+            Contract.ThrowIfTrue(ReferenceEquals(registeredSink, sink), "The sink instance is already registered.");
+
+        return sinks.Add(sink);
     }
 
     private sealed class Registration(Action unregister) : IDisposable
     {
-        public void Dispose() => unregister();
+        private Action? _unregister = unregister;
+
+        public void Dispose()
+            => Interlocked.Exchange(ref _unregister, null)?.Invoke();
     }
 
     /// <summary>

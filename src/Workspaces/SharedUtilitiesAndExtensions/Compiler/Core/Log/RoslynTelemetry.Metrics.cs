@@ -18,14 +18,14 @@ internal static partial class RoslynTelemetry
     private static ImmutableArray<IMetricSink> s_metricSinks = [];
 
     /// <summary>
-    /// Registers <paramref name="sink"/> to receive measurements, ignoring it if it is already
-    /// registered. Dispose the result to unregister it; a host that keeps its sink for the life of the
-    /// process can simply never dispose.
+    /// Registers <paramref name="sink"/> to receive measurements. A sink instance may have only one
+    /// active registration. Dispose the result to unregister it; a host that keeps its sink for the
+    /// life of the process can simply never dispose.
     /// </summary>
     public static IDisposable AddMetricSink(IMetricSink sink)
     {
-        ImmutableInterlocked.Update(ref s_metricSinks, static (sinks, sink) => sinks.Contains(sink) ? sinks : sinks.Add(sink), sink);
-        return new Registration(() => ImmutableInterlocked.Update(ref s_metricSinks, static (sinks, sink) => sinks.Remove(sink), sink));
+        ImmutableInterlocked.Update(ref s_metricSinks, static (sinks, sink) => AddSink(sinks, sink), sink);
+        return new Registration(() => ImmutableInterlocked.Update(ref s_metricSinks, static (sinks, sink) => sinks.Remove(sink, ReferenceEqualityComparer.Instance), sink));
     }
 
     /// <summary>
