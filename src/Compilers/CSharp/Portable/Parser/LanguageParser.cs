@@ -1698,8 +1698,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
 
-            // Skip 'partial' and any following modifiers to find the declaration head.
+            // Consume the 'partial' being classified before entering the repeated-modifier logic below.
+            // Otherwise, scanning that same token as a possible type would recurse through IsTrueIdentifier.
             this.EatToken();
+
+            // Skip any following modifiers to find the declaration head.
             while (true)
             {
                 var nextMod = GetModifierExcludingScoped(this.CurrentToken);
