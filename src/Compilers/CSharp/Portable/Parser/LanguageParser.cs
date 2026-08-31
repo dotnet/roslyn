@@ -1699,12 +1699,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
                         return true;
 
-                    // A second 'partial' may be another modifier, a constructor name, or a type name.
-                    // Treat the first one as a modifier only when the remaining tokens form a declaration.
+                    // A second 'partial' may be another modifier in 'partial partial C()' or the
+                    // constructor name in 'partial partial()'.
                     if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
                     {
-                        if (isPartialConstructor(peekIndex: 0) ||
-                            isPartialConstructorName(peekIndex: 0))
+                        if (isPartialModifierBeforeConstructorName(peekIndex: 0) ||
+                            isConstructorNameAfterPartialModifier(peekIndex: 0))
                         {
                             return true;
                         }
@@ -1747,7 +1747,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // Before partial constructors, 'partial C()' is a method returning 'partial'. Only prefer
             // the constructor interpretation when the feature is enabled.
-            if (isPartialConstructorName(peekIndex: 0))
+            if (isConstructorNameAfterPartialModifier(peekIndex: 0))
                 return true;
 
             // Otherwise, require a return type followed by a member name, as in 'partial int M()'.
@@ -1764,7 +1764,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 // Check for constructor:
                 //   partial Identifier(
-                if (isPartialConstructor(peekIndex: 0))
+                if (isPartialModifierBeforeConstructorName(peekIndex: 0))
                     return true;
 
                 // The modifier loop handles repeated 'partial' tokens iteratively.
@@ -1780,13 +1780,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return this.IsTypeFollowedByMemberName();
             }
 
-            bool isPartialConstructor(int peekIndex)
+            // Checks for a 'partial' modifier followed by a possible constructor name, as in
+            // 'partial C()' or the second modifier in 'partial partial C()'.
+            bool isPartialModifierBeforeConstructorName(int peekIndex)
             {
                 return this.PeekToken(peekIndex).ContextualKind == SyntaxKind.PartialKeyword &&
-                    isPartialConstructorName(peekIndex + 1);
+                    isConstructorNameAfterPartialModifier(peekIndex + 1);
             }
 
-            bool isPartialConstructorName(int peekIndex)
+            // The caller has already established an earlier 'partial' modifier. Check whether the
+            // token at peekIndex can be the constructor name. This intentionally accepts the second
+            // 'partial' in 'partial partial()'.
+            bool isConstructorNameAfterPartialModifier(int peekIndex)
             {
                 // Before partial constructors, 'partial C()' is a method returning 'partial'.
                 return this.PeekToken(peekIndex).Kind == SyntaxKind.IdentifierToken &&
