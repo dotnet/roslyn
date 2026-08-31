@@ -335,12 +335,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)Log\IEventSink.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\IMetricSink.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\Logger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Log\LogLevel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Log\LogMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\RoslynTelemetry.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Log\RoslynTelemetry.LogBlock.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\RoslynTelemetry.Metrics.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\TelemetryNaming.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Log\LogLevel.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Log\RoslynTelemetry.LogBlock.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Log\LogMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\Capitalization.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\EditorConfig\EditorConfigNamingStyleParser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\EditorConfig\EditorConfigNamingStyleParser_NamingRule.cs" />
