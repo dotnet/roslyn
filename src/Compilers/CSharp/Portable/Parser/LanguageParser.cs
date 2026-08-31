@@ -1728,13 +1728,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     // A second 'partial' may be another modifier, a constructor name, or a type name.
                     // Treat the first one as a modifier only when the remaining tokens form a declaration.
-                    if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword &&
-                        (isPartialType() ||
-                         isPartialConstructor(peekIndex: 0) ||
-                         isPartialConstructorName(peekIndex: 0) ||
-                         this.IsTypeFollowedByMemberName()))
+                    if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
                     {
-                        return true;
+                        if (isPartialType() ||
+                            isPartialConstructor(peekIndex: 0) ||
+                            isPartialConstructorName(peekIndex: 0) ||
+                            this.IsTypeFollowedByMemberName())
+                        {
+                            return true;
+                        }
                     }
                 }
 
