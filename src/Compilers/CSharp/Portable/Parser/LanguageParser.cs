@@ -1701,7 +1701,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return false;
 
             // First recognize the established forms shared by modifier and identifier parsing.
-            if (isPartialType() || (allowMembers && isPartialMember()))
+            if (isPartialType())
+                return true;
+
+            if (allowMembers && isPartialMember())
                 return true;
 
             // Only modifier recovery recognizes the additional noncanonical forms below.
