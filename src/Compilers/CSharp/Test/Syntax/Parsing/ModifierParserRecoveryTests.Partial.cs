@@ -12,25 +12,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
-/// <summary>
-/// Tests parser recovery when <c>partial</c> appears in a non-canonical modifier position.
-/// <para>
-/// The parser accepts <c>partial</c> in any position of the modifier list when the declaration is
-/// otherwise unambiguous. The binder continues to report
-/// <c>ERR_PartialMisplaced</c> at non-canonical positions, so this parser recovery does not change
-/// which programs are accepted. Modifiers that are not legal on a declaration at all (e.g.,
-/// <c>partial enum</c>) continue to produce the same binding error.
-/// </para>
-/// <para>
-/// The tests exercise parser shape directly and use compilation diagnostics where needed to verify
-/// that improved recovery does not make misplaced modifiers legal.
-/// </para>
-/// </summary>
 public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output) : ParsingTests(output)
 {
     #region partial modifier
-
-    // ---------- partial on type declarations ----------
 
     [Theory]
     [InlineData(LanguageVersion.CSharp14)]
@@ -404,8 +388,6 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
         Assert.Equal(source, root.ToFullString());
     }
 
-    // ---------- partial on conversion operators ----------
-
     [Fact]
     public void Partial_ConversionOperators()
     {
@@ -425,8 +407,6 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
             //     public static partial explicit operator C(int i) => new();
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 19));
     }
-
-    // ---------- partial on methods ----------
 
     [Fact]
     public void Partial_RefReturn()
@@ -543,8 +523,6 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5));
     }
 
-    // ---------- partial on properties ----------
-
     [Theory]
     [InlineData(LanguageVersion.CSharp14)]
     [InlineData(LanguageVersion.Preview)]
@@ -566,8 +544,6 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
             //     partial public int P { get => 0; set { } }
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5));
     }
-
-    // ---------- parser recovery: 'partial' as identifier ----------
 
     [Fact]
     public void Partial_AsIdentifier_TopLevelAssignment_NotConsumedAsModifier()
@@ -783,14 +759,42 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
         EOF();
     }
 
-    [Theory]
-    [InlineData("public")]
-    [InlineData("static")]
-    public void PartialAsyncConstructorNameAtTopLevel_MakesProgress(string modifier)
+    [Fact]
+    public void PartialAsyncConstructorNameAfterPublic()
     {
-        var src = $"{modifier} partial async();";
-        var root = SyntaxFactory.ParseSyntaxTree(src).GetRoot();
-        Assert.Equal(src, root.ToFullString());
+        UsingDeclaration("public partial async();");
+        N(SyntaxKind.ConstructorDeclaration);
+        {
+            N(SyntaxKind.PublicKeyword);
+            N(SyntaxKind.PartialKeyword);
+            N(SyntaxKind.IdentifierToken, "async");
+            N(SyntaxKind.ParameterList);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void PartialAsyncConstructorNameAfterStatic()
+    {
+        UsingDeclaration("static partial async();");
+        N(SyntaxKind.ConstructorDeclaration);
+        {
+            N(SyntaxKind.StaticKeyword);
+            N(SyntaxKind.PartialKeyword);
+            N(SyntaxKind.IdentifierToken, "async");
+            N(SyntaxKind.ParameterList);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+        EOF();
     }
 
     #endregion partial modifier
