@@ -1681,10 +1681,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword)
                 return false;
 
-            // First recognize the established forms shared by modifier and identifier parsing.
-            if (isPartialType())
-                return true;
-
+            // First recognize established member forms without treating a following contextual token
+            // as another modifier. For example, 'async' is the constructor name in 'partial async()'.
             if (allowMembers && isPartialMember())
                 return true;
 
@@ -1760,25 +1758,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // Otherwise, require a return type followed by a member name, as in 'partial int M()'.
             return this.IsTypeFollowedByMemberName();
-
-            // Checks whether 'partial' begins a type declaration, looking through intervening modifiers.
-            bool isPartialType()
-            {
-                Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
-
-                var peekIndex = 1;
-
-                // Look through intervening modifiers to determine whether 'partial' belongs to a type
-                // declaration. Stop at 'ref' because it may instead begin a ref-returning member;
-                // ParseModifiers handles that ambiguity separately.
-                while (GetModifierExcludingScoped(this.PeekToken(peekIndex)) is
-                       not (DeclarationModifiers.None or DeclarationModifiers.Ref))
-                {
-                    peekIndex++;
-                }
-
-                return this.IsClassStructInterfaceRecordOrUnionKeyword(this.PeekToken(peekIndex));
-            }
 
             bool isPartialMember()
             {
