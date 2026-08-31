@@ -1472,7 +1472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Speculatively scan the complete ref type and check for a following member name.
                 // If both are present, leave 'ref' unconsumed so the return-type parser handles it.
                 using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
-                return this.ScanTypeAndCheckForMemberName();
+                return this.IsTypeFollowedByMemberName();
             }
 
             bool shouldConsumeRefAtTopLevel()
@@ -1709,7 +1709,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 GetModifierExcludingScoped(nextToken) != DeclarationModifiers.None)
             {
                 this.EatToken();
-                if (this.ScanTypeAndCheckForMemberName())
+                if (this.IsTypeFollowedByMemberName())
                     return true;
 
                 resetPoint.Reset();
@@ -1740,7 +1740,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 return true;
 
                             using var identifierResetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
-                            if (this.ScanTypeAndCheckForMemberName())
+                            if (this.IsTypeFollowedByMemberName())
                                 return true;
                         }
                     }
@@ -1781,7 +1781,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return true;
 
             // Otherwise, require a return type followed by a member name, as in 'partial int M()'.
-            return this.ScanTypeAndCheckForMemberName();
+            return this.IsTypeFollowedByMemberName();
 
             // Checks whether 'partial' begins a type declaration, looking through intervening modifiers.
             bool isPartialType()
@@ -1847,7 +1847,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// Scans a type and checks whether the following token can be a member name.
         /// Examples include <c>int M()</c> and <c>int this[int i]</c>.
         /// </summary>
-        private bool ScanTypeAndCheckForMemberName()
+        private bool IsTypeFollowedByMemberName()
         {
             return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
         }
