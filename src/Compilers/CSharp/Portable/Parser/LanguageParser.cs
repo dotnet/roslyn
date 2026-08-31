@@ -876,11 +876,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return true;
                 case SyntaxKind.IdentifierToken:
                     // `allowMembers: false`: A type member such as 'partial int M()' cannot start a namespace body.
-                    // `forTopLevelStatements: false`: Namespace members cannot be top-level statements, so the
-                    // compatibility exception for top-level 'partial partial C()' does not apply.
-                    return this.IsPartialModifierInDeclarationHead(
-                        allowMembers: false,
-                        forTopLevelStatements: false);
+                    return this.IsPartialModifierInDeclarationHead(allowMembers: false);
                 default:
                     return IsPossibleStartOfTypeDeclaration(this.CurrentToken.Kind);
             }
@@ -1375,11 +1371,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case DeclarationModifiers.Partial:
                         // `allowMembers: true`: ParseModifiers is shared by types and members, such as
                         // 'partial class C' and 'partial void M()'.
-                        // `forTopLevelStatements: forTopLevelStatements`: Only top-level parsing must preserve the
-                        // statement interpretation of 'partial partial C()' for compatibility.
-                        if (!this.IsPartialModifierInDeclarationHead(
-                                allowMembers: true,
-                                forTopLevelStatements: forTopLevelStatements))
+                        // At the top level, preserve the statement interpretation of
+                        // 'partial partial C()' for compatibility.
+                        if ((forTopLevelStatements && this.ShouldTreatPartialPartialAsExecutableCode()) ||
+                            !this.IsPartialModifierInDeclarationHead(allowMembers: true))
                         {
                             return;
                         }
@@ -1551,12 +1546,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // as in 'closed partial ref struct'.
             // `allowMembers: true`: The preceding modifier may belong to either a type or a member, such as
             // 'public partial class C' or 'public partial void M()'.
-            // `forTopLevelStatements: false`: The first condition has excluded statement parsing, so the
-            // top-level statement compatibility exception must not suppress declaration recognition.
             if (!parsingStatementNotDeclaration &&
-                this.IsPartialModifierInDeclarationHead(
-                    allowMembers: true,
-                    forTopLevelStatements: false))
+                this.IsPartialModifierInDeclarationHead(allowMembers: true))
             {
                 return true;
             }
@@ -1673,20 +1664,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.IsEnabledRecordOrUnionKeyword(token);
         }
 
+        private bool ShouldTreatPartialPartialAsExecutableCode()
+        {
+            return IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors) &&
+                this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword &&
+                this.PeekToken(1).ContextualKind == SyntaxKind.PartialKeyword &&
+                this.PeekToken(2).Kind == SyntaxKind.IdentifierToken &&
+                this.PeekToken(3).Kind == SyntaxKind.OpenParenToken;
+        }
+
         /// <summary>
         /// Classifies <c>partial</c> in a declaration head, including misplaced forms for binding to diagnose.
         /// </summary>
-        private bool IsPartialModifierInDeclarationHead(
-            bool allowMembers,
-            bool forTopLevelStatements)
+        private bool IsPartialModifierInDeclarationHead(bool allowMembers)
         {
             if (this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword)
-                return false;
-
-            // At the top level, 'partial partial C()' can be either top-level code beginning
-            // with an identifier named 'partial' or a partial constructor. Keep the top-level
-            // code interpretation for compatibility.
-            if (forTopLevelStatements && isPartialConstructor(peekIndex: 1))
                 return false;
 
             // First recognize the established forms shared by modifier and identifier parsing.
@@ -6201,13 +6193,14 @@ parse_member_name:;
 
         private bool IsCurrentTokenPartialKeywordOfPartialMemberOrType()
         {
+            // This helper is also used while parsing executable code, where the first 'partial' in
+            // 'partial partial C()' must remain an identifier for compatibility.
+            if (this.ShouldTreatPartialPartialAsExecutableCode())
+                return false;
+
             // `allowMembers: true`: Identifier parsing must stop before a type or member declaration, such as
             // 'partial class C' or 'partial public void M()'.
-            // `forTopLevelStatements: false`: This generic identifier check does not know whether it is at the top
-            // level. ParseModifiers applies the 'partial partial C()' compatibility exception with that context.
-            return this.IsPartialModifierInDeclarationHead(
-                allowMembers: true,
-                forTopLevelStatements: false);
+            return this.IsPartialModifierInDeclarationHead(allowMembers: true);
         }
 
         private bool IsCurrentTokenFieldInKeywordContext()

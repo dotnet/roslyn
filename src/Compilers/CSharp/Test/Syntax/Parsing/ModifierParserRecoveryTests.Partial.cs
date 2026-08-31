@@ -347,6 +347,46 @@ public sealed partial class ModifierParserRecoveryTests : ParsingTests
     }
 
     [Theory]
+    [InlineData(LanguageVersion.CSharp14)]
+    [InlineData(LanguageVersion.Preview)]
+    public void PartialPartial_TopLevelExecutableCode(LanguageVersion languageVersion)
+    {
+        const string source = "partial partial C();";
+        UsingTree(
+            source,
+            TestOptions.Regular.WithLanguageVersion(languageVersion),
+            // (1,9): error CS1525: Invalid expression term 'partial'
+            // partial partial C();
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 9),
+            // (1,9): error CS1003: Syntax error, ',' expected
+            // partial partial C();
+            Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(1, 9));
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalDeclarationStatement);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "partial");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Theory]
     [InlineData(LanguageVersion.CSharp13)]
     [InlineData(LanguageVersion.Preview)]
     public void ManyPartialModifiers_MakesProgress(LanguageVersion languageVersion)
