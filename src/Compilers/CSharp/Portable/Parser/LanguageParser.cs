@@ -6208,7 +6208,9 @@ parse_member_name:;
         private bool IsCurrentTokenPartialKeywordOfPartialMemberOrType()
         {
             // `allowMembers: true`: Recognize established partial type and member forms.
-            // `allowMisplacedModifiers: false`: Do not treat recovery-only forms as keywords during identifier parsing.
+            // `allowMisplacedModifiers: false`: This is also called while parsing identifiers in expressions and
+            // types. Declaration recovery would misclassify the first 'partial' in 'new partial partial Goo()'
+            // and produce cascading diagnostics.
             // `forTopLevelStatements: false`: This call is not disambiguating top-level statements.
             return this.IsPartialModifierInDeclarationHead(
                 allowMembers: true,
