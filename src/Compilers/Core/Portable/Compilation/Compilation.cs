@@ -3270,7 +3270,9 @@ namespace Microsoft.CodeAnalysis
 
             if (emitOptions.EmitMetadataOnly)
             {
-                // Metadata-only output has no associated PDB. Clear the path so the PE writer doesn't emit a CodeView entry.
+                // Metadata-only output has no associated PDB. Suppress PDB output and clear the path so the PE writer
+                // doesn't emit a CodeView entry.
+                pdbStreamProvider = null;
                 pePdbFilePath = null;
             }
             else if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Embedded || pdbStreamProvider != null)
