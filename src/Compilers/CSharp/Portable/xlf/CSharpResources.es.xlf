@@ -724,7 +724,7 @@
       </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
         <source>A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.</source>
-        <target state="translated">No se puede declarar una variable dentro de un patrón "not" o "or", ni en una coincidencia de unión que compare la instancia o su valor subyacente.</target>
+        <target state="new">A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
@@ -2519,7 +2519,7 @@
       </trans-unit>
       <trans-unit id="ERR_SafeModifierUnsupportedTarget">
         <source>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</source>
-        <target state="translated">El modificador "safe" solo se puede usar en miembros que no están marcados como "unsafe" y que son "extern" o de tipo campo en tipos con diseño explícito o extendido.</target>
+        <target state="new">The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</target>
         <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
@@ -2944,7 +2944,7 @@
       </trans-unit>
       <trans-unit id="HDN_RedundantPattern">
         <source>The pattern is redundant.</source>
-        <target state="translated">El patrón es redundante.</target>
+        <target state="new">The pattern is redundant.</target>
         <note />
       </trans-unit>
       <trans-unit id="HDN_RedundantPatternStackGuard">
@@ -2959,7 +2959,7 @@
       </trans-unit>
       <trans-unit id="HDN_RedundantPattern_Title">
         <source>The pattern is redundant.</source>
-        <target state="translated">El patrón es redundante.</target>
+        <target state="new">The pattern is redundant.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
@@ -11438,7 +11438,7 @@ Indique al compilador alguna forma de diferenciar los métodos. Por ejemplo, pue
       </trans-unit>
       <trans-unit id="ERR_AwaitInUnsafeContext">
         <source>Cannot await in an unsafe context</source>
-        <target state="translated">No se puede usar await en un contexto no seguro.</target>
+        <target state="new">Cannot await in an unsafe context</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLacksBody">
