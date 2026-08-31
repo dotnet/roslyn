@@ -1719,9 +1719,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // Treat the first one as a modifier only when the remaining tokens form a declaration.
                     if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
                     {
-                        if (isPartialType() ||
-                            isPartialConstructor(peekIndex: 0) ||
-                            isPartialConstructorName(peekIndex: 0) ||
+                        if (isPartialConstructor(peekIndex: 0) ||
+                            isPartialConstructorName(peekIndex: 0))
+                        {
+                            return true;
+                        }
+
+                        // Process repeated modifiers iteratively instead of recursively scanning each
+                        // 'partial' as a possible type.
+                        if (this.PeekToken(1).ContextualKind != SyntaxKind.PartialKeyword &&
                             this.IsTypeFollowedByMemberName())
                         {
                             return true;
@@ -1795,6 +1801,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 //   partial Identifier(
                 if (isPartialConstructor(peekIndex: 0))
                     return true;
+
+                // The modifier loop handles repeated 'partial' tokens iteratively.
+                if (this.PeekToken(1).ContextualKind == SyntaxKind.PartialKeyword)
+                    return false;
 
                 // Check for method/property:
                 //   partial ReturnType MemberName

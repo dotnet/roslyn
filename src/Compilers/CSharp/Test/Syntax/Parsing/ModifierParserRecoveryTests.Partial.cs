@@ -346,6 +346,21 @@ public sealed partial class ModifierParserRecoveryTests : ParsingTests
             Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "M").WithArguments("<invalid-global-code>.M()").WithLocation(1, 29));
     }
 
+    [Theory]
+    [InlineData(LanguageVersion.CSharp13)]
+    [InlineData(LanguageVersion.Preview)]
+    public void ManyPartialModifiers_MakesProgress(LanguageVersion languageVersion)
+    {
+        var modifiers = string.Concat(Enumerable.Repeat("partial ", 10_000));
+        var source = $"class C {{ {modifiers}int M(); }}";
+
+        var root = SyntaxFactory.ParseSyntaxTree(
+            source,
+            options: TestOptions.Regular.WithLanguageVersion(languageVersion)).GetRoot();
+
+        Assert.Equal(source, root.ToFullString());
+    }
+
     // ---------- partial on conversion operators ----------
 
     [Fact]
