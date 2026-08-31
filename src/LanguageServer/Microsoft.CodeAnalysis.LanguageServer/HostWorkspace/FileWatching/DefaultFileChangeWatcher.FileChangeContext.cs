@@ -47,7 +47,7 @@ internal sealed partial class DefaultFileChangeWatcher
                 _watchedDirectoriesWatches.Add(_owner.AcquireDirectoryWatch(watchedDirectory, this, includeSubdirectories: true));
         }
 
-        public event EventHandler<string>? FileChanged;
+        public event EventHandler<FileChangedEventArgs>? FileChanged;
 
         public IWatchedFile EnqueueWatchingFile(string filePath)
         {
@@ -102,10 +102,19 @@ internal sealed partial class DefaultFileChangeWatcher
             }
 
             if (shouldRaiseForNewPath)
-                FileChanged?.Invoke(this, e.FullPath);
+            {
+                var changeKind = e.ChangeType switch
+                {
+                    WatcherChangeTypes.Created or WatcherChangeTypes.Renamed => FileChangeKind.Added,
+                    WatcherChangeTypes.Deleted => FileChangeKind.Removed,
+                    _ => FileChangeKind.Changed,
+                };
+
+                FileChanged?.Invoke(this, new(e.FullPath, changeKind));
+            }
 
             if (shouldRaiseForOldPath)
-                FileChanged?.Invoke(this, ((RenamedEventArgs)e).OldFullPath);
+                FileChanged?.Invoke(this, new(((RenamedEventArgs)e).OldFullPath, FileChangeKind.Removed));
         }
 
         /// <summary>

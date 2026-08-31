@@ -21,7 +21,7 @@ internal sealed partial class LoadedProject : IAsyncDisposable
     /// The file path or URI of a the project file. This may include virtual files; if you need a file path for purposes of file watching or file APIs,
     /// call <see cref="TryGetAbsoluteFilePath"/> to get a file path that exists on disk.
     /// </summary>
-    private readonly string _projectFilePath;
+    public string ProjectFilePath { get; }
     private readonly string? _projectDirectory;
     private readonly IFileChangeWatcher _fileWatcher;
 
@@ -55,7 +55,7 @@ internal sealed partial class LoadedProject : IAsyncDisposable
 
     public LoadedProject(string projectFilePath, IFileChangeWatcher fileWatcher)
     {
-        _projectFilePath = projectFilePath;
+        ProjectFilePath = projectFilePath;
         _fileWatcher = fileWatcher;
 
         _projectFileChangeContext = fileWatcher.CreateContext([]);
@@ -69,7 +69,6 @@ internal sealed partial class LoadedProject : IAsyncDisposable
             if (_projectDirectory is not null)
             {
                 // We'll watch the directory for all source file changes
-                // TODO: we only should listen for add/removals here, but we can't specify such a filter now
                 _sourceFileCreatedOrDeletedChangeContext = fileWatcher.CreateContext([new(_projectDirectory, [".cs", ".cshtml", ".razor"])]);
                 _sourceFileCreatedOrDeletedChangeContext.FileChanged += SourceFileCreatedOrDeletedChangeContext_FileChanged;
             }
@@ -77,31 +76,35 @@ internal sealed partial class LoadedProject : IAsyncDisposable
     }
 
     /// <summary>
-    /// Raised any time this project (or any of its targets) needs a reload.
+    /// Raised any time this project (or any of its targets) needs a reload. The parameter includes the file path that triggered a reload.
     /// </summary>
-    public event EventHandler? NeedsReload;
+    public event EventHandler<string>? NeedsReload;
 
-    private void ProjectFileChangeContext_FileChanged(object? sender, string filePath)
+    private void ProjectFileChangeContext_FileChanged(object? sender, FileChangedEventArgs e)
     {
-        NeedsReload?.Invoke(this, EventArgs.Empty);
+        NeedsReload?.Invoke(this, e.FilePath);
     }
 
     private string? TryGetAbsoluteFilePath()
     {
-        return PathUtilities.IsAbsolute(_projectFilePath) && File.Exists(_projectFilePath) ? _projectFilePath : null;
+        return PathUtilities.IsAbsolute(ProjectFilePath) && File.Exists(ProjectFilePath) ? ProjectFilePath : null;
     }
 
 #pragma warning disable VSTHRD100 // Avoid async void methods -- async void because it's being used by an event handler
-    private async void SourceFileCreatedOrDeletedChangeContext_FileChanged(object? sender, string filePath)
+    private async void SourceFileCreatedOrDeletedChangeContext_FileChanged(object? sender, FileChangedEventArgs e)
 #pragma warning restore VSTHRD100 // Avoid async void methods
     {
+        // We only need to handle file adds/removes -- the changes are handled in the ProjectSystemProjectFactory for us
+        if (e.ChangeKind == FileChangeKind.Changed)
+            return;
+
         bool needsReload = false;
 
         using (await _gate.DisposableWaitAsync())
         {
             foreach (var target in _targets)
             {
-                if (target.FilePathIsIncludedInFileGlobs(filePath))
+                if (target.FilePathIsIncludedInFileGlobs(e.FilePath))
                 {
                     needsReload = true;
                     break;
@@ -111,7 +114,7 @@ internal sealed partial class LoadedProject : IAsyncDisposable
 
         // Invoke this outside the lock
         if (needsReload)
-            NeedsReload?.Invoke(this, EventArgs.Empty);
+            NeedsReload?.Invoke(this, e.FilePath);
     }
 
     /// <summary>
@@ -204,7 +207,7 @@ internal sealed partial class LoadedProject : IAsyncDisposable
 
             foreach (var loadedProjectInfo in loadedProjectInfos)
             {
-                var (target, targetAlreadyExists) = await GetOrCreateProjectTargetAsync(loadedProjectInfo, projectFactory, workspaceFactory, cancellationToken);
+                var target = await GetOrCreateProjectTargetAsync(loadedProjectInfo, projectFactory, workspaceFactory, cancellationToken);
                 staleTargets.Remove(target);
                 await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, isMiscellaneousFile, hasAllInformation, targetFrameworkManager, logger);
             }
@@ -230,16 +233,16 @@ internal sealed partial class LoadedProject : IAsyncDisposable
         }
     }
 
-    private async Task<(Target, bool alreadyExists)> GetOrCreateProjectTargetAsync(ProjectFileInfo loadedProjectInfo, ProjectSystemProjectFactory projectFactory, LanguageServerWorkspaceFactory workspaceFactory, CancellationToken cancellationToken)
+    private async Task<Target> GetOrCreateProjectTargetAsync(ProjectFileInfo loadedProjectInfo, ProjectSystemProjectFactory projectFactory, LanguageServerWorkspaceFactory workspaceFactory, CancellationToken cancellationToken)
     {
         Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
         var existingTarget = _targets.SingleOrDefault(p => p.GetTargetFramework() == loadedProjectInfo.TargetFramework && p.ProjectFactory == projectFactory);
         if (existingTarget != null)
-            return (existingTarget, alreadyExists: true);
+            return existingTarget;
 
         var targetFramework = loadedProjectInfo.TargetFramework;
-        var projectSystemName = targetFramework is null ? _projectFilePath : $"{_projectFilePath} (${targetFramework})";
+        var projectSystemName = targetFramework is null ? ProjectFilePath : $"{ProjectFilePath} (${targetFramework})";
 
         var projectCreationInfo = new ProjectSystemProjectCreationInfo
         {
@@ -257,7 +260,7 @@ internal sealed partial class LoadedProject : IAsyncDisposable
 
         var target = new Target(this, projectSystemProject, projectFactory);
         _targets.Add(target);
-        return (target, alreadyExists: false);
+        return target;
     }
 
     public async ValueTask SetProjectGuidForTelemetryAsync(Guid guid)
@@ -306,7 +309,7 @@ internal sealed partial class LoadedProject : IAsyncDisposable
                     };
             }
 
-            await reporter.ReportProjectLoadTelemetryAsync(telemetryInfos, _projectFilePath, _projectGuidForTelemetry, CancellationToken.None);
+            await reporter.ReportProjectLoadTelemetryAsync(telemetryInfos, ProjectFilePath, _projectGuidForTelemetry, CancellationToken.None);
         }
     }
 
