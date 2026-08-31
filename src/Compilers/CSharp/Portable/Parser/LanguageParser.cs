@@ -1696,21 +1696,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (allowMembers && isPartialMember())
                 return true;
 
-            using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
-
-            // In 'partial async x;', 'async' is a type name. Check for that interpretation before
-            // skipping contextual modifier tokens.
-            var nextToken = this.PeekToken(1);
-            if (allowMembers &&
-                nextToken.Kind == SyntaxKind.IdentifierToken &&
-                GetModifierExcludingScoped(nextToken) != DeclarationModifiers.None)
-            {
-                this.EatToken();
-                if (this.IsTypeFollowedByMemberName())
-                    return true;
-
-                resetPoint.Reset();
-            }
+            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
 
             // Skip 'partial' and any following modifiers to find the declaration head.
             this.EatToken();
