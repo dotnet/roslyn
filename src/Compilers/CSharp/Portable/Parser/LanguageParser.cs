@@ -1802,10 +1802,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 this.EatToken(); // partial
 
-                if (this.ScanType() == ScanTypeFlags.NotType)
-                    return false;
-
-                return IsPossibleMemberName();
+                return this.IsTypeFollowedByMemberName();
             }
 
             bool isPartialConstructor(int peekIndex)
