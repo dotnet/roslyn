@@ -1798,7 +1798,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // ParseModifiers handles that ambiguity separately.
                 while (GetModifierExcludingScoped(this.PeekToken(peekIndex)) is
                        not (DeclarationModifiers.None or DeclarationModifiers.Ref))
+                {
                     peekIndex++;
+                }
 
                 return this.IsClassStructInterfaceRecordOrUnionKeyword(this.PeekToken(peekIndex));
             }
