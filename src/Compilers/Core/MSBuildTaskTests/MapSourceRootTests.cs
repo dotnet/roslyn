@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Microsoft.CodeAnalysis.CommandLine;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -507,7 +508,8 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
         [Fact]
         public void RelativeSourceRoot_ResolvedAgainstProjectDirectory()
         {
-            var projectDirectory = Path.Combine(Path.GetTempPath(), "MapSourceRoots", Guid.NewGuid().ToString("N"));
+            using var tempRoot = new TempRoot();
+            var projectDirectory = tempRoot.CreateDirectory().Path;
             var relativeSourceRoot = "relativeRoot" + Path.DirectorySeparatorChar;
 
             var mappedItemSpec = MapSingleSourceRoot(
