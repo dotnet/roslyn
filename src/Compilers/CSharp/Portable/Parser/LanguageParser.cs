@@ -1845,6 +1845,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         /// <summary>
         /// Scans a type and checks whether the following token can be a member name.
+        /// Examples include <c>int M()</c> and <c>int this[int i]</c>.
         /// </summary>
         private bool ScanTypeAndCheckForMemberName()
         {
