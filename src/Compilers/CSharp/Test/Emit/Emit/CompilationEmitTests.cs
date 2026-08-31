@@ -2729,12 +2729,13 @@ struct S
         }
 
         [Fact]
-        public void EmitMetadataOnly_IgnorePdbStream()
+        public void EmitMetadataOnly_IgnorePdb()
         {
             CSharpCompilation comp = CreateEmptyCompilation("", references: new[] { MscorlibRef },
                 options: TestOptions.DebugDll.WithDeterministic(true));
 
-            var output = comp.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(true));
+            var output = comp.EmitToArray(
+                EmitOptions.Default.WithEmitMetadataOnly(true).WithDebugInformationFormat(DebugInformationFormat.Pdb));
 
             using var peReader = new PEReader(output);
             AssertEx.Equal(
