@@ -876,8 +876,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return true;
                 case SyntaxKind.IdentifierToken:
                     // Namespace lookahead accepts only type or namespace declarations. Include misplaced
-                    // modifiers so those declarations still reach binding for diagnostics.
-                    return this.IsPartialModifierInDeclarationHead(allowMembers: false, allowMisplacedModifiers: true);
+                    // modifiers so those declarations still reach binding for diagnostics. This is not
+                    // top-level statement disambiguation.
+                    return this.IsPartialModifierInDeclarationHead(
+                        allowMembers: false,
+                        allowMisplacedModifiers: true,
+                        forTopLevelStatements: false);
                 default:
                     return IsPossibleStartOfTypeDeclaration(this.CurrentToken.Kind);
             }
@@ -1372,20 +1376,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case DeclarationModifiers.Partial:
                         // Treat 'partial' as a modifier when the remaining tokens unambiguously form a declaration.
                         // Binding reports an error if it is not in a legal position.
-                        if (forTopLevelStatements &&
-                            this.IsPartialConstructor(peekIndex: 1))
-                        {
-                            // At the top level, 'partial partial C()' can be either top-level code beginning
-                            // with an identifier named 'partial' or a partial constructor. Keep the top-level
-                            // code interpretation for compatibility.
-                            return;
-                        }
-
                         // Leave 'partial' as an identifier if the remaining tokens do not form a declaration.
                         // Modifiers can introduce types or members here, including misplaced forms that
-                        // binding will diagnose.
-                        if (!this.IsPartialModifierInDeclarationHead(allowMembers: true, allowMisplacedModifiers: true))
+                        // binding will diagnose. At the top level, preserve statement ambiguities.
+                        if (!this.IsPartialModifierInDeclarationHead(
+                                allowMembers: true,
+                                allowMisplacedModifiers: true,
+                                forTopLevelStatements: forTopLevelStatements))
+                        {
                             return;
+                        }
 
                         modTok = ConvertToKeyword(this.EatToken());
                         break;
@@ -1556,9 +1556,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // If 'partial' starts a declaration, the preceding token is also a modifier,
                 // as in 'closed partial ref struct'.
                 // This lookahead covers both types and members, including misplaced forms that binding
-                // will diagnose.
-                if (this.IsPartialModifierInDeclarationHead(allowMembers: true, allowMisplacedModifiers: true))
+                // will diagnose. It is not choosing between a declaration and a top-level statement.
+                if (this.IsPartialModifierInDeclarationHead(
+                        allowMembers: true,
+                        allowMisplacedModifiers: true,
+                        forTopLevelStatements: false))
+                {
                     return true;
+                }
 
                 // 'partial' does not affect the remaining heuristics, so look past it.
                 if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
@@ -1681,9 +1686,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// Classifies <c>partial</c> in a declaration head. Established forms are always recognized.
         /// Modifier recovery can also recognize misplaced forms for binding to diagnose.
         /// </summary>
-        private bool IsPartialModifierInDeclarationHead(bool allowMembers, bool allowMisplacedModifiers)
+        private bool IsPartialModifierInDeclarationHead(
+            bool allowMembers,
+            bool allowMisplacedModifiers,
+            bool forTopLevelStatements)
         {
             if (this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword)
+                return false;
+
+            // At the top level, 'partial partial C()' can be either top-level code beginning
+            // with an identifier named 'partial' or a partial constructor. Keep the top-level
+            // code interpretation for compatibility.
+            if (forTopLevelStatements && isPartialConstructor(peekIndex: 1))
                 return false;
 
             // First recognize the established forms shared by modifier and identifier parsing.
@@ -1729,9 +1743,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
                 {
                     if (!isPartialType() &&
-                        !this.IsPartialConstructor(peekIndex: 0))
+                        !isPartialConstructor(peekIndex: 0))
                     {
-                        if (this.IsPartialConstructorName(peekIndex: 0))
+                        if (isPartialConstructorName(peekIndex: 0))
                             return true;
 
                         using var identifierResetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
@@ -1763,7 +1777,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // Before partial constructors, 'partial C()' is a method returning 'partial'. Only prefer
             // the constructor interpretation when the feature is enabled.
-            if (this.IsPartialConstructorName(peekIndex: 0))
+            if (isPartialConstructorName(peekIndex: 0))
                 return true;
 
             // Otherwise, require a return type followed by a member name, as in 'partial int M()'.
@@ -1796,7 +1810,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 // Check for constructor:
                 //   partial Identifier(
-                if (this.IsPartialConstructor(peekIndex: 0))
+                if (isPartialConstructor(peekIndex: 0))
                     return true;
 
                 // Check for method/property:
@@ -1810,20 +1824,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 return IsPossibleMemberName();
             }
-        }
 
-        private bool IsPartialConstructor(int peekIndex)
-        {
-            return this.PeekToken(peekIndex).ContextualKind == SyntaxKind.PartialKeyword &&
-                this.IsPartialConstructorName(peekIndex + 1);
-        }
+            bool isPartialConstructor(int peekIndex)
+            {
+                return this.PeekToken(peekIndex).ContextualKind == SyntaxKind.PartialKeyword &&
+                    isPartialConstructorName(peekIndex + 1);
+            }
 
-        private bool IsPartialConstructorName(int peekIndex)
-        {
-            // Before partial constructors, 'partial C()' is a method returning 'partial'.
-            return this.PeekToken(peekIndex).Kind == SyntaxKind.IdentifierToken &&
-                this.PeekToken(peekIndex + 1).Kind == SyntaxKind.OpenParenToken &&
-                IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors);
+            bool isPartialConstructorName(int peekIndex)
+            {
+                // Before partial constructors, 'partial C()' is a method returning 'partial'.
+                return this.PeekToken(peekIndex).Kind == SyntaxKind.IdentifierToken &&
+                    this.PeekToken(peekIndex + 1).Kind == SyntaxKind.OpenParenToken &&
+                    IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors);
+            }
         }
 
         private bool IsPossibleMemberName()
@@ -6188,8 +6202,12 @@ parse_member_name:;
         private bool IsCurrentTokenPartialKeywordOfPartialMemberOrType()
         {
             // Identifier parsing must recognize established type and member forms, but not the additional
-            // misplaced forms accepted only for modifier recovery.
-            return this.IsPartialModifierInDeclarationHead(allowMembers: true, allowMisplacedModifiers: false);
+            // misplaced forms accepted only for modifier recovery. It is not choosing between a declaration
+            // and a top-level statement.
+            return this.IsPartialModifierInDeclarationHead(
+                allowMembers: true,
+                allowMisplacedModifiers: false,
+                forTopLevelStatements: false);
         }
 
         private bool IsCurrentTokenFieldInKeywordContext()
