@@ -574,5 +574,142 @@ public sealed partial class ModifierParserRecoveryTests : ParsingTests
         EOF();
     }
 
+    [Fact]
+    public void PartialAsyncConstructorName()
+    {
+        var src = """
+            partial class async
+            {
+                partial async();
+            }
+            """;
+
+        UsingTree(src);
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "async");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ConstructorDeclaration);
+                {
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.IdentifierToken, "async");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        CreateCompilation(src).VerifyDiagnostics(
+            // (1,15): warning CS8981: The type name 'async' only contains lower-cased ascii characters. Such names may become reserved for the language.
+            // partial class async
+            Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "async").WithArguments("async").WithLocation(1, 15),
+            // (3,13): error CS9275: Partial member 'async.async()' must have an implementation part.
+            //     partial async();
+            Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "async").WithArguments("async.async()").WithLocation(3, 13));
+    }
+
+    [Fact]
+    public void PartialAsyncConstructorName_CSharp13()
+    {
+        UsingTree("""
+            partial class async
+            {
+                partial async();
+            }
+            """, TestOptions.Regular13);
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "async");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "partial");
+                    }
+                    N(SyntaxKind.IdentifierToken, "async");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Theory]
+    [InlineData("required")]
+    [InlineData("file")]
+    [InlineData("closed")]
+    [InlineData("safe")]
+    public void PartialContextualModifierConstructorName_MakesProgress(string name)
+    {
+        var src = $"partial class {name} {{ partial {name}(); }}";
+        var root = SyntaxFactory.ParseSyntaxTree(src).GetRoot();
+        Assert.Equal(src, root.ToFullString());
+    }
+
+    [Fact]
+    public void PartialAsyncConstructorNameInNamespace()
+    {
+        UsingTree("namespace N { partial async(); }");
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.NamespaceDeclaration);
+            {
+                N(SyntaxKind.NamespaceKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "N");
+                }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ConstructorDeclaration);
+                {
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.IdentifierToken, "async");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Theory]
+    [InlineData("public")]
+    [InlineData("static")]
+    public void PartialAsyncConstructorNameAtTopLevel_MakesProgress(string modifier)
+    {
+        var src = $"{modifier} partial async();";
+        var root = SyntaxFactory.ParseSyntaxTree(src).GetRoot();
+        Assert.Equal(src, root.ToFullString());
+    }
+
     #endregion partial modifier
 }
