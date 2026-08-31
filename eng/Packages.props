@@ -17,7 +17,9 @@
     <MicrosoftNetCoreAppRuntimePackagesVersion>10.0.11</MicrosoftNetCoreAppRuntimePackagesVersion>
     <MicrosoftWindowsDesktopAppRuntimePackagesVersion>10.0.11</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
     <_xunitVersion>2.9.2</_xunitVersion>
-    <SqliteVersion>2.1.6</SqliteVersion>
+    <!-- SQLitePCLRaw.bundle_green is discontinued at 2.1.11, so keep its managed dependencies aligned. -->
+    <SqliteManagedVersion>2.1.11</SqliteManagedVersion>
+    <SqliteNativeVersion>2.1.13</SqliteNativeVersion>
     <!-- HumanizerVersion is referenced from the Text.Analyzers.Package.csproj -->
     <HumanizerVersion>2.14.1</HumanizerVersion>
   </PropertyGroup>
@@ -164,7 +166,8 @@
     <PackageVersion Include="Microsoft.NETCore.App.Runtime.win-arm64" Version="$(MicrosoftNetCoreAppRuntimePackagesVersion)" />
     <PackageVersion Include="Microsoft.NETCore.App.Runtime.win-x64" Version="$(MicrosoftNetCoreAppRuntimePackagesVersion)" />
     <!-- Pin to 10.0.1 because versions 10.0.2 and later remove READYTORUN_FLAG_SKIP_TYPE_VALIDATION
-         from our binaries, causing additional JIT compilation in VS. -->
+         from our binaries, causing additional JIT compilation in VS.
+         https://github.com/dotnet/runtime/issues/132724 -->
     <PackageVersion Include="Microsoft.NETCore.App.crossgen2.win-x64" Version="10.0.1" />
     <PackageVersion Include="Microsoft.WindowsDesktop.App.Runtime.win-arm64" Version="$(MicrosoftWindowsDesktopAppRuntimePackagesVersion)" />
     <PackageVersion Include="Microsoft.WindowsDesktop.App.Runtime.win-x64" Version="$(MicrosoftWindowsDesktopAppRuntimePackagesVersion)" />
@@ -260,14 +263,11 @@
 
     <PackageVersion Include="Microsoft.IO.Redist" Version="$(MicrosoftIORedistVersion)" />
 
-    <PackageVersion Include="SQLitePCLRaw.core" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.provider.dynamic_cdecl" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.linux" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.osx" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.v110_xp" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.provider.e_sqlite3.net45" Version="$(SqliteVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.core" Version="$(SqliteManagedVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="$(SqliteManagedVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="$(SqliteNativeVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.provider.dynamic_cdecl" Version="$(SqliteManagedVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.provider.e_sqlite3" Version="$(SqliteManagedVersion)" />
 
     <PackageVersion Include="Humanizer.Core" Version="$(HumanizerVersion)" />
     <PackageVersion Include="ICSharpCode.Decompiler" Version="9.1.0.7988" />

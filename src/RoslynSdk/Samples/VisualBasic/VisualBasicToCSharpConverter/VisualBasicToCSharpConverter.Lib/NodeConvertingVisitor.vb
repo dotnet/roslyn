@@ -656,7 +656,6 @@ Namespace VisualBasicToCSharpConverter
 
             Public Overrides Function VisitCatchStatement(node As VB.Syntax.CatchStatementSyntax) As SyntaxNode
 
-
                 If node.IdentifierName Is Nothing Then Return Nothing
 
                 Dim result = CatchDeclaration(VisitSimpleAsClause(node.AsClause)).WithIdentifier(VisitIdentifier(node.IdentifierName.Identifier))
@@ -836,17 +835,16 @@ Namespace VisualBasicToCSharpConverter
                     aliasString = node.AliasName.Token.ValueText
                 End If
 
-
                 Dim dllImportAttribute = Attribute(
-                                             ParseName("global::System.Runtime.InteropServices.DllImport"),
-                                             AttributeArgumentList(SeparatedList({
-                                                                       AttributeArgument(LiteralExpression(CS.SyntaxKind.StringLiteralExpression, Literal(node.LibraryName.Token.ToString(), node.LibraryName.Token.ValueText))),
-                                                                       AttributeArgument(charSet).WithNameColon(NameColon(IdentifierName("CharSet"))),
-                                                                       AttributeArgument(
-                                                                           LiteralExpression(CS.SyntaxKind.StringLiteralExpression, Literal("""" & aliasString & """", aliasString))).WithNameColon(NameColon(IdentifierName("EntryPoint")))}
-                                                                   )
-                                             )
-                                         )
+                                                             ParseName("global::System.Runtime.InteropServices.DllImport"),
+                                                             AttributeArgumentList(SeparatedList({
+                                                                                       AttributeArgument(LiteralExpression(CS.SyntaxKind.StringLiteralExpression, Literal(node.LibraryName.Token.ToString(), node.LibraryName.Token.ValueText))),
+                                                                                       AttributeArgument(charSet).WithNameColon(NameColon(IdentifierName("CharSet"))),
+                                                                                       AttributeArgument(
+                                                                                           LiteralExpression(CS.SyntaxKind.StringLiteralExpression, Literal("""" & aliasString & """", aliasString))).WithNameColon(NameColon(IdentifierName("EntryPoint")))}
+                                                                                   )
+                                                             )
+                                                         )
 
                 ' TODO: Transfer attributes on the return type to the statement.
                 Return MethodDeclaration(DeriveType(node.Identifier, node.AsClause, node.SubOrFunctionKeyword), VisitIdentifier(node.Identifier)) _
@@ -2364,7 +2362,6 @@ Namespace VisualBasicToCSharpConverter
                                                 Block(List(VisitStatements(node.Statements)))) _
                                               .WithElse(elseOpt)
                                         )
-
 
             End Function
 

@@ -33,7 +33,7 @@ Public Enum TransformKind
     SingleLineIfToMultiLineIf
 End Enum
 
-Public Class Transforms
+Public NotInheritable Class Transforms
     ''' <summary>
     ''' Performs a syntax transform of the source code which is passed in as a string. The transform to be performed is also passed as an argument
     ''' </summary>
