@@ -212,7 +212,7 @@ public static class Program
                     <PropertyGroup>
                       <_IncludeStyleConfiguration>false</_IncludeStyleConfiguration>
                       <!-- Check whether 'Style' Level or Mode were configured separate from AnalysisLevel and AnalysisMode. -->
-                      <_IncludeStyleConfiguration Condition="'$(AnalysisLevelStyle)' != '' or '$(AnalysisModeStyle)' != ''>true</_IncludeStyleConfiguration>
+                      <_IncludeStyleConfiguration Condition="'$(AnalysisLevelStyle)' != '' Or '$(AnalysisModeStyle)' != ''">true</_IncludeStyleConfiguration>
 
                       <!-- Default 'AnalysisLevelStyle' to the core 'AnalysisLevel' -->
                       <AnalysisLevelStyle Condition="'$(AnalysisLevelStyle)' == ''">$(AnalysisLevel)</AnalysisLevelStyle>
