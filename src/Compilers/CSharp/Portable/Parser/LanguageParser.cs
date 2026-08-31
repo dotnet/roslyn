@@ -1689,9 +1689,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             return isMemberDeclarationStart();
 
-            bool isPossibleStaticLambdaStart() =>
-                this.CurrentToken.Kind == SyntaxKind.StaticKeyword &&
-                this.PeekToken(1).Kind == SyntaxKind.OpenParenToken;
+            bool isPossibleStaticLambdaStart()
+            {
+                return this.CurrentToken.Kind == SyntaxKind.StaticKeyword &&
+                       this.PeekToken(1).Kind == SyntaxKind.OpenParenToken;
+            }
 
             bool isMemberDeclarationStartBeforeConsumingModifier()
             {
