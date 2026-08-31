@@ -69,7 +69,6 @@ internal sealed partial class LoadedProject : IAsyncDisposable
             if (_projectDirectory is not null)
             {
                 // We'll watch the directory for all source file changes
-                // TODO: we only should listen for add/removals here, but we can't specify such a filter now
                 _sourceFileCreatedOrDeletedChangeContext = fileWatcher.CreateContext([new(_projectDirectory, [".cs", ".cshtml", ".razor"])]);
                 _sourceFileCreatedOrDeletedChangeContext.FileChanged += SourceFileCreatedOrDeletedChangeContext_FileChanged;
             }
@@ -81,7 +80,7 @@ internal sealed partial class LoadedProject : IAsyncDisposable
     /// </summary>
     public event EventHandler? NeedsReload;
 
-    private void ProjectFileChangeContext_FileChanged(object? sender, string filePath)
+    private void ProjectFileChangeContext_FileChanged(object? sender, FileChangedEventArgs e)
     {
         NeedsReload?.Invoke(this, EventArgs.Empty);
     }
@@ -92,16 +91,20 @@ internal sealed partial class LoadedProject : IAsyncDisposable
     }
 
 #pragma warning disable VSTHRD100 // Avoid async void methods -- async void because it's being used by an event handler
-    private async void SourceFileCreatedOrDeletedChangeContext_FileChanged(object? sender, string filePath)
+    private async void SourceFileCreatedOrDeletedChangeContext_FileChanged(object? sender, FileChangedEventArgs e)
 #pragma warning restore VSTHRD100 // Avoid async void methods
     {
+        // We only need to handle file adds/removes -- the changes are handled in the ProjectSystemProjectFactory for us
+        if (e.ChangeKind == FileChangeKind.Changed)
+            return;
+
         bool needsReload = false;
 
         using (await _gate.DisposableWaitAsync())
         {
             foreach (var target in _targets)
             {
-                if (target.FilePathIsIncludedInFileGlobs(filePath))
+                if (target.FilePathIsIncludedInFileGlobs(e.FilePath))
                 {
                     needsReload = true;
                     break;
