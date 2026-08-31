@@ -1726,17 +1726,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
                         return true;
 
-                    // In 'partial partial()', the second 'partial' is the constructor name. Do not skip
-                    // it unless the remaining tokens instead form a declaration such as 'partial partial M()'.
+                    // A second 'partial' may be another modifier, a constructor name, or a type name.
+                    // Treat the first one as a modifier only when the remaining tokens form a declaration.
                     if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword &&
-                        !isPartialType() &&
-                        !isPartialConstructor(peekIndex: 0))
+                        (isPartialType() ||
+                         isPartialConstructor(peekIndex: 0) ||
+                         isPartialConstructorName(peekIndex: 0) ||
+                         this.IsTypeFollowedByMemberName()))
                     {
-                        if (isPartialConstructorName(peekIndex: 0))
-                            return true;
-
-                        if (this.IsTypeFollowedByMemberName())
-                            return true;
+                        return true;
                     }
                 }
 
