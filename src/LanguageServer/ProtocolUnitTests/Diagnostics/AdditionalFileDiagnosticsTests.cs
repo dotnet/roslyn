@@ -255,9 +255,10 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
 
         async ValueTask<ImmutableArray<IDiagnosticSource>> IDiagnosticSourceProvider.CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
         {
-            if (context.TextDocument is not null and not Document)
+            var textDocument = await context.GetTextDocumentAsync(cancellationToken).ConfigureAwait(false);
+            if (textDocument is not null and not Document)
             {
-                return [new TestAdditionalFileDocumentSource(context.TextDocument)];
+                return [new TestAdditionalFileDocumentSource(textDocument)];
             }
 
             return [];
@@ -267,9 +268,10 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
         {
             public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
             {
+                var textDocument = await context.GetRequiredTextDocumentAsync(cancellationToken).ConfigureAwait(false);
                 var diagnostic = Diagnostic.Create(MockAdditionalFileDiagnosticAnalyzer.Descriptor,
-                    location: Location.Create(context.TextDocument!.FilePath!, Text.TextSpan.FromBounds(0, 0), new Text.LinePositionSpan(new Text.LinePosition(0, 0), new Text.LinePosition(0, 0))), "args");
-                return [DiagnosticData.Create(diagnostic, context.TextDocument.Project)];
+                    location: Location.Create(textDocument.FilePath!, Text.TextSpan.FromBounds(0, 0), new Text.LinePositionSpan(new Text.LinePosition(0, 0), new Text.LinePosition(0, 0))), "args");
+                return [DiagnosticData.Create(diagnostic, textDocument.Project)];
             }
 
             public LSP.TextDocumentIdentifier? GetDocumentIdentifier() => new()

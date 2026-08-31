@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
@@ -139,7 +140,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
             uint len = GetFinalPathNameByHandleW(hFile: handle, lpszFilePath: sb, cchFilePath: (uint)sb.Capacity, dwFlags: flags);
             if (len == 0) return null;
 
+#pragma warning disable RS0030 // GetFinalPathNameByHandleW guarantees full path
             return new FileInfo(TrimWin32ExtendedPrefix(sb.ToString()));
+#pragma warning restore RS0030
         }
 
         private static string TrimWin32ExtendedPrefix(string s)

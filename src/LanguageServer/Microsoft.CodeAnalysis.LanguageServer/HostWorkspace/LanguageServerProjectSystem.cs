@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
+using Microsoft.NET.ProjectData;
 using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
@@ -189,4 +190,66 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
             ActualBuildHostKind = actualBuildHostKind
         };
     }
+
+    protected override async Task<(ImmutableArray<ProjectFileInfo>, ProjectSystemProjectFactory)?> TryLoadProjectFromCacheAsync(string projectPath, CancellationToken cancellationToken)
+    {
+        if (!_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out var languageName))
+            return null;
+
+        var projectSnapshots = await CacheFileReader.ReadProjectDataSnapshotsAsync(
+            projectPath,
+            cacheInProject: false,
+            solutionPath: _hostProjectFactory.SolutionPath,
+            stringPool: null,
+            cancellationToken);
+
+        if (projectSnapshots.IsEmpty)
+            return null;
+
+        return (projectSnapshots.SelectAsArray(snapshot =>
+        {
+            return new ProjectFileInfo
+            {
+                IsEmpty = false,
+                Language = languageName,
+                FilePath = snapshot.ProjectPath,
+                OutputFilePath = snapshot.Properties["TargetPath"],
+                OutputRefFilePath = snapshot.Properties["TargetRefPath"],
+                IntermediateOutputFilePath = snapshot.Properties["IntermediateAssembly"],
+                GeneratedFilesOutputDirectory = snapshot.Properties["CompilerGeneratedFilesOutputPath"],
+                DefaultNamespace = snapshot.Properties["RootNamespace"],
+                TargetFramework = snapshot.Properties["TargetFramework"],
+                TargetFrameworkIdentifier = snapshot.Properties["TargetFrameworkIdentifier"],
+                TargetFrameworkVersion = snapshot.Properties["TargetFrameworkVersion"],
+                ProjectAssetsFilePath = snapshot.Properties["ProjectAssetsFile"],
+                CommandLineArgs = GetItems("CommandLineArgument").Select(static item => item.ItemSpec).ToArray(),
+                Documents = GetItems("Compile").Select(CreateDocumentFileInfo).ToArray(),
+                AdditionalDocuments = GetItems("AdditionalFile").Select(CreateDocumentFileInfo).ToArray(),
+                AnalyzerConfigDocuments = GetItems("AnalyzerConfigFile").Select(CreateDocumentFileInfo).ToArray(),
+                ProjectReferences = GetItems("ProjectReference").Select(item =>
+                    new ProjectFileReference(item.ItemSpec, GetAliases(item), GetReferenceOutputAssembly(item))).ToArray(),
+                MetadataReferences = GetItems("MetadataReference").Select(item =>
+                    new MetadataReferenceItem(item.ItemSpec, GetAliases(item))).ToArray(),
+                ProjectCapabilities = [.. snapshot.Capabilities],
+                ContentFilePaths = [],
+                PackageReferences = [],
+                FileGlobs = [],
+            };
+
+            ImmutableArray<ProjectDataItem> GetItems(string itemType)
+                => snapshot.ItemsByType.TryGetValue(itemType, out var items) ? items : [];
+
+            static DocumentFileInfo CreateDocumentFileInfo(ProjectDataItem item)
+            {
+                var link = item.Metadata["Link"];
+                return new DocumentFileInfo(item.ItemSpec, link ?? item.ItemSpec, isLinked: link is not null, isGenerated: false, folders: []);
+            }
+
+            static string[] GetAliases(ProjectDataItem item)
+                => item.Metadata["aliases"] is string aliases ? aliases.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) : [];
+        }), _hostProjectFactory);
+    }
+
+    internal static bool GetReferenceOutputAssembly(ProjectDataItem item)
+        => !string.Equals(item.Metadata["ReferenceOutputAssembly"], bool.FalseString, StringComparison.OrdinalIgnoreCase);
 }

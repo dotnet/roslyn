@@ -7,6 +7,7 @@ trigger:
     - release/dev16.*-vs-deps
     - release/dev17.*
     - release/dev18.*
+    - release/*.0.*
     - release/insiders
     - release/stable
     - demos/mvu-experimentation
@@ -57,6 +58,13 @@ parameters:
 - name: VisualStudioCherryPickSHA
   type: string
   default: '(default)'
+
+- name: LocalizableBranches
+  type: object
+  default:
+    - refs/heads/main
+    - refs/heads/release/insiders
+    - refs/heads/release/stable
 
 schedules:
   - cron: "0 8 23-29 * 0"
@@ -146,7 +154,7 @@ extends:
     - ES365AIMigrationTooling
     stages:
 
-    - ${{ if or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')) }}:
+    - ${{ if containsValue(parameters.LocalizableBranches, variables['Build.SourceBranch']) }}:
       - stage: localization
         displayName: Localization
 

@@ -42,6 +42,17 @@ public sealed class MarkupElementIntermediateNode : IntermediateNode
         visitor.VisitMarkupElement(this);
     }
 
+    protected override IntermediateNode CloneNode()
+    {
+        var clone = new MarkupElementIntermediateNode
+        {
+            TagName = TagName,
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
+
+        return clone;
+    }
+
     public override void FormatNode(IntermediateNodeFormatter formatter)
     {
         if (formatter == null)

@@ -1,0 +1,113 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Net.Http.Headers;
+using System.Reflection;
+using System.Text;
+using Microsoft.Azure.Pipelines.WebApi;
+using Microsoft.Extensions.Logging;
+using Microsoft.TeamFoundation.Build.WebApi;
+using Microsoft.TeamFoundation.Core.WebApi;
+using Microsoft.TeamFoundation.SourceControl.WebApi;
+using Microsoft.VisualStudio.Services.Common;
+using Microsoft.VisualStudio.Services.FileContainer.Client;
+using Microsoft.VisualStudio.Services.WebApi;
+using Build = Microsoft.TeamFoundation.Build.WebApi.Build;
+
+namespace Microsoft.RoslynTools.Utilities;
+
+internal sealed class AzDOConnection : IDisposable
+{
+    private bool _disposed = false;
+
+    public string BuildProjectName { get; }
+    private VssConnection Connection { get; }
+    public GitHttpClient GitClient { get; }
+    public BuildHttpClient BuildClient { get; }
+    public HttpClient HttpClient { get; }
+    public HttpClient NuGetClient { get; }
+    public FileContainerHttpClient ContainerClient { get; }
+    public ProjectHttpClient ProjectClient { get; }
+    public PipelinesHttpClient PipelinesHttpClient { get; }
+
+    public AzDOConnection(VssConnection vssConnection, string projectName, string token)
+    {
+        Connection = vssConnection;
+        BuildProjectName = projectName;
+
+        HttpClient = new HttpClient();
+        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Basic",
+            Convert.ToBase64String(Encoding.ASCII.GetBytes(string.Format("{0}:{1}", "", token))));
+
+        NuGetClient = new HttpClient();
+        GitClient = Connection.GetClient<GitHttpClient>();
+        BuildClient = Connection.GetClient<BuildHttpClient>();
+        ContainerClient = Connection.GetClient<FileContainerHttpClient>();
+        ProjectClient = Connection.GetClient<ProjectHttpClient>();
+        PipelinesHttpClient = Connection.GetClient<PipelinesHttpClient>();
+    }
+
+    public async Task<List<Build>?> TryGetBuildsAsync(string pipelineName, string? buildNumber = null, ILogger? logger = null, int? maxFetchingVsBuildNumber = null, BuildResult? resultsFilter = null, BuildQueryOrder? buildQueryOrder = null, string? branchName = null)
+    {
+        try
+        {
+            var buildDefinition = (await BuildClient.GetDefinitionsAsync(BuildProjectName, name: pipelineName)).Single();
+            var builds = await BuildClient.GetBuildsAsync(
+                buildDefinition.Project.Id,
+                definitions: [buildDefinition.Id],
+                buildNumber: buildNumber,
+                branchName: branchName,
+                resultFilter: resultsFilter,
+                queryOrder: buildQueryOrder,
+                top: maxFetchingVsBuildNumber);
+            return builds;
+        }
+        catch (VssUnauthorizedException ex)
+        {
+            logger?.LogError(ex, "Authorization exception while retrieving builds: {Message}", ex.Message);
+            return null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public TClient GetClient<TClient>() where TClient : VssHttpClientBase
+        => Connection.GetClient<TClient>();
+
+    public async Task TryRunPipelineAsync(string? pipelineName, Dictionary<string, RepositoryResourceParameters> repositoryParams, RunPipelineParameters runPipelineParams, ILogger logger)
+    {
+        try
+        {
+            var buildDefinition = (await BuildClient.GetDefinitionsAsync(BuildProjectName, name: pipelineName)).Single();
+
+            var repositoryField = runPipelineParams.Resources.GetType().GetField("m_repositories", BindingFlags.NonPublic | BindingFlags.Instance);
+            repositoryField?.SetValue(runPipelineParams.Resources, repositoryParams);
+            var run = await PipelinesHttpClient.RunPipelineAsync(runPipelineParams, BuildProjectName, buildDefinition.Id);
+            logger.LogInformation("Pipeline running at: {Href}", ((ReferenceLink)run.Links.Links["web"]).Href);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error running pipeline: {Message}", ex.Message);
+        }
+    }
+
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            _disposed = true;
+
+            Connection.Dispose();
+            HttpClient.Dispose();
+            NuGetClient.Dispose();
+            GitClient.Dispose();
+            BuildClient.Dispose();
+            ContainerClient.Dispose();
+            ProjectClient.Dispose();
+        }
+    }
+}
