@@ -1563,7 +1563,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return true;
                 }
 
-                // 'partial' does not affect the remaining heuristics, so look past it.
+                // In invalid operator declarations such as 'async partial implicit operator', 'partial'
+                // separates the contextual modifier from the operator tokens. Look past it so 'async'
+                // remains a modifier and the member parser can preserve 'partial' as skipped syntax.
                 if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
                     this.EatToken();
             }
