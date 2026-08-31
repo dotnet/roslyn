@@ -17,15 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 /// <summary>
 /// Tests parser recovery when <c>partial</c> appears in a non-canonical modifier position.
 /// <para>
-/// The parser accepts <c>partial</c> in any position of the modifier list when the declaration is
-/// otherwise unambiguous. The binder continues to report
-/// <c>ERR_PartialMisplaced</c> at non-canonical positions, so this parser recovery does not change
-/// which programs are accepted. Modifiers that are not legal on a declaration at all (e.g.,
-/// <c>partial enum</c>) continue to produce the same binding error.
-/// </para>
-/// <para>
-/// The tests exercise parser shape directly and use compilation diagnostics where needed to verify
-/// that improved recovery does not make misplaced modifiers legal.
+/// These tests record complete syntax trees and compilation diagnostics so changes to recovery do
+/// not accidentally change which programs compile.
 /// </para>
 /// </summary>
 public sealed partial class ModifierParserRecoveryTests : ParsingTests
