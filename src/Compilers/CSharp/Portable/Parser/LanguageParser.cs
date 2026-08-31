@@ -1667,20 +1667,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // instead begin the member itself, such as 'ref' in 'partial ref int M()'.
             while (GetModifierExcludingScoped(this.CurrentToken) != DeclarationModifiers.None)
             {
-                if (allowMembers)
-                {
-                    // A non-contextual modifier proves that the initial 'partial' belongs to a member.
-                    // The exception is an incomplete lambda such as 'partial static () => { }'.
-                    if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken &&
-                        this.PeekToken(1).Kind != SyntaxKind.OpenParenToken)
-                    {
-                        return true;
-                    }
-
-                    // For example, 'async' starts the return type in 'partial async M()'.
-                    if (isMemberDeclarationStartBeforeConsumingModifier())
-                        return true;
-                }
+                // For example, 'async' starts the return type in 'partial async M()'.
+                if (isMemberDeclarationStartBeforeConsumingModifier())
+                    return true;
 
                 this.EatToken();
             }
@@ -1694,14 +1683,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (this.CurrentToken.Kind == SyntaxKind.NamespaceKeyword)
                 return true;
 
-            // The remaining checks recognize member declarations, which namespace lookahead must not accept.
-            if (!allowMembers)
-                return false;
-
             return isMemberDeclarationStart();
 
             bool isMemberDeclarationStartBeforeConsumingModifier()
             {
+                if (!allowMembers)
+                    return false;
+
+                // A non-contextual modifier proves that the initial 'partial' belongs to a member.
+                // The exception is an incomplete lambda such as 'partial static () => { }'.
+                if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken &&
+                    this.PeekToken(1).Kind != SyntaxKind.OpenParenToken)
+                {
+                    return true;
+                }
+
+                // A different contextual modifier may instead start the member's return type,
+                // such as 'async' in 'partial async M()'.
                 if (this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword)
                     return isMemberDeclarationStart();
 
@@ -1718,6 +1716,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             bool isMemberDeclarationStart()
             {
+                // Namespace lookahead must not accept member-only forms such as 'partial int M()'.
+                if (!allowMembers)
+                    return false;
+
                 // 'event' cannot begin another member form, so parse 'partial event' as an event in every
                 // language version. Binding reports the feature diagnostic when necessary.
                 if (this.CurrentToken.Kind == SyntaxKind.EventKeyword)
