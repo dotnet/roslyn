@@ -1547,20 +1547,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             this.EatToken(); //move past contextual token
 
-            if (!parsingStatementNotDeclaration)
+            // If 'partial' starts a declaration, the preceding token is also a modifier,
+            // as in 'closed partial ref struct'.
+            // `allowMembers: true`: The preceding modifier may belong to either a type or a member, such as
+            // 'public partial class C' or 'public partial void M()'.
+            // `forTopLevelStatements: false`: The first condition has excluded statement parsing, so the
+            // top-level statement compatibility exception must not suppress declaration recognition.
+            if (!parsingStatementNotDeclaration &&
+                this.IsPartialModifierInDeclarationHead(
+                    allowMembers: true,
+                    forTopLevelStatements: false))
             {
-                // If 'partial' starts a declaration, the preceding token is also a modifier,
-                // as in 'closed partial ref struct'.
-                // `allowMembers: true`: The preceding modifier may belong to either a type or a member, such as
-                // 'public partial class C' or 'public partial void M()'.
-                // `forTopLevelStatements: false`: The surrounding check has already excluded statement parsing,
-                // so the top-level statement compatibility exception must not suppress declaration recognition.
-                if (this.IsPartialModifierInDeclarationHead(
-                        allowMembers: true,
-                        forTopLevelStatements: false))
-                {
-                    return true;
-                }
+                return true;
             }
 
             // ... 'TOKEN' [partial] <typedecl> ...
