@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -21,10 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 /// not accidentally change which programs compile.
 /// </para>
 /// </summary>
-public sealed partial class ModifierParserRecoveryTests : ParsingTests
+public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output) : ParsingTests(output)
 {
-    public ModifierParserRecoveryTests(ITestOutputHelper output) : base(output) { }
-
     #region partial modifier
 
     // ---------- partial on type declarations ----------
