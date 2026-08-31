@@ -1562,12 +1562,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     return true;
                 }
-
-                // In invalid operator declarations such as 'async partial implicit operator', 'partial'
-                // separates the contextual modifier from the operator tokens. Look past it so 'async'
-                // remains a modifier and the member parser can preserve 'partial' as skipped syntax.
-                if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
-                    this.EatToken();
             }
 
             // ... 'TOKEN' [partial] <typedecl> ...
@@ -1772,6 +1766,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // language version. Binding reports the feature diagnostic when necessary.
             if (this.CurrentToken.Kind == SyntaxKind.EventKeyword)
                 return true;
+
+            // Parse 'partial implicit operator' and 'partial explicit operator' as conversion operators
+            // so binding can report the misplaced modifier.
+            if (this.CurrentToken.Kind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword &&
+                this.PeekToken(1).Kind == SyntaxKind.OperatorKeyword)
+            {
+                return true;
+            }
 
             // Before partial constructors, 'partial C()' is a method returning 'partial'. Only prefer
             // the constructor interpretation when the feature is enabled.

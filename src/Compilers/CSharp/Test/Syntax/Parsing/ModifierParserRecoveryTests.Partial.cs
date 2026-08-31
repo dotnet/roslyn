@@ -346,6 +346,28 @@ public sealed partial class ModifierParserRecoveryTests : ParsingTests
             Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "M").WithArguments("<invalid-global-code>.M()").WithLocation(1, 29));
     }
 
+    // ---------- partial on conversion operators ----------
+
+    [Fact]
+    public void Partial_ConversionOperators()
+    {
+        const string source = """
+            partial class C
+            {
+                public static partial implicit operator int(C c) => 0;
+                public static partial explicit operator C(int i) => new();
+            }
+            """;
+
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,19): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            //     public static partial implicit operator int(C c) => 0;
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 19),
+            // (4,19): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            //     public static partial explicit operator C(int i) => new();
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 19));
+    }
+
     // ---------- partial on methods ----------
 
     [Fact]
