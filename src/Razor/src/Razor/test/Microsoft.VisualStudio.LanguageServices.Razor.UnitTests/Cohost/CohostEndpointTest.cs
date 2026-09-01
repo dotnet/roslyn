@@ -53,7 +53,7 @@ public class CohostEndpointTest(ITestOutputHelper testOutputHelper) : ToolingTes
             .Add(TestComposition.Editor)
             .AddAssemblies(typeof(CohostLinkedEditingRangeEndpoint).Assembly)
             .AddAssemblies(typeof(DefaultLSPRequestInvoker).Assembly)
-            .AddAssemblies(typeof(LanguageServerFeatureOptions).Assembly)
+            .AddAssemblies(typeof(IWorkspaceProvider).Assembly)
             .AddParts(typeof(TestILanguageServiceBroker2))
             .AddExcludedPartTypes(typeof(IWorkspaceProvider))
             .AddParts(typeof(TestWorkspaceProvider))
@@ -110,7 +110,7 @@ public class CohostEndpointTest(ITestOutputHelper testOutputHelper) : ToolingTes
 
         foreach (var endpoint in providers)
         {
-            if (endpoint is CohostSemanticTokensRegistration)
+            if (endpoint is CohostSemanticTokensRangeEndpoint)
             {
                 // We can't currently test this, as the GetRegistrations method calls requestContext.GetRequiredService
                 // and we can't create a request context ourselves

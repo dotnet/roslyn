@@ -1,9 +1,10 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests.Workspaces;
@@ -28,7 +29,7 @@ public sealed class AutoLoadProjectsTests(ITestOutputHelper testOutputHelper) : 
 
         await using var testLspServer = await CreateAutoLoadLanguageServerAsync(workspaceContent);
 
-        await AssertAutoLoadCompletedAsync(testLspServer, GetLoadingProjectsMessage(projectCount: 2), GetLoadedProjectsMessage(projectCount: 2));
+        await AssertProjectsLoadedAsync(testLspServer, projectCount: 2);
     }
 
     [Fact]
@@ -40,7 +41,7 @@ public sealed class AutoLoadProjectsTests(ITestOutputHelper testOutputHelper) : 
 
         await using var testLspServer = await CreateAutoLoadLanguageServerAsync(workspaceContent);
 
-        await AssertAutoLoadCompletedAsync(testLspServer, GetLoadingFileMessage(testLspServer, "App.sln"), GetLoadedFileMessage(testLspServer, "App.sln"));
+        await AssertAutoLoadCompletedAsync(testLspServer, GetLoadingFileMessage("App.sln"), GetLoadedFileMessage("App.sln"));
     }
 
     [Fact]
@@ -52,7 +53,7 @@ public sealed class AutoLoadProjectsTests(ITestOutputHelper testOutputHelper) : 
 
         await using var testLspServer = await CreateAutoLoadLanguageServerAsync(workspaceContent);
 
-        await AssertAutoLoadCompletedAsync(testLspServer, GetLoadingFileMessage(testLspServer, "App.slnx"), GetLoadedFileMessage(testLspServer, "App.slnx"));
+        await AssertAutoLoadCompletedAsync(testLspServer, GetLoadingFileMessage("App.slnx"), GetLoadedFileMessage("App.slnx"));
     }
 
     [Fact]
@@ -65,7 +66,7 @@ public sealed class AutoLoadProjectsTests(ITestOutputHelper testOutputHelper) : 
 
         await using var testLspServer = await CreateAutoLoadLanguageServerAsync(workspaceContent);
 
-        await AssertAutoLoadCompletedAsync(testLspServer, GetLoadingProjectsMessage(projectCount: 2), GetLoadedProjectsMessage(projectCount: 2));
+        await AssertProjectsLoadedAsync(testLspServer, projectCount: 2);
     }
 
     [Fact]
@@ -79,7 +80,7 @@ public sealed class AutoLoadProjectsTests(ITestOutputHelper testOutputHelper) : 
 
         await using var testLspServer = await CreateAutoLoadLanguageServerAsync(workspaceContent);
 
-        await AssertAutoLoadCompletedAsync(testLspServer, GetLoadingProjectsMessage(projectCount: 2), GetLoadedProjectsMessage(projectCount: 2));
+        await AssertProjectsLoadedAsync(testLspServer, projectCount: 2);
     }
 
     [Fact]
@@ -97,31 +98,110 @@ public sealed class AutoLoadProjectsTests(ITestOutputHelper testOutputHelper) : 
 
         await using var testLspServer = await CreateAutoLoadLanguageServerAsync(workspaceContent);
 
-        await AssertAutoLoadCompletedAsync(testLspServer, GetLoadingFileMessage(testLspServer, "Solutions/App.slnx"), GetLoadedFileMessage(testLspServer, "Solutions/App.slnx"));
+        await AssertAutoLoadCompletedAsync(testLspServer, GetLoadingFileMessage("App.slnx"), GetLoadedFileMessage("App.slnx"));
+    }
+
+    [Fact]
+    public async Task ReportsProgressForExplicitSolutionOpen()
+    {
+        var workspaceContent = LspWorkspaceContent.Empty
+            .WithFile("App.csproj", ProjectContent)
+            .WithFile("App.sln", CreateSolutionFile("App.csproj"))
+            .WithLoadPath("App.sln")
+            .WithRestore();
+
+        await using var testLspServer = await CreateLanguageServerAsync(
+            workspaceContent,
+            new LspServerLaunchOptions(),
+            CreateWorkDoneProgressClientCapabilities());
+
+        await AssertAutoLoadCompletedAsync(testLspServer, GetLoadingFileMessage("App.sln"), GetLoadedFileMessage("App.sln"));
+    }
+
+    [Fact]
+    public async Task ReportsProgressForExplicitProjectOpen()
+    {
+        var workspaceContent = LspWorkspaceContent.Empty
+            .WithFile("Project.csproj", ProjectContent)
+            .WithLoadPath("Project.csproj")
+            .WithRestore();
+
+        await using var testLspServer = await CreateLanguageServerAsync(
+            workspaceContent,
+            new LspServerLaunchOptions(),
+            CreateWorkDoneProgressClientCapabilities());
+
+        await AssertProjectsLoadedAsync(testLspServer, projectCount: 1, assertInitialProgressReport: true);
+    }
+
+    [Fact]
+    public async Task RestoresSolutionInsteadOfIndividualProjectsWhenSolutionLoaded()
+    {
+        // Note: intentionally not pre-restoring the workspace so that loading the solution triggers an automatic restore.
+        var workspaceContent = LspWorkspaceContent.Empty
+            .WithFile("App/App.csproj", ProjectContent)
+            .WithFile("Nested/Nested.csproj", ProjectContent)
+            .WithFile("App.sln", CreateSolutionFile("App/App.csproj", "Nested/Nested.csproj"));
+
+        await using var testLspServer = await CreateAutoLoadLanguageServerAsync(workspaceContent);
+
+        // The single solution file at the root is auto-loaded, which triggers a restore of the unrestored projects.
+        var restoreUnit = await testLspServer.WorkDoneProgress.WaitForWorkDoneProgressCreation(LanguageServerResources.Restore);
+        await restoreUnit.WaitForEndAsync();
+
+        // Verify that the restore ran against the solution as a whole (a single "Restoring App.sln" stage) rather than
+        // restoring each contained project individually (which would report a "Restoring <project>.csproj" stage per project).
+        var restoreStages = restoreUnit.GetProgressReports()
+            .OfType<WorkDoneProgressReport>()
+            .Select(report => report.Message)
+            .Distinct()
+            .ToArray();
+
+        var expectedStage = string.Format(LanguageServerResources.Restoring_0, "App.sln");
+        Assert.Equal(expectedStage, Assert.Single(restoreStages));
     }
 
     private Task<TestLspClient> CreateAutoLoadLanguageServerAsync(LspWorkspaceContent workspaceContent)
         => CreateLanguageServerAsync(
             workspaceContent,
             new LspServerLaunchOptions { AutoLoadProjects = true },
-            new VSInternalClientCapabilities
+            CreateWorkDoneProgressClientCapabilities());
+
+    private static VSInternalClientCapabilities CreateWorkDoneProgressClientCapabilities()
+        => new()
+        {
+            Window = new WindowClientCapabilities
             {
-                Window = new WindowClientCapabilities
-                {
-                    WorkDoneProgress = true,
-                }
-            });
+                WorkDoneProgress = true,
+            }
+        };
 
     private static LspWorkspaceContent CreateAutoLoadWorkspace()
         => LspWorkspaceContent.Empty.WithRestore();
 
-    private static async Task AssertAutoLoadCompletedAsync(TestLspClient testLspServer, string expectedStartMessage, string expectedEndMessage)
+    private static async Task AssertAutoLoadCompletedAsync(TestLspClient testLspServer, string expectedTitle, string expectedEndMessage)
     {
-        var unit = await testLspServer.WorkDoneProgress.WaitForWorkDoneProgressCreation(expectedStartMessage).WaitAsync(TimeSpan.FromMinutes(2));
+        var unit = await testLspServer.WorkDoneProgress.WaitForWorkDoneProgressCreation(expectedTitle).WaitAsync(TestHelpers.HangMitigatingTimeout);
         Assert.NotNull(unit.CreateParams.Token.Value);
 
-        var end = await unit.WaitForEndAsync().WaitAsync(TimeSpan.FromMinutes(2));
+        var end = await unit.WaitForEndAsync().WaitAsync(TestHelpers.HangMitigatingTimeout);
         Assert.Equal(expectedEndMessage, end.Message);
+    }
+
+    private static async Task AssertProjectsLoadedAsync(TestLspClient testLspServer, int projectCount, bool assertInitialProgressReport = false)
+    {
+        var unit = await testLspServer.WorkDoneProgress.WaitForWorkDoneProgressCreation(LanguageServerResources.Loading_projects).WaitAsync(TestHelpers.HangMitigatingTimeout);
+        Assert.NotNull(unit.CreateParams.Token.Value);
+
+        if (assertInitialProgressReport)
+        {
+            var initialProgress = await unit.WaitForProgressReportAsync().WaitAsync(TestHelpers.HangMitigatingTimeout);
+            Assert.Equal(GetLoadingProjectsMessage(projectCount), initialProgress.Message);
+            Assert.Equal(0, initialProgress.Percentage);
+        }
+
+        var end = await unit.WaitForEndAsync().WaitAsync(TestHelpers.HangMitigatingTimeout);
+        Assert.Equal(GetLoadedProjectsMessage(projectCount), end.Message);
     }
 
     private static string GetLoadingProjectsMessage(int projectCount)
@@ -130,14 +210,11 @@ public sealed class AutoLoadProjectsTests(ITestOutputHelper testOutputHelper) : 
     private static string GetLoadedProjectsMessage(int projectCount)
         => string.Format(LanguageServerResources.Loaded_0_projects, projectCount);
 
-    private static string GetLoadingFileMessage(TestLspClient testLspServer, string relativePath)
-        => string.Format(LanguageServerResources.Loading_0, GetFullPath(testLspServer, relativePath));
+    private static string GetLoadingFileMessage(string fileName)
+        => string.Format(LanguageServerResources.Loading_0, fileName);
 
-    private static string GetLoadedFileMessage(TestLspClient testLspServer, string relativePath)
-        => string.Format(LanguageServerResources.Loaded_0, GetFullPath(testLspServer, relativePath));
-
-    private static string GetFullPath(TestLspClient testLspServer, string relativePath)
-        => PathUtilities.CombinePathsUnchecked(testLspServer.WorkspaceRootPath, LspWorkspaceContent.NormalizePath(relativePath).Replace(PathUtilities.AltDirectorySeparatorChar, PathUtilities.DirectorySeparatorChar));
+    private static string GetLoadedFileMessage(string fileName)
+        => string.Format(LanguageServerResources.Loaded_0, fileName);
 
     private static string CreateSolutionXFile(params string[] projectPaths)
         => """

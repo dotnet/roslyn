@@ -690,6 +690,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     MergeUseSiteInfo(ref result, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this)));
                 }
                 deriveCompilerFeatureRequiredUseSiteInfo(ref result);
+                if (result.DiagnosticInfo is null &&
+                    PEUtilities.DeriveUnrecognizedMemorySafetyRulesAttributeDiagnostic(this) is { } diagnostic)
+                {
+                    result = result.AdjustDiagnosticInfo(diagnostic);
+                }
                 _lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
             }
 
@@ -766,19 +771,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 : !IsFixedSizeBuffer && Type.ContainsPointerOrFunctionPointer();
         }
 
-        internal sealed override CallerUnsafeMode CallerUnsafeMode
+        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
         {
-            get
+            if (!RequiresUnsafe)
             {
-                if (!RequiresUnsafe)
-                {
-                    return CallerUnsafeMode.None;
-                }
-
-                return ContainingModule.UseUpdatedMemorySafetyRules
-                    ? CallerUnsafeMode.Explicit
-                    : CallerUnsafeMode.Implicit;
+                return CallerUnsafeMode.None;
             }
+
+            return ContainingModule.UseUpdatedMemorySafetyRules
+                ? CallerUnsafeMode.Explicit
+                : CallerUnsafeMode.Implicit;
         }
     }
 }

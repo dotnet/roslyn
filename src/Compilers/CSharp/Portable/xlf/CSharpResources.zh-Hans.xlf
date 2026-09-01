@@ -222,6 +222,11 @@
         <target state="translated">不能在语言版本 {1} 中使用 “ref” 关键字传递参数 {0}。要将 “ref” 参数传递给 “in” 参数，请升级到语言版本 {2} 或更高版本。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAwaitInFixed">
+        <source>Cannot await in context of a 'fixed' statement</source>
+        <target state="translated">无法在 "fixed" 语句的上下文中使用 await</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
         <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</source>
         <target state="translated">运算符 "{0}" 不能应用于类型为 "{1}" 和 "{2}" 的非 UTF-8 字节表示形式的操作数</target>
@@ -241,6 +246,11 @@
         <source>No overload for method '{0}' takes {1} 'with(...)' element arguments</source>
         <target state="translated">“{0}”方法的重载未接受 {1} with(...) 元素参数</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadCompilationOptionValueAccepted">
+        <source>Invalid '{0}' value: '{1}'. Accepted values are: {2}</source>
+        <target state="new">Invalid '{0}' value: '{1}'. Accepted values are: {2}</target>
+        <note>{2} is a comma-separated list.</note>
       </trans-unit>
       <trans-unit id="ERR_BadCompoundAssignmentOpArgs">
         <source>Overloaded compound assignment operator '{0}' takes one parameter</source>
@@ -530,6 +540,11 @@
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberWrongInitOnly">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}'.</source>
         <target state="translated">“{0}”不实现接口成员“{1}”。“{2}”无法实现“{1}”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ClosedBadDerivedTypesProperty">
+        <source>'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.</source>
+        <target state="translated">"‌System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes"‌ 必须是一个实例属性，具备公共的 get 和 set 访问器，无参数，且类型为 "‌System.Type[]"‌。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClosedBaseTypeBaseFromOtherAssembly">
@@ -839,7 +854,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe">
         <source>Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</source>
-        <target state="new">Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</target>
+        <target state="translated">显式或扩展布局类型中的字段必须标记为 "unsafe" 或 "safe"。</target>
         <note>'unsafe' and 'safe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_ExplicitParamArrayOrCollection">
@@ -894,7 +909,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
         <source>An expression tree may not contain an extension property or indexer access</source>
-        <target state="new">An expression tree may not contain an extension property or indexer access</target>
+        <target state="translated">表达式树不能包含扩展属性或索引器访问权限</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -1025,6 +1040,11 @@
       <trans-unit id="ERR_FeatureNotAvailableInVersion14">
         <source>Feature '{0}' is not available in C# 14.0. Please use language version {1} or greater.</source>
         <target state="translated">功能 '{0}' 在 C# 14.0 中不可用。请使用语言版本 {1} 或更高版本。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion15">
+        <source>Feature '{0}' is not available in C# 15.0. Please use language version {1} or greater.</source>
+        <target state="translated">功能“{0}”在 C# 15.0 中不可用。请使用语言版本 {1} 或更高版本。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -1517,6 +1537,11 @@
         <target state="translated">“Experimental” 属性的 diagnosticId 参数必须是有效的标识符</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidPropertyUnsafeMods">
+        <source>Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</source>
+        <target state="translated">不能在属性或索引器“{0}”及其访问器上指定 "unsafe" 或 "safe" 修饰符。请删除其中一个。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MemberProviderInUnionDeclaration">
         <source>A 'union' declaration cannot use a union member provider interface.</source>
         <target state="translated">'union' 声明不能使用联合成员提供程序接口。</target>
@@ -1529,7 +1554,7 @@
       </trans-unit>
       <trans-unit id="ERR_MissingUnionValueProperty">
         <source>A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</source>
-        <target state="new">A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</target>
+        <target state="translated">联合成员提供程序类型必须具有类型为 "object?" 或 "object" 的实例 "Value" 属性。该属性必须具有公共 get 访问器。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
@@ -1539,12 +1564,12 @@
       </trans-unit>
       <trans-unit id="ERR_NoBreakId">
         <source>No enclosing loop or switch statement with the label '{0}' out of which to break</source>
-        <target state="new">No enclosing loop or switch statement with the label '{0}' out of which to break</target>
+        <target state="translated">没有带有标签“{0}”的外层循环或 switch 语句，无法中断</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoContinueId">
         <source>No enclosing loop with the label '{0}' out of which to continue</source>
-        <target state="new">No enclosing loop with the label '{0}' out of which to continue</target>
+        <target state="translated">没有带有标签“{0}”的外层循环，无法继续</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoImplicitConversionToObject">
@@ -2512,10 +2537,15 @@
         <target state="translated">目标运行时不支持可扩展或运行时环境默认调用约定。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SafeModifierUnsupportedTarget">
-        <source>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</source>
-        <target state="new">The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</target>
-        <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
+      <trans-unit id="ERR_SafeModifierCannotBeUsedWithUnsafe">
+        <source>The 'safe' and 'unsafe' modifiers cannot be used together.</source>
+        <target state="translated">"safe" 和 "unsafe" 修饰符不能一起使用。</target>
+        <note>'safe' and 'unsafe' should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="ERR_SamePropertyUnsafeAccessorMods">
+        <source>Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer '{0}'. Instead, put that modifier on the property itself.</source>
+        <target state="translated">不能在属性或索引器“{0}”的所有访问器上指定相同的 "unsafe" 或 "safe" 修饰符。而应在属性本身上指定该修饰符。</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
         <source>The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</source>
@@ -2859,7 +2889,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedFeatureInRuntimeAsync">
         <source>Method '{0}' uses a feature that is not supported by runtime async. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
-        <target state="new">Method '{0}' uses a feature that is not supported by runtime async. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</target>
+        <target state="translated">方法“{0}”使用了运行时异步不支持的功能。通过将方法与 "System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)" 一起归属，选择该方法退出运行时异步。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
@@ -2924,7 +2954,7 @@
       </trans-unit>
       <trans-unit id="GetClosedDerivedTypeInfoMustBeClosed">
         <source>'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</source>
-        <target state="new">'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</target>
+        <target state="translated">仅可在 "IsClosed" 为 "true" 时调用 "GetClosedDerivedTypeInfo()"。</target>
         <note>'GetClosedDerivedTypeInfo()', 'IsClosed', and 'true' are not localizable.</note>
       </trans-unit>
       <trans-unit id="HDN_DuplicateWithGlobalUsing">
@@ -2937,11 +2967,6 @@
         <target state="translated">Using 指令在以前显示为全局使用</target>
         <note />
       </trans-unit>
-      <trans-unit id="HDN_RedundantPattern">
-        <source>The pattern is redundant.</source>
-        <target state="translated">模式是冗余的。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="HDN_RedundantPatternStackGuard">
         <source>The pattern is too complex to analyze for redundancy.</source>
         <target state="translated">模式太复杂，无法分析冗余。</target>
@@ -2950,11 +2975,6 @@
       <trans-unit id="HDN_RedundantPatternStackGuard_Title">
         <source>The pattern is too complex to analyze for redundancy.</source>
         <target state="translated">模式太复杂，无法分析冗余。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_RedundantPattern_Title">
-        <source>The pattern is redundant.</source>
-        <target state="translated">模式是冗余的。</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
@@ -3024,7 +3044,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureExtensionIndexers">
         <source>extension indexers</source>
-        <target state="new">extension indexers</target>
+        <target state="translated">扩展索引器</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExtensions">
@@ -3094,7 +3114,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureLabeledBreakContinue">
         <source>labeled break and continue</source>
-        <target state="new">labeled break and continue</target>
+        <target state="translated">带标记的 break 和 continue</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
@@ -6025,12 +6045,7 @@
         <target state="translated">参数未读。是否忘记通过它来使用该名称初始化属性?</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnsafeMeaningless">
-        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
-        <target state="translated">根据当前内存安全规则，"unsafe" 修饰符在此处没有任何效果。</target>
-        <note>'unsafe' is a keyword, should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="WRN_UnsafeMeaningless_Title">
+      <trans-unit id="ERR_UnsafeMeaningless">
         <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
         <target state="translated">根据当前内存安全规则，"unsafe" 修饰符在此处没有任何效果。</target>
         <note>'unsafe' is a keyword, should not be localized.</note>
@@ -11434,11 +11449,6 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       <trans-unit id="ERR_BadAwaitInStaticVariableInitializer">
         <source>The 'await' operator cannot be used in a static script variable initializer.</source>
         <target state="translated">静态脚本变量初始值设定项中不可使用 "await" 运算符。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AwaitInUnsafeContext">
-        <source>Cannot await in an unsafe context</source>
-        <target state="translated">无法在不安全的上下文中等待</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLacksBody">

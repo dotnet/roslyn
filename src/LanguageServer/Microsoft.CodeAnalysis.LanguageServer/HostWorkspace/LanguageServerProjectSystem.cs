@@ -4,15 +4,16 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
+using Microsoft.NET.ProjectData;
 using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
@@ -68,11 +69,87 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
         _hostProjectFactory = lspServices.GetRequiredService<LanguageServerWorkspaceFactory>().HostProjectFactory;
         _clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
         var workspace = _hostProjectFactory.Workspace;
-        _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(new DiagnosticReporter(workspace));
+        _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(new DiagnosticReporter(workspace), workspace.Services.GetService<IFileBasedProgramService>());
+    }
+
+    /// <summary>
+    /// When a solution has been opened (either explicitly or via auto-load), restore the solution as a whole rather
+    /// than restoring each contained project individually. A single solution-level restore is significantly faster than
+    /// running <c>dotnet restore</c> once per project, which matters most for large, completely unrestored solutions.
+    /// </summary>
+    /// <remarks>
+    /// A solution-level restore only covers the projects contained in the solution. It is possible for a project to be
+    /// loaded into this project system without being part of the open solution (for example, a project opened on its own
+    /// via <see cref="OpenProjectsAsync"/>). Such projects are not covered by the solution restore, so they are still
+    /// restored individually alongside the solution. The solution's project set is re-read from disk here (rather than
+    /// cached) so that edits to the solution file are always reflected in the restore scope.
+    /// </remarks>
+    protected override async ValueTask<ImmutableArray<string>> GetPathsToRestoreAsync(ImmutableArray<string> projectsThatNeedRestore, CancellationToken cancellationToken)
+    {
+        var solutionPath = _hostProjectFactory.SolutionPath;
+
+        // If no solution is open, restore each project individually.
+        if (solutionPath is null)
+            return projectsThatNeedRestore;
+
+        // If there's only one project to restore, then there's no advantage to restoring the entire solution
+        if (projectsThatNeedRestore.Length == 1)
+            return projectsThatNeedRestore;
+
+        // Re-read the solution's current project set so a solution-level restore only collapses projects that are
+        // actually part of the solution as it exists on disk right now (the set can change if the solution file is
+        // edited between restores).
+        ImmutableHashSet<string> solutionProjectPaths;
+        try
+        {
+            var (_, projects) = await SolutionFileReader.ReadSolutionFileAsync(solutionPath, DiagnosticReportingMode.Throw, cancellationToken);
+            solutionProjectPaths = projects.Select(static p => p.ProjectPath).ToImmutableHashSet(PathUtilities.Comparer);
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            // If the solution can't be read (for example it was edited into an invalid state), fall back to restoring
+            // each project individually rather than failing the restore entirely.
+            _logger.LogWarning(e, "Unable to read solution '{SolutionPath}' to determine restore scope; restoring {ProjectCount} project(s) individually.", solutionPath, projectsThatNeedRestore.Length);
+            return projectsThatNeedRestore;
+        }
+
+        // Separate out any projects that need a restore but are not part of the open solution. Those are not covered by
+        // a solution-level restore, so they must still be restored on their own.
+        var projectsNotInSolution = projectsThatNeedRestore.WhereAsArray(
+            static (path, solutionProjectPaths) => !solutionProjectPaths.Contains(path), solutionProjectPaths);
+
+        // If none of the projects that need a restore are actually part of the solution, restore them individually
+        // rather than kicking off a solution restore that would not cover any of them.
+        if (projectsNotInSolution.Length == projectsThatNeedRestore.Length)
+            return projectsThatNeedRestore;
+
+        if (projectsNotInSolution.IsEmpty)
+            _logger.LogInformation("Restoring solution '{SolutionPath}' instead of {ProjectCount} individual project(s).", solutionPath, projectsThatNeedRestore.Length);
+        else
+            _logger.LogInformation("Restoring solution '{SolutionPath}' for its projects, plus {ProjectCount} project(s) not contained in the solution.", solutionPath, projectsNotInSolution.Length);
+
+        // Restore the solution as a whole (covering all of its projects), plus any projects outside the solution.
+        return [solutionPath, .. projectsNotInSolution];
+    }
+
+    private string NormalizeDriveLetter(string filePath)
+    {
+        // VS Code likes to have drive letters lowercase, so let's match what the rest of the system will expect;
+        // if we don't do this, when we shell out to things like dotnet restore, we'll pass lowercase drive letters,
+        // and this tends to result in various part of NuGet writing out cache files with different casing
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && filePath.Length > 3)
+        {
+            if (char.IsLower(filePath[0]) && filePath[1] == ':' && filePath[2] == Path.DirectorySeparatorChar)
+                return char.ToUpper(filePath[0]) + filePath.Substring(1);
+        }
+
+        return filePath;
     }
 
     public async Task OpenSolutionAsync(string solutionFilePath, IProgress<LSP.WorkDoneProgress>? progressReporter = null)
     {
+        solutionFilePath = NormalizeDriveLetter(solutionFilePath);
+
         _logger.LogInformation(string.Format(LanguageServerResources.Loading_0, solutionFilePath));
         _hostProjectFactory.SolutionPath = solutionFilePath;
 
@@ -102,7 +179,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
 
         foreach (var path in projectFilePaths)
         {
-            await BeginLoadingProjectAsync(path, projectGuid: null, progressTracker);
+            await BeginLoadingProjectAsync(NormalizeDriveLetter(path), projectGuid: null, progressTracker);
         }
 
         await WaitForProjectsToFinishLoadingAsync();
@@ -119,7 +196,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
         var preferredBuildHostKind = BuildHostProcessManager.GetKindForProject(projectPath);
         var (buildHost, actualBuildHostKind) = await buildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, projectPath, cancellationToken);
 
-        var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken);
+        await using var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken);
         return new RemoteProjectLoadResult
         {
             ProjectFileInfos = await loadedFile.GetProjectFileInfosAsync(cancellationToken),
@@ -134,4 +211,66 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
             ActualBuildHostKind = actualBuildHostKind
         };
     }
+
+    protected override async Task<(ImmutableArray<ProjectFileInfo>, ProjectSystemProjectFactory)?> TryLoadProjectFromCacheAsync(string projectPath, CancellationToken cancellationToken)
+    {
+        if (!_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out var languageName))
+            return null;
+
+        var projectSnapshots = await CacheFileReader.ReadProjectDataSnapshotsAsync(
+            projectPath,
+            cacheInProject: false,
+            solutionPath: _hostProjectFactory.SolutionPath,
+            stringPool: null,
+            cancellationToken);
+
+        if (projectSnapshots.IsEmpty)
+            return null;
+
+        return (projectSnapshots.SelectAsArray(snapshot =>
+        {
+            return new ProjectFileInfo
+            {
+                IsEmpty = false,
+                Language = languageName,
+                FilePath = snapshot.ProjectPath,
+                OutputFilePath = snapshot.Properties["TargetPath"],
+                OutputRefFilePath = snapshot.Properties["TargetRefPath"],
+                IntermediateOutputFilePath = snapshot.Properties["IntermediateAssembly"],
+                GeneratedFilesOutputDirectory = snapshot.Properties["CompilerGeneratedFilesOutputPath"],
+                DefaultNamespace = snapshot.Properties["RootNamespace"],
+                TargetFramework = snapshot.Properties["TargetFramework"],
+                TargetFrameworkIdentifier = snapshot.Properties["TargetFrameworkIdentifier"],
+                TargetFrameworkVersion = snapshot.Properties["TargetFrameworkVersion"],
+                ProjectAssetsFilePath = snapshot.Properties["ProjectAssetsFile"],
+                CommandLineArgs = GetItems("CommandLineArgument").Select(static item => item.ItemSpec).ToArray(),
+                Documents = GetItems("Compile").Select(CreateDocumentFileInfo).ToArray(),
+                AdditionalDocuments = GetItems("AdditionalFile").Select(CreateDocumentFileInfo).ToArray(),
+                AnalyzerConfigDocuments = GetItems("AnalyzerConfigFile").Select(CreateDocumentFileInfo).ToArray(),
+                ProjectReferences = GetItems("ProjectReference").Select(item =>
+                    new ProjectFileReference(item.ItemSpec, GetAliases(item), GetReferenceOutputAssembly(item))).ToArray(),
+                MetadataReferences = GetItems("MetadataReference").Select(item =>
+                    new MetadataReferenceItem(item.ItemSpec, GetAliases(item))).ToArray(),
+                ProjectCapabilities = [.. snapshot.Capabilities],
+                ContentFilePaths = [],
+                PackageReferences = [],
+                FileGlobs = [],
+            };
+
+            ImmutableArray<ProjectDataItem> GetItems(string itemType)
+                => snapshot.ItemsByType.TryGetValue(itemType, out var items) ? items : [];
+
+            static DocumentFileInfo CreateDocumentFileInfo(ProjectDataItem item)
+            {
+                var link = item.Metadata["Link"];
+                return new DocumentFileInfo(item.ItemSpec, link ?? item.ItemSpec, isLinked: link is not null, isGenerated: false, folders: []);
+            }
+
+            static string[] GetAliases(ProjectDataItem item)
+                => item.Metadata["aliases"] is string aliases ? aliases.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) : [];
+        }), _hostProjectFactory);
+    }
+
+    internal static bool GetReferenceOutputAssembly(ProjectDataItem item)
+        => !string.Equals(item.Metadata["ReferenceOutputAssembly"], bool.FalseString, StringComparison.OrdinalIgnoreCase);
 }

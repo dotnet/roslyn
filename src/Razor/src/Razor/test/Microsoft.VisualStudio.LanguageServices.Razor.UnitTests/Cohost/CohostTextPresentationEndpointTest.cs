@@ -50,7 +50,7 @@ public class CohostTextPresentationEndpointTest(ITestOutputHelper testOutputHelp
 
         var requestInvoker = new TestHtmlRequestInvoker([(VSInternalMethods.TextDocumentTextPresentationName, htmlResponse)]);
 
-        var endpoint = new CohostTextPresentationEndpoint(IncompatibleProjectService, FilePathService, requestInvoker);
+        var endpoint = new CohostTextPresentationEndpoint(IncompatibleProjectService, requestInvoker);
 
         var request = new VSInternalTextPresentationParams()
         {

@@ -23,6 +23,7 @@ using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 #if NET
 using Roslyn.Test.Utilities.CoreClr;
@@ -40,6 +41,27 @@ namespace Microsoft.CodeAnalysis.UnitTests
 #if NET
         LoadStream,
 #endif
+    }
+
+    internal sealed class AnalyzerTestKindValuesAttribute()
+        : CombinatorialValuesAttribute(TestKinds)
+    {
+        private static object[] TestKinds { get; } = MakeTestKinds();
+
+        private static object[] MakeTestKinds()
+        {
+            var builder = ArrayBuilder<object>.GetInstance();
+            builder.Add(AnalyzerTestKind.LoadDirect);
+
+            if (PlatformInformation.IsWindows)
+                builder.Add(AnalyzerTestKind.ShadowLoad);
+
+#if NET
+            builder.Add(AnalyzerTestKind.LoadStream);
+#endif
+
+            return builder.ToArrayAndFree();
+        }
     }
 
     /// <summary>
@@ -232,7 +254,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Theory]
         [CombinatorialData]
         [WorkItem(32226, "https://github.com/dotnet/roslyn/issues/32226")]
-        public void LoadWithDependency(AnalyzerTestKind kind)
+        public void LoadWithDependency([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
@@ -257,7 +279,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void AddDependencyLocationThrowsOnNull(AnalyzerTestKind kind)
+        public void AddDependencyLocationThrowsOnNull([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
@@ -268,7 +290,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void ThrowsForMissingFile(AnalyzerTestKind kind)
+        public void ThrowsForMissingFile([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
@@ -279,7 +301,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void BasicLoad(AnalyzerTestKind kind)
+        public void BasicLoad([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
@@ -292,7 +314,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_Multiple(AnalyzerTestKind kind)
+        public void AssemblyLoading_Multiple([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
@@ -331,7 +353,7 @@ Delta: Gamma: Beta: Test B
         /// </summary>
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_AssemblyLocationInvalid(AnalyzerTestKind kind)
+        public void AssemblyLoading_AssemblyLocationInvalid([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
@@ -345,7 +367,7 @@ Delta: Gamma: Beta: Test B
 
         [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/66621")]
         [CombinatorialData]
-        public void AssemblyLoading_AssemblyLocationNotAdded(AnalyzerTestKind kind)
+        public void AssemblyLoading_AssemblyLocationNotAdded([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
@@ -357,7 +379,7 @@ Delta: Gamma: Beta: Test B
 
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_DependencyLocationNotAdded(AnalyzerTestKind kind)
+        public void AssemblyLoading_DependencyLocationNotAdded([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, state: kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture, object state) =>
             {
@@ -534,7 +556,7 @@ Delta: Gamma: Beta: Test B
 
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_Simple(AnalyzerTestKind kind)
+        public void AssemblyLoading_Simple([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
@@ -562,7 +584,7 @@ Delta: Gamma: Beta: Test B
 
         [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/runtime/issues/81108")]
         [CombinatorialData]
-        public void AssemblyLoading_DependencyInDifferentDirectory(AnalyzerTestKind kind)
+        public void AssemblyLoading_DependencyInDifferentDirectory([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
@@ -599,7 +621,7 @@ Delta: Gamma: Beta: Test B
         /// </summary>
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_RazorCompiler1(AnalyzerTestKind kind)
+        public void AssemblyLoading_RazorCompiler1([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, state: kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture, object state) =>
             {
@@ -633,7 +655,7 @@ Delta: Gamma: Beta: Test B
         /// </summary>
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_RazorCompiler2(AnalyzerTestKind kind)
+        public void AssemblyLoading_RazorCompiler2([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, state: kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture, object state) =>
             {
@@ -672,7 +694,7 @@ Delta: Gamma: Beta: Test B
         /// </summary>
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_DependencyInDifferentDirectory2(AnalyzerTestKind kind)
+        public void AssemblyLoading_DependencyInDifferentDirectory2([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, state: kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture, object state) =>
             {
@@ -716,7 +738,7 @@ Delta: Gamma: Beta: Test B
         /// </summary>
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_DependencyInDifferentDirectory3(AnalyzerTestKind kind)
+        public void AssemblyLoading_DependencyInDifferentDirectory3([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
@@ -749,7 +771,7 @@ Delta: Gamma: Beta: Test B
         [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/66626")]
         [CombinatorialData]
         [WorkItem(32226, "https://github.com/dotnet/roslyn/issues/32226")]
-        public void AssemblyLoading_DependencyInDifferentDirectory4(AnalyzerTestKind kind)
+        public void AssemblyLoading_DependencyInDifferentDirectory4([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
@@ -779,7 +801,7 @@ Delta: Gamma: Beta: Test B
 
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_MultipleVersions(AnalyzerTestKind kind)
+        public void AssemblyLoading_MultipleVersions([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
@@ -836,7 +858,7 @@ Delta: Epsilon: Test E
 
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_MultipleVersions_NoExactMatch(AnalyzerTestKind kind)
+        public void AssemblyLoading_MultipleVersions_NoExactMatch([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, state: kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture, object state) =>
             {
@@ -895,7 +917,7 @@ Delta: Epsilon: Test E
 
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_MultipleVersions_MultipleEqualMatches(AnalyzerTestKind kind)
+        public void AssemblyLoading_MultipleVersions_MultipleEqualMatches([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, state: kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture, object state) =>
             {
@@ -927,7 +949,7 @@ Delta: Epsilon: Test E
 
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_MultipleVersions_MultipleVersionsOfSameAnalyzerItself(AnalyzerTestKind kind)
+        public void AssemblyLoading_MultipleVersions_MultipleVersionsOfSameAnalyzerItself([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, state: kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture, object state) =>
             {
@@ -964,7 +986,7 @@ Delta: Epsilon: Test E
 
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_MultipleVersions_ExactAndGreaterMatch(AnalyzerTestKind kind)
+        public void AssemblyLoading_MultipleVersions_ExactAndGreaterMatch([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, state: kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture, object state) =>
             {
@@ -1024,7 +1046,7 @@ Delta: Epsilon: Test E
 
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_MultipleVersions_WorseMatchInSameDirectory(AnalyzerTestKind kind)
+        public void AssemblyLoading_MultipleVersions_WorseMatchInSameDirectory([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, state: kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture, object state) =>
             {
@@ -1063,7 +1085,7 @@ Delta: Epsilon: Test E
 
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_MultipleVersions_MultipleLoaders(AnalyzerTestKind kind)
+        public void AssemblyLoading_MultipleVersions_MultipleLoaders([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, static (AnalyzerAssemblyLoader loader1, AssemblyLoadTestFixture testFixture) =>
             {
@@ -1126,7 +1148,7 @@ Delta: Epsilon: Test E
 
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_MultipleVersions_MissingVersion(AnalyzerTestKind kind)
+        public void AssemblyLoading_MultipleVersions_MissingVersion([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
@@ -1159,7 +1181,7 @@ Delta: Epsilon: Test E
         /// </summary>
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_MultipleVersions_AnalyzerDependency(AnalyzerTestKind kind, bool normalOrder)
+        public void AssemblyLoading_MultipleVersions_AnalyzerDependency([AnalyzerTestKindValues] AnalyzerTestKind kind, bool normalOrder)
         {
             Run(kind, state: normalOrder, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture, object state) =>
             {
@@ -1300,7 +1322,7 @@ Delta: Epsilon: Test E
 
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_UnifyToHighest(AnalyzerTestKind kind)
+        public void AssemblyLoading_UnifyToHighest([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
@@ -1335,7 +1357,7 @@ Delta.2: Epsilon: Test E
 
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_CanLoadDifferentVersionsDirectly(AnalyzerTestKind kind)
+        public void AssemblyLoading_CanLoadDifferentVersionsDirectly([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
@@ -1365,7 +1387,7 @@ Delta.2: Test D2
 
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_AnalyzerReferencesSystemCollectionsImmutable_01(AnalyzerTestKind kind)
+        public void AssemblyLoading_AnalyzerReferencesSystemCollectionsImmutable_01([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
@@ -1392,7 +1414,7 @@ Delta.2: Test D2
 
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_AnalyzerReferencesSystemCollectionsImmutable_02(AnalyzerTestKind kind)
+        public void AssemblyLoading_AnalyzerReferencesSystemCollectionsImmutable_02([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
@@ -1410,7 +1432,7 @@ Delta.2: Test D2
 
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_CompilerDependencyDuplicated(AnalyzerTestKind kind)
+        public void AssemblyLoading_CompilerDependencyDuplicated([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
@@ -1431,7 +1453,7 @@ Delta.2: Test D2
 
         [ConditionalTheory(typeof(WindowsOnly))]
         [CombinatorialData]
-        public void AssemblyLoading_NativeDependency(AnalyzerTestKind kind)
+        public void AssemblyLoading_NativeDependency([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
@@ -1448,7 +1470,7 @@ Delta.2: Test D2
 
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_DeleteAfterLoad1(AnalyzerTestKind kind)
+        public void AssemblyLoading_DeleteAfterLoad1([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, state: kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture, object state) =>
             {
@@ -1471,7 +1493,7 @@ Delta.2: Test D2
 
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_DeleteAfterLoad2(AnalyzerTestKind kind)
+        public void AssemblyLoading_DeleteAfterLoad2([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, state: kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture, object state) =>
             {
@@ -1502,7 +1524,7 @@ Delta.2: Test D2
 
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_DeleteAfterLoad3(AnalyzerTestKind kind)
+        public void AssemblyLoading_DeleteAfterLoad3([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, state: kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture, object state) =>
             {
@@ -1542,7 +1564,7 @@ Delta.2: Test D2
 
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_RepeatedLoads1(AnalyzerTestKind kind)
+        public void AssemblyLoading_RepeatedLoads1([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
@@ -1563,7 +1585,7 @@ Delta.2: Test D2
 
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_RepeatedLoads2(AnalyzerTestKind kind)
+        public void AssemblyLoading_RepeatedLoads2([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
@@ -1599,7 +1621,7 @@ Delta.2: Test D2
 
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_Resources(AnalyzerTestKind kind)
+        public void AssemblyLoading_Resources([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
@@ -1622,7 +1644,7 @@ Delta.2: Test D2
 
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_ResourcesInParent(AnalyzerTestKind kind)
+        public void AssemblyLoading_ResourcesInParent([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
@@ -1641,11 +1663,172 @@ Delta.2: Test D2
             });
         }
 
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void AssemblyLoading_CacheStressTest()
+        {
+            Debug.Assert(PlatformInformation.IsWindows);
+            const int count = 300;
+            const string source = """
+                using System.Text;
+
+                namespace Delta
+                {
+                    public class D
+                    {
+                        public void Write(StringBuilder sb, string s)
+                        {
+                            sb.AppendLine("Delta: " + s);
+                        }
+                    }
+                }
+                """;
+
+            using var temp = new TempRoot();
+            var tempDir = temp.CreateDirectory();
+            for (var i = 0; i < count; i++)
+            {
+                var assemblyName = $"Delta{i:D3}";
+                AssemblyLoadTestFixture.GenerateDll(assemblyName, tempDir.CreateDirectory(assemblyName), source, publicKeyOpt: default);
+            }
+
+            var shadowMirror = Temp.CreateDirectory();
+            Run(AnalyzerTestKind.ShadowLoad, state: (tempDir.Path, shadowMirror.Path), static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture, object state) =>
+            {
+                var shadowResolver = (ShadowCopyAnalyzerPathResolver)loader.AnalyzerPathResolvers.Single();
+                shadowResolver.DeleteLeftoverDirectoriesTask.Wait();
+
+                var stringBuilder = new StringBuilder();
+                var (analyzerDirectory, mirrorBaseDirectory) = ((string, string))state;
+                var analyzerPaths = Directory.EnumerateFiles(analyzerDirectory, "Delta*.dll", SearchOption.AllDirectories).Order().ToArray();
+                Assert.Equal(count, analyzerPaths.Length);
+                foreach (var analyzerPath in analyzerPaths)
+                {
+                    loader.AddDependencyLocation(analyzerPath);
+                    var assembly = loader.LoadFromPath(analyzerPath);
+                    var delta = assembly.CreateInstance("Delta.D")!;
+                    delta.GetType().GetMethod("Write")!.Invoke(delta, [stringBuilder, "Test D"]);
+                }
+
+                Assert.Equal(string.Join("", Enumerable.Repeat("Delta: Test D" + Environment.NewLine, analyzerPaths.Length)), stringBuilder.ToString());
+                VerifyDependencyAssemblies(loader, copyCount: count, analyzerPaths);
+
+                // All Delta files were added to cache
+                Assert.Equal(count, Directory.EnumerateFiles(path: shadowResolver.CacheDirectory).Count());
+                Assert.Equal(count, Directory.EnumerateFiles(shadowResolver.CacheDirectory, "Delta*.dll").Count());
+
+                // Mirror the BaseDirectory to new location before exercising cache pruning.
+                // We need to do this because the test harness itself wants to clean the original BaseDirectory, and,
+                // we can't guarantee the assemblies in the original directory will get unloaded during the test, which can disrupt pruning behavior.
+                foreach (var sourceDirectory in Directory.EnumerateDirectories(shadowResolver.BaseDirectory, "*", SearchOption.AllDirectories))
+                {
+                    var relativePath = PathUtilities.GetRelativePath(shadowResolver.BaseDirectory, sourceDirectory);
+                    Directory.CreateDirectory(Path.Combine(mirrorBaseDirectory, relativePath));
+                }
+
+                foreach (var sourceFile in Directory.EnumerateFiles(shadowResolver.BaseDirectory, "*", SearchOption.AllDirectories))
+                {
+                    var relativePath = PathUtilities.GetRelativePath(shadowResolver.BaseDirectory, sourceFile);
+                    File.Copy(sourceFile, Path.Combine(mirrorBaseDirectory, relativePath));
+                }
+            });
+
+            Run(
+                AnalyzerTestKind.LoadDirect,
+                state: (tempDir.Path, shadowMirror.Path),
+                static (AnalyzerAssemblyLoader _, AssemblyLoadTestFixture _, object state) =>
+                {
+                    Debug.Assert(PlatformInformation.IsWindows);
+                    var (analyzerDirectory, mirrorBaseDirectory) = ((string, string))state;
+                    var shadowResolver = new ShadowCopyAnalyzerPathResolver(mirrorBaseDirectory);
+                    using var pruningLoader = new AnalyzerAssemblyLoader([shadowResolver]);
+
+                    // Prune the cache
+                    shadowResolver.DeleteLeftoverDirectoriesTask.Wait();
+
+                    // Record creation timestamps of remaining cache items
+                    var cacheCreationTimes = Directory.EnumerateFiles(shadowResolver.CacheDirectory)
+                        .Select(static path => (path, File.GetCreationTimeUtc(path)))
+                        .ToArray();
+                    Assert.Equal(200, cacheCreationTimes.Length);
+
+                    var analyzerPaths = Directory.EnumerateFiles(analyzerDirectory, "Delta*.dll", SearchOption.AllDirectories).Order().ToArray();
+                    Assert.Equal(count, analyzerPaths.Length);
+                    foreach (var analyzerPath in analyzerPaths)
+                    {
+                        pruningLoader.AddDependencyLocation(analyzerPath);
+                        _ = pruningLoader.LoadFromPath(analyzerPath);
+                    }
+
+                    Assert.Equal(count, Directory.EnumerateFiles(shadowResolver.CacheDirectory).Count());
+                    // Remaining cache items should not have had creation timestamps changed
+                    foreach (var (cachePath, creationTime) in cacheCreationTimes)
+                    {
+                        Assert.Equal(creationTime, File.GetCreationTimeUtc(cachePath));
+                    }
+                });
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void AssemblyLoading_NoCacheStressTest()
+        {
+            // Verify that loader functions properly even when caching is disabled (EnableHardLinks = false).
+            Debug.Assert(PlatformInformation.IsWindows);
+            const int count = 300;
+            const string source = """
+                using System.Text;
+
+                namespace Delta
+                {
+                    public class D
+                    {
+                        public void Write(StringBuilder sb, string s)
+                        {
+                            sb.AppendLine("Delta: " + s);
+                        }
+                    }
+                }
+                """;
+
+            using var temp = new TempRoot();
+            var tempDir = temp.CreateDirectory();
+            for (var i = 0; i < count; i++)
+            {
+                var assemblyName = $"Delta{i:D3}";
+                AssemblyLoadTestFixture.GenerateDll(assemblyName, tempDir.CreateDirectory(assemblyName), source, publicKeyOpt: default);
+            }
+
+            var shadowMirror = Temp.CreateDirectory();
+            Run(AnalyzerTestKind.ShadowLoad, state: (tempDir.Path, shadowMirror.Path), static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture, object state) =>
+            {
+                var shadowResolver = (ShadowCopyAnalyzerPathResolver)loader.AnalyzerPathResolvers.Single();
+                shadowResolver.EnableHardLinks = false;
+                shadowResolver.DeleteLeftoverDirectoriesTask.Wait();
+
+                var stringBuilder = new StringBuilder();
+                var (analyzerDirectory, mirrorBaseDirectory) = ((string, string))state;
+                var analyzerPaths = Directory.EnumerateFiles(analyzerDirectory, "Delta*.dll", SearchOption.AllDirectories).Order().ToArray();
+                Assert.Equal(count, analyzerPaths.Length);
+                foreach (var analyzerPath in analyzerPaths)
+                {
+                    loader.AddDependencyLocation(analyzerPath);
+                    var assembly = loader.LoadFromPath(analyzerPath);
+                    var delta = assembly.CreateInstance("Delta.D")!;
+                    delta.GetType().GetMethod("Write")!.Invoke(delta, [stringBuilder, "Test D"]);
+                }
+
+                Assert.Equal(string.Join("", Enumerable.Repeat("Delta: Test D" + Environment.NewLine, analyzerPaths.Length)), stringBuilder.ToString());
+                VerifyDependencyAssemblies(loader, copyCount: count, analyzerPaths);
+
+                // Cache is empty since hard links couldn't be created.
+                Assert.Empty(Directory.EnumerateFiles(path: shadowResolver.CacheDirectory));
+            });
+        }
+
 #if NET
 
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoadingInNonDefaultContext_AnalyzerReferencesSystemCollectionsImmutable(AnalyzerTestKind kind)
+        public void AssemblyLoadingInNonDefaultContext_AnalyzerReferencesSystemCollectionsImmutable([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             // Load the compiler assembly and a modified version of S.C.I into the compiler load context. We
             // expect the analyzer will use the bogus S.C.I in the compiler context instead of the one 
@@ -1657,9 +1840,15 @@ Delta.2: Test D2
             {
                 AnalyzerTestKind.LoadStream => new AnalyzerAssemblyLoader([], [AnalyzerAssemblyLoader.StreamAnalyzerAssemblyResolver], alc),
                 AnalyzerTestKind.LoadDirect => new AnalyzerAssemblyLoader([], [AnalyzerAssemblyLoader.DiskAnalyzerAssemblyResolver], alc),
-                AnalyzerTestKind.ShadowLoad => new AnalyzerAssemblyLoader([new ShadowCopyAnalyzerPathResolver(Temp.CreateDirectory().Path)], [AnalyzerAssemblyLoader.DiskAnalyzerAssemblyResolver], alc),
+                AnalyzerTestKind.ShadowLoad => createShadowCopyLoader(),
                 _ => throw ExceptionUtilities.UnexpectedValue(kind)
             };
+
+            AnalyzerAssemblyLoader createShadowCopyLoader()
+            {
+                Debug.Assert(PlatformInformation.IsWindows);
+                return new AnalyzerAssemblyLoader([new ShadowCopyAnalyzerPathResolver(Temp.CreateDirectory().Path)], [AnalyzerAssemblyLoader.DiskAnalyzerAssemblyResolver], alc);
+            }
 
             Run(loader, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
@@ -1678,7 +1867,7 @@ Delta.2: Test D2
 
         [Theory]
         [CombinatorialData]
-        public void AssemblyLoading_DoesNotUseCollectibleALCs(AnalyzerTestKind kind)
+        public void AssemblyLoading_DoesNotUseCollectibleALCs([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             // This validation is critical to our VS / CLI performance. We ship several analyzers and source-generators in the
             // SDK (NetAnalyzers & Razor generators) that are added to most projects. We want to ship these as Ready2Run so that
@@ -1706,7 +1895,7 @@ Delta.2: Test D2
 
         [Theory]
         [CombinatorialData]
-        public void PathResolver_CanIntercept_ReturningNull(AnalyzerTestKind kind)
+        public void PathResolver_CanIntercept_ReturningNull([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             var resolver = new TestAnalyzerPathResolver(n => null);
             Run(kind, (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
@@ -1722,7 +1911,7 @@ Delta.2: Test D2
 
         [Theory]
         [CombinatorialData]
-        public void PathResolver_CanIntercept_ReturningAssembly_Or_Null(AnalyzerTestKind kind)
+        public void PathResolver_CanIntercept_ReturningAssembly_Or_Null([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             var resolver1 = new TestAnalyzerPathResolver(n => n == TestFixture.Alpha ? n : null);
             var resolver2 = new TestAnalyzerPathResolver(n => n);
@@ -1743,7 +1932,7 @@ Delta.2: Test D2
 
         [Theory]
         [CombinatorialData]
-        public void PathResolver_MultipleResolvers_CanIntercept_ReturningNull(AnalyzerTestKind kind)
+        public void PathResolver_MultipleResolvers_CanIntercept_ReturningNull([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             var resolver1 = new TestAnalyzerPathResolver(n => null);
             var resolver2 = new TestAnalyzerPathResolver(n => null);
@@ -1763,7 +1952,7 @@ Delta.2: Test D2
 
         [Theory]
         [CombinatorialData]
-        public void AssemblyResolver_CanIntercept_Identity(AnalyzerTestKind kind)
+        public void AssemblyResolver_CanIntercept_Identity([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
             var assembly = typeof(AnalyzerAssemblyLoaderTests).Assembly;
             var resolver = new TestAnalyzerAssemblyResolver((_, _, assemblyName, _) => assemblyName.Name == assembly.GetName().Name ? assembly : null);

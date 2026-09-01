@@ -3831,8 +3831,8 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   <data name="ERR_BadAwaitInStaticVariableInitializer" xml:space="preserve">
     <value>The 'await' operator cannot be used in a static script variable initializer.</value>
   </data>
-  <data name="ERR_AwaitInUnsafeContext" xml:space="preserve">
-    <value>Cannot await in an unsafe context</value>
+  <data name="ERR_BadAwaitInFixed" xml:space="preserve">
+    <value>Cannot await in context of a 'fixed' statement</value>
   </data>
   <data name="ERR_BadAsyncLacksBody" xml:space="preserve">
     <value>The 'async' modifier can only be used in methods that have a body.</value>
@@ -4335,6 +4335,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_BadCompilationOptionValue" xml:space="preserve">
     <value>Invalid '{0}' value: '{1}'.</value>
+  </data>
+  <data name="ERR_BadCompilationOptionValueAccepted" xml:space="preserve">
+    <value>Invalid '{0}' value: '{1}'. Accepted values are: {2}</value>
+    <comment>{2} is a comma-separated list.</comment>
   </data>
   <data name="ERR_BadAppConfigPath" xml:space="preserve">
     <value>AppConfigPath must be absolute.</value>
@@ -5680,8 +5684,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InvalidPropertyReadOnlyMods" xml:space="preserve">
     <value>Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</value>
   </data>
+  <data name="ERR_InvalidPropertyUnsafeMods" xml:space="preserve">
+    <value>Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</value>
+  </data>
   <data name="ERR_DuplicatePropertyReadOnlyMods" xml:space="preserve">
     <value>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</value>
+  </data>
+  <data name="ERR_SamePropertyUnsafeAccessorMods" xml:space="preserve">
+    <value>Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer '{0}'. Instead, put that modifier on the property itself.</value>
   </data>
   <data name="ERR_FieldLikeEventCantBeReadOnly" xml:space="preserve">
     <value>Field-like event '{0}' cannot be 'readonly'.</value>
@@ -6586,6 +6596,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_FeatureNotAvailableInVersion14" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 14.0. Please use language version {1} or greater.</value>
+  </data>
+  <data name="ERR_FeatureNotAvailableInVersion15" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 15.0. Please use language version {1} or greater.</value>
   </data>
   <data name="ERR_UnexpectedArgumentList" xml:space="preserve">
     <value>Unexpected argument list.</value>
@@ -8135,9 +8148,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</value>
     <comment>'RequiresUnsafeAttribute' and 'unsafe' should not be localized.</comment>
   </data>
-  <data name="ERR_SafeModifierUnsupportedTarget" xml:space="preserve">
-    <value>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</value>
-    <comment>'safe', 'extern', and 'unsafe' should not be localized.</comment>
+  <data name="ERR_SafeModifierCannotBeUsedWithUnsafe" xml:space="preserve">
+    <value>The 'safe' and 'unsafe' modifiers cannot be used together.</value>
+    <comment>'safe' and 'unsafe' should not be localized.</comment>
   </data>
   <data name="ERR_ExternMemberRequiresUnsafeOrSafe" xml:space="preserve">
     <value>'extern' member must be marked 'unsafe' or 'safe'.</value>
@@ -8218,12 +8231,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="NodeIsNotAwaitUsingStatement" xml:space="preserve">
     <value>'node' is not an 'await using' statement</value>
     <comment>node and await using are not localizable</comment>
-  </data>
-  <data name="HDN_RedundantPattern" xml:space="preserve">
-    <value>The pattern is redundant.</value>
-  </data>
-  <data name="HDN_RedundantPattern_Title" xml:space="preserve">
-    <value>The pattern is redundant.</value>
   </data>
   <data name="WRN_RedundantPattern" xml:space="preserve">
     <value>The pattern is redundant.</value>
@@ -8306,11 +8313,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>An unsafe context is required for constructor '{0}' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</value>
     <comment>'unsafe' and 'new()' should not be localized. {2} is the generic method or type.</comment>
   </data>
-  <data name="WRN_UnsafeMeaningless" xml:space="preserve">
-    <value>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</value>
-    <comment>'unsafe' is a keyword, should not be localized.</comment>
-  </data>
-  <data name="WRN_UnsafeMeaningless_Title" xml:space="preserve">
+  <data name="ERR_UnsafeMeaningless" xml:space="preserve">
     <value>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</value>
     <comment>'unsafe' is a keyword, should not be localized.</comment>
   </data>
@@ -8362,6 +8365,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ClosedExplicitlyAbstract" xml:space="preserve">
     <value>'{0}': a closed type cannot be marked abstract because it is always implicitly abstract.</value>
+  </data>
+  <data name="ERR_ClosedBadDerivedTypesProperty" xml:space="preserve">
+    <value>'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.</value>
   </data>
   <data name="ERR_MissingUnionCaseTypes" xml:space="preserve">
     <value>A union type must have at least one union creation member.</value>

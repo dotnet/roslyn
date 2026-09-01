@@ -222,6 +222,11 @@
         <target state="translated">{0} bağımsız değişkeni, {1} dil sürümündeki 'ref' anahtar sözcüğüyle geçirilemez. 'ref' bağımsız değişkenlerini 'in' parametrelerine geçirmek için{2} dil sürümüne yükseltin.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAwaitInFixed">
+        <source>Cannot await in context of a 'fixed' statement</source>
+        <target state="translated">'fixed' deyimi bağlamında await kullanılamaz</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
         <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</source>
         <target state="translated">'{0}' işleci UTF-8 bayt gösterimleri olmayan '{1}' ve '{2}' işlenenlerine uygulanamaz</target>
@@ -241,6 +246,11 @@
         <source>No overload for method '{0}' takes {1} 'with(...)' element arguments</source>
         <target state="translated">'{0}' yöntemi için {1} ‘with(...)’ öğe bağımsız değişkenleri için aşırı yükleme yok</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadCompilationOptionValueAccepted">
+        <source>Invalid '{0}' value: '{1}'. Accepted values are: {2}</source>
+        <target state="new">Invalid '{0}' value: '{1}'. Accepted values are: {2}</target>
+        <note>{2} is a comma-separated list.</note>
       </trans-unit>
       <trans-unit id="ERR_BadCompoundAssignmentOpArgs">
         <source>Overloaded compound assignment operator '{0}' takes one parameter</source>
@@ -530,6 +540,11 @@
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberWrongInitOnly">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}'.</source>
         <target state="translated">'{0}, '{1}' arabirim üyesini uygulamıyor. '{2}', '{1}' üyesini uygulayamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ClosedBadDerivedTypesProperty">
+        <source>'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.</source>
+        <target state="translated">‘System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes’, public get ve set erişim yöntemlerine sahip, parametre içermeyen ve ‘System.Type[]’ türünde bir örnek özelliği olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClosedBaseTypeBaseFromOtherAssembly">
@@ -839,7 +854,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe">
         <source>Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</source>
-        <target state="new">Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</target>
+        <target state="translated">Açık veya genişletilmiş düzene sahip türdeki alan 'unsafe' veya 'safe' olarak işaretlenmelidir.</target>
         <note>'unsafe' and 'safe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_ExplicitParamArrayOrCollection">
@@ -894,7 +909,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
         <source>An expression tree may not contain an extension property or indexer access</source>
-        <target state="new">An expression tree may not contain an extension property or indexer access</target>
+        <target state="translated">İfade ağacı, uzantı özelliği veya dizin oluşturucu erişimi içeremez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -1025,6 +1040,11 @@
       <trans-unit id="ERR_FeatureNotAvailableInVersion14">
         <source>Feature '{0}' is not available in C# 14.0. Please use language version {1} or greater.</source>
         <target state="translated">'{0}' özelliği C# 14.0 sürümünde kullanılamıyor. Lütfen {1} veya daha yüksek dil sürümünü kullanın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion15">
+        <source>Feature '{0}' is not available in C# 15.0. Please use language version {1} or greater.</source>
+        <target state="translated">'{0}' özelliği C# 15.0 sürümünde kullanılamıyor. Lütfen {1} veya daha yüksek bir dil sürümü kullanın.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -1517,6 +1537,11 @@
         <target state="translated">'Experimental' özniteliğinin diagnosticId bağımsız değişkeni geçerli bir tanımlayıcı olmalıdır</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidPropertyUnsafeMods">
+        <source>Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</source>
+        <target state="translated">Özellik veya dizin oluşturucu '{0}' ile erişimcisi üzerinde 'unsafe' veya 'safe' değiştiricileri belirtilemez. Bunlardan birini kaldırın.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MemberProviderInUnionDeclaration">
         <source>A 'union' declaration cannot use a union member provider interface.</source>
         <target state="translated">'union' bildirimi bir birleşim üyesi sağlayıcısı arabirimi kullanamaz.</target>
@@ -1529,7 +1554,7 @@
       </trans-unit>
       <trans-unit id="ERR_MissingUnionValueProperty">
         <source>A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</source>
-        <target state="new">A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</target>
+        <target state="translated">Birleşim üyesi sağlayıcısının türü, 'object?' veya 'object' türünde herkese açık bir örnek 'Value' özelliği içermelidir. Özelliğin bir genel get erişimcisi olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
@@ -1539,12 +1564,12 @@
       </trans-unit>
       <trans-unit id="ERR_NoBreakId">
         <source>No enclosing loop or switch statement with the label '{0}' out of which to break</source>
-        <target state="new">No enclosing loop or switch statement with the label '{0}' out of which to break</target>
+        <target state="translated">İçinden kesilecek '{0}' etiketli bir kapsayan döngü veya anahtar deyimi yok</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoContinueId">
         <source>No enclosing loop with the label '{0}' out of which to continue</source>
-        <target state="new">No enclosing loop with the label '{0}' out of which to continue</target>
+        <target state="translated">İçinden devam edilecek '{0}' etiketli bir kapsayan döngü yok</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoImplicitConversionToObject">
@@ -2512,10 +2537,15 @@
         <target state="translated">Hedef çalışma zamanı, genişletilebilir veya çalışma zamanı ortamı varsayılanı çağırma kurallarını desteklemiyor.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SafeModifierUnsupportedTarget">
-        <source>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</source>
-        <target state="new">The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</target>
-        <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
+      <trans-unit id="ERR_SafeModifierCannotBeUsedWithUnsafe">
+        <source>The 'safe' and 'unsafe' modifiers cannot be used together.</source>
+        <target state="translated">'safe' ve 'unsafe' değiştiricileri birlikte kullanılamaz.</target>
+        <note>'safe' and 'unsafe' should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="ERR_SamePropertyUnsafeAccessorMods">
+        <source>Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer '{0}'. Instead, put that modifier on the property itself.</source>
+        <target state="translated">Aynı özellik veya dizin oluşturucu '{0}' üzerindeki tüm erişimcilerde aynı 'unsafe' veya 'safe' değiştiricisini belirtemezsiniz. Bunun yerine, bu değiştiriciyi özelliğin kendisine koyun.</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
         <source>The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</source>
@@ -2859,7 +2889,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedFeatureInRuntimeAsync">
         <source>Method '{0}' uses a feature that is not supported by runtime async. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
-        <target state="new">Method '{0}' uses a feature that is not supported by runtime async. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</target>
+        <target state="translated">'{0}' yöntemi çalışma zamanı zaman uyumsuzluğu tarafından desteklenmeyen bir özellik kullanıyor. Yöntemi 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)’ ile işaretleyerek çalışma zamanı zaman uyumsuzluğundan çıkarın.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
@@ -2924,7 +2954,7 @@
       </trans-unit>
       <trans-unit id="GetClosedDerivedTypeInfoMustBeClosed">
         <source>'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</source>
-        <target state="new">'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</target>
+        <target state="translated">'GetClosedDerivedTypeInfo()' yalnızca 'IsClosed' 'true' olduğunda çağrılabilir.</target>
         <note>'GetClosedDerivedTypeInfo()', 'IsClosed', and 'true' are not localizable.</note>
       </trans-unit>
       <trans-unit id="HDN_DuplicateWithGlobalUsing">
@@ -2937,11 +2967,6 @@
         <target state="translated">Daha önce genel kullanım olarak görünen kullanım yönergesi</target>
         <note />
       </trans-unit>
-      <trans-unit id="HDN_RedundantPattern">
-        <source>The pattern is redundant.</source>
-        <target state="translated">Desen yedekli.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="HDN_RedundantPatternStackGuard">
         <source>The pattern is too complex to analyze for redundancy.</source>
         <target state="translated">Desen, yedeklilik analizi için çok karmaşık.</target>
@@ -2950,11 +2975,6 @@
       <trans-unit id="HDN_RedundantPatternStackGuard_Title">
         <source>The pattern is too complex to analyze for redundancy.</source>
         <target state="translated">Desen, yedeklilik analizi için çok karmaşık.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_RedundantPattern_Title">
-        <source>The pattern is redundant.</source>
-        <target state="translated">Desen yedekli.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
@@ -3024,7 +3044,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureExtensionIndexers">
         <source>extension indexers</source>
-        <target state="new">extension indexers</target>
+        <target state="translated">uzantı dizin oluşturucuları</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExtensions">
@@ -3094,7 +3114,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureLabeledBreakContinue">
         <source>labeled break and continue</source>
-        <target state="new">labeled break and continue</target>
+        <target state="translated">etiketli kesme ve devam etme</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
@@ -6025,12 +6045,7 @@
         <target state="translated">Parametre okunmadı. Bu ada sahip özelliği başlatmak için bu parametreyi kullanmayı unutmuş olabilirsiniz.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnsafeMeaningless">
-        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
-        <target state="translated">'unsafe' değiştiricisi, mevcut bellek güvenliği kuralları altında burada herhangi bir etkiye sahip değildir.</target>
-        <note>'unsafe' is a keyword, should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="WRN_UnsafeMeaningless_Title">
+      <trans-unit id="ERR_UnsafeMeaningless">
         <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
         <target state="translated">'unsafe' değiştiricisi, mevcut bellek güvenliği kuralları altında burada herhangi bir etkiye sahip değildir.</target>
         <note>'unsafe' is a keyword, should not be localized.</note>
@@ -11434,11 +11449,6 @@ Derleyiciye yöntemleri ayrıştırma yolu verin. Örneğin, bunlara farklı adl
       <trans-unit id="ERR_BadAwaitInStaticVariableInitializer">
         <source>The 'await' operator cannot be used in a static script variable initializer.</source>
         <target state="translated">Await' işleci bir statik betik değişken başlatıcısında kullanılamaz.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AwaitInUnsafeContext">
-        <source>Cannot await in an unsafe context</source>
-        <target state="translated">Güvenli olmayan bir bağlamda await kullanılamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLacksBody">

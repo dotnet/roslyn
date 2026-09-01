@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             allowedModifiers |= DeclarationModifiers.Extern | DeclarationModifiers.Safe;
 
             bool hasExplicitAccessMod;
-            var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface,
+            var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isForInterfaceMember: isInterface,
                                                                         modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors, out hasExplicitAccessMod);
 
             if ((mods & DeclarationModifiers.Partial) != 0)
@@ -827,20 +827,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static BaseParameterListSyntax? GetParameterListSyntax(CSharpSyntaxNode syntax)
             => (syntax as IndexerDeclarationSyntax)?.ParameterList;
 
-        internal override CallerUnsafeMode CallerUnsafeMode
+        internal override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
         {
-            get
+            if (ContainingModule.UseUpdatedMemorySafetyRules)
             {
-                if (ContainingModule.UseUpdatedMemorySafetyRules)
-                {
-                    return HasUnsafeModifier
-                        ? CallerUnsafeMode.Explicit
-                        : CallerUnsafeMode.None;
-                }
-
-                return this.HasParameterContainingPointerType() || Type.ContainsPointerOrFunctionPointer()
-                    ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
+                return HasUnsafeModifier
+                    ? CallerUnsafeMode.Explicit
+                    : CallerUnsafeMode.None;
             }
+
+            return this.HasParameterContainingPointerType() || Type.ContainsPointerOrFunctionPointer()
+                ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
         }
 
         public sealed override bool IsExtern => PartialImplementationPart is { } implementation ? implementation.IsExtern : HasExternModifier;

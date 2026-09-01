@@ -2,16 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Features.Workspaces;
+using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
-using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.ProjectSystem;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -28,9 +27,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 {
     private readonly ILspServices _lspServices;
     private readonly ILogger<FileBasedProgramsProjectSystem> _logger;
-    private readonly VirtualProjectXmlProvider _projectXmlProvider;
     private readonly CanonicalMiscellaneousFilesProjectProvider _canonicalProjectProvider;
-    private readonly DotnetCliHelper _dotnetCliHelper;
 
     /// <summary>
     /// Virtual (in-memory) projects don't exist on disk, so MSBuild worker nodes
@@ -40,7 +37,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
     public FileBasedProgramsProjectSystem(
         ILspServices lspServices,
-        VirtualProjectXmlProvider projectXmlProvider,
         IGlobalOptionService globalOptionService,
         ILoggerFactory loggerFactory,
         IAsynchronousOperationListenerProvider listenerProvider,
@@ -58,17 +54,15 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     {
         _lspServices = lspServices;
         _logger = loggerFactory.CreateLogger<FileBasedProgramsProjectSystem>();
-        _projectXmlProvider = projectXmlProvider;
         _canonicalProjectProvider = new CanonicalMiscellaneousFilesProjectProvider(lspServices.GetRequiredService<IHostWorkspaceProvider>(), loggerFactory);
-        _dotnetCliHelper = dotnetCliHelper;
 
         globalOptionService.AddOptionChangedHandler(this, OnGlobalOptionChanged);
     }
 
-    public override void Dispose()
+    public override ValueTask DisposeAsync()
     {
         GlobalOptionService.RemoveOptionChangedHandler(this, OnGlobalOptionChanged);
-        base.Dispose();
+        return base.DisposeAsync();
     }
 
     private void OnGlobalOptionChanged(object sender, object target, OptionChangedEventArgs args)
@@ -227,19 +221,47 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         }
     }
 
-    public async ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo documentInfo)
+    public async ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo? documentInfo)
     {
+        if (documentInfo is null && documentUri.ParsedUri?.IsFile != true)
+            return null;
+
         var languageInfoProvider = _lspServices.GetRequiredService<ILanguageInfoProvider>();
-        if (!languageInfoProvider.TryGetLanguageInformation(documentUri, documentInfo.LanguageId, out var languageInformation))
+        if (!languageInfoProvider.TryGetLanguageInformation(documentUri, documentInfo?.LanguageId, out var languageInformation))
         {
+            // Requests are invalid when the client specifies an unsupported language, or when it omits the language
+            // and we cannot infer one from the URI path.
             Contract.Fail($"Could not find language information for '{documentUri}'");
         }
 
         var documentFilePath = GetDocumentFilePath(documentUri);
-        var sourceTextLoader = new SourceTextLoader(documentInfo.SourceText, documentFilePath);
+        if (documentInfo is null)
+        {
+            Contract.ThrowIfFalse(documentUri.ParsedUri?.IsFile == true);
+
+            var projectFactory = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory;
+            var projectInfo = CreateMiscellaneousProjectInfo(projectFactory.CreateFileTextLoader(documentFilePath), SourceHashAlgorithms.Default);
+            var solution = projectFactory.Workspace.CurrentSolution.AddProject(projectInfo);
+            return solution.GetTextDocuments(documentUri).Single();
+        }
+
+        var sourceTextLoader = new SourceTextLoader(documentInfo.Value.SourceText, documentFilePath);
         var doDesignTimeBuild = !ClassifyAsMiscellaneousFileWithNoReferences(documentFilePath, languageInformation);
-        return await this.GetOrLoadEntryPointDocumentAsync(
-            documentFilePath, sourceTextLoader, languageInformation, documentInfo.SourceText.ChecksumAlgorithm, doDesignTimeBuild);
+        var documents = await this.GetOrLoadEntryPointDocumentAsync(
+            documentFilePath, sourceTextLoader, languageInformation, documentInfo.Value.SourceText.ChecksumAlgorithm, doDesignTimeBuild);
+
+        ProjectInfo CreateMiscellaneousProjectInfo(TextLoader textLoader, SourceHashAlgorithm checksumAlgorithm)
+        {
+            var enableFileBasedPrograms = GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms);
+            var projectFactory = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory;
+            return MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
+                projectFactory.Workspace, documentFilePath, textLoader, languageInformation, checksumAlgorithm, projectFactory.Workspace.Services.SolutionServices, [], enableFileBasedPrograms);
+        }
+
+        // It's possible that when we searched for the document when dispatching this LSP request, there were no documents, but by the time we got here,
+        // the document was a file-based app that we loaded in the background and potentially could have more tha one target. In this case, since we're just dispatching
+        // a request and it's expected to be a misc files experience, any project can be picked here.
+        return documents.FirstOrDefault();
     }
 
     /// <summary>
@@ -259,10 +281,10 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         await GetOrLoadEntryPointDocumentAsync(documentFilePath, sourceTextLoader, languageInformation, SourceHashAlgorithms.Default, doDesignTimeBuild: true);
     }
 
-    public async ValueTask<TextDocument?> GetOrLoadEntryPointDocumentAsync(string documentFilePath, TextLoader textLoader, LanguageInformation languageInformation, SourceHashAlgorithm checksumAlgorithm, bool doDesignTimeBuild)
+    public async ValueTask<ImmutableArray<TextDocument>> GetOrLoadEntryPointDocumentAsync(string documentFilePath, TextLoader textLoader, LanguageInformation languageInformation, SourceHashAlgorithm checksumAlgorithm, bool doDesignTimeBuild)
     {
-        var project = await base.GetOrLoadProjectAsync(documentFilePath, _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory, CreatePrimordialProjectInfo, doDesignTimeBuild);
-        return project is null ? null : LookupExistingDocument(project);
+        var projects = await base.GetOrLoadProjectAsync(documentFilePath, _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory, CreatePrimordialProjectInfo, doDesignTimeBuild);
+        return projects.Select(p => LookupExistingDocument(p)).WhereNotNull().ToImmutableArray();
 
         TextDocument? LookupExistingDocument(Project project)
         {
@@ -328,7 +350,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             // For telemetry purposes, we will consider this file a file-based app, if we see that build artifacts exist for it in the default location.
             // This implies that the user used a command like `dotnet run app.cs` with it recently.
             var isFileBasedProgram = PathUtilities.IsAbsolute(documentPath)
-                && Directory.Exists(VirtualProjectXmlProvider.GetArtifactsPath(documentPath));
+                && _workspaceFactory.HostWorkspace.Services.GetService<IFileBasedProgramService>() is { } fileBasedProgramService
+                && Directory.Exists(fileBasedProgramService.GetArtifactsPath(documentPath));
 
             return new RemoteProjectLoadResult
             {
@@ -349,22 +372,14 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         // Fall through to ordinary file-based app handling.
         Contract.ThrowIfFalse(documentKind is LooseDocumentKind.FileBasedApp);
 
-        var content = await _projectXmlProvider.GetVirtualProjectContentAsync(documentPath, _dotnetCliHelper, _logger, cancellationToken);
-        if (content is not var (virtualProjectContent, virtualProjectPath, diagnostics))
-        {
-            _logger.LogError("Failed to obtain virtual project for '{documentPath}' using dotnet run-api.", documentPath);
-            return null;
-        }
-
-        foreach (var diagnostic in diagnostics)
-        {
-            _logger.LogError($"{diagnostic.Location.Path}{diagnostic.Location.Span.Start}: {diagnostic.Message}");
-        }
-
-        virtualProjectPath ??= VirtualProjectXmlProvider.GetFallbackVirtualProjectPath(documentPath);
         const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
-        var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, virtualProjectPath, dotnetPath: null, cancellationToken);
-        var loadedFile = await buildHost.LoadProjectAsync(virtualProjectPath, virtualProjectContent, languageName: LanguageNames.CSharp, cancellationToken);
+        var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, documentPath, dotnetPath: null, cancellationToken);
+        var loadedFile = await FileBasedProgramsProjectLoader.LoadFileBasedAppProjectAsync(
+            buildHost,
+            _workspaceFactory.HostWorkspace.Services.GetRequiredService<IFileBasedProgramService>(),
+            documentPath,
+            (error) => _logger.LogError(error),
+            cancellationToken);
 
         return new RemoteProjectLoadResult
         {

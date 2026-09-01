@@ -3,7 +3,19 @@
 # More information: https://github.com/blog/2392-introducing-code-owners
 
 *.yml @dotnet/roslyn-infrastructure
+AGENTS.md @dotnet/roslyn-infrastructure
 .github/ @dotnet/roslyn-infrastructure
+.github/copilot-instructions.md @dotnet/roslyn-infrastructure
+.github/instructions/ @dotnet/roslyn-infrastructure
+.github/memory/ @dotnet/roslyn-infrastructure
+.github/skills/ @dotnet/roslyn-infrastructure
+
+.github/instructions/Compiler.instructions.md @dotnet/roslyn-compiler
+.github/instructions/IDE.instructions.md @dotnet/roslyn-ide
+.github/instructions/Razor.instructions.md @dotnet/razor-tooling
+.github/memory/testing/compiler.md @dotnet/roslyn-compiler
+.github/memory/testing/ide.md @dotnet/roslyn-ide
+.github/memory/testing/razor.md @dotnet/razor-tooling
 
 docs/compilers @dotnet/roslyn-compiler
 docs/ide @dotnet/roslyn-ide
@@ -36,6 +48,7 @@ src/Tools/BuildActionTelemetryTable @dotnet/roslyn-infrastructure
 src/Tools/BuildBoss @dotnet/roslyn-infrastructure
 src/Tools/BuildValidator @dotnet/roslyn-infrastructure
 src/Tools/dotnet-format @dotnet/roslyn-infrastructure
+src/Tools/dotnet-roslyn-tools/ @dotnet/roslyn-infrastructure
 src/Tools/ExternalAccess @dotnet/roslyn-ide
 src/Tools/IdeBenchmarks @dotnet/roslyn-ide
 src/Tools/IdeCoreBenchmarks @dotnet/roslyn-ide

@@ -170,6 +170,7 @@
     <Project Path="src/NuGet/Microsoft.CodeAnalysis.EditorFeatures.Package/Microsoft.CodeAnalysis.EditorFeatures.Package.csproj" />
   </Folder>
   <Folder Name="/EditorFeatures/ExternalAccess/">
+    <Project Path="src/EditorFeatures/ExternalAccess/Core/Microsoft.CodeAnalysis.EditorFeatures.ExternalAccess.csproj" />
     <Project Path="src/EditorFeatures/ExternalAccess/Debugger/Microsoft.CodeAnalysis.ExternalAccess.Debugger.csproj" />
   </Folder>
   <Folder Name="/ExpressionEvaluator/" />
@@ -239,6 +240,8 @@
   <Folder Name="/Features/ExternalAccess/">
     <Project Path="src/Features/ExternalAccess/AspNetCore/Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.csproj" />
     <Project Path="src/Features/ExternalAccess/Copilot/Microsoft.CodeAnalysis.ExternalAccess.Copilot.csproj" />
+    <Project Path="src/Features/ExternalAccess/Core/Microsoft.CodeAnalysis.Features.ExternalAccess.csproj" />
+    <Project Path="src/Features/ExternalAccess/Extensions/Microsoft.CodeAnalysis.ExternalAccess.Extensions.csproj" />
     <Project Path="src/Features/ExternalAccess/HotReload/Microsoft.CodeAnalysis.ExternalAccess.HotReload.csproj" />
     <Project Path="src/Features/ExternalAccess/HotReloadTest/Microsoft.CodeAnalysis.ExternalAccess.HotReload.UnitTests.csproj" />
     <Project Path="src/Features/ExternalAccess/OmniSharp.CSharp/Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp.csproj" />
@@ -258,6 +261,7 @@
     <Project Path="src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests/Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests.csproj" />
     <Project Path="src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/Microsoft.CodeAnalysis.LanguageServer.UnitTests.csproj" />
     <Project Path="src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/Microsoft.CodeAnalysis.LanguageServer.csproj" />
+    <Project Path="src/LanguageServer/roslyn-language-server/roslyn-language-server.csproj" />
     <Project Path="src/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework.Example/Microsoft.CommonLanguageServerProtocol.Framework.Example.csproj" />
     <Project Path="src/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework.UnitTests/Microsoft.CommonLanguageServerProtocol.Framework.UnitTests.csproj" />
     <Project Path="src/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework/Microsoft.CommonLanguageServerProtocol.Framework.Package.csproj" />
@@ -269,8 +273,117 @@
   <Folder Name="/LanguageServer/ExternalAccess/">
     <Project Path="src/LanguageServer/ExternalAccess/CompilerDeveloperSDK/Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK.csproj" />
     <Project Path="src/LanguageServer/ExternalAccess/Copilot/Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot.csproj" />
-    <Project Path="src/LanguageServer/ExternalAccess/TestDiscovery/Microsoft.CodeAnalysis.ExternalAccess.TestDiscovery.csproj" />
+    <Project Path="src/LanguageServer/ExternalAccess/Core/Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.csproj" />
     <Project Path="src/LanguageServer/ExternalAccess/VisualDiagnostics/Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.csproj" />
+    <Project Path="src/LanguageServer/ExternalAccess/Xaml/Microsoft.CodeAnalysis.ExternalAccess.Xaml.csproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/" />
+  <Folder Name="/Roslyn SDK/Microsoft.CodeAnalysis.Testing/" />
+  <Folder Name="/Roslyn SDK/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.Analyzer.Testing/">
+    <Project Path="src/RoslynSdk/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.Analyzer.Testing/Microsoft.CodeAnalysis.Analyzer.Testing.csproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.CodeFix.Testing/">
+    <Project Path="src/RoslynSdk/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.CodeFix.Testing/Microsoft.CodeAnalysis.CodeFix.Testing.csproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.CodeRefactoring.Testing/">
+    <Project Path="src/RoslynSdk/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.CodeRefactoring.Testing/Microsoft.CodeAnalysis.CodeRefactoring.Testing.csproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.CSharp.Analyzer.Testing/">
+    <Project Path="src/RoslynSdk/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.CSharp.Analyzer.Testing/Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.csproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.CSharp.CodeFix.Testing/">
+    <Project Path="src/RoslynSdk/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.CSharp.CodeFix.Testing/Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.csproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing/">
+    <Project Path="src/RoslynSdk/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing/Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.csproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing/">
+    <Project Path="src/RoslynSdk/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing/Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.csproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.SourceGenerators.Testing/">
+    <Project Path="src/RoslynSdk/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.SourceGenerators.Testing/Microsoft.CodeAnalysis.SourceGenerators.Testing.csproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing/">
+    <Project Path="src/RoslynSdk/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing/Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.vbproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing/">
+    <Project Path="src/RoslynSdk/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing/Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.vbproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing/">
+    <Project Path="src/RoslynSdk/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing/Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.vbproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing/">
+    <Project Path="src/RoslynSdk/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing/Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.vbproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/Microsoft.CodeAnalysis.Testing/Test/" />
+  <Folder Name="/Roslyn SDK/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.Analyzer.Testing.UnitTests/">
+    <Project Path="src/RoslynSdk/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.Analyzer.Testing.UnitTests/Microsoft.CodeAnalysis.Analyzer.Testing.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.CodeFix.Testing.UnitTests/">
+    <Project Path="src/RoslynSdk/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.CodeFix.Testing.UnitTests/Microsoft.CodeAnalysis.CodeFix.Testing.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.CodeRefactoring.Testing.UnitTests/">
+    <Project Path="src/RoslynSdk/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.CodeRefactoring.Testing.UnitTests/Microsoft.CodeAnalysis.CodeRefactoring.Testing.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.UnitTests/">
+    <Project Path="src/RoslynSdk/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.UnitTests/Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.UnitTests/">
+    <Project Path="src/RoslynSdk/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.UnitTests/Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.UnitTests/">
+    <Project Path="src/RoslynSdk/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.UnitTests/Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.UnitTests/">
+    <Project Path="src/RoslynSdk/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.UnitTests/Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.SourceGenerators.Testing.UnitTests/">
+    <Project Path="src/RoslynSdk/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.SourceGenerators.Testing.UnitTests/Microsoft.CodeAnalysis.SourceGenerators.Testing.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.Testing.Utilities/">
+    <Project Path="src/RoslynSdk/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.Testing.Utilities/Microsoft.CodeAnalysis.Testing.Utilities.csproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.UnitTests/">
+    <Project Path="src/RoslynSdk/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.UnitTests/Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.UnitTests.vbproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.UnitTests/">
+    <Project Path="src/RoslynSdk/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.UnitTests/Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.UnitTests.vbproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.UnitTests/">
+    <Project Path="src/RoslynSdk/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.UnitTests/Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.UnitTests.vbproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.UnitTests/">
+    <Project Path="src/RoslynSdk/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.UnitTests/Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.UnitTests.vbproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/VisualStudio.Roslyn.SDK/" />
+  <Folder Name="/Roslyn SDK/VisualStudio.Roslyn.SDK/AssemblyVersionGenerator/">
+    <Project Path="src/RoslynSdk/VisualStudio.Roslyn.SDK/AssemblyVersionGenerator/AssemblyVersionGenerator.csproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/VisualStudio.Roslyn.SDK/ComponentDebugger/">
+    <Project Path="src/RoslynSdk/VisualStudio.Roslyn.SDK/ComponentDebugger/Roslyn.ComponentDebugger.csproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/VisualStudio.Roslyn.SDK/Roslyn.SDK/">
+    <Project Path="src/RoslynSdk/VisualStudio.Roslyn.SDK/Roslyn.SDK/Roslyn.SDK.csproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/VisualStudio.Roslyn.SDK/Roslyn.SDK.Template.Wizard/">
+    <Project Path="src/RoslynSdk/VisualStudio.Roslyn.SDK/Roslyn.SDK.Template.Wizard/Roslyn.SDK.Template.Wizard.csproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/VisualStudio.Roslyn.SDK/SyntaxVisualizer/" />
+  <Folder Name="/Roslyn SDK/VisualStudio.Roslyn.SDK/SyntaxVisualizer/Roslyn.SyntaxVisualizer.Control/">
+    <Project Path="src/RoslynSdk/VisualStudio.Roslyn.SDK/SyntaxVisualizer/Roslyn.SyntaxVisualizer.Control/Roslyn.SyntaxVisualizer.Control.csproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/VisualStudio.Roslyn.SDK/SyntaxVisualizer/Roslyn.SyntaxVisualizer.DgmlHelper/">
+    <Project Path="src/RoslynSdk/VisualStudio.Roslyn.SDK/SyntaxVisualizer/Roslyn.SyntaxVisualizer.DgmlHelper/Roslyn.SyntaxVisualizer.DgmlHelper.vbproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/VisualStudio.Roslyn.SDK/SyntaxVisualizer/Roslyn.SyntaxVisualizer.Extension/">
+    <Project Path="src/RoslynSdk/VisualStudio.Roslyn.SDK/SyntaxVisualizer/Roslyn.SyntaxVisualizer.Extension/Roslyn.SyntaxVisualizer.Extension.csproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/VisualStudio.Roslyn.SDK/Test/" />
+  <Folder Name="/Roslyn SDK/VisualStudio.Roslyn.SDK/Test/Roslyn.SDK.IntegrationTests/">
+    <Project Path="src/RoslynSdk/VisualStudio.Roslyn.SDK/Test/Roslyn.SDK.IntegrationTests/Roslyn.SDK.IntegrationTests.csproj" />
+  </Folder>
+  <Folder Name="/Roslyn SDK/VisualStudio.Roslyn.SDK/Test/Roslyn.SDK.UnitTests/">
+    <Project Path="src/RoslynSdk/VisualStudio.Roslyn.SDK/Test/Roslyn.SDK.UnitTests/Roslyn.SDK.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Scripting/">
     <Project Path="src/NuGet/Microsoft.CodeAnalysis.Scripting.Package/Microsoft.CodeAnalysis.Scripting.Package.csproj" />
@@ -297,6 +410,8 @@
     <Project Path="src/Test/Perf/Utilities/Roslyn.Test.Performance.Utilities.csproj" />
   </Folder>
   <Folder Name="/Tools/">
+    <Project Path="src/Tools/dotnet-roslyn-tools/Test/Microsoft.RoslynTools.UnitTests.csproj" />
+    <Project Path="src/Tools/dotnet-roslyn-tools/Tool/Microsoft.RoslynTools.csproj" />
     <Project Path="src/Tools/AnalyzerRunner/AnalyzerRunner.csproj">
       <BuildDependency Project="src/EditorFeatures/Core/Microsoft.CodeAnalysis.EditorFeatures.csproj" />
       <BuildDependency Project="src/EditorFeatures/CSharp/Microsoft.CodeAnalysis.CSharp.EditorFeatures.csproj" />
@@ -307,6 +422,7 @@
     <Project Path="src/Tools/BuildValidator/BuildValidator.csproj" />
     <Project Path="src/Tools/GenerateRulesMissingDocumentation/GenerateRulesMissingDocumentation.csproj" />
     <Project Path="src/Tools/IdeBenchmarks/IdeBenchmarks.csproj" />
+    <Project Path="src/Tools/Benchmarks/Benchmarks.csproj" />
     <Project Path="src/Tools/IdeCoreBenchmarks/IdeCoreBenchmarks.csproj" />
     <Project Path="src/Tools/PrepareTests/PrepareTests.csproj" />
     <Project Path="src/Tools/Replay/Replay.csproj" />
@@ -320,10 +436,8 @@
     <Project Path="src/Tools/TestDiscoveryWorker/TestDiscoveryWorker.csproj" />
   </Folder>
   <Folder Name="/Tools/ExternalAccess/">
-    <Project Path="src/Tools/ExternalAccess/Extensions/Microsoft.CodeAnalysis.ExternalAccess.Extensions.csproj" />
     <Project Path="src/Tools/ExternalAccess/RazorCompiler/Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" />
     <Project Path="src/Tools/ExternalAccess/RazorCompilerTest/Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.UnitTests.csproj" />
-    <Project Path="src/Tools/ExternalAccess/Xaml/Microsoft.CodeAnalysis.ExternalAccess.Xaml.csproj" />
   </Folder>
   <Folder Name="/Tools/SemanticSearch/">
     <Project Path="src/Tools/SemanticSearch/BuildTask/SemanticSearch.BuildTask.csproj" />
@@ -353,10 +467,11 @@
   </Folder>
   <Folder Name="/VisualStudio/ExternalAccess/">
     <Project Path="src/VisualStudio/ExternalAccess/Apex/Microsoft.CodeAnalysis.ExternalAccess.Apex.csproj" />
+    <Project Path="src/VisualStudio/ExternalAccess/Core/Microsoft.VisualStudio.LanguageServices.ExternalAccess.csproj" />
     <Project Path="src/VisualStudio/ExternalAccess/Copilot/Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot.csproj" />
     <Project Path="src/VisualStudio/ExternalAccess/EditorConfigGenerator/Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.csproj" />
     <Project Path="src/VisualStudio/ExternalAccess/FSharp/Microsoft.CodeAnalysis.ExternalAccess.FSharp.csproj" />
-    <Project Path="src/VisualStudio/ExternalAccess/FSharpTest/Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests.csproj" />
+    <Project Path="src/VisualStudio/ExternalAccess/Test/Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTests.csproj" />
   </Folder>
   <Folder Name="/VisualStudio/Insertion/">
     <Project Path="src/Setup/DevDivInsertionFiles/DevDivInsertionFiles.csproj" />
@@ -419,6 +534,12 @@
     <Project Path="src/Workspaces/SharedUtilitiesAndExtensions/Workspace/VisualBasic/VisualBasicWorkspaceExtensions.shproj" />
   </Folder>
   <Project Path="src/Deployment/RoslynDeployment.csproj" />
+  <Folder Name="/LanguageServer/ProjectData/">
+    <Project Path="src/LanguageServer/ProjectData/Microsoft.NET.ProjectData.Generators/Microsoft.NET.ProjectData.Generators.csproj" />
+    <Project Path="src/LanguageServer/ProjectData/Microsoft.NET.ProjectData.Generators.Tests/Microsoft.NET.ProjectData.Generators.Tests.csproj" />
+    <Project Path="src/LanguageServer/ProjectData/Microsoft.NET.ProjectData.Tests/Microsoft.NET.ProjectData.Tests.csproj" />
+    <Project Path="src/LanguageServer/ProjectData/Microsoft.NET.ProjectData/Microsoft.NET.ProjectData.csproj" />
+  </Folder>
   <Folder Name="/Razor/" />
   <Folder Name="/Razor/benchmarks/">
     <Project Path="src/Razor/src/Compiler/perf/Microbenchmarks/Microsoft.AspNetCore.Razor.Microbenchmarks.Compiler.csproj" />

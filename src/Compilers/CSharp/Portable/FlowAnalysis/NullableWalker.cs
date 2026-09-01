@@ -2069,21 +2069,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _variables[containingSlot].Symbol.GetTypeOrReturnType().Type is NamedTypeSymbol { IsUnionType: true, UnionCaseTypesNoUseSiteDiagnostics: not [] } unionType &&
                         Binder.IsUnionTypeValueProperty(unionType, property):
                     {
-                        // For union types where none of the case types are nullable, the default state for Value is "not null" rather than "maybe null".
-                        var result = NullableFlowState.NotNull;
-                        var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-
-                        unionType.ForEachUnionFactoryMethod(
-                            (factory, _) =>
-                            {
-                                var parameter = factory.Parameters[0];
-                                result = result.Join(GetParameterState(parameter.TypeWithAnnotations, parameter.FlowAnalysisAnnotations).State);
-                                return false;
-                            },
-                            (object?)null,
-                            ref discardedUseSiteInfo);
-
-                        return result;
+                        return unionType.UnionValueDeclaredNullableFlowState;
                     }
 
                 case FieldSymbol:
@@ -3260,7 +3246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // When the local is used before or during initialization, there can potentially be a mismatch between node.LocalSymbol.Type and node.Type. We
                 // need to prefer node.Type as we shouldn't be changing the type of the BoundLocal node during rewrite.
                 // https://github.com/dotnet/roslyn/issues/34158
-                Debug.Assert(node.Type.IsErrorType() || type.Type.IsErrorType());
+                Debug.Assert(node.Type.ContainsErrorType() || type.Type.ContainsErrorType());
                 type = TypeWithAnnotations.Create(node.Type, type.NullableAnnotation);
             }
 
@@ -4475,7 +4461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         unionType.GetMemberProviderInterfaceForDefinition() is null &&
                         NamedTypeSymbol.IsSuitableUnionConstructor(constructor))
                     {
-                        valueProperty = Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(unionType);
+                        valueProperty = unionType.UnionValuePropertyNoUseSiteDiagnostics();
                         return valueProperty is { };
                     }
 
@@ -6579,12 +6565,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(!wasTargetTyped);
                 if (!wasTargetTyped)
                 {
-                    // This can happen when we're inferring the return type of a lambda or visiting a node without diagnostics like
-                    // BoundConvertedTupleLiteral.SourceTuple. For these cases, we don't need to do any work,
+                    // This can happen for an erroneous conditional, when we're inferring the return type of a lambda, or when
+                    // visiting a node without diagnostics like BoundConvertedTupleLiteral.SourceTuple. For these cases, we don't need to do any work,
                     // the unconverted conditional operator can't contribute info. The conversion that should be on top of this
                     // can add or remove nullability, and nested nodes aren't being publicly exposed by the semantic model.
                     Debug.Assert(node is BoundUnconvertedConditionalOperator);
-                    Debug.Assert(_returnTypesOpt is not null || _disableDiagnostics);
+                    Debug.Assert(node.HasErrors || _returnTypesOpt is not null || _disableDiagnostics);
                     SetResultType(node, TypeWithState.Create(resultType, default));
                     return null;
                 }
@@ -8022,10 +8008,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         applyMemberPostConditions(receiverSlot, type, notNullWhenFalseMembers, ref StateWhenFalse);
                     }
 
-                    if (Binder.HasTryGetValueSignature(method) &&
+                    if (NamedTypeSymbol.HasTryGetValueSignature(method) &&
                         receiverType is NamedTypeSymbol { IsUnionType: true } unionType &&
-                        Binder.IsUnionTypeTryGetValueMethod(unionType, method) &&
-                        Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(unionType) is { } unionValue)
+                        unionType.IsUnionTypeTryGetValueMethod(method) &&
+                        unionType.UnionValuePropertyNoUseSiteDiagnostics() is { } unionValue)
                     {
                         Split();
                         markMemberAsNotNull(receiverSlot, ref StateWhenTrue, unionValue);
@@ -8512,9 +8498,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (refKind == RefKind.Out &&
                     parameter.ContainingSymbol is MethodSymbol method &&
-                    Binder.HasTryGetValueSignature(method) &&
+                    NamedTypeSymbol.HasTryGetValueSignature(method) &&
                     receiverType is NamedTypeSymbol { IsUnionType: true } unionType &&
-                    Binder.IsUnionTypeTryGetValueMethod(unionType, method))
+                    unionType.IsUnionTypeTryGetValueMethod(method))
                 {
                     return true;
                 }
@@ -10652,15 +10638,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             var toType = (NamedTypeSymbol)targetType.StrippedType();
 
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            var match = toType.ForEachUnionFactoryMethod(
-                static (candidate, factory) => candidate.Equals(factory, TypeCompareKind.AllNullableIgnoreOptions),
-                factory,
-                ref discardedUseSiteInfo);
-            Debug.Assert(match is not null);
-            if (match is not null)
+            ImmutableArray<MethodSymbol> candidates = toType.UnionFactoryMethods(ref discardedUseSiteInfo);
+            int i = 0;
+            for (; i < candidates.Length; i++)
             {
-                factory = match;
+                MethodSymbol candidate = candidates[i];
+                if (candidate.Equals(factory, TypeCompareKind.AllNullableIgnoreOptions))
+                {
+                    factory = candidate;
+                    break;
+                }
             }
+
+            Debug.Assert(i < candidates.Length);
 
             // operand -> conversion "from" type
             var parameter = factory.Parameters[0];
@@ -10722,7 +10712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (trackMembers && (conversionOpt is { } || targetInstanceSlotOpt > 0) &&
                 targetTypeWithNullability.Type.StrippedType() is NamedTypeSymbol { IsUnionType: true } unionType &&
-                Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(unionType) is { } valueProperty)
+                unionType.UnionValuePropertyNoUseSiteDiagnostics() is { } valueProperty)
             {
                 // When a union constructor is called through a union conversion, the new union's Value gets the null state of the incoming value.
                 Debug.Assert(conversionOperand != null);
@@ -12326,7 +12316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     receiverType.Type is NamedTypeSymbol { IsUnionType: true } unionType &&
                     Binder.IsUnionTypeHasValueProperty(unionType, property))
                 {
-                    unionValue = Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(unionType);
+                    unionValue = unionType.UnionValuePropertyNoUseSiteDiagnostics();
                 }
 
                 // https://github.com/dotnet/roslyn/issues/30598: For l-values, mark receiver as not null
@@ -12401,8 +12391,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(containingType.IsNullableType());
             Debug.Assert(TypeSymbol.Equals(NominalSlotType(containingSlot), containingType, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
-            var getValue = (MethodSymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value);
-            valueProperty = getValue?.AsMember((NamedTypeSymbol)containingType)?.AssociatedSymbol;
+            var getValue = (MethodSymbol?)compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value);
+
+            // 'containingType' can be a constructed error type over a missing 'System.Nullable<T>', for example when it
+            // comes from a compilation without a core library. Adjusting 'get_Value' to such a type is not possible.
+            if (getValue is null || !ReferenceEquals(containingType.OriginalDefinition, getValue.ContainingSymbol))
+            {
+                valueProperty = null;
+                return -1;
+            }
+
+            valueProperty = getValue.AsMember((NamedTypeSymbol)containingType).AssociatedSymbol;
             return (valueProperty is null) ? -1 : GetOrCreateSlot(valueProperty, containingSlot, forceSlotEvenIfEmpty: forceSlotEvenIfEmpty);
         }
 

@@ -138,6 +138,29 @@ public class RemoteDebugInfoServiceTest(ITestOutputHelper testOutputHelper) : Co
     }
 
     [Fact]
+    public async Task ResolveProximityExpressionsAsync_FunctionsBlock_Legacy()
+    {
+        var input = """
+                <div></div>
+
+                <p>@currentCount</p>
+
+                @functions
+                {
+                    private int [|currentCount|];
+                    private bool hasBeenClicked;
+
+                    private void M()
+                    {
+                        current$$Count++;
+                    }
+                }
+                """;
+
+        await VerifyProximityExpressionsAsync(input, ["this"], RazorFileKind.Legacy);
+    }
+
+    [Fact]
     public async Task ResolveBreakpointRangeAsync_Html()
     {
         var input = """
@@ -176,6 +199,28 @@ public class RemoteDebugInfoServiceTest(ITestOutputHelper testOutputHelper) : Co
     }
 
     [Fact]
+    public async Task ResolveBreakpointRangeAsync_FunctionsBlock_Legacy()
+    {
+        var input = """
+                <div></div>
+
+                <p>@currentCount</p>
+
+                @functions
+                {
+                    private int currentCount;
+
+                    private void M()
+                    {
+                        [|current$$Count++;|]
+                    }
+                }
+                """;
+
+        await VerifyBreakpointRangeAsync(input, RazorFileKind.Legacy);
+    }
+
+    [Fact]
     public async Task ResolveBreakpointRangeAsync_CodeBlock_InvalidLocation()
     {
         var input = """
@@ -190,6 +235,23 @@ public class RemoteDebugInfoServiceTest(ITestOutputHelper testOutputHelper) : Co
                 """;
 
         await VerifyBreakpointRangeAsync(input);
+    }
+
+    [Fact]
+    public async Task ResolveBreakpointRangeAsync_FunctionsBlock_InvalidLocation_Legacy()
+    {
+        var input = """
+                <div></div>
+
+                <p>@currentCount</p>
+
+                @functions
+                {
+                    private bool hasBeen$$Clicked;
+                }
+                """;
+
+        await VerifyBreakpointRangeAsync(input, RazorFileKind.Legacy);
     }
 
     [Fact]
@@ -359,6 +421,26 @@ public class RemoteDebugInfoServiceTest(ITestOutputHelper testOutputHelper) : Co
         await VerifyBreakpointRangeAsync(input);
     }
 
+    [Fact]
+    public async Task ResolveBreakpointRangeAsync_InlineTemplateInCodeBlock()
+    {
+        var input = """
+            @code { private string hello = "Hello"; public RenderFragment Foo => @<div>$$@[|hello|]</div>; }
+            """;
+
+        await VerifyBreakpointRangeAsync(input);
+    }
+
+    [Fact]
+    public async Task ResolveBreakpointRangeAsync_InlineTemplateInFunctionsBlock_Legacy()
+    {
+        var input = """
+            @functions { private string hello = "Hello"; public RenderFragment Foo => @<div>$$@[|hello|]</div>; }
+            """;
+
+        await VerifyBreakpointRangeAsync(input, RazorFileKind.Legacy);
+    }
+
     [Theory]
     [CombinatorialData]
     public async Task ResolveBreakpointRangeAsync_CodeBlockInMiddleOfDocument(bool legacy)
@@ -456,9 +538,9 @@ public class RemoteDebugInfoServiceTest(ITestOutputHelper testOutputHelper) : Co
         await VerifyBreakpointRangeAsync(input);
     }
 
-    private async Task VerifyProximityExpressionsAsync(TestCode input, string[] extraExpressions)
+    private async Task VerifyProximityExpressionsAsync(TestCode input, string[] extraExpressions, RazorFileKind? fileKind = null)
     {
-        var document = CreateProjectAndRazorDocument(input.Text);
+        var document = CreateProjectAndRazorDocument(input.Text, fileKind: fileKind);
         var inputText = await document.GetTextAsync(DisposalToken);
 
         var span = inputText.GetLinePosition(input.Position);

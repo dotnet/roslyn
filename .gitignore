@@ -26,6 +26,7 @@ BenchmarkDotNet.Artifacts/
 .nuget/
 .complog/
 /MSBuild_Logs/
+BenchmarkDotNet.Artifacts/
 
 # Enable "build/" folder in the NuGet Packages folder since NuGet packages use it for MSBuild targets
 !packages/*/build/
@@ -189,6 +190,9 @@ Desktop.ini
 
 # Recycle Bin used on file shares
 $RECYCLE.BIN/
+
+# Tooling generating a deviceid file on MacOS
+Library/
 
 # Mac desktop service store files
 .DS_Store

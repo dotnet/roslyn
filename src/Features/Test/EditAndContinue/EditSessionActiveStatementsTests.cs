@@ -53,6 +53,7 @@ public sealed class EditSessionActiveStatementsTests : TestBase
             NullPdbMatchingSourceTextProvider.Instance,
             log,
             log,
+            EditAndContinueDiagnosticLevel.None,
             reportDiagnostics: true);
 
         if (initialState != CommittedSolution.DocumentState.None)

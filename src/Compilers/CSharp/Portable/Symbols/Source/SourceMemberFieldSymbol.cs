@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     this.DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor));
             }
 
-            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            if (GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute());
             }
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
-            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            if (GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
             {
                 DeclaringCompilation.EnsureRequiresUnsafeAttributeExists(diagnostics,
                     ModifiersTokenList.GetModifierLocation(SyntaxKind.UnsafeKeyword, ErrorLocation),
@@ -190,22 +190,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override CallerUnsafeMode CallerUnsafeMode
+        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
         {
-            get
+            if (ContainingModule.UseUpdatedMemorySafetyRules)
             {
-                if (ContainingModule.UseUpdatedMemorySafetyRules)
-                {
-                    return HasUnsafeModifier &&
-                        AssociatedSymbol is null &&
-                        !IsConst
-                            ? CallerUnsafeMode.Explicit
-                            : CallerUnsafeMode.None;
-                }
-
-                return !IsFixedSizeBuffer && Type.ContainsPointerOrFunctionPointer()
-                    ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
+                return HasUnsafeModifier &&
+                    AssociatedSymbol is null &&
+                    !IsConst
+                        ? CallerUnsafeMode.Explicit
+                        : CallerUnsafeMode.None;
             }
+
+            return !IsFixedSizeBuffer && GetFieldType(fieldsBeingBound).Type.ContainsPointerOrFunctionPointer()
+                ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
         }
 
         internal static DeclarationModifiers MakeModifiers(NamedTypeSymbol containingType, SyntaxToken firstIdentifier, SyntaxTokenList modifiers, bool isRefField, BindingDiagnosticBag diagnostics, out bool modifierErrors)
@@ -229,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var errorLocation = new SourceLocation(firstIdentifier);
             DeclarationModifiers result = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(
-                isOrdinaryMethod: false, isForInterfaceMember: isInterface,
+                isForInterfaceMember: isInterface,
                 modifiers, defaultAccess, allowedModifiers, errorLocation, diagnostics, out modifierErrors, out _);
 
             if ((result & DeclarationModifiers.Abstract) != 0)
@@ -267,6 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 reportBadMemberFlagIfAny(result, DeclarationModifiers.ReadOnly, diagnostics, errorLocation);
                 reportBadMemberFlagIfAny(result, DeclarationModifiers.Volatile, diagnostics, errorLocation);
                 reportBadMemberFlagIfAny(result, DeclarationModifiers.Unsafe, diagnostics, errorLocation);
+                reportBadMemberFlagIfAny(result, DeclarationModifiers.Safe, diagnostics, errorLocation);
 
                 if (reportBadMemberFlagIfAny(result, DeclarationModifiers.Required, diagnostics, errorLocation))
                 {
@@ -625,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_IllegalFixedType, loc);
                     }
 
-                    binder.ReportUnsafeIfNotAllowed(declarator.Location, diagnosticsForFirstDeclarator, disallowedUnder: MemorySafetyRules.Legacy);
+                    binder.ReportUnsafeIfNotAllowed(declarator.Location, diagnosticsForFirstDeclarator, disallowedUnder: MemorySafetyRulesVersion.Version1);
                 }
             }
 

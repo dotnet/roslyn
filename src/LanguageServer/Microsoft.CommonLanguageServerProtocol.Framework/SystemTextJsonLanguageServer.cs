@@ -19,10 +19,26 @@ internal abstract class SystemTextJsonLanguageServer<TRequestContext>(
     : AbstractLanguageServer<TRequestContext>(jsonRpc, typeRefResolver)
 {
     /// <summary>
-    /// JsonSerializer options used by streamjsonrpc (and for serializing / deserializing the requests to streamjsonrpc).
-    /// These options are specifically from the <see cref="StreamJsonRpc.SystemTextJsonFormatter"/> that added the exotic type converters.
+    /// JsonSerializer options used to deserialize incoming requests.
+    /// <para>
+    /// This is a copy of the options streamjsonrpc uses (which added the exotic type converters from
+    /// <see cref="StreamJsonRpc.SystemTextJsonFormatter"/>) with our own <see cref="IProgress{T}"/> support
+    /// layered on top - see <see cref="LspProgressConverterFactory"/> for why streamjsonrpc's cannot be used
+    /// here. We deliberately copy rather than mutate the formatter's options, so that everything else on this
+    /// connection (responses, notifications, and messages we originate) keeps streamjsonrpc's behavior.
+    /// </para>
     /// </summary>
-    private readonly JsonSerializerOptions _jsonSerializerOptions = options;
+    private readonly JsonSerializerOptions _jsonSerializerOptions = CreateRequestDeserializationOptions(options, jsonRpc);
+
+    private static JsonSerializerOptions CreateRequestDeserializationOptions(JsonSerializerOptions formatterOptions, JsonRpc jsonRpc)
+    {
+        var requestOptions = new JsonSerializerOptions(formatterOptions);
+
+        // Insert at the front - System.Text.Json uses the first converter in the list that can convert a
+        // type, and the copied options already contain streamjsonrpc's IProgress<T> converter.
+        requestOptions.Converters.Insert(0, new LspProgressConverterFactory(jsonRpc));
+        return requestOptions;
+    }
 
     public override TRequest DeserializeRequest<TRequest>(object? serializedRequest, RequestHandlerMetadata metadata)
     {
@@ -87,12 +103,12 @@ internal abstract class SystemTextJsonLanguageServer<TRequestContext>(
         /// serialize-then-reserialize round-trip that <see cref="JsonSerializer.SerializeToElement(object?, Type, JsonSerializerOptions?)"/>
         /// would otherwise cause (object → byte[] → JsonDocument → JsonElement → wire bytes).
         /// </remarks>
-        private async Task<object?> ExecuteRequestAsync(JsonElement? request, CancellationToken cancellationToken = default)
+        private Task<object?> ExecuteRequestAsync(JsonElement? request, CancellationToken cancellationToken = default)
         {
             var queue = target.GetRequestExecutionQueue();
             var lspServices = target.GetLspServices();
 
-            return await InvokeAsync(queue, request, lspServices, cancellationToken).ConfigureAwait(false);
+            return InvokeAsync(queue, request, lspServices, cancellationToken);
         }
     }
 }

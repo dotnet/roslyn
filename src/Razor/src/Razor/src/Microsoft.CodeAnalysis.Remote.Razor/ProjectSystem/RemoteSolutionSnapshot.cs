@@ -7,22 +7,15 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
-internal sealed class RemoteSolutionSnapshot(Solution solution, RemoteSnapshotManager snapshotManager) : ISolutionQueryOperations
+internal sealed class RemoteSolutionSnapshot(Solution solution, RemoteSnapshotManager snapshotManager)
 {
     public RemoteSnapshotManager SnapshotManager { get; } = snapshotManager;
 
     private readonly Solution _solution = solution;
     private readonly Dictionary<Project, RemoteProjectSnapshot> _projectMap = [];
-
-    public RemoteProjectSnapshot GetProject(ProjectId projectId)
-    {
-        var project = _solution.GetRequiredProject(projectId);
-        return GetProject(project);
-    }
 
     public RemoteProjectSnapshot GetProject(Project project)
     {
@@ -53,12 +46,12 @@ internal sealed class RemoteSolutionSnapshot(Solution solution, RemoteSnapshotMa
         }
     }
 
-    public IEnumerable<IProjectSnapshot> GetProjects()
+    public IEnumerable<RemoteProjectSnapshot> GetProjects()
         => _solution.Projects
             .Where(static p => p.ContainsRazorDocuments())
             .Select(GetProjectCore);
 
-    public ImmutableArray<IProjectSnapshot> GetProjectsContainingDocument(string documentFilePath)
+    public ImmutableArray<RemoteProjectSnapshot> GetProjectsContainingDocument(string documentFilePath)
     {
         if (!documentFilePath.IsRazorFilePath())
         {
@@ -72,7 +65,7 @@ internal sealed class RemoteSolutionSnapshot(Solution solution, RemoteSnapshotMa
             return [];
         }
 
-        using var results = new PooledArrayBuilder<IProjectSnapshot>(capacity: documentIds.Length);
+        using var results = new PooledArrayBuilder<RemoteProjectSnapshot>(capacity: documentIds.Length);
         using var _ = HashSetPool<ProjectId>.GetPooledObject(out var projectIdSet);
 
         foreach (var documentId in documentIds)

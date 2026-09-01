@@ -4,11 +4,13 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
@@ -180,12 +182,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             // This test verifies that GetServerEnvironmentVariables properly sets up DOTNET_ROOT
             // without modifying the current process environment
-            var currentEnvironment = Environment.GetEnvironmentVariables();
-            var originalDotNetRoot = (string?)currentEnvironment[RuntimeHostInfo.DotNetRootEnvironmentName];
+            var buildEnvironment = StandardBuildEnvironment.Instance;
+            var originalDotNetRoot = buildEnvironment.GetEnvironmentVariable(RuntimeHostInfo.DotNetRootEnvironmentName);
 
-            var envVars = BuildServerConnection.GetServerEnvironmentVariables(currentEnvironment);
+            var envVars = BuildServerConnection.GetServerEnvironmentVariables(buildEnvironment);
 
-            if (BuildServerConnection.IsBuiltinToolRunningOnCoreClr && RuntimeHostInfo.GetToolDotNetRoot(Logger.Log) is { } dotNetRoot)
+            if (BuildServerConnection.IsBuiltinToolRunningOnCoreClr && RuntimeHostInfo.GetToolDotNetRoot(buildEnvironment, Logger.Log) is { } dotNetRoot)
             {
                 // Should have environment variables including DOTNET_ROOT
                 Assert.NotNull(envVars);
@@ -213,11 +215,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var testEnvVars = new[] { "DOTNET_ROOT_X64", "DOTNET_ROOT_X86", "DOTNET_ROOT_ARM64", "DOTNET_ROOT(x86)" };
 
             // Create a test environment with DOTNET_ROOT* variants
-            var testEnvironment = new System.Collections.Hashtable();
-            foreach (System.Collections.DictionaryEntry entry in Environment.GetEnvironmentVariables())
-            {
-                testEnvironment[entry.Key] = entry.Value;
-            }
+            var testEnvironment = StandardBuildEnvironment.GetEnvironmentVariables();
 
             // Add test DOTNET_ROOT* variants
             foreach (var testEnvVar in testEnvVars)
@@ -225,9 +223,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 testEnvironment[testEnvVar] = "test_value";
             }
 
-            var envVars = BuildServerConnection.GetServerEnvironmentVariables(testEnvironment);
+            var buildEnvironment = new TestableBuildEnvironment(Path.GetTempPath(), testEnvironment);
+            var envVars = BuildServerConnection.GetServerEnvironmentVariables(buildEnvironment);
 
-            if (BuildServerConnection.IsBuiltinToolRunningOnCoreClr && RuntimeHostInfo.GetToolDotNetRoot(Logger.Log) != null)
+            if (BuildServerConnection.IsBuiltinToolRunningOnCoreClr && RuntimeHostInfo.GetToolDotNetRoot(buildEnvironment, Logger.Log) != null)
             {
                 Assert.NotNull(envVars);
 

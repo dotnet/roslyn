@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
+    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.Features.ExternalAccess.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -38,13 +38,6 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
     <PublicAPI Include="InternalAPI.Shipped.txt" />
     <PublicAPI Include="InternalAPI.Unshipped.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="ExternalAccessAspNetCoreResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>ExternalAccessAspNetCoreResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

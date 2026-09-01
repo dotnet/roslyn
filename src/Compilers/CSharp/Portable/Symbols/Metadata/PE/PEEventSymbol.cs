@@ -511,6 +511,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 UseSiteInfo<AssemblySymbol> result = new UseSiteInfo<AssemblySymbol>(primaryDependency);
                 CalculateUseSiteDiagnostic(ref result);
                 deriveCompilerFeatureRequiredUseSiteInfo(ref result);
+                if (result.DiagnosticInfo is null &&
+                    PEUtilities.DeriveUnrecognizedMemorySafetyRulesAttributeDiagnostic(this) is { } diagnostic)
+                {
+                    result = result.AdjustDiagnosticInfo(diagnostic);
+                }
                 _lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
             }
 
@@ -571,19 +576,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 : Type.ContainsPointerOrFunctionPointer();
         }
 
-        internal override CallerUnsafeMode CallerUnsafeMode
+        internal override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
         {
-            get
+            if (!RequiresUnsafe)
             {
-                if (!RequiresUnsafe)
-                {
-                    return CallerUnsafeMode.None;
-                }
-
-                return ContainingModule.UseUpdatedMemorySafetyRules
-                    ? CallerUnsafeMode.Explicit
-                    : CallerUnsafeMode.Implicit;
+                return CallerUnsafeMode.None;
             }
+
+            return ContainingModule.UseUpdatedMemorySafetyRules
+                ? CallerUnsafeMode.Explicit
+                : CallerUnsafeMode.Implicit;
         }
 
         internal sealed override CSharpCompilation? DeclaringCompilation // perf, not correctness

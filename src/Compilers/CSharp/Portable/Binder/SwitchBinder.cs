@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var matchLabel = (CasePatternSwitchLabelSyntax)labelSyntax;
                         NamedTypeSymbol unionType = null;
                         _ = sectionBinder.BindPattern(
-                            matchLabel.Pattern, ref unionType, SwitchGoverningType, permitDesignations: true, labelSyntax.HasErrors, tempDiagnosticBag, hasUnionMatching: out _);
+                            matchLabel.Pattern, ref unionType, SwitchGoverningType, permitDesignations: true, labelSyntax.HasErrors, tempDiagnosticBag, hasUnionMatching: out _, underIsPattern: false);
                         break;
 
                     default:

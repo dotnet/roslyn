@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal static class ModifierUtils
     {
         internal static DeclarationModifiers MakeAndCheckNonTypeMemberModifiers(
-            bool isOrdinaryMethod,
             bool isForInterfaceMember,
             SyntaxTokenList modifiers,
             DeclarationModifiers defaultAccess,
@@ -23,7 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out bool modifierErrors,
             out bool hasExplicitAccessModifier)
         {
-            var result = modifiers.ToDeclarationModifiers(isForTypeDeclaration: false, diagnostics.DiagnosticBag ?? new DiagnosticBag(), isOrdinaryMethod: isOrdinaryMethod);
+            var diagnosticBag = diagnostics.DiagnosticBag ?? new DiagnosticBag();
+            var result = modifiers.ToDeclarationModifiers(
+                allowsPartialModifier: (allowedModifiers & DeclarationModifiers.Partial) != 0,
+                diagnostics: diagnosticBag);
             result = CheckModifiers(isForTypeDeclaration: false, isForInterfaceMember, result, allowedModifiers, errorLocation, diagnostics, modifiers, out modifierErrors);
 
             var readonlyToken = modifiers.FirstOrDefault(SyntaxKind.ReadOnlyKeyword);
@@ -82,8 +84,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (oneError)
                 {
                     case DeclarationModifiers.Partial:
-                        // Provide a specialized error message in the case of partial.
-                        ReportPartialError(errorLocation, diagnostics, modifierTokens);
+                        // ToDeclarationModifiers reports all invalid 'partial' modifiers. That check
+                        // lives there because it validates both whether 'partial' is allowed and
+                        // whether it appears in the correct position.
                         break;
 
                     case DeclarationModifiers.Abstract:
@@ -115,7 +118,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((result & DeclarationModifiers.Safe) != 0)
             {
                 var safeToken = modifierTokens?.FirstOrDefault(SyntaxKind.SafeKeyword) ?? default;
-                modifierErrors |= !MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(diagnostics, safeToken, safeToken == default ? errorLocation : null);
+                modifierErrors |= safeToken == default
+                    ? !Binder.CheckFeatureAvailability(errorLocation.SourceTree, MessageID.IDS_FeatureUnsafeEvolution, diagnostics, errorLocation)
+                    : !MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(diagnostics, safeToken);
+
+                if ((result & DeclarationModifiers.Unsafe) != 0)
+                {
+                    diagnostics.Add(ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe, safeToken == default ? errorLocation : safeToken.GetLocation());
+                    result &= ~DeclarationModifiers.Safe;
+                    modifierErrors = true;
+                }
             }
 
             return result;
@@ -132,22 +144,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(diagnosticInfo, modifier.GetLocation());
             }
-        }
-
-        private static void ReportPartialError(Location errorLocation, BindingDiagnosticBag diagnostics, SyntaxTokenList? modifierTokens)
-        {
-            // If we can find the 'partial' token, report it on that.
-            if (modifierTokens != null)
-            {
-                var partialToken = modifierTokens.Value.FirstOrDefault(SyntaxKind.PartialKeyword);
-                if (partialToken != default)
-                {
-                    diagnostics.Add(ErrorCode.ERR_PartialMisplaced, partialToken.GetLocation());
-                    return;
-                }
-            }
-
-            diagnostics.Add(ErrorCode.ERR_PartialMisplaced, errorLocation);
         }
 
         internal static void ReportDefaultInterfaceImplementationModifiers(
@@ -427,12 +423,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxTokenList modifiers,
             DiagnosticBag diagnostics)
         {
-            GetDeclarationModifiersAndCheckForDuplicateModifiers(modifiers, diagnostics);
+            GetDeclarationModifiersAndCheckForDuplicateModifiers(modifiers, diagnostics, out _);
         }
 
         private static DeclarationModifiers GetDeclarationModifiersAndCheckForDuplicateModifiers(
             SyntaxTokenList modifiers,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            out bool reportedDiagnostic)
         {
             var allModifiers = DeclarationModifiers.None;
 
@@ -450,33 +447,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allModifiers |= thisModifier;
             }
 
+            reportedDiagnostic = !seenNoDuplicates;
             return allModifiers;
         }
 
         public static DeclarationModifiers ToDeclarationModifiers(
-            this SyntaxTokenList modifiers, bool isForTypeDeclaration, DiagnosticBag diagnostics, bool isOrdinaryMethod = false)
+            this SyntaxTokenList modifiers, bool allowsPartialModifier, DiagnosticBag diagnostics)
         {
-            var result = GetDeclarationModifiersAndCheckForDuplicateModifiers(modifiers, diagnostics);
-            if ((result & DeclarationModifiers.Partial) == DeclarationModifiers.Partial)
-            {
-                var i = modifiers.IndexOf(SyntaxKind.PartialKeyword);
-                var modifier = modifiers[i];
+            var result = GetDeclarationModifiersAndCheckForDuplicateModifiers(modifiers, diagnostics, out var reportedDiagnostic);
 
-                var messageId = isForTypeDeclaration ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod;
-                messageId.CheckFeatureAvailability(diagnostics, modifier);
-
-                // `partial` must always be the last modifier according to the language.  However, there was a bug
-                // where we allowed `partial async` at the end of modifiers on methods. We keep this behavior for
-                // backcompat.
-                var isLast = i == modifiers.Count - 1;
-                var isPartialAsyncMethod = isOrdinaryMethod && i == modifiers.Count - 2 && modifiers[i + 1].ContextualKind() is SyntaxKind.AsyncKeyword;
-                if (!isLast && !isPartialAsyncMethod)
-                {
-                    diagnostics.Add(
-                        ErrorCode.ERR_PartialMisplaced,
-                        modifier.GetLocation());
-                }
-            }
+            reportedDiagnostic = reportedDiagnostic || reportMisplacedRefModifier();
+            reportedDiagnostic = reportedDiagnostic || reportMisplacedPartialModifier();
 
             switch (result & DeclarationModifiers.AccessibilityMask)
             {
@@ -494,6 +475,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return result;
+
+            bool reportMisplacedPartialModifier()
+            {
+                var partialIndex = modifiers.IndexOf(SyntaxKind.PartialKeyword);
+                if (partialIndex >= 0)
+                {
+                    var partialToken = modifiers[partialIndex];
+                    var messageId = SyntaxFacts.IsTypeDeclaration(partialToken.Parent.Kind()) ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod;
+                    if (!messageId.CheckFeatureAvailability(diagnostics, partialToken))
+                        return true;
+
+                    // `partial` normally must be last. Preserve the historical exception for ordinary methods ending in
+                    // `partial async`. Ordinary methods are the only declarations that allow both modifiers; elsewhere,
+                    // either `partial` is rejected here or `async` is rejected by ModifierUtils.CheckModifiers.
+                    var isLegalLocation =
+                        partialIndex == modifiers.Count - 1 ||
+                        (partialIndex == modifiers.Count - 2 && modifiers[partialIndex + 1].ContextualKind() is SyntaxKind.AsyncKeyword);
+                    if (!allowsPartialModifier || !isLegalLocation)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_PartialMisplaced, partialToken.GetLocation());
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            bool reportMisplacedRefModifier()
+            {
+                var refIndex = modifiers.IndexOf(SyntaxKind.RefKeyword);
+                if (refIndex >= 0 && modifiers[refIndex] is var refToken && refToken.Parent is StructDeclarationSyntax)
+                {
+                    // `ref` normally must be last. It may precede `partial` because `partial` itself must be last, as in
+                    // `ref partial struct`.
+                    var isLegalLocation =
+                        refIndex == modifiers.Count - 1 ||
+                        (refIndex == modifiers.Count - 2 && modifiers[refIndex + 1].ContextualKind() is SyntaxKind.PartialKeyword);
+                    if (!isLegalLocation)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadModifierLocation, refToken.GetLocation(), refToken.Text);
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         private static void ReportDuplicateModifiers(

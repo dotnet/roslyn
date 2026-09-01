@@ -222,6 +222,11 @@
         <target state="translated">O argumento {0} não pode ser passado com o palavra-chave 'ref' na versão {1} da linguagem. Para passar argumentos 'ref' para parâmetros 'in', atualize para a versão {2} ou superior da linguagem.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAwaitInFixed">
+        <source>Cannot await in context of a 'fixed' statement</source>
+        <target state="translated">Não é possível usar await no contexto de uma instrução 'fixed'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
         <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</source>
         <target state="translated">O operador '{0}' não pode ser aplicado a operandos do tipo '{1}' e '{2}' que não são representações de bytes UTF-8</target>
@@ -241,6 +246,11 @@
         <source>No overload for method '{0}' takes {1} 'with(...)' element arguments</source>
         <target state="translated">Nenhuma sobrecarga para o método "{0}" usa {1} argumentos de elemento "with(...)"</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadCompilationOptionValueAccepted">
+        <source>Invalid '{0}' value: '{1}'. Accepted values are: {2}</source>
+        <target state="new">Invalid '{0}' value: '{1}'. Accepted values are: {2}</target>
+        <note>{2} is a comma-separated list.</note>
       </trans-unit>
       <trans-unit id="ERR_BadCompoundAssignmentOpArgs">
         <source>Overloaded compound assignment operator '{0}' takes one parameter</source>
@@ -530,6 +540,11 @@
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberWrongInitOnly">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}'.</source>
         <target state="translated">'{0}' não implementa o membro de interface '{1}'. '{2}' não pode implementar '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ClosedBadDerivedTypesProperty">
+        <source>'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.</source>
+        <target state="translated">''System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes'' deve ser uma propriedade de instância com acessadores públicos get e set, sem parâmetros e do tipo ''System.Type[]''.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClosedBaseTypeBaseFromOtherAssembly">
@@ -839,7 +854,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe">
         <source>Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</source>
-        <target state="new">Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</target>
+        <target state="translated">O campo em um tipo de layout explícito ou estendido deve ser marcado como 'unsafe' ou 'safe'.</target>
         <note>'unsafe' and 'safe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_ExplicitParamArrayOrCollection">
@@ -894,7 +909,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
         <source>An expression tree may not contain an extension property or indexer access</source>
-        <target state="new">An expression tree may not contain an extension property or indexer access</target>
+        <target state="translated">Uma árvore de expressão não pode conter um acesso à propriedade de extensão ou ao indexador</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -1025,6 +1040,11 @@
       <trans-unit id="ERR_FeatureNotAvailableInVersion14">
         <source>Feature '{0}' is not available in C# 14.0. Please use language version {1} or greater.</source>
         <target state="translated">O recurso "{0}" não está disponível no C# 14.0. Use a versão do idioma {1} ou superior.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion15">
+        <source>Feature '{0}' is not available in C# 15.0. Please use language version {1} or greater.</source>
+        <target state="translated">O recurso '{0}' não está disponível no C# 15.0. Use a versão {1} ou posterior da linguagem.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -1517,6 +1537,11 @@
         <target state="translated">O argumento diagnosticId para o atributo 'Experimental' deve ser um identificador válido</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidPropertyUnsafeMods">
+        <source>Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</source>
+        <target state="translated">Não é possível especificar os modificadores 'unsafe' ou 'safe' na propriedade ou no indexador '{0}' e em seu acessador. Remova um deles.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MemberProviderInUnionDeclaration">
         <source>A 'union' declaration cannot use a union member provider interface.</source>
         <target state="translated">Uma declaração 'union' não pode usar uma interface de provedor de membro de união.</target>
@@ -1529,7 +1554,7 @@
       </trans-unit>
       <trans-unit id="ERR_MissingUnionValueProperty">
         <source>A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</source>
-        <target state="new">A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</target>
+        <target state="translated">Um tipo de provedor de membro da união deve ter uma propriedade ''Value'' da instância do tipo ''object?'' ou ''object''. A propriedade deve ter um acessador get público.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
@@ -1539,12 +1564,12 @@
       </trans-unit>
       <trans-unit id="ERR_NoBreakId">
         <source>No enclosing loop or switch statement with the label '{0}' out of which to break</source>
-        <target state="new">No enclosing loop or switch statement with the label '{0}' out of which to break</target>
+        <target state="translated">Não há nenhum loop envolvente nem instrução switch com o rótulo ''{0}'' para a instrução break</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoContinueId">
         <source>No enclosing loop with the label '{0}' out of which to continue</source>
-        <target state="new">No enclosing loop with the label '{0}' out of which to continue</target>
+        <target state="translated">Não há nenhum loop envolvente com o rótulo ''{0}'' para a instrução continue</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoImplicitConversionToObject">
@@ -2512,10 +2537,15 @@
         <target state="translated">O runtime de destino não dá suporte a convenções de chamada padrão extensíveis ou de ambiente de runtime.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SafeModifierUnsupportedTarget">
-        <source>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</source>
-        <target state="new">The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</target>
-        <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
+      <trans-unit id="ERR_SafeModifierCannotBeUsedWithUnsafe">
+        <source>The 'safe' and 'unsafe' modifiers cannot be used together.</source>
+        <target state="translated">Os modificadores 'safe' e 'unsafe' não podem ser usados juntos.</target>
+        <note>'safe' and 'unsafe' should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="ERR_SamePropertyUnsafeAccessorMods">
+        <source>Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer '{0}'. Instead, put that modifier on the property itself.</source>
+        <target state="translated">Não é possível especificar o mesmo modificador 'unsafe' ou 'safe' em todos os acessadores de uma propriedade ou de um indexador '{0}'. Em vez disso, coloque esse modificador na própria propriedade.</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
         <source>The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</source>
@@ -2859,7 +2889,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedFeatureInRuntimeAsync">
         <source>Method '{0}' uses a feature that is not supported by runtime async. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
-        <target state="new">Method '{0}' uses a feature that is not supported by runtime async. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</target>
+        <target state="translated">O método "{0}" usa um recurso que não tem suporte do runtime assíncrono. Recuse o método de runtime assíncrono atribuindo-o a "System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
@@ -2924,7 +2954,7 @@
       </trans-unit>
       <trans-unit id="GetClosedDerivedTypeInfoMustBeClosed">
         <source>'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</source>
-        <target state="new">'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</target>
+        <target state="translated">''GetClosedDerivedTypeInfo()'' só pode ser chamado quando ''IsClosed'' for ''true''.</target>
         <note>'GetClosedDerivedTypeInfo()', 'IsClosed', and 'true' are not localizable.</note>
       </trans-unit>
       <trans-unit id="HDN_DuplicateWithGlobalUsing">
@@ -2937,11 +2967,6 @@
         <target state="translated">A diretiva using apareceu anteriormente como using global</target>
         <note />
       </trans-unit>
-      <trans-unit id="HDN_RedundantPattern">
-        <source>The pattern is redundant.</source>
-        <target state="translated">O padrão é redundante.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="HDN_RedundantPatternStackGuard">
         <source>The pattern is too complex to analyze for redundancy.</source>
         <target state="translated">O padrão é muito complexo para analisar a redundância.</target>
@@ -2950,11 +2975,6 @@
       <trans-unit id="HDN_RedundantPatternStackGuard_Title">
         <source>The pattern is too complex to analyze for redundancy.</source>
         <target state="translated">O padrão é muito complexo para analisar a redundância.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_RedundantPattern_Title">
-        <source>The pattern is redundant.</source>
-        <target state="translated">O padrão é redundante.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
@@ -3024,7 +3044,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureExtensionIndexers">
         <source>extension indexers</source>
-        <target state="new">extension indexers</target>
+        <target state="translated">indexadores de extensão</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExtensions">
@@ -3094,7 +3114,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureLabeledBreakContinue">
         <source>labeled break and continue</source>
-        <target state="new">labeled break and continue</target>
+        <target state="translated">break e continue rotulados</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
@@ -6025,12 +6045,7 @@
         <target state="translated">O parâmetro não foi lido. Você esqueceu de usá-lo para inicializar a propriedade com esse nome?</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnsafeMeaningless">
-        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
-        <target state="translated">O modificador 'unsafe' não tem efeito aqui, segundo as regras de segurança de memória atuais.</target>
-        <note>'unsafe' is a keyword, should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="WRN_UnsafeMeaningless_Title">
+      <trans-unit id="ERR_UnsafeMeaningless">
         <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
         <target state="translated">O modificador 'unsafe' não tem efeito aqui, segundo as regras de segurança de memória atuais.</target>
         <note>'unsafe' is a keyword, should not be localized.</note>
@@ -11434,11 +11449,6 @@ Forneça ao compilador alguma forma de diferenciar os métodos. Por exemplo, voc
       <trans-unit id="ERR_BadAwaitInStaticVariableInitializer">
         <source>The 'await' operator cannot be used in a static script variable initializer.</source>
         <target state="translated">O operador 'await' não pode ser usado em um inicializador de variável de script estático.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AwaitInUnsafeContext">
-        <source>Cannot await in an unsafe context</source>
-        <target state="translated">Não é possível esperar em um contexto sem segurança</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLacksBody">

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -60,6 +61,51 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         // Diagnostics not reported for '#:'
         syntaxTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
         Assert.Empty(syntaxTree.GetDiagnostics(CancellationToken.None));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestFileBasedProgram_RefDirective(bool mutatingLspWorkspace)
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+        var tempDir = CreateTempDirectoryWithGlobalJson();
+        tempDir.CreateFile("Util.cs").WriteAllText("""
+            #:property TargetFramework=net10.0
+            #:property OutputType=Library
+            public static class Util
+            {
+                public static string M() => "Util";
+            }
+            """);
+        var sourceText = """
+            #:property TargetFramework=net10.0
+            #:property ExperimentalFileBasedProgramEnableRefDirective=true
+            #:ref Util.cs
+            Console.WriteLine($"Hello {Util.M()}!");
+            """;
+        var sourceFile = tempDir.CreateFile("SomeFile.cs").WriteAllText(sourceText);
+
+        // Until we can discover the `#:ref`erenced project, build it so it works as metadata reference.
+        var dotnetCliHelper = testLspServer.GetRequiredLspService<DotnetCliHelper>();
+        using (var process = dotnetCliHelper.Run(["build", sourceFile.Path], workingDirectory: tempDir.Path, shouldLocalizeOutput: true))
+        {
+            var sb = new StringBuilder();
+            process.OutputDataReceived += (sender, args) => sb.AppendLine($"> {args.Data}");
+            process.ErrorDataReceived += (sender, args) => sb.AppendLine($"! {args.Data}");
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+            await process.WaitForExitAsync();
+            Assert.True(process.ExitCode == 0, sb.ToString());
+        }
+
+        var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceFile.Path);
+        await testLspServer.OpenDocumentAsync(looseFileUri, sourceText).ConfigureAwait(false);
+        await WaitForProjectLoad(looseFileUri, testLspServer);
+        var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
+        Assert.NotEmpty(document.Project.MetadataReferences);
+        var model = await document.GetRequiredSemanticModelAsync(CancellationToken.None);
+        model.GetDiagnostics().Verify();
     }
 
     [Theory, CombinatorialData]
@@ -219,9 +265,8 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
 
         await testLspServer.CloseDocumentAsync(looseFileUri);
 
-        (workspace, document) = await GetLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
-        Assert.Null(workspace);
-        Assert.Null(document);
+        Assert.Empty(GetHostWorkspace(testLspServer).CurrentSolution.GetDocumentIds(looseFileUri));
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
     }
 
     [Theory, CombinatorialData]
@@ -281,9 +326,8 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         await testLspServer.CloseDocumentAsync(looseFileUri);
 
         // Project is unloaded because automatic discovery is disabled.
-        (workspace, document) = await GetLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
-        Assert.Null(workspace);
-        Assert.Null(document);
+        Assert.Empty(GetHostWorkspace(testLspServer).CurrentSolution.GetDocumentIds(looseFileUri));
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
     }
 
     /// <summary>Test that a document which does not have an on-disk path, is never treated as a file-based program.</summary>
@@ -780,7 +824,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
         (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
         Assert.Equal(WorkspaceKind.Host, workspace.Kind);
-        Assert.Contains(document.Project.Documents, d => d.Name == "SomeFile.AssemblyInfo.cs");
+        Assert.Contains(document.Project.Documents, d => d.Name == "SomeFile.cs.AssemblyInfo.cs");
         Assert.True(document.Project.State.HasAllInformation);
     }
 
@@ -829,9 +873,9 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         var fileChangeWatcher = testLspServer.GetRequiredLspService<IFileChangeWatcher>();
         using var fileChangeContext = fileChangeWatcher.CreateContext([new WatchedDirectory(Path.GetDirectoryName(appCsFile.Path)!, extensionFilters: [])]);
         var fileChangeTcs = new TaskCompletionSource();
-        fileChangeContext.FileChanged += (_, path) =>
+        fileChangeContext.FileChanged += (_, e) =>
         {
-            if (path == appCsFile.Path)
+            if (e.FilePath == appCsFile.Path)
                 fileChangeTcs.TrySetResult();
         };
 

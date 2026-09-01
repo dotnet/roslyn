@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             bool isInterface = containingType.IsInterface;
-            var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface, syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors, out hasExplicitAccessModifier);
+            var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isForInterfaceMember: isInterface, syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors, out hasExplicitAccessModifier);
 
             report_ERR_StaticConstructorWithAccessModifiers = false;
             if (methodKind == MethodKind.StaticConstructor)
@@ -181,6 +181,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ModifierUtils.ReportDefaultInterfaceImplementationModifiers(hasBody, mods,
                                                                                 DeclarationModifiers.Extern,
                                                                                 location, diagnostics);
+                }
+
+                if ((mods & DeclarationModifiers.Unsafe) == DeclarationModifiers.Unsafe &&
+                    containingType.ContainingModule.UseUpdatedMemorySafetyRules)
+                {
+                    diagnostics.Add(ErrorCode.ERR_UnsafeMeaningless,
+                        syntax.Modifiers.GetModifierLocation(SyntaxKind.UnsafeKeyword, location));
                 }
             }
 
@@ -246,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : ((SourceMemberContainerTypeSymbol)ContainingType).IsNullableEnabledForConstructorsAndInitializers(IsStatic);
 
         internal sealed override bool HasUnsafeModifier => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
-        protected sealed override bool HasSafeModifier => (DeclarationModifiers & DeclarationModifiers.Safe) != 0;
+        internal sealed override bool HasSafeModifier => (DeclarationModifiers & DeclarationModifiers.Safe) != 0;
         internal sealed override bool CanBeCallerUnsafe => MethodKind != MethodKind.StaticConstructor;
 
         protected override bool AllowRefOrOut

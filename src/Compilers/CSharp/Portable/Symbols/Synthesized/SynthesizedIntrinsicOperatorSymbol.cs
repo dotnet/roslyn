@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool UseUpdatedEscapeRules => false;
 
-        internal sealed override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
+        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => CallerUnsafeMode.None;
 
         public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {

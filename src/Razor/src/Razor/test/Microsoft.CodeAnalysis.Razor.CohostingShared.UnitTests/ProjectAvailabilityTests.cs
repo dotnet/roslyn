@@ -3,14 +3,14 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Remote.Razor;
+using Microsoft.CodeAnalysis.Remote.Razor.Hover;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Roslyn.Test.Utilities;
 using Xunit;
 using SR = Microsoft.CodeAnalysis.Razor.Workspaces.Resources.SR;
 
-namespace Microsoft.CodeAnalysis.Razor.Tooltip;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Tooltip;
 
 public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : CohostEndpointTestBase(testOutput)
 {
