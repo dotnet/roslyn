@@ -400,9 +400,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Use CollectionsMarshal.AsSpan(list) to avoid copying the underlying array.
                     // The array is exclusively used by the list and can be safely acquired.
 
-                    Debug.Assert(list.Type is { });
-                    Debug.Assert(list.Type.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T), TypeCompareKind.AllIgnoreOptions));
-
                     var listSpanValue = _factory.Call(null, asSpanMethod.Construct(elementType.Type), list);
 
                     if (isReadOnlySpan)
