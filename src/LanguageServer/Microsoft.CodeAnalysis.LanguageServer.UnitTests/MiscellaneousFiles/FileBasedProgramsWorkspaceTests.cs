@@ -1125,6 +1125,98 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
     }
 
     [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85112")]
+    public async Task TestMultiFile_EditTransitiveDirective(bool mutatingLspWorkspace)
+    {
+        // Verify that adding directives to an included file causes a rebuild.
+        var tempDir = CreateTempDirectoryWithGlobalJson();
+
+        var util2CsText = """
+            internal class Util2 { }
+            """;
+        var util2CsFile = tempDir.CreateFile("Util2.cs").WriteAllText(util2CsText);
+
+        // note: '#:include Util2.cs' is missing, we'll add it later
+        var utilCsText = """
+            new Util2();
+            """;
+        var utilCsFile = tempDir.CreateFile("Util.cs").WriteAllText(utilCsText);
+
+        var appCsText = """
+            #!/usr/bin/env dotnet
+            #:include Util.cs
+            """;
+        var appCsFile = tempDir.CreateFile("App.cs").WriteAllText(appCsText);
+
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
+        });
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+
+        // Open App.cs.
+        var appCsUri = ProtocolConversions.CreateAbsoluteDocumentUri(appCsFile.Path);
+        await testLspServer.OpenDocumentAsync(appCsUri, appCsText).ConfigureAwait(false);
+        await WaitForProjectLoad(appCsUri, testLspServer);
+
+        // App.cs is in the host workspace as a file-based app.
+        var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(appCsUri, testLspServer).ConfigureAwait(false);
+        var appProjectId = document.Project.Id;
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        Assert.True(document.Project.State.HasAllInformation);
+
+        // Open Util.cs. It's part of the same project as App.cs.
+        var utilCsUri = ProtocolConversions.CreateAbsoluteDocumentUri(utilCsFile.Path);
+        await testLspServer.OpenDocumentAsync(utilCsUri, utilCsText).ConfigureAwait(false);
+
+        (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(utilCsUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        Assert.Equal(appProjectId, document.Project.Id);
+
+        // Semantic error on 'new Util2()'.
+        var model = await document.GetRequiredSemanticModelAsync(CancellationToken.None);
+        model.GetDiagnostics().Verify(
+            // Util.cs(1,5): error CS0246: The type or namespace name 'Util2' could not be found (are you missing a using directive or an assembly reference?)
+            TestHelpers.Diagnostic(code: 246, squiggledText: "Util2").WithArguments("Util2").WithLocation(1, 5)
+        );
+
+        // Update Util.cs to include Util2.cs.
+        var textToInsert = $"#:include Util2.cs{Environment.NewLine}";
+        // Write updated content to disk so the build host can load it.
+        utilCsFile.WriteAllText(textToInsert + utilCsText);
+        await testLspServer.InsertTextAsync(utilCsUri, (Line: 0, Column: 0, Text: textToInsert));
+
+        await WaitForProjectLoad(appCsUri, testLspServer);
+        (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(utilCsUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        Assert.Equal(appProjectId, document.Project.Id);
+
+        // NOTE: Semantic error should be gone now, but, it's not. This is a bug.
+        // 'SourceFileCreatedOrDeletedChangeContext_FileChanged' fires for Util.cs, but it doesn't match any of the '_mostRecentFileMatchers'.
+        model = await document.GetRequiredSemanticModelAsync(CancellationToken.None);
+        model.GetDiagnostics().Verify(
+            // Util.cs(2,5): error CS0246: The type or namespace name 'Util2' could not be found (are you missing a using directive or an assembly reference?)
+            TestHelpers.Diagnostic(code: 246, squiggledText: "Util2").WithArguments("Util2").WithLocation(2, 5)
+        );
+
+        // Trivial edit+save of the App.cs file will trigger a reload though.
+        appCsFile.WriteAllText(appCsText + Environment.NewLine);
+        var appCsSourceText = SourceText.From(appCsText);
+        var appCsEndPosition = appCsSourceText.Lines.GetLinePosition(appCsSourceText.Length);
+        await testLspServer.InsertTextAsync(appCsUri, (Line: appCsEndPosition.Line, Column: appCsEndPosition.Character, Text: Environment.NewLine));
+        await WaitForProjectLoad(appCsUri, testLspServer);
+
+        // Get the Util.cs document again
+        (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(utilCsUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        Assert.Equal(appProjectId, document.Project.Id);
+
+        model = await document.GetRequiredSemanticModelAsync(CancellationToken.None);
+        model.GetDiagnostics().Verify();
+    }
+
+    [Theory, CombinatorialData]
     public async Task TestMultiFile_Simulated_TransitiveDirective_DiscoverEntryPoint(bool mutatingLspWorkspace)
     {
         // A secondary file has a `#:` directive but no top-level statements.
