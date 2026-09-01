@@ -99,6 +99,94 @@ public sealed class FormatDocumentOnTypeTests : AbstractLanguageServerProtocolTe
             """);
     }
 
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/8939")]
+    public async Task TestFormatDocumentOnType_NewLineInPrimaryConstructorParameterList(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            class A(
+                int x,
+                int y,
+                {|type:|}
+            );
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        var locationTyped = testLspServer.GetLocations("type").Single();
+        await AssertFormatDocumentOnTypeAsync(testLspServer, "\n", locationTyped, """
+            class A(
+                int x,
+                int y,
+            /*indent*/
+            );
+            """.Replace("/*indent*/", "    "));
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/8939")]
+    public async Task TestFormatDocumentOnType_NewLineInMethodParameterList(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            class A
+            {
+                void M(
+                    int x,
+                    int y,
+                    {|type:|}
+                )
+                {
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        var locationTyped = testLspServer.GetLocations("type").Single();
+        await AssertFormatDocumentOnTypeAsync(testLspServer, "\n", locationTyped, """
+            class A
+            {
+                void M(
+                    int x,
+                    int y,
+            /*indent*/
+                )
+                {
+                }
+            }
+            """.Replace("/*indent*/", "        "));
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/8939")]
+    public async Task TestFormatDocumentOnType_NewLineInArgumentList(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            class A
+            {
+                void M()
+                {
+                    M(
+                        1,
+                        2,
+                        {|type:|}
+                    );
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        var locationTyped = testLspServer.GetLocations("type").Single();
+        await AssertFormatDocumentOnTypeAsync(testLspServer, "\n", locationTyped, """
+            class A
+            {
+                void M()
+                {
+                    M(
+                        1,
+                        2,
+            /*indent*/
+                    );
+                }
+            }
+            """.Replace("/*indent*/", "            "));
+    }
+
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/8429")]
     public async Task TestFormatDocumentOnType_NewLineBeforeMultilineComment(bool mutatingLspWorkspace)
     {

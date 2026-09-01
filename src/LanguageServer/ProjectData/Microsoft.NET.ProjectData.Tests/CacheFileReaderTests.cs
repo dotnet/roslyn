@@ -15,11 +15,18 @@ public sealed class DotnetRootEnvCollection
 }
 
 [Collection(DotnetRootEnvCollection.Name)]
-public class CacheFileReaderTests
+public class CacheFileReaderTests : IDisposable
 {
 	private static readonly CachePathResolver Resolver = new();
 	private static readonly string TestProjectDirectory = Path.Combine(Path.GetTempPath(), "projectdata-cache-tests", "TestProject");
 	private static readonly string TestProjectFilePath = Path.Combine(TestProjectDirectory, "TestProject.csproj");
+	private readonly CapturingTraceListener listener = new();
+
+	public CacheFileReaderTests()
+		=> Trace.Listeners.Add(this.listener);
+
+	public void Dispose()
+		=> Trace.Listeners.Remove(this.listener);
 
 	#region Header and Structure
 
@@ -50,6 +57,194 @@ public class CacheFileReaderTests
 		ImmutableArray<CachedSliceData> slices = await ParseAsync(content);
 		Assert.Single(slices);
 		Assert.Equal("C#", slices[0].LanguageName);
+	}
+
+	[Fact]
+	public async Task ReadProjectCacheAsync_CanceledBeforeOpen_ThrowsAndLogsNoWarnings()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string projectFilePath = Path.Combine(tempRoot, "App.csproj");
+			WriteCache(projectFilePath + ".lscache", "App");
+
+			await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+				CacheFileReader.ReadProjectCacheAsync(
+					projectFilePath,
+					cacheInProject: true,
+					Resolver,
+					new CancellationToken(canceled: true)));
+
+			Assert.Empty(this.listener.Warnings);
+			Assert.DoesNotContain("Opening cache file", this.listener.Information);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public async Task ReadFromAsync_CanceledDuringLineRead_ThrowsWithoutReturningPartialSlicesOrLoggingWarnings()
+	{
+		using CancellationTokenSource cancellationSource = new();
+		using BlockingTextReader reader = new(
+			[
+				"version=2",
+				"[project]",
+				"language=C#",
+				"---",
+			],
+			blockAtRead: 4);
+		Task<ImmutableArray<CachedSliceData>> readTask = CacheFileReader.ReadFromAsync(
+			reader,
+			Resolver,
+			TestProjectDirectory,
+			TestProjectFilePath,
+			expectedProjectFilePath: null,
+			stringPool: null,
+			cancellationToken: cancellationSource.Token);
+
+		await reader
+			.WaitUntilBlockedAsync()
+			.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+		cancellationSource.Cancel();
+
+		await Assert.ThrowsAnyAsync<OperationCanceledException>(() => readTask);
+		Assert.True(readTask.IsCanceled);
+		Assert.Empty(this.listener.Warnings);
+	}
+
+	[Fact]
+	public async Task ReadFromAsync_CanceledWhileParsingLine_ThrowsBeforeReadingAnotherLineOrLoggingWarnings()
+	{
+		using CancellationTokenSource cancellationSource = new();
+		using CancelAfterReturningLineTextReader reader = new(
+			[
+				"version=2",
+				"[project]",
+				"language=C#",
+				"[sourceFiles]",
+				"Program.cs",
+			],
+			cancelAfterReturningLine: 4,
+			cancellationSource);
+		await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+			CacheFileReader.ReadFromAsync(
+				reader,
+				Resolver,
+				TestProjectDirectory,
+				TestProjectFilePath,
+				expectedProjectFilePath: null,
+				stringPool: null,
+				cancellationToken: cancellationSource.Token));
+
+		Assert.False(reader.ReadRequestedAfterCancellation);
+		Assert.Empty(this.listener.Warnings);
+	}
+
+	[Fact]
+	public async Task ReadFromAsync_CanceledAfterHeaderRead_ThrowsWithoutLoggingWarnings()
+	{
+		using CancellationTokenSource cancellationSource = new();
+		using CancelAfterReturningLineTextReader reader = new(
+			["version=99"],
+			cancelAfterReturningLine: 0,
+			cancellationSource);
+		await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+			CacheFileReader.ReadFromAsync(
+				reader,
+				Resolver,
+				TestProjectDirectory,
+				TestProjectFilePath,
+				expectedProjectFilePath: null,
+				stringPool: null,
+				cancellationToken: cancellationSource.Token));
+
+		Assert.Empty(this.listener.Warnings);
+	}
+
+	[Fact]
+	public async Task ReadFromAsync_CanceledAtEndOfFile_ThrowsBeforeMaterializationOrDiagnostics()
+	{
+		using CancellationTokenSource cancellationSource = new();
+		using CancelAfterReturningLineTextReader reader = new(
+			[
+				"version=2",
+				"[project]",
+				"language=C#",
+			],
+			cancelAfterReturningLine: 3,
+			cancellationSource);
+		await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+			CacheFileReader.ReadFromAsync(
+				reader,
+				Resolver,
+				TestProjectDirectory,
+				TestProjectFilePath,
+				expectedProjectFilePath: null,
+				stringPool: null,
+				cancellationToken: cancellationSource.Token));
+
+		Assert.Empty(this.listener.Warnings);
+		Assert.DoesNotContain("Read 1 slice(s)", this.listener.Information);
+	}
+
+	[Fact]
+	public async Task ReadFromAsync_CanceledDuringFinalMaterialization_ThrowsBeforeMismatchWarningOrEmptyResult()
+	{
+		const string content = """
+			version=2
+			project=App.csproj
+
+			[project]
+			language=C#
+
+			[sourceFiles]
+			Program.cs
+			""";
+		using CancellationTokenSource cancellationSource = new();
+		StringPool stringPool = new(cancellationSource.Cancel);
+		using StringReader reader = new(StripLeadingTabs(content));
+		await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+			CacheFileReader.ReadFromAsync(
+				reader,
+				Resolver,
+				TestProjectDirectory,
+				TestProjectFilePath,
+				expectedProjectFilePath: Path.Combine(TestProjectDirectory, "Other.csproj"),
+				stringPool,
+				cancellationToken: cancellationSource.Token));
+
+		Assert.Empty(this.listener.Warnings);
+	}
+
+	[Fact]
+	public void FrameworkListExpander_CanceledRead_DoesNotWarnOrCacheCancellation()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string packDirectory = Path.Combine(tempRoot, "pack");
+			string dataDirectory = Path.Combine(packDirectory, "data");
+			Directory.CreateDirectory(dataDirectory);
+			File.WriteAllText(Path.Combine(dataDirectory, "FrameworkList.xml"), "<invalid");
+
+			Assert.Throws<OperationCanceledException>(() =>
+				FrameworkListExpander.Expand(packDirectory, new CancellationToken(canceled: true)));
+			Assert.Empty(this.listener.Warnings);
+
+			FrameworkListExpander.ExpansionResult result = FrameworkListExpander.Expand(
+				packDirectory,
+				TestContext.Current.CancellationToken);
+
+			Assert.Same(FrameworkListExpander.ExpansionResult.Empty, result);
+			Assert.Contains("Failed to parse framework-list manifest", this.listener.Warnings);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
 	}
 
 	[Fact]
@@ -229,7 +424,9 @@ public class CacheFileReaderTests
 				Resolver,
 				Path.GetDirectoryName(projectFilePath)!,
 				projectFilePath,
-				stringPool: stringPool);
+				expectedProjectFilePath: null,
+				stringPool,
+				cancellationToken: TestContext.Current.CancellationToken);
 			return Assert.Single(slices);
 		}
 
@@ -261,7 +458,7 @@ public class CacheFileReaderTests
 	public void ExpandCompressedPaths_Flat_Paths()
 	{
 		List<string> lines = ["Program.cs", "Helper.cs"];
-		List<(string Path, Dictionary<string, string>? Metadata)> result = CacheFileReader.ExpandCompressedPaths(lines);
+		List<(string Path, Dictionary<string, string>? Metadata)> result = CacheFileReader.ExpandCompressedPaths(lines, TestContext.Current.CancellationToken);
 
 		Assert.Equal(2, result.Count);
 		Assert.Equal("Program.cs", result[0].Path);
@@ -278,7 +475,7 @@ public class CacheFileReaderTests
 			" User.cs",
 		];
 
-		List<(string Path, Dictionary<string, string>? Metadata)> result = CacheFileReader.ExpandCompressedPaths(lines);
+		List<(string Path, Dictionary<string, string>? Metadata)> result = CacheFileReader.ExpandCompressedPaths(lines, TestContext.Current.CancellationToken);
 
 		Assert.Equal(2, result.Count);
 		Assert.Equal("src/Models/Product.cs", result[0].Path);
@@ -295,7 +492,7 @@ public class CacheFileReaderTests
 			" System.Runtime.dll",
 		];
 
-		List<(string Path, Dictionary<string, string>? Metadata)> result = CacheFileReader.ExpandCompressedPaths(lines);
+		List<(string Path, Dictionary<string, string>? Metadata)> result = CacheFileReader.ExpandCompressedPaths(lines, TestContext.Current.CancellationToken);
 
 		Assert.Equal(2, result.Count);
 		Assert.Equal("<DOTNET>/packs/Microsoft.NETCore.App.Ref/10.0.3/ref/net10.0/System.Collections.dll", result[0].Path);
@@ -314,7 +511,7 @@ public class CacheFileReaderTests
 			"src/A/C/File3.cs",
 		];
 
-		List<(string Path, Dictionary<string, string>? Metadata)> result = CacheFileReader.ExpandCompressedPaths(lines);
+		List<(string Path, Dictionary<string, string>? Metadata)> result = CacheFileReader.ExpandCompressedPaths(lines, TestContext.Current.CancellationToken);
 
 		Assert.Equal(4, result.Count);
 		Assert.Equal("Program.cs", result[0].Path);
@@ -333,7 +530,7 @@ public class CacheFileReaderTests
 			" @embedInteropTypes",
 		];
 
-		List<(string Path, Dictionary<string, string>? Metadata)> result = CacheFileReader.ExpandCompressedPaths(lines);
+		List<(string Path, Dictionary<string, string>? Metadata)> result = CacheFileReader.ExpandCompressedPaths(lines, TestContext.Current.CancellationToken);
 
 		Assert.Single(result);
 		Assert.Equal("lib/Interop.dll", result[0].Path);
@@ -352,7 +549,7 @@ public class CacheFileReaderTests
 			"  @folderNames=External",
 		];
 
-		List<(string Path, Dictionary<string, string>? Metadata)> result = CacheFileReader.ExpandCompressedPaths(lines);
+		List<(string Path, Dictionary<string, string>? Metadata)> result = CacheFileReader.ExpandCompressedPaths(lines, TestContext.Current.CancellationToken);
 
 		Assert.Single(result);
 		Assert.Equal("<NUGET>/package/1.0/lib/File.cs", result[0].Path);
@@ -424,7 +621,6 @@ public class CacheFileReaderTests
 		ImmutableArray<CachedSliceData> slices = await ParseAsync(content);
 		Assert.Equal(2, slices[0].MetadataReferences.Length);
 
-		// Roslyn is on xunit v2, so we must call ToArray() to get the correct overload that compares the values and not the actual array identity
 		Assert.Equal(["global", "interop"], slices[0].MetadataReferences[0].Aliases.ToArray());
 		Assert.True(slices[0].MetadataReferences[0].EmbedInteropTypes);
 
@@ -440,7 +636,6 @@ public class CacheFileReaderTests
 	public void DeriveFolderNames_From_Relative_Path()
 	{
 		ImmutableArray<string> folders = CacheFileReader.DeriveFolderNamesFromPortablePath("src/Models/User.cs");
-		// Roslyn is on xunit v2, so we must call ToArray() to get the correct overload that compares the values and not the actual array identity
 		Assert.Equal(["src", "Models"], folders.ToArray());
 	}
 
@@ -600,24 +795,15 @@ public class CacheFileReaderTests
 	[Fact]
 	public async Task Reading_A_Different_Minor_Version_Logs_Information_Not_Warning()
 	{
-		CapturingTraceListener listener = new();
-		Trace.Listeners.Add(listener);
-		try
-		{
-			ImmutableArray<CachedSliceData> slices = await ParseAsync("version=2.7\n\n[project]\nlanguage=C#\n");
-			Assert.Single(slices);
-			Assert.Contains("different minor version", listener.Information);
-			Assert.Contains("version=2.7", listener.Information);
-			Assert.Empty(listener.Warnings);
+		ImmutableArray<CachedSliceData> slices = await ParseAsync("version=2.7\n\n[project]\nlanguage=C#\n");
+		Assert.Single(slices);
+		Assert.Contains("different minor version", this.listener.Information);
+		Assert.Contains("version=2.7", this.listener.Information);
+		Assert.Empty(this.listener.Warnings);
 
-			listener.Clear();
-			await ParseAsync("version=2\n\n[project]\nlanguage=C#\n");
-			Assert.DoesNotContain("different minor version", listener.Information);
-		}
-		finally
-		{
-			Trace.Listeners.Remove(listener);
-		}
+		this.listener.Clear();
+		await ParseAsync($"{CacheFormat.VersionHeader}\n\n[project]\nlanguage=C#\n");
+		Assert.DoesNotContain("different minor version", this.listener.Information);
 	}
 
 	// A normal, successful read (matching version, slices present) must not emit any warnings: opening
@@ -626,19 +812,10 @@ public class CacheFileReaderTests
 	[Fact]
 	public async Task Reading_A_Valid_Cache_Logs_No_Warnings()
 	{
-		CapturingTraceListener listener = new();
-		Trace.Listeners.Add(listener);
-		try
-		{
-			ImmutableArray<CachedSliceData> slices = await ParseAsync("version=2\n\n[project]\nlanguage=C#\n");
-			Assert.Single(slices);
-			Assert.Empty(listener.Warnings);
-			Assert.Contains("Read 1 slice(s)", listener.Information);
-		}
-		finally
-		{
-			Trace.Listeners.Remove(listener);
-		}
+		ImmutableArray<CachedSliceData> slices = await ParseAsync("version=2\n\n[project]\nlanguage=C#\n");
+		Assert.Single(slices);
+		Assert.Empty(this.listener.Warnings);
+		Assert.Contains("Read 1 slice(s)", this.listener.Information);
 	}
 
 	// Unknown sections, unknown [project] markers/keys, and unknown @metadata produce no
@@ -820,10 +997,91 @@ public class CacheFileReaderTests
 		sb.AppendLine("embeddedResources:");
 		foreach (CachedEmbeddedResource e in s.EmbeddedResources) sb.AppendLine($"  {e.FilePath} gen={e.Generator} last={e.LastGenOutput} ns={e.CustomToolNamespace}");
 		sb.AppendLine("projectReferences:");
-		foreach (string p in s.ProjectReferences) sb.AppendLine($"  {p}");
+		foreach (CachedProjectReference p in s.ProjectReferences) sb.AppendLine($"  {p.FilePath} ({p.ReferenceOutputAssembly})");
 		sb.AppendLine("capabilities:");
 		foreach (string c in s.Capabilities) sb.AppendLine($"  {c}");
 		return sb.ToString();
+	}
+
+	#endregion
+
+	#region Project References
+
+	[Fact]
+	public async Task ProjectReferences_ParseReferenceOutputAssemblyMetadata()
+	{
+		string content = """
+			version=2.1
+
+			[project]
+			language=C#
+
+			[projectReferences]
+			BuildOnly/
+			 BuildOnly.csproj
+			  @ReferenceOutputAssembly=false
+			Library/Library.csproj
+			""";
+
+		ImmutableArray<CachedSliceData> slices = await ParseAsync(content);
+		CachedProjectReference[] references = slices[0].ProjectReferences.ToArray();
+
+		Assert.Equal(2, references.Length);
+		Assert.EndsWith(Path.Combine("BuildOnly", "BuildOnly.csproj"), references[0].FilePath);
+		Assert.False(references[0].ReferenceOutputAssembly!.Value);
+		Assert.EndsWith(Path.Combine("Library", "Library.csproj"), references[1].FilePath);
+		Assert.True(references[1].ReferenceOutputAssembly!.Value);
+	}
+
+	[Fact]
+	public async Task ProjectReferences_NewerKnownMinor_DefaultsMissingReferenceOutputAssemblyToTrue()
+	{
+		string content = """
+			version=2.10
+
+			[project]
+			language=C#
+
+			[projectReferences]
+			Library.csproj
+			""";
+
+		CachedProjectReference reference = Assert.Single((await ParseAsync(content))[0].ProjectReferences);
+		Assert.True(reference.ReferenceOutputAssembly!.Value);
+	}
+
+	[Fact]
+	public async Task ProjectReferences_MalformedMinor_LeavesMissingReferenceOutputAssemblyUnclassified()
+	{
+		string content = """
+			version=2.not-a-number
+
+			[project]
+			language=C#
+
+			[projectReferences]
+			Library.csproj
+			""";
+
+		CachedProjectReference reference = Assert.Single((await ParseAsync(content))[0].ProjectReferences);
+		Assert.Null(reference.ReferenceOutputAssembly);
+	}
+
+	[Fact]
+	public async Task ProjectReferences_Pre21Cache_LeavesReferenceOutputAssemblyUnclassified()
+	{
+		string content = """
+			version=2
+
+			[project]
+			language=C#
+
+			[projectReferences]
+			Legacy.csproj
+			""";
+
+		CachedProjectReference reference = Assert.Single((await ParseAsync(content))[0].ProjectReferences);
+		Assert.Null(reference.ReferenceOutputAssembly);
 	}
 
 	#endregion
@@ -839,9 +1097,32 @@ public class CacheFileReaderTests
 
 		using StringReader reader = new(content);
 		ImmutableArray<CachedSliceData> slices = await CacheFileReader.ReadFromAsync(
-			reader, Resolver, projectDirectory, projectFilePath, expectedProjectFilePath: projectFilePath);
+			reader, Resolver, projectDirectory, projectFilePath, projectFilePath, stringPool: null, cancellationToken: TestContext.Current.CancellationToken);
 
 		Assert.Single(slices);
+	}
+
+	[Fact]
+	public async Task Project_Header_Path_Sentinel_Resolves_From_Project_Directory()
+	{
+		string projectDirectory = Path.Combine(Path.GetTempPath(), "projectdata-cache-tests", "dev");
+		string fallbackProjectFilePath = Path.Combine(projectDirectory, "Fallback.csproj");
+		string expectedProjectFilePath = Path.Combine(projectDirectory, "Subdir", "MyProject.csproj");
+		string content = """
+			version=2
+			project=<PATH>Subdir/MyProject.csproj
+
+			[project]
+			language=C#
+
+			""";
+
+		using StringReader reader = new(content);
+		ImmutableArray<CachedSliceData> slices = await CacheFileReader.ReadFromAsync(
+			reader, Resolver, projectDirectory, fallbackProjectFilePath, expectedProjectFilePath, stringPool: null, cancellationToken: TestContext.Current.CancellationToken);
+
+		CachedSliceData slice = Assert.Single(slices);
+		Assert.Equal(expectedProjectFilePath, slice.ProjectFilePath);
 	}
 
 	[Fact]
@@ -851,7 +1132,7 @@ public class CacheFileReaderTests
 
 		using StringReader reader = new(content);
 		ImmutableArray<CachedSliceData> slices = await CacheFileReader.ReadFromAsync(
-			reader, Resolver, @"C:\dev", @"C:\dev\MyProject.csproj", expectedProjectFilePath: @"C:\dev\MyProject.csproj");
+			reader, Resolver, @"C:\dev", @"C:\dev\MyProject.csproj", @"C:\dev\MyProject.csproj", stringPool: null, cancellationToken: TestContext.Current.CancellationToken);
 
 		Assert.True(slices.IsEmpty);
 	}
@@ -863,7 +1144,7 @@ public class CacheFileReaderTests
 
 		using StringReader reader = new(content);
 		ImmutableArray<CachedSliceData> slices = await CacheFileReader.ReadFromAsync(
-			reader, Resolver, @"C:\dev", @"C:\dev\MyProject.csproj", expectedProjectFilePath: @"C:\dev\MyProject.csproj");
+			reader, Resolver, @"C:\dev", @"C:\dev\MyProject.csproj", @"C:\dev\MyProject.csproj", stringPool: null, cancellationToken: TestContext.Current.CancellationToken);
 
 		Assert.True(slices.IsEmpty);
 	}
@@ -878,10 +1159,1438 @@ public class CacheFileReaderTests
 
 		using StringReader reader = new(content);
 		ImmutableArray<CachedSliceData> slices = await CacheFileReader.ReadFromAsync(
-			reader, Resolver, projectDirectory, fallbackProjectFilePath, expectedProjectFilePath: expectedProjectFilePath);
+			reader, Resolver, projectDirectory, fallbackProjectFilePath, expectedProjectFilePath, stringPool: null, cancellationToken: TestContext.Current.CancellationToken);
 
 		Assert.Single(slices);
 		Assert.Equal(expectedProjectFilePath, slices[0].ProjectFilePath);
+	}
+
+	#endregion
+
+	#region Donor Index
+
+	[Theory]
+	[InlineData(null, true)]
+	[InlineData("", true)]
+	[InlineData("1", true)]
+	[InlineData("true", true)]
+	[InlineData("0", false)]
+	[InlineData("false", false)]
+	[InlineData("FALSE", false)]
+	public void DonorEnvironmentSwitch_UsesOptOutSemantics(string? value, bool expected)
+		=> Assert.Equal(expected, ProjectDataDonorOptions.IsEnabledByEnvironmentValue(value));
+
+	[Fact]
+	public void CacheReadStream_KeepsOpenedBytesAcrossAtomicReplacement()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string cachePath = Path.Combine(tempRoot, "App.csproj.lscache");
+			string replacementPath = Path.Combine(tempRoot, "replacement.tmp");
+			File.WriteAllText(cachePath, "original");
+			File.WriteAllText(replacementPath, "replacement");
+
+			using FileStream stream = CacheFileReader.OpenCacheFileForRead(cachePath);
+			File.Replace(replacementPath, cachePath, destinationBackupFileName: null);
+			using StreamReader reader = new(
+				stream,
+				Encoding.UTF8,
+				detectEncodingFromByteOrderMarks: true,
+				bufferSize: 1024,
+				leaveOpen: true);
+
+			Assert.Equal("replacement", File.ReadAllText(cachePath));
+			Assert.Equal("original", reader.ReadToEnd());
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public void DonorIndex_DottedRepositoryRoot_ResolvesFromProjectDirectory()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string repositoryRoot = Path.Combine(tempRoot, "repo.v2");
+			string projectFile = Path.Combine(repositoryRoot, "App.csproj");
+			Directory.CreateDirectory(Path.Combine(repositoryRoot, ".git"));
+			WriteProjectFile(projectFile);
+
+			string indexPath = Assert.IsType<string>(ProjectDataDonorIndex.TryResolveDefaultIndexPath(projectFile));
+
+			Assert.Equal(
+				Path.Combine(repositoryRoot, ".git", "dotnet-projectdata", "lscache-donor-index.json"),
+				indexPath);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public void DonorIndex_LinkedWorktree_ResolvesRelativeCommonGitDirectory()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string repositoryRoot = Path.Combine(tempRoot, "repository");
+			string commonGitDirectory = Path.Combine(repositoryRoot, ".git");
+			string worktreeRoot = Path.Combine(tempRoot, "linked-worktree");
+			string worktreeGitDirectory = Path.Combine(commonGitDirectory, "worktrees", "linked-worktree");
+			string projectFile = Path.Combine(worktreeRoot, "src", "App", "App.csproj");
+			Directory.CreateDirectory(worktreeGitDirectory);
+			Directory.CreateDirectory(worktreeRoot);
+			File.WriteAllText(Path.Combine(worktreeRoot, ".git"), "gitdir: " + worktreeGitDirectory);
+			File.WriteAllText(Path.Combine(worktreeGitDirectory, "commondir"), Path.Combine("..", ".."));
+			WriteProjectFile(projectFile);
+
+			string indexPath = Assert.IsType<string>(ProjectDataDonorIndex.TryResolveDefaultIndexPath(projectFile));
+
+			Assert.Equal(
+				Path.Combine(commonGitDirectory, "dotnet-projectdata", "lscache-donor-index.json"),
+				indexPath);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public async Task ReadProjectCacheAsync_OutsideGitRepository_FallsBackToEmpty()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string recipientProject = Path.Combine(tempRoot, "recipient", "src", "App", "App.csproj");
+			WriteProjectFile(recipientProject);
+
+			Assert.Null(ProjectDataDonorIndex.TryResolveDefaultIndexPath(recipientProject));
+
+			ProjectDataCacheReadResult result = await CacheFileReader.ReadProjectCacheWithSourceAsync(
+				recipientProject,
+				cacheInProject: true,
+				Resolver,
+				stringPool: null,
+				cancellationToken: TestContext.Current.CancellationToken,
+				donorOptions: null);
+
+			Assert.Empty(result.Slices);
+			Assert.Equal(ProjectDataCacheSource.None, result.Source);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public async Task ReadProjectCacheAsync_UnavailableGitMetadata_UsesDiscoveredDonor()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string recipientRoot = Path.Combine(tempRoot, "recipient");
+			string donorRoot = Path.Combine(tempRoot, "donor");
+			string recipientProject = Path.Combine(recipientRoot, "src", "App", "App.csproj");
+			string donorProject = Path.Combine(donorRoot, "src", "App", "App.csproj");
+			Directory.CreateDirectory(Path.Combine(recipientRoot, ".git"));
+			WriteProjectFile(recipientProject);
+			WriteCache(donorProject + ".lscache", "DonorAssembly");
+			string indexPath = Assert.IsType<string>(ProjectDataDonorIndex.TryResolveDefaultIndexPath(recipientProject));
+			WriteDonorIndex(indexPath, donorRoot);
+
+			ImmutableArray<CachedSliceData> slices = await CacheFileReader.ReadProjectCacheAsync(
+				recipientProject,
+				cacheInProject: true,
+				Resolver,
+				cancellationToken: TestContext.Current.CancellationToken);
+
+			Assert.Equal("DonorAssembly", Assert.Single(slices).Properties["AssemblyName"]);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public async Task ReadProjectCacheAsync_LocalProjectFolderCache_Wins_Over_Donor()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string recipientRoot = Path.Combine(tempRoot, "recipient");
+			string donorRoot = Path.Combine(tempRoot, "donor");
+			string indexPath = Path.Combine(tempRoot, "index", "lscache-donor-index.json");
+			string recipientProject = Path.Combine(recipientRoot, "src", "App", "App.csproj");
+			string donorProject = Path.Combine(donorRoot, "src", "App", "App.csproj");
+			WriteCache(recipientProject + ".lscache", "LocalAssembly");
+			WriteCache(donorProject + ".lscache", "DonorAssembly");
+			WriteDonorIndex(indexPath, donorRoot);
+
+			ProjectDataCacheReadResult result = await CacheFileReader.ReadProjectCacheWithSourceAsync(
+				recipientProject,
+				cacheInProject: true,
+				Resolver,
+				stringPool: null,
+				cancellationToken: TestContext.Current.CancellationToken,
+				donorOptions: new ProjectDataDonorOptions
+				{
+					IndexPath = indexPath,
+					WorkspaceRoot = recipientRoot,
+					GitDistanceTopK = 0,
+				});
+
+			CachedSliceData slice = Assert.Single(result.Slices);
+			Assert.Equal("LocalAssembly", slice.Properties["AssemblyName"]);
+			Assert.Equal(ProjectDataCacheSource.ProjectFolder, result.Source);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public async Task ReadProjectCacheAsync_LocalUserFolderCache_Wins_Over_Donor_When_ProjectFolderMode_Is_Current()
+	{
+		string tempRoot = CreateTempRoot();
+		string? originalCacheDir = Environment.GetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR");
+		try
+		{
+			string recipientRoot = Path.Combine(tempRoot, "recipient");
+			string donorRoot = Path.Combine(tempRoot, "donor");
+			string cacheRoot = Path.Combine(tempRoot, "user-cache");
+			Environment.SetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR", cacheRoot);
+			string indexPath = Path.Combine(tempRoot, "index", "lscache-donor-index.json");
+			string recipientProject = Path.Combine(recipientRoot, "src", "App", "App.csproj");
+			string donorProject = Path.Combine(donorRoot, "src", "App", "App.csproj");
+			WriteCache(CacheFileReader.GetUserFolderCacheFilePath(recipientProject), "LocalUserFolderAssembly");
+			WriteCache(donorProject + ".lscache", "DonorAssembly");
+			WriteDonorIndex(indexPath, donorRoot);
+
+			ProjectDataCacheReadResult result = await CacheFileReader.ReadProjectCacheWithSourceAsync(
+				recipientProject,
+				cacheInProject: true,
+				Resolver,
+				stringPool: null,
+				cancellationToken: TestContext.Current.CancellationToken,
+				donorOptions: new ProjectDataDonorOptions
+				{
+					IndexPath = indexPath,
+					WorkspaceRoot = recipientRoot,
+					GitDistanceTopK = 0,
+				});
+
+			CachedSliceData slice = Assert.Single(result.Slices);
+			Assert.Equal("LocalUserFolderAssembly", slice.Properties["AssemblyName"]);
+			Assert.Equal(ProjectDataCacheSource.UserFolder, result.Source);
+		}
+		finally
+		{
+			Environment.SetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR", originalCacheDir);
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public async Task ReadProjectCacheAsync_UnsupportedMarker_Wins_Over_Donor()
+	{
+		string tempRoot = CreateTempRoot();
+		string? originalCacheDir = Environment.GetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR");
+		try
+		{
+			string recipientRoot = Path.Combine(tempRoot, "recipient");
+			string donorRoot = Path.Combine(tempRoot, "donor");
+			string cacheRoot = Path.Combine(tempRoot, "user-cache");
+			Environment.SetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR", cacheRoot);
+			string indexPath = Path.Combine(tempRoot, "index", "lscache-donor-index.json");
+			string recipientProject = Path.Combine(recipientRoot, "src", "App", "App.csproj");
+			string donorProject = Path.Combine(donorRoot, "src", "App", "App.csproj");
+			WriteProjectFile(recipientProject);
+			UnsupportedProjectDataMarker.Write(recipientProject, "UnsupportedTargetFramework");
+			WriteCache(donorProject + ".lscache", "DonorAssembly");
+			WriteDonorIndex(indexPath, donorRoot);
+
+			ProjectDataCacheReadResult result = await CacheFileReader.ReadProjectCacheWithSourceAsync(
+				recipientProject,
+				cacheInProject: true,
+				Resolver,
+				stringPool: null,
+				cancellationToken: TestContext.Current.CancellationToken,
+				donorOptions: new ProjectDataDonorOptions
+				{
+					IndexPath = indexPath,
+					WorkspaceRoot = recipientRoot,
+					GitDistanceTopK = 0,
+				});
+
+			Assert.True(result.Slices.IsEmpty);
+			Assert.Equal(ProjectDataCacheSource.UnsupportedMarker, result.Source);
+		}
+		finally
+		{
+			Environment.SetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR", originalCacheDir);
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public async Task ReadProjectCacheAsync_MissingLocalCache_Reads_Donor_InPlace_With_Recipient_Context()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string recipientRoot = Path.Combine(tempRoot, "recipient");
+			string donorRoot = Path.Combine(tempRoot, "donor");
+			string indexPath = Path.Combine(tempRoot, "index", "lscache-donor-index.json");
+			string recipientProject = Path.Combine(recipientRoot, "src", "App", "App.csproj");
+			string donorProject = Path.Combine(donorRoot, "src", "App", "App.csproj");
+			WriteCache(donorProject + ".lscache", "DonorAssembly");
+			WriteDonorIndex(indexPath, donorRoot);
+			CapturingTraceListener listener = new();
+			TraceSource traceSource = new("DonorTest", SourceLevels.Information);
+			traceSource.Listeners.Clear();
+			traceSource.Listeners.Add(listener);
+			ProjectDataDonorOptions donorOptions = new()
+			{
+				IndexPath = indexPath,
+				WorkspaceRoot = recipientRoot,
+				GitDistanceTopK = 0,
+				DiagnosticTraceSource = traceSource,
+			};
+
+			ProjectDataCacheReadResult result = await CacheFileReader.ReadProjectCacheWithSourceAsync(
+				recipientProject,
+				cacheInProject: true,
+				Resolver,
+				stringPool: null,
+				cancellationToken: TestContext.Current.CancellationToken,
+				donorOptions: donorOptions);
+
+			CachedSliceData slice = Assert.Single(result.Slices);
+			Assert.Equal(recipientProject, slice.ProjectFilePath);
+			Assert.Equal("DonorAssembly", slice.Properties["AssemblyName"]);
+			Assert.Equal(Path.Combine(Path.GetDirectoryName(recipientProject)!, "Program.cs"), slice.SourceFiles.Single().FilePath);
+			Assert.Equal(ProjectDataCacheSource.Donor, result.Source);
+			Assert.Equal($"[donor] Using ProjectData from {donorRoot}", listener.Information.TrimEnd());
+
+			string secondRecipientProject = Path.Combine(recipientRoot, "src", "Library", "App.csproj");
+			string secondDonorProject = Path.Combine(donorRoot, "src", "Library", "App.csproj");
+			WriteCache(secondDonorProject + ".lscache", "DonorLibrary");
+
+			ProjectDataCacheReadResult secondResult = await CacheFileReader.ReadProjectCacheWithSourceAsync(
+				secondRecipientProject,
+				cacheInProject: true,
+				Resolver,
+				stringPool: null,
+				cancellationToken: TestContext.Current.CancellationToken,
+				donorOptions: donorOptions);
+
+			Assert.Single(secondResult.Slices);
+			Assert.Equal(ProjectDataCacheSource.Donor, secondResult.Source);
+			Assert.Equal($"[donor] Using ProjectData from {donorRoot}", listener.Information.TrimEnd());
+			Assert.DoesNotContain("[lscache-donor]", listener.Information);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public async Task ReadProjectCacheAsync_DisabledDonor_FallsBackToEmpty()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string recipientRoot = Path.Combine(tempRoot, "recipient");
+			string donorRoot = Path.Combine(tempRoot, "donor");
+			string indexPath = Path.Combine(tempRoot, "index", "lscache-donor-index.json");
+			string recipientProject = Path.Combine(recipientRoot, "src", "App", "App.csproj");
+			string donorProject = Path.Combine(donorRoot, "src", "App", "App.csproj");
+			WriteCache(donorProject + ".lscache", "DonorAssembly");
+			WriteDonorIndex(indexPath, donorRoot);
+
+			ImmutableArray<CachedSliceData> slices = await CacheFileReader.ReadProjectCacheAsync(
+				recipientProject,
+				cacheInProject: true,
+				Resolver,
+				cancellationToken: TestContext.Current.CancellationToken,
+				donorOptions: new ProjectDataDonorOptions
+				{
+					Enabled = false,
+					IndexPath = indexPath,
+					WorkspaceRoot = recipientRoot,
+				});
+
+			Assert.Empty(slices);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public async Task ReadProjectCacheAsync_RelativeIndexPath_NormalizesDonorRoot()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string recipientRoot = Path.Combine(tempRoot, "recipient");
+			string donorRoot = Path.Combine(tempRoot, "donor");
+			string indexPath = Path.Combine(tempRoot, "index", "lscache-donor-index.json");
+			string recipientProject = Path.Combine(recipientRoot, "src", "App", "App.csproj");
+			string donorProject = Path.Combine(donorRoot, "src", "App", "App.csproj");
+			WriteCache(donorProject + ".lscache", "DonorAssembly");
+			Directory.CreateDirectory(Path.GetDirectoryName(indexPath)!);
+			File.WriteAllText(
+				indexPath,
+				$$"""
+				{
+				  "version": 2,
+				  "entries": [
+				    { "path": {{JsonString(Path.GetRelativePath(Environment.CurrentDirectory, donorRoot))}} }
+				  ]
+				}
+				""");
+
+			ImmutableArray<CachedSliceData> slices = await CacheFileReader.ReadProjectCacheAsync(
+				recipientProject,
+				cacheInProject: true,
+				Resolver,
+				cancellationToken: TestContext.Current.CancellationToken,
+				donorOptions: new ProjectDataDonorOptions
+				{
+					IndexPath = indexPath,
+					WorkspaceRoot = recipientRoot,
+					GitDistanceTopK = 0,
+				});
+
+			Assert.Equal("DonorAssembly", Assert.Single(slices).Properties["AssemblyName"]);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Theory]
+	[InlineData(false)]
+	[InlineData(true)]
+	public async Task ReadProjectCacheAsync_MissingLocalCache_Reads_UserFolderDonor_RegardlessOfStorageMode(bool cacheInProject)
+	{
+		string tempRoot = CreateTempRoot();
+		string? originalCacheDir = Environment.GetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR");
+		try
+		{
+			string recipientRoot = Path.Combine(tempRoot, "recipient");
+			string donorRoot = Path.Combine(tempRoot, "donor");
+			string cacheRoot = Path.Combine(tempRoot, "user-cache");
+			Environment.SetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR", cacheRoot);
+			string indexPath = Path.Combine(tempRoot, "index", "lscache-donor-index.json");
+			string recipientProject = Path.Combine(recipientRoot, "src", "App", "App.csproj");
+			string donorProject = Path.Combine(donorRoot, "src", "App", "App.csproj");
+			WriteProjectFile(donorProject);
+			WriteCache(CacheFileReader.GetUserFolderCacheFilePath(donorProject), "UserFolderDonorAssembly");
+			WriteDonorIndex(indexPath, donorRoot);
+			ProjectDataDonorOptions donorOptions = new()
+			{
+				IndexPath = indexPath,
+				WorkspaceRoot = recipientRoot,
+				GitDistanceTopK = 0,
+			};
+
+			ProjectDataDonorCandidate donorCandidate = Assert.Single(
+				ProjectDataDonorIndex.EnumerateDonorCandidates(
+					recipientProject,
+					donorOptions,
+					TestContext.Current.CancellationToken));
+			Assert.Equal(CacheFileReader.GetUserFolderCacheFilePath(donorProject), donorCandidate.FilePath);
+
+			ImmutableArray<CachedSliceData> slices = await CacheFileReader.ReadProjectCacheAsync(
+				recipientProject,
+				cacheInProject,
+				Resolver,
+				cancellationToken: TestContext.Current.CancellationToken,
+				donorOptions: donorOptions);
+
+			CachedSliceData slice = Assert.Single(slices);
+			Assert.Equal(recipientProject, slice.ProjectFilePath);
+			Assert.Equal("UserFolderDonorAssembly", slice.Properties["AssemblyName"]);
+			Assert.Equal(Path.Combine(Path.GetDirectoryName(recipientProject)!, "Program.cs"), slice.SourceFiles.Single().FilePath);
+		}
+		finally
+		{
+			Environment.SetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR", originalCacheDir);
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public async Task ReadProjectCacheAsync_Missing_Donor_File_Falls_Back_To_Empty()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string recipientRoot = Path.Combine(tempRoot, "recipient");
+			string donorRoot = Path.Combine(tempRoot, "donor");
+			string indexPath = Path.Combine(tempRoot, "index", "lscache-donor-index.json");
+			string recipientProject = Path.Combine(recipientRoot, "src", "App", "App.csproj");
+			Directory.CreateDirectory(donorRoot);
+			WriteDonorIndex(indexPath, donorRoot);
+
+			ImmutableArray<CachedSliceData> slices = await CacheFileReader.ReadProjectCacheAsync(
+				recipientProject,
+				cacheInProject: true,
+				Resolver,
+				cancellationToken: TestContext.Current.CancellationToken,
+				donorOptions: new ProjectDataDonorOptions
+				{
+					IndexPath = indexPath,
+					WorkspaceRoot = recipientRoot,
+					GitDistanceTopK = 0,
+				});
+
+			Assert.True(slices.IsEmpty);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Theory]
+	[InlineData("[]")]
+	[InlineData("""{"version":2,"entries":{}}""")]
+	[InlineData("""{"version":2,"entries":[{"path":"donor","newestMtimeMs":"invalid"}]}""")]
+	public async Task ReadProjectCacheAsync_MalformedDonorIndex_Falls_Back_To_Empty(string indexContent)
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string recipientRoot = Path.Combine(tempRoot, "recipient");
+			string recipientProject = Path.Combine(recipientRoot, "src", "App", "App.csproj");
+			string indexPath = Path.Combine(tempRoot, "index", "lscache-donor-index.json");
+			WriteProjectFile(recipientProject);
+			Directory.CreateDirectory(Path.GetDirectoryName(indexPath)!);
+			File.WriteAllText(indexPath, indexContent);
+
+			ImmutableArray<CachedSliceData> slices = await CacheFileReader.ReadProjectCacheAsync(
+				recipientProject,
+				cacheInProject: true,
+				Resolver,
+				cancellationToken: TestContext.Current.CancellationToken,
+				donorOptions: new ProjectDataDonorOptions
+				{
+					IndexPath = indexPath,
+					WorkspaceRoot = recipientRoot,
+					GitDistanceTopK = 0,
+				});
+
+			Assert.Empty(slices);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public void CanceledDonorIndexRead_LogsNoWarning()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string recipientRoot = Path.Combine(tempRoot, "recipient");
+			string recipientProject = Path.Combine(recipientRoot, "src", "App", "App.csproj");
+			string indexPath = Path.Combine(tempRoot, "index", "lscache-donor-index.json");
+			Directory.CreateDirectory(Path.GetDirectoryName(indexPath)!);
+			File.WriteAllText(indexPath, "{");
+
+			CapturingTraceListener listener = new();
+			TraceSource traceSource = new("CanceledDonorIndexRead", SourceLevels.Warning);
+			traceSource.Listeners.Clear();
+			traceSource.Listeners.Add(listener);
+			ProjectDataDonorOptions donorOptions = new()
+			{
+				IndexPath = indexPath,
+				WorkspaceRoot = recipientRoot,
+				DiagnosticTraceSource = traceSource,
+			};
+			ProjectDataDonorIndex.GitQueryContext canceledContext = new(new CancellationToken(canceled: true));
+
+			ProjectDataDonorCandidate[] candidates = ProjectDataDonorIndex
+				.EnumerateDonorCandidatesCore(recipientProject, donorOptions, canceledContext)
+				.ToArray();
+
+			Assert.Empty(candidates);
+			Assert.True(canceledContext.WasCancelled);
+			Assert.Empty(listener.Warnings);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public async Task ReadProjectCacheAsync_Invalid_First_Donor_Tries_Next_Donor()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string recipientRoot = Path.Combine(tempRoot, "recipient");
+			string badDonorRoot = Path.Combine(tempRoot, "bad-donor");
+			string goodDonorRoot = Path.Combine(tempRoot, "good-donor");
+			string indexPath = Path.Combine(tempRoot, "index", "lscache-donor-index.json");
+			string recipientProject = Path.Combine(recipientRoot, "src", "App", "App.csproj");
+			string badDonorProject = Path.Combine(badDonorRoot, "src", "App", "App.csproj");
+			string goodDonorProject = Path.Combine(goodDonorRoot, "src", "App", "App.csproj");
+			Directory.CreateDirectory(Path.GetDirectoryName(badDonorProject)!);
+			File.WriteAllText(badDonorProject + ".lscache", "version=999\n");
+			WriteCache(goodDonorProject + ".lscache", "GoodDonorAssembly");
+			Directory.CreateDirectory(Path.GetDirectoryName(indexPath)!);
+			File.WriteAllText(
+				indexPath,
+				$$"""
+				{
+				  "version": 2,
+				  "entries": [
+				    { "path": {{JsonString(badDonorRoot)}}, "updatedUtc": "2026-06-04T00:00:00Z" },
+				    { "path": {{JsonString(goodDonorRoot)}}, "updatedUtc": "2026-06-03T00:00:00Z" }
+				  ]
+				}
+				""");
+
+			ImmutableArray<CachedSliceData> slices = await CacheFileReader.ReadProjectCacheAsync(
+				recipientProject,
+				cacheInProject: true,
+				Resolver,
+				cancellationToken: TestContext.Current.CancellationToken,
+				donorOptions: new ProjectDataDonorOptions
+				{
+					IndexPath = indexPath,
+					WorkspaceRoot = recipientRoot,
+					GitDistanceTopK = 0,
+				});
+
+			CachedSliceData slice = Assert.Single(slices);
+			Assert.Equal("GoodDonorAssembly", slice.Properties["AssemblyName"]);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public async Task ReadProjectCacheAsync_MalformedPathInFirstDonor_TriesNextDonor()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string recipientRoot = Path.Combine(tempRoot, "recipient");
+			string badDonorRoot = Path.Combine(tempRoot, "bad-donor");
+			string goodDonorRoot = Path.Combine(tempRoot, "good-donor");
+			string indexPath = Path.Combine(tempRoot, "index", "lscache-donor-index.json");
+			string recipientProject = Path.Combine(recipientRoot, "src", "App", "App.csproj");
+			string badDonorCache = Path.Combine(badDonorRoot, "src", "App", "App.csproj.lscache");
+			string goodDonorCache = Path.Combine(goodDonorRoot, "src", "App", "App.csproj.lscache");
+			WriteCache(badDonorCache, "BadDonorAssembly");
+			File.WriteAllText(badDonorCache, File.ReadAllText(badDonorCache).Replace("project=App.csproj", "project=\0"));
+			WriteCache(goodDonorCache, "GoodDonorAssembly");
+			Directory.CreateDirectory(Path.GetDirectoryName(indexPath)!);
+			File.WriteAllText(
+				indexPath,
+				$$"""
+				{
+				  "version": 2,
+				  "entries": [
+				    { "path": {{JsonString(badDonorRoot)}}, "updatedUtc": "2026-06-04T00:00:00Z" },
+				    { "path": {{JsonString(goodDonorRoot)}}, "updatedUtc": "2026-06-03T00:00:00Z" }
+				  ]
+				}
+				""");
+
+			ImmutableArray<CachedSliceData> slices = await CacheFileReader.ReadProjectCacheAsync(
+				recipientProject,
+				cacheInProject: true,
+				Resolver,
+				cancellationToken: TestContext.Current.CancellationToken,
+				donorOptions: new ProjectDataDonorOptions
+				{
+					IndexPath = indexPath,
+					WorkspaceRoot = recipientRoot,
+					GitDistanceTopK = 0,
+				});
+
+			Assert.Equal("GoodDonorAssembly", Assert.Single(slices).Properties["AssemblyName"]);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public async Task ReadProjectCacheAsync_CanceledBeforeDonorSelection_Throws()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string recipientRoot = Path.Combine(tempRoot, "recipient");
+			string donorRoot = Path.Combine(tempRoot, "donor");
+			string indexPath = Path.Combine(tempRoot, "index", "lscache-donor-index.json");
+			string recipientProject = Path.Combine(recipientRoot, "src", "App", "App.csproj");
+			WriteCache(Path.Combine(donorRoot, "src", "App", "App.csproj.lscache"), "DonorAssembly");
+			WriteDonorIndex(indexPath, donorRoot);
+			int selectionCacheCount = ProjectDataDonorIndex.SelectionCacheCount;
+			int metadataCacheCount = ProjectDataDonorIndex.WorkspaceMetadataCacheCount;
+
+			await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+				CacheFileReader.ReadProjectCacheAsync(
+					recipientProject,
+					cacheInProject: true,
+					Resolver,
+					cancellationToken: new CancellationToken(canceled: true),
+					donorOptions: new ProjectDataDonorOptions
+					{
+						IndexPath = indexPath,
+						WorkspaceRoot = recipientRoot,
+					}));
+
+			Assert.Equal(selectionCacheCount, ProjectDataDonorIndex.SelectionCacheCount);
+			Assert.Equal(metadataCacheCount, ProjectDataDonorIndex.WorkspaceMetadataCacheCount);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public async Task CanceledDonorSelection_IsNotCached_AndHealthyReadRetriesExactHead()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string recipientRoot = Path.Combine(tempRoot, "recipient");
+			string staleDonorRoot = Path.Combine(tempRoot, "stale-donor");
+			string exactDonorRoot = Path.Combine(tempRoot, "exact-donor");
+			string indexPath = Path.Combine(tempRoot, "index", "lscache-donor-index.json");
+			string recipientProject = Path.Combine(recipientRoot, "src", "App", "App.csproj");
+			string staleCache = Path.Combine(staleDonorRoot, "src", "App", "App.csproj.lscache");
+			string exactCache = Path.Combine(exactDonorRoot, "src", "App", "App.csproj.lscache");
+			InitializeGitRepository(recipientRoot);
+			RunGit(tempRoot, "clone", recipientRoot, exactDonorRoot);
+			RunGit(tempRoot, "clone", recipientRoot, staleDonorRoot);
+			File.WriteAllText(Path.Combine(staleDonorRoot, "README.md"), "stale");
+			RunGit(staleDonorRoot, "add", "README.md");
+			RunGit(staleDonorRoot, "commit", "-m", "stale");
+			WriteCache(staleCache, "StaleAssembly");
+			WriteCache(exactCache, "ExactAssembly");
+			Directory.CreateDirectory(Path.GetDirectoryName(indexPath)!);
+			File.WriteAllText(
+				indexPath,
+				$$"""
+				{
+				  "version": 2,
+				  "entries": [
+				    { "path": {{JsonString(staleDonorRoot)}}, "updatedUtc": "2026-06-04T00:00:00Z" },
+				    { "path": {{JsonString(exactDonorRoot)}}, "updatedUtc": "2026-06-03T00:00:00Z" }
+				  ]
+				}
+				""");
+			ProjectDataDonorOptions donorOptions = new()
+			{
+				IndexPath = indexPath,
+				WorkspaceRoot = recipientRoot,
+				GitDistanceTopK = 0,
+			};
+			int selectionCacheCount = ProjectDataDonorIndex.SelectionCacheCount;
+			int metadataCacheCount = ProjectDataDonorIndex.WorkspaceMetadataCacheCount;
+			ProjectDataDonorIndex.GitQueryContext canceledContext = new(new CancellationToken(canceled: true));
+
+			ProjectDataDonorCandidate canceledCandidate = ProjectDataDonorIndex
+				.EnumerateDonorCandidatesCore(recipientProject, donorOptions, canceledContext)
+				.First();
+
+			Assert.Equal(staleCache, canceledCandidate.FilePath);
+			Assert.True(canceledContext.WasCancelled);
+			Assert.False(canceledContext.TimedOut);
+			Assert.Equal(selectionCacheCount, ProjectDataDonorIndex.SelectionCacheCount);
+			Assert.Equal(metadataCacheCount, ProjectDataDonorIndex.WorkspaceMetadataCacheCount);
+
+			ImmutableArray<CachedSliceData> slices = await CacheFileReader.ReadProjectCacheAsync(
+				recipientProject,
+				cacheInProject: true,
+				Resolver,
+				cancellationToken: TestContext.Current.CancellationToken,
+				donorOptions: donorOptions);
+
+			Assert.Equal("ExactAssembly", Assert.Single(slices).Properties["AssemblyName"]);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public async Task CanceledDonorGitDistanceSelection_IsNotCached_AndHealthyReadRetriesNearestHead()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string recipientRoot = Path.Combine(tempRoot, "recipient");
+			string nearDonorRoot = Path.Combine(tempRoot, "near-donor");
+			string farDonorRoot = Path.Combine(tempRoot, "far-donor");
+			string indexPath = Path.Combine(tempRoot, "index", "lscache-donor-index.json");
+			string recipientProject = Path.Combine(recipientRoot, "src", "App", "App.csproj");
+			string nearCache = Path.Combine(nearDonorRoot, "src", "App", "App.csproj.lscache");
+			string farCache = Path.Combine(farDonorRoot, "src", "App", "App.csproj.lscache");
+			string recipientHead = InitializeGitRepository(recipientRoot);
+			File.WriteAllText(Path.Combine(recipientRoot, "README.md"), "second");
+			RunGit(recipientRoot, "add", "README.md");
+			RunGit(recipientRoot, "commit", "-m", "second");
+			string nearHead = RunGit(recipientRoot, "rev-parse", "HEAD").Trim();
+			File.WriteAllText(Path.Combine(recipientRoot, "README.md"), "third");
+			RunGit(recipientRoot, "add", "README.md");
+			RunGit(recipientRoot, "commit", "-m", "third");
+			RunGit(tempRoot, "clone", recipientRoot, nearDonorRoot);
+			RunGit(nearDonorRoot, "checkout", nearHead);
+			RunGit(tempRoot, "clone", recipientRoot, farDonorRoot);
+			RunGit(recipientRoot, "reset", "--hard", recipientHead);
+			WriteCache(nearCache, "NearAssembly");
+			WriteCache(farCache, "FarAssembly");
+			Directory.CreateDirectory(Path.GetDirectoryName(indexPath)!);
+			File.WriteAllText(
+				indexPath,
+				$$"""
+				{
+				  "version": 2,
+				  "entries": [
+				    { "path": {{JsonString(farDonorRoot)}}, "updatedUtc": "2026-06-04T00:00:00Z" },
+				    { "path": {{JsonString(nearDonorRoot)}}, "updatedUtc": "2026-06-03T00:00:00Z" }
+				  ]
+				}
+				""");
+			ProjectDataDonorOptions metadataPrimingOptions = new()
+			{
+				IndexPath = indexPath,
+				WorkspaceRoot = recipientRoot,
+				GitDistanceTopK = 0,
+			};
+			ProjectDataDonorCandidate primingCandidate = ProjectDataDonorIndex
+				.EnumerateDonorCandidates(recipientProject, metadataPrimingOptions, TestContext.Current.CancellationToken)
+				.First();
+			Assert.Equal(farCache, primingCandidate.FilePath);
+
+			int selectionCacheCount = ProjectDataDonorIndex.SelectionCacheCount;
+			ProjectDataDonorOptions distanceOptions = new()
+			{
+				IndexPath = indexPath,
+				WorkspaceRoot = recipientRoot,
+				GitDistanceTopK = 2,
+			};
+			ProjectDataDonorIndex.GitQueryContext canceledContext = new(new CancellationToken(canceled: true));
+
+			ProjectDataDonorCandidate canceledCandidate = ProjectDataDonorIndex
+				.EnumerateDonorCandidatesCore(recipientProject, distanceOptions, canceledContext)
+				.First();
+
+			Assert.Equal(farCache, canceledCandidate.FilePath);
+			Assert.True(canceledContext.WasCancelled);
+			Assert.False(canceledContext.TimedOut);
+			Assert.Equal(selectionCacheCount, ProjectDataDonorIndex.SelectionCacheCount);
+
+			ImmutableArray<CachedSliceData> slices = await CacheFileReader.ReadProjectCacheAsync(
+				recipientProject,
+				cacheInProject: true,
+				Resolver,
+				cancellationToken: TestContext.Current.CancellationToken,
+				donorOptions: distanceOptions);
+
+			Assert.Equal("NearAssembly", Assert.Single(slices).Properties["AssemblyName"]);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public void TimedOutDonorGitDistanceSelection_CachesFreshnessFallback_UntilIndexChanges()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string recipientRoot = Path.Combine(tempRoot, "recipient");
+			string nearDonorRoot = Path.Combine(tempRoot, "near-donor");
+			string farDonorRoot = Path.Combine(tempRoot, "far-donor");
+			string indexPath = Path.Combine(tempRoot, "index", "lscache-donor-index.json");
+			string recipientProject = Path.Combine(recipientRoot, "src", "App", "App.csproj");
+			string nearCache = Path.Combine(nearDonorRoot, "src", "App", "App.csproj.lscache");
+			string farCache = Path.Combine(farDonorRoot, "src", "App", "App.csproj.lscache");
+			string recipientHead = InitializeGitRepository(recipientRoot);
+			File.WriteAllText(Path.Combine(recipientRoot, "README.md"), "second");
+			RunGit(recipientRoot, "add", "README.md");
+			RunGit(recipientRoot, "commit", "-m", "second");
+			string nearHead = RunGit(recipientRoot, "rev-parse", "HEAD").Trim();
+			File.WriteAllText(Path.Combine(recipientRoot, "README.md"), "third");
+			RunGit(recipientRoot, "add", "README.md");
+			RunGit(recipientRoot, "commit", "-m", "third");
+			RunGit(tempRoot, "clone", recipientRoot, nearDonorRoot);
+			RunGit(nearDonorRoot, "checkout", nearHead);
+			RunGit(tempRoot, "clone", recipientRoot, farDonorRoot);
+			RunGit(recipientRoot, "reset", "--hard", recipientHead);
+			WriteCache(nearCache, "NearAssembly");
+			WriteCache(farCache, "FarAssembly");
+			Directory.CreateDirectory(Path.GetDirectoryName(indexPath)!);
+			File.WriteAllText(
+				indexPath,
+				$$"""
+				{
+				  "version": 2,
+				  "entries": [
+				    { "path": {{JsonString(farDonorRoot)}}, "updatedUtc": "2026-06-04T00:00:00Z" },
+				    { "path": {{JsonString(nearDonorRoot)}}, "updatedUtc": "2026-06-03T00:00:00Z" }
+				  ]
+				}
+				""");
+			ProjectDataDonorOptions metadataPrimingOptions = new()
+			{
+				IndexPath = indexPath,
+				WorkspaceRoot = recipientRoot,
+				GitDistanceTopK = 0,
+			};
+			Assert.Equal(
+				farCache,
+				ProjectDataDonorIndex
+					.EnumerateDonorCandidates(recipientProject, metadataPrimingOptions, TestContext.Current.CancellationToken)
+					.First()
+					.FilePath);
+
+			CapturingTraceListener listener = new();
+			TraceSource traceSource = new("DonorTimeoutTest", SourceLevels.Warning);
+			traceSource.Listeners.Clear();
+			traceSource.Listeners.Add(listener);
+			ProjectDataDonorOptions distanceOptions = new()
+			{
+				IndexPath = indexPath,
+				WorkspaceRoot = recipientRoot,
+				GitDistanceTopK = 2,
+				DiagnosticTraceSource = traceSource,
+			};
+			int selectionCacheCount = ProjectDataDonorIndex.SelectionCacheCount;
+			ProjectDataDonorIndex.GitQueryContext timedOutContext = new(CancellationToken.None, timeoutMilliseconds: 0);
+
+			ProjectDataDonorCandidate timedOutCandidate = ProjectDataDonorIndex
+				.EnumerateDonorCandidatesCore(recipientProject, distanceOptions, timedOutContext)
+				.First();
+			string timeoutWarning = listener.Warnings;
+
+			Assert.Equal(farCache, timedOutCandidate.FilePath);
+			Assert.True(timedOutContext.TimedOut);
+			Assert.False(timedOutContext.WasCancelled);
+			Assert.Equal(selectionCacheCount + 1, ProjectDataDonorIndex.SelectionCacheCount);
+			Assert.Contains("exceeded its 0 ms budget", timeoutWarning);
+			Assert.Contains(recipientRoot, timeoutWarning);
+			Assert.Contains("caching freshness ordering for 2 candidate worktrees", timeoutWarning);
+
+			ProjectDataDonorCandidate cachedCandidate = ProjectDataDonorIndex
+				.EnumerateDonorCandidates(recipientProject, distanceOptions, TestContext.Current.CancellationToken)
+				.First();
+
+			Assert.Equal(farCache, cachedCandidate.FilePath);
+			Assert.Equal(timeoutWarning, listener.Warnings);
+
+			File.AppendAllText(indexPath, Environment.NewLine);
+			ProjectDataDonorCandidate refreshedCandidate = ProjectDataDonorIndex
+				.EnumerateDonorCandidates(recipientProject, distanceOptions, TestContext.Current.CancellationToken)
+				.First();
+
+			Assert.Equal(nearCache, refreshedCandidate.FilePath);
+			Assert.Equal(timeoutWarning, listener.Warnings);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public async Task ReadProjectCacheAsync_Donor_Read_Does_Not_Update_Index()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string recipientRoot = Path.Combine(tempRoot, "recipient");
+			string donorRoot = Path.Combine(tempRoot, "donor");
+			string indexPath = Path.Combine(tempRoot, "index", "lscache-donor-index.json");
+			string recipientProject = Path.Combine(recipientRoot, "src", "App", "App.csproj");
+			string donorProject = Path.Combine(donorRoot, "src", "App", "App.csproj");
+			WriteCache(donorProject + ".lscache", "DonorAssembly");
+			WriteDonorIndex(indexPath, donorRoot);
+			string before = await File.ReadAllTextAsync(indexPath, TestContext.Current.CancellationToken);
+
+			ImmutableArray<CachedSliceData> slices = await CacheFileReader.ReadProjectCacheAsync(
+				recipientProject,
+				cacheInProject: true,
+				Resolver,
+				cancellationToken: TestContext.Current.CancellationToken,
+				donorOptions: new ProjectDataDonorOptions
+				{
+					IndexPath = indexPath,
+					WorkspaceRoot = recipientRoot,
+					GitDistanceTopK = 0,
+				});
+
+			Assert.Single(slices);
+			string after = await File.ReadAllTextAsync(indexPath, TestContext.Current.CancellationToken);
+			Assert.Equal(before, after);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public void RecipientMetadataFingerprint_Ignores_Unrelated_Loose_Refs()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string recipientRoot = Path.Combine(tempRoot, "recipient");
+			string head = InitializeGitRepository(recipientRoot);
+			string initialFingerprint = ProjectDataDonorIndex.GetRecipientMetadataFingerprint(
+				recipientRoot,
+				new(TestContext.Current.CancellationToken));
+
+			string unrelatedRefPath = Path.Combine(recipientRoot, ".git", "refs", "heads", "unrelated");
+			Directory.CreateDirectory(Path.GetDirectoryName(unrelatedRefPath)!);
+			File.WriteAllText(unrelatedRefPath, head + "\n");
+			string unrelatedRefFingerprint = ProjectDataDonorIndex.GetRecipientMetadataFingerprint(
+				recipientRoot,
+				new(TestContext.Current.CancellationToken));
+
+			Assert.Equal(initialFingerprint, unrelatedRefFingerprint);
+
+			string currentRef = RunGit(recipientRoot, "symbolic-ref", "HEAD").Trim();
+			File.AppendAllText(Path.Combine(recipientRoot, ".git", currentRef.Replace('/', Path.DirectorySeparatorChar)), "\n");
+			string changedHeadFingerprint = ProjectDataDonorIndex.GetRecipientMetadataFingerprint(
+				recipientRoot,
+				new(TestContext.Current.CancellationToken));
+			Assert.NotEqual(initialFingerprint, changedHeadFingerprint);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public void RecipientMetadataFingerprint_Canceled_Context_Returns_Interrupted_Without_Timeout()
+	{
+		ProjectDataDonorIndex.GitQueryContext context = new(new CancellationToken(canceled: true));
+
+		string fingerprint = ProjectDataDonorIndex.GetRecipientMetadataFingerprint(TestProjectDirectory, context);
+
+		Assert.Equal("git-interrupted", fingerprint);
+		Assert.True(context.WasCancelled);
+		Assert.False(context.TimedOut);
+	}
+
+	[Fact]
+	public void RecipientMetadataFingerprint_Tracks_Reftable_State()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string recipientRoot = Path.Combine(tempRoot, "recipient");
+			_ = InitializeGitRepository(recipientRoot);
+			string reftableListPath = Path.Combine(recipientRoot, ".git", "reftable", "tables.list");
+			Directory.CreateDirectory(Path.GetDirectoryName(reftableListPath)!);
+			File.WriteAllText(reftableListPath, "0x000000000001-0x000000000001-test.ref\n");
+			string initialFingerprint = ProjectDataDonorIndex.GetRecipientMetadataFingerprint(
+				recipientRoot,
+				new(TestContext.Current.CancellationToken));
+
+			File.AppendAllText(reftableListPath, "0x000000000002-0x000000000002-test.ref\n");
+			string updatedFingerprint = ProjectDataDonorIndex.GetRecipientMetadataFingerprint(
+				recipientRoot,
+				new(TestContext.Current.CancellationToken));
+
+			Assert.NotEqual(initialFingerprint, updatedFingerprint);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public void RecipientMetadataFingerprint_Tracks_LinkedWorktree_Reftable_State()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string repositoryRoot = Path.Combine(tempRoot, "repository");
+			string commonGitDirectory = Path.Combine(repositoryRoot, ".git");
+			string recipientRoot = Path.Combine(tempRoot, "recipient");
+			string worktreeGitDirectory = Path.Combine(commonGitDirectory, "worktrees", "recipient");
+			string reftableListPath = Path.Combine(worktreeGitDirectory, "reftable", "tables.list");
+			Directory.CreateDirectory(Path.GetDirectoryName(reftableListPath)!);
+			Directory.CreateDirectory(recipientRoot);
+			File.WriteAllText(Path.Combine(recipientRoot, ".git"), "gitdir: " + worktreeGitDirectory);
+			File.WriteAllText(Path.Combine(worktreeGitDirectory, "commondir"), Path.Combine("..", ".."));
+			File.WriteAllText(Path.Combine(worktreeGitDirectory, "HEAD"), "ref: refs/heads/.invalid\n");
+			File.WriteAllText(reftableListPath, "0x000000000001-0x000000000001-test.ref\n");
+			string initialFingerprint = ProjectDataDonorIndex.GetRecipientMetadataFingerprint(
+				recipientRoot,
+				new(TestContext.Current.CancellationToken));
+
+			File.AppendAllText(reftableListPath, "0x000000000002-0x000000000002-test.ref\n");
+			string updatedFingerprint = ProjectDataDonorIndex.GetRecipientMetadataFingerprint(
+				recipientRoot,
+				new(TestContext.Current.CancellationToken));
+
+			Assert.NotEqual(initialFingerprint, updatedFingerprint);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public async Task ReadProjectCacheAsync_Selection_Cache_Tracks_Recipient_Head()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string recipientRoot = Path.Combine(tempRoot, "recipient");
+			string firstHeadDonorRoot = Path.Combine(tempRoot, "first-head");
+			string secondHeadDonorRoot = Path.Combine(tempRoot, "second-head");
+			string indexPath = Path.Combine(tempRoot, "index", "lscache-donor-index.json");
+			string recipientProject = Path.Combine(recipientRoot, "src", "App", "App.csproj");
+			string firstHead = InitializeGitRepository(recipientRoot);
+			File.WriteAllText(Path.Combine(recipientRoot, "README.md"), "test2");
+			RunGit(recipientRoot, "add", "README.md");
+			RunGit(recipientRoot, "commit", "-m", "second");
+			string secondHead = RunGit(recipientRoot, "rev-parse", "HEAD").Trim();
+			RunGit(tempRoot, "clone", recipientRoot, firstHeadDonorRoot);
+			RunGit(firstHeadDonorRoot, "checkout", firstHead);
+			RunGit(tempRoot, "clone", recipientRoot, secondHeadDonorRoot);
+			RunGit(recipientRoot, "reset", "--hard", firstHead);
+			WriteCache(Path.Combine(firstHeadDonorRoot, "src", "App", "App.csproj.lscache"), "FirstHeadAssembly");
+			WriteCache(Path.Combine(secondHeadDonorRoot, "src", "App", "App.csproj.lscache"), "SecondHeadAssembly");
+			Directory.CreateDirectory(Path.GetDirectoryName(indexPath)!);
+			File.WriteAllText(
+				indexPath,
+				$$"""
+				{
+				  "version": 2,
+				  "entries": [
+				    { "path": {{JsonString(firstHeadDonorRoot)}}, "updatedUtc": "2026-06-03T00:00:00Z" },
+				    { "path": {{JsonString(secondHeadDonorRoot)}}, "updatedUtc": "2026-06-03T00:00:00Z" }
+				  ]
+				}
+				""");
+
+			ProjectDataDonorOptions donorOptions = new()
+			{
+				IndexPath = indexPath,
+				WorkspaceRoot = recipientRoot,
+				GitDistanceTopK = 0,
+			};
+
+			ImmutableArray<CachedSliceData> firstSlices = await CacheFileReader.ReadProjectCacheAsync(
+				recipientProject,
+				cacheInProject: true,
+				Resolver,
+				cancellationToken: TestContext.Current.CancellationToken,
+				donorOptions: donorOptions);
+			int selectionCacheCountAfterFirstRead = ProjectDataDonorIndex.SelectionCacheCount;
+			int metadataCacheCountAfterFirstRead = ProjectDataDonorIndex.WorkspaceMetadataCacheCount;
+
+			RunGit(recipientRoot, "reset", "--hard", secondHead);
+			ImmutableArray<CachedSliceData> secondSlices = await CacheFileReader.ReadProjectCacheAsync(
+				recipientProject,
+				cacheInProject: true,
+				Resolver,
+				cancellationToken: TestContext.Current.CancellationToken,
+				donorOptions: donorOptions);
+
+			Assert.Equal("FirstHeadAssembly", Assert.Single(firstSlices).Properties["AssemblyName"]);
+			Assert.Equal("SecondHeadAssembly", Assert.Single(secondSlices).Properties["AssemblyName"]);
+			Assert.Equal(selectionCacheCountAfterFirstRead, ProjectDataDonorIndex.SelectionCacheCount);
+			Assert.Equal(metadataCacheCountAfterFirstRead, ProjectDataDonorIndex.WorkspaceMetadataCacheCount);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public async Task ReadProjectCacheAsync_Selection_Cache_Rechecks_Candidate_Heads_After_Index_Update()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string recipientRoot = Path.Combine(tempRoot, "recipient");
+			string firstHeadDonorRoot = Path.Combine(tempRoot, "first-head");
+			string secondHeadDonorRoot = Path.Combine(tempRoot, "second-head");
+			string indexPath = Path.Combine(tempRoot, "index", "lscache-donor-index.json");
+			string recipientProject = Path.Combine(recipientRoot, "src", "App", "App.csproj");
+			string firstHead = InitializeGitRepository(recipientRoot);
+			File.WriteAllText(Path.Combine(recipientRoot, "README.md"), "test2");
+			RunGit(recipientRoot, "add", "README.md");
+			RunGit(recipientRoot, "commit", "-m", "second");
+			string secondHead = RunGit(recipientRoot, "rev-parse", "HEAD").Trim();
+			RunGit(tempRoot, "clone", recipientRoot, firstHeadDonorRoot);
+			RunGit(tempRoot, "clone", recipientRoot, secondHeadDonorRoot);
+			RunGit(firstHeadDonorRoot, "checkout", firstHead);
+			RunGit(recipientRoot, "reset", "--hard", firstHead);
+			WriteCache(Path.Combine(firstHeadDonorRoot, "src", "App", "App.csproj.lscache"), "FirstHeadAssembly");
+			WriteCache(Path.Combine(secondHeadDonorRoot, "src", "App", "App.csproj.lscache"), "SecondHeadAssembly");
+			Directory.CreateDirectory(Path.GetDirectoryName(indexPath)!);
+			File.WriteAllText(
+				indexPath,
+				$$"""
+				{
+				  "version": 2,
+				  "entries": [
+				    { "path": {{JsonString(firstHeadDonorRoot)}}, "updatedUtc": "2026-06-03T00:00:00Z" },
+				    { "path": {{JsonString(secondHeadDonorRoot)}}, "updatedUtc": "2026-06-03T00:00:00Z" }
+				  ]
+				}
+				""");
+
+			ProjectDataDonorOptions donorOptions = new()
+			{
+				IndexPath = indexPath,
+				WorkspaceRoot = recipientRoot,
+				GitDistanceTopK = 0,
+			};
+
+			ImmutableArray<CachedSliceData> firstSlices = await CacheFileReader.ReadProjectCacheAsync(
+				recipientProject,
+				cacheInProject: true,
+				Resolver,
+				cancellationToken: TestContext.Current.CancellationToken,
+				donorOptions: donorOptions);
+
+			int selectionCacheCountAfterFirstRead = ProjectDataDonorIndex.SelectionCacheCount;
+			int metadataCacheCountAfterFirstRead = ProjectDataDonorIndex.WorkspaceMetadataCacheCount;
+			RunGit(firstHeadDonorRoot, "checkout", secondHead);
+			RunGit(secondHeadDonorRoot, "checkout", firstHead);
+			ImmutableArray<CachedSliceData> beforeIndexUpdateSlices = await CacheFileReader.ReadProjectCacheAsync(
+				recipientProject,
+				cacheInProject: true,
+				Resolver,
+				cancellationToken: TestContext.Current.CancellationToken,
+				donorOptions: donorOptions);
+			File.AppendAllText(indexPath, Environment.NewLine);
+			ImmutableArray<CachedSliceData> afterIndexUpdateSlices = await CacheFileReader.ReadProjectCacheAsync(
+				recipientProject,
+				cacheInProject: true,
+				Resolver,
+				cancellationToken: TestContext.Current.CancellationToken,
+				donorOptions: donorOptions);
+
+			Assert.Equal("FirstHeadAssembly", Assert.Single(firstSlices).Properties["AssemblyName"]);
+			Assert.Equal("FirstHeadAssembly", Assert.Single(beforeIndexUpdateSlices).Properties["AssemblyName"]);
+			Assert.Equal("SecondHeadAssembly", Assert.Single(afterIndexUpdateSlices).Properties["AssemblyName"]);
+			Assert.Equal(selectionCacheCountAfterFirstRead, ProjectDataDonorIndex.SelectionCacheCount);
+			Assert.Equal(metadataCacheCountAfterFirstRead, ProjectDataDonorIndex.WorkspaceMetadataCacheCount);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public async Task ReadProjectCacheAsync_LiveExactHead_Donor_Beats_Newer_Stale_Donor()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string recipientRoot = Path.Combine(tempRoot, "recipient");
+			string exactDonorRoot = Path.Combine(tempRoot, "exact");
+			string staleDonorRoot = Path.Combine(tempRoot, "stale");
+			string indexPath = Path.Combine(tempRoot, "index", "lscache-donor-index.json");
+			string recipientProject = Path.Combine(recipientRoot, "src", "App", "App.csproj");
+			InitializeGitRepository(recipientRoot);
+			RunGit(tempRoot, "clone", recipientRoot, staleDonorRoot);
+			File.WriteAllText(Path.Combine(recipientRoot, "README.md"), "second");
+			RunGit(recipientRoot, "add", "README.md");
+			RunGit(recipientRoot, "commit", "-m", "second");
+			RunGit(tempRoot, "clone", recipientRoot, exactDonorRoot);
+			WriteCache(Path.Combine(exactDonorRoot, "src", "App", "App.csproj.lscache"), "ExactAssembly");
+			WriteCache(Path.Combine(staleDonorRoot, "src", "App", "App.csproj.lscache"), "StaleAssembly");
+
+			Directory.CreateDirectory(Path.GetDirectoryName(indexPath)!);
+			File.WriteAllText(
+				indexPath,
+				$$"""
+				{
+				  "version": 2,
+				  "entries": [
+				    { "path": {{JsonString(staleDonorRoot)}}, "updatedUtc": "2026-06-04T00:00:00Z" },
+				    { "path": {{JsonString(exactDonorRoot)}}, "updatedUtc": "2026-06-03T00:00:00Z" }
+				  ]
+				}
+				""");
+
+			ImmutableArray<CachedSliceData> slices = await CacheFileReader.ReadProjectCacheAsync(
+				recipientProject,
+				cacheInProject: true,
+				Resolver,
+				cancellationToken: TestContext.Current.CancellationToken,
+				donorOptions: new ProjectDataDonorOptions
+				{
+					IndexPath = indexPath,
+					WorkspaceRoot = recipientRoot,
+					GitDistanceTopK = 0,
+				});
+
+			CachedSliceData slice = Assert.Single(slices);
+			Assert.Equal("ExactAssembly", slice.Properties["AssemblyName"]);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public async Task ReadProjectCacheAsync_EnrichesOnlyFiveFreshestDonorWorktrees()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string recipientRoot = Path.Combine(tempRoot, "recipient");
+			string[] donorRoots = Enumerable
+				.Range(1, 6)
+				.Select(index => Path.Combine(tempRoot, $"donor-{index}"))
+				.ToArray();
+			string indexPath = Path.Combine(tempRoot, "index", "lscache-donor-index.json");
+			string recipientProject = Path.Combine(recipientRoot, "src", "App", "App.csproj");
+			InitializeGitRepository(recipientRoot);
+			RunGit(tempRoot, "clone", recipientRoot, donorRoots[5]);
+			for (int i = 0; i < donorRoots.Length; i++)
+			{
+				WriteCache(
+					Path.Combine(donorRoots[i], "src", "App", "App.csproj.lscache"),
+					$"Donor{i + 1}Assembly");
+			}
+
+			Directory.CreateDirectory(Path.GetDirectoryName(indexPath)!);
+			File.WriteAllText(
+				indexPath,
+				$$"""
+				{
+				  "version": 2,
+				  "entries": [
+				    { "path": {{JsonString(donorRoots[0])}}, "updatedUtc": "2026-06-06T00:00:00Z" },
+				    { "path": {{JsonString(donorRoots[1])}}, "updatedUtc": "2026-06-05T00:00:00Z" },
+				    { "path": {{JsonString(donorRoots[2])}}, "updatedUtc": "2026-06-04T00:00:00Z" },
+				    { "path": {{JsonString(donorRoots[3])}}, "updatedUtc": "2026-06-03T00:00:00Z" },
+				    { "path": {{JsonString(donorRoots[4])}}, "updatedUtc": "2026-06-02T00:00:00Z" },
+				    { "path": {{JsonString(donorRoots[5])}}, "updatedUtc": "2026-06-01T00:00:00Z" }
+				  ]
+				}
+				""");
+
+			ImmutableArray<CachedSliceData> slices = await CacheFileReader.ReadProjectCacheAsync(
+				recipientProject,
+				cacheInProject: true,
+				Resolver,
+				cancellationToken: TestContext.Current.CancellationToken,
+				donorOptions: new ProjectDataDonorOptions
+				{
+					IndexPath = indexPath,
+					WorkspaceRoot = recipientRoot,
+					GitDistanceTopK = 0,
+				});
+
+			Assert.Equal("Donor1Assembly", Assert.Single(slices).Properties["AssemblyName"]);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public async Task ReadProjectCacheAsync_TriesFreshnessFallbackBeyondEnrichmentBound()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string recipientRoot = Path.Combine(tempRoot, "recipient");
+			string[] donorRoots = Enumerable
+				.Range(1, 6)
+				.Select(index => Path.Combine(tempRoot, $"donor-{index}"))
+				.ToArray();
+			string indexPath = Path.Combine(tempRoot, "index", "lscache-donor-index.json");
+			string recipientProject = Path.Combine(recipientRoot, "src", "App", "App.csproj");
+			WriteProjectFile(recipientProject);
+			foreach (string donorRoot in donorRoots.Take(5))
+			{
+				Directory.CreateDirectory(donorRoot);
+			}
+
+			WriteCache(
+				Path.Combine(donorRoots[5], "src", "App", "App.csproj.lscache"),
+				"FallbackAssembly");
+			Directory.CreateDirectory(Path.GetDirectoryName(indexPath)!);
+			File.WriteAllText(
+				indexPath,
+				$$"""
+				{
+				  "version": 2,
+				  "entries": [
+				    { "path": {{JsonString(donorRoots[0])}}, "updatedUtc": "2026-06-06T00:00:00Z" },
+				    { "path": {{JsonString(donorRoots[1])}}, "updatedUtc": "2026-06-05T00:00:00Z" },
+				    { "path": {{JsonString(donorRoots[2])}}, "updatedUtc": "2026-06-04T00:00:00Z" },
+				    { "path": {{JsonString(donorRoots[3])}}, "updatedUtc": "2026-06-03T00:00:00Z" },
+				    { "path": {{JsonString(donorRoots[4])}}, "updatedUtc": "2026-06-02T00:00:00Z" },
+				    { "path": {{JsonString(donorRoots[5])}}, "updatedUtc": "2026-06-01T00:00:00Z" }
+				  ]
+				}
+				""");
+
+			ImmutableArray<CachedSliceData> slices = await CacheFileReader.ReadProjectCacheAsync(
+				recipientProject,
+				cacheInProject: true,
+				Resolver,
+				cancellationToken: TestContext.Current.CancellationToken,
+				donorOptions: new ProjectDataDonorOptions
+				{
+					IndexPath = indexPath,
+					WorkspaceRoot = recipientRoot,
+					GitDistanceTopK = 0,
+				});
+
+			Assert.Equal("FallbackAssembly", Assert.Single(slices).Properties["AssemblyName"]);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
 	}
 
 	#endregion
@@ -909,6 +2618,64 @@ public class CacheFileReaderTests
 		string path1 = CacheFileReader.GetUserFolderCacheFilePath(@"C:\dev\Foo\Foo.csproj");
 		string path2 = CacheFileReader.GetUserFolderCacheFilePath(@"C:\dev\Bar\Bar.csproj");
 		Assert.NotEqual(path1, path2);
+	}
+
+	[Theory]
+	[InlineData(false)]
+	[InlineData(true)]
+	public void CacheFilePathForWatching_MissingProjectFolderCache_ReturnsUserFolderPath(bool cacheInProject)
+	{
+		string tempRoot = CreateTempRoot();
+		string? originalCacheDir = Environment.GetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR");
+		try
+		{
+			Environment.SetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR", Path.Combine(tempRoot, "user-cache"));
+			string projectFilePath = Path.Combine(tempRoot, "src", "App", "App.csproj");
+
+			Assert.Equal(
+				CacheFileReader.GetUserFolderCacheFilePath(projectFilePath),
+				CacheFileReader.GetCacheFilePathForWatching(projectFilePath, cacheInProject));
+		}
+		finally
+		{
+			Environment.SetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR", originalCacheDir);
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public void CacheFilePathForWatching_ExistingProjectFolderCache_ReturnsProjectFolderPath()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string projectFilePath = Path.Combine(tempRoot, "src", "App", "App.csproj");
+			string projectFolderCachePath = CacheFileReader.GetProjectFolderCacheFilePath(projectFilePath);
+			WriteCache(projectFolderCachePath, "App");
+
+			Assert.Equal(
+				projectFolderCachePath,
+				CacheFileReader.GetCacheFilePathForWatching(projectFilePath, cacheInProject: false));
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public void CacheReader_PreservesFiveParameterResolverOverload()
+	{
+		Assert.NotNull(
+			typeof(CacheFileReader).GetMethod(
+				nameof(CacheFileReader.ReadProjectCacheAsync),
+				[
+					typeof(string),
+					typeof(bool),
+					typeof(CachePathResolver),
+					typeof(StringPool),
+					typeof(CancellationToken),
+				]));
 	}
 
 	#endregion
@@ -1003,7 +2770,7 @@ public class CacheFileReaderTests
 		content = StripLeadingTabs(content);
 		CachePathResolver resolver = new("10.0.100", sdkPath);
 		using StringReader reader = new(content);
-		ImmutableArray<CachedSliceData> slices = await CacheFileReader.ReadFromAsync(reader, resolver, @"C:\dev\TestProject", @"C:\dev\TestProject\TestProject.csproj");
+		ImmutableArray<CachedSliceData> slices = await CacheFileReader.ReadFromAsync(reader, resolver, @"C:\dev\TestProject", @"C:\dev\TestProject\TestProject.csproj", expectedProjectFilePath: null, stringPool: null, cancellationToken: TestContext.Current.CancellationToken);
 
 		Assert.Single(slices);
 		Assert.Single(slices[0].MetadataReferences);
@@ -1461,7 +3228,7 @@ public class CacheFileReaderTests
 			nugetFolders: [],
 			netFxRefRoot: null);
 		using StringReader reader = new(content);
-		return await CacheFileReader.ReadFromAsync(reader, resolver, @"C:\dev\TestProject", @"C:\dev\TestProject\TestProject.csproj");
+		return await CacheFileReader.ReadFromAsync(reader, resolver, @"C:\dev\TestProject", @"C:\dev\TestProject\TestProject.csproj", expectedProjectFilePath: null, stringPool: null, cancellationToken: TestContext.Current.CancellationToken);
 	}
 
 	private static async Task<ImmutableArray<CachedSliceData>> ParseWithoutSdkBinding(string content)
@@ -1474,7 +3241,106 @@ public class CacheFileReaderTests
 			nugetFolders: [],
 			netFxRefRoot: null);
 		using StringReader reader = new(content);
-		return await CacheFileReader.ReadFromAsync(reader, resolver, @"C:\dev\TestProject", @"C:\dev\TestProject\TestProject.csproj");
+		return await CacheFileReader.ReadFromAsync(reader, resolver, @"C:\dev\TestProject", @"C:\dev\TestProject\TestProject.csproj", expectedProjectFilePath: null, stringPool: null, cancellationToken: TestContext.Current.CancellationToken);
+	}
+
+	private static string CreateTempRoot()
+	{
+		string path = Path.Combine(Path.GetTempPath(), "projectdata-cache-donor-tests-" + Guid.NewGuid().ToString("N"));
+		Directory.CreateDirectory(path);
+		return path;
+	}
+
+	private static void DeleteTempRoot(string tempRoot)
+	{
+		try
+		{
+			Directory.Delete(tempRoot, recursive: true);
+		}
+		catch
+		{
+		}
+	}
+
+	private static void WriteCache(string cachePath, string assemblyName)
+	{
+		Directory.CreateDirectory(Path.GetDirectoryName(cachePath)!);
+		File.WriteAllText(
+			cachePath,
+			$$"""
+			version=2
+
+			[project]
+			project=App.csproj
+			language=C#
+
+			[properties]
+			AssemblyName={{assemblyName}}
+
+			[sourceFiles]
+			Program.cs
+			""");
+	}
+
+	private static void WriteProjectFile(string projectFilePath)
+	{
+		Directory.CreateDirectory(Path.GetDirectoryName(projectFilePath)!);
+		File.WriteAllText(projectFilePath, "<Project Sdk=\"Microsoft.NET.Sdk\" />");
+	}
+
+	private static void WriteDonorIndex(string indexPath, string donorRoot)
+	{
+		Directory.CreateDirectory(Path.GetDirectoryName(indexPath)!);
+		File.WriteAllText(
+			indexPath,
+			$$"""
+			{
+			  "version": 2,
+			  "entries": [
+			    { "path": {{JsonString(donorRoot)}}, "updatedUtc": "2026-06-03T00:00:00Z" }
+			  ]
+			}
+			""");
+	}
+
+	private static string JsonString(string value)
+		=> "\"" + value.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"";
+
+	private static string InitializeGitRepository(string repositoryRoot)
+	{
+		Directory.CreateDirectory(repositoryRoot);
+		RunGit(repositoryRoot, "init");
+		File.WriteAllText(Path.Combine(repositoryRoot, "README.md"), "test");
+		RunGit(repositoryRoot, "add", "README.md");
+		RunGit(repositoryRoot, "commit", "-m", "initial");
+		return RunGit(repositoryRoot, "rev-parse", "HEAD").Trim();
+	}
+
+	private static string RunGit(string workingDirectory, params string[] args)
+	{
+		ProcessStartInfo startInfo = new()
+		{
+			FileName = "git",
+			WorkingDirectory = workingDirectory,
+			UseShellExecute = false,
+			RedirectStandardOutput = true,
+			RedirectStandardError = true,
+		};
+		foreach (string arg in args)
+		{
+			startInfo.ArgumentList.Add(arg);
+		}
+		startInfo.Environment["GIT_AUTHOR_NAME"] = "ProjectData Test";
+		startInfo.Environment["GIT_AUTHOR_EMAIL"] = "projectdata-test@example.com";
+		startInfo.Environment["GIT_COMMITTER_NAME"] = "ProjectData Test";
+		startInfo.Environment["GIT_COMMITTER_EMAIL"] = "projectdata-test@example.com";
+
+		using Process process = Process.Start(startInfo) ?? throw new InvalidOperationException("Failed to start git.");
+		string output = process.StandardOutput.ReadToEnd();
+		string error = process.StandardError.ReadToEnd();
+		process.WaitForExit();
+		Assert.True(process.ExitCode == 0, $"git {string.Join(" ", args)} failed in {workingDirectory}:{Environment.NewLine}{output}{Environment.NewLine}{error}");
+		return output;
 	}
 
 	private static async Task<ImmutableArray<CachedSliceData>> ParseWithNuGetRoot(string content, string nugetRoot, string sdkPath)
@@ -1487,7 +3353,7 @@ public class CacheFileReaderTests
 			nugetFolders: [nugetRoot],
 			netFxRefRoot: null);
 		using StringReader reader = new(content);
-		return await CacheFileReader.ReadFromAsync(reader, resolver, @"C:\dev\TestProject", @"C:\dev\TestProject\TestProject.csproj");
+		return await CacheFileReader.ReadFromAsync(reader, resolver, @"C:\dev\TestProject", @"C:\dev\TestProject\TestProject.csproj", expectedProjectFilePath: null, stringPool: null, cancellationToken: TestContext.Current.CancellationToken);
 	}
 
 	/// <summary>
@@ -1741,7 +3607,7 @@ public class CacheFileReaderTests
 		content = StripLeadingTabs(content);
 
 		using StringReader reader = new(content);
-		return await CacheFileReader.ReadFromAsync(reader, Resolver, TestProjectDirectory, TestProjectFilePath);
+		return await CacheFileReader.ReadFromAsync(reader, Resolver, TestProjectDirectory, TestProjectFilePath, expectedProjectFilePath: null, stringPool: null, cancellationToken: TestContext.Current.CancellationToken);
 	}
 
 	private static string StripLeadingTabs(string content)
@@ -1768,6 +3634,60 @@ public class CacheFileReaderTests
 			return content;
 
 		return string.Join('\n', lines.Select(l => l.Length > minTabs ? l[minTabs..] : l));
+	}
+
+	private sealed class BlockingTextReader(string[] lines, int blockAtRead) : TextReader
+	{
+		private readonly TaskCompletionSource<bool> readBlocked = new(TaskCreationOptions.RunContinuationsAsynchronously);
+		private int readCount;
+
+		public Task WaitUntilBlockedAsync() => this.readBlocked.Task;
+
+		public override ValueTask<string?> ReadLineAsync(CancellationToken cancellationToken)
+		{
+			if (this.readCount++ == blockAtRead)
+			{
+				this.readBlocked.TrySetResult(true);
+				return new(WaitForCancellationAsync(cancellationToken));
+			}
+
+			int lineIndex = this.readCount - 1;
+			return ValueTask.FromResult<string?>(lineIndex < lines.Length ? lines[lineIndex] : null);
+		}
+
+		private static async Task<string?> WaitForCancellationAsync(CancellationToken cancellationToken)
+		{
+			await Task.Delay(Timeout.Infinite, cancellationToken);
+			return null;
+		}
+	}
+
+	private sealed class CancelAfterReturningLineTextReader(
+		string[] lines,
+		int cancelAfterReturningLine,
+		CancellationTokenSource cancellationSource) : TextReader
+	{
+		private int readCount;
+
+		public bool ReadRequestedAfterCancellation { get; private set; }
+
+		public override ValueTask<string?> ReadLineAsync(CancellationToken cancellationToken)
+		{
+			if (cancellationToken.IsCancellationRequested)
+			{
+				this.ReadRequestedAfterCancellation = true;
+				throw new InvalidOperationException("The parser requested another line after cancellation.");
+			}
+
+			int lineIndex = this.readCount++;
+			string? line = lineIndex < lines.Length ? lines[lineIndex] : null;
+			if (lineIndex == cancelAfterReturningLine)
+			{
+				cancellationSource.Cancel();
+			}
+
+			return ValueTask.FromResult(line);
+		}
 	}
 
 	// Captures Trace output by severity so a test can assert that a given message was emitted at

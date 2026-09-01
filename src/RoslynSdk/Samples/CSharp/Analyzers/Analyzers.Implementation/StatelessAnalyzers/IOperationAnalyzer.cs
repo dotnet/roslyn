@@ -13,7 +13,7 @@ namespace Sample.Analyzers.StatelessAnalyzers
     public class IOperationAnalyzer : DiagnosticAnalyzer
     {
         private const string Title = "Reduce allocations and use Array.Empty";
-        private const string MessageFormat = "Replace empty array allocation with Array.Empty.";
+        private const string MessageFormat = "Replace empty array allocation with Array.Empty";
         private const string Description = "Reduce allocations and use Array.Empty.";
 
         internal static DiagnosticDescriptor Rule =

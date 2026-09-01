@@ -144,11 +144,10 @@ Class Cat
 End Class
 </text>.GetCode()
 
-
         Dim comp = VisualBasicCompilation.Create(
-            "test",
-            syntaxTrees:={SyntaxFactory.ParseSyntaxTree(file1), SyntaxFactory.ParseSyntaxTree(file2)},
-            references:={MetadataReference.CreateFromFile(GetType(Object).Assembly.Location)})
+                    "test",
+                    syntaxTrees:={SyntaxFactory.ParseSyntaxTree(file1), SyntaxFactory.ParseSyntaxTree(file2)},
+                    references:={MetadataReference.CreateFromFile(GetType(Object).Assembly.Location)})
 
         Dim globalNamespace = comp.SourceModule.GlobalNamespace
 

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.BuildTasks;
 using Roslyn.Utilities;
@@ -32,7 +33,9 @@ internal static class TaskEnvironmentExtensions
             try
             {
                 var absolutePath = taskEnvironment.GetAbsolutePath(path);
-                return absolutePath.Value;
+#pragma warning disable RS0030 // The path is already absolute; this call only canonicalizes it.
+                return Path.GetFullPath(absolutePath.Value);
+#pragma warning restore RS0030
             }
             catch (Exception)
             {
@@ -83,6 +86,17 @@ internal static class TaskEnvironmentExtensions
         {
 #pragma warning disable RS0030 // Do not used banned APIs
             File.Copy(sourceFilePath.Value, destFilePath.Value, overwrite);
+        public string FileReadAllText(AbsolutePath path)
+        {
+#pragma warning disable RS0030 // Do not used banned APIs
+            return File.ReadAllText(path.Value);
+#pragma warning restore RS0030 // Do not used banned APIs
+        }
+
+        public void FileWriteAllText(AbsolutePath path, string contents, Encoding encoding)
+        {
+#pragma warning disable RS0030 // Do not used banned APIs
+            File.WriteAllText(path.Value, contents, encoding);
 #pragma warning restore RS0030 // Do not used banned APIs
         }
 

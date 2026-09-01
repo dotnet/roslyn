@@ -334,7 +334,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
 
                 await ShutdownRequestExecutionQueueAsync().ConfigureAwait(false);
 
-                lspServices.Dispose();
+                await lspServices.DisposeAsync().ConfigureAwait(false);
 
                 _jsonRpc.Disconnected -= JsonRpc_Disconnected;
                 _jsonRpc.Dispose();
