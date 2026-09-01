@@ -253,11 +253,12 @@ TOTAL_ZIP_BYTES=0
 # pre-created symlink, or a second job on the same runner, away from being
 # someone else's file.
 ZIP_TMP=$(mktemp) || { echo "::warning::Could not create a temporary file for downloads."; emit_none; }
-# Per-transfer curl bounds only. The *phase* is bounded by the step's own
-# `timeout-minutes`: if the fetch runs long the step is killed, `binlog-found`
-# is never written, and the activation gate below (plus the follow-up step in
-# the workflow) turns that into a warning and a no-op. That is the same
-# outcome an in-script deadline produced, without tracking the clock here.
+# Per-transfer curl bounds only. The *phase* is bounded by the `timeout 600`
+# wrapper the workflow puts around this script: if the fetch runs long it is
+# killed, `binlog-found` is never written, and the activation gate below (plus
+# the follow-up step in the workflow) turns that into a warning and a no-op.
+# That is the same outcome an in-script deadline produced, without tracking
+# the clock here.
 MAX_ATTEMPT_SECONDS=120         # per attempt; the full set really takes ~30s
 MAX_RETRY_SECONDS=240           # whole retry window for one artifact
 REMAINING_BYTES="${MAX_TOTAL_BYTES}"
@@ -315,9 +316,9 @@ for name in "${names[@]}"; do
   # Charge the budget with the bytes retained on disk, including those of an
   # artifact about to be skipped. This is a disk and extraction budget, not a
   # meter of network egress: `-o` truncates before each retry, so failed
-  # attempts are not counted here. What bounds those is the step's
-  # `timeout-minutes` plus `ulimit -f`, which caps every individual attempt
-  # at ZIP_CAP.
+  # attempts are not counted here. What bounds those is the `timeout 600`
+  # wrapper around this script plus `ulimit -f`, which caps every individual
+  # attempt at ZIP_CAP.
   TOTAL_ZIP_BYTES=$((TOTAL_ZIP_BYTES + ZIP_BYTES))
   if [ "${ZIP_BYTES}" -eq 0 ]; then
     echo "::warning::Skipping ${safe_name}: empty or failed download."; continue
