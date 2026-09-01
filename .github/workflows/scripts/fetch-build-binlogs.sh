@@ -332,7 +332,7 @@ for name in "${names[@]}"; do
   # The extractor writes generated `<ai>_<n>_<name>.binlog` names straight into
   # BINLOG_DIR and stops once it has written REMAINING_BYTES, so it bounds both
   # where bytes land and how many there are.
-  extract_out=$(python3 "${SCRIPT_DIR}/extract-binlogs.py" \
+  extract_out=$(pwsh -NoProfile -NonInteractive -File "${SCRIPT_DIR}/extract-binlogs.ps1" \
     "${ZIP_TMP}" "${BINLOG_DIR}" "${ai}" "${REMAINING_BYTES}" "${safe_name}")
   extract_rc=$?
   if [ "${extract_rc}" -ne 0 ]; then
