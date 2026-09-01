@@ -89,13 +89,6 @@ internal static class ChildServerHost
         }
         catch (TimeoutException)
         {
-            // Cancellation does not interrupt every kind of pending pipe read on every platform. Observe a later
-            // failure, but do not wait indefinitely for inherited handles to close after the server has exited.
-            _ = outputTask.ContinueWith(
-                static task => _ = task.Exception,
-                CancellationToken.None,
-                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
-                TaskScheduler.Default);
         }
         finally
         {
