@@ -515,8 +515,8 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
         {
             var changeKind = fileChangeFlags switch
             {
-                _ when (fileChangeFlags & _VSFILECHANGEFLAGS.VSFILECHG_Add) != 0 => FileChangeKind.Added,
-                _ when (fileChangeFlags & _VSFILECHANGEFLAGS.VSFILECHG_Del) != 0 => FileChangeKind.Removed,
+                _ when (fileChangeFlags & _VSFILECHANGEFLAGS.VSFILECHG_Add) != 0 => FileChangeKind.Created,
+                _ when (fileChangeFlags & _VSFILECHANGEFLAGS.VSFILECHG_Del) != 0 => FileChangeKind.Deleted,
                 _ => FileChangeKind.Changed,
             };
 
