@@ -279,18 +279,22 @@ safe-outputs:
         enum: [analysis]
     required: [workflow_artifact, artifact_kind]
     additionalProperties: false
-  # Bind writes to the PR number in the trusted trigger rather than allowing
-  # untrusted binlog/source content to choose an arbitrary repository target.
-  # The fetch job uses the same value and verifies that the ADO build's
-  # sourceBranch belongs to it before the agent can run.
+  # Bind writes to the PR number the fetch job resolved and validated, rather
+  # than allowing untrusted binlog/source content to choose an arbitrary
+  # repository target. `check_run.pull_requests` is empty for fork PRs, so the
+  # raw event expression would leave the target blank on exactly the PRs the
+  # fetch job now resolves via the head SHA. That job verifies the number is
+  # numeric, that the ADO build's sourceBranch is `refs/pull/<n>/merge`, and
+  # that the head and merge revisions still match before the agent can run, so
+  # this is no less trusted than the trigger and is correct more often.
   report-failure-as-issue: false
   add-comment:
     max: 1
-    target: ${{ github.event.check_run.pull_requests[0].number || inputs['pr-number'] }}
+    target: ${{ needs.fetch-binlog.outputs.pr-number }}
     hide-older-comments: true
   create-pull-request-review-comment:
     max: 25
-    target: ${{ github.event.check_run.pull_requests[0].number || inputs['pr-number'] }}
+    target: ${{ needs.fetch-binlog.outputs.pr-number }}
     commit-id: ${{ needs.fetch-binlog.outputs.pr-head-sha }}
   noop:
     max: 1
