@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // fashion depending on our analysis of the elements.
                     rewrittenReceiver: null);
                 Debug.Assert(list.Type is { });
-                Debug.Assert(list.Type.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T), TypeCompareKind.AllIgnoreOptions));
+                Debug.Assert((object)list.Type.OriginalDefinition == _compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T));
 
                 if (_factory.WellKnownMethod(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T, isOptional: true) is { } asSpanMethod)
                 {
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         rewrittenReceiver: null);
 
                     Debug.Assert(list.Type is { });
-                    Debug.Assert(list.Type.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T), TypeCompareKind.AllIgnoreOptions));
+                    Debug.Assert((object)list.Type.OriginalDefinition == _compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T));
 
                     var listToArray = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__ToArray)).AsMember((NamedTypeSymbol)list.Type);
                     array = _factory.Call(list, listToArray);
