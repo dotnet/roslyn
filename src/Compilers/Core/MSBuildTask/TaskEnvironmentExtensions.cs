@@ -33,7 +33,9 @@ internal static class TaskEnvironmentExtensions
             try
             {
                 var absolutePath = taskEnvironment.GetAbsolutePath(path);
-                return absolutePath.Value;
+#pragma warning disable RS0030 // The path is already absolute; this call only canonicalizes it.
+                return Path.GetFullPath(absolutePath.Value);
+#pragma warning restore RS0030
             }
             catch (Exception)
             {
