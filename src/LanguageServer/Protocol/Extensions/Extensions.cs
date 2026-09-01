@@ -222,7 +222,11 @@ internal static partial class Extensions
     public static async Task<int> GetPositionFromLinePositionAsync(this TextDocument document, LinePosition linePosition, CancellationToken cancellationToken)
     {
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-        return text.Lines.GetPosition(linePosition);
+
+        // The client is allowed to send a character past the end of the line, so clamp before converting to an
+        // absolute position.  Otherwise we compute an offset outside the document (or overflow entirely) and
+        // downstream APIs like SyntaxNode.FindToken throw ArgumentOutOfRangeException.
+        return text.Lines.GetPosition(ProtocolConversions.ClampPositionToLineEnd(linePosition, text));
     }
 
     public static bool HasVisualStudioLspCapability(this ClientCapabilities? clientCapabilities)

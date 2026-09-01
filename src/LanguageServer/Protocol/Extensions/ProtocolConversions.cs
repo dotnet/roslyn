@@ -319,6 +319,26 @@ internal static partial class ProtocolConversions
     public static LinePosition PositionToLinePosition(LSP.Position position)
         => new(position.Line, position.Character);
 
+    /// <summary>
+    /// Clamps the character of <paramref name="position"/> to the end of its line.  The LSP spec explicitly
+    /// allows clients to send a character past the end of the line:
+    /// <em>"If the character value is greater than the line length it defaults back to the line length."</em>
+    /// <para/>
+    /// Positions whose line is outside <paramref name="text"/> are returned unchanged so that callers still
+    /// surface the out of range line - the spec does not allow the line to go past the end of the document.
+    /// </summary>
+    public static LinePosition ClampPositionToLineEnd(LinePosition position, SourceText text)
+    {
+        if (position.Line < 0 || position.Line >= text.Lines.Count)
+            return position;
+
+        var line = text.Lines[position.Line];
+        var lineLength = line.End - line.Start;
+        return position.Character > lineLength
+            ? new LinePosition(position.Line, lineLength)
+            : position;
+    }
+
     public static LinePositionSpan RangeToLinePositionSpan(LSP.Range range)
         => new(PositionToLinePosition(range.Start), PositionToLinePosition(range.End));
 
@@ -367,18 +387,6 @@ internal static partial class ProtocolConversions
 
         static string PositionToString(LSP.Position position)
             => $"{{ Line={position.Line}, Character={position.Character} }}";
-
-        static LinePosition ClampPositionToLineEnd(LinePosition position, SourceText text)
-        {
-            if (position.Line < 0 || position.Line >= text.Lines.Count)
-                return position;
-
-            var line = text.Lines[position.Line];
-            var lineLength = line.End - line.Start;
-            return position.Character > lineLength
-                ? new LinePosition(position.Line, lineLength)
-                : position;
-        }
     }
 
     public static LSP.TextEdit TextChangeToTextEdit(TextChange textChange, SourceText oldText)

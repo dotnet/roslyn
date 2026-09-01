@@ -353,6 +353,62 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
         Assert.Throws<ArgumentException>(() => ProtocolConversions.RangeToTextSpan(range, sourceText));
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/9716")]
+    public void ClampPositionToLineEnd_CharacterPastLineEnd()
+    {
+        var sourceText = SourceText.From(GetTestMarkup());
+
+        // "    var x = 5;" is line 2, which starts at 13 and ends at 27 (a length of 14).
+        Assert.Equal(
+            new LinePosition(2, 14),
+            ProtocolConversions.ClampPositionToLineEnd(new LinePosition(2, int.MaxValue), sourceText));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/9716")]
+    public void ClampPositionToLineEnd_CharacterWithinLine()
+    {
+        var sourceText = SourceText.From(GetTestMarkup());
+
+        // Positions that are already in range are returned untouched.
+        Assert.Equal(
+            new LinePosition(2, 8),
+            ProtocolConversions.ClampPositionToLineEnd(new LinePosition(2, 8), sourceText));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/9716")]
+    public void ClampPositionToLineEnd_LineOutOfRange()
+    {
+        var sourceText = SourceText.From(GetTestMarkup());
+
+        // The spec only allows the character to go past the end of the line, not the line to go past the
+        // end of the document. Leave those alone so callers still report the out of range line.
+        var outOfRange = new LinePosition(sourceText.Lines.Count, 5);
+        Assert.Equal(outOfRange, ProtocolConversions.ClampPositionToLineEnd(outOfRange, sourceText));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/9716")]
+    public async Task GetPositionFromLinePositionAsync_ClampsCharacterPastLineEnd()
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(GetTestMarkup(), mutatingLspWorkspace: false);
+        var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+
+        // Line 2 ("    var x = 5;") starts at 13 and ends at 27. A character past the end of the line must
+        // clamp to the end of the line rather than producing an offset outside the document.
+        var position = await document.GetPositionFromLinePositionAsync(new LinePosition(2, int.MaxValue), CancellationToken.None);
+        Assert.Equal(27, position);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/9716")]
+    public async Task GetPositionFromLinePositionAsync_ThrowsForLineOutOfRange()
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(GetTestMarkup(), mutatingLspWorkspace: false);
+        var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+
+        var lineCount = (await document.GetTextAsync(CancellationToken.None)).Lines.Count;
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+            () => document.GetPositionFromLinePositionAsync(new LinePosition(lineCount, 0), CancellationToken.None));
+    }
+
     private static string GetTestMarkup()
     {
         // Markup is 31 characters long. Line break (\n) is 2 characters 
