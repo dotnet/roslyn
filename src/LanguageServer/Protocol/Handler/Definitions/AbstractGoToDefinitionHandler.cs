@@ -51,7 +51,7 @@ internal abstract class AbstractGoToDefinitionHandler : ILspServiceDocumentReque
 
         var locations = await GetDefinitionsAsync(_globalOptions, _metadataAsSourceFileService, workspace, document, forSymbolType, linePosition, cancellationToken).ConfigureAwait(false);
         if (locations is null or [])
-            await context.GetRequiredLspService<RequestTelemetryLogger>().ReportEmptySymbolResultAsync(method, document, linePosition, cancellationToken).ConfigureAwait(false);
+            await context.GetRequiredLspService<RequestTelemetryLogger>().ReportEmptySymbolResultAsync(method, document, request.Position, cancellationToken).ConfigureAwait(false);
 
         return locations;
     }

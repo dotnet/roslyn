@@ -32,13 +32,14 @@ public sealed class RequestTelemetryLoggerTests
             """);
         var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
         var logger = new TestTelemetryLogger();
+        var position = new Position(line: 2, character: 0);
 
         await RequestTelemetryLogger.ReportEmptySymbolResultAsync(
             logger,
             WellKnownLspServerKinds.CSharpVisualBasicLspServer.ToTelemetryString(),
             Methods.TextDocumentDefinitionName,
             document,
-            new LinePosition(line: 2, character: 0),
+            position,
             CancellationToken.None);
 
         var telemetryEvent = Assert.Single(logger.PostedEvents);
@@ -78,26 +79,49 @@ public sealed class RequestTelemetryLoggerTests
             """);
         var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
         var logger = new TestTelemetryLogger();
-        var linePosition = new LinePosition(line: 4, character: 8);
-
+        var position = new Position(line: 4, character: 8);
         await RequestTelemetryLogger.ReportEmptySymbolResultAsync(
             logger,
             WellKnownLspServerKinds.CSharpVisualBasicLspServer.ToTelemetryString(),
             Methods.TextDocumentDefinitionName,
             document,
-            linePosition,
+            position,
             CancellationToken.None);
 
         var properties = Assert.Single(logger.PostedEvents).Properties;
         var text = await document.GetTextAsync();
         var root = await document.GetSyntaxRootAsync();
-        var token = root!.FindToken(text.Lines.GetPosition(linePosition), findInsideTrivia: true);
+        var token = root!.FindToken(text.Lines.GetPosition(new LinePosition(position.Line, position.Character)), findInsideTrivia: true);
 
         Assert.Equal(false, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.isatlineend"]);
         Assert.Equal(false, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.isatlinestart"]);
         Assert.Equal("Token", properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.positionkind"]);
         Assert.Equal(token.RawKind, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.tokenrawkind"]);
         Assert.Equal(token.Parent!.RawKind, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.parentnoderawkind"]);
+    }
+
+    [Theory]
+    [InlineData(-1, 0, "LineOutOfRange")]
+    [InlineData(2, 0, "LineOutOfRange")]
+    [InlineData(0, -1, "CharacterOutOfRange")]
+    [InlineData(0, 8, "CharacterOutOfRange")]
+    public async Task ReportsInvalidPosition(int line, int character, string expectedPositionKind)
+    {
+        using var workspace = TestWorkspace.CreateCSharp("class C");
+        var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
+        var logger = new TestTelemetryLogger();
+        await RequestTelemetryLogger.ReportEmptySymbolResultAsync(
+            logger,
+            WellKnownLspServerKinds.CSharpVisualBasicLspServer.ToTelemetryString(),
+            Methods.TextDocumentDefinitionName,
+            document,
+            new Position(line, character),
+            CancellationToken.None);
+
+        var properties = Assert.Single(logger.PostedEvents).Properties;
+        Assert.Equal(line, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.line"]);
+        Assert.Equal(character, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.character"]);
+        Assert.Equal(expectedPositionKind, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.positionkind"]);
     }
 }
 

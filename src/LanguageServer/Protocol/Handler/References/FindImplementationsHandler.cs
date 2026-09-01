@@ -43,7 +43,7 @@ internal sealed class FindImplementationsHandler : ILspServiceDocumentRequestHan
 
         var locations = await FindImplementationsAsync(document, linePosition, classificationOptions, supportsVisualStudioExtensions, cancellationToken).ConfigureAwait(false);
         if (locations.Length == 0)
-            await context.GetRequiredLspService<RequestTelemetryLogger>().ReportEmptySymbolResultAsync(LSP.Methods.TextDocumentImplementationName, document, linePosition, cancellationToken).ConfigureAwait(false);
+            await context.GetRequiredLspService<RequestTelemetryLogger>().ReportEmptySymbolResultAsync(LSP.Methods.TextDocumentImplementationName, document, request.Position, cancellationToken).ConfigureAwait(false);
 
         return locations;
     }
