@@ -544,7 +544,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
                     if (!_process.HasExited)
                     {
                         LogProcessFailure();
-                        _process.Kill(entireProcessTree: true);
+                        _process.Kill();
                     }
                 }
                 catch (Exception e)
