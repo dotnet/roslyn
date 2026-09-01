@@ -291,6 +291,33 @@ To fix the violations, use the `unsafe` block or expression, for example:
 int b = unsafe(c[null]);
 ```
 
+## Uninitialized non-nullable events now report CS9400 instead of CS8618
+
+***Introduced in Visual Studio 2026 version 18.12***
+
+The compiler now reports CS9400 for an uninitialized non-nullable event instead of
+CS8618.
+
+This change can cause a warning to appear in existing code that suppresses CS8618,
+for example:
+
+```cs
+#nullable enable
+
+class C
+{
+#pragma warning disable CS8618
+    public event System.Action E; // warning CS9400
+#pragma warning restore CS8618
+}
+```
+
+If the event is intentionally left uninitialized, update the suppression to include
+CS9400. Otherwise, make the event nullable or initialize it as appropriate for the
+application.
+
+See also https://github.com/dotnet/roslyn/issues/81679.
+
 ## `closed` is a contextual keyword in type declaration contexts
 
 ***Introduced in Visual Studio 2026 version 18.10***
