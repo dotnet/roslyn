@@ -72,6 +72,8 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.UnionDeclaration(Microsoft.Co
 
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ClosedKeyword = 8453 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.MemorySafetyRulesVersion.get -> Microsoft.CodeAnalysis.MemorySafetyRulesVersion
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithMemorySafetyRulesVersion(Microsoft.CodeAnalysis.MemorySafetyRulesVersion version) -> Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions!
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.SyntaxKind.SafeKeyword = 8454 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax

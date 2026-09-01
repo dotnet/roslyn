@@ -116,15 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private RefSafetyRulesAttributeVersion _lazyRefSafetyRulesAttributeVersion;
 
-        internal enum MemorySafetyRulesAttributeVersion
-        {
-            Uninitialized = 0,
-            NoAttribute,
-            Updated, // https://github.com/dotnet/roslyn/issues/82546: rename to Version15 (or whatever the value ends up being)
-            UnrecognizedAttribute,
-        }
-
-        private MemorySafetyRulesAttributeVersion _lazyMemorySafetyRulesAttributeVersion;
+        private MemorySafetyRulesVersion? _lazyMemorySafetyRulesVersion;
 
 #nullable enable
         private DiagnosticInfo? _lazyCachedCompilerFeatureRequiredDiagnosticInfo = CSDiagnosticInfo.EmptyErrorInfo;
@@ -757,31 +749,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override bool UseUpdatedMemorySafetyRules
-            => MemorySafetyRulesVersion == MemorySafetyRulesAttributeVersion.Updated;
-
-        internal MemorySafetyRulesAttributeVersion MemorySafetyRulesVersion
+        internal override MemorySafetyRulesVersion MemorySafetyRulesVersion
         {
             get
             {
-                if (_lazyMemorySafetyRulesAttributeVersion == MemorySafetyRulesAttributeVersion.Uninitialized)
-                {
-                    _lazyMemorySafetyRulesAttributeVersion = getAttributeVersion();
-                }
-                return _lazyMemorySafetyRulesAttributeVersion;
+                return _lazyMemorySafetyRulesVersion ??= getAttributeVersion();
 
-                MemorySafetyRulesAttributeVersion getAttributeVersion()
+                // Returns
+                // * recognized: 1 if the attribute is not present,
+                // * recognized: 2 if the attribute is present and has the value 2,
+                // * unrecognized: -1 if the attribute is present and has the value 1 or some non-integer value,
+                // * unrecognized: the attribute's value (which is other than 1 or 2).
+                MemorySafetyRulesVersion getAttributeVersion()
                 {
-                    if (_module.HasMemorySafetyRulesAttribute(Token, out int version, out bool foundAttributeType))
+                    if (_module.HasMemorySafetyRulesAttribute(Token, out int version, out bool foundAttributeType) &&
+                        version != (int)MemorySafetyRulesVersion.Version1)
                     {
-                        return version == CSharpCompilationOptions.UpdatedMemorySafetyRulesVersion
-                            ? MemorySafetyRulesAttributeVersion.Updated
-                            : MemorySafetyRulesAttributeVersion.UnrecognizedAttribute;
+                        return (MemorySafetyRulesVersion)version;
                     }
 
                     return foundAttributeType
-                        ? MemorySafetyRulesAttributeVersion.UnrecognizedAttribute
-                        : MemorySafetyRulesAttributeVersion.NoAttribute;
+                        ? (MemorySafetyRulesVersion)(-1)
+                        : MemorySafetyRulesVersion.Version1;
                 }
             }
         }
