@@ -92,13 +92,15 @@ internal class RequestTelemetryLogger : IDisposable, ILspService
             properties["method"] = args.method;
             properties["line"] = args.linePosition.Line;
             properties["character"] = args.linePosition.Character;
-            properties["lineCount"] = args.text.Lines.Count;
-            properties["lineLength"] = args.line.Span.Length;
-            properties["absolutePosition"] = args.absolutePosition;
+            properties["isFirstLine"] = args.linePosition.Line == 0;
+            properties["isLastLine"] = args.linePosition.Line == args.text.Lines.Count - 1;
+            properties["isAtLineStart"] = args.linePosition.Character == 0;
+            properties["isAtLineEnd"] = args.absolutePosition == args.line.End;
             properties["language"] = args.document.Project.Language;
             properties["workspaceKind"] = args.document.Project.Solution.WorkspaceKind;
             properties["positionKind"] = RequestTelemetryLogger.GetPositionKind(args.text, args.line, args.absolutePosition, args.token);
             properties["tokenRawKind"] = args.token.RawKind;
+            properties["parentNodeRawKind"] = args.token.Parent?.RawKind ?? 0;
         }, (serverTypeName, method, document, linePosition, text, line, absolutePosition, token), logLevel: LogLevel.Information);
 
         try

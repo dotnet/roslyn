@@ -48,17 +48,56 @@ public sealed class RequestTelemetryLoggerTests
         var root = await document.GetSyntaxRootAsync();
         var absolutePosition = text.Lines[2].Start;
 
-        Assert.Equal(absolutePosition, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.absoluteposition"]);
         Assert.Equal(0, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.character"]);
+        Assert.Equal(true, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.isatlineend"]);
+        Assert.Equal(true, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.isatlinestart"]);
+        Assert.Equal(false, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.isfirstline"]);
+        Assert.Equal(false, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.islastline"]);
         Assert.Equal(LanguageNames.CSharp, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.language"]);
         Assert.Equal(2, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.line"]);
-        Assert.Equal(text.Lines.Count, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.linecount"]);
-        Assert.Equal(0, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.linelength"]);
         Assert.Equal(Methods.TextDocumentDefinitionName, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.method"]);
+        Assert.Equal(root!.FindToken(absolutePosition, findInsideTrivia: true).Parent!.RawKind, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.parentnoderawkind"]);
         Assert.Equal("EndOfLine", properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.positionkind"]);
         Assert.Equal(WellKnownLspServerKinds.CSharpVisualBasicLspServer.ToTelemetryString(), properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.server"]);
-        Assert.Equal(root!.FindToken(absolutePosition, findInsideTrivia: true).RawKind, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.tokenrawkind"]);
+        Assert.Equal(root.FindToken(absolutePosition, findInsideTrivia: true).RawKind, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.tokenrawkind"]);
         Assert.Equal(document.Project.Solution.WorkspaceKind, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.workspacekind"]);
+    }
+
+    [Fact]
+    public async Task ReportsEmptyResultTokenContext()
+    {
+        using var workspace = TestWorkspace.CreateCSharp(
+            """
+            class C
+            {
+                void M()
+                {
+                    M();
+                }
+            }
+            """);
+        var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
+        var logger = new TestTelemetryLogger();
+        var linePosition = new LinePosition(line: 4, character: 8);
+
+        await RequestTelemetryLogger.ReportEmptySymbolResultAsync(
+            logger,
+            WellKnownLspServerKinds.CSharpVisualBasicLspServer.ToTelemetryString(),
+            Methods.TextDocumentDefinitionName,
+            document,
+            linePosition,
+            CancellationToken.None);
+
+        var properties = Assert.Single(logger.PostedEvents).Properties;
+        var text = await document.GetTextAsync();
+        var root = await document.GetSyntaxRootAsync();
+        var token = root!.FindToken(text.Lines.GetPosition(linePosition), findInsideTrivia: true);
+
+        Assert.Equal(false, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.isatlineend"]);
+        Assert.Equal(false, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.isatlinestart"]);
+        Assert.Equal("Token", properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.positionkind"]);
+        Assert.Equal(token.RawKind, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.tokenrawkind"]);
+        Assert.Equal(token.Parent!.RawKind, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.parentnoderawkind"]);
     }
 }
 
