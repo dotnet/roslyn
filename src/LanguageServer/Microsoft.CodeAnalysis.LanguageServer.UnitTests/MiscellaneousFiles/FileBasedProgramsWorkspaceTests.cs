@@ -1184,9 +1184,9 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         );
 
         // Update Util.cs to include Util2.cs.
-        var textToInsert = $"#:include Util2.cs{Environment.NewLine}";
-        // Write updated content to disk so the build host can load it.
-        utilCsFile.WriteAllText($"#:include Util2.cs{Environment.NewLine}{util2CsText}");
+var textToInsert = $"#:include Util2.cs{Environment.NewLine}";
+// Write updated content to disk so the build host can load it.
+utilCsFile.WriteAllText(textToInsert + utilCsText);
         await testLspServer.InsertTextAsync(utilCsUri, (Line: 0, Column: 0, Text: textToInsert));
 
         await WaitForProjectLoad(appCsUri, testLspServer);
