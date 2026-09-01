@@ -68,6 +68,27 @@ internal static class TaskEnvironmentExtensions
 #pragma warning restore RS0030 // Do not used banned APIs
         }
 
+        public FileStream FileOpenRead(AbsolutePath path)
+        {
+#pragma warning disable RS0030 // Do not used banned APIs
+            return File.OpenRead(path.Value);
+#pragma warning restore RS0030 // Do not used banned APIs
+        }
+
+        public DateTime GetLastWriteTimeUtc(AbsolutePath path)
+        {
+#pragma warning disable RS0030 // Do not used banned APIs
+            return File.GetLastWriteTimeUtc(path.Value);
+#pragma warning restore RS0030 // Do not used banned APIs
+        }
+
+        public void FileCopy(AbsolutePath sourceFilePath, AbsolutePath destFilePath, bool overwrite)
+        {
+#pragma warning disable RS0030 // Do not used banned APIs
+            File.Copy(sourceFilePath.Value, destFilePath.Value, overwrite);
+#pragma warning restore RS0030 // Do not used banned APIs
+        }
+
         public string FileReadAllText(AbsolutePath path)
         {
 #pragma warning disable RS0030 // Do not used banned APIs
