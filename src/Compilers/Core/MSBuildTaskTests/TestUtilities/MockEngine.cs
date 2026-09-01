@@ -7,7 +7,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.Build.Framework;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {

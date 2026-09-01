@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 
 using Microsoft.VisualStudio.Threading;
 using Xunit;
-using Xunit.Abstractions;
 using IAsyncDisposable = System.IAsyncDisposable;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;

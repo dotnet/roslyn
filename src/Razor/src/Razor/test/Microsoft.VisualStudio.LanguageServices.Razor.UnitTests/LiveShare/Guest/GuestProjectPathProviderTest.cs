@@ -8,7 +8,6 @@ using Microsoft.VisualStudio.LiveShare;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LiveShare.Guest;
 

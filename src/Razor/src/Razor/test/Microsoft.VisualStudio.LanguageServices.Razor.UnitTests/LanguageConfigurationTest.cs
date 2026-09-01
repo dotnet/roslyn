@@ -7,7 +7,6 @@ using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Testing;
 using Newtonsoft.Json.Linq;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor;
 

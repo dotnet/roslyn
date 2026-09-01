@@ -7,7 +7,6 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 

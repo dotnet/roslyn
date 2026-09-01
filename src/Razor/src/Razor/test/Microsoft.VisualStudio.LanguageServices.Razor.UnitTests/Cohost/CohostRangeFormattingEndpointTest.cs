@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using WorkItemAttribute = Microsoft.AspNetCore.Razor.Test.Common.WorkItemAttribute;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;

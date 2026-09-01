@@ -12,7 +12,6 @@ using System.IO.Pipelines;
 using System.IO.Pipes;
 using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
-using Xunit.Abstractions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Daemon;

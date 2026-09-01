@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CommandLine;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {

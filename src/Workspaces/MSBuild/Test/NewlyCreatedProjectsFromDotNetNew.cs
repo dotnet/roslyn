@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.Extensions.Logging;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests;
 

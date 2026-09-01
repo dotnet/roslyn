@@ -22,7 +22,6 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
-    using Xunit.Abstractions;
 
     public abstract class AbstractInteractiveHostTests : CSharpTestBase, IAsyncLifetime
     {

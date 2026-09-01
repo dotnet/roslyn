@@ -11,7 +11,6 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterceptio
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.MessageInterception;
 

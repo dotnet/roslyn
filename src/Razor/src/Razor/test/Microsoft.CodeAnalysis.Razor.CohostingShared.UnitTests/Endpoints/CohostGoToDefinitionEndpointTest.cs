@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
-using Xunit.Abstractions;
 using TextDocument = Microsoft.CodeAnalysis.TextDocument;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;

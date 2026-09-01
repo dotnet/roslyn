@@ -7,7 +7,6 @@ using System.Runtime.Loader;
 using System.Text.Json.Nodes;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 

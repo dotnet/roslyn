@@ -5,7 +5,6 @@
 using Roslyn.Test.Utilities;
 using StreamJsonRpc;
 using StreamJsonRpc.Protocol;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests;
 

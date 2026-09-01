@@ -9,7 +9,6 @@ using Microsoft.VisualStudio.Razor.Logging;
 using Microsoft.VisualStudio.Shell.Interop;
 using Moq;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor;
 

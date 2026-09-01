@@ -11,7 +11,6 @@ using Microsoft.VisualStudio.Razor.IntegrationTests.Logging;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing;
 

@@ -22,7 +22,6 @@ using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
