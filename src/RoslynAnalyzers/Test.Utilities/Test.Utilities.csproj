@@ -25,7 +25,7 @@
 
     <PackageReference Include="System.ComponentModel.Composition" />
 
-    <PackageReference Include="xunit.assert" />
+    <PackageReference Include="xunit.v3.assert" />
     <PackageReference Include="Xunit.Combinatorial" />
     <PackageReference Include="Humanizer.Core" />
   </ItemGroup>
