@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Client;
 /// </summary>
 internal static class ChildServerHost
 {
-    private static readonly TimeSpan s_outputDrainTimeout = TimeSpan.FromSeconds(5);
-
     public static async Task<int> RunAsync(
         ServerExecutable executable,
         ThinClientArguments arguments)
@@ -64,36 +62,9 @@ internal static class ChildServerHost
 
         await process.WaitForExitAsync().ConfigureAwait(false);
 
-        // Normally the output pipes reach EOF as soon as the server exits. Bound the drain in case another process
-        // inherited a pipe handle and keeps it open, then cancel all forwarding so the thin client can exit.
-        await CompleteOutputForwardingAsync(
-            stdoutTask,
-            stderrTask,
-            forwardingCancellationSource,
-            s_outputDrainTimeout).ConfigureAwait(false);
+        forwardingCancellationSource.Cancel();
 
         return InterpretExit(process);
-    }
-
-    private static async Task CompleteOutputForwardingAsync(
-        Task stdoutTask,
-        Task stderrTask,
-        CancellationTokenSource forwardingCancellationSource,
-        TimeSpan drainTimeout)
-    {
-        var outputTask = Task.WhenAll(stdoutTask, stderrTask);
-
-        try
-        {
-            await outputTask.WaitAsync(drainTimeout).ConfigureAwait(false);
-        }
-        catch (TimeoutException)
-        {
-        }
-        finally
-        {
-            forwardingCancellationSource.Cancel();
-        }
     }
 
     /// <summary>
