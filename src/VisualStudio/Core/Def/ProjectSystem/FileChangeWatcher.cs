@@ -418,7 +418,7 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
             _fileChangeWatcher._taskQueue.AddWork(WatcherOperation.UnwatchFile(watchedFile));
         }
 
-        public event EventHandler<string>? FileChanged;
+        public event EventHandler<FileChangedEventArgs>? FileChanged;
 
         int IVsFreeThreadedFileChangeEvents.FilesChanged(uint cChanges, string[] rgpszFile, uint[] rggrfChange)
         {
@@ -428,7 +428,7 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
                 if ((fileChangeFlags & FileChangeTracker.DefaultFileChangeFlags) == 0)
                     continue;
 
-                FileChanged?.Invoke(this, rgpszFile[i]);
+                RaiseFileChanged(rgpszFile[i], fileChangeFlags);
             }
 
             return VSConstants.S_OK;
@@ -460,7 +460,7 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
                 if ((fileChangeFlags & FileChangeTracker.DefaultFileChangeFlags) == 0)
                     continue;
 
-                FileChanged?.Invoke(this, rgpszFile[i]);
+                RaiseFileChanged(rgpszFile[i], fileChangeFlags);
             }
 
             return VSConstants.S_OK;
@@ -505,10 +505,22 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
                 if ((fileChangeFlags & FileChangeTracker.DefaultFileChangeFlags) == 0)
                     continue;
 
-                FileChanged?.Invoke(this, rgpszFile[i]);
+                RaiseFileChanged(rgpszFile[i], fileChangeFlags);
             }
 
             return VSConstants.S_OK;
+        }
+
+        private void RaiseFileChanged(string filePath, _VSFILECHANGEFLAGS fileChangeFlags)
+        {
+            var changeKind = fileChangeFlags switch
+            {
+                _ when (fileChangeFlags & _VSFILECHANGEFLAGS.VSFILECHG_Add) != 0 => FileChangeKind.Added,
+                _ when (fileChangeFlags & _VSFILECHANGEFLAGS.VSFILECHG_Del) != 0 => FileChangeKind.Removed,
+                _ => FileChangeKind.Changed,
+            };
+
+            FileChanged?.Invoke(this, new(filePath, changeKind));
         }
 
         int IVsFreeThreadedFileChangeEvents.DirectoryChangedEx(string pszDirectory, string pszFile)

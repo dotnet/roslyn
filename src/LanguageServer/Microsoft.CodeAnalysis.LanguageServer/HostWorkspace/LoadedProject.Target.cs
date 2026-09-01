@@ -55,21 +55,27 @@ internal sealed partial class LoadedProject
             _assetsFileChangeContext.FileChanged += AssetsFileChangeContext_FileChanged;
         }
 
-        private void AssetsFileChangeContext_FileChanged(object? sender, string filePath)
+        private void AssetsFileChangeContext_FileChanged(object? sender, FileChangedEventArgs e)
         {
-            Shared.Utilities.IOUtilities.PerformIO(() =>
+            var checksum = GetAssetsFileChecksum(e.FilePath);
+
+            if (_mostRecentProjectAssetsFileChecksum != checksum)
+            {
+                _mostRecentProjectAssetsFileChecksum = checksum;
+                _project.NeedsReload?.Invoke(_project, e.FilePath);
+            }
+        }
+
+        private static Checksum GetAssetsFileChecksum(string assetsFilePath)
+        {
+            return Shared.Utilities.IOUtilities.PerformIO(() =>
             {
                 // We only want to trigger design time build if the assets file content actually changed from the last time this handler was called.
                 // Sometimes we can get a change event where no content changed (e.g. for a failed restore).
                 // In such cases, proceeding with design-time build can put us in a restore loop (since the design-time build notices that assets are missing).
-                using var assetsFileStream = File.OpenRead(filePath);
-                var checksum = Checksum.Create(assetsFileStream);
-                if (_mostRecentProjectAssetsFileChecksum != checksum)
-                {
-                    _mostRecentProjectAssetsFileChecksum = checksum;
-                    _project.NeedsReload?.Invoke(this, EventArgs.Empty);
-                }
-            });
+                using var assetsFileStream = File.OpenRead(assetsFilePath);
+                return Checksum.Create(assetsFileStream);
+            }, defaultValue: Checksum.Null);
         }
 
         public string? GetTargetFramework()
@@ -266,10 +272,19 @@ internal sealed partial class LoadedProject
 
                 // Dispose of the last once since we're changing the file we're watching.
                 _mostRecentProjectAssetsFileWatcher?.Dispose();
-                _mostRecentProjectAssetsFileWatcher = currentProjectInfo.ProjectAssetsFilePath is { } assetsFilePath
-                        ? _assetsFileChangeContext.EnqueueWatchingFile(assetsFilePath)
-                        : null;
-                _mostRecentProjectAssetsFileChecksum = default;
+
+                if (currentProjectInfo.ProjectAssetsFilePath is { } assetsFilePath)
+                {
+                    _mostRecentProjectAssetsFileWatcher = _assetsFileChangeContext.EnqueueWatchingFile(assetsFilePath);
+
+                    // Update the checksum we keep -- otherwise the first restore or build that touches this (even if it doesn't change the contents)
+                    // would retrigger design time builds.
+                    _mostRecentProjectAssetsFileChecksum = GetAssetsFileChecksum(assetsFilePath);
+                }
+                else
+                {
+                    _mostRecentProjectAssetsFileWatcher = null;
+                }
             }
         }
 
