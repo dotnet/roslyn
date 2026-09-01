@@ -347,6 +347,14 @@ for name in "${names[@]}"; do
     find "${BINLOG_DIR}" -maxdepth 1 -type f -name "${ai}_*.binlog" -delete
     echo "::warning::Skipping ${safe_name}: no binlogs found in the artifact."; continue
   fi
+  # `written` is charged against the remaining-byte budget below. Bash reads a
+  # non-numeric value as 0 there, which would leave the budget unchanged and
+  # quietly stop capping later artifacts, so treat a malformed count as a
+  # failed extraction rather than trusting it.
+  if ! printf '%s' "${written}" | grep -qE '^[0-9]+$'; then
+    find "${BINLOG_DIR}" -maxdepth 1 -type f -name "${ai}_*.binlog" -delete
+    echo "::warning::Skipping ${safe_name}: extractor reported a malformed byte count."; continue
+  fi
 
   # Charge the budget by bytes actually written rather than by any size the
   # archive declares about itself.
