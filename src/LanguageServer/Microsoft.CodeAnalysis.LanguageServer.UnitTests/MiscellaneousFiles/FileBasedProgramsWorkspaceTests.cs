@@ -1184,9 +1184,9 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         );
 
         // Update Util.cs to include Util2.cs.
-var textToInsert = $"#:include Util2.cs{Environment.NewLine}";
-// Write updated content to disk so the build host can load it.
-utilCsFile.WriteAllText(textToInsert + utilCsText);
+        var textToInsert = $"#:include Util2.cs{Environment.NewLine}";
+        // Write updated content to disk so the build host can load it.
+        utilCsFile.WriteAllText(textToInsert + utilCsText);
         await testLspServer.InsertTextAsync(utilCsUri, (Line: 0, Column: 0, Text: textToInsert));
 
         await WaitForProjectLoad(appCsUri, testLspServer);
@@ -1204,7 +1204,9 @@ utilCsFile.WriteAllText(textToInsert + utilCsText);
 
         // Trivial edit+save of the App.cs file will trigger a reload though.
         appCsFile.WriteAllText(appCsText + Environment.NewLine);
-        await testLspServer.InsertTextAsync(appCsUri, (Line: 0, Column: 0, Text: Environment.NewLine));
+        var appCsSourceText = SourceText.From(appCsText);
+        var appCsEndPosition = appCsSourceText.Lines.GetLinePosition(appCsSourceText.Length);
+        await testLspServer.InsertTextAsync(appCsUri, (Line: appCsEndPosition.Line, Column: appCsEndPosition.Character, Text: Environment.NewLine));
         await WaitForProjectLoad(appCsUri, testLspServer);
 
         // Get the Util.cs document again
