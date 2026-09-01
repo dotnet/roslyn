@@ -71,6 +71,30 @@ ado_get() {
 }
 
 # --- 1. Validate the PR number ---------------------------------------------
+# `check_run.pull_requests` is empty whenever the PR comes from a fork, which
+# on this repo is most of them, so a check_run alone cannot name the PR. The
+# base repo's `commits/<sha>/pulls` does not list fork PRs either; the search
+# index does. Require exactly one open match and then confirm that PR is
+# actually at this commit, because binding to the wrong PR would post an
+# analysis to someone else's thread. Step 4 re-checks the binding against the
+# build's sourceBranch, so a wrong guess here still cannot reach a comment.
+if [ -z "${PR_NUMBER}" ] && printf '%s' "${CHECK_HEAD_SHA:-}" | grep -qE '^[0-9a-f]{40}$'; then
+  PR_SEARCH=$(gh api "search/issues?q=repo:${GH_AW_REPO}+is:pr+is:open+sha:${CHECK_HEAD_SHA}" 2>/dev/null)
+  PR_MATCHES=$(printf '%s' "${PR_SEARCH}" | jq -r '.total_count // 0' 2>/dev/null)
+  printf '%s' "${PR_MATCHES}" | grep -qE '^[0-9]+$' || PR_MATCHES=0
+  if [ "${PR_MATCHES}" -eq 1 ]; then
+    CANDIDATE=$(printf '%s' "${PR_SEARCH}" | jq -r '.items[0].number // empty')
+    CANDIDATE_HEAD=$(gh api "repos/${GH_AW_REPO}/pulls/${CANDIDATE}" -q '.head.sha' 2>/dev/null)
+    if [ -n "${CANDIDATE}" ] && [ "${CANDIDATE_HEAD}" = "${CHECK_HEAD_SHA}" ]; then
+      PR_NUMBER="${CANDIDATE}"
+      echo "Resolved PR #${PR_NUMBER} from check run head ${CHECK_HEAD_SHA} (fork PRs have an empty pull_requests)."
+    else
+      echo "::warning::PR #${CANDIDATE} is no longer at ${CHECK_HEAD_SHA}; skipping a stale check run."; emit_none
+    fi
+  elif [ "${PR_MATCHES}" -gt 1 ]; then
+    echo "::warning::Head ${CHECK_HEAD_SHA} matches ${PR_MATCHES} open PRs; refusing to guess which to analyze."; emit_none
+  fi
+fi
 # It is interpolated into GitHub API paths and into the `refs/pull/<n>/merge`
 # comparison, and on dispatch and slash commands it is free-form input.
 if ! printf '%s' "${PR_NUMBER}" | grep -qE '^[0-9]+$'; then
@@ -229,16 +253,13 @@ TOTAL_ZIP_BYTES=0
 # pre-created symlink, or a second job on the same runner, away from being
 # someone else's file.
 ZIP_TMP=$(mktemp) || { echo "::warning::Could not create a temporary file for downloads."; emit_none; }
-# `--max-time` is per attempt, so `--retry N` multiplies it: the whole download
-# phase, not one transfer, is what has to fit inside this job's
-# `timeout-minutes: 15`. Give the loop a wall-clock deadline and derive every
-# transfer's budget from what is left of it, so no combination of slow
-# artifacts and retries can take the job down before the controlled no-op.
-# `timeout` around each transfer makes the deadline hard, so the whole phase
-# really is bounded by FETCH_BUDGET rather than by it plus a last attempt.
-FETCH_BUDGET=420               # 7 minutes for all transfers *and* extraction
+# Per-transfer curl bounds only. The *phase* is bounded by the step's own
+# `timeout-minutes`: if the fetch runs long the step is killed, `binlog-found`
+# is never written, and the activation gate below (plus the follow-up step in
+# the workflow) turns that into a warning and a no-op. That is the same
+# outcome an in-script deadline produced, without tracking the clock here.
 MAX_ATTEMPT_SECONDS=120         # per attempt; the full set really takes ~30s
-FETCH_DEADLINE=$(( $(date +%s) + FETCH_BUDGET ))
+MAX_RETRY_SECONDS=240           # whole retry window for one artifact
 REMAINING_BYTES="${MAX_TOTAL_BYTES}"
 mkdir -p "${BINLOG_DIR}"
 # Only binlogs extracted by this run may be analyzed. Anything left in
@@ -267,15 +288,6 @@ for name in "${names[@]}"; do
     echo "::warning::Cumulative compressed download budget ${MAX_TOTAL_ZIP_BYTES} is exhausted before ${safe_name}; stopping downloads."
     break
   fi
-  # Bound this transfer by the time left as well, and never start one with no
-  # time to finish in.
-  TIME_LEFT=$(( FETCH_DEADLINE - $(date +%s) ))
-  if [ "${TIME_LEFT}" -le 0 ]; then
-    echo "::warning::Download time budget ${FETCH_BUDGET}s exhausted before ${safe_name}; stopping downloads."
-    break
-  fi
-  ATTEMPT_SECONDS="${MAX_ATTEMPT_SECONDS}"
-  [ "${TIME_LEFT}" -lt "${ATTEMPT_SECONDS}" ] && ATTEMPT_SECONDS="${TIME_LEFT}"
   # Download to a file, never a pipe: curl can only rewind seekable output, so
   # through a pipe a retried body is appended and a 503 page followed by a retry
   # yields a corrupt `<error page><zip>` that still exits 0.
@@ -284,11 +296,6 @@ for name in "${names[@]}"; do
   # positive ZIP_CAP yields at least one block: dividing down would give a
   # 0-unit limit for a sub-KiB remainder and fail every write.
   # SIGXFSZ is ignored so hitting the cap is an ordinary write error.
-  # `--retry-max-time` only gates whether curl may *start* another retry, so a
-  # retry begun just inside it can still run a further `--max-time`. `timeout`
-  # around the whole invocation is what makes FETCH_DEADLINE a real deadline
-  # rather than a scheduling hint; a killed transfer is treated like any other
-  # failed one and the leg is reported as missing, which fails closed.
   (
     # Fail the leg rather than the backstop: if the shell will not apply the
     # limit, downloading anyway would leave a response with no usable
@@ -299,18 +306,18 @@ for name in "${names[@]}"; do
     set +o posix
     ulimit -f $(( (ZIP_CAP + 1023) / 1024 )) || exit 1
     trap '' XFSZ
-    timeout "${TIME_LEFT}" curl -sSL --fail --retry 3 --retry-delay 2 \
-      --connect-timeout 15 --max-time "${ATTEMPT_SECONDS}" \
-      --retry-max-time "${TIME_LEFT}" -o "${ZIP_TMP}" "${url}"
+    curl -sSL --fail --retry 3 --retry-delay 2 \
+      --connect-timeout 15 --max-time "${MAX_ATTEMPT_SECONDS}" \
+      --retry-max-time "${MAX_RETRY_SECONDS}" -o "${ZIP_TMP}" "${url}"
   ) 2>/dev/null
   curl_rc=$?
   ZIP_BYTES=$(stat -c%s "${ZIP_TMP}" 2>/dev/null || echo 0)
   # Charge the budget with the bytes retained on disk, including those of an
   # artifact about to be skipped. This is a disk and extraction budget, not a
   # meter of network egress: `-o` truncates before each retry, so failed
-  # attempts are not counted here. What bounds those is FETCH_DEADLINE via
-  # the `timeout` wrapper, plus `ulimit -f`, which caps every individual
-  # attempt at ZIP_CAP.
+  # attempts are not counted here. What bounds those is the step's
+  # `timeout-minutes` plus `ulimit -f`, which caps every individual attempt
+  # at ZIP_CAP.
   TOTAL_ZIP_BYTES=$((TOTAL_ZIP_BYTES + ZIP_BYTES))
   if [ "${ZIP_BYTES}" -eq 0 ]; then
     echo "::warning::Skipping ${safe_name}: empty or failed download."; continue
@@ -322,20 +329,11 @@ for name in "${names[@]}"; do
     echo "::warning::Skipping ${safe_name}: download failed or was truncated (curl exit ${curl_rc})."; continue
   fi
 
-  # The extractor writes generated `<ai>_<n>.binlog` names straight into
+  # The extractor writes generated `<ai>_<n>_<name>.binlog` names straight into
   # BINLOG_DIR and stops once it has written REMAINING_BYTES, so it bounds both
   # where bytes land and how many there are.
-  # Extraction shares the deadline with the transfers. Otherwise a run that
-  # spent most of its budget downloading could still queue one bounded
-  # extraction per artifact and walk the job past `timeout-minutes` without
-  # ever reaching the controlled no-op below.
-  TIME_LEFT=$(( FETCH_DEADLINE - $(date +%s) ))
-  if [ "${TIME_LEFT}" -le 0 ]; then
-    echo "::warning::Fetch budget exhausted before extracting ${safe_name}; stopping."; break
-  fi
-  [ "${TIME_LEFT}" -gt 300 ] && TIME_LEFT=300
-  extract_out=$(timeout "${TIME_LEFT}" python3 "${SCRIPT_DIR}/extract-binlogs.py" \
-    "${ZIP_TMP}" "${BINLOG_DIR}" "${ai}" "${REMAINING_BYTES}")
+  extract_out=$(python3 "${SCRIPT_DIR}/extract-binlogs.py" \
+    "${ZIP_TMP}" "${BINLOG_DIR}" "${ai}" "${REMAINING_BYTES}" "${safe_name}")
   extract_rc=$?
   if [ "${extract_rc}" -ne 0 ]; then
     # A failed or timed-out extraction may have left partial files behind.

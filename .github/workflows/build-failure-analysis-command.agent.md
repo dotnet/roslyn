@@ -181,6 +181,8 @@ jobs:
         id: fetch
         if: github.event_name != 'issue_comment' || steps.perm.outputs.authorized == 'true'
         shell: bash
+        # One wall-clock bound for the whole fetch; see the step below.
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
           GH_AW_REPO: ${{ github.repository }}
@@ -194,7 +196,14 @@ jobs:
           PR_NUMBER: ${{ github.event.issue.number || fromJSON(github.event.inputs.aw_context || github.event.client_payload.aw_context || '{}').item_number }}
           BINLOG_DIR: /tmp/binlogs
           SCRIPT_DIR: ${{ github.workspace }}/.github/workflows/scripts
-        run: bash "${SCRIPT_DIR}/fetch-build-binlogs.sh"
+        run: timeout 600 bash "${SCRIPT_DIR}/fetch-build-binlogs.sh"
+
+      # A fetch that was killed or errored leaves `binlog-found` unset, so the
+      # activation gate already declines to analyze. Say so in the log rather
+      # than failing the run: a build we could not read is not a build failure.
+      - name: Report an incomplete fetch
+        if: steps.fetch.outcome == 'failure'
+        run: echo "::warning::Binlog fetch did not complete (${{ steps.fetch.outcome }}); skipping analysis for this build."
 
       - name: Upload analysis artifact
         if: steps.fetch.outputs.binlog-found == 'true'

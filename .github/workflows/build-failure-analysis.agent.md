@@ -139,6 +139,12 @@ jobs:
       - name: Download binlogs from the failed Azure Pipelines build
         id: fetch
         shell: bash
+        # One wall-clock bound for the whole fetch, applied here rather than
+        # tracked inside the script. `timeout` kills it at 10 minutes, the step
+        # fails, `binlog-found` is never written, and the step below turns that
+        # into a warning instead of a red job. (gh aw strips step-level
+        # `timeout-minutes` from custom steps, so the bound goes on the command.)
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
           GH_AW_REPO: ${{ github.repository }}
@@ -147,13 +153,22 @@ jobs:
           # roslyn-CI pipeline definition id in dnceng-public/public.
           ADO_BUILD_DEFINITION_ID: "95"
           RESOLVE_MODE: ${{ github.event_name == 'workflow_dispatch' && 'dispatch' || 'check_run' }}
-          # Event-owned, and the same value safe outputs are bound to.
+          # Event-owned, and the same value safe outputs are bound to. Empty for
+          # fork PRs, which the script then resolves from CHECK_HEAD_SHA.
           PR_NUMBER: ${{ github.event.check_run.pull_requests[0].number || inputs['pr-number'] }}
+          CHECK_HEAD_SHA: ${{ github.event.check_run.head_sha }}
           CHECK_DETAILS_URL: ${{ github.event.check_run.details_url }}
           DISPATCH_BUILD_ID: ${{ inputs['ado-build-id'] }}
           BINLOG_DIR: /tmp/binlogs
           SCRIPT_DIR: ${{ github.workspace }}/.github/workflows/scripts
-        run: bash "${SCRIPT_DIR}/fetch-build-binlogs.sh"
+        run: timeout 600 bash "${SCRIPT_DIR}/fetch-build-binlogs.sh"
+
+      # A fetch that was killed or errored leaves `binlog-found` unset, so the
+      # activation gate already declines to analyze. Say so in the log rather
+      # than failing the run: a build we could not read is not a build failure.
+      - name: Report an incomplete fetch
+        if: steps.fetch.outcome != 'success'
+        run: echo "::warning::Binlog fetch did not complete (${{ steps.fetch.outcome }}); skipping analysis for this build."
 
       - name: Upload analysis artifact
         if: steps.fetch.outputs.binlog-found == 'true'

@@ -12,7 +12,7 @@ Entry paths and types are still validated up front — an archive containing a
 traversal path or a link/device entry is hostile rather than merely odd, so
 the whole artifact is rejected instead of partially extracted.
 
-Usage: extract-binlogs.py <archive> <destination> <prefix> <budget-bytes>
+Usage: extract-binlogs.py <archive> <destination> <prefix> <budget-bytes> [label]
 Prints "<extracted-count> <written-bytes>".
 """
 
@@ -45,8 +45,17 @@ def has_unsupported_type(entry):
     return stat.S_IFMT(mode) not in ALLOWED_TYPES
 
 
+def safe_label(value):
+    """Artifact names are untrusted build metadata, so re-sanitize here rather
+    than trusting the caller: only the destination name generated in this
+    process may decide where bytes land."""
+    cleaned = "".join(c if (c.isalnum() or c in "._-") else "_" for c in value)
+    return cleaned.strip("._-")[:80]
+
+
 def main():
     archive, destination, prefix, budget = sys.argv[1:5]
+    label = safe_label(sys.argv[5]) if len(sys.argv) > 5 else ""
     budget = int(budget)
 
     with zipfile.ZipFile(archive) as zip_file:
@@ -68,7 +77,8 @@ def main():
         os.makedirs(destination, exist_ok=True)
         written = 0
         for index, entry in enumerate(selected):
-            target = os.path.join(destination, f"{prefix}_{index}.binlog")
+            stem = f"{prefix}_{index}_{label}" if label else f"{prefix}_{index}"
+            target = os.path.join(destination, f"{stem}.binlog")
             with zip_file.open(entry) as source, open(target, "xb") as output:
                 while chunk := source.read(CHUNK_SIZE):
                     written += len(chunk)
