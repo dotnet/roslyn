@@ -436,7 +436,9 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
         public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(CustomResolveParams request) => request.TextDocument;
         public async Task<ResolvedDocumentInfo> HandleRequestAsync(CustomResolveParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            return new ResolvedDocumentInfo(context.Workspace!.Kind!, context.GetRequiredDocument().Project.Language);
+            var workspace = await context.GetRequiredWorkspaceAsync(cancellationToken).ConfigureAwait(false);
+            var document = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
+            return new ResolvedDocumentInfo(workspace.Kind!, document.Project.Language);
         }
     }
 

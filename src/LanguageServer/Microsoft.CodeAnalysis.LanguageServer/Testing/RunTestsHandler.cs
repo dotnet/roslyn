@@ -46,14 +46,14 @@ internal sealed class RunTestsHandler(TestDiscoverer testDiscoverer, TestRunner 
 
     public async Task<RunTestsPartialResult[]> HandleRequestAsync(RunTestsParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(context.Document);
+        var document = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
         using var progress = BufferedProgress.Create(request.PartialResultToken);
         var dotnetCliHelper = context.GetRequiredService<DotnetCliHelper>();
 
         // First, build to make sure we have a relatively up to date project.
-        await BuildAsync(context.Document, progress, dotnetCliHelper, cancellationToken);
+        await BuildAsync(document, progress, dotnetCliHelper, cancellationToken);
 
-        var projectOutputPath = context.Document.Project.OutputFilePath;
+        var projectOutputPath = document.Project.OutputFilePath;
         Contract.ThrowIfFalse(File.Exists(projectOutputPath), $"Output path {projectOutputPath} is missing");
         var projectOutputDirectory = Path.GetDirectoryName(projectOutputPath);
         Contract.ThrowIfNull(projectOutputDirectory, $"Could not get project output directory from {projectOutputPath}");
@@ -80,7 +80,7 @@ internal sealed class RunTestsHandler(TestDiscoverer testDiscoverer, TestRunner 
 
         var runSettingsPath = request.RunSettingsPath;
         var runSettings = await GetRunSettingsAsync(runSettingsPath, progress, context, cancellationToken);
-        var testCases = await testDiscoverer.DiscoverTestsAsync(request.Range, context.Document, projectOutputPath, runSettings, progress, vsTestConsoleWrapper, cancellationToken);
+        var testCases = await testDiscoverer.DiscoverTestsAsync(request.Range, document, projectOutputPath, runSettings, progress, vsTestConsoleWrapper, cancellationToken);
         if (!testCases.IsEmpty)
         {
             var clientLanguageServerManager = context.GetRequiredLspService<IClientLanguageServerManager>();

@@ -31,7 +31,7 @@ internal sealed class PrepareCallHierarchyHandler() : ILspServiceDocumentRequest
 
     public async Task<LSP.CallHierarchyItem[]?> HandleRequestAsync(LSP.CallHierarchyPrepareParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var document = context.GetRequiredDocument();
+        var document = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
         return await PrepareCallHierarchyAsync(document, ProtocolConversions.PositionToLinePosition(request.Position), document.Id, cancellationToken)
             .ConfigureAwait(false);
     }

@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -36,63 +39,152 @@ public sealed class RuntimeHostInfoTests(ITestOutputHelper output) : TestBase
         return path;
     }
 
+    /// <summary>
+    /// Our code only ships in .NET 11 SDK and higher now where this DOTNET_HOST_PATH will be set.
+    /// </summary>
     [Fact, WorkItem("https://github.com/dotnet/msbuild/issues/12669")]
     public void DotNetInPath()
     {
         using var tempRoot = new TempRoot();
         var testDir = tempRoot.CreateDirectory();
         var globalDotNetDir = testDir.CreateDirectory("global-dotnet");
-        var globalDotNetExe = globalDotNetDir.CreateFile($"dotnet{PlatformInformation.ExeExtension}");
+        var globalDotNetExe = globalDotNetDir.CreateFile(RuntimeHostInfo.DotNetHostExecutableName);
+        var taskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(
+            testDir.Path,
+            environmentVariables: new Dictionary<string, string>
+            {
+                ["PATH"] = globalDotNetDir.Path,
+                [RuntimeHostInfo.DotNetHostPathEnvironmentName] = "",
+                [RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName] = "",
+            });
 
-        var result = ApplyEnvironmentVariables(
-        [
-            new("PATH", globalDotNetDir.Path),
-            new(RuntimeHostInfo.DotNetHostPathEnvironmentName, ""),
-            new(RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName, ""),
-        ],
-        () => RuntimeHostInfo.GetToolDotNetRoot(_output.WriteLine));
+        var result = RuntimeHostInfo.GetToolDotNetRoot(taskEnvironment.BuildEnvironment, _output.WriteLine);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void DotNetInPath2()
+    {
+        using var tempRoot = new TempRoot();
+        var testDir = tempRoot.CreateDirectory();
+        var globalDotNetDir = testDir.CreateDirectory("global-dotnet");
+        var globalDotNetExe = globalDotNetDir.CreateFile(RuntimeHostInfo.DotNetHostExecutableName);
+        var taskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(
+            testDir.Path,
+            environmentVariables: new Dictionary<string, string>
+            {
+                ["PATH"] = globalDotNetDir.Path,
+                [RuntimeHostInfo.DotNetHostPathEnvironmentName] = globalDotNetExe.Path,
+                [RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName] = "",
+            });
+
+        var result = RuntimeHostInfo.GetToolDotNetRoot(taskEnvironment.BuildEnvironment, _output.WriteLine);
 
         Assert.NotNull(result);
-        AssertEx.Equal(NormalizePath(globalDotNetDir.Path), NormalizePath(result));
+        Assert.Equal(NormalizePath(globalDotNetDir.Path), NormalizePath(result));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/msbuild/issues/12669")]
     public void DotNetInPath_None()
     {
-        var result = ApplyEnvironmentVariables(
-        [
-            new("PATH", ""),
-            new(RuntimeHostInfo.DotNetHostPathEnvironmentName, ""),
-            new(RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName, ""),
-        ],
-        () => RuntimeHostInfo.GetToolDotNetRoot(_output.WriteLine));
+        var environment = new Dictionary<string, string>
+        {
+            ["PATH"] = "",
+            [RuntimeHostInfo.DotNetHostPathEnvironmentName] = "",
+            [RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName] = "",
+        };
+        var taskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(
+            Temp.CreateDirectory().Path,
+            environmentVariables: environment);
+        var result = RuntimeHostInfo.GetToolDotNetRoot(taskEnvironment.BuildEnvironment, _output.WriteLine);
 
         Assert.Null(result);
     }
 
+    /// <summary>
+    /// Our code only ships in .NET 11 SDK and higher now where this DOTNET_HOST_PATH will be set.
+    /// </summary>
     [Fact, WorkItem("https://github.com/dotnet/msbuild/issues/12669")]
     public void DotNetInPath_Symlinked()
     {
         using var tempRoot = new TempRoot();
         var testDir = tempRoot.CreateDirectory();
         var globalDotNetDir = testDir.CreateDirectory("global-dotnet");
-        var globalDotNetExe = globalDotNetDir.CreateFile($"dotnet{PlatformInformation.ExeExtension}");
+        var globalDotNetExe = globalDotNetDir.CreateFile(RuntimeHostInfo.DotNetHostExecutableName);
         var binDir = testDir.CreateDirectory("bin");
         var symlinkPath = Path.Combine(binDir.Path, $"dotnet{PlatformInformation.ExeExtension}");
 
         // Create symlink from binDir to the actual dotnet executable
         File.CreateSymbolicLink(path: symlinkPath, pathToTarget: globalDotNetExe.Path);
+        var taskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(
+            testDir.Path,
+            environmentVariables: new Dictionary<string, string>
+            {
+                [RuntimeHostInfo.DotNetHostPathEnvironmentName] = symlinkPath,
+                [RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName] = "",
+            });
 
-        var result = ApplyEnvironmentVariables(
-        [
-            new("PATH", binDir.Path),
-            new(RuntimeHostInfo.DotNetHostPathEnvironmentName, ""),
-            new(RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName, ""),
-        ],
-        () => RuntimeHostInfo.GetToolDotNetRoot(_output.WriteLine));
+        var result = RuntimeHostInfo.GetToolDotNetRoot(taskEnvironment.BuildEnvironment, _output.WriteLine);
 
         Assert.NotNull(result);
-        AssertEx.Equal(NormalizePath(globalDotNetDir.Path), NormalizePath(result));
+        Assert.Equal(NormalizePath(globalDotNetDir.Path), NormalizePath(result));
+    }
+
+    [Fact]
+    public void DotNetInTaskEnvironmentPath()
+    {
+        var projectDirectory = Temp.CreateDirectory();
+        var binDirectory = projectDirectory.CreateDirectory("bin");
+        var dotNetPath = binDirectory.CreateFile(RuntimeHostInfo.DotNetHostExecutableName).Path;
+        var taskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(
+            projectDirectory.Path,
+            new Dictionary<string, string>
+            {
+                [RuntimeHostInfo.DotNetHostPathEnvironmentName] = dotNetPath,
+                [RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName] = "",
+            });
+
+        var result = RuntimeHostInfo.GetDotNetHostPath(taskEnvironment.BuildEnvironment);
+
+        Assert.Equal(dotNetPath, result);
+    }
+
+    [Fact]
+    public void GetToolDotNetRoot_RelativePath_ReturnsNull()
+    {
+        var relativePath = Path.Combine("relative", RuntimeHostInfo.DotNetHostExecutableName);
+        var taskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(
+            Temp.CreateDirectory().Path,
+            new Dictionary<string, string>
+            {
+                [RuntimeHostInfo.DotNetHostPathEnvironmentName] = relativePath,
+                [RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName] = "",
+            });
+        var result = RuntimeHostInfo.GetToolDotNetRoot(taskEnvironment.BuildEnvironment, _output.WriteLine);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void GetToolDotNetRoot_ValidPath_ReturnsDirectory()
+    {
+        using var tempRoot = new TempRoot();
+        var testDir = tempRoot.CreateDirectory();
+        var globalDotNetDir = testDir.CreateDirectory("global-dotnet");
+        var globalDotNetExe = globalDotNetDir.CreateFile(RuntimeHostInfo.DotNetHostExecutableName);
+        var taskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(
+            testDir.Path,
+            new Dictionary<string, string>
+            {
+                [RuntimeHostInfo.DotNetHostPathEnvironmentName] = globalDotNetExe.Path,
+                [RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName] = "",
+            });
+
+        var result = RuntimeHostInfo.GetToolDotNetRoot(taskEnvironment.BuildEnvironment, _output.WriteLine);
+
+        Assert.NotNull(result);
+        Assert.Equal(NormalizePath(globalDotNetDir.Path), NormalizePath(result));
     }
 }
 

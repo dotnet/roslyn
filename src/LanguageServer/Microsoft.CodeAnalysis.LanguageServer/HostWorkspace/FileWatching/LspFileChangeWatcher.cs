@@ -119,7 +119,7 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
                 // was the one that registered for this change, so we have to check paths to see if this one we should respond to.
                 if (WatchedDirectory.FilePathCoveredByWatchedDirectories(_watchedDirectories, filePath, s_stringComparison))
                 {
-                    FileChanged?.Invoke(this, filePath);
+                    FileChanged?.Invoke(this, new(filePath, GetFileChangeKind(changedFile.FileChangeType)));
                 }
                 else
                 {
@@ -130,12 +130,21 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
                     }
 
                     if (isFileWatched)
-                        FileChanged?.Invoke(this, filePath);
+                        FileChanged?.Invoke(this, new(filePath, GetFileChangeKind(changedFile.FileChangeType)));
                 }
             }
         }
 
-        public event EventHandler<string>? FileChanged;
+        private static FileChangeKind GetFileChangeKind(FileChangeType fileChangeType)
+            => fileChangeType switch
+            {
+                FileChangeType.Created => FileChangeKind.Added,
+                FileChangeType.Deleted => FileChangeKind.Removed,
+                FileChangeType.Changed => FileChangeKind.Changed,
+                _ => throw ExceptionUtilities.UnexpectedValue(fileChangeType),
+            };
+
+        public event EventHandler<FileChangedEventArgs>? FileChanged;
 
         public void Dispose()
         {

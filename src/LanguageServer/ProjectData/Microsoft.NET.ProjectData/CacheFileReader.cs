@@ -7,13 +7,43 @@ using System.Collections.Immutable;
 namespace Microsoft.NET.ProjectData;
 
 /// <summary>
+/// Identifies the location selected while reading a ProjectData cache.
+/// </summary>
+public enum ProjectDataCacheSource
+{
+	None,
+	ProjectFolder,
+	UserFolder,
+	UnsupportedMarker,
+	Donor,
+}
+
+/// <summary>
+/// Contains cached ProjectData slices and the location selected by the cache reader.
+/// </summary>
+public readonly struct ProjectDataCacheReadResult
+{
+	public ProjectDataCacheReadResult(ImmutableArray<CachedSliceData> slices, ProjectDataCacheSource source)
+	{
+		this.Slices = slices;
+		this.Source = source;
+	}
+
+	public ImmutableArray<CachedSliceData> Slices { get; }
+
+	public ProjectDataCacheSource Source { get; }
+}
+
+/// <summary>
 /// Reads <c>.lscache</c> files and produces <see cref="CachedSliceData"/> for each project configuration slice.
 /// </summary>
+/// <remarks>Token-aware overloads propagate cancellation as <see cref="OperationCanceledException"/>.</remarks>
 public static class CacheFileReader
 {
 	private const string CacheFileExtension = ".lscache";
 
 	private const string VersionLinePrefix = "version=";
+	private const int ProjectReferenceMetadataMinorVersion = 1;
 
 	/// <summary>
 	/// The wire-format version header is <c>version=&lt;major&gt;[.&lt;minor&gt;]</c>. The reader
@@ -44,7 +74,7 @@ public static class CacheFileReader
 
 	/// <summary>
 	/// Reads cache data for a single project from its <c>.lscache</c> file.
-	/// Checks the project folder first, then falls back to the user folder.
+	/// Checks the project folder, user folder, unsupported marker, and donor caches in precedence order.
 	/// </summary>
 	/// <param name="projectFilePath">The absolute path of the project file.</param>
 	/// <param name="cacheInProject">When <see langword="true"/>, the cache file is stored beside the project file.</param>
@@ -65,8 +95,8 @@ public static class CacheFileReader
 	public static Task<ImmutableArray<CachedSliceData>> ReadProjectCacheAsync(
 		string projectFilePath,
 		bool cacheInProject,
-		StringPool? stringPool = null,
-		CancellationToken cancellationToken = default)
+		StringPool? stringPool,
+		CancellationToken cancellationToken)
 		=> ReadProjectCacheAsync(projectFilePath, cacheInProject, new CachePathResolver(), stringPool, cancellationToken);
 
 	public static Task<ImmutableArray<CachedSliceData>> ReadProjectCacheAsync(
@@ -82,9 +112,9 @@ public static class CacheFileReader
 	public static Task<ImmutableArray<ProjectDataSnapshot>> ReadProjectDataSnapshotsAsync(
 		string projectFilePath,
 		bool cacheInProject,
-		string? solutionPath = null,
-		StringPool? stringPool = null,
-		CancellationToken cancellationToken = default)
+		string? solutionPath,
+		StringPool? stringPool,
+		CancellationToken cancellationToken)
 		=> ReadProjectDataSnapshotsAsync(projectFilePath, cacheInProject, new CachePathResolver(), solutionPath, stringPool, cancellationToken);
 
 	/// <summary>
@@ -94,12 +124,14 @@ public static class CacheFileReader
 		string projectFilePath,
 		bool cacheInProject,
 		CachePathResolver resolver,
-		string? solutionPath = null,
-		StringPool? stringPool = null,
-		CancellationToken cancellationToken = default)
+		string? solutionPath,
+		StringPool? stringPool,
+		CancellationToken cancellationToken)
 	{
 		ImmutableArray<CachedSliceData> slices = await ReadProjectCacheAsync(projectFilePath, cacheInProject, resolver, stringPool, cancellationToken).ConfigureAwait(false);
-		return ProjectDataSnapshotFactory.CreateSnapshots(slices, solutionPath);
+		ImmutableArray<ProjectDataSnapshot> snapshots = ProjectDataSnapshotFactory.CreateSnapshots(slices, solutionPath);
+		cancellationToken.ThrowIfCancellationRequested();
+		return snapshots;
 	}
 
 	/// <summary>
@@ -108,13 +140,46 @@ public static class CacheFileReader
 	/// <see cref="CachePathResolver"/> when reading caches that may contain
 	/// <c>&lt;NETSDK&gt;</c> entries.
 	/// </summary>
+	public static Task<ImmutableArray<CachedSliceData>> ReadProjectCacheAsync(
+		string projectFilePath,
+		bool cacheInProject,
+		CachePathResolver resolver,
+		StringPool? stringPool,
+		CancellationToken cancellationToken)
+		=> ReadProjectCacheAsync(projectFilePath, cacheInProject, resolver, cancellationToken, stringPool);
+
 	public static async Task<ImmutableArray<CachedSliceData>> ReadProjectCacheAsync(
 		string projectFilePath,
 		bool cacheInProject,
 		CachePathResolver resolver,
+		CancellationToken cancellationToken,
 		StringPool? stringPool = null,
-		CancellationToken cancellationToken = default)
+		ProjectDataDonorOptions? donorOptions = null)
 	{
+		ProjectDataCacheReadResult result = await ReadProjectCacheWithSourceAsync(
+			projectFilePath,
+			cacheInProject,
+			resolver,
+			stringPool,
+			cancellationToken,
+			donorOptions).ConfigureAwait(false);
+		return result.Slices;
+	}
+
+	/// <summary>
+	/// Reads cache data for a single project and reports the cache location selected by the reader.
+	/// Existing slices-only overloads remain available for callers that do not need source attribution.
+	/// </summary>
+	public static async Task<ProjectDataCacheReadResult> ReadProjectCacheWithSourceAsync(
+		string projectFilePath,
+		bool cacheInProject,
+		CachePathResolver resolver,
+		StringPool? stringPool,
+		CancellationToken cancellationToken,
+		ProjectDataDonorOptions? donorOptions)
+	{
+		cancellationToken.ThrowIfCancellationRequested();
+
 		try
 		{
 			// Always check the project folder first — a local cache takes precedence
@@ -123,34 +188,77 @@ public static class CacheFileReader
 
 			if (File.Exists(projectFolderPath))
 			{
-				return await ReadCacheFileAsync(projectFolderPath, projectFilePath, expectedProjectFilePath: null, resolver, stringPool, cancellationToken).ConfigureAwait(false);
+				ImmutableArray<CachedSliceData> slices = await ReadCacheFileAsync(
+					projectFolderPath,
+					projectFilePath,
+					expectedProjectFilePath: null,
+					resolver,
+					stringPool,
+					cancellationToken).ConfigureAwait(false);
+				return new(slices, ProjectDataCacheSource.ProjectFolder);
 			}
 
-			if (!cacheInProject)
+			bool userFolderAvailable = UserFolderCachePath.TryCompute(projectFilePath, out string userFolderPath);
+			if (!userFolderAvailable)
 			{
-				string userFolderPath = GetUserFolderCacheFilePath(projectFilePath);
+				System.Diagnostics.Trace.TraceWarning(
+					"[lscache] User-folder cache root is unavailable for project {0}; continuing with marker and donor fallback.",
+					projectFilePath);
+			}
+			else if (File.Exists(userFolderPath))
+			{
+				ImmutableArray<CachedSliceData> slices = await ReadCacheFileAsync(
+					userFolderPath,
+					projectFilePath,
+					expectedProjectFilePath: projectFilePath,
+					resolver,
+					stringPool,
+					cancellationToken).ConfigureAwait(false);
+				return new(slices, ProjectDataCacheSource.UserFolder);
+			}
 
-				if (File.Exists(userFolderPath))
+			if (userFolderAvailable && UnsupportedProjectDataMarker.TryReadValid(projectFilePath, cancellationToken, out _))
+			{
+				return new([], ProjectDataCacheSource.UnsupportedMarker);
+			}
+
+			donorOptions ??= ProjectDataDonorOptions.Default;
+			foreach (ProjectDataDonorCandidate donorCandidate in ProjectDataDonorIndex.EnumerateDonorCandidates(projectFilePath, donorOptions, cancellationToken))
+			{
+				cancellationToken.ThrowIfCancellationRequested();
+				try
 				{
-					return await ReadCacheFileAsync(userFolderPath, projectFilePath, expectedProjectFilePath: projectFilePath, resolver, stringPool, cancellationToken).ConfigureAwait(false);
+					ImmutableArray<CachedSliceData> donorSlices = await ReadCacheFileAsync(donorCandidate.FilePath, projectFilePath, expectedProjectFilePath: projectFilePath, resolver, stringPool, cancellationToken).ConfigureAwait(false);
+					if (!donorSlices.IsEmpty)
+					{
+						donorOptions.TraceDonorUsed(donorCandidate.WorkspaceRoot);
+						return new(donorSlices, ProjectDataCacheSource.Donor);
+					}
+				}
+				catch (Exception ex) when (IsRecoverableCacheReadException(ex))
+				{
+					donorOptions.TraceWarning(
+						"[donor] Failed to read donor ProjectData file {0} for recipient project {1}: {2}",
+						donorCandidate.FilePath,
+						projectFilePath,
+						ex.Message);
 				}
 			}
 
-			return [];
+			return new([], ProjectDataCacheSource.None);
 		}
-		catch (OperationCanceledException)
-		{
-			return [];
-		}
-		catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or FormatException)
+		catch (Exception ex) when (IsRecoverableCacheReadException(ex))
 		{
 			System.Diagnostics.Trace.TraceWarning(
 				"[lscache] Failed to read project cache for {0}: {1}",
 				projectFilePath,
 				ex.Message);
-			return [];
+			return new([], ProjectDataCacheSource.None);
 		}
 	}
+
+	private static bool IsRecoverableCacheReadException(Exception ex)
+		=> ex is IOException or UnauthorizedAccessException or FormatException or ArgumentException or NotSupportedException or InvalidOperationException;
 
 	/// <summary>
 	/// Gets the path of the cache file that would be watched for a given project.
@@ -165,9 +273,7 @@ public static class CacheFileReader
 			return projectFolderPath;
 		}
 
-		return cacheInProject
-			? projectFolderPath
-			: GetUserFolderCacheFilePath(projectFilePath);
+		return GetUserFolderCacheFilePath(projectFilePath);
 	}
 
 	private static async Task<ImmutableArray<CachedSliceData>> ReadCacheFileAsync(
@@ -176,10 +282,10 @@ public static class CacheFileReader
 		string? expectedProjectFilePath,
 		CachePathResolver resolver,
 		StringPool? stringPool,
-#pragma warning disable IDE0060 // Remove unused parameter
 		CancellationToken cancellationToken)
-#pragma warning restore IDE0060 // Remove unused parameter
 	{
+		cancellationToken.ThrowIfCancellationRequested();
+
 		// DIAG: record the on-disk file size at the moment we open it so we can detect
 		// "DTB succeeded but cache is empty/partially-written when reader opens it".
 		long fileLength = -1;
@@ -191,21 +297,23 @@ public static class CacheFileReader
 			projectFilePath,
 			expectedProjectFilePath ?? "<null>");
 
-		FileStream stream = new(cacheFilePath, new FileStreamOptions
+		FileStream stream = OpenCacheFileForRead(cacheFilePath);
+		await using (stream.ConfigureAwait(false))
+		{
+			using StreamReader reader = new(stream);
+			string projectDirectory = Path.GetDirectoryName(projectFilePath)!;
+			return await ReadFromAsync(reader, resolver, projectDirectory, projectFilePath, expectedProjectFilePath, stringPool, cancellationToken).ConfigureAwait(false);
+		}
+	}
+
+	internal static FileStream OpenCacheFileForRead(string cacheFilePath)
+		=> new(cacheFilePath, new FileStreamOptions
 		{
 			Mode = FileMode.Open,
 			Access = FileAccess.Read,
-			Share = FileShare.Read,
+			Share = FileShare.Read | FileShare.Delete,
 			Options = FileOptions.Asynchronous,
 		});
-		await using var _ = stream.ConfigureAwait(false);
-
-		using StreamReader reader = new(stream);
-
-		string projectDirectory = Path.GetDirectoryName(projectFilePath)!;
-
-		return await ReadFromAsync(reader, resolver, projectDirectory, projectFilePath, expectedProjectFilePath, stringPool).ConfigureAwait(false);
-	}
 
 	private static int ParseMajorVersionOrThrow(string versionHeader)
 		=> TryParseMajorVersion(versionHeader, out int major)
@@ -235,30 +343,52 @@ public static class CacheFileReader
 		return true;
 	}
 
+	private static bool HasAuthoritativeProjectReferenceDefaults(string? versionHeader)
+	{
+		if (versionHeader is null || !versionHeader.StartsWith(VersionLinePrefix, StringComparison.Ordinal))
+		{
+			return false;
+		}
+
+		ReadOnlySpan<char> value = versionHeader.AsSpan(VersionLinePrefix.Length);
+		int dot = value.IndexOf('.');
+		if (dot < 0 || !int.TryParse(value[(dot + 1)..], out int minor))
+		{
+			return false;
+		}
+
+		return minor >= ProjectReferenceMetadataMinorVersion;
+	}
+
 	/// <summary>
-	/// Reads all project slices from the given reader.
+	/// Reads all project slices from the given reader, observing cancellation throughout parsing and materialization.
 	/// </summary>
+	/// <exception cref="OperationCanceledException">The cancellation token was canceled.</exception>
 	public static async Task<ImmutableArray<CachedSliceData>> ReadFromAsync(
 		TextReader reader,
 		CachePathResolver resolver,
 		string projectDirectory,
 		string projectFilePath,
-		string? expectedProjectFilePath = null,
-		StringPool? stringPool = null)
+		string? expectedProjectFilePath,
+		StringPool? stringPool,
+		CancellationToken cancellationToken)
 	{
 		ArgumentNullException.ThrowIfNull(reader);
 		ArgumentNullException.ThrowIfNull(resolver);
 		ArgumentNullException.ThrowIfNull(projectDirectory);
 		ArgumentNullException.ThrowIfNull(projectFilePath);
+		cancellationToken.ThrowIfCancellationRequested();
 
-		string? firstLineRaw = await reader.ReadLineAsync().ConfigureAwait(false);
+		string? firstLineRaw = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
+		cancellationToken.ThrowIfCancellationRequested();
 		string? firstLine = firstLineRaw;
 
 		bool hadHashHeader = false;
 		if (firstLine is not null && firstLine.StartsWith(CacheFormat.HashHeaderPrefix, StringComparison.Ordinal))
 		{
 			hadHashHeader = true;
-			firstLine = await reader.ReadLineAsync().ConfigureAwait(false);
+			firstLine = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
+			cancellationToken.ThrowIfCancellationRequested();
 		}
 
 		if (!TryParseMajorVersion(firstLine, out int fileMajorVersion) || fileMajorVersion != CurrentMajorVersion)
@@ -293,14 +423,17 @@ public static class CacheFileReader
 				CacheFormat.VersionHeader);
 		}
 
+		bool hasAuthoritativeProjectReferenceDefaults = HasAuthoritativeProjectReferenceDefaults(firstLine);
 		ImmutableArray<CachedSliceData>.Builder slices = ImmutableArray.CreateBuilder<CachedSliceData>();
 		SliceBuilder? currentSlice = null;
 		string? currentSection = null;
 		string? declaredProjectFilePath = null;
 
 		string? line;
-		while ((line = await reader.ReadLineAsync().ConfigureAwait(false)) is not null)
+		while ((line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false)) is not null)
 		{
+			cancellationToken.ThrowIfCancellationRequested();
+
 			if (line.Length == 0 || line[0] == CacheFormat.CommentChar)
 			{
 				continue;
@@ -329,13 +462,13 @@ public static class CacheFileReader
 
 				if (currentSection == CacheFormat.Sections.Project)
 				{
-					currentSlice ??= new SliceBuilder(resolver, projectDirectory, stringPool);
+					currentSlice ??= new SliceBuilder(resolver, projectDirectory, stringPool, hasAuthoritativeProjectReferenceDefaults, cancellationToken);
 				}
 
 				continue;
 			}
 
-			currentSlice ??= new SliceBuilder(resolver, projectDirectory, stringPool);
+			currentSlice ??= new SliceBuilder(resolver, projectDirectory, stringPool, hasAuthoritativeProjectReferenceDefaults, cancellationToken);
 
 			switch (currentSection)
 			{
@@ -387,10 +520,14 @@ public static class CacheFileReader
 			}
 		}
 
+		cancellationToken.ThrowIfCancellationRequested();
+
 		if (currentSlice is not null)
 		{
 			slices.Add(currentSlice.Build(declaredProjectFilePath ?? projectFilePath));
 		}
+
+		cancellationToken.ThrowIfCancellationRequested();
 
 		if (expectedProjectFilePath is not null
 			&& (declaredProjectFilePath is null
@@ -430,6 +567,7 @@ public static class CacheFileReader
 				expectedProjectFilePath ?? "<null>");
 		}
 
+		cancellationToken.ThrowIfCancellationRequested();
 		return slices.ToImmutable();
 
 		static void ParseProjectLine(
@@ -477,6 +615,8 @@ public static class CacheFileReader
 				return Path.GetFullPath(nativeValue);
 			}
 
+			// "src/App.csproj" -> "<projectDirectory>/src/App.csproj";
+			// "<PATH>src/App.csproj" -> the same path after sentinel expansion.
 			return value.StartsWith(PathSentinels.Path, StringComparison.Ordinal)
 				? resolver.MakeAbsolute(value, projectDirectory)
 				: resolver.ToAbsolute(value, projectDirectory);
@@ -486,19 +626,24 @@ public static class CacheFileReader
 
 	/// <summary>
 	/// Expands indentation-compressed paths back into full paths.
+	/// For example, <c>src/Models/</c> followed by <c> Product.cs</c> becomes <c>src/Models/Product.cs</c>.
 	/// </summary>
-	internal static List<(string Path, Dictionary<string, string>? Metadata)> ExpandCompressedPaths(List<string> lines)
+	internal static List<(string Path, Dictionary<string, string>? Metadata)> ExpandCompressedPaths(
+		List<string> lines,
+		CancellationToken cancellationToken)
 	{
 		List<(string Path, Dictionary<string, string>? Metadata)> results = [];
 		Stack<(int Indent, string Prefix)> prefixStack = new();
 
 		foreach (string line in lines)
 		{
+			cancellationToken.ThrowIfCancellationRequested();
 			int indent = CountIndent(line);
 			string content = line[indent..];
 
 			if (content.Length > 0 && content[0] == '@')
 			{
+				// " @aliases=global" attaches aliases=global to the preceding path.
 				if (results.Count > 0)
 				{
 					(string Path, Dictionary<string, string>? Metadata) last = results[^1];
@@ -555,6 +700,7 @@ public static class CacheFileReader
 
 	internal static ImmutableArray<string> DeriveFolderNamesFromPortablePath(string portablePath)
 	{
+		// "src/Models/User.cs" -> ["src", "Models"]; sentinel and parent-relative paths -> [].
 		if (portablePath.Length == 0 || portablePath[0] == '<' || portablePath.StartsWith("../", StringComparison.Ordinal))
 			return [];
 
@@ -570,12 +716,21 @@ public static class CacheFileReader
 		private readonly CachePathResolver resolver;
 		private readonly string projectDirectory;
 		private readonly StringPool? stringPool;
+		private readonly bool hasAuthoritativeProjectReferenceDefaults;
+		private readonly CancellationToken cancellationToken;
 
-		public SliceBuilder(CachePathResolver resolver, string projectDirectory, StringPool? stringPool)
+		public SliceBuilder(
+			CachePathResolver resolver,
+			string projectDirectory,
+			StringPool? stringPool,
+			bool hasAuthoritativeProjectReferenceDefaults,
+			CancellationToken cancellationToken)
 		{
 			this.resolver = resolver;
 			this.projectDirectory = projectDirectory;
 			this.stringPool = stringPool;
+			this.hasAuthoritativeProjectReferenceDefaults = hasAuthoritativeProjectReferenceDefaults;
+			this.cancellationToken = cancellationToken;
 		}
 
 		public string LanguageName = "";
@@ -636,7 +791,7 @@ public static class CacheFileReader
 				AnalyzerConfigFiles = this.BuildAnalyzerConfigFiles(),
 				AdditionalFiles = this.BuildSimplePaths(this.AdditionalFileLines),
 				EmbeddedResources = this.BuildEmbeddedResources(),
-				ProjectReferences = this.BuildSimplePaths(this.ProjectReferenceLines),
+				ProjectReferences = this.BuildProjectReferences(),
 				Capabilities = this.BuildStringArray(this.Capabilities),
 				Properties = this.BuildDictionary(this.Properties),
 				IsPrimary = this.IsPrimary,
@@ -693,7 +848,8 @@ public static class CacheFileReader
 				packName => this.resolver.FindRefPackDirectory(packName, targetFramework)
 					?? this.resolver.FindNuGetFrameworkPackDirectory(packName, targetFramework),
 				managed,
-				analyzers);
+				analyzers,
+				this.cancellationToken);
 
 			return (managed.ToImmutable(), analyzers.ToImmutable());
 		}
@@ -717,7 +873,15 @@ public static class CacheFileReader
 				string analyzerDir = Path.Join(packageDir, "analyzers", "dotnet", "cs");
 				if (!Directory.Exists(analyzerDir)) continue;
 
-				foreach (string analyzerPath in Directory.EnumerateFiles(analyzerDir, "*.dll", SearchOption.AllDirectories).OrderBy(static path => path, StringComparer.OrdinalIgnoreCase))
+				List<string> analyzerPaths = [];
+				foreach (string analyzerPath in Directory.EnumerateFiles(analyzerDir, "*.dll", SearchOption.AllDirectories))
+				{
+					this.cancellationToken.ThrowIfCancellationRequested();
+					analyzerPaths.Add(analyzerPath);
+				}
+
+				analyzerPaths.Sort(StringComparer.OrdinalIgnoreCase);
+				foreach (string analyzerPath in analyzerPaths)
 				{
 					analyzerRefs.Add(this.Pool(analyzerPath));
 				}
@@ -730,15 +894,17 @@ public static class CacheFileReader
 			List<string> packNames,
 			Func<string, string?> resolvePackDirectory,
 			ImmutableArray<string>.Builder managed,
-			ImmutableArray<string>.Builder analyzers)
+			ImmutableArray<string>.Builder analyzers,
+			CancellationToken cancellationToken)
 		{
 			foreach (string packName in packNames)
 			{
+				cancellationToken.ThrowIfCancellationRequested();
 				if (string.IsNullOrWhiteSpace(packName)) continue;
 				string? packDir = resolvePackDirectory(packName);
 				if (packDir is null) continue;
 
-				FrameworkListExpander.ExpansionResult result = FrameworkListExpander.Expand(packDir);
+				FrameworkListExpander.ExpansionResult result = FrameworkListExpander.Expand(packDir, cancellationToken);
 				managed.AddRange(result.ManagedAssemblyPaths);
 				analyzers.AddRange(result.AnalyzerCsPaths);
 			}
@@ -749,7 +915,7 @@ public static class CacheFileReader
 			if (lines.Count == 0)
 				return [];
 
-			List<(string Path, Dictionary<string, string>? Metadata)> expanded = ExpandCompressedPaths(lines);
+			List<(string Path, Dictionary<string, string>? Metadata)> expanded = ExpandCompressedPaths(lines, this.cancellationToken);
 			if (!this.resolver.IsNetSdkBound)
 			{
 				expanded = this.FilterUnresolvableNetSdkPaths(expanded);
@@ -815,7 +981,7 @@ public static class CacheFileReader
 			ImmutableArray<string> explicitRefs = [];
 			if (analyzerLines.Count > 0)
 			{
-				List<(string Path, Dictionary<string, string>? Metadata)> expanded = ExpandCompressedPaths(analyzerLines);
+				List<(string Path, Dictionary<string, string>? Metadata)> expanded = ExpandCompressedPaths(analyzerLines, this.cancellationToken);
 				ImmutableArray<string>.Builder explicitBuilder = ImmutableArray.CreateBuilder<string>(expanded.Count);
 				foreach ((string path, Dictionary<string, string>? _) in expanded)
 				{
@@ -907,7 +1073,7 @@ public static class CacheFileReader
 			if (this.SourceFileLines.Count == 0)
 				return [];
 
-			List<(string Path, Dictionary<string, string>? Metadata)> expanded = ExpandCompressedPaths(this.SourceFileLines);
+			List<(string Path, Dictionary<string, string>? Metadata)> expanded = ExpandCompressedPaths(this.SourceFileLines, this.cancellationToken);
 			ImmutableArray<CachedSourceFile>.Builder builder = ImmutableArray.CreateBuilder<CachedSourceFile>(expanded.Count);
 			foreach ((string path, Dictionary<string, string>? metadata) in expanded)
 			{
@@ -924,12 +1090,39 @@ public static class CacheFileReader
 			return builder.ToImmutable();
 		}
 
+		private ImmutableArray<CachedProjectReference> BuildProjectReferences()
+		{
+			if (this.ProjectReferenceLines.Count == 0)
+			{
+				return [];
+			}
+
+			List<(string Path, Dictionary<string, string>? Metadata)> expanded = ExpandCompressedPaths(this.ProjectReferenceLines, this.cancellationToken);
+			ImmutableArray<CachedProjectReference>.Builder builder = ImmutableArray.CreateBuilder<CachedProjectReference>(expanded.Count);
+			foreach ((string path, Dictionary<string, string>? metadata) in expanded)
+			{
+				bool? referenceOutputAssembly = metadata is not null &&
+					metadata.TryGetValue(ProjectItems.ProjectReference.ReferenceOutputAssembly, out string? value)
+						? !string.Equals(value, "false", StringComparison.OrdinalIgnoreCase)
+						: this.hasAuthoritativeProjectReferenceDefaults
+							? true
+							: null;
+				builder.Add(new CachedProjectReference
+				{
+					FilePath = this.Pool(this.resolver.ToAbsolute(path, this.projectDirectory)),
+					ReferenceOutputAssembly = referenceOutputAssembly,
+				});
+			}
+
+			return builder.ToImmutable();
+		}
+
 		private ImmutableArray<CachedMetadataReference> BuildMetadataReferences(ImmutableArray<string> packManagedRefs)
 		{
 			ImmutableArray<CachedMetadataReference> explicitRefs = [];
 			if (this.MetadataReferenceLines.Count > 0)
 			{
-				List<(string Path, Dictionary<string, string>? Metadata)> expanded = ExpandCompressedPaths(this.MetadataReferenceLines);
+				List<(string Path, Dictionary<string, string>? Metadata)> expanded = ExpandCompressedPaths(this.MetadataReferenceLines, this.cancellationToken);
 				ImmutableArray<CachedMetadataReference>.Builder explicitBuilder = ImmutableArray.CreateBuilder<CachedMetadataReference>(expanded.Count);
 				bool warnedMissingNetFxRefs = false;
 				foreach ((string path, Dictionary<string, string>? metadata) in expanded)
@@ -1016,7 +1209,7 @@ public static class CacheFileReader
 			if (this.EmbeddedResourceLines.Count == 0)
 				return [];
 
-			List<(string Path, Dictionary<string, string>? Metadata)> expanded = ExpandCompressedPaths(this.EmbeddedResourceLines);
+			List<(string Path, Dictionary<string, string>? Metadata)> expanded = ExpandCompressedPaths(this.EmbeddedResourceLines, this.cancellationToken);
 			ImmutableArray<CachedEmbeddedResource>.Builder builder = ImmutableArray.CreateBuilder<CachedEmbeddedResource>(expanded.Count);
 			foreach ((string path, Dictionary<string, string>? metadata) in expanded)
 			{
