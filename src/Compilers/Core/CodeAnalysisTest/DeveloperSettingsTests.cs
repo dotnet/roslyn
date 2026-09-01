@@ -4,7 +4,6 @@
 
 using System;
 using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.Win32;
 using Roslyn.Test.Utilities;
@@ -23,25 +22,35 @@ public sealed class DeveloperSettingsTests
     }
 
     [Fact]
-    public void LineEndingsAreConfiguredForGitNormalization()
+    public void SourceFileLineEndingsMatchPlatform()
     {
-        var gitAttributes = File.ReadAllLines(GetRepositoryFilePath(".gitattributes"));
+        var sourceText = File.ReadAllText(GetThisSourceFilePath());
 
-        Assert.Contains(gitAttributes, line => HasGitAttributes(line, "*", "text=auto", "encoding=UTF-8"));
-        Assert.Contains(gitAttributes, line => HasGitAttributes(line, "*.sh", "text", "eol=lf"));
-        Assert.Contains(gitAttributes, line => HasGitAttributes(line, "*.cs", "diff=csharp", "text"));
-        Assert.Contains(gitAttributes, line => HasGitAttributes(line, "*.vb", "text"));
+        if (Path.DirectorySeparatorChar == '\\')
+        {
+            Assert.Contains("\r\n", sourceText);
+            Assert.False(ContainsBareLineFeed(sourceText));
+        }
+        else
+        {
+            Assert.Contains("\n", sourceText);
+            Assert.DoesNotContain("\r\n", sourceText);
+        }
     }
 
-    private static bool HasGitAttributes(string line, string pattern, params string[] expectedAttributes)
+    private static bool ContainsBareLineFeed(string text)
     {
-        var parts = line.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+        for (var i = 0; i < text.Length; i++)
+        {
+            if (text[i] == '\n' && (i == 0 || text[i - 1] != '\r'))
+            {
+                return true;
+            }
+        }
 
-        return parts.Length == expectedAttributes.Length + 1 &&
-            parts[0] == pattern &&
-            expectedAttributes.All(attribute => parts.Contains(attribute, StringComparer.Ordinal));
+        return false;
     }
 
-    private static string GetRepositoryFilePath(string fileName, [CallerFilePath] string sourceFilePath = "")
-        => Path.Combine(Path.GetFullPath(Path.Combine(Path.GetDirectoryName(sourceFilePath)!, "..", "..", "..", "..")), fileName);
+    private static string GetThisSourceFilePath([CallerFilePath] string sourceFilePath = "")
+        => sourceFilePath;
 }
