@@ -333,8 +333,20 @@ for name in "${names[@]}"; do
   # The extractor writes generated `<ai>_<n>_<name>.binlog` names straight into
   # BINLOG_DIR and stops once it has written REMAINING_BYTES, so it bounds both
   # where bytes land and how many there are.
-  extract_out=$(pwsh -NoProfile -NonInteractive -File "${SCRIPT_DIR}/extract-binlogs.ps1" \
-    "${ZIP_TMP}" "${BINLOG_DIR}" "${ai}" "${REMAINING_BYTES}" "${safe_name}")
+  # `dotnet run` evaluates the extractor as an MSBuild project, so it picks up
+  # the ambient configuration around it. Cone-mode sparse checkout materializes
+  # every root-level file, so the work tree holds roslyn's `global.json` (which
+  # pins an SDK the runner does not have) and `Directory.Build.props` (whose
+  # Arcade import is not checked out). The two are found from different roots:
+  # the SDK is resolved by walking up from the working directory, the MSBuild
+  # imports by walking up from the file. So run from a directory outside the
+  # tree and switch the inherited imports off; the extractor itself stays in the
+  # repository and takes every path as an argument.
+  extract_out=$(cd "${RUNNER_TEMP:-/tmp}" && dotnet run "${SCRIPT_DIR}/extract-binlogs.cs" \
+    -p:ImportDirectoryBuildProps=false \
+    -p:ImportDirectoryBuildTargets=false \
+    -p:ImportDirectoryPackagesProps=false \
+    -- "${ZIP_TMP}" "${BINLOG_DIR}" "${ai}" "${REMAINING_BYTES}" "${safe_name}")
   extract_rc=$?
   if [ "${extract_rc}" -ne 0 ]; then
     # A failed or timed-out extraction may have left partial files behind.
