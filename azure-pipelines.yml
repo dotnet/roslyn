@@ -331,7 +331,6 @@ stages:
     # https://github.com/dotnet/runtime/issues/97186
     - template: eng/pipelines/test-unix-job.yml
       parameters:
-        testRunName: 'Test macOS Debug'
         jobName: Test_macOS_Debug
         testArtifactName: Transport_Artifacts_macOS_Debug
         configuration: Debug
