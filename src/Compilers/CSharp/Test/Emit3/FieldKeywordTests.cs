@@ -11444,8 +11444,6 @@ class C<T>
         [InlineData("#pragma warning disable 8603 // Possible null reference return.")]
         public void Nullable_Resilient_ChainedConstructor_01(string directive)
         {
-            // Since the backing field is nullable, a chained constructor isn't expected to put it into non-null state.
-            // The property has maybe-null state in "caller" constructor since it shares a slot with the field.
             var source = $$"""
                 #nullable enable
 
@@ -11454,7 +11452,7 @@ class C<T>
                     public C(bool ignored) { Prop = "a"; }
                     public C() : this(false)
                     {
-                        Prop.ToString(); // 1
+                        Prop.ToString();
                     }
 
                     public string Prop
@@ -11466,10 +11464,7 @@ class C<T>
                 """;
 
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (8,9): warning CS8602: Dereference of a possibly null reference.
-                //         Prop.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(8, 9));
+            comp.VerifyEmitDiagnostics();
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
             Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
@@ -11487,7 +11482,7 @@ class C<T>
                     public C(bool ignored) { Prop = "a"; }
                     public C() : this(false)
                     {
-                        Prop.ToString(); // 1
+                        Prop.ToString();
                     }
 
                     public string Prop
@@ -11498,10 +11493,7 @@ class C<T>
                 """;
 
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (8,9): warning CS8602: Dereference of a possibly null reference.
-                //         Prop.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(8, 9));
+            comp.VerifyEmitDiagnostics();
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
             Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
@@ -12351,10 +12343,12 @@ class C<T>
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Value1").WithArguments("S.Value1").WithLocation(23, 16));
         }
 
-        [Fact]
-        public void Nullable_Accessor_FieldStateAffectedByAssigningThis()
+        [Theory]
+        [InlineData("field")]
+        [InlineData(@"field ?? ""a""")]
+        public void Nullable_Accessor_FieldStateAffectedByAssigningThis(string getterReturnValue)
         {
-            var source = """
+            var source = $$"""
                 #nullable enable
 
                 public struct S
@@ -12366,7 +12360,7 @@ class C<T>
                             field = "a";
                             this = default;
                             field.ToString(); // 1
-                            return field;
+                            return {{getterReturnValue}};
                         }
                         set
                         {
@@ -12387,23 +12381,25 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "field").WithLocation(18, 13));
         }
 
-        [Fact]
-        public void Nullable_Constructor_FieldStateAffectedByAssigningThis()
+        [Theory]
+        [InlineData("field")]
+        [InlineData(@"field ?? ""a""")]
+        public void Nullable_Constructor_FieldStateAffectedByAssigningThis(string getterReturnValue)
         {
-            var source = """
+            var source = $$"""
                 #nullable enable
 
                 public struct S
                 {
                     public string Prop
                     {
-                        get => field;
+                        get => {{getterReturnValue}};
                         set => field = value;
                     }
 
                     public static string StaticProp
                     {
-                        get => field;
+                        get => {{getterReturnValue}};
                         set => field = value;
                     } = "b";
 
@@ -12422,13 +12418,20 @@ class C<T>
                 }
                 """;
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (26,9): warning CS8602: Dereference of a possibly null reference.
-                //         Prop.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(26, 9));
+            if (getterReturnValue == "field")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (26,9): warning CS8602: Dereference of a possibly null reference.
+                    //         Prop.ToString(); // 1
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(26, 9));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77991")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84987")]
         public void Nullable_OrdinaryMethod_FieldStateAffectedByAssigningStruct()
         {
             var source = """
@@ -12447,12 +12450,16 @@ class C<T>
                         get => field;
                         set => field = value;
                     } = "b";
-                    
+
                     public void M(S s)
                     {
                         s.Prop.ToString();
                         StaticProp.ToString();
 
+                        s.Prop = null; // 1
+                        s.Prop.ToString(); // 2
+
+                        s.Prop = null; // 3
                         s = default;
                         s.Prop.ToString(); // expected warning is missing
                         StaticProp.ToString();
@@ -12460,10 +12467,19 @@ class C<T>
                 }
                 """;
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (22,18): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         s.Prop = null; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(22, 18),
+                // (23,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.Prop.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Prop").WithLocation(23, 9),
+                // (25,18): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         s.Prop = null; // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(25, 18));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77991")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84987")]
         public void Nullable_Accessor_OtherPropStateAffectedByAssigningStruct()
         {
             var source = """
@@ -12500,7 +12516,7 @@ class C<T>
             comp.VerifyEmitDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77991")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84987")]
         public void Nullable_PropInitializer_PropStateAffectedByAssigningStruct()
         {
             var source = """
@@ -12549,27 +12565,27 @@ class C<T>
                 {
                     public S()
                     {
-                        Resilient.ToString(); // 3
+                        Resilient.ToString();
                         NonResilient.ToString(); // 4
                     }
 
                     public S(bool ignored) : this()
                     {
-                        Resilient.ToString(); // 5
+                        Resilient.ToString();
                         NonResilient.ToString();
                     }
 
                     public S((bool, bool) ignored2)
                     {
                         this = new();
-                        Resilient.ToString(); // 6
+                        Resilient.ToString();
                         NonResilient.ToString();
                     }
 
                     public S((bool, bool, bool) ignored3)
                     {
                         this = default;
-                        Resilient.ToString(); // 7
+                        Resilient.ToString();
                         NonResilient.ToString(); // 8
                     }
 
@@ -12591,21 +12607,9 @@ class C<T>
                 // (6,5): error CS0200: Property or indexer 'S.NonResilient' cannot be assigned to -- it is read only
                 //     NonResilient = "b" // 2
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "NonResilient").WithArguments("S.NonResilient").WithLocation(6, 5),
-                // (13,9): warning CS8602: Dereference of a possibly null reference.
-                //         Resilient.ToString(); // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Resilient").WithLocation(13, 9),
                 // (14,9): warning CS8602: Dereference of a possibly null reference.
                 //         NonResilient.ToString(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "NonResilient").WithLocation(14, 9),
-                // (19,9): warning CS8602: Dereference of a possibly null reference.
-                //         Resilient.ToString(); // 5
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Resilient").WithLocation(19, 9),
-                // (26,9): warning CS8602: Dereference of a possibly null reference.
-                //         Resilient.ToString(); // 6
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Resilient").WithLocation(26, 9),
-                // (33,9): warning CS8602: Dereference of a possibly null reference.
-                //         Resilient.ToString(); // 7
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Resilient").WithLocation(33, 9),
                 // (34,9): warning CS8602: Dereference of a possibly null reference.
                 //         NonResilient.ToString(); // 8
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "NonResilient").WithLocation(34, 9));
@@ -12729,39 +12733,612 @@ class C<T>
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77991")]
-        public void Nullable_Resilient_InitialStateInConstructor()
+        public void Nullable_Resilient_InitialStateInConstructor_01()
         {
             var source = """
                 #nullable enable
 
+                // empty marker types to allow distinct constructor signatures
+                public class D1;
+                public class D2;
+                public class D3;
+                public class D4;
+                public class D5;
+                public class D6;
+
                 public class C
                 {
-                    public string Prop => field ??= "a";
+                    public string Prop1 => field ??= "a";
+                    public string Prop2 => field;
 
                     public C(bool ignored)
                     {
-                        Prop.ToString(); // unexpected warning
+                        Prop1.ToString();
+                        Prop2.ToString(); // 1
                     }
 
                     public C() : this(false)
                     {
-                        Prop.ToString(); // unexpected warning
+                        Prop1.ToString();
+                        Prop2.ToString();
+                    }
+
+                    public C(D1 d1) // 2
+                    {
+                    }
+
+                    public C(D2 d2) : this(false)
+                    {
+                    }
+
+                    public C(D3 d3) // 3
+                    {
+                        Prop1 = null;
+                        Prop2 = null; // 4
+                    }
+
+                    public C(D4 d4) : this(false) // 5
+                    {
+                        Prop1 = null;
+                        Prop2 = null; // 6
+                    }
+
+                    public C(D5 d5)
+                    {
+                        Prop1 = "a";
+                        Prop2 = "a";
+                    }
+
+                    public C(D6 d6) : this(false)
+                    {
+                        Prop1 = "a";
+                        Prop2 = "a";
                     }
 
                     public void M()
                     {
+                        Prop1.ToString();
+                        Prop2.ToString();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (19,9): warning CS8602: Dereference of a possibly null reference.
+                //         Prop2.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop2").WithLocation(19, 9),
+                // (28,12): warning CS9264: Non-nullable property 'Prop2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                //     public C(D1 d1) // 2
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop2").WithLocation(28, 12),
+                // (36,12): warning CS9264: Non-nullable property 'Prop2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                //     public C(D3 d3) // 3
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop2").WithLocation(36, 12),
+                // (39,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         Prop2 = null; // 4
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(39, 17),
+                // (42,12): warning CS9264: Non-nullable property 'Prop2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                //     public C(D4 d4) : this(false) // 5
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop2").WithLocation(42, 12),
+                // (45,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         Prop2 = null; // 6
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(45, 17));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77991")]
+        public void Nullable_Resilient_InitialStateInConstructor_02()
+        {
+            // Test behaviors of AllowNull attribute on various null-resilient properties.
+            var source = """
+                #nullable enable
+                using System.Diagnostics.CodeAnalysis;
+
+                // empty marker types to allow distinct constructor signatures
+                public class D1;
+                public class D2;
+                public class D3;
+                public class D4;
+                public class D5;
+                public class D6;
+
+                public class C
+                {
+                    [AllowNull]
+                    public string Prop1 => field ??= "a";
+
+                    public string Prop2 { get => field ??= "a"; set; }
+
+                    [AllowNull]
+                    public string Prop3 { get => field ??= "a"; set; }
+
+                    public C(bool ignored)
+                    {
+                        Prop1.ToString();
+                        Prop2.ToString();
+                        Prop3.ToString();
+                    }
+
+                    public C() : this(false)
+                    {
+                        Prop1.ToString();
+                        Prop2.ToString();
+                        Prop3.ToString();
+                    }
+
+                    public C(D1 d1)
+                    {
+                    }
+
+                    public C(D2 d2) : this(false)
+                    {
+                    }
+
+                    public C(D3 d3)
+                    {
+                        Prop1 = null;
+                        Prop2 = null; // 1
+                        Prop3 = null;
+                    }
+
+                    public C(D4 d4) : this(false)
+                    {
+                        Prop1 = null;
+                        Prop2 = null; // 2
+                        Prop3 = null;
+                    }
+
+                    public C(D5 d5)
+                    {
+                        Prop1 = "a";
+                        Prop2 = "a";
+                        Prop3 = "a";
+                    }
+
+                    public C(D6 d6) : this(false)
+                    {
+                        Prop1 = "a";
+                        Prop2 = "a";
+                        Prop3 = "a";
+                    }
+
+                    public void M()
+                    {
+                        Prop1.ToString();
+                    }
+                }
+                """;
+            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics(
+                // (47,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         Prop2 = null; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(47, 17),
+                // (54,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         Prop2 = null; // 2
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(54, 17));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77991")]
+        public void Nullable_Resilient_InitialStateInConstructor_03()
+        {
+            // Test behaviors of MaybeNull attribute on a null-resilient property
+            var source = """
+                #nullable enable
+                using System.Diagnostics.CodeAnalysis;
+
+                // empty marker types to allow distinct constructor signatures
+                public class D1;
+                public class D2;
+                public class D3;
+                public class D4;
+                public class D5;
+                public class D6;
+
+                public class C
+                {
+                    [MaybeNull]
+                    public string Prop1 => field ??= "a";
+
+                    public C(bool ignored)
+                    {
+                        Prop1.ToString(); // 1
+                    }
+
+                    public C() : this(false)
+                    {
+                        Prop1.ToString(); // 2
+                    }
+
+                    public C(D1 d1)
+                    {
+                    }
+
+                    public C(D2 d2) : this(false)
+                    {
+                    }
+
+                    public C(D3 d3)
+                    {
+                        Prop1 = null;
+                    }
+
+                    public C(D4 d4) : this(false)
+                    {
+                        Prop1 = null;
+                    }
+
+                    public C(D5 d5)
+                    {
+                        Prop1 = "a";
+                    }
+
+                    public C(D6 d6) : this(false)
+                    {
+                        Prop1 = "a";
+                    }
+
+                    public void M()
+                    {
+                        Prop1.ToString(); // 3
+                    }
+                }
+                """;
+            var comp = CreateCompilation([source, MaybeNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics(
+                // (19,9): warning CS8602: Dereference of a possibly null reference.
+                //         Prop1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop1").WithLocation(19, 9),
+                // (24,9): warning CS8602: Dereference of a possibly null reference.
+                //         Prop1.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop1").WithLocation(24, 9),
+                // (57,9): warning CS8602: Dereference of a possibly null reference.
+                //         Prop1.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop1").WithLocation(57, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77991")]
+        public void Nullable_Resilient_InitialStateInConstructor_04()
+        {
+            // Test behaviors of a required null-resilient property
+            var source = """
+                #nullable enable
+
+                // empty marker types to allow distinct constructor signatures
+                public class D1;
+                public class D2;
+                public class D3;
+                public class D4;
+
+                public class C
+                {
+                    public required string Prop1 { get => field ??= "a"; set; }
+
+                    public C(bool ignored)
+                    {
+                        Prop1.ToString();
+                    }
+
+                    public C() : this(false)
+                    {
+                        Prop1.ToString();
+                    }
+
+                    public C(D1 d)
+                    {
+                    }
+
+                    public C(D2 d) : this(false)
+                    {
+                    }
+
+                    public C(D3 d)
+                    {
+                        Prop1 = "a";
+                    }
+
+                    public C(D4 d) : this(false)
+                    {
+                        Prop1 = "a";
+                    }
+
+                    public void M()
+                    {
+                        Prop1.ToString();
+                    }
+                }
+                """;
+            var comp = CreateCompilation([source, RequiredMemberAttribute, CompilerFeatureRequiredAttribute, SetsRequiredMembersAttribute]);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77991")]
+        public void Nullable_Resilient_InitialStateInConstructor_05()
+        {
+            // Test behaviors of a required null-resilient property with SetsRequiredMembers on constructors
+            var source = """
+                #nullable enable
+                using System.Diagnostics.CodeAnalysis;
+
+                // empty marker types to allow distinct constructor signatures
+                public class D1;
+                public class D2;
+                public class D3;
+                public class D4;
+                public class D5;
+                public class D6;
+                public class D7;
+                public class D8;
+
+                public class C
+                {
+                    public required string Prop1 { get => field ??= "a"; set; }
+
+                    [SetsRequiredMembers]
+                    public C(bool ignored)
+                    {
+                        Prop1.ToString();
+                    }
+
+                    public C(int ignored)
+                    {
+                        Prop1.ToString();
+                    }
+
+                    [SetsRequiredMembers]
+                    public C(D1 d) : this(false)
+                    {
+                        Prop1.ToString();
+                    }
+
+                    [SetsRequiredMembers]
+                    public C(D2 d) : this(0)
+                    {
+                        Prop1.ToString();
+                    }
+
+                    [SetsRequiredMembers]
+                    public C(D3 d)
+                    {
+                    }
+
+                    [SetsRequiredMembers]
+                    public C(D4 d) : this(false)
+                    {
+                    }
+
+                    [SetsRequiredMembers]
+                    public C(D5 d) : this(0)
+                    {
+                    }
+
+                    [SetsRequiredMembers]
+                    public C(D6 d)
+                    {
+                        Prop1 = "a";
+                    }
+
+                    [SetsRequiredMembers]
+                    public C(D7 d) : this(false)
+                    {
+                        Prop1 = "a";
+                    }
+
+                    [SetsRequiredMembers]
+                    public C(D8 d) : this(0)
+                    {
+                        Prop1 = "a";
+                    }
+
+                    public void M()
+                    {
+                        Prop1.ToString();
+                    }
+                }
+                """;
+            var comp = CreateCompilation([source, RequiredMemberAttribute, CompilerFeatureRequiredAttribute, SetsRequiredMembersAttribute]);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84957")]
+        public void Repro_84957()
+        {
+            var source = """
+                #nullable enable
+                internal class Goo {
+                    private Bar? _bang1;
+
+                    public Goo() {
+                        Wiz1 = Bang1;
+                        Wiz2 = Bang2;
+                        Wiz3 = Bang3;
+                        Wiz4 = Bang4;
+                        Wiz5 = Bang5;
+                    }
+
+                    public Bar Wiz1 { get; set; }
+                    public Bar Wiz2 { get; set; }
+                    public Bar Wiz3 { get; set; }
+                    public Bar Wiz4 { get; set; }
+                    public Bar Wiz5 { get; set; }
+
+                    public Bar Bang1 => _bang1 ??= new Bar();
+
+                    public Bar Bang2 => field ??= new Bar();
+
+                    public Bar Bang3 => (field ??= new Bar())!;
+
+                    public Bar Bang4 {
+                        get {
+                            field ??= new Bar();
+                            return field;
+                        }
+                    }
+
+                    public Bar Bang5 {
+                        get {
+                            field = new Bar();
+                            return field;
+                        }
+                    }
+                }
+
+                public class Bar { };
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84987")]
+        public void Nullable_InheritedState_01()
+        {
+            var source = """
+                #nullable enable
+                struct S
+                {
+                    public string Prop { get => field; set; }
+                    public void M()
+                    {
+                        this = default;
+                        this.Prop.ToString(); // expected warning missing
+                    }
+
+                    public S()
+                    {
+                        this = default;
+                        Prop.ToString(); // 1
+                    }
+
+                    public S(bool ignored1)
+                    {
+                        S s1 = default;
+                        this = s1;
+                        Prop.ToString(); // 2
+                    }
+
+                    public S((bool, bool) ignored2)
+                    {
+                        S s1 = default;
+                        s1.Prop = "a";
+                        this = s1;
                         Prop.ToString();
                     }
                 }
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (9,9): warning CS8602: Dereference of a possibly null reference.
-                //         Prop.ToString(); // unexpected warning
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(9, 9),
                 // (14,9): warning CS8602: Dereference of a possibly null reference.
-                //         Prop.ToString(); // unexpected warning
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(14, 9));
+                //         Prop.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(14, 9),
+                // (21,9): warning CS8602: Dereference of a possibly null reference.
+                //         Prop.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(21, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84987")]
+        public void Nullable_InheritedState_02()
+        {
+            // Slot is only shared between property and backing field of 'this' variable
+            var source = """
+                #nullable enable
+                struct S()
+                {
+                    public string Prop { get => field; set; } = "a";
+
+                    public class Inner
+                    {
+                        void M(S s)
+                        {
+                            s.Prop.ToString();
+                            s = default;
+                            s.Prop.ToString(); // expected warning missing
+                        }
+
+                        public Inner(S s)
+                        {
+                            s.Prop.ToString();
+                            s = default;
+                            s.Prop.ToString(); // expected warning missing
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84987")]
+        public void Nullable_InheritedState_03()
+        {
+            var source = """
+                #nullable enable
+                struct S<T>
+                {
+                    public T Prop { get => field; set; } = default!;
+                    public static void Use(T t) { }
+
+                    void M()
+                    {
+                        Use(this.Prop);
+                        this = default;
+                        Use(this.Prop); // expected warning missing
+                        Use(default(T)); // 1
+                    }
+
+                    public S()
+                    {
+                        Use(this.Prop);
+                        this = default;
+                        Use(default(T)); // 2
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (12,13): warning CS8604: Possible null reference argument for parameter 't' in 'void S<T>.Use(T t)'.
+                //         Use(default(T)); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "default(T)").WithArguments("t", "void S<T>.Use(T t)").WithLocation(12, 13),
+                // (19,13): warning CS8604: Possible null reference argument for parameter 't' in 'void S<T>.Use(T t)'.
+                //         Use(default(T)); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "default(T)").WithArguments("t", "void S<T>.Use(T t)").WithLocation(19, 13));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84987")]
+        public void Nullable_InheritedState_04()
+        {
+            var source = """
+                #nullable enable
+                struct S<T>()
+                {
+                    public T Prop { get => field; set; } = default!;
+
+                    public class Inner
+                    {
+                        public static void Use(T t) { }
+
+                        void M(S<T> s)
+                        {
+                            Use(s.Prop);
+                            s = default;
+                            Use(s.Prop); // expected warning missing
+                            Use(default(T)); // 1
+                        }
+
+                        public Inner(S<T> s)
+                        {
+                            Use(s.Prop);
+                            s = default;
+                            Use(s.Prop); // expected warning missing
+                            Use(default(T)); // 2
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (15,17): warning CS8604: Possible null reference argument for parameter 't' in 'void Inner.Use(T t)'.
+                //             Use(default(T)); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "default(T)").WithArguments("t", "void Inner.Use(T t)").WithLocation(15, 17),
+                // (23,17): warning CS8604: Possible null reference argument for parameter 't' in 'void Inner.Use(T t)'.
+                //             Use(default(T)); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "default(T)").WithArguments("t", "void Inner.Use(T t)").WithLocation(23, 17));
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78592")]
@@ -12993,9 +13570,8 @@ class C<T>
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80504")]
         public void SetsRequiredMembersInSubtype()
         {
-            var source = """
+            var source1 = """
                 #nullable enable
-                using System.Diagnostics.CodeAnalysis;
 
                 public class Foo {
                     public required string Bar {
@@ -13005,20 +13581,39 @@ class C<T>
                         }
                     }
                 }
+                """;
+
+            var source2 = """
+                #nullable enable
+                using System.Diagnostics.CodeAnalysis;
 
                 public class FooDerivative : Foo {
-
                     [SetsRequiredMembers]
                     public FooDerivative() {
                     }
                 }
                 """;
 
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+            var comp = CreateCompilation([source1, source2], targetFramework: TargetFramework.Net100);
             comp.VerifyEmitDiagnostics(
-                // (16,12): warning CS8618: Non-nullable property 'Bar' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                // (6,12): warning CS8618: Non-nullable property 'Bar' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
                 //     public FooDerivative() {
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "FooDerivative").WithArguments("property", "Bar").WithLocation(16, 12));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "FooDerivative").WithArguments("property", "Bar").WithLocation(6, 12));
+
+            var comp1 = CreateCompilation(source1, targetFramework: TargetFramework.Net100);
+            comp1.VerifyEmitDiagnostics();
+
+            verify2(comp1.ToMetadataReference());
+            verify2(comp1.EmitToImageReference());
+
+            void verify2(MetadataReference reference)
+            {
+                var comp2 = CreateCompilation(source2, references: [reference], targetFramework: TargetFramework.Net100);
+                comp2.VerifyEmitDiagnostics(
+                    // (6,12): warning CS8618: Non-nullable property 'Bar' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                    //     public FooDerivative() {
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "FooDerivative").WithArguments("property", "Bar").WithLocation(6, 12));
+            }
         }
 
         private class TestAnalyzer1 : DiagnosticAnalyzer
