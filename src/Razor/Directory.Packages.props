@@ -34,7 +34,7 @@
     <PackageVersion Include="Microsoft.WebTools.Languages.Shared.Editor" Version="$(_MicrosoftWebToolsPackageVersion)" />
     <PackageVersion Include="Microsoft.WebTools.Languages.Shared.VS" Version="$(_MicrosoftWebToolsPackageVersion)" />
     <PackageVersion Include="Microsoft.WebTools.Shared" Version="$(_MicrosoftWebToolsPackageVersion)" />
-    <PackageVersion Include="Xunit.StaFact" Version="1.2.46-alpha" />
+    <PackageVersion Include="Xunit.StaFact" Version="4.0.23" />
     <!--
       These package references exist solely to fix component governance issues. Referencing them here
       at the appropriate version, in combination with using CentralPackageTransitivePinningEnabled, will
