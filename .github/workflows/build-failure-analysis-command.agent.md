@@ -70,7 +70,7 @@ mcp-servers:
     allowed: ["*"]
 
 # Reuses the binlogs from the PR's most recent failed `roslyn-CI` build. Shares
-# scripts/fetch-build-binlogs.sh with build-failure-analysis.agent.md, in
+# scripts/fetch-build-binlogs.cs with build-failure-analysis.agent.md, in
 # `latest` resolution mode because a slash command carries no `check_run`
 # payload.
 jobs:
@@ -196,7 +196,16 @@ jobs:
           PR_NUMBER: ${{ github.event.issue.number || fromJSON(github.event.inputs.aw_context || github.event.client_payload.aw_context || '{}').item_number }}
           BINLOG_DIR: /tmp/binlogs
           SCRIPT_DIR: ${{ github.workspace }}/.github/workflows/scripts
-        run: timeout 600 bash "${SCRIPT_DIR}/fetch-build-binlogs.sh"
+        # `dotnet run` evaluates the fetcher as an MSBuild project, so it picks
+        # up the ambient configuration around it. Cone-mode sparse checkout
+        # materializes every root-level file, so the work tree holds roslyn's
+        # `global.json` (which pins an SDK the runner does not have) and
+        # `Directory.Build.props` (whose Arcade import is not checked out). The
+        # two are found from different roots: the SDK by walking up from the
+        # working directory, the MSBuild imports by walking up from the file. So
+        # run from a directory outside the tree and switch the inherited imports
+        # off; the fetcher itself stays in the repository.
+        run: cd "${RUNNER_TEMP:-/tmp}" && timeout 600 dotnet run "${SCRIPT_DIR}/fetch-build-binlogs.cs" -p:ImportDirectoryBuildProps=false -p:ImportDirectoryBuildTargets=false -p:ImportDirectoryPackagesProps=false
 
       # A fetch that was killed or errored leaves `binlog-found` unset, so the
       # activation gate already declines to analyze. Say so in the log rather
