@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
-using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities;
 
@@ -85,22 +84,9 @@ internal sealed partial class TestExportJoinableTaskContext
 
     internal static SynchronizationContext? GetEffectiveSynchronizationContext()
     {
-        if (SynchronizationContext.Current is AsyncTestSyncContext asyncTestSyncContext)
-        {
-            SynchronizationContext? innerSynchronizationContext = null;
-            asyncTestSyncContext.Send(
-                _ =>
-                {
-                    innerSynchronizationContext = SynchronizationContext.Current;
-                },
-                null);
-
-            return innerSynchronizationContext == asyncTestSyncContext ? null : innerSynchronizationContext;
-        }
-        else
-        {
-            return SynchronizationContext.Current;
-        }
+        // xUnit v3 no longer installs a custom SynchronizationContext (e.g. AsyncTestSyncContext) for
+        // async Task test methods, so the current context is always the effective one.
+        return SynchronizationContext.Current;
     }
 
     /// <summary>

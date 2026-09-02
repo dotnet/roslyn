@@ -4,7 +4,6 @@
 using System.ComponentModel.Composition;
 using System.Threading;
 using Microsoft.VisualStudio.Threading;
-using Xunit.Sdk;
 
 #if NETFRAMEWORK
 using System.Windows.Threading;
@@ -83,19 +82,9 @@ public partial class TestExportJoinableTaskContext
 
     internal static SynchronizationContext? GetEffectiveSynchronizationContext()
     {
-        if (SynchronizationContext.Current is AsyncTestSyncContext asyncTestSyncContext)
-        {
-            SynchronizationContext? innerSynchronizationContext = null;
-            asyncTestSyncContext.Send(
-                _ => innerSynchronizationContext = SynchronizationContext.Current,
-                null);
-
-            return innerSynchronizationContext;
-        }
-        else
-        {
-            return SynchronizationContext.Current;
-        }
+        // xUnit v3 no longer installs a custom SynchronizationContext (e.g. AsyncTestSyncContext) for
+        // async Task test methods, so the current context is always the effective one.
+        return SynchronizationContext.Current;
     }
 
 #if false
