@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -62,15 +62,13 @@ internal sealed class VSMetricSink : IMetricSink, IDisposable
         public TelemetryEvent TelemetryEvent { get; } = telemetryEvent;
 
         /// <summary>
-        /// Guards this single aggregation. Held together with <see cref="VSMetricSink._flushLock"/>:
-        /// concurrent <c>PostMetricEvent</c> calls for one instrument crash the VS Telemetry SDK, so a
-        /// flush must exclude both other flushes and any in-flight Add/Record on the same instrument.
+        /// Guards this single aggregation while it is updated, posted, and retired. This prevents an
+        /// in-flight Add/Record from overlapping <c>PostMetricEvent</c> on the same instrument and ensures
+        /// that only one concurrent flush posts it.
         /// See https://github.com/dotnet/roslyn/pull/71606.
         /// </summary>
         public object Lock { get; } = new();
     }
-
-    private readonly object _flushLock = new();
 
     private readonly VSTelemetryMeterProvider _meterProvider = new();
     private readonly IMetricPoster _poster;
@@ -166,29 +164,29 @@ internal sealed class VSMetricSink : IMetricSink, IDisposable
 
     public void Flush()
     {
-        // Excludes other flushes, which would otherwise post the same aggregation twice.
-        lock (_flushLock)
+        foreach (var pair in _aggregations)
         {
-            foreach (var pair in _aggregations)
+            var aggregation = pair.Value;
+            // Excludes concurrent Add/Record on this instrument while the metric event is built
+            // from it and posted.
+            lock (aggregation.Lock)
             {
-                var aggregation = pair.Value;
-                // Excludes concurrent Add/Record on this instrument while the metric event is built
-                // from it and posted.
-                lock (aggregation.Lock)
+                // Another flush may have already posted and retired the aggregation in this snapshot.
+                if (!_aggregations.TryGetValue(pair.Key, out var current) || current != aggregation)
+                    continue;
+
+                TelemetryMetricEvent metricEvent = aggregation.Instrument switch
                 {
-                    TelemetryMetricEvent metricEvent = aggregation.Instrument switch
-                    {
-                        ICounter<long> counter => new TelemetryCounterEvent<long>(aggregation.TelemetryEvent, counter),
-                        IHistogram<long> histogram => new TelemetryHistogramEvent<long>(aggregation.TelemetryEvent, histogram),
-                        _ => throw ExceptionUtilities.UnexpectedValue(aggregation.Instrument),
-                    };
+                    ICounter<long> counter => new TelemetryCounterEvent<long>(aggregation.TelemetryEvent, counter),
+                    IHistogram<long> histogram => new TelemetryHistogramEvent<long>(aggregation.TelemetryEvent, histogram),
+                    _ => throw ExceptionUtilities.UnexpectedValue(aggregation.Instrument),
+                };
 
-                    _poster.Post(aggregation.TelemetryEvent, metricEvent);
+                _poster.Post(aggregation.TelemetryEvent, metricEvent);
 
-                    // Removed per key rather than clearing at the end, so measurements recorded under a
-                    // new key while this loop runs survive to the next flush.
-                    ImmutableInterlocked.TryRemove(ref _aggregations, pair.Key, out _);
-                }
+                // Removed per key rather than clearing at the end, so measurements recorded under a
+                // new key while this loop runs survive to the next flush.
+                ImmutableInterlocked.TryRemove(ref _aggregations, pair.Key, out _);
             }
         }
     }
