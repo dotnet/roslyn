@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class TypeTests : CSharpTestBase
     {
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+        [ConditionalFact(skipConditions: typeof(NoUsedAssembliesValidation))]
         [WorkItem(30023, "https://github.com/dotnet/roslyn/issues/30023")]
         public void Bug18280()
         {

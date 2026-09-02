@@ -561,7 +561,7 @@ class C
             """, result.Contents.Fourth.Value);
     }
 
-    [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6577")]
+    [ConditionalTheory(skipConditions: typeof(IsEnglishLocal)), CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6577")]
     public async Task TestGetHoverAsync_EscapesAngleBracketsInGenerics(bool mutatingLspWorkspace)
     {
         var markup =

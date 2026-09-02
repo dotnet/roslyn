@@ -477,7 +477,7 @@ class Test
 }");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestReadOnlySpanString()
         {
             var comp = CreateCompilation(@"

@@ -38,13 +38,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             logger: _host.Logger,
             cancellationToken);
 
-        [ConditionalFact(typeof(WindowsOrLinuxOnly), Reason = "https://github.com/dotnet/runtime/issues/40301")]
+        [ConditionalFact(skipConditions: typeof(WindowsOrLinuxOnly), Reason = "https://github.com/dotnet/runtime/issues/40301")]
         public async Task CallBeforeListen()
         {
             await Assert.ThrowsAsync<InvalidOperationException>(() => _host.GetNextClientConnectionAsync());
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/runtime/issues/40301")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/runtime/issues/40301")]
         public async Task CallAfterComplete()
         {
             _host.BeginListening();
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             _host.EndListening();
         }
 
-        [ConditionalFact(typeof(WindowsOrLinuxOnly), Reason = "https://github.com/dotnet/runtime/issues/40301")]
+        [ConditionalFact(skipConditions: typeof(WindowsOrLinuxOnly), Reason = "https://github.com/dotnet/runtime/issues/40301")]
         public async Task EndListenCancelsIncompleteTask()
         {
             _host.BeginListening();
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         /// It is the responsibility of the caller of <see cref="NamedPipeClientConnectionHost.GetNextClientConnectionAsync"/>
         /// to dispose the returned client, not the hosts
         /// </summary>
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/runtime/issues/40301")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/runtime/issues/40301")]
         public async Task EndListenDoesNotDisposeCompletedConnection()
         {
             _host.BeginListening();
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         /// Ensure that the host can handle many connections before they are acknowledged / dequeued
         /// by the caller.
         /// </summary>
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/runtime/issues/40301")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/runtime/issues/40301")]
         public async Task ManyConnectsBeforeAcknowledged()
         {
             const int count = 20;
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         /// <summary>
         /// When EndListen is called the host should be closing all of the queue'd client connections
         /// </summary>
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/runtime/issues/40301")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/runtime/issues/40301")]
         public async Task EndListenClosesQueuedConnections()
         {
             const int count = 20;
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/runtime/issues/40301")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/runtime/issues/40301")]
         public async Task SupportsMultipleBeginEndCycles()
         {
             for (int i = 0; i < 10; i++)

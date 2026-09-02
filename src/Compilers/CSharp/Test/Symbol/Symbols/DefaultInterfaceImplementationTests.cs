@@ -51509,7 +51509,7 @@ class UsePia
                 );
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
         public void NoPia_09()
         {
             IEnumerable<MetadataReference> baseReferences = TargetFrameworkUtil.GetReferencesWithout(TargetFramework.Net50, "System.Runtime.InteropServices.dll");
@@ -55145,7 +55145,7 @@ class Test1 : I2
                 );
         }
 
-        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
         public void PropertyReAbstraction_029(bool isStatic)
         {
@@ -55222,7 +55222,7 @@ class Test2 : I2
             Assert.Equal("System.Char I2.I1.get_F1()", test2.FindImplementationForInterfaceMember(i1F1.GetMethod).ToTestDisplayString());
         }
 
-        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
         public void PropertyReAbstraction_030(bool isStatic)
         {
@@ -55295,7 +55295,7 @@ class Test2 : I2
             Assert.Null(test2.FindImplementationForInterfaceMember(i1F1.GetMethod));
         }
 
-        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
         public void PropertyReAbstraction_031(bool isStatic)
         {
@@ -55395,7 +55395,7 @@ class Test2 : I2, I3
             Assert.Null(test2.FindImplementationForInterfaceMember(i1F1.GetMethod));
         }
 
-        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
         public void PropertyReAbstraction_032(bool isStatic)
         {
@@ -55466,7 +55466,7 @@ class Test2 : I2
             Assert.Equal("System.Char I2.I1.get_F1()", test2.FindImplementationForInterfaceMember(i1F1.GetMethod).ToTestDisplayString());
         }
 
-        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
         public void PropertyReAbstraction_033(bool isStatic)
         {
@@ -55534,7 +55534,7 @@ class Test2 : I2
             Assert.Null(test2.FindImplementationForInterfaceMember(i1F1.GetMethod));
         }
 
-        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
         public void PropertyReAbstraction_034(bool isStatic)
         {
@@ -55628,7 +55628,7 @@ class Test2 : I2, I3
             Assert.Null(test2.FindImplementationForInterfaceMember(i1F1.GetMethod));
         }
 
-        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
         public void PropertyReAbstraction_035(bool isStatic)
         {
@@ -55722,7 +55722,7 @@ class Test2 : I2, I3
             Assert.Null(test2.FindImplementationForInterfaceMember(i1F1.GetMethod));
         }
 
-        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
         public void PropertyReAbstraction_036(bool isStatic)
         {
@@ -59880,7 +59880,7 @@ class Test1 : I2
                 );
         }
 
-        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
         public void EventReAbstraction_029(bool isStatic)
         {
@@ -63122,7 +63122,7 @@ public interface I2 : I1
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(MonoOrCoreClrOnly))]
         public void ImplicitImplementationOfNonPublicMethod_01()
         {
             var ilSource = @"
@@ -63215,7 +63215,7 @@ class Test
             Assert.Equal("System.String C0.M()", c0.FindImplementationForInterfaceMember(i1M).ToTestDisplayString());
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(MonoOrCoreClrOnly))]
         public void ImplicitImplementationOfNonPublicMethod_02()
         {
             var ilSource = @"
@@ -63698,7 +63698,7 @@ class C1 : I1, Interface
             CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate);
         }
 
-        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
         [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
         public void ExplicitlyImplementedViaAccessors_01(bool isStatic)
@@ -64033,7 +64033,7 @@ class Test4 : C1, I1
             Assert.Null(test3.FindImplementationForInterfaceMember(i1E1));
         }
 
-        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
         [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
         public void ExplicitlyImplementedViaAccessors_02(bool isStatic)
@@ -64199,7 +64199,7 @@ class Test4 : C1, I1
             Assert.Null(test2.FindImplementationForInterfaceMember(i1P2));
         }
 
-        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
         [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
         public void ExplicitlyImplementedViaAccessors_03(bool isStatic)
@@ -64365,7 +64365,7 @@ class Test4 : C1, I1
             Assert.Null(test2.FindImplementationForInterfaceMember(i1P2));
         }
 
-        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
         [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
         public void ExplicitlyImplementedViaAccessors_04(bool isStatic)
@@ -64539,7 +64539,7 @@ class Test4 : C1, I1
             Assert.Null(test3.FindImplementationForInterfaceMember(i1P2));
         }
 
-        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
         [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
         public void ExplicitlyImplementedViaAccessors_05(bool isStatic)
@@ -64697,7 +64697,7 @@ class C3 : C2, I1
             CompileAndVerify(compilation1, verify: Verify(isStatic), expectedOutput: Execute(isStatic) ? "2" : null);
         }
 
-        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
         [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
         public void ExplicitlyImplementedViaAccessors_06(bool isStatic)
@@ -64946,7 +64946,7 @@ interface I3 : I2
             Assert.Null(test3.FindImplementationForInterfaceMember(i1E1));
         }
 
-        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
         [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
         public void ExplicitlyImplementedViaAccessors_07(bool isStatic)
@@ -65062,7 +65062,7 @@ interface I3 : I2
             Assert.Null(test2.FindImplementationForInterfaceMember(i1P2));
         }
 
-        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
         [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
         public void ExplicitlyImplementedViaAccessors_08(bool isStatic)
@@ -65178,7 +65178,7 @@ interface I3 : I2
             Assert.Null(test2.FindImplementationForInterfaceMember(i1P2));
         }
 
-        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
         [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
         public void ExplicitlyImplementedViaAccessors_09(bool isStatic)
@@ -65298,7 +65298,7 @@ interface I3 : I2
             Assert.Null(test3.FindImplementationForInterfaceMember(i1P2));
         }
 
-        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
         [WorkItem(34453, "https://github.com/dotnet/roslyn/issues/34453")]
         public void CheckForImplementationOfCorrespondingPropertyOrEvent_01(bool isStatic)
@@ -65371,7 +65371,7 @@ class C2 : C1, I1
             Assert.Null(c2.FindImplementationForInterfaceMember(p1));
         }
 
-        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
         [WorkItem(34453, "https://github.com/dotnet/roslyn/issues/34453")]
         public void CheckForImplementationOfCorrespondingPropertyOrEvent_02(bool isStatic)
@@ -65451,7 +65451,7 @@ class C2 : C1, I1
             Assert.Null(c2.FindImplementationForInterfaceMember(p1));
         }
 
-        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
         [WorkItem(34453, "https://github.com/dotnet/roslyn/issues/34453")]
         public void CheckForImplementationOfCorrespondingPropertyOrEvent_03(bool isStatic)
@@ -65526,7 +65526,7 @@ class C2 : C1, I1
             Assert.Null(c2.FindImplementationForInterfaceMember(p1));
         }
 
-        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
         [WorkItem(34453, "https://github.com/dotnet/roslyn/issues/34453")]
         public void CheckForImplementationOfCorrespondingPropertyOrEvent_04(bool isStatic)

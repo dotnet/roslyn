@@ -80,7 +80,11 @@ namespace Roslyn.Test.Utilities
 
         public string Reason { get; set; }
 
-        public ConditionalFactAttribute(params Type[] skipConditions)
+        public ConditionalFactAttribute(
+            [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = null,
+            [System.Runtime.CompilerServices.CallerLineNumber] int sourceLineNumber = -1,
+            params Type[] skipConditions)
+            : base(sourceFilePath, sourceLineNumber)
         {
             foreach (var skipCondition in skipConditions)
             {
@@ -120,7 +124,11 @@ namespace Roslyn.Test.Utilities
 
         public string Reason { get; set; }
 
-        public ConditionalTheoryAttribute(params Type[] skipConditions)
+        public ConditionalTheoryAttribute(
+            [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = null,
+            [System.Runtime.CompilerServices.CallerLineNumber] int sourceLineNumber = -1,
+            params Type[] skipConditions)
+            : base(sourceFilePath, sourceLineNumber)
         {
             foreach (var skipCondition in skipConditions)
             {

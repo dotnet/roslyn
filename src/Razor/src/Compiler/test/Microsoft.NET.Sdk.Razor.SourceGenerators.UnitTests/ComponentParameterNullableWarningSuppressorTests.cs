@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
 {
     public class ComponentParameterNullableWarningSuppressorTests
     {
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public async Task ParameterEditorRequiredNoWarning()
         {
             var testCode = """
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 );
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public async Task NoEditorRequiredStillReports()
         {
             var testCode = """
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 );
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public async Task NoParameterRequiredStillReports()
         {
             var testCode = """
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 );
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public async Task NotComponentStillReports()
         {
             var testCode = """
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 );
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public async Task AliasedAttributes()
         {
             var testCode = """
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 );
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public async Task LocallyDefinedAttributes()
         {
             var testCode = """
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 );
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public async Task LocallyDefinedAttributesDifferentNamespace()
         {
             var testCode = """
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 );
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public async Task LocallyDefinedAttributesAndSdkAttributes()
         {
             var testCode = """
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 );
         }
 
-        [ConditionalTheory(typeof(IsEnglishLocal))]
+        [ConditionalTheory(skipConditions: typeof(IsEnglishLocal))]
         [InlineData("internal")]
         [InlineData("private")]
         [InlineData("protected internal")]
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 );
         }
 
-        [ConditionalTheory(typeof(IsEnglishLocal))]
+        [ConditionalTheory(skipConditions: typeof(IsEnglishLocal))]
         [InlineData("")]
         [InlineData("private set;")]
         [InlineData("private init;")]
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 );
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public async Task RequiredPropertyDoesNotReport()
         {
             var testCode = $$"""
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
             await VerifyAnalyzerAsync(testCode);
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public async Task DerivedBaseType()
         {
             var testCode = """
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 );
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public async Task DerivedBaseTypeWithBaseParameter()
         {
             var testCode = """
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 );
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public async Task DerivedBaseTypeNotComponentWithBaseParameter()
         {
             var testCode = """
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 );
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public async Task NullableReturnType()
         {
             var testCode = """
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
             await VerifyAnalyzerAsync(testCode);
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public async Task ParameterWithInit()
         {
             var testCode = """

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         public class StartupTests : VBCSCompilerServerTests
         {
-            [ConditionalFact(typeof(WindowsOnly))]
+            [ConditionalFact(skipConditions: typeof(WindowsOnly))]
             [WorkItem(217709, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/217709")]
             public async Task ShadowCopyAnalyzerAssemblyLoaderMissingDirectory()
             {
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             /// <summary>
             /// Ensure server respects keep alive and shuts down after processing a single connection.
             /// </summary>
-            [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/46447")]
+            [ConditionalTheory(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/46447")]
             [InlineData(1)]
             [InlineData(2)]
             [InlineData(3)]
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             /// <summary>
             /// Ensure server respects keep alive and shuts down after processing simultaneous connections.
             /// </summary>
-            [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/46447")]
+            [ConditionalTheory(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/46447")]
             [InlineData(2)]
             [InlineData(3)]
             public async Task SimultaneousConnections(int connectionCount)

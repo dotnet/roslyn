@@ -3752,7 +3752,7 @@ class C
             }
             """);
 
-    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [ConditionalTheory(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/22293")]
     [InlineData("void")]
     [InlineData("int")]
@@ -4649,7 +4649,7 @@ unsafe class C
             }
             """);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/50765")]
     public Task TestDelegateConstructorWithMissingType()
         => TestAsync("""

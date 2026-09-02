@@ -36,7 +36,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
     #region Runtime
 
-    [ConditionalFact(typeof(IsEnglishLocal))]
+    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
     public void UsingDirectives()
     {
         // Arrange
@@ -183,7 +183,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         AssertLinePragmas(compiled.CodeDocument);
     }
 
-    [ConditionalFact(typeof(IsEnglishLocal))]
+    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
     public void AttributeDirectiveWithViewImports()
     {
         // Arrange

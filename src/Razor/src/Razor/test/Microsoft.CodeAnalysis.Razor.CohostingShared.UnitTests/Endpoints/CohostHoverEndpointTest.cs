@@ -144,7 +144,7 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
         await VerifyHoverAsync(code, htmlResponse, h => Assert.Same(htmlResponse, h));
     }
 
-    [ConditionalFact(typeof(IsEnglishLocal))]
+    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
     public async Task CSharp_Impl()
     {
         TestCode code = """
@@ -177,7 +177,7 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
         });
     }
 
-    [ConditionalFact(typeof(IsEnglishLocal))]
+    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
     public async Task CSharp_Decl()
     {
         TestCode code = """
@@ -214,7 +214,7 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
         });
     }
 
-    [ConditionalFact(typeof(IsEnglishLocal))]
+    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
     public async Task CSharp_Legacy()
     {
         TestCode code = """

@@ -754,7 +754,7 @@ class C
             });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(skipConditions: typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void LocalsAndPseudoVariables()
         {
             var source =

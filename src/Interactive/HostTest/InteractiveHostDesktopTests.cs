@@ -333,7 +333,7 @@ WriteLine(5);
             Assert.True(await Execute("new System.Data.DataSet()"));
         }
 
-        [ConditionalFact(typeof(Framework35Installed), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/5167")]
+        [ConditionalFact(skipConditions: typeof(Framework35Installed), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/5167")]
         public async Task AddReference_VersionUnification1()
         {
             // V3.5 unifies with the current Framework version:

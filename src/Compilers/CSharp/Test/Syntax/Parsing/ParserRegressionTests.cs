@@ -160,7 +160,7 @@ class Program
         }
 
         [WorkItem(2771, "https://github.com/dotnet/roslyn/issues/2771")]
-        [ConditionalFact(typeof(IsRelease))]
+        [ConditionalFact(skipConditions: typeof(IsRelease))]
         public void TestBinary()
         {
             CSharpSyntaxTree.ParseText(new RandomizedSourceText());

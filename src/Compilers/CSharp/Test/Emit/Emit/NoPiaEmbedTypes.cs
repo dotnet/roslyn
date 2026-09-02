@@ -5379,7 +5379,7 @@ class UsePia5
             CompileAndVerify(compilation4, verify: Verification.FailsPEVerify);
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
         [WorkItem(611578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611578")]
         public void Bug611578()
         {

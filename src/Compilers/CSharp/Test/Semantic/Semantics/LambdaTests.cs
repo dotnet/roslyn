@@ -4926,7 +4926,7 @@ class Program
             Assert.Equal(new DateTime(638004778421967416L), parameter.DefaultValueFromAttributes.Value);
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void LambdaParameterAttributes_WellKnownAttributes()
         {
             var source =
@@ -5363,7 +5363,7 @@ class Program
         }
 
         [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void LambdaReturnType_12()
         {
             var source =
@@ -5965,7 +5965,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadAsyncArgType, "s").WithLocation(9, 34));
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void AsyncLambdaParameters_02()
         {
             var source =

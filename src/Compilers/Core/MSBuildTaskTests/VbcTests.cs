@@ -607,7 +607,7 @@ C:\Test Path (123)\hellovb.vb(7) : error BC30451: 'asdf' is not declared. It may
             AssertEx.Equal("/optionstrict:custom /out:test.exe test.vb", vbc.GenerateResponseFileContents());
         }
 
-        [ConditionalFact(typeof(UnixLikeOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/80865")]
+        [ConditionalFact(skipConditions: typeof(UnixLikeOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/80865")]
         public void SourceFileInRootDirectoryOnUnix()
         {
             // On Unix, a source file path starting with "/" without another "/" 
@@ -622,7 +622,7 @@ C:\Test Path (123)\hellovb.vb(7) : error BC30451: 'asdf' is not declared. It may
             Assert.DoesNotContain(" /Program.vb", responseFileContents);
         }
 
-        [ConditionalFact(typeof(UnixLikeOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/80865")]
+        [ConditionalFact(skipConditions: typeof(UnixLikeOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/80865")]
         public void MultipleSourceFilesWithRootDirectoryOnUnix()
         {
             // Test multiple files where some are in root and some are not
@@ -641,7 +641,7 @@ C:\Test Path (123)\hellovb.vb(7) : error BC30451: 'asdf' is not declared. It may
             Assert.DoesNotContain("/./dir/File.vb", responseFileContents);
         }
 
-        [ConditionalFact(typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/80865")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/80865")]
         public void SourceFilePathsOnWindows()
         {
             // On Windows, paths should not be transformed even if they start with "/"

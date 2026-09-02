@@ -1003,7 +1003,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         Assert.Equal(LSP.DiagnosticSeverity.Information, results.Single().Diagnostics!.Single().Severity);
     }
 
-    [ConditionalTheory(typeof(UnixLikeOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(UnixLikeOnly)), CombinatorialData]
     public async Task TestDocumentDiagnosticsWhenClientRequestsWithDifferentCasing(bool useVSDiagnostics, bool mutatingLspWorkspace)
     {
         var markup = @"class A {";

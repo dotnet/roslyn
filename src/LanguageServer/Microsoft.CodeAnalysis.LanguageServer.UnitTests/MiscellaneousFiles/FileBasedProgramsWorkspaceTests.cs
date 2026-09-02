@@ -401,7 +401,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         }
     }
 
-    [ConditionalTheory(typeof(WindowsOnly), Reason = "FileSystemWatcher (inotify) does not reliably detect file changes on Linux")]
+    [ConditionalTheory(skipConditions: typeof(WindowsOnly), Reason = "FileSystemWatcher (inotify) does not reliably detect file changes on Linux")]
     [CombinatorialData]
     public async Task TestSemanticDiagnosticsEnabledWhenTopLevelStatementsAdded(bool mutatingLspWorkspace)
     {
@@ -769,7 +769,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         }
     }
 
-    [ConditionalTheory(typeof(WindowsOnly), Reason = "FileSystemWatcher (inotify) does not reliably detect file changes on Linux")]
+    [ConditionalTheory(skipConditions: typeof(WindowsOnly), Reason = "FileSystemWatcher (inotify) does not reliably detect file changes on Linux")]
     [CombinatorialData]
     public async Task TestFileBecomesFileBasedProgramWhenDirectiveAdded(bool mutatingLspWorkspace)
     {
@@ -827,7 +827,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         Assert.True(document.Project.State.HasAllInformation);
     }
 
-    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83192"), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83192"), CombinatorialData]
     public async Task TestFileStopsBeingFileBasedProgramWhenDirectivesDeleted(bool mutatingLspWorkspace)
     {
         var tempDir = CreateTempDirectoryWithGlobalJson();

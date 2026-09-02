@@ -379,7 +379,7 @@ public class ImplementInterfaceTests(ITestOutputHelper testOutputHelper) : Cohos
             makeDiagnosticsRequest: true);
     }
 
-    [ConditionalFact(typeof(IsEnglishLocal))]
+    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
     public async Task ImplementInterface_IDisposableDisposePattern()
     {
         await VerifyCodeActionAsync(

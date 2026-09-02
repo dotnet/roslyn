@@ -3704,7 +3704,7 @@ ref struct Example
         }
 
         [WorkItem(60568, "https://github.com/dotnet/roslyn/issues/60568")]
-        [ConditionalFact(typeof(CoreClrOnly))] // For conversion from Span<T> to ReadOnlySpan<T>.
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))] // For conversion from Span<T> to ReadOnlySpan<T>.
         public void FieldInitializer_EscapeAnalysis_02()
         {
             var source =
@@ -3778,7 +3778,7 @@ ref struct Example
         }
 
         [WorkItem(60568, "https://github.com/dotnet/roslyn/issues/60568")]
-        [ConditionalFact(typeof(CoreClrOnly))] // For conversion from Span<T> to ReadOnlySpan<T>.
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))] // For conversion from Span<T> to ReadOnlySpan<T>.
         public void FieldInitializer_EscapeAnalysis_05()
         {
             var source =
@@ -3806,7 +3806,7 @@ struct Example
         }
 
         [WorkItem(60568, "https://github.com/dotnet/roslyn/issues/60568")]
-        [ConditionalFact(typeof(CoreClrOnly))] // For conversion from Span<T> to ReadOnlySpan<T>.
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))] // For conversion from Span<T> to ReadOnlySpan<T>.
         public void FieldInitializer_EscapeAnalysis_06()
         {
             var source =
@@ -3833,7 +3833,7 @@ record struct Example()
         }
 
         [WorkItem(60568, "https://github.com/dotnet/roslyn/issues/60568")]
-        [ConditionalFact(typeof(CoreClrOnly))] // For conversion from Span<T> to ReadOnlySpan<T>.
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))] // For conversion from Span<T> to ReadOnlySpan<T>.
         public void FieldInitializer_EscapeAnalysis_07()
         {
             var source =
@@ -3859,7 +3859,7 @@ class Example
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 50));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))] // For conversion from Span<T> to ReadOnlySpan<T>.
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))] // For conversion from Span<T> to ReadOnlySpan<T>.
         public void FieldInitializer_EscapeAnalysis_Script()
         {
             var source =

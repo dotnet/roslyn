@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         {
         }
 
-        [ConditionalFact(typeof(DotNetSdkAvailable), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/46304")]
+        [ConditionalFact(skipConditions: typeof(DotNetSdkAvailable), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/46304")]
         [WorkItem(22835, "https://github.com/dotnet/roslyn/issues/22835")]
         public void TestSourceLink()
         {
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 File.ReadAllText(sourceLinkJsonPath));
         }
 
-        [ConditionalTheory(typeof(DotNetSdkAvailable))]
+        [ConditionalTheory(skipConditions: typeof(DotNetSdkAvailable))]
         [CombinatorialData]
         [WorkItem(43476, "https://github.com/dotnet/roslyn/issues/43476")]
         [WorkItem(82112, "https://github.com/dotnet/roslyn/issues/82112")]
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         /// <summary>
         /// Validates dependencies of _BeforeVBCSCoreCompile target. 
         /// </summary>
-        [ConditionalFact(typeof(DotNetSdkAvailable))]
+        [ConditionalFact(skipConditions: typeof(DotNetSdkAvailable))]
         public void BeforeVBCSCoreCompileDependencies()
         {
             VerifyValues(
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 });
         }
 
-        [ConditionalFact(typeof(DotNetSdkAvailable))]
+        [ConditionalFact(skipConditions: typeof(DotNetSdkAvailable))]
         public void ClearEmbedInteropTypes()
         {
             VerifyValues(
@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 });
         }
 
-        [ConditionalFact(typeof(DotNetSdkAvailable), typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/61017")]
+        [ConditionalFact(skipConditions: [typeof(DotNetSdkAvailable), typeof(WindowsOnly)], Reason = "https://github.com/dotnet/roslyn/issues/61017")]
         public void TestDiscoverEditorConfigFiles()
         {
             var srcFile = ProjectDir.CreateFile("lib1.cs").WriteAllText("class C { }");
@@ -436,7 +436,7 @@ some_prop = some_val");
                 }));
         }
 
-        [ConditionalFact(typeof(DotNetSdkAvailable), typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/61017")]
+        [ConditionalFact(skipConditions: [typeof(DotNetSdkAvailable), typeof(WindowsOnly)], Reason = "https://github.com/dotnet/roslyn/issues/61017")]
         public void TestDiscoverEditorConfigFilesCanBeDisabled()
         {
             var srcFile = ProjectDir.CreateFile("lib1.cs").WriteAllText("class C { }");
@@ -464,7 +464,7 @@ some_prop = some_val");
                 expectedResults: AppendExtraEditorConfigs(new[] { "" }, findEditorConfigs: false));
         }
 
-        [ConditionalFact(typeof(DotNetSdkAvailable), typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/61017")]
+        [ConditionalFact(skipConditions: [typeof(DotNetSdkAvailable), typeof(WindowsOnly)], Reason = "https://github.com/dotnet/roslyn/issues/61017")]
         public void TestDiscoverGlobalConfigFiles()
         {
             var srcFile = ProjectDir.CreateFile("lib1.cs").WriteAllText("class C { }");
@@ -498,7 +498,7 @@ some_prop = some_val");
                 }));
         }
 
-        [ConditionalFact(typeof(DotNetSdkAvailable), typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/61017")]
+        [ConditionalFact(skipConditions: [typeof(DotNetSdkAvailable), typeof(WindowsOnly)], Reason = "https://github.com/dotnet/roslyn/issues/61017")]
         public void TestDiscoverGlobalConfigFilesCanBeDisabled()
         {
             var srcFile = ProjectDir.CreateFile("lib1.cs").WriteAllText("class C { }");
@@ -531,7 +531,7 @@ some_prop = some_val");
                 }, findGlobalConfigs: false));
         }
 
-        [ConditionalFact(typeof(DotNetSdkAvailable), typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/61017")]
+        [ConditionalFact(skipConditions: [typeof(DotNetSdkAvailable), typeof(WindowsOnly)], Reason = "https://github.com/dotnet/roslyn/issues/61017")]
         public void TestDiscoverGlobalConfigFilesWhenEditorConfigDisabled()
         {
             var srcFile = ProjectDir.CreateFile("lib1.cs").WriteAllText("class C { }");
@@ -595,7 +595,7 @@ some_prop = some_val");
             return foundConfigs.ToArray();
         }
 
-        [ConditionalFact(typeof(DotNetSdkAvailable))]
+        [ConditionalFact(skipConditions: typeof(DotNetSdkAvailable))]
         public void TestDiscoverEditorAndGlobalConfigFilesCanBeDisabled()
         {
             var srcFile = ProjectDir.CreateFile("lib1.cs").WriteAllText("class C { }");
@@ -625,7 +625,7 @@ some_prop = some_val");
                  expectedResults: new[] { "" });
         }
 
-        [ConditionalFact(typeof(DotNetSdkAvailable), typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/61017")]
+        [ConditionalFact(skipConditions: [typeof(DotNetSdkAvailable), typeof(WindowsOnly)], Reason = "https://github.com/dotnet/roslyn/issues/61017")]
         public void TestGlobalConfigsCanBeManuallyAdded()
         {
             var srcFile = ProjectDir.CreateFile("lib1.cs").WriteAllText("class C { }");

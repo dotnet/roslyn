@@ -69,7 +69,7 @@ public class C
 }
 ";
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
         public void TestSpansPresentInResource()
         {
             var c = CreateCompilation(Parse(ExampleSource + InstrumentationHelperSource, @"C:\myproject\doc1.cs"), references: new[] { RefSafetyRulesAttributeLib });
@@ -120,7 +120,7 @@ public class C
             VerifySpans(reader, reader.Methods[8]);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
         public void ResourceStatementKinds()
         {
             string source = @"
@@ -268,7 +268,7 @@ public class C
             VerifySpans(reader, reader.Methods[1]);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
         public void TestMethodSpansWithAttributes()
         {
             string source = @"

@@ -55,7 +55,7 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
         }
     }
 
-    [ConditionalTheory(typeof(WindowsOnly))]
+    [ConditionalTheory(skipConditions: typeof(WindowsOnly))]
     [InlineData("C:/", "file:///C:/")]
     [InlineData("C:\\", "file:///C:/")]
     [InlineData("C:\\a\\b", "file:///C:/a/b")]
@@ -81,7 +81,7 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
         Assert.Equal(filePath.Replace('/', '\\'), uri.LocalPath);
     }
 
-    [ConditionalTheory(typeof(WindowsOnly))]
+    [ConditionalTheory(skipConditions: typeof(WindowsOnly))]
     [InlineData("C:\\a\\.\\b", "file:///C:/a/./b", "file:///C:/a/b")]
     [InlineData("C:\\a\\..\\b", "file:///C:/a/../b", "file:///C:/b")]
     [InlineData("C:\\\ue25b\\.\\\ue25c", "file:///C:/%EE%89%9B/./%EE%89%9C", "file:///C:/%EE%89%9B/%EE%89%9C")]
@@ -95,7 +95,7 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
         Assert.Equal(Path.GetFullPath(filePath).Replace('/', '\\'), uri.LocalPath);
     }
 
-    [ConditionalTheory(typeof(UnixLikeOnly))]
+    [ConditionalTheory(skipConditions: typeof(UnixLikeOnly))]
     [InlineData("/", "file:///")]
     [InlineData("/u", "file:///u")]
     [InlineData("/unix/path", "file:///unix/path")]
@@ -113,7 +113,7 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
         Assert.Equal(filePath, uri.LocalPath);
     }
 
-    [ConditionalTheory(typeof(WindowsOnly))]
+    [ConditionalTheory(skipConditions: typeof(WindowsOnly))]
     [InlineData("C:\\a\\b", "file:///C:/a/b")]
     [InlineData("C:\\a\\b\\", "file:///C:/a/b")]
     [InlineData("C:\\a\\\\b", "file:///C:/a//b")]
@@ -136,7 +136,7 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
         Assert.Equal(expectedUri, uri.GetRequiredParsedUri().AbsoluteUri);
     }
 
-    [ConditionalTheory(typeof(WindowsOnly))]
+    [ConditionalTheory(skipConditions: typeof(WindowsOnly))]
     [InlineData(@"\\home$\share\path", @"file://home$/share/path")]
     [InlineData(@"\\home$\share\path\", @"file://home$/share/path")]
     public void CreateRelativePatternBaseUri_UncPathWithDollarSign_Windows(string filePath, string expectedUri)
@@ -149,7 +149,7 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
         Assert.Null(uri.ParsedUri);
     }
 
-    [ConditionalTheory(typeof(WindowsOnly))]
+    [ConditionalTheory(skipConditions: typeof(WindowsOnly))]
     [InlineData(@"\\home$\share\path", @"file://home$/share/path")]
     public void CreateAbsoluteDocumentUri_UncPathWithDollarSign_Windows(string filePath, string expectedUri)
     {
@@ -161,7 +161,7 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
         Assert.Null(uri.ParsedUri);
     }
 
-    [ConditionalTheory(typeof(UnixLikeOnly))]
+    [ConditionalTheory(skipConditions: typeof(UnixLikeOnly))]
     [InlineData("/u", "file:///u")]
     [InlineData("/unix/", "file:///unix")]
     [InlineData("/unix/path", "file:///unix/path")]
@@ -176,7 +176,7 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
         Assert.Equal(expectedRelativeUri, uri.GetRequiredParsedUri().AbsoluteUri);
     }
 
-    [ConditionalTheory(typeof(UnixLikeOnly))]
+    [ConditionalTheory(skipConditions: typeof(UnixLikeOnly))]
     [InlineData("/a/./b", "file:///a/./b", "file:///a/b")]
     [InlineData("/a/../b", "file:///a/../b", "file:///b")]
     [InlineData("/\ue25b/./\ue25c", "file:///%EE%89%9B/./%EE%89%9C", "file:///%EE%89%9B/%EE%89%9C")]

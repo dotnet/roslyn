@@ -69,7 +69,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         RunDotNet(arguments);
     }
 
-    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     public async Task TestOpenProject_NetCoreApp()
@@ -98,7 +98,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         Assert.Empty(diagnostics);
     }
 
-    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     public async Task TestOpenProject_BinaryLogger()
@@ -121,7 +121,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         Assert.True(buildLogInfo.Length > 0);
     }
 
-    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     public async Task TestOpenInMemoryProject_NetCoreApp()
@@ -142,7 +142,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         Assert.Equal(Path.Combine(projectDir, "bin", "Debug", "netcoreapp3.1", "Project.dll"), projectFileInfo.OutputFilePath);
     }
 
-    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     // TODO: Delete this test once parallel project loading is supported directly in MSBuildWorkspace, at which point the
@@ -191,7 +191,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         }
     }
 
-    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     public async Task TestOpenProjectTwice_NetCoreAppAndLibrary()
@@ -228,7 +228,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         Assert.Equal(libraryProject.FilePath, workspace.CurrentSolution.GetProject(projectRefId).FilePath);
     }
 
-    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     public async Task TestOpenProjectTwice_NetCoreAppAndTwoLibraries()
@@ -275,7 +275,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         }
     }
 
-    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     public async Task TestOpenProject_NetCoreMultiTFM()
@@ -317,7 +317,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         }
     }
 
-    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     public async Task TestOpenProject_NetCoreMultiTFM_ExtensionWithConditionOnTFM()
@@ -359,7 +359,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         }
     }
 
-    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     public async Task TestOpenProject_NetCoreMultiTFM_ProjectReference()
@@ -465,7 +465,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         }
     }
 
-    [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled))]
+    [ConditionalTheory(skipConditions: typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     [CombinatorialData]
@@ -533,7 +533,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         }
     }
 
-    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/81589")]
@@ -580,7 +580,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         AssertEx.SequenceEqual([fsharpLibStd.Id], csharpLibStd.AllProjectReferences.Select(r => r.ProjectId));
     }
 
-    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     public async Task TestOpenProject_ReferenceConfigurationSpecificMetadata()
@@ -610,7 +610,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         var compilation = await project.GetCompilationAsync();
     }
 
-    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     public async Task TestOpenProject_OverrideTFM()
@@ -632,7 +632,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         Assert.Contains(workspace.CurrentSolution.Projects, p => p.Name == "Library(net5)");
     }
 
-    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     public async Task TestOpenProject_FileBasedApp()
@@ -671,7 +671,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         Assert.Contains("DEBUG", compilation.SyntaxTrees.First().Options.PreprocessorSymbolNames);
     }
 
-    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     public async Task TestOpenProject_FileBasedApp_NoExtension()
@@ -710,7 +710,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
     }
 
-    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     public async Task TestOpenProject_FileBasedApp_NoExtension_NoShebang()
@@ -732,7 +732,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         Assert.Empty(workspace.CurrentSolution.ProjectIds);
     }
 
-    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     public async Task TestOpenProject_FileBasedApp_AssociateFileExtensionWithLanguage()
@@ -755,7 +755,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         Assert.Contains("Program.cs", diagnostic.Message);
     }
 
-    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     public async Task TestOpenProject_FileBasedApp_Diagnostics()
@@ -790,7 +790,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
     }
 
-    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     public async Task TestOpenProject_FileBasedApp_RefDirective()
@@ -831,7 +831,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
     }
 
-    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     public async Task TestOpenProject_FileBasedApp_RefDirective_Duplicate()
@@ -873,7 +873,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
     }
 
-    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     public async Task TestOpenProject_FileBasedApp_RefDirective_Self()
@@ -908,7 +908,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => project.GetCompilationAsync(cts.Token));
     }
 
-    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     public async Task TestOpenProject_FileBasedApp_RefDirective_GlobalProperty()
@@ -949,7 +949,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
     }
 
-    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/84721")]
@@ -1026,14 +1026,14 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         }
     }
 
-    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     [UseCulture("en-EN", "en-EN")]
     public Task TestBuildHostLocale_EN()
         => AssertInvalidTfmDiagnosticMessageContains("The TargetFramework value 'Invalid' was not recognized. It may be misspelled.");
 
-    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     [UseCulture("de-DE", "de-DE")]
@@ -1056,7 +1056,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         Assert.Contains(expected, diagnostic.Message);
     }
 
-    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     public async Task TestOpenProject_VBNetCoreAppWithGlobalImportAndLibrary()

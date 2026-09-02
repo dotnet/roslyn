@@ -153,7 +153,7 @@ class D { void M() {} }
         }
 
         [WorkItem(846584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846584")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void RelativePathForExternalSource_Sha1_Windows()
         {
             var text1 = WithWindowsLineBreaks(@"
@@ -197,7 +197,7 @@ public class C
         }
 
         [WorkItem(846584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846584")]
-        [ConditionalFact(typeof(UnixLikeOnly))]
+        [ConditionalFact(skipConditions: typeof(UnixLikeOnly))]
         public void RelativePathForExternalSource_Sha1_Unix()
         {
             var text1 = WithWindowsLineBreaks(@"
@@ -240,7 +240,7 @@ public class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void SymWriterErrors()
         {
             var source0 =
@@ -272,7 +272,7 @@ public class C
             Assert.False(result.Success);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void SymWriterErrors2()
         {
             var source0 =
@@ -304,7 +304,7 @@ public class C
             Assert.False(result.Success);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void SymWriterErrors3()
         {
             var source0 =
@@ -336,7 +336,7 @@ public class C
             Assert.False(result.Success);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void SymWriterErrors4()
         {
             var source0 =
@@ -371,7 +371,7 @@ public class C
         /// <summary>
         /// Verifies the constant <c>SymUnmanagedWriterImpl.CustomMetadataByteLimit</c> against the external sym writer library we depend on.
         /// </summary>
-        [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [ConditionalTheory(skipConditions: typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/75237")]
         [CombinatorialData]
         public void NativeWriterLimit_Under([CombinatorialRange(SymUnmanagedWriterImpl.CustomMetadataByteLimit - 9, 10)] int length)
@@ -382,7 +382,7 @@ public class C
         /// <summary>
         /// Verifies the constant <c>SymUnmanagedWriterImpl.CustomMetadataByteLimit</c> against the external sym writer library we depend on.
         /// </summary>
-        [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [ConditionalTheory(skipConditions: typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/75237")]
         [CombinatorialData]
         public void NativeWriterLimit_Over([CombinatorialRange(SymUnmanagedWriterImpl.CustomMetadataByteLimit + 1, 10)] int length)
@@ -423,7 +423,7 @@ public class C
                 });
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/75237")]
         public void NativeWriterLimit_EndToEnd()
         {
@@ -10059,7 +10059,7 @@ public class C
         }
 
         [WorkItem(50321, "https://github.com/dotnet/roslyn/issues/50321")]
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void NestedSwitchExpressions_Closures_01()
         {
             string source = WithWindowsLineBreaks(
@@ -10268,7 +10268,7 @@ class C
         }
 
         [WorkItem(50321, "https://github.com/dotnet/roslyn/issues/50321")]
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void NestedSwitchExpressions_Closures_02()
         {
             string source = WithWindowsLineBreaks(
@@ -10506,7 +10506,7 @@ class C
         }
 
         [WorkItem(37261, "https://github.com/dotnet/roslyn/issues/37261")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void SwitchExpression_MethodBody()
         {
             string source = @"
@@ -10686,7 +10686,7 @@ public class C
         }
 
         [WorkItem(37261, "https://github.com/dotnet/roslyn/issues/37261")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void SwitchExpression_MethodBody_02()
         {
             string source = @"
@@ -10823,7 +10823,7 @@ public class C
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void SyntaxOffset_OutVarInInitializers_SwitchExpression()
         {
             var source =
@@ -12872,7 +12872,7 @@ class Program
 ", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         [WorkItem(23525, "https://github.com/dotnet/roslyn/issues/23525")]
         public void InvalidCharacterInPdbPath()
         {

@@ -240,7 +240,7 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
             }
             """);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/20708")]
     public Task TestMultiLineParameters1()
         => TestInRegularAndScriptAsync(
@@ -311,7 +311,7 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
             }
             """);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/20708")]
     public Task TestMultiLineParameters3()
         => TestInRegularAndScriptAsync(
@@ -347,7 +347,7 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
             }
             """);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/20708")]
     public Task TestMultiLineParameters4()
         => TestInRegularAndScriptAsync(
@@ -422,7 +422,7 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
             }
             """);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/20708")]
     public Task TestMultiLineParameters6()
         => TestInRegularAndScriptAsync(
@@ -1639,7 +1639,7 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
             </Workspace>
             """);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
     public async Task TestInvocation_Cascading_RootNotInSource()
     {

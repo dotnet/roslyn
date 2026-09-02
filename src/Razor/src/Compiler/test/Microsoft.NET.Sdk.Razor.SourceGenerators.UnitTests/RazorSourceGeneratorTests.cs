@@ -718,7 +718,7 @@ namespace MyApp.Pages
                 IncrementalStepRunReason.Modified); // Counter changed
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public async Task IncrementalCompilation_WhenFallbackComponentMarkupChanges_SlowDiscoveryStaysCached()
         {
             // A fallback component (one the split can't partition -- here via @inherits) has its descriptor
@@ -754,7 +754,7 @@ namespace MyApp.Pages
             result.VerifyIncrementalSteps("SlowTagHelpers", IncrementalStepRunReason.Cached);
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public async Task IncrementalCompilation_RazorFiles_WhenNewTypeIsAdded()
         {
             // Arrange
@@ -898,7 +898,7 @@ namespace MyApp.Pages
             result.VerifyIncrementalSteps("FastTagHelpers", IncrementalStepRunReason.Unchanged); // Re-ran but no new tag helpers
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public async Task IncrementalCompilation_RazorFiles_WhenCSharpTypeChanges()
         {
             // Arrange
@@ -2448,7 +2448,7 @@ namespace AspNetCoreGeneratedDocument
 
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public async Task SourceGenerator_CshtmlFiles_CSharpTypeChanges()
         {
             // Arrange

@@ -923,7 +923,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("o World", changes[0].NewText);
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10961")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10961")]
         public void TestMergeChanges_NoMiddleMan()
         {
             var original = SourceText.From("Hell");

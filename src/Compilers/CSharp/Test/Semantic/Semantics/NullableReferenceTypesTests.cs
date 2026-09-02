@@ -64128,7 +64128,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(IsRelease))]
+        [ConditionalFact(skipConditions: typeof(IsRelease))]
         [WorkItem(48174, "https://github.com/dotnet/roslyn/issues/48174")]
         public void Lambda_Nesting_Large_01()
         {
@@ -64238,7 +64238,7 @@ class C
             );
         }
 
-        [ConditionalFact(typeof(IsRelease))]
+        [ConditionalFact(skipConditions: typeof(IsRelease))]
         [WorkItem(48174, "https://github.com/dotnet/roslyn/issues/48174")]
         public void Lambda_Nesting_Large_02()
         {
@@ -64267,7 +64267,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(IsRelease))]
+        [ConditionalFact(skipConditions: typeof(IsRelease))]
         [WorkItem(48174, "https://github.com/dotnet/roslyn/issues/48174")]
         public void Lambda_Nesting_Large_03()
         {
@@ -64414,7 +64414,7 @@ namespace nullable_repro
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(IsRelease))]
+        [ConditionalFact(skipConditions: typeof(IsRelease))]
         [WorkItem(48174, "https://github.com/dotnet/roslyn/issues/48174")]
         public void Lambda_Nesting_ErrorType()
         {

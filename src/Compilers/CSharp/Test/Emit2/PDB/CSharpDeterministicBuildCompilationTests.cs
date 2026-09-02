@@ -216,7 +216,7 @@ public struct StructWithValue
                 debugDocumentsCount: 2);
         }
 
-        [ConditionalTheory(typeof(DesktopOnly))]
+        [ConditionalTheory(skipConditions: typeof(DesktopOnly))]
         [ClassData(typeof(CSharpDeterministicBuildCompilationTests))]
         public void PortablePdb_DeterministicCompilationWithSJIS(CSharpCompilationOptions compilationOptions, EmitOptions emitOptions, CSharpParseOptions parseOptions)
         {

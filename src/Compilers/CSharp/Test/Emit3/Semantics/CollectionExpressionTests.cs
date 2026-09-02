@@ -15297,7 +15297,7 @@ static class Program
             }
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void SynthesizedReadOnlyList_MissingOptionalSpecialTypes_02()
         {
             string runtime = @"
@@ -17311,7 +17311,7 @@ partial class Program
         }
 
         // As above, but with TargetFramework.NetFramework.
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void CollectionBuilder_02B()
         {
             string sourceA = """
@@ -24018,7 +24018,7 @@ partial class Program
                 """);
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void RestrictedTypes()
         {
             string source = """
@@ -36209,7 +36209,7 @@ partial class Program
             comp.VerifyEmitDiagnostics();
         }
 
-        [ConditionalFact(typeof(WindowsOrLinuxOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/70381")]
+        [ConditionalFact(skipConditions: typeof(WindowsOrLinuxOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/70381")]
         public void ExtremelyNestedCollectionExpressionDoesNotOverflow_1()
         {
             var code = $$"""
