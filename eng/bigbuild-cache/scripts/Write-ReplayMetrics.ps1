@@ -39,6 +39,13 @@ $classification = if (Test-Path $classificationPath) {
 else {
     $null
 }
+$coreCompilePath = Join-Path $MetricsDir 'corecompile.json'
+$coreCompile = if (Test-Path $coreCompilePath) {
+    Get-Content $coreCompilePath -Raw | ConvertFrom-Json
+}
+else {
+    $null
+}
 
 $cacheFiles = if (Test-Path $CacheStore) {
     @(Get-ChildItem $CacheStore -Recurse -File -ErrorAction SilentlyContinue)
@@ -106,6 +113,7 @@ $metrics = [ordered]@{
     inputManifestCount = $inputCount
     outputManifestCount = $outputCount
     inputClassification = $classification
+    coreCompile = $coreCompile
     recordedUtc = (Get-Date).ToUniversalTime().ToString('o')
 }
 

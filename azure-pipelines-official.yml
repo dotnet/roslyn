@@ -260,6 +260,14 @@ extends:
             workingDirectory: $(Build.SourcesDirectory)
             script: |
               $ErrorActionPreference = 'Stop'
+              $binlog = "$(Build.SourcesDirectory)/artifacts/log/Build.WarmCache.binlog"
+              $dotnet = "$(Build.SourcesDirectory)/.dotnet/dotnet.exe"
+              if (Test-Path $binlog) {
+                & "$(Scripts)/Analyze-CoreCompileBinlog.ps1" `
+                  -Binlog $binlog `
+                  -DotNetPath $dotnet `
+                  -OutputPath "$(ReplayMetricsDir)/corecompile.json"
+              }
               & "$(Scripts)/Write-ReplayMetrics.ps1" `
                 -RepoRoot "$(Build.SourcesDirectory)" `
                 -CacheStore "$(CacheStore)" `
