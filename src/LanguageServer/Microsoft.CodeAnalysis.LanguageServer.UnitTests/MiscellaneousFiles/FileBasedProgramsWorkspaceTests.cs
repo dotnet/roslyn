@@ -883,7 +883,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         appCsFile.WriteAllText(newAppCsText);
 
         // Wait for the file change event to be delivered, ensuring the reload is enqueued.
-        await fileChangeTcs.Task.WaitAsync(TimeSpan.FromSeconds(30));
+        await fileChangeTcs.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
         await WaitForProjectLoad(appCsUri, testLspServer);
 
         // Now the document is a miscellaneous file
