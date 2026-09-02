@@ -558,7 +558,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
 
         // Wait for the event
         await AssertAllChangesFire([fileChangeTask], s_fileChangeTimeout);
-        Assert.Equal(FileChangeKind.Added, await fileChangeTask.Task);
+        Assert.Equal(FileChangeKind.Created, await fileChangeTask.Task);
     }
 
     [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
@@ -600,7 +600,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
 
         // Wait for the event
         await AssertAllChangesFire([fileChangeTask], s_fileChangeTimeout);
-        Assert.Equal(FileChangeKind.Removed, await fileChangeTask.Task);
+        Assert.Equal(FileChangeKind.Deleted, await fileChangeTask.Task);
     }
 
     [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]

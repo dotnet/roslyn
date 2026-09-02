@@ -138,8 +138,8 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
         private static FileChangeKind GetFileChangeKind(FileChangeType fileChangeType)
             => fileChangeType switch
             {
-                FileChangeType.Created => FileChangeKind.Added,
-                FileChangeType.Deleted => FileChangeKind.Removed,
+                FileChangeType.Created => FileChangeKind.Created,
+                FileChangeType.Deleted => FileChangeKind.Deleted,
                 FileChangeType.Changed => FileChangeKind.Changed,
                 _ => throw ExceptionUtilities.UnexpectedValue(fileChangeType),
             };
