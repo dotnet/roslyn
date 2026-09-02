@@ -31,10 +31,25 @@ param(
     # of the default git-diff fast path. Only needed for a baseline captured with -HashInputs, or
     # to operate without git.
     [switch]$HashInputs,
+    [string]$MetricsPath = '',
     [int]$Throttle = 16
 )
 $ErrorActionPreference = 'Stop'
 $RepoRoot = (Resolve-Path $RepoRoot).Path
+
+function Write-ReplayMetrics([object]$metrics) {
+    if (-not $MetricsPath) {
+        return
+    }
+
+    $parent = Split-Path -Parent $MetricsPath
+    if ($parent) {
+        New-Item -ItemType Directory -Force $parent | Out-Null
+    }
+
+    $metrics | ConvertTo-Json -Depth 4 | Set-Content -Path $MetricsPath -Encoding ascii
+    Write-Host "[replay] wrote metrics to $MetricsPath"
+}
 
 $tracked = @(git -C $RepoRoot ls-files) | Where-Object { $_ }
 $now = Get-Date
@@ -46,6 +61,10 @@ if ($Mode -eq 'Simulate') {
         if (Test-Path -LiteralPath $full) { (Get-Item -LiteralPath $full -Force).LastWriteTime = $now; $n++ }
     }
     Write-Host "[replay:Simulate] set $n tracked inputs to now (fresh-clone condition)"
+    Write-ReplayMetrics ([ordered]@{
+        mode = 'simulate'
+        inputsTouched = $n
+    })
     return
 }
 
@@ -109,17 +128,44 @@ if (-not $HashInputs -and $haveBase) {
     foreach ($rel in (git -c core.quotepath=false -C $RepoRoot diff --name-only $baseSha HEAD)) {
         if ($rel) { [void]$changed.Add($rel) }
     }
+    $new = [System.Collections.Generic.HashSet[string]]::new()
+    foreach ($rel in (git -c core.quotepath=false -C $RepoRoot diff --name-only --diff-filter=A $baseSha HEAD)) {
+        if ($rel) { [void]$new.Add($rel) }
+    }
+    $missing = @(git -c core.quotepath=false -C $RepoRoot diff --name-only --diff-filter=D $baseSha HEAD |
+        Where-Object { $_ }).Count
+
     # Partition purely by string membership -- no per-file Test-Path (32k stats = ~4.5s). The compiled
     # helper try/catches any tracked-but-absent path, so a missing file is a silent no-op as before.
     $changedList = [System.Collections.Generic.List[string]]::new()
+    $newList = [System.Collections.Generic.List[string]]::new()
     $matchedList = [System.Collections.Generic.List[string]]::new()
     foreach ($rel in $tracked) {
         $full = Join-Path $RepoRoot ($rel -replace '/', '\')
-        if ($changed.Contains($rel)) { $changedList.Add($full) } else { $matchedList.Add($full) }
+        if ($new.Contains($rel)) {
+            $newList.Add($full)
+        }
+        elseif ($changed.Contains($rel)) {
+            $changedList.Add($full)
+        }
+        else {
+            $matchedList.Add($full)
+        }
     }
     [BigBuildMtime]::SetAll($matchedList.ToArray(), $tIn.Ticks, $Throttle)
     [BigBuildMtime]::SetAll($changedList.ToArray(), $now.Ticks, $Throttle)
-    "[replay:BackDate/git] matched(back-dated)={0} changed={1} (baseline {2})" -f $matchedList.Count, $changedList.Count, $baseSha | Write-Host
+    [BigBuildMtime]::SetAll($newList.ToArray(), $now.Ticks, $Throttle)
+    "[replay:BackDate/git] matched(back-dated)={0} changed={1} new={2} missing={3} (baseline {4})" -f `
+        $matchedList.Count, $changedList.Count, $newList.Count, $missing, $baseSha | Write-Host
+    Write-ReplayMetrics ([ordered]@{
+        mode = 'git-diff'
+        baselineSha = $baseSha
+        outputFilesStamped = $stamped
+        matched = $matchedList.Count
+        changed = $changedList.Count
+        new = $newList.Count
+        missing = $missing
+    })
     return
 }
 
@@ -164,3 +210,13 @@ function Get-Count($h, $k) { if ($h -and $h.ContainsKey($k)) { @($h[$k]).Count }
 $deleted = @($base.Keys | Where-Object { -not (Test-Path -LiteralPath (Join-Path $RepoRoot ($_ -replace '/', '\'))) }).Count
 "[replay:BackDate] matched(back-dated)={0} changed={1} new={2} deleted={3}" -f `
     (Get-Count $g 'match'), (Get-Count $g 'changed'), (Get-Count $g 'new'), $deleted | Write-Host
+Write-ReplayMetrics ([ordered]@{
+    mode = 'content-hash'
+    baselineSha = $baseSha
+    outputFilesStamped = $stamped
+    matched = (Get-Count $g 'match')
+    changed = (Get-Count $g 'changed')
+    new = (Get-Count $g 'new')
+    missing = ((Get-Count $g 'missing') + $deleted)
+    errors = (Get-Count $g 'error')
+})

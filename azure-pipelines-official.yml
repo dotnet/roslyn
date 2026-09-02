@@ -1,9 +1,8 @@
-# TEST ONLY (do not merge): BigBuild warm-clone cache demo, authored to EXTEND the 1ES Official
-# pipeline template so it satisfies dnceng's 1ES drift-management enforcement (plain non-extends
-# pipelines are policy-blocked org-wide). Same 7-step capture/replay flow; the two artifact
-# publishes move into templateContext.outputs (the 1ES way) instead of PublishPipelineArtifact@1.
+# TEST ONLY (do not merge): replay historical Roslyn commits through one rolling BigBuild cache
+# lineage. The pipeline extends the 1ES Official template so it satisfies dnceng drift-management
+# enforcement, but it only builds and publishes experiment artifacts.
 #
-# Iterated on branch chsienki/version-stamp-warmcache-1es, queued on dnceng def 327.
+# Queue this branch through dnceng definition 327.
 
 trigger: none
 pr: none
@@ -18,16 +17,42 @@ resources:
 parameters:
 - name: slnf
   type: string
-  default: 'Compilers.slnf'
+  default: 'Roslyn.slnx'
 - name: sdkFingerprint
   type: string
   default: 'sdk-11.0.100-preview.6-stock'
+- name: ReplayCommit
+  type: string
+  default: ''
+- name: ReplaySequence
+  type: number
+  default: 0
+- name: ReplayExperimentId
+  type: string
+  default: 'roslyn-history-20260902-10'
+- name: ForceCold
+  type: boolean
+  default: false
 
 variables:
   - name: CacheStore
     value: $(Agent.TempDirectory)/wc-store
   - name: Scripts
-    value: $(Build.SourcesDirectory)/eng/bigbuild-cache/scripts
+    value: $(Agent.TempDirectory)/bigbuild-cache-scripts
+  - name: ReplayMetricsDir
+    value: $(Build.ArtifactStagingDirectory)/replay-metrics
+  - name: ForceCold
+    value: ${{ parameters.ForceCold }}
+  - name: Seeded
+    value: false
+  - name: PreviousBaselineSha
+    value: ''
+  - name: RestoreSeconds
+    value: 0
+  - name: BuildSeconds
+    value: 0
+  - name: CaptureSeconds
+    value: 0
   - name: Codeql.Enabled
     value: false
   - name: Codeql.SkipTaskAutoInjection
@@ -55,67 +80,70 @@ extends:
           outputs:
           - output: pipelineArtifact
             displayName: Publish warmcache (for next run)
-            condition: succeededOrFailed()
+            condition: succeeded()
             targetPath: $(CacheStore)
             artifactName: warmcache
           - output: pipelineArtifact
             displayName: Publish binlogs
-            condition: succeededOrFailed()
+            condition: and(succeededOrFailed(), not(canceled()))
             targetPath: $(Build.SourcesDirectory)/artifacts/log
             artifactName: binlogs
           - output: pipelineArtifact
-            displayName: Publish testresults store
-            condition: succeededOrFailed()
-            targetPath: $(Agent.TempDirectory)/test-store
-            artifactName: testresults
+            displayName: Publish replay metrics
+            condition: and(succeededOrFailed(), not(canceled()))
+            targetPath: $(ReplayMetricsDir)
+            artifactName: replay-metrics
         steps:
         - checkout: self
           path: s
           clean: true
           fetchDepth: 0
+          persistCredentials: true
 
         - task: PowerShell@2
-          displayName: Restore (bootstrap SDK + packages)
+          displayName: Prepare historical replay checkout
           inputs:
-            filePath: eng/build.ps1
-            arguments: -ci -restore -prepareMachine -solution ${{ parameters.slnf }} -binaryLogName Restore.binlog
+            targetType: inline
+            pwsh: true
+            workingDirectory: $(Build.SourcesDirectory)
+            script: |
+              $ErrorActionPreference = 'Stop'
+              $requested = '${{ parameters.ReplayCommit }}'.Trim()
+              $experiment = '${{ parameters.ReplayExperimentId }}'.Trim()
+              if (-not $requested) { throw 'ReplayCommit is required.' }
+              if ($experiment -notmatch '^[A-Za-z0-9._-]+$') {
+                throw "ReplayExperimentId '$experiment' contains characters that are unsafe in a cache path."
+              }
+
+              New-Item -ItemType Directory -Force "$(ReplayMetricsDir)" | Out-Null
+              if (Test-Path "$(Scripts)") { Remove-Item "$(Scripts)" -Recurse -Force }
+              Copy-Item "$(Build.SourcesDirectory)/eng/bigbuild-cache/scripts" "$(Scripts)" -Recurse
+
+              git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+              if ($LASTEXITCODE -ne 0) { throw 'failed to fetch origin/main' }
+              git cat-file -e "$requested^{commit}"
+              if ($LASTEXITCODE -ne 0) { throw "ReplayCommit $requested is not available from origin/main." }
+              git checkout --detach --force $requested
+              if ($LASTEXITCODE -ne 0) { throw "failed to check out ReplayCommit $requested" }
+              $actual = (git rev-parse HEAD).Trim()
+              if ($actual -ne $requested) { throw "requested $requested but checked out $actual" }
+
+              Write-Host "Replay sequence ${{ parameters.ReplaySequence }}: $actual"
+              Write-Host "Replay experiment: $experiment"
+              Write-Host "##vso[task.setvariable variable=ActualReplayCommit]$actual"
 
         - task: DownloadPipelineArtifact@2
           displayName: Pull warmcache (this branch)
           continueOnError: true
+          condition: and(succeeded(), ne(variables['ForceCold'], 'True'))
           inputs:
             buildType: specific
             project: $(System.TeamProjectId)
             definition: $(System.DefinitionId)
             buildVersionToDownload: latestFromBranch
-            allowPartiallySucceededBuilds: true
+            allowPartiallySucceededBuilds: false
+            allowFailedBuilds: false
             branchName: $(Build.SourceBranch)
-            artifactName: warmcache
-            targetPath: $(CacheStore)
-
-        - task: PowerShell@2
-          displayName: Check for branch cache (else fall back to main)
-          inputs:
-            targetType: inline
-            pwsh: true
-            script: |
-              $laneDir = Join-Path "$(CacheStore)" "roslyn-${{ parameters.sdkFingerprint }}-win"
-              $have = (Test-Path $laneDir) -and @(Get-ChildItem -Directory $laneDir -ErrorAction SilentlyContinue |
-                        Where-Object { Test-Path (Join-Path $_.FullName 'meta.json') }).Count -gt 0
-              Write-Host "branch cache present: $have"
-              Write-Host "##vso[task.setvariable variable=HasBranchCache]$($have.ToString().ToLower())"
-
-        - task: DownloadPipelineArtifact@2
-          displayName: Pull warmcache (fall back to main)
-          continueOnError: true
-          condition: and(succeeded(), eq(variables['HasBranchCache'], 'false'))
-          inputs:
-            buildType: specific
-            project: $(System.TeamProjectId)
-            definition: $(System.DefinitionId)
-            buildVersionToDownload: latestFromBranch
-            allowPartiallySucceededBuilds: true
-            branchName: refs/heads/main
             artifactName: warmcache
             targetPath: $(CacheStore)
 
@@ -124,31 +152,59 @@ extends:
           inputs:
             targetType: inline
             pwsh: true
+            workingDirectory: $(Build.SourcesDirectory)
             script: |
               $ErrorActionPreference = 'Stop'
-              $laneDir = Join-Path "$(CacheStore)" "roslyn-${{ parameters.sdkFingerprint }}-win"
+              if ('${{ parameters.ForceCold }}' -eq 'True') {
+                Write-Host "ForceCold=true -- skipping baseline selection."
+                Write-Host "##vso[task.setvariable variable=Seeded]false"
+                exit 0
+              }
+
+              $laneDir = Join-Path "$(CacheStore)" "roslyn-${{ parameters.ReplayExperimentId }}-${{ parameters.sdkFingerprint }}-win"
               $baseline = if (Test-Path $laneDir) {
                 Get-ChildItem -Directory $laneDir -ErrorAction SilentlyContinue |
                   Where-Object { Test-Path (Join-Path $_.FullName 'meta.json') } |
                   Sort-Object LastWriteTime | Select-Object -Last 1
               }
               if (-not $baseline) {
-                Write-Host "##[warning]No baseline (branch or main) -- COLD build (this run will seed one)."
+                Write-Host "##[warning]No baseline in the experiment lane -- COLD build."
                 Write-Host "##vso[task.setvariable variable=Seeded]false"
                 exit 0
               }
               $sel = $baseline.FullName
+              $baseSha = (Get-Content (Join-Path $sel 'meta.json') -Raw | ConvertFrom-Json).Sha
               Write-Host "==> seeding from $sel"
-              & "$(Scripts)/Restore-Baseline.ps1" -RepoRoot . -BaselineDir $sel
-              & "$(Scripts)/Replay-Baseline.ps1"  -RepoRoot . -BaselineDir $sel -Mode BackDate
+              & "$(Scripts)/Restore-Baseline.ps1" -RepoRoot "$(Build.SourcesDirectory)" -BaselineDir $sel
+              & "$(Scripts)/Replay-Baseline.ps1" -RepoRoot "$(Build.SourcesDirectory)" -BaselineDir $sel `
+                -Mode BackDate -MetricsPath "$(ReplayMetricsDir)/input-classification.json"
               Write-Host "##vso[task.setvariable variable=SeededBaselineDir]$sel"
+              Write-Host "##vso[task.setvariable variable=PreviousBaselineSha]$baseSha"
               Write-Host "##vso[task.setvariable variable=Seeded]true"
+
+        - task: PowerShell@2
+          displayName: Restore (after seed)
+          inputs:
+            targetType: inline
+            pwsh: true
+            workingDirectory: $(Build.SourcesDirectory)
+            script: |
+              $ErrorActionPreference = 'Stop'
+              $sw = [Diagnostics.Stopwatch]::StartNew()
+              & "$(Build.SourcesDirectory)/eng/build.ps1" -ci -restore -prepareMachine `
+                -solution ${{ parameters.slnf }} -binaryLogName Restore.binlog
+              if ($LASTEXITCODE -ne 0) { throw "restore failed ($LASTEXITCODE)" }
+              $sw.Stop()
+              $seconds = [math]::Round($sw.Elapsed.TotalSeconds, 1)
+              Write-Host "##[section]Restore finished in $seconds seconds"
+              Write-Host "##vso[task.setvariable variable=RestoreSeconds]$seconds"
 
         - task: PowerShell@2
           displayName: Build (measure cold vs warm)
           inputs:
             targetType: inline
             pwsh: true
+            workingDirectory: $(Build.SourcesDirectory)
             script: |
               $ErrorActionPreference = 'Stop'
               Remove-Item -Recurse -Force "$(Build.SourcesDirectory)/artifacts/log" -ErrorAction SilentlyContinue
@@ -162,17 +218,21 @@ extends:
               & $dotnet build ${{ parameters.slnf }} -c Debug -p:ContinuousIntegrationBuild=true -p:DeterministicSourcePaths=true -p:EnableSourceLink=false --no-restore -bl:"$(Build.SourcesDirectory)/artifacts/log/Build.WarmCache.binlog"
               if ($LASTEXITCODE -ne 0) { throw "build failed ($LASTEXITCODE)" }
               $sw.Stop()
-              Write-Host ("##[section]Build finished in {0:n1}s (seeded=$(Seeded))" -f $sw.Elapsed.TotalSeconds)
+              $seconds = [math]::Round($sw.Elapsed.TotalSeconds, 1)
+              Write-Host "##[section]Build finished in $seconds seconds (seeded=$(Seeded))"
+              Write-Host "##vso[task.setvariable variable=BuildSeconds]$seconds"
 
         - task: PowerShell@2
           displayName: Capture fresh baseline
           inputs:
             targetType: inline
             pwsh: true
+            workingDirectory: $(Build.SourcesDirectory)
             script: |
               $ErrorActionPreference = 'Stop'
+              $sw = [Diagnostics.Stopwatch]::StartNew()
               $store = "$(CacheStore)"
-              $lane  = "roslyn-${{ parameters.sdkFingerprint }}-win"
+              $lane  = "roslyn-${{ parameters.ReplayExperimentId }}-${{ parameters.sdkFingerprint }}-win"
               $sha   = (git rev-parse HEAD).Trim()
               $baselineDir = Join-Path (Join-Path $store $lane) $sha
               $capArgs = @{ RepoRoot = '.'; BaselineDir = $baselineDir; OutputRoots = @('artifacts\obj'); Archive = $true }
@@ -185,44 +245,33 @@ extends:
               }
               if (Test-Path $store) { Remove-Item $store -Recurse -Force }
               & "$(Scripts)/Capture-Baseline.ps1" @capArgs
+              if ($LASTEXITCODE -ne 0) { throw "capture failed ($LASTEXITCODE)" }
+              $sw.Stop()
+              $seconds = [math]::Round($sw.Elapsed.TotalSeconds, 1)
+              Write-Host "##vso[task.setvariable variable=CaptureSeconds]$seconds"
               Write-Host "==> captured baseline -> $baselineDir"
 
-        - task: DownloadPipelineArtifact@2
-          displayName: Pull testresults store
-          continueOnError: true
-          inputs:
-            buildType: specific
-            project: $(System.TeamProjectId)
-            definition: $(System.DefinitionId)
-            buildVersionToDownload: latestFromBranch
-            allowPartiallySucceededBuilds: true
-            branchName: $(Build.SourceBranch)
-            artifactName: testresults
-            targetPath: $(Agent.TempDirectory)/test-store
-
         - task: PowerShell@2
-          displayName: Test-skip dry-run (fingerprint determinism + skip on dnceng)
+          displayName: Write replay metrics
+          condition: and(succeededOrFailed(), not(canceled()))
           inputs:
             targetType: inline
             pwsh: true
             workingDirectory: $(Build.SourcesDirectory)
             script: |
               $ErrorActionPreference = 'Stop'
-              $env:DOTNET_MULTILEVEL_LOOKUP = "0"
-              $dotnet = "$(Build.SourcesDirectory)\.dotnet\dotnet.exe"
-              $gp = & $dotnet nuget locals global-packages --list 2>$null
-              if ("$gp" -match 'global-packages:\s*(.+?)\s*$') { $env:NUGET_PACKAGES = $matches[1].Trim() }
-              # RunTests is part of ${{ parameters.slnf }}, so the main build already produced it with the
-              # deterministic flags. Do NOT rebuild it here -- a second build with different properties would
-              # rewrite shared-project obj (resources/xml) and poison the captured baseline (which is why the
-              # Capture step now runs BEFORE this one). Use the already-built RunTests.dll directly.
-              $rt = "$(Build.SourcesDirectory)/artifacts/bin/RunTests/Debug/net10.0/RunTests.dll"
-              if (-not (Test-Path $rt)) { throw "RunTests.dll not found at $rt (expected from the main build)" }
-              $store = "$(Agent.TempDirectory)/test-store"
-              New-Item -ItemType Directory -Force $store | Out-Null
-              # Dry-run: fingerprint every CSharp unit-test closure, skip those already recorded PASS,
-              # record the rest -- no tests executed. A warm re-run of the same commit skips everything,
-              # proving the deploy-closure fingerprint is byte-stable across the dnceng warm-cache flow.
-              & $dotnet exec $rt --dotnet $dotnet --artifactspath "$(Build.SourcesDirectory)/artifacts" --configuration Debug --include "CSharp.*UnitTests" --testSkipStore $store --testSkipDryRun
-              if ($LASTEXITCODE -ne 0) { throw "RunTests dry-run failed ($LASTEXITCODE)" }
-
+              & "$(Scripts)/Write-ReplayMetrics.ps1" `
+                -RepoRoot "$(Build.SourcesDirectory)" `
+                -CacheStore "$(CacheStore)" `
+                -MetricsDir "$(ReplayMetricsDir)" `
+                -ReplayCommit '${{ parameters.ReplayCommit }}' `
+                -ReplaySequence ${{ parameters.ReplaySequence }} `
+                -ReplayExperimentId '${{ parameters.ReplayExperimentId }}' `
+                -SdkFingerprint '${{ parameters.sdkFingerprint }}' `
+                -Solution '${{ parameters.slnf }}' `
+                -Seeded "$(Seeded)" `
+                -PreviousBaselineSha "$(PreviousBaselineSha)" `
+                -ForceCold '${{ parameters.ForceCold }}' `
+                -RestoreSeconds $(RestoreSeconds) `
+                -BuildSeconds $(BuildSeconds) `
+                -CaptureSeconds $(CaptureSeconds)
