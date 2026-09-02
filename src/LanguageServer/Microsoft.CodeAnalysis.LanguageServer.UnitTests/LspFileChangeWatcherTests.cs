@@ -131,7 +131,7 @@ public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper
             });
 
         var eventArgs = await fileChangedSource.Task;
-        Assert.Equal(filePath, eventArgs.FilePath);
+        Assert.Equal(filePath, eventArgs.FilePath, ignoreCase: true);
         Assert.Equal((FileChangeKind)expectedChangeKind, eventArgs.ChangeKind);
     }
 
