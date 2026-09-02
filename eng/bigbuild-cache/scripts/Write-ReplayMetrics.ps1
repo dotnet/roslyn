@@ -17,6 +17,7 @@ param(
     [Parameter(Mandatory)][string]$ReplayExperimentId,
     [Parameter(Mandatory)][string]$SdkFingerprint,
     [Parameter(Mandatory)][string]$Solution,
+    [string]$BuildEngine = 'vs',
     [string]$Seeded = 'false',
     [string]$PreviousBaselineSha = '',
     [string]$ForceCold = 'false',
@@ -93,6 +94,7 @@ $metrics = [ordered]@{
     seeded = ($Seeded -eq 'true')
     forceCold = ($ForceCold -eq 'true')
     solution = $Solution
+    buildEngine = $BuildEngine
     sdkFingerprint = $SdkFingerprint
     dotnetSdkVersion = $globalJson.tools.dotnet
     arcadeSdkVersion = $globalJson.'msbuild-sdks'.'Microsoft.DotNet.Arcade.Sdk'

@@ -207,7 +207,9 @@ extends:
             workingDirectory: $(Build.SourcesDirectory)
             script: |
               $ErrorActionPreference = 'Stop'
-              Remove-Item -Recurse -Force "$(Build.SourcesDirectory)/artifacts/log" -ErrorAction SilentlyContinue
+              Get-ChildItem "$(Build.SourcesDirectory)/artifacts/log" -Recurse `
+                -Filter Build.WarmCache.binlog -ErrorAction SilentlyContinue |
+                Remove-Item -Force -ErrorAction SilentlyContinue
               $env:DOTNET_MULTILEVEL_LOOKUP = "0"
               $env:ROSLYNUSEHARDLINKS = "1"
               $dotnet = "$(Build.SourcesDirectory)\.dotnet\dotnet.exe"
@@ -215,7 +217,9 @@ extends:
               if ("$gp" -match 'global-packages:\s*(.+?)\s*$') { $env:NUGET_PACKAGES = $matches[1].Trim() }
               Write-Host "using NUGET_PACKAGES=$env:NUGET_PACKAGES"
               $sw = [Diagnostics.Stopwatch]::StartNew()
-              & $dotnet build ${{ parameters.slnf }} -c Debug -p:ContinuousIntegrationBuild=true -p:DeterministicSourcePaths=true -p:EnableSourceLink=false --no-restore -bl:"$(Build.SourcesDirectory)/artifacts/log/Build.WarmCache.binlog"
+              & "$(Build.SourcesDirectory)/eng/build.ps1" -ci -build -configuration Debug `
+                -solution ${{ parameters.slnf }} -msbuildEngine vs -binaryLogName Build.WarmCache.binlog `
+                /p:DeterministicSourcePaths=true /p:EnableSourceLink=false
               if ($LASTEXITCODE -ne 0) { throw "build failed ($LASTEXITCODE)" }
               $sw.Stop()
               $seconds = [math]::Round($sw.Elapsed.TotalSeconds, 1)
@@ -260,9 +264,11 @@ extends:
             workingDirectory: $(Build.SourcesDirectory)
             script: |
               $ErrorActionPreference = 'Stop'
-              $binlog = "$(Build.SourcesDirectory)/artifacts/log/Build.WarmCache.binlog"
+              $binlog = Get-ChildItem "$(Build.SourcesDirectory)/artifacts/log" -Recurse `
+                -Filter Build.WarmCache.binlog -ErrorAction SilentlyContinue |
+                Select-Object -First 1 -ExpandProperty FullName
               $dotnet = "$(Build.SourcesDirectory)/.dotnet/dotnet.exe"
-              if (Test-Path $binlog) {
+              if ($binlog -and (Test-Path $binlog)) {
                 & "$(Scripts)/Analyze-CoreCompileBinlog.ps1" `
                   -Binlog $binlog `
                   -DotNetPath $dotnet `
@@ -277,6 +283,7 @@ extends:
                 -ReplayExperimentId '${{ parameters.ReplayExperimentId }}' `
                 -SdkFingerprint '${{ parameters.sdkFingerprint }}' `
                 -Solution '${{ parameters.slnf }}' `
+                -BuildEngine 'vs' `
                 -Seeded "$(Seeded)" `
                 -PreviousBaselineSha "$(PreviousBaselineSha)" `
                 -ForceCold '${{ parameters.ForceCold }}' `
