@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Xunit;
 
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.Workspaces;

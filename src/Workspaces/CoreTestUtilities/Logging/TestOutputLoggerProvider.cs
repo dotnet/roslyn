@@ -4,6 +4,7 @@
 
 using System;
 using Microsoft.Extensions.Logging;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Xunit;
 using Public = Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
