@@ -2977,6 +2977,11 @@
         <target state="translated">Слишком сложный шаблон для анализа на избыточность.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ICoalesceOperationIsNotCSharpCoalesceOperation">
+        <source>{0} is not a valid C# coalesce operation</source>
+        <target state="new">{0} is not a valid C# coalesce operation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
         <source>array access</source>
         <target state="translated">доступ к массиву</target>
