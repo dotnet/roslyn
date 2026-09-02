@@ -37367,6 +37367,57 @@ partial class Program
         }
 
         [Fact]
+        public void IEnumerableToSpan_Spreads_MissingCollectionsMarshal()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        List<int> list1 = [1, 2, 3];
+                        List<int> list2 = [4, 5, 6];
+                        M(list1, list2);
+                    }
+
+                    static void M(IEnumerable<int> e1, IEnumerable<int> e2)
+                    {
+                        Span<int> result = [..e1, ..e2];
+                        result.ReportSpan();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, s_collectionExtensionsWithSpan }, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T);
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("[1, 2, 3, 4, 5, 6], "));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+                {
+                  // Code size       39 (0x27)
+                  .maxstack  4
+                  .locals init (System.Span<int> V_0) //result
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                  IL_0007:  dup
+                  IL_0008:  ldarg.0
+                  IL_0009:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
+                  IL_000e:  dup
+                  IL_000f:  ldarg.1
+                  IL_0010:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
+                  IL_0015:  callvirt   "int[] System.Collections.Generic.List<int>.ToArray()"
+                  IL_001a:  call       "System.Span<int>..ctor(int[])"
+                  IL_001f:  ldloca.s   V_0
+                  IL_0021:  call       "void CollectionExtensions.ReportSpan<int>(in System.Span<int>)"
+                  IL_0026:  ret
+                }
+                """);
+        }
+
+        [Fact]
         public void IEnumerableToReadOnlySpan_Spreads()
         {
             var source = """
@@ -37410,6 +37461,90 @@ partial class Program
                   IL_001e:  ldloca.s   V_0
                   IL_0020:  call       "void CollectionExtensions.Report<int>(in System.ReadOnlySpan<int>)"
                   IL_0025:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void IEnumerableToReadOnlySpan_Spreads_MissingImplicitCast()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        List<int> list1 = [1, 2, 3];
+                        List<int> list2 = [4, 5, 6];
+                        M(list1, list2);
+                    }
+
+                    static void M(IEnumerable<int> e1, IEnumerable<int> e2)
+                    {
+                        ReadOnlySpan<int> result = [..e1, ..e2];
+                        result.Report();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, s_collectionExtensionsWithSpan }, targetFramework: TargetFramework.Net80);
+            comp.MakeMemberMissing(WellKnownMember.System_Span_T__op_Implicit_ReadOnlySpan_T);
+            comp.VerifyEmitDiagnostics(
+                // (15,36): error CS0656: Missing compiler required member 'System.Span`1.op_Implicit'
+                //     ReadOnlySpan<int> result = [..e1, ..e2];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e1, ..e2]").WithArguments("System.Span`1", "op_Implicit").WithLocation(15, 36)
+                );
+        }
+
+        [Fact]
+        public void IEnumerableToReadOnlySpan_Spreads_MissingCollectionsMarshal()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        List<int> list1 = [1, 2, 3];
+                        List<int> list2 = [4, 5, 6];
+                        M(list1, list2);
+                    }
+
+                    static void M(IEnumerable<int> e1, IEnumerable<int> e2)
+                    {
+                        ReadOnlySpan<int> result = [..e1, ..e2];
+                        result.Report();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, s_collectionExtensionsWithSpan }, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T);
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("[1, 2, 3, 4, 5, 6], "));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+                {
+                  // Code size       39 (0x27)
+                  .maxstack  4
+                  .locals init (System.ReadOnlySpan<int> V_0) //result
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                  IL_0007:  dup
+                  IL_0008:  ldarg.0
+                  IL_0009:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
+                  IL_000e:  dup
+                  IL_000f:  ldarg.1
+                  IL_0010:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
+                  IL_0015:  callvirt   "int[] System.Collections.Generic.List<int>.ToArray()"
+                  IL_001a:  call       "System.ReadOnlySpan<int>..ctor(int[])"
+                  IL_001f:  ldloca.s   V_0
+                  IL_0021:  call       "void CollectionExtensions.Report<int>(in System.ReadOnlySpan<int>)"
+                  IL_0026:  ret
                 }
                 """);
         }
