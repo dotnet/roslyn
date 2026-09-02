@@ -32,7 +32,7 @@ Namespace BasicAnalyzers
 
 #Region "Descriptor fields"
         Friend Shared ReadOnly Title As LocalizableString = "Secure types must not implement interfaces with unsecure methods"
-        Friend Shared ReadOnly MessageFormat As LocalizableString = "Type '{0}' is a secure type as it implements interface '{1}', but it also implements interface '{2}' which has unsecure method(s)."
+        Friend Shared ReadOnly MessageFormat As LocalizableString = "Type '{0}' is a secure type as it implements interface '{1}', but it also implements interface '{2}' which has unsecure method(s)"
         Friend Shared ReadOnly Description As LocalizableString = "Secure types must not implement interfaces with unsecure methods."
 
         Friend Shared Rule As New DiagnosticDescriptor(DiagnosticIds.CompilationStartedAnalyzerWithCompilationWideAnalysisRuleId, Title, MessageFormat, DiagnosticCategories.Stateful, DiagnosticSeverity.Warning, isEnabledByDefault:=True, description:=Description, Nothing, WellKnownDiagnosticTags.CompilationEnd)
@@ -48,6 +48,8 @@ Namespace BasicAnalyzers
         End Property
 
         Public Overrides Sub Initialize(context As AnalysisContext)
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None)
+            context.EnableConcurrentExecution()
             context.RegisterCompilationStartAction(
                 Sub(compilationContext)
                     ' Check if the attribute type marking unsecure methods is defined.
@@ -84,12 +86,12 @@ Namespace BasicAnalyzers
             ''' <summary>
             ''' List of secure types in the compilation implementing interface <see cref="SecureTypeInterfaceName"/>.
             ''' </summary>
-            Private _secureTypes As List(Of INamedTypeSymbol)
+            Private ReadOnly _secureTypes As New List(Of INamedTypeSymbol)
 
             ''' <summary>
             ''' Set of unsecure interface types in the compilation that have methods with an attribute of <see cref="_unsecureMethodAttributeType"/>.
             ''' </summary>
-            Private _interfacesWithUnsecureMethods As HashSet(Of INamedTypeSymbol)
+            Private ReadOnly _interfacesWithUnsecureMethods As New HashSet(Of INamedTypeSymbol)
 #End Region
 
 #Region "State intialization"
@@ -97,8 +99,6 @@ Namespace BasicAnalyzers
                 _unsecureMethodAttributeType = unsecureMethodAttributeType
                 _secureTypeInterfaceType = secureTypeInterfaceType
 
-                _secureTypes = Nothing
-                _interfacesWithUnsecureMethods = Nothing
             End Sub
 #End Region
 
@@ -109,8 +109,9 @@ Namespace BasicAnalyzers
                         ' Check if the symbol implements "_secureTypeInterfaceType".
                         Dim namedType = DirectCast(context.Symbol, INamedTypeSymbol)
                         If namedType.AllInterfaces.Contains(_secureTypeInterfaceType) Then
-                            _secureTypes = If(_secureTypes, New List(Of INamedTypeSymbol)())
-                            _secureTypes.Add(namedType)
+                            SyncLock _secureTypes
+                                _secureTypes.Add(namedType)
+                            End SyncLock
                         End If
 
                         Exit Select
@@ -120,8 +121,9 @@ Namespace BasicAnalyzers
                         Dim method = DirectCast(context.Symbol, IMethodSymbol)
                         If method.ContainingType.TypeKind = TypeKind.Interface AndAlso
                             method.GetAttributes().Any(Function(a) a.AttributeClass.Equals(_unsecureMethodAttributeType)) Then
-                            _interfacesWithUnsecureMethods = If(_interfacesWithUnsecureMethods, New HashSet(Of INamedTypeSymbol)())
-                            _interfacesWithUnsecureMethods.Add(method.ContainingType)
+                            SyncLock _interfacesWithUnsecureMethods
+                                _interfacesWithUnsecureMethods.Add(method.ContainingType)
+                            End SyncLock
                         End If
 
                         Exit Select
@@ -131,7 +133,7 @@ Namespace BasicAnalyzers
 
 #Region "End action"
             Public Sub CompilationEndAction(context As CompilationAnalysisContext)
-                If _interfacesWithUnsecureMethods Is Nothing OrElse _secureTypes Is Nothing Then
+                If _interfacesWithUnsecureMethods.Count = 0 OrElse _secureTypes.Count = 0 Then
                     ' No violating types.
                     Return
                 End If

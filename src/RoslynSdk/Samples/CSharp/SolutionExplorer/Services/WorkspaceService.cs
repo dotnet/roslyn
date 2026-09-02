@@ -49,7 +49,7 @@ namespace MSBuildWorkspaceTester.Services
             LogHeader();
 
             Stopwatch watch = Stopwatch.StartNew();
-            Solution solution = await Workspace.OpenSolutionAsync(solutionFilePath, new LoaderProgress(Logger));
+            Solution solution = await Workspace.OpenSolutionAsync(solutionFilePath, new LoaderProgress(Logger)).ConfigureAwait(false);
 
             watch.Stop();
             Logger.LogInformation($"\r\nSolution opened: {watch.Elapsed:m\\:ss\\.fffffff}");
@@ -60,7 +60,7 @@ namespace MSBuildWorkspaceTester.Services
             LogHeader();
 
             Stopwatch watch = Stopwatch.StartNew();
-            Project project = await Workspace.OpenProjectAsync(projectFilePath, new LoaderProgress(Logger));
+            Project project = await Workspace.OpenProjectAsync(projectFilePath, new LoaderProgress(Logger)).ConfigureAwait(false);
 
             watch.Stop();
             Logger.LogInformation($"\r\nProject opened: {watch.Elapsed:m\\:ss\\.fffffff}");

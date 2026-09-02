@@ -320,6 +320,13 @@ internal sealed partial class ExpressionSimplifier : AbstractCSharpSimplifier<Ex
         if (!SimplificationHelpers.IsNamespaceOrTypeOrThisParameter(memberAccess.Expression, semanticModel))
             return false;
 
+        if (symbol is { IsStatic: true, ContainingType.TypeKind: TypeKind.Interface } &&
+            (symbol.IsAbstract || symbol.IsVirtual) &&
+            semanticModel.GetSymbolInfo(memberAccess.Expression, cancellationToken).Symbol is ITypeParameterSymbol)
+        {
+            return false;
+        }
+
         var speculationAnalyzer = new SpeculationAnalyzer(memberAccess, memberAccess.Name, semanticModel, cancellationToken);
         if (!speculationAnalyzer.SymbolsForOriginalAndReplacedNodesAreCompatible() ||
             speculationAnalyzer.ReplacementChangesSemantics())

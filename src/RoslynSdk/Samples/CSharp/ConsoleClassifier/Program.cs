@@ -28,10 +28,10 @@ static void Main()
 WriteLine(""Hello, World!"");
 }
 }");
-            document = await Formatter.FormatAsync(document);
-            SourceText text = await document.GetTextAsync();
+            document = await Formatter.FormatAsync(document).ConfigureAwait(false);
+            SourceText text = await document.GetTextAsync().ConfigureAwait(false);
 
-            IEnumerable<ClassifiedSpan> classifiedSpans = await Classifier.GetClassifiedSpansAsync(document, TextSpan.FromBounds(0, text.Length));
+            IEnumerable<ClassifiedSpan> classifiedSpans = await Classifier.GetClassifiedSpansAsync(document, TextSpan.FromBounds(0, text.Length)).ConfigureAwait(false);
             Console.BackgroundColor = ConsoleColor.Black;
 
             IEnumerable<Range> ranges = classifiedSpans.Select(classifiedSpan =>

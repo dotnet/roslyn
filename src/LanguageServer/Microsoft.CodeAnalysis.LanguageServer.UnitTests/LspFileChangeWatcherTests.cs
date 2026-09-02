@@ -101,6 +101,40 @@ public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper
         AssertNoFileWatcherRegistration(dynamicCapabilitiesRpcTarget);
     }
 
+    [Theory]
+    [InlineData((int)FileChangeType.Created, (int)FileChangeKind.Created)]
+    [InlineData((int)FileChangeType.Changed, (int)FileChangeKind.Changed)]
+    [InlineData((int)FileChangeType.Deleted, (int)FileChangeKind.Deleted)]
+    public async Task FileChangeNotificationIncludesChangeKind(int fileChangeType, int expectedChangeKind)
+    {
+        await using var testLspServer = await CreateLanguageServerAsync(_clientCapabilitiesWithFileWatcherSupport);
+        var lspFileChangeWatcher = AssertFileWatcherKind<LspFileChangeWatcher>(testLspServer);
+        var tempDirectory = TempRoot.CreateDirectory();
+        var filePath = Path.Combine(tempDirectory.Path, "File.cs");
+
+        using var context = lspFileChangeWatcher.CreateContext([new ProjectSystem.WatchedDirectory(tempDirectory.Path, extensionFilters: [])]);
+        var fileChangedSource = new TaskCompletionSource<FileChangedEventArgs>();
+        context.FileChanged += (_, e) => fileChangedSource.TrySetResult(e);
+
+        await testLspServer.ExecuteNotificationAsync(
+            Methods.WorkspaceDidChangeWatchedFilesName,
+            new DidChangeWatchedFilesParams
+            {
+                Changes =
+                [
+                    new FileEvent
+                    {
+                        Uri = ProtocolConversions.CreateAbsoluteDocumentUri(filePath),
+                        FileChangeType = (FileChangeType)fileChangeType,
+                    },
+                ],
+            });
+
+        var eventArgs = await fileChangedSource.Task;
+        Assert.Equal(filePath, eventArgs.FilePath);
+        Assert.Equal((FileChangeKind)expectedChangeKind, eventArgs.ChangeKind);
+    }
+
     private static T AssertFileWatcherKind<T>(TestLspServer server) where T : IFileChangeWatcher
     {
         var lspFileWatcher = server.GetRequiredLspService<IFileChangeWatcher>();

@@ -23,10 +23,10 @@ Sub Main()
 WriteLine(""Hello, World!"")
 End Sub
 End Module")
-        document = Await Formatter.FormatAsync(document)
-        Dim text As SourceText = Await document.GetTextAsync()
+        document = Await Formatter.FormatAsync(document).ConfigureAwait(False)
+        Dim text As SourceText = Await document.GetTextAsync().ConfigureAwait(False)
 
-        Dim classifiedSpans As IEnumerable(Of ClassifiedSpan) = Await Classifier.GetClassifiedSpansAsync(document, TextSpan.FromBounds(0, text.Length))
+        Dim classifiedSpans As IEnumerable(Of ClassifiedSpan) = Await Classifier.GetClassifiedSpansAsync(document, TextSpan.FromBounds(0, text.Length)).ConfigureAwait(False)
         Console.BackgroundColor = ConsoleColor.Black
 
         Dim ranges = From span As ClassifiedSpan In classifiedSpans

@@ -27,7 +27,7 @@ namespace Sample.Analyzers
     public class CodeBlockStartedAnalyzer : DiagnosticAnalyzer
     {
         private const string Title = "Remove unused parameters";
-        public const string MessageFormat = "Parameter '{0}' is unused in the method '{1}'.";
+        public const string MessageFormat = "Parameter '{0}' is unused in the method '{1}'";
         private const string Description = "Remove unused parameters.";
 
         internal static DiagnosticDescriptor Rule =
@@ -42,10 +42,11 @@ namespace Sample.Analyzers
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
+#pragma warning disable RS1026 // Enable concurrent execution. This analyzer uses mutable per-code-block state.
         public override void Initialize(AnalysisContext context)
+#pragma warning restore RS1026
         {
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-            context.EnableConcurrentExecution();
             context.RegisterCodeBlockStartAction<SyntaxKind>(startCodeBlockContext =>
             {
                 // We only care about method bodies.

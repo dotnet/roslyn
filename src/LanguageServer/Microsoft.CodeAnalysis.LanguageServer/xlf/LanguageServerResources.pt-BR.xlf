@@ -32,10 +32,10 @@
         <target state="translated">Falha do cliente ao conectar o depurador</target>
         <note />
       </trans-unit>
-      <trans-unit id="Completed_reload_of_all_projects_in_0">
-        <source>Completed (re)load of all projects in {0}</source>
-        <target state="translated">(Re)carregamento concluído de todos os projetos em {0}</target>
-        <note>The placeholder is a time duration like 00:15</note>
+      <trans-unit id="Completed_reload_of_0_projects_in_1">
+        <source>Completed (re)load of {0} project(s) in {1}</source>
+        <target state="new">Completed (re)load of {0} project(s) in {1}</target>
+        <note>The second placeholder is a time duration like 00:15</note>
       </trans-unit>
       <trans-unit id="Debug_Trace_Messages">
         <source>Debug Trace Messages</source>

@@ -55,7 +55,7 @@ namespace MathsGenerator
             }
         }
 
-        static (TokenType, string)[] tokenStrings = {
+        private static readonly (TokenType, string)[] tokenStrings = {
             (TokenType.EOL,         @"(\r\n|\r|\n)"),
             (TokenType.Spaces,      @"\s+"),
             (TokenType.Number,      @"[+-]?((\d+\.?\d*)|(\.\d+))"),
@@ -68,12 +68,12 @@ namespace MathsGenerator
             (TokenType.Sum,         @"∑")
         };
 
-        static IEnumerable<(TokenType, Regex)> tokenExpressions =
+        private static readonly IEnumerable<(TokenType, Regex)> tokenExpressions =
             tokenStrings.Select(
                 t => (t.Item1, new Regex($"^{t.Item2}", RegexOptions.Compiled | RegexOptions.Singleline)));
 
         // Can be optimized with spans to avoid so many allocations ...
-        static public Tokens Tokenize(string source)
+        public static Tokens Tokenize(string source)
         {
             var currentLine = 1;
             var currentColumn = 1;
@@ -149,7 +149,6 @@ namespace MathsGenerator
     public static class Parser
     {
 
-
         public static string Parse(Tokens tokens)
         {
             var globalSymbolTable = new SymTable();
@@ -170,7 +169,7 @@ namespace MathsGenerator
 
         }
 
-        private readonly static string Preamble = @"
+        private const string Preamble = @"
 using static System.Math;
 using static Maths.FormulaHelpers;
 
@@ -178,7 +177,7 @@ namespace Maths {
 
     public static partial class Formulas { 
 ";
-        private readonly static string Ending = @"
+        private const string Ending = @"
     }
 }";
 
@@ -193,10 +192,10 @@ namespace Maths {
         private static StringBuilder Error(Token token, TokenType type, string value = "") =>
                 throw new Exception($"Expected {type} {(value == "" ? "" : $" with {token.Value}")} at {token.Line},{token.Column} Instead found {token.Type} with value {token.Value}");
 
-        static HashSet<string> validFunctions =
+        private static readonly HashSet<string> validFunctions =
             new HashSet<string>(typeof(System.Math).GetMethods().Select(m => m.Name.ToLower()));
 
-        static Dictionary<string, string> replacementStrings = new Dictionary<string, string> {
+        private static readonly Dictionary<string, string> replacementStrings = new Dictionary<string, string> {
             {"'''", "Third" }, {"''", "Second" }, {"'", "Prime"}
         };
 
@@ -365,9 +364,9 @@ namespace Maths {
                 Consume(ctx, TokenType.Identifier);
             }
         }
-        private static Func<Context, string, bool> IsOp = (ctx, op)
+        private static readonly Func<Context, string, bool> IsOp = (ctx, op)
             => Peek(ctx, TokenType.Operation, op);
-        private static Action<Context, string> ConsOp = (ctx, op)
+        private static readonly Action<Context, string> ConsOp = (ctx, op)
             => Consume(ctx, TokenType.Operation, op);
 
         private static void Expr(Context ctx)
@@ -530,4 +529,3 @@ namespace Maths {
         }
     }
 }
-

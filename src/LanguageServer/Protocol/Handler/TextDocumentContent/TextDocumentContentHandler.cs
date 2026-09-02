@@ -26,7 +26,8 @@ internal sealed class TextDocumentContentHandler() : ILspServiceDocumentRequestH
 
     public async Task<TextDocumentContentResult> HandleRequestAsync(TextDocumentContentParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(context.TextDocument, $"{request.Uri} was not found in any workspace, cannot provide content");
+        var textDocument = await context.GetTextDocumentAsync(cancellationToken).ConfigureAwait(false);
+        Contract.ThrowIfNull(textDocument, $"{request.Uri} was not found in any workspace, cannot provide content");
 
         var scheme = request.Uri.ParsedDocumentUri?.Scheme;
         if (scheme is not null)
@@ -34,11 +35,11 @@ internal sealed class TextDocumentContentHandler() : ILspServiceDocumentRequestH
             // URI scheme names are case-insensitive, so providers must match regardless of the casing used in the request.
             var provider = context.GetRequiredServices<ITextDocumentContentProvider>().Single(p => p.Scheme.Equals(scheme, StringComparison.OrdinalIgnoreCase));
 
-            var contentText = await provider.GetTextAsync(context.TextDocument, cancellationToken).ConfigureAwait(false);
+            var contentText = await provider.GetTextAsync(textDocument, cancellationToken).ConfigureAwait(false);
             return new TextDocumentContentResult { Text = contentText };
         }
 
-        var text = await context.TextDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var text = await textDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
         return new TextDocumentContentResult
         {
             Text = text.ToString()

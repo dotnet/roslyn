@@ -2145,6 +2145,23 @@ class {|Definition:$$A|} {    ~{|Definition:A|}()    {        Console.WriteLine(
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
+        <WorkItem("https://github.com/dotnet/roslyn/issues/84976")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestNamedType_DoNotFindOrdinaryMethodNamedFinalize(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface {|Definition:$$IEnvironment|}
+{
+    bool Finalize();
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546229")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestNamedType_CrossLanguageModule(kind As TestKind, host As TestHost) As Task

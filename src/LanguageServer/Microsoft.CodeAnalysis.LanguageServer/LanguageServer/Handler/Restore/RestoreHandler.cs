@@ -31,11 +31,11 @@ internal sealed class RestoreHandler() : ILspServiceRequestHandler<RestoreParams
 
     public async Task<RestoreResult> HandleRequestAsync(RestoreParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(context.Solution);
+        var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
         var logger = context.GetRequiredService<LspLoggerFactory>().CreateLogger<RestoreHandler>();
         var dotnetCliHelper = context.GetRequiredService<DotnetCliHelper>();
 
-        var restorePaths = GetRestorePaths(request, context.Solution, context);
+        var restorePaths = GetRestorePaths(request, solution, context);
         if (restorePaths.IsEmpty)
         {
             logger.LogDebug($"Restore was requested but no paths were provided.");

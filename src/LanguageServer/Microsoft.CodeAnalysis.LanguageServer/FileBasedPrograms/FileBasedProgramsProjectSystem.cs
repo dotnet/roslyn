@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -58,10 +59,10 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         globalOptionService.AddOptionChangedHandler(this, OnGlobalOptionChanged);
     }
 
-    public override void Dispose()
+    public override ValueTask DisposeAsync()
     {
         GlobalOptionService.RemoveOptionChangedHandler(this, OnGlobalOptionChanged);
-        base.Dispose();
+        return base.DisposeAsync();
     }
 
     private void OnGlobalOptionChanged(object sender, object target, OptionChangedEventArgs args)
@@ -246,7 +247,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
         var sourceTextLoader = new SourceTextLoader(documentInfo.Value.SourceText, documentFilePath);
         var doDesignTimeBuild = !ClassifyAsMiscellaneousFileWithNoReferences(documentFilePath, languageInformation);
-        return await this.GetOrLoadEntryPointDocumentAsync(
+        var documents = await this.GetOrLoadEntryPointDocumentAsync(
             documentFilePath, sourceTextLoader, languageInformation, documentInfo.Value.SourceText.ChecksumAlgorithm, doDesignTimeBuild);
 
         ProjectInfo CreateMiscellaneousProjectInfo(TextLoader textLoader, SourceHashAlgorithm checksumAlgorithm)
@@ -256,6 +257,11 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             return MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
                 projectFactory.Workspace, documentFilePath, textLoader, languageInformation, checksumAlgorithm, projectFactory.Workspace.Services.SolutionServices, [], enableFileBasedPrograms);
         }
+
+        // It's possible that when we searched for the document when dispatching this LSP request, there were no documents, but by the time we got here,
+        // the document was a file-based app that we loaded in the background and potentially could have more tha one target. In this case, since we're just dispatching
+        // a request and it's expected to be a misc files experience, any project can be picked here.
+        return documents.FirstOrDefault();
     }
 
     /// <summary>
@@ -275,10 +281,10 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         await GetOrLoadEntryPointDocumentAsync(documentFilePath, sourceTextLoader, languageInformation, SourceHashAlgorithms.Default, doDesignTimeBuild: true);
     }
 
-    public async ValueTask<TextDocument?> GetOrLoadEntryPointDocumentAsync(string documentFilePath, TextLoader textLoader, LanguageInformation languageInformation, SourceHashAlgorithm checksumAlgorithm, bool doDesignTimeBuild)
+    public async ValueTask<ImmutableArray<TextDocument>> GetOrLoadEntryPointDocumentAsync(string documentFilePath, TextLoader textLoader, LanguageInformation languageInformation, SourceHashAlgorithm checksumAlgorithm, bool doDesignTimeBuild)
     {
-        var project = await base.GetOrLoadProjectAsync(documentFilePath, _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory, CreatePrimordialProjectInfo, doDesignTimeBuild);
-        return project is null ? null : LookupExistingDocument(project);
+        var projects = await base.GetOrLoadProjectAsync(documentFilePath, _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory, CreatePrimordialProjectInfo, doDesignTimeBuild);
+        return projects.Select(p => LookupExistingDocument(p)).WhereNotNull().ToImmutableArray();
 
         TextDocument? LookupExistingDocument(Project project)
         {

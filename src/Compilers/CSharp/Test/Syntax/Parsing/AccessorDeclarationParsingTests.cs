@@ -120,6 +120,39 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     }
 
     [Fact]
+    public void PartialRefAccessorModifiers_BindingDiagnostics()
+    {
+        const string source = """
+            class C
+            {
+                int P { partial ref get; set; }
+                int Q { get; partial ref set; }
+                int R { get; partial ref init; }
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+            // (3,13): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            //     int P { partial ref get; set; }
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 13),
+            // (3,25): error CS0106: The modifier 'ref' is not valid for this item
+            //     int P { partial ref get; set; }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("ref").WithLocation(3, 25),
+            // (4,18): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            //     int Q { get; partial ref set; }
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 18),
+            // (4,30): error CS0106: The modifier 'ref' is not valid for this item
+            //     int Q { get; partial ref set; }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("ref").WithLocation(4, 30),
+            // (5,18): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            //     int R { get; partial ref init; }
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 18),
+            // (5,30): error CS0106: The modifier 'ref' is not valid for this item
+            //     int R { get; partial ref init; }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "init").WithArguments("ref").WithLocation(5, 30));
+    }
+
+    [Fact]
     public void RefAccessorModifierBodyForms()
     {
         const string source = "int P { ref get { } ref get; ref get => 0; }";

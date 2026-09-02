@@ -38,6 +38,8 @@ Namespace BasicAnalyzers
         End Property
 
         Public Overrides Sub Initialize(context As AnalysisContext)
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None)
+            context.EnableConcurrentExecution()
             context.RegisterCompilationStartAction(
                 Sub(compilationContext)
                     ' We only care about compilations where interface type "DontInheritInterfaceTypeName" is available.

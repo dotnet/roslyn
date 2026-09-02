@@ -3,9 +3,6 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Packages.props', '$(MSBuildThisFileDirectory)../'))" />
 
   <PropertyGroup>
-    <!-- Preserve the older dependency versions required for Roslyn 4.12 compatibility. -->
-    <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
-
     <RoslynSdkNuGetApiVersion Condition="'$(TargetFramework)' == 'net472' OR '$(TargetFramework)' == '$(NetRoslyn)'">7.0.3</RoslynSdkNuGetApiVersion>
     <RoslynSdkNuGetApiVersion Condition="'$(RoslynSdkNuGetApiVersion)' == ''">6.3.4</RoslynSdkNuGetApiVersion>
   </PropertyGroup>

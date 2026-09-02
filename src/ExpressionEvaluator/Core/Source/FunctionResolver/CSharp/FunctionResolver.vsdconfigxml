@@ -8,6 +8,8 @@
 -->
 <Configuration xmlns="http://schemas.microsoft.com/vstudio/vsdconfig/2008">
   <DefineGuid Name="CSharpFunctionResolverId" Value="CFE62047-C343-4DE4-B31E-88B7AFF8E7F7"/>
+  <!-- DkmBaseDebugMonitorId.SymbolOnlyProcess (defined locally until our pinned VSDConfigTool exposes the symbolic identifier) -->
+  <DefineGuid Name="SymbolOnlyProcessBaseDebugMonitorId" Value="A8E57598-EFC7-4E47-8516-0F145E0F0D05"/>
   <ManagedComponent
     ComponentId="CSharpFunctionResolverId"
     ComponentLevel="65100"
@@ -20,6 +22,7 @@
             <BaseDebugMonitorId RequiredValue="DkmBaseDebugMonitorId.TimeTravelTraceInterop"/>
             <BaseDebugMonitorId RequiredValue="DkmBaseDebugMonitorId.InProcessManagedNativeInterop"/>
             <BaseDebugMonitorId RequiredValue="DkmBaseDebugMonitorId.ClrVirtualMachine"/>
+            <BaseDebugMonitorId RequiredValue="SymbolOnlyProcessBaseDebugMonitorId"/>
           </Filter>
           <Interface Name="IDkmRuntimeFunctionResolver"/>
         </InterfaceGroup>
