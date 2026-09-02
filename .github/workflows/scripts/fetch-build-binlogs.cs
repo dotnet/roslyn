@@ -176,13 +176,30 @@ Console.WriteLine($"Analyzing build {buildId} at PR head revision '{headSha}'.")
 // exceptions for Source Build and the bootstrap-correctness leg. Bases are
 // matched exactly, and every retry attempt is kept.
 var timelineJson = await AdoGet($"timeline of build {buildId}", $"{adoApi}/build/builds/{buildId}/timeline?api-version=7.1");
-var failedJobNames = Json.Items(timelineJson, "records")
+var records = Json.Items(timelineJson, "records").ToList();
+var failedJobs = records
     .Where(record => Json.Scalar(record, "type") == "Job" && Json.Scalar(record, "result") is "failed" or "canceled")
-    .Select(record => Json.Scalar(record, "name"))
-    .Where(name => name.Trim().Length != 0)
+    .Select(record => (Name: Json.Scalar(record, "name"), Id: Json.Scalar(record, "id")))
+    .Where(job => job.Name.Trim().Length != 0)
+    .ToList();
+EmitNoneIf(failedJobs.Count == 0, $"No failed or canceled jobs in the timeline for build {buildId}.");
+
+// Only jobs that ran a publish-logs task can be expected to have an artifact.
+// Orchestration legs such as `Monitor Helix Jobs` fail without ever producing
+// one - they are how a Helix test failure surfaces - and demanding an artifact
+// for those would skip most real failures rather than analyze them. Roslyn
+// spells the task `Publish Logs`, and `Publish BuildLogs` in Source-Build.
+var publishedLogs = records
+    .Where(record => Json.Scalar(record, "result") == "succeeded")
+    .Select(record => (Task: Json.Scalar(record, "name"), Parent: Json.Scalar(record, "parentId")))
+    .Where(record => record.Task.StartsWith("Publish", StringComparison.Ordinal) && record.Task.EndsWith("Logs", StringComparison.Ordinal))
+    .Select(record => record.Parent)
+    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+var expectedJobNames = failedJobs
+    .Where(job => publishedLogs.Contains(job.Id))
+    .Select(job => job.Name)
     .Distinct(StringComparer.Ordinal)
     .ToList();
-EmitNoneIf(failedJobNames.Count == 0, $"No failed or canceled jobs in the timeline for build {buildId}.");
 
 var artifactsJson = await AdoGet($"artifact list of build {buildId}", $"{adoApi}/build/builds/{buildId}/artifacts?api-version=7.1");
 var attemptLogs = new Regex(@"^(.+) Attempt ([0-9]+) Logs$");
@@ -192,21 +209,33 @@ var allArtifacts = Json.Items(artifactsJson, "value")
     .Where(artifact => attemptLogs.IsMatch(artifact.Name) || sourceBuildLogs.IsMatch(artifact.Name))
     .ToList();
 
+bool MatchesJob(string jobName, string artifactName) => jobName switch
+{
+    "Source-Build (Managed)" => sourceBuildLogs.IsMatch(artifactName),
+    "Correctness_Bootstrap_Build_Default" => attemptLogs.Match(artifactName).Groups[1].Value == "Correctness_Bootstrap_Build - Default",
+    _ => attemptLogs.Match(artifactName).Groups[1].Value == jobName,
+};
+
+// Fail closed on partial coverage: a failed job that published logs but whose
+// artifact cannot be found is missing data, and it could be the one holding the
+// root cause. Analyzing the rest would answer from an incomplete picture.
+var uncovered = expectedJobNames
+    .Where(jobName => !allArtifacts.Any(artifact => MatchesJob(jobName, artifact.Name)))
+    .ToList();
+EmitNoneIf(uncovered.Count != 0,
+    $"Build {buildId} is missing the log artifact of {uncovered.Count} of {expectedJobNames.Count} failed jobs that published logs "
+        + $"({string.Join(", ", uncovered.Take(3).Select(Extractor.Sanitize))}); skipping incomplete failed-job data.");
+
 // Carry the artifact element alongside the name so the download loop does not
 // have to search the document again.
-var selectedArtifacts = failedJobNames
-    .SelectMany(jobName => allArtifacts.Where(artifact => jobName switch
-    {
-        "Source-Build (Managed)" => sourceBuildLogs.IsMatch(artifact.Name),
-        "Correctness_Bootstrap_Build_Default" => attemptLogs.Match(artifact.Name).Groups[1].Value == "Correctness_Bootstrap_Build - Default",
-        _ => attemptLogs.Match(artifact.Name).Groups[1].Value == jobName,
-    }))
+var selectedArtifacts = expectedJobNames
+    .SelectMany(jobName => allArtifacts.Where(artifact => MatchesJob(jobName, artifact.Name)))
     .Where(artifact => artifact.Name.Trim().Length != 0)
     .DistinctBy(artifact => artifact.Name, StringComparer.Ordinal)
     .ToList();
 EmitNoneIf(selectedArtifacts.Count == 0,
     $"No build-log artifacts matched the failed or canceled jobs in build {buildId}; the failure is likely outside a build leg.");
-Console.WriteLine($"Selected {selectedArtifacts.Count} of {allArtifacts.Count} build-log artifacts for {failedJobNames.Count} failed or canceled jobs.");
+Console.WriteLine($"Selected {selectedArtifacts.Count} of {allArtifacts.Count} build-log artifacts for {expectedJobNames.Count} log-publishing jobs of {failedJobs.Count} failed or canceled.");
 
 // --- 7. Download and extract each selected artifact ------------------------
 // Roslyn's `Correctness_Analyzers` log artifact is routinely ~600 MB, so the
