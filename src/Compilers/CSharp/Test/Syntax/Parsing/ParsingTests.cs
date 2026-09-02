@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Sdk;
+using Xunit.v3;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
