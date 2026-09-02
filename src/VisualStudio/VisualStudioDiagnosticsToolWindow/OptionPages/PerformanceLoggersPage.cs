@@ -68,9 +68,9 @@ internal sealed class PerformanceLoggersPage : AbstractOptionPage
         // These sinks exist only for this page, so each is registered while enabled and unregistered
         // when not. isEnabled is a snapshot of the per-FunctionId options, which is why a fresh sink is
         // built on every apply.
-        Register(ref s_etwRegistration, etwEnabled, () => new EtwLogger(isEnabled));
-        Register(ref s_traceRegistration, traceEnabled, () => new TraceLogger(isEnabled));
-        Register(ref s_outputWindowRegistration, outputWindowEnabled, () => new OutputWindowLogger(isEnabled));
+        Register(ref s_etwRegistration, etwEnabled, () => new EtwEventSink(isEnabled));
+        Register(ref s_traceRegistration, traceEnabled, () => new TraceEventSink(isEnabled));
+        Register(ref s_outputWindowRegistration, outputWindowEnabled, () => new OutputWindowEventSink(isEnabled));
 
         // update loggers in remote process
         var client = threadingContext.JoinableTaskFactory.Run(() => RemoteHostClient.TryGetClientAsync(workspaceServices, CancellationToken.None));
@@ -78,9 +78,9 @@ internal sealed class PerformanceLoggersPage : AbstractOptionPage
         {
             var loggerTypeNames = ImmutableArray<string>.Empty;
             if (etwEnabled)
-                loggerTypeNames = loggerTypeNames.Add(nameof(EtwLogger));
+                loggerTypeNames = loggerTypeNames.Add(nameof(EtwEventSink));
             if (traceEnabled)
-                loggerTypeNames = loggerTypeNames.Add(nameof(TraceLogger));
+                loggerTypeNames = loggerTypeNames.Add(nameof(TraceEventSink));
 
             var functionIds = Enum.GetValues<FunctionId>().WhereAsArray(isEnabled);
 

@@ -91,7 +91,7 @@ internal sealed class LanguageServerTelemetry : IDisposable
         var metricSink = new VSMetricSink(session);
         _registrations =
         [
-            RoslynTelemetry.AddEventSink(TelemetryLogger.Create(session, logDelta: true)),
+            RoslynTelemetry.AddEventSink(TelemetryEventSink.Create(session, logDelta: true)),
             RoslynTelemetry.AddMetricSink(metricSink),
             metricSink,
         ];

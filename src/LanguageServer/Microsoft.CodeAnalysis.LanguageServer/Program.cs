@@ -129,10 +129,11 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
     }
 
     var telemetryLevel = LanguageServerTelemetry.GetTelemetryLevel(serverConfiguration);
-    var telemetryService = telemetryLevel is not null
-        ? exportProvider.GetExportedValue<LanguageServerTelemetry>()
-        : null;
-    telemetryService?.InitializeSession(telemetryLevel!, serverConfiguration.SessionId, isDefaultSession: true);
+    if (telemetryLevel is not null)
+    {
+        var telemetryService = exportProvider.GetExportedValue<LanguageServerTelemetry>();
+        telemetryService.InitializeSession(telemetryLevel, serverConfiguration.SessionId, isDefaultSession: true);
+    }
 
     // Build the connection source for the configured mode. Single-server mode (stdio / connect-out pipe) yields
     // exactly one connection; daemon mode accepts many and manages its own idle timeout. Both run through the same
@@ -189,16 +190,9 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
     logger.LogInformation("Language server initialized");
     RoslynLog.Logger.Log(RoslynLog.FunctionId.VSCode_LanguageServer_Started, logLevel: RoslynLog.LogLevel.Information);
 
-    try
+    using (connectionSource as IDisposable)
     {
-        using (connectionSource as IDisposable)
-        {
-            await connectionManager.RunAsync(connectionSource, exportProvider, typeRefResolver, logger, cancellationToken);
-        }
-    }
-    finally
-    {
-        telemetryService?.Dispose();
+        await connectionManager.RunAsync(connectionSource, exportProvider, typeRefResolver, logger, cancellationToken);
     }
 
     return ServerExitCodes.Success;

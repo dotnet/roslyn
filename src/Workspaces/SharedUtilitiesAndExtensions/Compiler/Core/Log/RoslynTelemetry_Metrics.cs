@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Internal.Log;
@@ -63,9 +64,13 @@ internal static partial class RoslynTelemetry
     }
 
     /// <summary>
-    /// Span-based entry point, shared by the fixed-arity overloads above. Not public: it is ambiguous
-    /// with the single-tag overload at call sites that use target-typed <c>new(...)</c>.
+    /// Span-based entry point for callers with a dynamic number of tags. The lower overload resolution
+    /// priority allows target-typed <c>new(...)</c> to select the fixed-arity overloads above.
     /// </summary>
+    [OverloadResolutionPriority(-1)]
+    public static void Count(FunctionId functionId, string metricName, long delta, ReadOnlySpan<KeyValuePair<string, object?>> tags)
+        => CountCore(functionId, metricName, delta, tags);
+
     private static void CountCore(FunctionId functionId, string metricName, long delta, ReadOnlySpan<KeyValuePair<string, object?>> tags)
     {
         var sinks = s_metricSinks;
@@ -103,6 +108,10 @@ internal static partial class RoslynTelemetry
         Span<KeyValuePair<string, object?>> tags = [tag1, tag2, tag3];
         RecordCore(functionId, metricName, value, tags);
     }
+
+    [OverloadResolutionPriority(-1)]
+    public static void Record(FunctionId functionId, string metricName, long value, ReadOnlySpan<KeyValuePair<string, object?>> tags)
+        => RecordCore(functionId, metricName, value, tags);
 
     private static void RecordCore(FunctionId functionId, string metricName, long value, ReadOnlySpan<KeyValuePair<string, object?>> tags)
     {

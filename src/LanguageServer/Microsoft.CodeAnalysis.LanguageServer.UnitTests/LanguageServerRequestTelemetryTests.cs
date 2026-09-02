@@ -51,7 +51,9 @@ public sealed class LanguageServerRequestTelemetryTests(ITestOutputHelper testOu
         var durations = poster.PostedEvents.FindAll(e => e.Name == "vs/ide/vbcs/lsp/requestduration");
         Assert.Contains(durations, e => Equals(e.Properties["vs.ide.vbcs.lsp.requestduration.method"], Methods.InitializeName));
         Assert.Contains(durations, e => Equals(e.Properties["vs.ide.vbcs.lsp.requestduration.method"], Methods.InitializedName));
-        Assert.All(durations, e => Assert.Equal("CSharpVisualBasicLanguageServerFactory", e.Properties["vs.ide.vbcs.lsp.requestduration.server"]));
+        Assert.All(durations, e => Assert.Equal(
+            WellKnownLspServerKinds.CSharpVisualBasicLspServer.ToTelemetryString(),
+            e.Properties["vs.ide.vbcs.lsp.requestduration.server"]));
 
         var counters = poster.PostedEvents.FindAll(e => e.Name == "vs/ide/vbcs/lsp/requestcounter");
         Assert.Contains(counters, e => Equals(e.Properties["vs.ide.vbcs.lsp.requestcounter.method"], Methods.InitializeName));

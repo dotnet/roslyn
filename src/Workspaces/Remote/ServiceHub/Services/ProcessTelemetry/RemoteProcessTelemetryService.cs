@@ -83,8 +83,8 @@ internal sealed partial class RemoteProcessTelemetryService(
             var functionIdsSet = new HashSet<FunctionId>(functionIds);
             bool logChecker(FunctionId id) => functionIdsSet.Contains(id);
 
-            Register(ref s_etwRegistration, loggerTypeNames.Contains(nameof(EtwLogger)), () => new EtwLogger(logChecker));
-            Register(ref s_traceRegistration, loggerTypeNames.Contains(nameof(TraceLogger)), () => new TraceLogger(logChecker));
+            Register(ref s_etwRegistration, loggerTypeNames.Contains(nameof(EtwEventSink)), () => new EtwEventSink(logChecker));
+            Register(ref s_traceRegistration, loggerTypeNames.Contains(nameof(TraceEventSink)), () => new TraceEventSink(logChecker));
         }, cancellationToken);
 
         // Its predicate is a snapshot of the per-FunctionId options, so a fresh sink is built on every

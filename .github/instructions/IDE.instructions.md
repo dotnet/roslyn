@@ -101,3 +101,16 @@ var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 - **ImportingConstructor must be marked `[Obsolete]`** with `MefConstruction.ImportingConstructorMessage`
 - **Language services must be exported with a specific language name** — don't use generic exports for both C#/VB
 - **Workspace changes must use immutable updates** — `Workspace.SetCurrentSolution()`
+
+## Telemetry
+
+- The shared entry point and sink contracts live under
+  `src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Log/`: `RoslynTelemetry`,
+  `IEventSink`, and `IMetricSink`.
+- Name concrete `IEventSink` implementations with the `EventSink` suffix. Visual Studio implementations
+  live under `src/VisualStudio/Core/Def/Telemetry/`; `TelemetryEventSink` and `VSMetricSink` are source-linked
+  into the Language Server and ServiceHub hosts.
+- Name `RoslynTelemetry` partial files with an underscore, such as
+  `RoslynTelemetry_Metrics.cs` and `RoslynTelemetry_LogBlock.cs`.
+- Fixed-arity metric overloads avoid allocating tag arrays. Dynamic-tag span overloads use
+  `OverloadResolutionPriorityAttribute` so target-typed single-tag calls select the fixed-arity overload.

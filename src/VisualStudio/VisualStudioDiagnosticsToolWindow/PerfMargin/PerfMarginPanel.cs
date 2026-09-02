@@ -18,7 +18,7 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin;
 public sealed class PerfMarginPanel : UserControl
 {
     private static readonly DataModel s_model = new();
-    private static readonly PerfEventActivityLogger s_logger = new(s_model);
+    private static readonly PerfActivityEventSink s_sink = new(s_model);
 
     private readonly ListView _mainListView;
     private readonly Grid _mainGrid;
@@ -32,7 +32,7 @@ public sealed class PerfMarginPanel : UserControl
     static PerfMarginPanel()
     {
         // Keep collecting into the process-wide model while the tool window is closed.
-        _ = RoslynTelemetry.AddEventSink(s_logger);
+        _ = RoslynTelemetry.AddEventSink(s_sink);
     }
 
     public PerfMarginPanel()

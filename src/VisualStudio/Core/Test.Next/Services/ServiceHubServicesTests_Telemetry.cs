@@ -30,7 +30,7 @@ public sealed partial class ServiceHubServicesTests
 
         Assert.False(AnythingIsListening(FunctionId.TestEvent_NotUsed));
 
-        Assert.True(await SetRemoteLoggingAsync([nameof(TraceLogger)], [FunctionId.TestEvent_NotUsed]));
+        Assert.True(await SetRemoteLoggingAsync([nameof(TraceEventSink)], [FunctionId.TestEvent_NotUsed]));
         Assert.True(AnythingIsListening(FunctionId.TestEvent_NotUsed));
 
         // The sink was built with a predicate covering only the requested ids.

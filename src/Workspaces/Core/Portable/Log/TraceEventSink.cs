@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log;
 /// Implementation of <see cref="IEventSink"/> that produces timing debug output. Opt-in: registered by
 /// the Performance Loggers options page while enabled, and unregistered when not.
 /// </summary>
-internal sealed class TraceLogger(Func<FunctionId, bool> isEnabledPredicate) : IEventSink
+internal sealed class TraceEventSink(Func<FunctionId, bool> isEnabledPredicate) : IEventSink
 {
     public bool IsEnabled(FunctionId functionId)
         => isEnabledPredicate(functionId);

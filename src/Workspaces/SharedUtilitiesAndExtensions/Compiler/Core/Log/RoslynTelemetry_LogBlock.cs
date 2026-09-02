@@ -25,7 +25,7 @@ internal static partial class RoslynTelemetry
     }
 
     /// <summary>
-    /// This tracks the logged message. On instantiation, it logs 'Started block' with other event data.
+    /// Tracks the logged message. On instantiation, it logs 'Started block' with other event data.
     /// On dispose, it logs 'Ended block' with the same event data so we can track which block started and ended when looking at logs.
     /// </summary>
     private sealed class RoslynLogBlock(ObjectPool<RoslynLogBlock> pool) : IDisposable

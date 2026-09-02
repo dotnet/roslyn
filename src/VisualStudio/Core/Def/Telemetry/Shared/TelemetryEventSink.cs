@@ -14,9 +14,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Telemetry;
 
-internal abstract class TelemetryLogger : IEventSink
+internal abstract class TelemetryEventSink : IEventSink
 {
-    private sealed class Implementation : TelemetryLogger
+    private sealed class Implementation : TelemetryEventSink
     {
         private readonly TelemetrySession _session;
 
@@ -68,7 +68,7 @@ internal abstract class TelemetryLogger : IEventSink
 
     protected abstract bool LogDelta { get; }
 
-    public static TelemetryLogger Create(TelemetrySession session, bool logDelta)
+    public static TelemetryEventSink Create(TelemetrySession session, bool logDelta)
         => Implementation.Create(session, logDelta);
 
     public abstract bool IsEnabled(FunctionId functionId);

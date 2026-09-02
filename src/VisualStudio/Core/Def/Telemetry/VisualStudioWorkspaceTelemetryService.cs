@@ -34,10 +34,10 @@ internal sealed class VisualStudioWorkspaceTelemetryService(
 
     protected override ImmutableArray<IEventSink> CreateEventSinks(TelemetrySession telemetrySession, bool logDelta)
         => [
-            CodeMarkerLogger.Instance,
-            RoslynActivityLogger.Sink,
-            TelemetryLogger.Create(telemetrySession, logDelta),
-            new FileLogger(_globalOptions, _threadingContext),
+            CodeMarkerEventSink.Instance,
+            TraceSourceEventSink.Instance,
+            TelemetryEventSink.Create(telemetrySession, logDelta),
+            new FileEventSink(_globalOptions, _threadingContext),
         ];
 
     protected override void TelemetrySessionInitialized()

@@ -35,6 +35,22 @@ public sealed class RoslynTelemetryTests
             => Events.Add(("End", uniquePairId));
     }
 
+    private sealed class RecordingMetricSink : IMetricSink
+    {
+        public List<int> CounterTagCounts { get; } = [];
+        public List<int> DistributionTagCounts { get; } = [];
+
+        public void Count(string eventName, string metricName, long delta, ReadOnlySpan<KeyValuePair<string, object?>> tags)
+            => CounterTagCounts.Add(tags.Length);
+
+        public void Record(string eventName, string metricName, long value, ReadOnlySpan<KeyValuePair<string, object?>> tags)
+            => DistributionTagCounts.Add(tags.Length);
+
+        public void Flush()
+        {
+        }
+    }
+
     [Fact]
     public void BlockStartAndEndAreDeliveredAsAPair()
     {
@@ -97,6 +113,23 @@ public sealed class RoslynTelemetryTests
         registration.Dispose();
     }
 
+    [Fact]
+    public void MetricOverloadsAcceptSingleAndDynamicTags()
+    {
+        var sink = new RecordingMetricSink();
+        using var _ = RoslynTelemetry.AddMetricSink(sink);
+
+        RoslynTelemetry.Count(FunctionId.TestEvent_NotUsed, "Count", 1, new("kind", "single"));
+        RoslynTelemetry.Record(FunctionId.TestEvent_NotUsed, "Duration", 1, new("kind", "single"));
+
+        ReadOnlySpan<KeyValuePair<string, object?>> tags = [new("first", 1), new("second", 2)];
+        RoslynTelemetry.Count(FunctionId.TestEvent_NotUsed, "Count", 1, tags);
+        RoslynTelemetry.Record(FunctionId.TestEvent_NotUsed, "Duration", 1, tags);
+
+        Assert.Equal([1, 2], sink.CounterTagCounts);
+        Assert.Equal([1, 2], sink.DistributionTagCounts);
+    }
+
     /// <summary>
     /// The overloads that take an already-built <see cref="LogMessage"/> own it, so they must return it
     /// to the pool even when nothing is listening - otherwise the pool is defeated on exactly the hosts
@@ -140,10 +173,10 @@ public sealed class RoslynTelemetryTests
     [InlineData(false)]
     public void BlockEndCarriesDeltaOnlyWhenLogDeltaIsSet(bool logDelta)
     {
-        var logger = new TestTelemetryLogger(logDelta);
+        var logger = new TestTelemetryEventSink(logDelta);
         using var _ = RoslynTelemetry.AddEventSink(logger);
 
-        TestTelemetryLogger.TestScope scope;
+        TestTelemetryEventSink.TestScope scope;
 
         // LogType.UserAction carries LogLevel.Information; anything lower is dropped by the sink.
         using (RoslynTelemetry.LogBlock(

@@ -18,5 +18,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry;
 internal sealed class RemoteWorkspaceTelemetryService() : AbstractWorkspaceTelemetryService
 {
     protected override ImmutableArray<IEventSink> CreateEventSinks(TelemetrySession telemetrySession, bool logDelta)
-        => [TelemetryLogger.Create(telemetrySession, logDelta)];
+        => [TelemetryEventSink.Create(telemetrySession, logDelta)];
 }

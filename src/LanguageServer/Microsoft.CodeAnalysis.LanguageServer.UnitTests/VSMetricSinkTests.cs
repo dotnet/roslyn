@@ -154,8 +154,8 @@ public sealed class VSMetricSinkTests
     [Fact]
     public void AMeasurementTakenDuringAFlushIsNotDropped()
     {
-        var insideFlush = new ManualResetEventSlim();
-        var countBlocked = new ManualResetEventSlim();
+        using var insideFlush = new ManualResetEventSlim();
+        using var releaseFlush = new ManualResetEventSlim();
 
         var poster = new RecordingPoster();
         using var sink = VSMetricSink.TestAccessor.CreateSink(poster);
@@ -165,7 +165,7 @@ public sealed class VSMetricSinkTests
         poster.OnPost = () =>
         {
             insideFlush.Set();
-            countBlocked.Wait();
+            releaseFlush.Wait();
         };
 
         sink.Count("vs/ide/vbcs/test/race", "Count", 1, default);
@@ -173,16 +173,21 @@ public sealed class VSMetricSinkTests
         var flushing = Task.Run(sink.Flush);
         insideFlush.Wait();
 
-        var counting = Task.Run(() => sink.Count("vs/ide/vbcs/test/race", "Count", 1, default));
+        var counting = new Thread(() => sink.Count("vs/ide/vbcs/test/race", "Count", 1, default));
+        counting.Start();
 
-        // Count has resolved the aggregation the flush is posting and is now waiting on its lock.
-        // There is no way to observe that directly, so give it time to get there before releasing.
-        Thread.Sleep(100);
-        countBlocked.Set();
+        // The counting thread has resolved the aggregation being posted once it blocks on its lock.
+        var countWasBlocked = SpinWait.SpinUntil(
+            () => (counting.ThreadState & ThreadState.WaitSleepJoin) != 0,
+            TimeSpan.FromSeconds(10));
+
+        releaseFlush.Set();
 
         flushing.Wait();
-        counting.Wait();
+        var countCompleted = counting.Join(TimeSpan.FromSeconds(10));
 
+        Assert.True(countWasBlocked);
+        Assert.True(countCompleted);
         Assert.Single(poster.Posted);
 
         // The second measurement must still be pending, not lost with the retired aggregation.
