@@ -1117,8 +1117,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///
         /// Note: this refers to accessibility only in the "accessibility modifier" sense.
         /// This method may return a non-null symbol even if the field cannot be referenced by name in the current context.
-        /// <param name="containingType">Containing type of the member currently being analyzed.</param>
         /// </summary>
+        /// <param name="containingType">Containing type of the member currently being analyzed.</param>
         private static SynthesizedBackingFieldSymbol? GetAccessibleBackingField(PropertySymbol property, NamedTypeSymbol containingType)
         {
             if (property is not SourcePropertySymbolBase { BackingField: { } backingField })
