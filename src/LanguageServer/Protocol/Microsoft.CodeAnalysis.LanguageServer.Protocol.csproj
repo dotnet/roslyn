@@ -97,7 +97,6 @@
 
   <ItemGroup>
     <None Include="Protocol\.editorconfig" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.TestDiscovery" />
   </ItemGroup>
 
   <ItemGroup>
