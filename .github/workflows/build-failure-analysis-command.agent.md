@@ -204,8 +204,10 @@ jobs:
         # two are found from different roots: the SDK by walking up from the
         # working directory, the MSBuild imports by walking up from the file. So
         # run from a directory outside the tree and switch the inherited imports
-        # off; the fetcher itself stays in the repository.
-        run: cd "${RUNNER_TEMP:-/tmp}" && timeout 600 dotnet run "${SCRIPT_DIR}/fetch-build-binlogs.cs" -p:ImportDirectoryBuildProps=false -p:ImportDirectoryBuildTargets=false -p:ImportDirectoryPackagesProps=false
+        # off; the fetcher itself stays in the repository. `--file` is the
+        # repository's convention and is required here: the bare form only treats
+        # its argument as a file when the working directory holds no project.
+        run: cd "${RUNNER_TEMP:-/tmp}" && timeout 600 dotnet run --file "${SCRIPT_DIR}/fetch-build-binlogs.cs" -p:ImportDirectoryBuildProps=false -p:ImportDirectoryBuildTargets=false -p:ImportDirectoryPackagesProps=false
 
       # A fetch that was killed or errored leaves `binlog-found` unset, so the
       # activation gate already declines to analyze. Say so in the log rather

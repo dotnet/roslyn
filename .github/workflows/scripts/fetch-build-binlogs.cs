@@ -14,10 +14,11 @@
 // Environment: RESOLVE_MODE, PR_NUMBER, GH_TOKEN, GH_AW_REPO, ADO_API,
 // ADO_BUILD_UI, ADO_BUILD_DEFINITION_ID, BINLOG_DIR, GITHUB_OUTPUT.
 //
-// Usage: dotnet run ./fetch-build-binlogs.cs
-//        dotnet run ./fetch-build-binlogs.cs -- --extract <archive> <dest> <prefix> <budget> [label]
+// Usage: dotnet run --file ./fetch-build-binlogs.cs
+//        dotnet run --file ./fetch-build-binlogs.cs -- --extract <archive> <dest> <prefix> <budget> [label]
 
 using System.IO.Compression;
+using System.Linq;
 using System.Net;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -273,12 +274,26 @@ foreach (var (node, name) in selectedArtifacts)
         continue;
     }
 
+    // The build that produced this artifact ran PR code, so treat its metadata
+    // as untrusted and require a URL this workflow is willing to fetch. ADO does
+    // not serve artifacts from one host: across 612 artifacts in 33 real builds,
+    // `Container` downloads came from dev.azure.com and `PipelineArtifact` ones
+    // from a regional artprod*.artifacts.visualstudio.com, so match those
+    // domains rather than a single origin. An unexpected host skips the
+    // artifact, which fails closed on the run rather than fetching it.
+    if (!IsTrustedArtifactUrl(url))
+    {
+        Console.WriteLine($"::warning::Skipping {safeName}: download URL is not an Azure DevOps artifact URL.");
+        continue;
+    }
+
     // Start empty, so a body retained by a previous artifact can never be
     // measured, charged or extracted twice.
     File.WriteAllBytes(zipTmp, []);
 
     // Bound this transfer by what is left of the cumulative budget as well as by
-    // the per-artifact cap, so the two are a real ceiling rather than their sum.
+    // the per-artifact cap, so the caps compose by the smaller of the two rather
+    // than granting every artifact the full per-artifact allowance.
     var zipCap = Math.Min(MaxZipBytes, MaxTotalZipBytes - totalZipBytes);
     if (zipCap <= 0)
     {
@@ -453,21 +468,32 @@ static bool IsTransient(HttpStatusCode status)
         or HttpStatusCode.InternalServerError or HttpStatusCode.BadGateway
         or HttpStatusCode.ServiceUnavailable or HttpStatusCode.GatewayTimeout;
 
+// The leading dot is load-bearing: a bare suffix test would also accept a
+// lookalike host such as `notvisualstudio.com`.
+static bool IsTrustedArtifactUrl(string url)
+    => Uri.TryCreate(url, UriKind.Absolute, out var uri)
+        && uri.Scheme == Uri.UriSchemeHttps
+        && (uri.Host.Equals("dev.azure.com", StringComparison.OrdinalIgnoreCase)
+            || uri.Host.EndsWith(".dev.azure.com", StringComparison.OrdinalIgnoreCase)
+            || uri.Host.EndsWith(".visualstudio.com", StringComparison.OrdinalIgnoreCase));
+
 // Runs `consume` against a successful response, retrying under a per-attempt
 // timeout and an overall window. `consume` runs inside the attempt's
-// cancellation scope, so the timeout covers reading the body too.
+// cancellation scope, so the timeout covers reading the body too. Every attempt
+// is clamped to what is left of the window, so one URL cannot outlast it.
+// `window == TimeSpan.Zero` means "one attempt, no retries".
 static async Task<(T? Value, string? Error)> Fetch<T>(
     HttpClient client, string url, TimeSpan perAttempt, TimeSpan window, Func<int, TimeSpan> backoff,
     HttpCompletionOption completion, Func<HttpResponseMessage, CancellationToken, Task<T>> consume)
 {
-    var started = DateTime.UtcNow;
+    var deadline = DateTime.UtcNow + window;
     var error = "no attempt was made";
     for (var attempt = 0; attempt <= 3; attempt++)
     {
         if (attempt != 0)
         {
             var wait = backoff(attempt - 1);
-            if (DateTime.UtcNow - started + wait >= window)
+            if (DateTime.UtcNow + wait >= deadline)
             {
                 break;
             }
@@ -475,9 +501,24 @@ static async Task<(T? Value, string? Error)> Fetch<T>(
             await Task.Delay(wait);
         }
 
+        // Clamp the attempt to what is left of the window, so neither a slow
+        // first transfer nor a retry can overrun it. A zero window means "one
+        // attempt, no retries" and does not bound that attempt.
+        var timeout = perAttempt;
+        if (window != TimeSpan.Zero)
+        {
+            var remaining = deadline - DateTime.UtcNow;
+            if (remaining <= TimeSpan.Zero)
+            {
+                break;
+            }
+
+            timeout = remaining < perAttempt ? remaining : perAttempt;
+        }
+
         try
         {
-            using var cts = new CancellationTokenSource(perAttempt);
+            using var cts = new CancellationTokenSource(timeout);
             using var response = await client.GetAsync(url, completion, cts.Token);
             if (response.IsSuccessStatusCode)
             {
@@ -553,7 +594,8 @@ static long RetainedBytes(string path)
     }
 }
 
-// The workflow never uses this; it is the seam the archive-handling tests drive.
+// Not reachable from the workflow; a manual seam for running archive handling
+// against a local zip while iterating on it.
 static int RunExtractOnly(string[] extractArgs)
 {
     if (extractArgs.Length is < 4 or > 5 || !long.TryParse(extractArgs[3], out var budgetBytes))

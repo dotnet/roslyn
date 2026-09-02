@@ -19,8 +19,9 @@ description: >-
 # contents, and therefore the agent's own input — is attacker-controlled on any
 # PR. The workflow does not try to make that content trustworthy; it contains
 # the blast radius instead:
-#   * no PR code is built or executed (gh-aw checks out the repo to load its own
-#     agent configuration, at the event ref, never the PR head);
+#   * no PR code is built or executed (gh-aw checks out the PR head so the agent
+#     can read the diff, then restores `.agents`, `.github` and `AGENTS.md` from
+#     the base branch, so the agent's own configuration is never PR-controlled);
 #   * extraction bounds only where bytes land and how many, in one script;
 #   * the agent job holds no write permission and cannot post anything;
 #   * writes happen in a separate safe-outputs job, restricted to a fixed set of
@@ -169,8 +170,10 @@ jobs:
         # two are found from different roots: the SDK by walking up from the
         # working directory, the MSBuild imports by walking up from the file. So
         # run from a directory outside the tree and switch the inherited imports
-        # off; the fetcher itself stays in the repository.
-        run: cd "${RUNNER_TEMP:-/tmp}" && timeout 600 dotnet run "${SCRIPT_DIR}/fetch-build-binlogs.cs" -p:ImportDirectoryBuildProps=false -p:ImportDirectoryBuildTargets=false -p:ImportDirectoryPackagesProps=false
+        # off; the fetcher itself stays in the repository. `--file` is the
+        # repository's convention and is required here: the bare form only treats
+        # its argument as a file when the working directory holds no project.
+        run: cd "${RUNNER_TEMP:-/tmp}" && timeout 600 dotnet run --file "${SCRIPT_DIR}/fetch-build-binlogs.cs" -p:ImportDirectoryBuildProps=false -p:ImportDirectoryBuildTargets=false -p:ImportDirectoryPackagesProps=false
 
       # A fetch that was killed or errored leaves `binlog-found` unset, so the
       # activation gate already declines to analyze. Say so in the log rather
