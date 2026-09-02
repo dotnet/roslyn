@@ -1,11 +1,10 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
@@ -154,40 +153,27 @@ public sealed class VSMetricSinkTests
     [Fact]
     public void AMeasurementTakenDuringAFlushIsNotDropped()
     {
-        using var insideFlush = new ManualResetEventSlim();
-        using var releaseFlush = new ManualResetEventSlim();
-
         var poster = new RecordingPoster();
         using var sink = VSMetricSink.TestAccessor.CreateSink(poster);
 
-        // Post runs while the flush holds the aggregation lock, so it is the point where a concurrent
-        // Count is guaranteed to be blocked.
+        var counting = new Thread(() => sink.Count("vs/ide/vbcs/test/race", "Count", 1, default));
+        var countWasBlocked = false;
+
+        // Post runs while the flush holds the aggregation lock. Starting the count here ensures it has
+        // resolved the aggregation being posted once it blocks on that lock.
         poster.OnPost = () =>
         {
-            insideFlush.Set();
-            releaseFlush.Wait();
+            counting.Start();
+            countWasBlocked = SpinWait.SpinUntil(
+                () => (counting.ThreadState & ThreadState.WaitSleepJoin) != 0,
+                TimeSpan.FromSeconds(10));
         };
 
         sink.Count("vs/ide/vbcs/test/race", "Count", 1, default);
+        sink.Flush();
 
-        var flushing = Task.Run(sink.Flush);
-        insideFlush.Wait();
-
-        var counting = new Thread(() => sink.Count("vs/ide/vbcs/test/race", "Count", 1, default));
-        counting.Start();
-
-        // The counting thread has resolved the aggregation being posted once it blocks on its lock.
-        var countWasBlocked = SpinWait.SpinUntil(
-            () => (counting.ThreadState & ThreadState.WaitSleepJoin) != 0,
-            TimeSpan.FromSeconds(10));
-
-        releaseFlush.Set();
-
-        flushing.Wait();
-        var countCompleted = counting.Join(TimeSpan.FromSeconds(10));
-
+        Assert.True(counting.Join(TimeSpan.FromSeconds(10)));
         Assert.True(countWasBlocked);
-        Assert.True(countCompleted);
         Assert.Single(poster.Posted);
 
         // The second measurement must still be pending, not lost with the retired aggregation.
