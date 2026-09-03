@@ -1948,14 +1948,13 @@ public sealed partial class ServiceHubServicesTests
         Assert.Equal(1, result.CodeFixAnalysis.DiagnosticIdToCount["CS8300"]);
         Assert.Equal("CSharp.ConflictMarkerResolution.CSharpResolveConflictMarkerCodeFixProvider", result.CodeFixAnalysis.DiagnosticIdToProviderName["CS8300"].Single());
 
-        var logger = new TestTelemetryLogger();
-        Logger.SetLogger(logger);
-        TestTelemetryLogger.TestScope scope;
+        var logger = new TestTelemetryEventSink();
+        using var _ = RoslynTelemetry.AddEventSink(logger);
+        TestTelemetryEventSink.TestScope scope;
         using (CopilotChangeAnalysisUtilities.LogCopilotChangeAnalysis("TestCode", accepted: true, "TestProposalId", result, CancellationToken.None))
         {
             scope = logger.OpenedScopes.Single();
         }
-        Logger.SetLogger(null);
 
         var endEvent = scope.EndEvent;
         Assert.Equal("vs/ide/vbcs/copilot/analyzechange", endEvent.Name);

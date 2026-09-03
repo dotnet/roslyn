@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -16,8 +17,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class RemoteWorkspaceTelemetryService() : AbstractWorkspaceTelemetryService
 {
-    protected override ILogger CreateLogger(TelemetrySession telemetrySession, bool logDelta)
-        => AggregateLogger.Create(
-            TelemetryLogger.Create(telemetrySession, logDelta),
-            Logger.GetLogger());
+    protected override ImmutableArray<IEventSink> CreateEventSinks(TelemetrySession telemetrySession, bool logDelta)
+        => [TelemetryEventSink.Create(telemetrySession, logDelta)];
 }

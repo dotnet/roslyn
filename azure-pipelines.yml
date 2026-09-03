@@ -6,6 +6,7 @@ trigger:
 - release/*
 - features/*
 - demos/*
+- dev/*
 
 # Branches that trigger builds on PR
 pr:
@@ -331,7 +332,6 @@ stages:
     # https://github.com/dotnet/runtime/issues/97186
     - template: eng/pipelines/test-unix-job.yml
       parameters:
-        testRunName: 'Test macOS Debug'
         jobName: Test_macOS_Debug
         testArtifactName: Transport_Artifacts_macOS_Debug
         configuration: Debug
@@ -419,6 +419,9 @@ stages:
 
       - powershell: eng/validate-benchmarks.ps1 -configuration Release -ci
         displayName: Validate Benchmarks
+
+      - powershell: eng/validate-roslyn-sdk-samples.ps1 -configuration Release -ci
+        displayName: Validate Roslyn SDK Samples
 
       - script: dotnet build-server shutdown
         displayName: Shutdown Build Server
@@ -515,6 +518,11 @@ stages:
           publishLocation: Container
         continueOnError: true
         condition: failed()
+
+      - script: dotnet build-server shutdown
+        displayName: Shutdown Build Server
+        continueOnError: true
+        condition: always()
 
       - template: eng/pipelines/publish-logs.yml
         parameters:

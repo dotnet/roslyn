@@ -15,7 +15,7 @@ This file is a **top-level map only**. For per-area directory detail, read the m
 
 | Area | Layer | Purpose |
 |------|-------|---------|
-| `Compilers/` | compiler | C#/VB compilers (`Core`, `CSharp`, `VisualBasic`, `Server`). |
+| `Compilers/` | compiler | C#/VB compilers (`Core`, including MSBuild tasks; `CSharp`; `VisualBasic`; `Server`). |
 | `Dependencies/` | compiler | High-performance pooled collections & threading. |
 | `ExpressionEvaluator/` | compiler | Debugger expression evaluator. |
 | `Tools/` | compiler | Compiler and infrastructure tooling (including `dotnet-roslyn-tools`) and benchmark harnesses. |
@@ -27,6 +27,7 @@ This file is a **top-level map only**. For per-area directory detail, read the m
 | `Razor/src/` | razor | Razor compiler + tooling (own sub-tree layout). |
 | `Scripting/`, `Interactive/` | — | C#/VB scripting engine and REPL. |
 | `RoslynAnalyzers/` | — | Shipping `Microsoft.CodeAnalysis.*` analyzer packages. |
+| `RoslynSdk/` | — | Analyzer testing libraries, Visual Studio SDK templates, Syntax Visualizer, and Roslyn SDK tests; excluded from source-only builds by its root `Directory.Build.props`. |
 | `Deployment/`, `NuGet/`, `Setup/`, `Test/` | — | Deployment/VSIX, packaging, shared test infrastructure. |
 
 ## Non-source Roots

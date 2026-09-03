@@ -24,8 +24,6 @@ internal sealed class RemoteAssetSynchronizationService(in BrokeredServiceBase.S
 {
     private const string SynchronizeTextChangesAsyncSucceededMetricName = "SucceededCount";
     private const string SynchronizeTextChangesAsyncFailedMetricName = "FailedCount";
-    private const string SynchronizeTextChangesAsyncSucceededKeyName = nameof(RemoteAssetSynchronizationService) + "." + SynchronizeTextChangesAsyncSucceededMetricName;
-    private const string SynchronizeTextChangesAsyncFailedKeyName = nameof(RemoteAssetSynchronizationService) + "." + SynchronizeTextChangesAsyncFailedMetricName;
 
     internal sealed class Factory : FactoryBase<IRemoteAssetSynchronizationService>
     {
@@ -64,14 +62,7 @@ internal sealed class RemoteAssetSynchronizationService(in BrokeredServiceBase.S
             var wasSynchronized = await SynchronizeTextChangesHelperAsync().ConfigureAwait(false);
 
             var metricName = wasSynchronized ? SynchronizeTextChangesAsyncSucceededMetricName : SynchronizeTextChangesAsyncFailedMetricName;
-            var keyName = wasSynchronized ? SynchronizeTextChangesAsyncSucceededKeyName : SynchronizeTextChangesAsyncFailedKeyName;
-            TelemetryLogging.LogAggregatedCounter(FunctionId.RemoteHostService_SynchronizeTextAsyncStatus, KeyValueLogMessage.Create(static (m, args) =>
-            {
-                var (keyName, metricName) = args;
-                m[TelemetryLogging.KeyName] = keyName;
-                m[TelemetryLogging.KeyValue] = 1L;
-                m[TelemetryLogging.KeyMetricName] = metricName;
-            }, (keyName, metricName)));
+            RoslynTelemetry.Count(FunctionId.RemoteHostService_SynchronizeTextAsyncStatus, metricName, 1);
 
             return;
 

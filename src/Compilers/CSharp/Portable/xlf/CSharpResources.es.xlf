@@ -247,6 +247,11 @@
         <target state="translated">Ninguna sobrecarga del método '{0}' acepta argumentos del elemento 'with(...)' {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadCompilationOptionValueAccepted">
+        <source>Invalid '{0}' value: '{1}'. Accepted values are: {2}</source>
+        <target state="new">Invalid '{0}' value: '{1}'. Accepted values are: {2}</target>
+        <note>{2} is a comma-separated list.</note>
+      </trans-unit>
       <trans-unit id="ERR_BadCompoundAssignmentOpArgs">
         <source>Overloaded compound assignment operator '{0}' takes one parameter</source>
         <target state="translated">El operador compuesto sobrecargado “{0}” toma un parámetro</target>
@@ -2970,6 +2975,11 @@
       <trans-unit id="HDN_RedundantPatternStackGuard_Title">
         <source>The pattern is too complex to analyze for redundancy.</source>
         <target state="translated">El patrón es demasiado complejo para analizar la redundancia.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ICoalesceOperationIsNotCSharpCoalesceOperation">
+        <source>{0} is not a valid C# coalesce operation</source>
+        <target state="new">{0} is not a valid C# coalesce operation</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">

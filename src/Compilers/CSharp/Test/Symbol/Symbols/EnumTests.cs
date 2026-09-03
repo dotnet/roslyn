@@ -406,10 +406,7 @@ public class C
             CreateCompilation("partial public enum E { }").VerifyDiagnostics(
                 // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial public enum E { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1),
-                // (1,21): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                // partial public enum E { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(1, 21));
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
         }
     }
 }

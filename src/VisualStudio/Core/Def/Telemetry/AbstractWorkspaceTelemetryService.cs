@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -17,13 +19,26 @@ internal abstract class AbstractWorkspaceTelemetryService : IWorkspaceTelemetryS
 {
     public TelemetrySession? CurrentSession { get; private set; }
 
-    protected abstract ILogger CreateLogger(TelemetrySession telemetrySession, bool logDelta);
+    /// <summary>
+    /// Everything this service registered or owns, in the order it must be torn down: sink
+    /// registrations first, then the sinks themselves.
+    /// </summary>
+    private ImmutableArray<IDisposable> _registrations = [];
+
+    protected abstract ImmutableArray<IEventSink> CreateEventSinks(TelemetrySession telemetrySession, bool logDelta);
 
     public void InitializeTelemetrySession(TelemetrySession telemetrySession, bool logDelta)
     {
         Contract.ThrowIfFalse(CurrentSession is null);
 
-        Logger.SetLogger(CreateLogger(telemetrySession, logDelta));
+        var metricSink = new VSMetricSink(telemetrySession);
+        _registrations =
+        [
+            .. CreateEventSinks(telemetrySession, logDelta).SelectAsArray(RoslynTelemetry.AddEventSink),
+            RoslynTelemetry.AddMetricSink(metricSink),
+            metricSink,
+        ];
+
         FaultReporter.RegisterTelemetrySesssion(telemetrySession);
 
         CurrentSession = telemetrySession;
@@ -55,6 +70,11 @@ internal abstract class AbstractWorkspaceTelemetryService : IWorkspaceTelemetryS
     {
         // Ensure any aggregate telemetry is flushed when the catalog is destroyed.
         // It is fine for this to be called multiple times - if telemetry has already been flushed this will no-op.
-        TelemetryLogging.Flush();
+        RoslynTelemetry.Flush();
+
+        foreach (var registration in _registrations)
+            registration.Dispose();
+
+        _registrations = [];
     }
 }

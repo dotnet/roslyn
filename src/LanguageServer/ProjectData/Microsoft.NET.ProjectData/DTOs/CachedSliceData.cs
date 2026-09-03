@@ -21,7 +21,7 @@ public sealed record CachedSliceData
 	public required ImmutableArray<string> AnalyzerConfigFiles { get; init; }
 	public required ImmutableArray<string> AdditionalFiles { get; init; }
 	public ImmutableArray<CachedEmbeddedResource> EmbeddedResources { get; init; } = [];
-	public required ImmutableArray<string> ProjectReferences { get; init; }
+	public required ImmutableArray<CachedProjectReference> ProjectReferences { get; init; }
 	public required ImmutableArray<string> Capabilities { get; init; }
 	public required ImmutableDictionary<string, string> Properties { get; init; }
 	public bool IsPrimary { get; init; }
