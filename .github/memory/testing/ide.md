@@ -35,3 +35,9 @@ public class MyTests
   test source code.
 - Keep tests focused — avoid unnecessary intermediary assertions; use `.Single()`
   rather than asserting a count then indexing.
+
+## Language Server daemon tests
+
+- `AbstractLanguageServerHostTests.CreateDaemonServerAsync` runs the real multi-client connection manager and named-pipe listener in process. Each connected test client exposes its server's `LspServices`.
+- The harness creates isolated daemon and per-server telemetry owners. Tests that require a real `TelemetrySession` must supply an explicit DevKit telemetry level; the harness does not inherit `COPILOT_TELEMETRY_LEVEL`.
+- Thin-client argument parsing coverage lives in `Microsoft.CodeAnalysis.LanguageServer.UnitTests/Daemon/ThinClientArgumentsTests.cs`; the test project source-links the production parser.

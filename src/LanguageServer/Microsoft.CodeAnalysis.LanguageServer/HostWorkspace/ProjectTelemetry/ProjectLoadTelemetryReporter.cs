@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
@@ -15,19 +15,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 [ExportCSharpVisualBasicLspServiceFactory(typeof(ProjectLoadTelemetryReporter)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class ProjectLoadTelemetryReporterFactory(ServerConfiguration serverConfiguration) : ILspServiceFactory
+internal sealed class ProjectLoadTelemetryReporterFactory() : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
-        return new ProjectLoadTelemetryReporter(lspServices.GetRequiredService<IClientLanguageServerManager>(), lspServices.GetRequiredService<ILoggerFactory>(), serverConfiguration);
+        return new ProjectLoadTelemetryReporter(
+            lspServices.GetRequiredService<IClientLanguageServerManager>(),
+            lspServices.GetRequiredService<ILoggerFactory>(),
+            lspServices.GetRequiredService<ILanguageServerTelemetry>());
     }
 }
 
-internal sealed class ProjectLoadTelemetryReporter(IClientLanguageServerManager clientLanguageServerManager, ILoggerFactory loggerFactory, ServerConfiguration serverConfiguration) : ILspService
+internal sealed class ProjectLoadTelemetryReporter(
+    IClientLanguageServerManager clientLanguageServerManager,
+    ILoggerFactory loggerFactory,
+    ILanguageServerTelemetry telemetry) : ILspService
 {
-    private static readonly string s_hashedSessionId = VsTfmAndFileExtHashingAlgorithm.HashInput(Guid.NewGuid().ToString());
-
     private readonly ILogger _logger = loggerFactory.CreateLogger<ProjectLoadTelemetryReporter>();
+    private readonly string _hashedSessionId = VsTfmAndFileExtHashingAlgorithm.HashInput(telemetry.SessionId ?? string.Empty);
 
     public sealed record TelemetryInfo
     {
@@ -49,7 +54,7 @@ internal sealed class ProjectLoadTelemetryReporter(IClientLanguageServerManager 
     {
         try
         {
-            if (serverConfiguration.TelemetryLevel is null or "off")
+            if (telemetry.TelemetryLevel is null or "off")
             {
                 return;
             }
@@ -82,7 +87,7 @@ internal sealed class ProjectLoadTelemetryReporter(IClientLanguageServerManager 
 
             var projectEvent = new ProjectLoadTelemetryEvent(
                 ProjectId: projectId,
-                SessionId: s_hashedSessionId,
+                SessionId: _hashedSessionId,
                 OutputKind: (int)telemetryInfo.OutputKind,
                 ProjectCapabilities: projectCapabilities,
                 TargetFrameworks: targetFrameworks,

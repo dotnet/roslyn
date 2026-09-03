@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.BrokeredServiceBridgeManifest;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.Extensions.Logging;
@@ -24,7 +25,11 @@ internal sealed class ServiceBrokerFactory : ILspService
     private class ServiceBrokerFactoryFactory(ExportProvider exportProvider) : ILspServiceFactory
     {
         public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-            => new ServiceBrokerFactory(lspServices.GetRequiredServices<IServiceBrokerInitializer>(), exportProvider, lspServices.GetRequiredService<ILoggerFactory>());
+            => new ServiceBrokerFactory(
+                lspServices.GetRequiredServices<IServiceBrokerInitializer>(),
+                exportProvider,
+                lspServices.GetRequiredService<ILoggerFactory>(),
+                lspServices.GetRequiredService<RoslynTelemetry>());
     }
 
     private readonly ExportProvider _exportProvider;
@@ -32,16 +37,19 @@ internal sealed class ServiceBrokerFactory : ILspService
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly ImmutableArray<IServiceBrokerInitializer> _serviceBrokerInitializers;
     private readonly ILoggerFactory _loggerFactory;
+    private readonly RoslynTelemetry _telemetry;
 
     public ServiceBrokerFactory(
         IEnumerable<IServiceBrokerInitializer> onServiceBrokerInitialized,
         ExportProvider exportProvider,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        RoslynTelemetry telemetry)
     {
         _exportProvider = exportProvider;
         _loggerFactory = loggerFactory;
         _bridgeCompletionTask = Task.CompletedTask;
         _serviceBrokerInitializers = [.. onServiceBrokerInitialized];
+        _telemetry = telemetry;
     }
 
     /// <summary>
@@ -49,10 +57,12 @@ internal sealed class ServiceBrokerFactory : ILspService
     /// </summary>
     public async Task<BrokeredServiceContainer> CreateAsync(Workspace workspace)
     {
+        using var _ = RoslynTelemetry.SetCurrent(_telemetry);
+
         var container = await BrokeredServiceContainer.CreateAsync(_exportProvider, _serviceBrokerInitializers, _loggerFactory, _cancellationTokenSource.Token);
 
         // Proffer the manifest service that describes the services proffered by this process across the bridge, so the other side can know what services to expect.
-        ProfferBridgeManifest(container, _loggerFactory);
+        ProfferBridgeManifest(container, _loggerFactory, _telemetry);
 
         // Make the container available to workspace services.
         var provider = (ServiceBrokerProvider)workspace.Services.GetRequiredService<IServiceBrokerProvider>();
@@ -71,7 +81,7 @@ internal sealed class ServiceBrokerFactory : ILspService
 
         return container;
 
-        static void ProfferBridgeManifest(BrokeredServiceContainer container, ILoggerFactory loggerFactory)
+        static void ProfferBridgeManifest(BrokeredServiceContainer container, ILoggerFactory loggerFactory, RoslynTelemetry telemetry)
         {
             container.RegisterServices(new Dictionary<ServiceMoniker, ServiceRegistration>
             {
@@ -81,6 +91,7 @@ internal sealed class ServiceBrokerFactory : ILspService
                 BrokeredServiceBridgeManifest.ServiceDescriptor,
                 (moniker, options, innerServiceBroker, cancellationToken) =>
                 {
+                    using var _ = RoslynTelemetry.SetCurrent(telemetry);
                     var bridgeManifestService = new BrokeredServiceBridgeManifest(container, loggerFactory);
                     return new ValueTask<object?>(bridgeManifestService);
                 });
@@ -89,14 +100,19 @@ internal sealed class ServiceBrokerFactory : ILspService
 
     public async Task CreateAndConnectAsync(string brokeredServicePipeName, Workspace workspace)
     {
+        using var _ = RoslynTelemetry.SetCurrent(_telemetry);
+
         var container = await CreateAsync(workspace);
 
         var bridgeProvider = _exportProvider.GetExportedValue<BrokeredServiceBridgeProvider>();
-        _bridgeCompletionTask = bridgeProvider.SetupBrokeredServicesBridgeAsync(brokeredServicePipeName, container, _loggerFactory, _cancellationTokenSource.Token);
+        _bridgeCompletionTask = bridgeProvider.SetupBrokeredServicesBridgeAsync(
+            brokeredServicePipeName, container, _loggerFactory, _telemetry, _cancellationTokenSource.Token);
     }
 
     public async Task ShutdownAndWaitForCompletionAsync()
     {
+        using var _ = RoslynTelemetry.SetCurrent(_telemetry);
+
         _cancellationTokenSource.Cancel();
 
         // Await the task we created when we created the bridge; if we never started it in the first place, we'll just return the

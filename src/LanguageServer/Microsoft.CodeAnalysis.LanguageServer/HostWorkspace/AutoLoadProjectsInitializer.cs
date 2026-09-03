@@ -6,6 +6,7 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -27,14 +28,16 @@ internal sealed class AutoLoadProjectsInitializerFactory(
             lspServices.GetRequiredService<LanguageServerProjectSystem>(),
             lspServices.GetRequiredService<ILoggerFactory>(),
             serverConfiguration,
-            globalOptionService);
+            globalOptionService,
+            lspServices.GetRequiredService<RoslynTelemetry>());
 }
 
 internal sealed class AutoLoadProjectsInitializer(
     LanguageServerProjectSystem projectSystem,
     ILoggerFactory loggerFactory,
     ServerConfiguration serverConfiguration,
-    IGlobalOptionService globalOptionService) : ILspService, IOnInitialized
+    IGlobalOptionService globalOptionService,
+    RoslynTelemetry telemetry) : ILspService, IOnInitialized
 {
     private static readonly EnumerationOptions s_recursiveEnumerationOptions = new() { RecurseSubdirectories = true, IgnoreInaccessible = true };
     private readonly ILogger _logger = loggerFactory.CreateLogger<AutoLoadProjectsInitializer>();
@@ -154,6 +157,8 @@ internal sealed class AutoLoadProjectsInitializer(
             // ...but we'll fire-and-forget for the actual loading. Pass CancellationToken.None since we want to ensure the progressReporter is always disposed.
             Task.Run(async () =>
                 {
+                    using var _ = RoslynTelemetry.SetCurrent(telemetry);
+
                     try
                     {
                         await loadOperation(progressReporter);

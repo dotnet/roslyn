@@ -6,7 +6,9 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.ServiceHub.Framework;
@@ -45,11 +47,16 @@ internal sealed class DevKitProjectLoadingServiceContributor(
             WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor,
             async (moniker, options, innerServiceBroker, cancellationToken) =>
             {
+                var telemetry = lspServices.GetRequiredService<RoslynTelemetry>();
+                using var _ = RoslynTelemetry.SetCurrent(telemetry);
                 var workspaceFactory = lspServices.GetRequiredService<LanguageServerWorkspaceFactory>();
                 var targetFrameworkManager = lspServices.GetRequiredService<ProjectTargetFrameworkManager>();
                 var clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
-                var projectInitializationHandler = new ProjectInitializationHandler(clientLanguageServerManager, innerServiceBroker, loggerFactory);
-                var service = new WorkspaceProjectFactoryService(workspaceFactory, targetFrameworkManager, projectInitializationHandler, loggerFactory);
+                var requestTelemetryLogger = (VSCodeRequestTelemetryLogger)lspServices.GetRequiredService<RequestTelemetryLogger>();
+                var projectInitializationHandler = new ProjectInitializationHandler(
+                    clientLanguageServerManager, innerServiceBroker, loggerFactory, requestTelemetryLogger, telemetry);
+                var service = new WorkspaceProjectFactoryService(
+                    workspaceFactory, targetFrameworkManager, projectInitializationHandler, loggerFactory, requestTelemetryLogger, telemetry);
                 await service.InitializeAsync(cancellationToken);
                 return service;
             });
