@@ -166,6 +166,7 @@ internal partial class CSharpFormattingPass
             private readonly bool _insertSpaces = options.InsertSpaces;
             private readonly int _tabSize = options.TabSize;
             private readonly AttributeIndentStyle _attributeIndentStyle = options.AttributeIndentStyle;
+            private readonly bool _ignoreIndentationInScriptOrStyleBlocksWithComplexRazor = options.IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor;
             private readonly CSharpSyntaxFormattingOptions _csharpSyntaxFormattingOptions = options.CSharpSyntaxFormattingOptions;
             private readonly StringBuilder _builder = builder;
             private readonly ImmutableArray<LineInfo>.Builder _lineInfoBuilder = lineInfoBuilder;
@@ -187,13 +188,12 @@ internal partial class CSharpFormattingPass
             /// </remarks>
             private int? _honourHtmlFormattingUntilLine;
             /// <summary>
-            /// The line number of the last line of a block where formatting should be completely ignored
+            /// The line number of the last line of a block where C# formatting should be ignored
             /// </summary>
             /// <remarks>
-            /// Some Html constructs, namely &lt;textarea&gt; and &lt;pre&gt;, should not be formatted at all, and we essentially
-            /// need to treat them as multiline Razor comments. This field is used to track the line number of the last line of such
-            /// an element, so we can ignore every line in it without having to do lots of tree traversal to check "are we parented
-            /// by a pre tag" etc.
+            /// Some Html constructs, such as &lt;textarea&gt; and &lt;pre&gt;, should not be formatted. Script/style bodies with
+            /// complex Razor use this to preserve the indentation from the input to this pass after Html formatting has run.
+            /// This field tracks the last ignored line so we can avoid repeatedly traversing the syntax tree.
             /// </remarks>
             private int? _ignoreUntilLine;
 
@@ -214,8 +214,6 @@ internal partial class CSharpFormattingPass
                         _currentToken = root.FindToken(firstNonWhitespacePosition);
 
                         var length = _builder.Length;
-                        _lineInfoBuilder.Add(Visit(_currentToken.Parent));
-                        Debug.Assert(_builder.Length > length, "Didn't output any generated code!");
 
                         // If there are C# mappings on this line, we want to output additional lines that represent the C# blocks.
                         while (iMapping < sourceMappings.Length)
@@ -231,7 +229,8 @@ internal partial class CSharpFormattingPass
                                 // We've found a span mapping that means there is some C# on this line, so if its an explicit or implicit expression
                                 // we need to format it, but separately to the rest of the document.
                                 var node = root.FindInnermostNode(originalSpan.AbsoluteIndex);
-                                if (node is CSharpExpressionLiteralSyntax)
+                                if (_ignoreUntilLine is null &&
+                                    node is CSharpExpressionLiteralSyntax)
                                 {
                                     AddAdditionalLineFormattingContent(additionalLinesBuilder, node, originalSpan);
                                 }
@@ -243,6 +242,9 @@ internal partial class CSharpFormattingPass
                                 break;
                             }
                         }
+
+                        _lineInfoBuilder.Add(Visit(_currentToken.Parent));
+                        Debug.Assert(_builder.Length > length, "Didn't output any generated code!");
                     }
                     else if (_documentMappingService.IsInStringLiteral(_codeDocument, _csharpSyntaxRoot, _declSyntaxRoot, line.Start, multilineOnly: false))
                     {
@@ -682,7 +684,18 @@ internal partial class CSharpFormattingPass
                     var honouredEndLine = GetLineNumber(closeAngle) - 1;
                     if (honouredEndLine > _currentLine.LineNumber)
                     {
-                        _honourHtmlFormattingUntilLine = honouredEndLine;
+                        if (_ignoreIndentationInScriptOrStyleBlocksWithComplexRazor &&
+                            RazorSyntaxFacts.ContainsComplexRazorInScriptOrStyleBody(node.ParentElement, _sourceText))
+                        {
+                            if (GetLineNumber(node.CloseAngle) == _currentLine.LineNumber)
+                            {
+                                _ignoreUntilLine = GetElementBodyEndLine(node);
+                            }
+                        }
+                        else
+                        {
+                            _honourHtmlFormattingUntilLine = honouredEndLine;
+                        }
                     }
                 }
 
@@ -858,11 +871,37 @@ internal partial class CSharpFormattingPass
                         // If this is the last line of a tag that shouldn't be indented, honour that
                         _ignoreUntilLine = GetLineNumber(startTag.GetEndTag()?.CloseAngle ?? startTag.CloseAngle);
                     }
+                    else if (_ignoreIndentationInScriptOrStyleBlocksWithComplexRazor &&
+                        GetLineNumber(node) == GetLineNumber(startTag.CloseAngle) &&
+                        startTag.ParentElement is { } element &&
+                        RazorSyntaxFacts.IsScriptOrStyleBlock(element) &&
+                        RazorSyntaxFacts.ContainsComplexRazorInScriptOrStyleBody(element, _sourceText))
+                    {
+                        // A multiline start tag reaches this path on its final attribute line. Start ignoring after that so
+                        // only the body keeps its indentation; otherwise the start tag's continuation lines would be ignored too.
+                        var ignoredEndLine = GetElementBodyEndLine(startTag);
+                        if (ignoredEndLine > _currentLine.LineNumber)
+                        {
+                            _ignoreUntilLine = ignoredEndLine;
+                        }
+                    }
 
                     return EmitCurrentLineAsComment(htmlIndentLevel: htmlIndentLevel, additionalIndentation: additionalIndentation);
                 }
 
                 return null;
+            }
+
+            private int GetElementBodyEndLine(BaseMarkupStartTagSyntax startTag)
+            {
+                var endTag = startTag.GetEndTag();
+                Debug.Assert(endTag is not null);
+
+                var endTagLine = _sourceText.Lines.GetLineFromPosition(endTag.SpanStart);
+                // Exclude a line containing only the end tag, but include it when body content appears before the end tag.
+                return endTagLine.GetFirstNonWhitespacePosition() == endTag.SpanStart
+                    ? endTagLine.LineNumber - 1
+                    : endTagLine.LineNumber;
             }
 
             private LineInfo EmitCollectionExpressionAssignmentLine(int htmlIndentLevel = 0, int? additionalIndentation = null)
@@ -1361,7 +1400,8 @@ internal partial class CSharpFormattingPass
 
             private LineInfo EmitCurrentLineWithNoFormatting()
             {
-                _builder.AppendLine();
+                // Keep ignored nonblank lines distinguishable from actual blank lines when mapping the formatted document back.
+                _builder.AppendLine("//");
                 return CreateLineInfo(processIndentation: false);
             }
 
