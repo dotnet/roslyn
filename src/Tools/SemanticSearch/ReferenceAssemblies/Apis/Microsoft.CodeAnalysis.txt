@@ -1277,6 +1277,7 @@ Microsoft.CodeAnalysis.IModuleSymbol
 Microsoft.CodeAnalysis.IModuleSymbol.GetMetadata
 Microsoft.CodeAnalysis.IModuleSymbol.GetModuleNamespace(Microsoft.CodeAnalysis.INamespaceSymbol)
 Microsoft.CodeAnalysis.IModuleSymbol.get_GlobalNamespace
+Microsoft.CodeAnalysis.IModuleSymbol.get_MemorySafetyRulesVersion
 Microsoft.CodeAnalysis.IModuleSymbol.get_ReferencedAssemblies
 Microsoft.CodeAnalysis.IModuleSymbol.get_ReferencedAssemblySymbols
 Microsoft.CodeAnalysis.INamedTypeSymbol
@@ -1311,6 +1312,7 @@ Microsoft.CodeAnalysis.INamedTypeSymbol.get_TupleElements
 Microsoft.CodeAnalysis.INamedTypeSymbol.get_TupleUnderlyingType
 Microsoft.CodeAnalysis.INamedTypeSymbol.get_TypeArgumentNullableAnnotations
 Microsoft.CodeAnalysis.INamedTypeSymbol.get_TypeArguments
+Microsoft.CodeAnalysis.INamedTypeSymbol.get_TypeLayout
 Microsoft.CodeAnalysis.INamedTypeSymbol.get_TypeParameters
 Microsoft.CodeAnalysis.INamespaceOrTypeSymbol
 Microsoft.CodeAnalysis.INamespaceOrTypeSymbol.GetMembers
@@ -1451,7 +1453,7 @@ Microsoft.CodeAnalysis.ISymbol.get_MetadataName
 Microsoft.CodeAnalysis.ISymbol.get_MetadataToken
 Microsoft.CodeAnalysis.ISymbol.get_Name
 Microsoft.CodeAnalysis.ISymbol.get_OriginalDefinition
-Microsoft.CodeAnalysis.ISymbol.get_RequiresUnsafe
+Microsoft.CodeAnalysis.ISymbol.get_RequiresUnsafeContext
 Microsoft.CodeAnalysis.ISymbolExtensions
 Microsoft.CodeAnalysis.ISymbolExtensions.GetConstructedReducedFrom(Microsoft.CodeAnalysis.IMethodSymbol)
 Microsoft.CodeAnalysis.ISyntaxContextReceiver
@@ -1635,6 +1637,10 @@ Microsoft.CodeAnalysis.LocationKind.None
 Microsoft.CodeAnalysis.LocationKind.SourceFile
 Microsoft.CodeAnalysis.LocationKind.XmlFile
 Microsoft.CodeAnalysis.LocationKind.value__
+Microsoft.CodeAnalysis.MemorySafetyRulesVersion
+Microsoft.CodeAnalysis.MemorySafetyRulesVersion.Version1
+Microsoft.CodeAnalysis.MemorySafetyRulesVersion.Version2
+Microsoft.CodeAnalysis.MemorySafetyRulesVersion.value__
 Microsoft.CodeAnalysis.Metadata
 Microsoft.CodeAnalysis.Metadata.CommonCopy
 Microsoft.CodeAnalysis.Metadata.Copy
@@ -4003,6 +4009,15 @@ Microsoft.CodeAnalysis.TypeKind.Submission
 Microsoft.CodeAnalysis.TypeKind.TypeParameter
 Microsoft.CodeAnalysis.TypeKind.Unknown
 Microsoft.CodeAnalysis.TypeKind.value__
+Microsoft.CodeAnalysis.TypeLayout
+Microsoft.CodeAnalysis.TypeLayout.Equals(Microsoft.CodeAnalysis.TypeLayout)
+Microsoft.CodeAnalysis.TypeLayout.Equals(System.Object)
+Microsoft.CodeAnalysis.TypeLayout.GetHashCode
+Microsoft.CodeAnalysis.TypeLayout.get_Kind
+Microsoft.CodeAnalysis.TypeLayout.get_PackingSize
+Microsoft.CodeAnalysis.TypeLayout.get_Size
+Microsoft.CodeAnalysis.TypeLayout.op_Equality(Microsoft.CodeAnalysis.TypeLayout,Microsoft.CodeAnalysis.TypeLayout)
+Microsoft.CodeAnalysis.TypeLayout.op_Inequality(Microsoft.CodeAnalysis.TypeLayout,Microsoft.CodeAnalysis.TypeLayout)
 Microsoft.CodeAnalysis.TypeParameterKind
 Microsoft.CodeAnalysis.TypeParameterKind.Cref
 Microsoft.CodeAnalysis.TypeParameterKind.Method

@@ -72,18 +72,12 @@ internal static class SolutionExtensions
         return result is not null;
     }
 
-    public static Document GetRequiredDocument(this Solution solution, DocumentId documentId)
-    {
-        return solution.GetDocument(documentId)
-            ?? ThrowHelper.ThrowInvalidOperationException<Document>($"The document {documentId} did not exist in {solution.FilePath ?? "solution"}.");
-    }
-
     public static bool TryGetSourceGeneratedDocumentIdentity(this Solution solution, DocumentUri generatedDocumentUri, out SourceGeneratedDocumentIdentity identity)
     {
         identity = default;
 
         // Generated document Uris are computed by Roslyn so should always be parsable
-        if (generatedDocumentUri.ParsedUri is not { } parsedUri)
+        if (generatedDocumentUri.ParsedDocumentUri is not { } parsedUri)
         {
             return false;
         }

@@ -68,6 +68,7 @@ Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext.ClientCapabilities.get -> Roslyn.LanguageServer.Protocol.ClientCapabilities!
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext.ClientCapabilityProvider.get -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.IClientCapabilityProvider!
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext.FromCachedResolveData(object? lspData) -> (object? data, System.Uri? uri)
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext.GetTextDocumentAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.TextDocument?>
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext.TextDocument.get -> Microsoft.CodeAnalysis.TextDocument?
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext.ToCachedResolveData(object! data, System.Uri! uri) -> object!
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext.XamlRequestContext() -> void

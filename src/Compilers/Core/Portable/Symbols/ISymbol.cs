@@ -159,13 +159,13 @@ namespace Microsoft.CodeAnalysis
         bool IsImplicitlyDeclared { get; }
 
         /// <summary>
-        /// Whether this symbol is considered requires-<see langword="unsafe"/> under the updated memory safety rules,
-        /// i.e., the symbol requires an <see langword="unsafe"/> context at its use site.
-        /// This can be either a symbol compiled with the updated memory safety rules which has <see langword="unsafe"/> in its signature,
-        /// or a symbol compiled with the legacy memory safety rules which has pointers in its signature.
+        /// Whether this symbol is considered requires-unsafe, i.e., the symbol requires an <see langword="unsafe"/> context at its use site.
+        /// The value of this property depends on the containing module's <see cref="IModuleSymbol.MemorySafetyRulesVersion"/>.
+        /// Under <see cref="MemorySafetyRulesVersion.Version1"/>, symbols with pointers in their signature are considered requires-unsafe.
+        /// Under <see cref="MemorySafetyRulesVersion.Version2"/>, symbols marked <see langword="unsafe"/> are considered requires-unsafe.
         /// </summary>
         [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/82789")]
-        bool RequiresUnsafe { get; }
+        bool RequiresUnsafeContext { get; }
 
         /// <summary>
         /// Returns true if this symbol can be referenced by its name in code.

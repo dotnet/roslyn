@@ -34,7 +34,7 @@ try {
 
   if ($bootstrap) {
     Write-Host "Building Roslyn"
-    & eng/build.ps1 -restore -build -bootstrap -prepareMachine:$prepareMachine -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog /p:RoslynCompilerType=Framework
+    & eng/build.ps1 -restore -build -bootstrap -prepareMachine:$prepareMachine -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog
     Test-LastExitCode
   }
 
@@ -61,6 +61,11 @@ try {
   " --exclude net472\Roslyn.VisualStudio.DiagnosticsWindow.dll" +
   # Match Roslyn's existing WindowsDesktop VS package exclusions, which still rebuild with output differences.
   " --exclude net472\Microsoft.VisualStudio.RazorExtension.dll" +
+  # BuildValidator cannot reliably replay Roslyn SDK WindowsDesktop VS extension builds because
+  # WindowsDesktop references are available from multiple target packs.
+  " --exclude net472\Roslyn.ComponentDebugger.dll" +
+  " --exclude net472\Roslyn.SyntaxVisualizer.Control.dll" +
+  " --exclude net472\Roslyn.SyntaxVisualizer.Extension.dll" +
 
 # Rebuilds with compilation errors
 # Rebuilds with missing references
@@ -92,7 +97,7 @@ try {
   " --sourcePath `"$RepoRoot/`"" +
   " --referencesPath `"$ArtifactsDir/bin`"" +
   " --referencesPath `"$dotnetInstallDir/packs`"")
-  Exec-Command "$ArtifactsDir/bin/BuildValidator/$configuration/net472/BuildValidator.exe" $rebuildArgs
+  Exec-Command "$ArtifactsDir/bin/BuildValidator/$configuration/net10.0/BuildValidator.exe" $rebuildArgs
 
   exit 0
 }

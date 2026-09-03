@@ -2342,29 +2342,29 @@ class Program
 }
 ");
 
-            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue FalseTrueFalse TrueFalseFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (47,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (47,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is 10;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(47, 21),
-                // (52,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "10").WithArguments("unions", "15.0").WithLocation(47, 21),
+                // (52,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is 10 or 11;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(52, 21),
-                // (52,27): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "10").WithArguments("unions", "15.0").WithLocation(52, 21),
+                // (52,27): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is 10 or 11;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "11").WithArguments("unions").WithLocation(52, 27),
-                // (57,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "11").WithArguments("unions", "15.0").WithLocation(52, 27),
+                // (57,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is "11" and ['1', '1'];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""11""").WithArguments("unions").WithLocation(57, 21),
-                // (62,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, @"""11""").WithArguments("unions", "15.0").WithLocation(57, 21),
+                // (62,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "null").WithArguments("unions").WithLocation(62, 21),
-                // (67,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "null").WithArguments("unions", "15.0").WithLocation(62, 21),
+                // (67,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is 10;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(67, 21)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "10").WithArguments("unions", "15.0").WithLocation(67, 21)
                 );
         }
 
@@ -2511,19 +2511,17 @@ class Program
             verifier.VerifyIL("Program.Test2", @"
 {
   // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000e
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""object C1.Value.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  br.s       IL_000f
+  IL_000e:  ldc.i4.0
   IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
+  IL_0010:  ceq
   IL_0012:  ret
 }
 ");
@@ -2531,24 +2529,22 @@ class Program
             verifier.VerifyIL("Program.Test1", @"
 {
   // Code size       34 (0x22)
-  .maxstack  1
-  .locals init (S1 V_0,
-                bool V_1)
+  .maxstack  2
+  .locals init (S1 V_0)
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""bool S1?.HasValue.get""
-  IL_0007:  brfalse.s  IL_001a
+  IL_0007:  brfalse.s  IL_001d
   IL_0009:  ldarga.s   V_0
   IL_000b:  call       ""S1 S1?.GetValueOrDefault()""
   IL_0010:  stloc.0
   IL_0011:  ldloca.s   V_0
   IL_0013:  call       ""object S1.Value.get""
-  IL_0018:  brtrue.s   IL_001e
-  IL_001a:  ldc.i4.1
-  IL_001b:  stloc.1
-  IL_001c:  br.s       IL_0020
+  IL_0018:  ldnull
+  IL_0019:  cgt.un
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldc.i4.0
   IL_001e:  ldc.i4.0
-  IL_001f:  stloc.1
-  IL_0020:  ldloc.1
+  IL_001f:  ceq
   IL_0021:  ret
 }
 ");
@@ -2807,14 +2803,14 @@ class Program
     }   
 }
 ";
-            comp = CreateCompilation([src2, UnionAttributeSource], options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src2, UnionAttributeSource], options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular15);
             comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation([src2, UnionAttributeSource], options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (17,16): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (17,16): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is _int_10;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "u is _int_10").WithArguments("unions").WithLocation(17, 16)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "u is _int_10").WithArguments("unions", "15.0").WithLocation(17, 16)
                 );
 
             comp = CreateCompilation([src2, UnionAttributeSource], options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular6);
@@ -3186,19 +3182,17 @@ class Program
 @"
 {
   // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000e
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""object S1.Value.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  br.s       IL_000f
+  IL_000e:  ldc.i4.0
   IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
+  IL_0010:  ceq
   IL_0012:  ret
 }
 ");
@@ -3394,7 +3388,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "B").WithLocation(58, 50)
                 );
 
-            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics(
                 // (58,50): warning CS9336: The pattern is redundant.
                 //         return u is S2<object> { Value: not A or B };
@@ -3403,18 +3397,18 @@ class Program
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (44,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (44,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is S2<int> { Value: 10 };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2<int> { Value: 10 }").WithArguments("unions").WithLocation(44, 21),
-                // (49,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "S2<int> { Value: 10 }").WithArguments("unions", "15.0").WithLocation(44, 21),
+                // (49,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is S2<int> { Value: 10 or 11 };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2<int> { Value: 10 or 11 }").WithArguments("unions").WithLocation(49, 21),
-                // (54,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "S2<int> { Value: 10 or 11 }").WithArguments("unions", "15.0").WithLocation(49, 21),
+                // (54,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is S2<string> { Value: "11" } and { Value: ['1', '1'] };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"S2<string> { Value: ""11"" }").WithArguments("unions").WithLocation(54, 21),
-                // (58,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, @"S2<string> { Value: ""11"" }").WithArguments("unions", "15.0").WithLocation(54, 21),
+                // (58,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is S2<object> { Value: not A or B };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2<object> { Value: not A or B }").WithArguments("unions").WithLocation(58, 21),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "S2<object> { Value: not A or B }").WithArguments("unions", "15.0").WithLocation(58, 21),
                 // (58,50): warning CS9336: The pattern is redundant.
                 //         return u is S2<object> { Value: not A or B };
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "B").WithLocation(58, 50)
@@ -3497,7 +3491,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "B").WithLocation(58, 50)
                 );
 
-            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrueFalse FalseFalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics(
                 // (58,50): warning CS9336: The pattern is redundant.
                 //         return u is S2<object> { Value: not A or B };
@@ -3506,18 +3500,18 @@ class Program
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (47,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (47,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is S2<int> { Value: 10 };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2<int> { Value: 10 }").WithArguments("unions").WithLocation(47, 21),
-                // (52,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "S2<int> { Value: 10 }").WithArguments("unions", "15.0").WithLocation(47, 21),
+                // (52,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is S2<int> { Value: 10 or 11 };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2<int> { Value: 10 or 11 }").WithArguments("unions").WithLocation(52, 21),
-                // (57,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "S2<int> { Value: 10 or 11 }").WithArguments("unions", "15.0").WithLocation(52, 21),
+                // (57,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is S2<string> { Value: "11" } and { Value: ['1', '1'] };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"S2<string> { Value: ""11"" }").WithArguments("unions").WithLocation(57, 21),
-                // (58,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, @"S2<string> { Value: ""11"" }").WithArguments("unions", "15.0").WithLocation(57, 21),
+                // (58,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is S2<object> { Value: not A or B };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2<object> { Value: not A or B }").WithArguments("unions").WithLocation(58, 21),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "S2<object> { Value: not A or B }").WithArguments("unions", "15.0").WithLocation(58, 21),
                 // (58,50): warning CS9336: The pattern is redundant.
                 //         return u is S2<object> { Value: not A or B };
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "B").WithLocation(58, 50)
@@ -3729,20 +3723,20 @@ class Program
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (50,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (50,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is S2<int> (10, _);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2<int> (10, _)").WithArguments("unions").WithLocation(50, 21),
-                // (55,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "S2<int> (10, _)").WithArguments("unions", "15.0").WithLocation(50, 21),
+                // (55,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is S2<int> (10 or 11, _);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2<int> (10 or 11, _)").WithArguments("unions").WithLocation(55, 21),
-                // (60,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "S2<int> (10 or 11, _)").WithArguments("unions", "15.0").WithLocation(55, 21),
+                // (60,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is S2<string> ("11", _) and (['1', '1'], _);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"S2<string> (""11"", _)").WithArguments("unions").WithLocation(60, 21)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, @"S2<string> (""11"", _)").WithArguments("unions", "15.0").WithLocation(60, 21)
                 );
         }
 
@@ -3818,20 +3812,20 @@ class Program
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrueFalse FalseFalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrueFalse FalseFalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (53,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (53,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is S2<int> (10, _);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2<int> (10, _)").WithArguments("unions").WithLocation(53, 21),
-                // (58,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "S2<int> (10, _)").WithArguments("unions", "15.0").WithLocation(53, 21),
+                // (58,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is S2<int> (10 or 11, _);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2<int> (10 or 11, _)").WithArguments("unions").WithLocation(58, 21),
-                // (63,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "S2<int> (10 or 11, _)").WithArguments("unions", "15.0").WithLocation(58, 21),
+                // (63,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is S2<string> ("11", _) and (['1', '1'], _);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"S2<string> (""11"", _)").WithArguments("unions").WithLocation(63, 21)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, @"S2<string> (""11"", _)").WithArguments("unions", "15.0").WithLocation(63, 21)
                 );
         }
 
@@ -3916,17 +3910,17 @@ class Program
   IL_0022:  ret
 }
 ");
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseTrue TrueFalseFalseTrueFalse").VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (29,16): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (29,16): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is int;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "u is int").WithArguments("unions").WithLocation(29, 16),
-                // (34,16): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "u is int").WithArguments("unions", "15.0").WithLocation(29, 16),
+                // (34,16): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is int;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "u is int").WithArguments("unions").WithLocation(34, 16)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "u is int").WithArguments("unions", "15.0").WithLocation(34, 16)
                 );
 
             comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular6);
@@ -3982,17 +3976,17 @@ class Program
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseTrue FalseFalseTrue" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseTrue FalseFalseTrue" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (28,27): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (28,27): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u switch { int => true, _ => false };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("unions").WithLocation(28, 27),
-                // (33,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "int").WithArguments("unions", "15.0").WithLocation(28, 27),
+                // (33,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is string and ['1', '1'];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "string").WithArguments("unions").WithLocation(33, 21)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "string").WithArguments("unions", "15.0").WithLocation(33, 21)
                 );
         }
 
@@ -4040,17 +4034,17 @@ class Program
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseTrueFalse FalseFalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseTrueFalse FalseFalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (30,27): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (30,27): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u switch { int => true, _ => false };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("unions").WithLocation(30, 27),
-                // (35,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "int").WithArguments("unions", "15.0").WithLocation(30, 27),
+                // (35,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is string and ['1', '1'];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "string").WithArguments("unions").WithLocation(35, 21)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "string").WithArguments("unions", "15.0").WithLocation(35, 21)
                 );
         }
 
@@ -4098,17 +4092,17 @@ class Program
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseTrue TrueFalseFalseFalseTrue").VerifyDiagnostics();
 
-            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseTrue TrueFalseFalseFalseTrue").VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (30,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (30,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is int x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int x").WithArguments("unions").WithLocation(30, 21),
-                // (35,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "int x").WithArguments("unions", "15.0").WithLocation(30, 21),
+                // (35,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is int x ? (x == 10 || x == 11) : false;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int x").WithArguments("unions").WithLocation(35, 21)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "int x").WithArguments("unions", "15.0").WithLocation(35, 21)
                 );
         }
 
@@ -4158,17 +4152,17 @@ class Program
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseTrueFalse TrueFalseFalseFalseTrueFalse").VerifyDiagnostics();
 
-            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseTrueFalse TrueFalseFalseFalseTrueFalse").VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (32,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (32,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is int x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int x").WithArguments("unions").WithLocation(32, 21),
-                // (37,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "int x").WithArguments("unions", "15.0").WithLocation(32, 21),
+                // (37,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is int x ? (x == 10 || x == 11) : false;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int x").WithArguments("unions").WithLocation(37, 21)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "int x").WithArguments("unions", "15.0").WithLocation(37, 21)
                 );
         }
 
@@ -4249,30 +4243,30 @@ class Program
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseTrueTrueTrue FalseTrueTrueTrueFalse TrueTrueFalse TrueFalseTrue FalseTrueTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics(
                 );
 
-            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseTrueTrueTrue FalseTrueTrueTrueFalse TrueTrueFalse TrueFalseTrue FalseTrueTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics(
                 );
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (46,25): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (46,25): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is not 10;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(46, 25),
-                // (51,26): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "10").WithArguments("unions", "15.0").WithLocation(46, 25),
+                // (51,26): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is not (10 or 11);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(51, 26),
-                // (51,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "10").WithArguments("unions", "15.0").WithLocation(51, 26),
+                // (51,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is not (10 or 11);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "11").WithArguments("unions").WithLocation(51, 32),
-                // (56,26): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "11").WithArguments("unions", "15.0").WithLocation(51, 32),
+                // (56,26): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is not ("11" and ['1', '1']);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""11""").WithArguments("unions").WithLocation(56, 26),
-                // (61,25): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, @"""11""").WithArguments("unions", "15.0").WithLocation(56, 26),
+                // (61,25): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is not null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "null").WithArguments("unions").WithLocation(61, 25),
-                // (66,34): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "null").WithArguments("unions", "15.0").WithLocation(61, 25),
+                // (66,34): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is not ({ } and int);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("unions").WithLocation(66, 34)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "int").WithArguments("unions", "15.0").WithLocation(66, 34)
                 );
         }
 
@@ -4356,29 +4350,29 @@ class Program
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseTrueTrueTrueTrue FalseTrueTrueTrueFalseTrue TrueTrueFalseTrue TrueFalseTrueFalse FalseTrueTrueFalseTrue" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseTrueTrueTrueTrue FalseTrueTrueTrueFalseTrue TrueTrueFalseTrue TrueFalseTrueFalse FalseTrueTrueFalseTrue" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (51,25): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (51,25): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is not 10;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(51, 25),
-                // (56,26): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "10").WithArguments("unions", "15.0").WithLocation(51, 25),
+                // (56,26): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is not (10 or 11);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(56, 26),
-                // (56,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "10").WithArguments("unions", "15.0").WithLocation(56, 26),
+                // (56,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is not (10 or 11);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "11").WithArguments("unions").WithLocation(56, 32),
-                // (61,26): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "11").WithArguments("unions", "15.0").WithLocation(56, 32),
+                // (61,26): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is not ("11" and ['1', '1']);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""11""").WithArguments("unions").WithLocation(61, 26),
-                // (66,25): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, @"""11""").WithArguments("unions", "15.0").WithLocation(61, 26),
+                // (66,25): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is not null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "null").WithArguments("unions").WithLocation(66, 25),
-                // (71,34): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "null").WithArguments("unions", "15.0").WithLocation(66, 25),
+                // (71,34): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is not ({ } and int);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("unions").WithLocation(71, 34)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "int").WithArguments("unions", "15.0").WithLocation(71, 34)
                 );
         }
 
@@ -4605,6 +4599,18 @@ struct S1
                 // (29,16): error CS0165: Use of unassigned local variable 'y'
                 //         return y;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(29, 16),
+
+                // https://github.com/dotnet/roslyn/issues/82636: The following diagnostics is somewhat confusing in these cases.
+                //            A type cannot be handled by the pattern of the same type.
+                //            Syntactially it is not obvious that we are doing a union matching.
+
+                // (44,26): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'S1'.
+                //         return u is not (S1 and int);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "S1").WithArguments("S1", "S1").WithLocation(44, 26),
+                // (49,26): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'S1'.
+                //         return u is not (S1 and int);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "S1").WithArguments("S1", "S1").WithLocation(49, 26),
+
                 // (100,16): error CS0165: Use of unassigned local variable 'y'
                 //         return y;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(100, 16)
@@ -4710,73 +4716,59 @@ class Program
 
             verifier.VerifyIL("Program.Test1", @"
 {
-  // Code size       37 (0x25)
+  // Code size       30 (0x1e)
   .maxstack  2
-  .locals init (S1 V_0,
-            bool V_1)
+  .locals init (S1 V_0)
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""bool S1?.HasValue.get""
-  IL_0007:  brfalse.s  IL_001a
+  IL_0007:  brfalse.s  IL_001c
   IL_0009:  ldarga.s   V_0
   IL_000b:  call       ""S1 S1?.GetValueOrDefault()""
   IL_0010:  stloc.0
   IL_0011:  ldloca.s   V_0
   IL_0013:  call       ""object S1.Value.get""
-  IL_0018:  brtrue.s   IL_001e
-  IL_001a:  ldc.i4.1
-  IL_001b:  stloc.1
-  IL_001c:  br.s       IL_0020
-  IL_001e:  ldc.i4.0
-  IL_001f:  stloc.1
-  IL_0020:  ldloc.1
-  IL_0021:  ldc.i4.0
-  IL_0022:  ceq
-  IL_0024:  ret
+  IL_0018:  ldnull
+  IL_0019:  cgt.un
+  IL_001b:  ret
+  IL_001c:  ldc.i4.0
+  IL_001d:  ret
 }
 ");
 
             verifier.VerifyIL("Program.Test2", @"
 {
-  // Code size       22 (0x16)
+  // Code size       15 (0xf)
   .maxstack  2
-  .locals init (bool V_0)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000d
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""object C1.Value.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ldc.i4.0
-  IL_0013:  ceq
-  IL_0015:  ret
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  ret
+  IL_000d:  ldc.i4.0
+  IL_000e:  ret
 }
 ");
             var test3 = @"
 {
   // Code size       34 (0x22)
-  .maxstack  1
-  .locals init (S1 V_0,
-            bool V_1)
+  .maxstack  2
+  .locals init (S1 V_0)
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""bool S1?.HasValue.get""
-  IL_0007:  brfalse.s  IL_001a
+  IL_0007:  brfalse.s  IL_001d
   IL_0009:  ldarga.s   V_0
   IL_000b:  call       ""S1 S1?.GetValueOrDefault()""
   IL_0010:  stloc.0
   IL_0011:  ldloca.s   V_0
   IL_0013:  call       ""object S1.Value.get""
-  IL_0018:  brtrue.s   IL_001e
-  IL_001a:  ldc.i4.1
-  IL_001b:  stloc.1
-  IL_001c:  br.s       IL_0020
+  IL_0018:  ldnull
+  IL_0019:  cgt.un
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldc.i4.0
   IL_001e:  ldc.i4.0
-  IL_001f:  stloc.1
-  IL_0020:  ldloc.1
+  IL_001f:  ceq
   IL_0021:  ret
 }
 ";
@@ -4784,19 +4776,17 @@ class Program
             var test4 = @"
 {
   // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000e
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""object C1.Value.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  br.s       IL_000f
+  IL_000e:  ldc.i4.0
   IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
+  IL_0010:  ceq
   IL_0012:  ret
 }
 ";
@@ -5061,23 +5051,23 @@ class Program
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalseTrueFalseFalseFalse TrueFalseTrueFalseFalseFalseFalse").VerifyDiagnostics();
 
-            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: "TrueFalseTrueFalseFalseFalse TrueFalseTrueFalseFalseFalseFalse").VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (33,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (33,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is 10 or "11";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(33, 21),
-                // (33,27): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "10").WithArguments("unions", "15.0").WithLocation(33, 21),
+                // (33,27): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is 10 or "11";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""11""").WithArguments("unions").WithLocation(33, 27),
-                // (38,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, @"""11""").WithArguments("unions", "15.0").WithLocation(33, 27),
+                // (38,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is 10 or "11";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(38, 21),
-                // (38,27): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "10").WithArguments("unions", "15.0").WithLocation(38, 21),
+                // (38,27): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is 10 or "11";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""11""").WithArguments("unions").WithLocation(38, 27)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, @"""11""").WithArguments("unions", "15.0").WithLocation(38, 27)
                 );
         }
 
@@ -5170,17 +5160,17 @@ class Program
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "System.Int32__ System.Int32___").VerifyDiagnostics();
 
-            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: "System.Int32__ System.Int32___").VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (27,18): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (27,18): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         if (u is 10 and var x)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(27, 18),
-                // (37,18): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "10").WithArguments("unions", "15.0").WithLocation(27, 18),
+                // (37,18): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         if (u is 10 and var x)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(37, 18)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "10").WithArguments("unions", "15.0").WithLocation(37, 18)
                 );
         }
 
@@ -5569,26 +5559,26 @@ class Program
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue FalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue FalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (40,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (40,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is (10);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(10)").WithArguments("unions").WithLocation(40, 21),
-                // (45,22): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "(10)").WithArguments("unions", "15.0").WithLocation(40, 21),
+                // (45,22): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is (10 or 11);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(45, 22),
-                // (45,28): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "10").WithArguments("unions", "15.0").WithLocation(45, 22),
+                // (45,28): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is (10 or 11);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "11").WithArguments("unions").WithLocation(45, 28),
-                // (50,22): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "11").WithArguments("unions", "15.0").WithLocation(45, 28),
+                // (50,22): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is ("11" and ['1', '1']);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""11""").WithArguments("unions").WithLocation(50, 22),
-                // (55,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, @"""11""").WithArguments("unions", "15.0").WithLocation(50, 22),
+                // (55,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is (null);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(null)").WithArguments("unions").WithLocation(55, 21)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "(null)").WithArguments("unions", "15.0").WithLocation(55, 21)
                 );
         }
 
@@ -5660,26 +5650,26 @@ class Program
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrueFalse FalseFalseTrueFalse FalseTrueFalseTrue" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrueFalse FalseFalseTrueFalse FalseTrueFalseTrue" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (44,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (44,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is (10);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(10)").WithArguments("unions").WithLocation(44, 21),
-                // (49,22): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "(10)").WithArguments("unions", "15.0").WithLocation(44, 21),
+                // (49,22): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is (10 or 11);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(49, 22),
-                // (49,28): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "10").WithArguments("unions", "15.0").WithLocation(49, 22),
+                // (49,28): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is (10 or 11);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "11").WithArguments("unions").WithLocation(49, 28),
-                // (54,22): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "11").WithArguments("unions", "15.0").WithLocation(49, 28),
+                // (54,22): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is ("11" and ['1', '1']);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""11""").WithArguments("unions").WithLocation(54, 22),
-                // (59,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, @"""11""").WithArguments("unions", "15.0").WithLocation(54, 22),
+                // (59,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is (null);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(null)").WithArguments("unions").WithLocation(59, 21)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "(null)").WithArguments("unions", "15.0").WithLocation(59, 21)
                 );
         }
 
@@ -5727,20 +5717,20 @@ class Program
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse FalseFalseFalseTrueTrue").VerifyDiagnostics();
 
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse FalseFalseFalseTrueTrue").VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (30,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (30,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is >=10;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">=10").WithArguments("unions").WithLocation(30, 21),
-                // (35,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, ">=10").WithArguments("unions", "15.0").WithLocation(30, 21),
+                // (35,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is <10 or 11;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "<10").WithArguments("unions").WithLocation(35, 21),
-                // (35,28): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "<10").WithArguments("unions", "15.0").WithLocation(35, 21),
+                // (35,28): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is <10 or 11;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "11").WithArguments("unions").WithLocation(35, 28)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "11").WithArguments("unions", "15.0").WithLocation(35, 28)
                 );
         }
 
@@ -5790,20 +5780,20 @@ class Program
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalse FalseFalseFalseTrueTrueFalse").VerifyDiagnostics();
 
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalse FalseFalseFalseTrueTrueFalse").VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (32,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (32,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is >=10;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">=10").WithArguments("unions").WithLocation(32, 21),
-                // (37,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, ">=10").WithArguments("unions", "15.0").WithLocation(32, 21),
+                // (37,21): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is <10 or 11;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "<10").WithArguments("unions").WithLocation(37, 21),
-                // (37,28): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "<10").WithArguments("unions", "15.0").WithLocation(37, 21),
+                // (37,28): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is <10 or 11;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "11").WithArguments("unions").WithLocation(37, 28)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "11").WithArguments("unions", "15.0").WithLocation(37, 28)
                 );
         }
 
@@ -5997,14 +5987,14 @@ class Program
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (31,22): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (31,22): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is [10, _];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(31, 22)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "10").WithArguments("unions", "15.0").WithLocation(31, 22)
                 );
         }
 
@@ -6091,14 +6081,14 @@ class Program
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (32,27): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (32,27): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is [0, ..10];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(32, 27)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "10").WithArguments("unions", "15.0").WithLocation(32, 27)
                 );
         }
 
@@ -6188,17 +6178,17 @@ class Program
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (29,22): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (29,22): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is (10, _);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(29, 22),
-                // (34,22): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "10").WithArguments("unions", "15.0").WithLocation(29, 22),
+                // (34,22): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is (10, _);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(34, 22)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "10").WithArguments("unions", "15.0").WithLocation(34, 22)
                 );
         }
 
@@ -6243,14 +6233,14 @@ class C : System.Runtime.CompilerServices.ITuple
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (23,29): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (23,29): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is (S1 and 10, _);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(23, 29)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "10").WithArguments("unions", "15.0").WithLocation(23, 29)
                 );
         }
 
@@ -6294,14 +6284,14 @@ class C
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse").VerifyDiagnostics();
 
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse").VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (23,22): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (23,22): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is (10, _);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(23, 22)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "10").WithArguments("unions", "15.0").WithLocation(23, 22)
                 );
         }
 
@@ -6387,14 +6377,14 @@ class C
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse").VerifyDiagnostics();
 
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse").VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (23,26): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (23,26): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is { P: 10 };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(23, 26)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "10").WithArguments("unions", "15.0").WithLocation(23, 26)
                 );
         }
 
@@ -6473,14 +6463,14 @@ class Program
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "FalseTrueTrueTrueTrue").VerifyDiagnostics();
 
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: "FalseTrueTrueTrueTrue").VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (24,33): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (24,33): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is not (S1 and 10);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(24, 33)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "10").WithArguments("unions", "15.0").WithLocation(24, 33)
                 );
         }
 
@@ -6817,23 +6807,23 @@ class Program
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "1-1-1-12-1 1-1-1-12-1-1").VerifyDiagnostics();
 
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: "1-1-1-12-1 1-1-1-12-1-1").VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (35,18): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (35,18): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //             case 10: return 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(35, 18),
-                // (36,18): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "10").WithArguments("unions", "15.0").WithLocation(35, 18),
+                // (36,18): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //             case "11": return 2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""11""").WithArguments("unions").WithLocation(36, 18),
-                // (46,18): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, @"""11""").WithArguments("unions", "15.0").WithLocation(36, 18),
+                // (46,18): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //             case 10: return 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(46, 18),
-                // (47,18): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "10").WithArguments("unions", "15.0").WithLocation(46, 18),
+                // (47,18): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //             case "11": return 2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""11""").WithArguments("unions").WithLocation(47, 18)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, @"""11""").WithArguments("unions", "15.0").WithLocation(47, 18)
                 );
         }
 
@@ -7205,19 +7195,17 @@ class C<T>
             verifier.VerifyIL("C<T>.Test2(C<T>)", @"
 {
   // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000e
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""object C<T>.Value.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  br.s       IL_000f
+  IL_000e:  ldc.i4.0
   IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
+  IL_0010:  ceq
   IL_0012:  ret
 }
 ");
@@ -7307,24 +7295,22 @@ struct C<T>
             verifier.VerifyIL("C<T>.Test1(C<T>?)", @"
 {
   // Code size       34 (0x22)
-  .maxstack  1
-  .locals init (C<T> V_0,
-            bool V_1)
+  .maxstack  2
+  .locals init (C<T> V_0)
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""bool C<T>?.HasValue.get""
-  IL_0007:  brfalse.s  IL_001a
+  IL_0007:  brfalse.s  IL_001d
   IL_0009:  ldarga.s   V_0
   IL_000b:  call       ""C<T> C<T>?.GetValueOrDefault()""
   IL_0010:  stloc.0
   IL_0011:  ldloca.s   V_0
   IL_0013:  call       ""object C<T>.Value.get""
-  IL_0018:  brtrue.s   IL_001e
-  IL_001a:  ldc.i4.1
-  IL_001b:  stloc.1
-  IL_001c:  br.s       IL_0020
+  IL_0018:  ldnull
+  IL_0019:  cgt.un
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldc.i4.0
   IL_001e:  ldc.i4.0
-  IL_001f:  stloc.1
-  IL_0020:  ldloc.1
+  IL_001f:  ceq
   IL_0021:  ret
 }
 ");
@@ -7470,19 +7456,17 @@ class C<T>
             verifier.VerifyIL("C<T>.Test2(C<T>)", @"
 {
   // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000e
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""object C<T>.Value.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  br.s       IL_000f
+  IL_000e:  ldc.i4.0
   IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
+  IL_0010:  ceq
   IL_0012:  ret
 }
 ");
@@ -7803,23 +7787,23 @@ class Program
 }
 ");
 
-            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue FalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyEmitDiagnostics(
-                // (41,26): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (41,26): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is S1 { Value: 10 };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(41, 26),
-                // (46,26): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(41, 26),
+                // (46,26): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is S1 { Value: 10 or 11 };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(46, 26),
-                // (51,26): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(46, 26),
+                // (51,26): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is S1 { Value: "11" and ['1', '1'] };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(51, 26),
-                // (56,26): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(51, 26),
+                // (56,26): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is S1 { Value: null };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(56, 26)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(56, 26)
                 );
         }
 
@@ -7903,23 +7887,23 @@ class Program
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue FalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue FalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyEmitDiagnostics(
-                // (41,26): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (41,26): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is { S1.Value: 10 };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(41, 26),
-                // (46,26): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(41, 26),
+                // (46,26): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is { S1.Value: 10 or 11 };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(46, 26),
-                // (51,26): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(46, 26),
+                // (51,26): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is { S1.Value: "11" and ['1', '1'] };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(51, 26),
-                // (56,26): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(51, 26),
+                // (56,26): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is { S1.Value: null };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(56, 26)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(56, 26)
                 );
         }
 
@@ -8019,26 +8003,26 @@ class Program
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrueFalse FalseFalseTrueFalse FalseTrueFalseFalse TrueFalseFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrueFalse FalseFalseTrueFalse FalseTrueFalseFalse TrueFalseFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyEmitDiagnostics(
-                // (41,26): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (41,26): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is { S1.Value: 10 };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(41, 26),
-                // (46,26): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(41, 26),
+                // (46,26): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is { S1.Value: 10 or 11 };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(46, 26),
-                // (51,26): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(46, 26),
+                // (51,26): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is { S1.Value: "11" and ['1', '1'] };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(51, 26),
-                // (56,26): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(51, 26),
+                // (56,26): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is { S1.Value: null };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(56, 26),
-                // (500,29): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(56, 26),
+                // (500,29): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return u is { S1: { Value: 10 } };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(500, 29)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(500, 29)
                 );
         }
 
@@ -8090,7 +8074,7 @@ static class Ext
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalse").VerifyDiagnostics();
 
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalse").VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
@@ -8345,15 +8329,12 @@ struct S2;
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (300,13): warning CS0183: The given expression is always of the provided ('object') type
-                //         _ = u is object;
-                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "u is object").WithArguments("object").WithLocation(300, 13),
-                // (400,13): warning CS0184: The given expression is never of the provided ('long') type
+                // (400,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'long'.
                 //         _ = u is long;
-                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "u is long").WithArguments("long").WithLocation(400, 13),
-                // (500,13): warning CS0184: The given expression is never of the provided ('long') type
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("S1", "long").WithLocation(400, 18),
+                // (500,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'long'.
                 //         _ = u is long;
-                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "u is long").WithArguments("long").WithLocation(500, 13),
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("S1", "long").WithLocation(500, 18),
                 // (600,13): warning CS0183: The given expression is always of the provided ('object') type
                 //         _ = u is object;
                 Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "u is object").WithArguments("object").WithLocation(600, 13),
@@ -10290,7 +10271,7 @@ class Program
 
             comp.VerifyDiagnostics(expected);
 
-            comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.Regular15);
 
             comp.VerifyDiagnostics(expected);
 
@@ -10298,30 +10279,30 @@ class Program
             comp.VerifyDiagnostics(
                 [
                     ..expected,
-                    // (6,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (6,23): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         _ = u is S1 { Value: System.IComparable };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(6, 23),
-                    // (7,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(6, 23),
+                    // (7,23): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         _ = u is S1 { Value: bool };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(7, 23),
-                    // (8,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(7, 23),
+                    // (8,23): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         _ = u is S1 { Value: string };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(8, 23),
-                    // (9,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(8, 23),
+                    // (9,23): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         _ = u is S1 { Value: object };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(9, 23),
-                    // (100,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(9, 23),
+                    // (100,23): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         _ = u is S1 { Value: long };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(100, 23),
-                    // (102,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(100, 23),
+                    // (102,23): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         _ = u is S1 { Value: true };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(102, 23),
-                    // (200,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(102, 23),
+                    // (200,23): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         _ = u is S1 { Value: 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(200, 23),
-                    // (201,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(200, 23),
+                    // (201,23): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         _ = u is S1 { Value: "a" };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(201, 23)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(201, 23)
                 ]);
         }
 
@@ -10387,7 +10368,7 @@ class Program
 
             comp.VerifyDiagnostics(expected);
 
-            comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.Regular15);
 
             comp.VerifyDiagnostics(expected);
 
@@ -10395,30 +10376,30 @@ class Program
             comp.VerifyDiagnostics(
                 [
                     ..expected,
-                    // (6,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (6,23): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         _ = u is { S1.Value: System.IComparable };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(6, 23),
-                    // (7,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(6, 23),
+                    // (7,23): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         _ = u is { S1.Value: bool };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(7, 23),
-                    // (8,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(7, 23),
+                    // (8,23): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         _ = u is { S1.Value: string };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(8, 23),
-                    // (9,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(8, 23),
+                    // (9,23): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         _ = u is { S1.Value: object };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(9, 23),
-                    // (100,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(9, 23),
+                    // (100,23): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         _ = u is { S1.Value: long };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(100, 23),
-                    // (102,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(100, 23),
+                    // (102,23): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         _ = u is { S1.Value: true };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(102, 23),
-                    // (200,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(102, 23),
+                    // (200,23): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         _ = u is { S1.Value: 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(200, 23),
-                    // (201,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(200, 23),
+                    // (201,23): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         _ = u is { S1.Value: "a" };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(201, 23)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(201, 23)
                 ]);
         }
 
@@ -10484,7 +10465,7 @@ class Program
 
             comp.VerifyDiagnostics(expected);
 
-            comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.Regular15);
 
             comp.VerifyDiagnostics(expected);
 
@@ -10492,30 +10473,30 @@ class Program
             comp.VerifyDiagnostics(
                 [
                     ..expected,
-                    // (6,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (6,23): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         _ = u is { S1.Value: System.IComparable };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(6, 23),
-                    // (7,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(6, 23),
+                    // (7,23): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         _ = u is { S1.Value: bool };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(7, 23),
-                    // (8,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(7, 23),
+                    // (8,23): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         _ = u is { S1.Value: string };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(8, 23),
-                    // (9,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(8, 23),
+                    // (9,23): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         _ = u is { S1.Value: object };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(9, 23),
-                    // (100,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(9, 23),
+                    // (100,23): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         _ = u is { S1.Value: long };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(100, 23),
-                    // (102,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(100, 23),
+                    // (102,23): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         _ = u is { S1.Value: true };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(102, 23),
-                    // (200,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(102, 23),
+                    // (200,23): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         _ = u is { S1.Value: 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(200, 23),
-                    // (201,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(200, 23),
+                    // (201,23): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         _ = u is { S1.Value: "a" };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(201, 23)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(201, 23)
                 ]);
         }
 
@@ -11304,15 +11285,12 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (100,40): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //         return u switch { object => 1, null => 3 };
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "null").WithLocation(100, 40),
-                // (900,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                // (500,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         return u switch { object => 2 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(500, 18),
+                // (900,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'not null' is not covered.
                 //         return u switch { not object => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(900, 18),
-                // (900,27): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //         return u switch { not object => 1 };
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "not object").WithLocation(900, 27)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("not null").WithLocation(900, 18)
                 );
         }
 
@@ -11559,106 +11537,106 @@ class Program
 
             CompileAndVerify(comp).VerifyDiagnostics(expected);
 
-            comp = CreateCompilation([src, UnionAttributeSource], parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp).VerifyDiagnostics(expected);
 
             comp = CreateCompilation([src, UnionAttributeSource], parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
                 [
                     ..expected,
-                    // (100,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (100,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { S1 { Value: int } => 1, S1 { Value: string } => 2, S1 { Value: null } => 3, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(100, 32),
-                    // (100,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(100, 32),
+                    // (100,56): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { S1 { Value: int } => 1, S1 { Value: string } => 2, S1 { Value: null } => 3, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(100, 56),
-                    // (100,83): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(100, 56),
+                    // (100,83): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { S1 { Value: int } => 1, S1 { Value: string } => 2, S1 { Value: null } => 3, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(100, 83),
-                    // (200,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(100, 83),
+                    // (200,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { S1 { Value: int } => 1, S1 { Value: null } => 3, S1 { Value: string } => 2, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(200, 32),
-                    // (200,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(200, 32),
+                    // (200,56): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { S1 { Value: int } => 1, S1 { Value: null } => 3, S1 { Value: string } => 2, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(200, 56),
-                    // (200,81): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(200, 56),
+                    // (200,81): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { S1 { Value: int } => 1, S1 { Value: null } => 3, S1 { Value: string } => 2, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(200, 81),
-                    // (300,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(200, 81),
+                    // (300,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { S1 { Value: null } => 3, S1 { Value: int } => 1, S1 { Value: string } => 2, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(300, 32),
-                    // (300,57): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(300, 32),
+                    // (300,57): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { S1 { Value: null } => 3, S1 { Value: int } => 1, S1 { Value: string } => 2, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(300, 57),
-                    // (300,81): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(300, 57),
+                    // (300,81): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { S1 { Value: null } => 3, S1 { Value: int } => 1, S1 { Value: string } => 2, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(300, 81),
-                    // (400,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(300, 81),
+                    // (400,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { S1 { Value: int } => 1, S1 { Value: string } => 2, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(400, 32),
-                    // (400,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(400, 32),
+                    // (400,56): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { S1 { Value: int } => 1, S1 { Value: string } => 2, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(400, 56),
-                    // (500,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(400, 56),
+                    // (500,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { S1 { Value: int } => 1, S1 { Value: string } => 2, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(500, 32),
-                    // (500,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(500, 32),
+                    // (500,56): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { S1 { Value: int } => 1, S1 { Value: string } => 2, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(500, 56),
-                    // (600,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(500, 56),
+                    // (600,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { S1 { Value: int } => 1, S1 { Value: null } => 3, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(600, 32),
-                    // (600,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(600, 32),
+                    // (600,56): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { S1 { Value: int } => 1, S1 { Value: null } => 3, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(600, 56),
-                    // (700,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(600, 56),
+                    // (700,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { S1 { Value: null } => 3, S1 { Value: int } => 1, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(700, 32),
-                    // (700,57): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(700, 32),
+                    // (700,57): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { S1 { Value: null } => 3, S1 { Value: int } => 1, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(700, 57),
-                    // (800,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(700, 57),
+                    // (800,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { S1 { Value: int } => 1, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(800, 32),
-                    // (900,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(800, 32),
+                    // (900,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { S1 { Value: not int } => 1, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(900, 32),
-                    // (1000,33): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(900, 32),
+                    // (1000,33): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch {  S1 { Value: null } => 3, S1 { Value: not int } => 1, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1000, 33),
-                    // (1000,58): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1000, 33),
+                    // (1000,58): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch {  S1 { Value: null } => 3, S1 { Value: not int } => 1, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1000, 58),
-                    // (1100,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1000, 58),
+                    // (1100,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { S1 { Value: not null } => 1, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1100, 32),
-                    // (1150,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1100, 32),
+                    // (1150,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { S1 { Value: not null } => 1, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1150, 32),
-                    // (1200,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1150, 32),
+                    // (1200,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { S1 { Value: null } => 3, S1 { Value: not null } => 1, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1200, 32),
-                    // (1200,57): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1200, 32),
+                    // (1200,57): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { S1 { Value: null } => 3, S1 { Value: not null } => 1, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1200, 57),
-                    // (1300,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1200, 57),
+                    // (1300,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { S1 { Value: not null } => 3, S1 { Value: null } => 1, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1300, 32),
-                    // (1300,61): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1300, 32),
+                    // (1300,61): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { S1 { Value: not null } => 3, S1 { Value: null } => 1, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1300, 61),
-                    // (1400,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1300, 61),
+                    // (1400,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { S1 { Value: { } } => 1, S1 { Value: null } => 3, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1400, 32),
-                    // (1400,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1400, 32),
+                    // (1400,56): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { S1 { Value: { } } => 1, S1 { Value: null } => 3, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1400, 56),
-                    // (1500,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1400, 56),
+                    // (1500,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { S1 { Value: null } => 3, S1 { Value: var x } => 1, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1500, 32),
-                    // (1500,57): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1500, 32),
+                    // (1500,57): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { S1 { Value: null } => 3, S1 { Value: var x } => 1, not S1 => -100 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1500, 57)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1500, 57)
                 ]);
         }
 
@@ -11820,106 +11798,106 @@ class Program
 
             CompileAndVerify(comp).VerifyDiagnostics(expected);
 
-            comp = CreateCompilation([src, UnionAttributeSource], parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp).VerifyDiagnostics(expected);
 
             comp = CreateCompilation([src, UnionAttributeSource], parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
                 [
                     ..expected,
-                    // (100,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (100,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2, { S1.Value: null } => 3 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(100, 32),
-                    // (100,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(100, 32),
+                    // (100,56): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2, { S1.Value: null } => 3 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(100, 56),
-                    // (100,83): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(100, 56),
+                    // (100,83): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2, { S1.Value: null } => 3 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(100, 83),
-                    // (200,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(100, 83),
+                    // (200,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3, { S1.Value: string } => 2 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(200, 32),
-                    // (200,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(200, 32),
+                    // (200,56): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3, { S1.Value: string } => 2 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(200, 56),
-                    // (200,81): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(200, 56),
+                    // (200,81): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3, { S1.Value: string } => 2 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(200, 81),
-                    // (300,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(200, 81),
+                    // (300,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1, { S1.Value: string } => 2 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(300, 32),
-                    // (300,57): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(300, 32),
+                    // (300,57): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1, { S1.Value: string } => 2 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(300, 57),
-                    // (300,81): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(300, 57),
+                    // (300,81): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1, { S1.Value: string } => 2 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(300, 81),
-                    // (400,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(300, 81),
+                    // (400,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(400, 32),
-                    // (400,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(400, 32),
+                    // (400,56): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(400, 56),
-                    // (500,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(400, 56),
+                    // (500,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(500, 32),
-                    // (500,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(500, 32),
+                    // (500,56): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(500, 56),
-                    // (600,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(500, 56),
+                    // (600,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(600, 32),
-                    // (600,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(600, 32),
+                    // (600,56): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(600, 56),
-                    // (700,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(600, 56),
+                    // (700,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(700, 32),
-                    // (700,57): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(700, 32),
+                    // (700,57): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(700, 57),
-                    // (800,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(700, 57),
+                    // (800,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(800, 32),
-                    // (900,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(800, 32),
+                    // (900,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: not int } => 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(900, 32),
-                    // (1000,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(900, 32),
+                    // (1000,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: null } => 3, { S1.Value: not int } => 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1000, 32),
-                    // (1000,57): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1000, 32),
+                    // (1000,57): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: null } => 3, { S1.Value: not int } => 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1000, 57),
-                    // (1100,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1000, 57),
+                    // (1100,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: not null } => 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1100, 32),
-                    // (1150,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1100, 32),
+                    // (1150,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: not null } => 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1150, 32),
-                    // (1200,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1150, 32),
+                    // (1200,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: null } => 3, { S1.Value: not null } => 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1200, 32),
-                    // (1200,57): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1200, 32),
+                    // (1200,57): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: null } => 3, { S1.Value: not null } => 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1200, 57),
-                    // (1300,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1200, 57),
+                    // (1300,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: not null } => 3, { S1.Value: null } => 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1300, 32),
-                    // (1300,61): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1300, 32),
+                    // (1300,61): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: not null } => 3, { S1.Value: null } => 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1300, 61),
-                    // (1400,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1300, 61),
+                    // (1400,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: { } } => 1, { S1.Value: null } => 3 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1400, 32),
-                    // (1400,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1400, 32),
+                    // (1400,56): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: { } } => 1, { S1.Value: null } => 3 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1400, 56),
-                    // (1500,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1400, 56),
+                    // (1500,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: null } => 3, { S1.Value: var x } => 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1500, 32),
-                    // (1500,57): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1500, 32),
+                    // (1500,57): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: null } => 3, { S1.Value: var x } => 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1500, 57)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1500, 57)
                 ]);
         }
 
@@ -12103,124 +12081,124 @@ class Program
 
             CompileAndVerify(comp).VerifyDiagnostics(expected);
 
-            comp = CreateCompilation([src, UnionAttributeSource], parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp).VerifyDiagnostics(expected);
 
             comp = CreateCompilation([src, UnionAttributeSource], parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
                 [
                     ..expected,
-                    // (100,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (100,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2, { S1.Value: null } => 3 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(100, 32),
-                    // (100,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(100, 32),
+                    // (100,56): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2, { S1.Value: null } => 3 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(100, 56),
-                    // (100,83): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(100, 56),
+                    // (100,83): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2, { S1.Value: null } => 3 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(100, 83),
-                    // (200,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(100, 83),
+                    // (200,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3, { S1.Value: string } => 2 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(200, 32),
-                    // (200,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(200, 32),
+                    // (200,56): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3, { S1.Value: string } => 2 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(200, 56),
-                    // (200,81): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(200, 56),
+                    // (200,81): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3, { S1.Value: string } => 2 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(200, 81),
-                    // (300,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(200, 81),
+                    // (300,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1, { S1.Value: string } => 2 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(300, 32),
-                    // (300,57): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(300, 32),
+                    // (300,57): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1, { S1.Value: string } => 2 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(300, 57),
-                    // (300,81): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(300, 57),
+                    // (300,81): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1, { S1.Value: string } => 2 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(300, 81),
-                    // (400,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(300, 81),
+                    // (400,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(400, 32),
-                    // (400,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(400, 32),
+                    // (400,56): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(400, 56),
-                    // (500,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(400, 56),
+                    // (500,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(500, 32),
-                    // (500,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(500, 32),
+                    // (500,56): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(500, 56),
-                    // (600,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(500, 56),
+                    // (600,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(600, 32),
-                    // (600,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(600, 32),
+                    // (600,56): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(600, 56),
-                    // (700,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(600, 56),
+                    // (700,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(700, 32),
-                    // (700,57): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(700, 32),
+                    // (700,57): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(700, 57),
-                    // (800,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(700, 57),
+                    // (800,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(800, 32),
-                    // (900,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(800, 32),
+                    // (900,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: not int } => 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(900, 32),
-                    // (1000,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(900, 32),
+                    // (1000,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: null } => 3, { S1.Value: not int } => 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1000, 32),
-                    // (1000,57): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1000, 32),
+                    // (1000,57): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: null } => 3, { S1.Value: not int } => 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1000, 57),
-                    // (1100,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1000, 57),
+                    // (1100,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: not null } => 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1100, 32),
-                    // (1150,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1100, 32),
+                    // (1150,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: not null } => 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1150, 32),
-                    // (1200,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1150, 32),
+                    // (1200,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: null } => 3, { S1.Value: not null } => 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1200, 32),
-                    // (1200,57): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1200, 32),
+                    // (1200,57): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: null } => 3, { S1.Value: not null } => 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1200, 57),
-                    // (1300,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1200, 57),
+                    // (1300,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: not null } => 3, { S1.Value: null } => 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1300, 32),
-                    // (1300,61): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1300, 32),
+                    // (1300,61): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: not null } => 3, { S1.Value: null } => 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1300, 61),
-                    // (1400,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1300, 61),
+                    // (1400,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: { } } => 1, { S1.Value: null } => 3 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1400, 32),
-                    // (1400,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1400, 32),
+                    // (1400,56): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: { } } => 1, { S1.Value: null } => 3 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1400, 56),
-                    // (1500,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1400, 56),
+                    // (1500,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: null } => 3, { S1.Value: var x } => 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1500, 32),
-                    // (1500,57): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1500, 32),
+                    // (1500,57): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: null } => 3, { S1.Value: var x } => 1 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1500, 57),
-                    // (1600,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1500, 57),
+                    // (1600,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2, { S1.Value: null } => 3 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1600, 32),
-                    // (1600,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1600, 32),
+                    // (1600,56): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2, { S1.Value: null } => 3 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1600, 56),
-                    // (1600,83): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1600, 56),
+                    // (1600,83): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2, { S1.Value: null } => 3 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1600, 83),
-                    // (1700,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1600, 83),
+                    // (1700,32): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3, { S1.Value: string } => 2 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1700, 32),
-                    // (1700,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1700, 32),
+                    // (1700,56): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3, { S1.Value: string } => 2 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1700, 56),
-                    // (1700,81): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1700, 56),
+                    // (1700,81): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                     //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3, { S1.Value: string } => 2 };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1700, 81)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Value").WithArguments("unions", "15.0").WithLocation(1700, 81)
                 ]);
         }
 
@@ -12391,24 +12369,24 @@ class Program
                 // (200,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'not null' is not covered.
                 //         return u switch { null => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("not null").WithLocation(200, 18),
+                // (300,38): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'object'.
+                //         return u switch { null => 3, object => 1 };
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("S1", "object").WithLocation(300, 38),
                 // (400,27): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
                 //         return u switch { int => 1 };
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(400, 27),
-                // (600,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                // (500,27): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'object'.
+                //         return u switch { object => 1 };
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("S1", "object").WithLocation(500, 27),
+                // (600,31): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'object'.
                 //         return u switch { not object => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(600, 18),
-                // (600,27): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //         return u switch { not object => 1 };
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "not object").WithLocation(600, 27),
-                // (700,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'not null' is not covered.
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("S1", "object").WithLocation(600, 31),
+                // (700,43): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'object'.
                 //         return u switch {  null => 3, not object => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("not null").WithLocation(700, 18),
-                // (700,39): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //         return u switch {  null => 3, not object => 1 };
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "not object").WithLocation(700, 39),
-                // (800,40): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("S1", "object").WithLocation(700, 43),
+                // (800,27): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'object'.
                 //         return u switch { object => 1, null => 3 };
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "null").WithLocation(800, 40),
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("S1", "object").WithLocation(800, 27),
                 // (900,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         return u switch { not null => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(900, 18),
@@ -12603,20 +12581,20 @@ IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return 10;')
 }
 ");
 
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: "1-int {10} 2-3-4-string {} 5-string {11}").VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (37,27): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (37,27): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         /*<bind>*/ return 10; /*</bind>*/
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(37, 27),
-                // (55,16): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "10").WithArguments("unions", "15.0").WithLocation(37, 27),
+                // (55,16): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "null").WithArguments("unions").WithLocation(55, 16),
-                // (61,16): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "null").WithArguments("unions", "15.0").WithLocation(55, 16),
+                // (61,16): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return "11";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""11""").WithArguments("unions").WithLocation(61, 16)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, @"""11""").WithArguments("unions", "15.0").WithLocation(61, 16)
                 );
         }
 
@@ -12915,20 +12893,20 @@ IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: S1..ctor(Syste
 }
 ");
 
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: "1-int {10} 2-3-4-string {} 5-string {11}").VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (37,27): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (37,27): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return /*<bind>*/ (S1)10 /*</bind>*/;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(S1)10").WithArguments("unions").WithLocation(37, 27),
-                // (55,16): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "(S1)10").WithArguments("unions", "15.0").WithLocation(37, 27),
+                // (55,16): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return (S1)null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(S1)null").WithArguments("unions").WithLocation(55, 16),
-                // (61,16): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "(S1)null").WithArguments("unions", "15.0").WithLocation(55, 16),
+                // (61,16): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return (S1)"11";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"(S1)""11""").WithArguments("unions").WithLocation(61, 16)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, @"(S1)""11""").WithArguments("unions", "15.0").WithLocation(61, 16)
                 );
         }
 
@@ -16300,26 +16278,26 @@ IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return 10;')
 }
 ");
 
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: "1-int {10} 2-3-4-string {} 5-string {11}").VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (25,26): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (25,26): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         public static S1 Create(int x) => new S1(x);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Create").WithArguments("static members in interfaces").WithLocation(25, 26),
-                // (26,26): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Create").WithArguments("static members in interfaces", "15.0").WithLocation(25, 26),
+                // (26,26): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         public static S1 Create(string x) => new S1(x);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Create").WithArguments("static members in interfaces").WithLocation(26, 26),
-                // (37,27): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Create").WithArguments("static members in interfaces", "15.0").WithLocation(26, 26),
+                // (37,27): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         /*<bind>*/ return 10; /*</bind>*/
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(37, 27),
-                // (55,16): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "10").WithArguments("unions", "15.0").WithLocation(37, 27),
+                // (55,16): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "null").WithArguments("unions").WithLocation(55, 16),
-                // (61,16): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "null").WithArguments("unions", "15.0").WithLocation(55, 16),
+                // (61,16): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return "11";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""11""").WithArguments("unions").WithLocation(61, 16)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, @"""11""").WithArguments("unions", "15.0").WithLocation(61, 16)
                 );
         }
 
@@ -16549,17 +16527,17 @@ class Program
 }
 ");
 
-            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "1-int {10} 5-string {11}" : null, verify: Verification.Skipped).VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (45,16): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (45,16): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return 10;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "10").WithArguments("unions").WithLocation(45, 16),
-                // (51,16): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "10").WithArguments("unions", "15.0").WithLocation(45, 16),
+                // (51,16): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         return "11";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""11""").WithArguments("unions").WithLocation(51, 16)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, @"""11""").WithArguments("unions", "15.0").WithLocation(51, 16)
                 );
         }
 
@@ -20821,7 +20799,7 @@ class Program
 
     static void Test2(S3 s)
     {
-        if (s is " + typeNameSyntax + @") return;
+        if (s is { Value: " + typeNameSyntax + @" }) return;
 
 #line 200
         s.Value.ToString();
@@ -20846,15 +20824,15 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (21,13): warning CS0183: The given expression is always of the provided ('object') type
-                //         if (s is System.Object) return;
-                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "s is " + typeNameSyntax).WithArguments("object").WithLocation(21, 13),
-                // (105,13): warning CS0183: The given expression is always of the provided ('object') type
-                //         if (s is System.Object) return;
-                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "s is " + typeNameSyntax).WithArguments("object").WithLocation(105, 13),
-                // (205,47): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //         if (s switch { System.Object => true, _ => false }) return;
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(205, 34 + typeNameSyntax.Length),
+                // (100,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(100, 9),
+                // (200,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(200, 9),
+                // (300,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(300, 9),
                 // (305,47): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //         if (s switch { System.Object => true, _ => false }) return;
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(305, 34 + typeNameSyntax.Length)
@@ -20955,6 +20933,9 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
+                // (100,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.S.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.S.Value").WithLocation(100, 9),
                 // (200,9): warning CS8602: Dereference of a possibly null reference.
                 //         s.S.Value.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.S.Value").WithLocation(200, 9)
@@ -21036,7 +21017,7 @@ class Program
 
     static void Test2(S3 s)
     {
-        if (s is " + typeNameSyntax + @") return;
+        if (s is { Value: " + typeNameSyntax + @" }) return;
 
 #line 200
         s.Value.ToString();
@@ -21063,13 +21044,13 @@ class Program
             comp.VerifyDiagnostics(
                 // (100,9): warning CS8602: Dereference of a possibly null reference.
                 //         s.Value.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(100, 9),
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(100, 9),
                 // (200,9): warning CS8602: Dereference of a possibly null reference.
                 //         s.Value.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(200, 9),
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(200, 9),
                 // (300,9): warning CS8602: Dereference of a possibly null reference.
                 //         s.Value.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(300, 9),
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(300, 9),
                 // (400,9): warning CS8602: Dereference of a possibly null reference.
                 //         s.Value.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(400, 9)
@@ -21172,7 +21153,7 @@ class Program
             comp.VerifyDiagnostics(
                 // (100,9): warning CS8602: Dereference of a possibly null reference.
                 //         s.S.Value.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.S").WithLocation(100, 9),
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.S.Value").WithLocation(100, 9),
                 // (200,9): warning CS8602: Dereference of a possibly null reference.
                 //         s.S.Value.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.S.Value").WithLocation(200, 9)
@@ -21258,7 +21239,7 @@ class Program
     static void Test2(S3? s)
     {
         if (s is null) return;
-        if (s is " + typeNameSyntax + @") return;
+        if (s is { Value: " + typeNameSyntax + @" }) return;
 
 #line 200
         s.Value.Value.ToString();
@@ -21285,15 +21266,15 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (100,9): warning CS8629: Nullable value type may be null.
+                // (100,9): warning CS8602: Dereference of a possibly null reference.
                 //         s.Value.Value.ToString();
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s").WithLocation(100, 9),
-                // (200,9): warning CS8629: Nullable value type may be null.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value.Value").WithLocation(100, 9),
+                // (200,9): warning CS8602: Dereference of a possibly null reference.
                 //         s.Value.Value.ToString();
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s").WithLocation(200, 9),
-                // (300,9): warning CS8629: Nullable value type may be null.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value.Value").WithLocation(200, 9),
+                // (300,9): warning CS8602: Dereference of a possibly null reference.
                 //         s.Value.Value.ToString();
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s").WithLocation(300, 9),
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value.Value").WithLocation(300, 9),
                 // (400,9): warning CS8629: Nullable value type may be null.
                 //         s.Value.Value.ToString();
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s").WithLocation(400, 9)
@@ -21398,9 +21379,9 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (100,9): warning CS8629: Nullable value type may be null.
+                // (100,9): warning CS8602: Dereference of a possibly null reference.
                 //         s.S.Value.Value.ToString();
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s.S").WithLocation(100, 9),
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.S.Value.Value").WithLocation(100, 9),
                 // (200,9): warning CS8602: Dereference of a possibly null reference.
                 //         s.S.Value.Value.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.S.Value.Value").WithLocation(200, 9)
@@ -21507,9 +21488,9 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (100,17): warning CS0162: Unreachable code detected
+                // (100,17): warning CS8602: Dereference of a possibly null reference.
                 //                 s.Value.ToString();
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "s").WithLocation(100, 17),
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(100, 17),
                 // (200,17): warning CS8602: Dereference of a possibly null reference.
                 //                 s.Value.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(200, 17)
@@ -21612,9 +21593,9 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (24,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //             _ =>
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(24, 13),
+                // (100,17): warning CS8602: Dereference of a possibly null reference.
+                //                 s.Value.ToString()
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(100, 17),
                 // (200,17): warning CS8602: Dereference of a possibly null reference.
                 //                 s.Value.ToString()
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(200, 17)
@@ -24994,43 +24975,31 @@ class S1
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  // Code size       16 (0x10)
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool S1.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ret
+  IL_0009:  br.s       IL_000c
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ceq
+  IL_000f:  ret
 }
 ");
 
             verifier.VerifyIL("S1.Test2", @"
 {
-  // Code size       22 (0x16)
-  .maxstack  2
-  .locals init (bool V_0)
+  // Code size       12 (0xc)
+  .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000a
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool S1.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ldc.i4.0
-  IL_0013:  ceq
-  IL_0015:  ret
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
 }
 ");
         }
@@ -25076,42 +25045,34 @@ class S1
             verifier.VerifyIL("S1.Test1", @"
 {
   // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000e
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""object S1.Value.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  br.s       IL_000f
+  IL_000e:  ldc.i4.0
   IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
+  IL_0010:  ceq
   IL_0012:  ret
 }
 ");
 
             verifier.VerifyIL("S1.Test2", @"
 {
-  // Code size       22 (0x16)
+  // Code size       15 (0xf)
   .maxstack  2
-  .locals init (bool V_0)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000d
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""object S1.Value.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ldc.i4.0
-  IL_0013:  ceq
-  IL_0015:  ret
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  ret
+  IL_000d:  ldc.i4.0
+  IL_000e:  ret
 }
 ");
         }
@@ -25352,21 +25313,17 @@ class Program
 
             verifier.VerifyIL("Program.Test1", @"
 {
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  // Code size       16 (0x10)
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool C2.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ret
+  IL_0009:  br.s       IL_000c
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ceq
+  IL_000f:  ret
 }
 ");
         }
@@ -25448,61 +25405,49 @@ class Program
 
             verifier.VerifyIL("Program.Test1", @"
 {
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  // Code size       16 (0x10)
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool C1.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ret
+  IL_0009:  br.s       IL_000c
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ceq
+  IL_000f:  ret
 }
 ");
 
             verifier.VerifyIL("Program.Test2", @"
 {
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  // Code size       16 (0x10)
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool C1.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ret
+  IL_0009:  br.s       IL_000c
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ceq
+  IL_000f:  ret
 }
 ");
 
             verifier.VerifyIL("Program.Test3", @"
 {
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  // Code size       16 (0x10)
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool C1.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ret
+  IL_0009:  br.s       IL_000c
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ceq
+  IL_000f:  ret
 }
 ");
         }
@@ -25914,37 +25859,36 @@ struct S1
 #line 200
         return u is not object;
     }   
-
-    static bool Test3(S2 u)
-    {
-#line 300
-        return u is object;
-    }   
-
-    static bool Test4(S2 u)
-    {
-#line 400
-        return u is not object;
-    }   
 }
-
-struct S2;
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics(
-                // (100,16): warning CS0183: The given expression is always of the provided ('object') type
-                //         return u is object;
-                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "u is object").WithArguments("object").WithLocation(100, 16),
-                // (200,16): error CS8518: An expression of type 'S1' can never match the provided pattern.
-                //         return u is not object;
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "u is not object").WithArguments("S1").WithLocation(200, 16),
-                // (300,16): warning CS0183: The given expression is always of the provided ('object') type
-                //         return u is object;
-                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "u is object").WithArguments("object").WithLocation(300, 16),
-                // (400,16): error CS8518: An expression of type 'S2' can never match the provided pattern.
-                //         return u is not object;
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "u is not object").WithArguments("S2").WithLocation(400, 16)
-                );
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueFalseTrueFalse").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (object V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool S1.TryGetValue(out object)""
+  IL_0009:  ret
+}
+");
+
+            verifier.VerifyIL("S1.Test2", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  .locals init (object V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool S1.TryGetValue(out object)""
+  IL_0009:  ldc.i4.0
+  IL_000a:  ceq
+  IL_000c:  ret
+}
+");
         }
 
         [Fact]
@@ -25982,37 +25926,32 @@ struct S1
 #line 200
         return u is not object;
     }   
-
-    static bool Test3(S2 u)
-    {
-#line 300
-        return u is object;
-    }   
-
-    static bool Test4(S2 u)
-    {
-#line 400
-        return u is not object;
-    }   
 }
-
-struct S2;
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics(
-                // (100,16): warning CS0183: The given expression is always of the provided ('object') type
-                //         return u is object;
-                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "u is object").WithArguments("object").WithLocation(100, 16),
-                // (200,16): error CS8518: An expression of type 'S1' can never match the provided pattern.
-                //         return u is not object;
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "u is not object").WithArguments("S1").WithLocation(200, 16),
-                // (300,16): warning CS0183: The given expression is always of the provided ('object') type
-                //         return u is object;
-                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "u is object").WithArguments("object").WithLocation(300, 16),
-                // (400,16): error CS8518: An expression of type 'S2' can never match the provided pattern.
-                //         return u is not object;
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "u is not object").WithArguments("S2").WithLocation(400, 16)
-                );
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueFalseTrueFalse").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool S1.HasValue.get""
+  IL_0007:  ret
+}
+");
+
+            verifier.VerifyIL("S1.Test2", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool S1.HasValue.get""
+  IL_0007:  ldc.i4.0
+  IL_0008:  ceq
+  IL_000a:  ret
+}
+");
         }
 
         [Fact]
@@ -26049,37 +25988,32 @@ struct S1
 #line 200
         return u is not object;
     }   
-
-    static bool Test3(S2 u)
-    {
-#line 300
-        return u is object;
-    }   
-
-    static bool Test4(S2 u)
-    {
-#line 400
-        return u is not object;
-    }   
 }
-
-struct S2;
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics(
-                // (100,16): warning CS0183: The given expression is always of the provided ('object') type
-                //         return u is object;
-                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "u is object").WithArguments("object").WithLocation(100, 16),
-                // (200,16): error CS8518: An expression of type 'S1' can never match the provided pattern.
-                //         return u is not object;
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "u is not object").WithArguments("S1").WithLocation(200, 16),
-                // (300,16): warning CS0183: The given expression is always of the provided ('object') type
-                //         return u is object;
-                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "u is object").WithArguments("object").WithLocation(300, 16),
-                // (400,16): error CS8518: An expression of type 'S2' can never match the provided pattern.
-                //         return u is not object;
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "u is not object").WithArguments("S2").WithLocation(400, 16)
-                );
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueFalseTrueFalse").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool S1.HasValue.get""
+  IL_0007:  ret
+}
+");
+
+            verifier.VerifyIL("S1.Test2", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool S1.HasValue.get""
+  IL_0007:  ldc.i4.0
+  IL_0008:  ceq
+  IL_000a:  ret
+}
+");
         }
 
         [Fact]
@@ -33949,43 +33883,31 @@ class S1 : S1.IUnionMembers
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  // Code size       16 (0x10)
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool S1.IUnionMembers.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ret
+  IL_0009:  br.s       IL_000c
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ceq
+  IL_000f:  ret
 }
 ");
 
             verifier.VerifyIL("S1.Test2", @"
 {
-  // Code size       22 (0x16)
-  .maxstack  2
-  .locals init (bool V_0)
+  // Code size       12 (0xc)
+  .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000a
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool S1.IUnionMembers.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ldc.i4.0
-  IL_0013:  ceq
-  IL_0015:  ret
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
 }
 ");
         }
@@ -34380,21 +34302,17 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalseFalse").VerifyDiagnostics();
             verifier.VerifyIL("Program.Test1", @"
 {
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  // Code size       16 (0x10)
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool S1.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ret
+  IL_0009:  br.s       IL_000c
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ceq
+  IL_000f:  ret
 }
 ");
         }
@@ -34635,23 +34553,15 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseTrueTrue" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
             verifier.VerifyIL("Program.Test1", @"
 {
-  // Code size       22 (0x16)
-  .maxstack  2
-  .locals init (bool V_0)
+  // Code size       12 (0xc)
+  .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000a
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool S1.IUnionMembers.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ldc.i4.0
-  IL_0013:  ceq
-  IL_0015:  ret
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
 }
 ");
         }
@@ -35446,21 +35356,17 @@ class Program
 
             verifier.VerifyIL("Program.Test1", @"
 {
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  // Code size       16 (0x10)
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool S1.IUnionMembersBase.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ret
+  IL_0009:  br.s       IL_000c
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ceq
+  IL_000f:  ret
 }
 ");
         }
@@ -48514,7 +48420,7 @@ union S1(int);
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 13)
                 );
 
-            comp = CreateCompilation([src, UnionAttributeSource, IUnionSource], parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource, IUnionSource], parseOptions: TestOptions.Regular15);
             comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource, IUnionSource], parseOptions: TestOptions.RegularPreview);
@@ -48528,13 +48434,13 @@ union S1(int);
                 AddSyntaxTrees(createUnionDeclaration(TestOptions.Regular14).SyntaxTree);
 
             comp.VerifyDiagnostics(
-                // (1,1): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,1): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
                 // unionS1(int);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "union").WithArguments("unions").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "union").WithArguments("unions", "15.0").WithLocation(1, 1)
                 );
 
-            comp = CreateCompilation([UnionAttributeSource, IUnionSource], parseOptions: TestOptions.RegularNext).
-                AddSyntaxTrees(createUnionDeclaration(TestOptions.RegularNext).SyntaxTree);
+            comp = CreateCompilation([UnionAttributeSource, IUnionSource], parseOptions: TestOptions.Regular15).
+                AddSyntaxTrees(createUnionDeclaration(TestOptions.Regular15).SyntaxTree);
 
             comp.VerifyDiagnostics();
 
@@ -51802,11 +51708,11 @@ class Program
 ";
 
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics(
-                // (13,31): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //         if (this is T and var val)
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "val").WithLocation(13, 31)
-                );
+            CompileAndVerify(comp, expectedOutput: @"
+TrueTrueFalseFalse
+FalseTrue4
+TrueFalse
+").VerifyDiagnostics();
         }
 
         [Fact]
@@ -53000,16 +52906,19 @@ class Program
 #line 300
         return u switch { dynamic => true, _ => false };
     }   
+
+    static bool Test4(S1 u)
+    {
+#line 400
+        return u is dynamic x;
+    }   
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // (100,16): warning CS1981: Using 'is' to test compatibility with 'dynamic' is essentially identical to testing compatibility with 'Object' and will succeed for all non-null values
+                // (100,21): error CS8208: It is not legal to use the type 'dynamic' in a pattern.
                 //         return u is dynamic;
-                Diagnostic(ErrorCode.WRN_IsDynamicIsConfusing, "u is dynamic").WithArguments("is", "dynamic", "Object").WithLocation(100, 16),
-                // (100,16): warning CS0183: The given expression is always of the provided ('dynamic') type
-                //         return u is dynamic;
-                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "u is dynamic").WithArguments("dynamic").WithLocation(100, 16),
+                Diagnostic(ErrorCode.ERR_PatternDynamicType, "dynamic").WithLocation(100, 21),
                 // (200,16): warning CS1981: Using 'is' to test compatibility with 'dynamic' is essentially identical to testing compatibility with 'Object' and will succeed for all non-null values
                 //         return u is dynamic;
                 Diagnostic(ErrorCode.WRN_IsDynamicIsConfusing, "u is dynamic").WithArguments("is", "dynamic", "Object").WithLocation(200, 16),
@@ -53018,7 +52927,10 @@ class Program
                 Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "u is dynamic").WithArguments("dynamic").WithLocation(200, 16),
                 // (300,27): error CS0103: The name 'dynamic' does not exist in the current context
                 //         return u switch { dynamic => true, _ => false };
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "dynamic").WithArguments("dynamic").WithLocation(300, 27)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "dynamic").WithArguments("dynamic").WithLocation(300, 27),
+                // (400,21): error CS8208: It is not legal to use the type 'dynamic' in a pattern.
+                //         return u is dynamic x;
+                Diagnostic(ErrorCode.ERR_PatternDynamicType, "dynamic").WithLocation(400, 21)
                 );
         }
 
@@ -56664,4106 +56576,6 @@ struct B
             CompileAndVerify(comp, expectedOutput: @"new B(1); new A(2); A(2)->new B(2); new A(3); new B(4); A(3)->new B(3); B(1)==B(3); 
 False
 ");
-        }
-
-        [Fact]
-        public void TypePattern_01_UnionInstance_Only_BindConstantPatternWithFallbackToTypePattern()
-        {
-            var src = @"
-class C0;
-
-[System.Runtime.CompilerServices.Union]
-class C1 : C0
-{
-    private readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C0 x) { _value = x; }
-    public object Value => _value;
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C1(new C1(1))));
-        System.Console.Write(Test1(new C1(new C0())));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { C1 => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
-
-            verifier.VerifyIL("Program.Test1", @"
-{
-  // Code size       11 (0xb)
-  .maxstack  1
-  .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0007
-  IL_0003:  ldc.i4.1
-  IL_0004:  stloc.0
-  IL_0005:  br.s       IL_0009
-  IL_0007:  ldc.i4.0
-  IL_0008:  stloc.0
-  IL_0009:  ldloc.0
-  IL_000a:  ret
-}
-");
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void TypePattern_02_UnionInstance_Only_BindConstantPatternWithFallbackToTypePattern()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    private readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(string x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(string x) : C1(x);
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C1(""a"")));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(new C2(""a"")));
-        System.Console.Write(Test1(new C2(null)));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { C2 => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
-
-            verifier.VerifyIL("Program.Test1", @"
-{
-  // Code size       16 (0x10)
-  .maxstack  1
-  .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  isinst     ""C2""
-  IL_0006:  brfalse.s  IL_000c
-  IL_0008:  ldc.i4.1
-  IL_0009:  stloc.0
-  IL_000a:  br.s       IL_000e
-  IL_000c:  ldc.i4.0
-  IL_000d:  stloc.0
-  IL_000e:  ldloc.0
-  IL_000f:  ret
-}
-");
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void TypePattern_03_UnionInstance_Only_BindTypePattern()
-        {
-            var src = @"
-class C0;
-
-[System.Runtime.CompilerServices.Union]
-class C1 : C0
-{
-    private readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C0 x) { _value = x; }
-    public object Value => _value;
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C1(new C1(1))));
-        System.Console.Write(Test1(new C1(new C0())));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { global::C1 => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
-
-            verifier.VerifyIL("Program.Test1", @"
-{
-  // Code size       11 (0xb)
-  .maxstack  1
-  .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0007
-  IL_0003:  ldc.i4.1
-  IL_0004:  stloc.0
-  IL_0005:  br.s       IL_0009
-  IL_0007:  ldc.i4.0
-  IL_0008:  stloc.0
-  IL_0009:  ldloc.0
-  IL_000a:  ret
-}
-");
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void TypePattern_04_UnionInstance_Only_BindTypePattern()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    private readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(string x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(string x) : C1(x);
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C1(""a"")));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(new C2(""a"")));
-        System.Console.Write(Test1(new C2(null)));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { global::C2 => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
-
-            verifier.VerifyIL("Program.Test1", @"
-{
-  // Code size       16 (0x10)
-  .maxstack  1
-  .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  isinst     ""C2""
-  IL_0006:  brfalse.s  IL_000c
-  IL_0008:  ldc.i4.1
-  IL_0009:  stloc.0
-  IL_000a:  br.s       IL_000e
-  IL_000c:  ldc.i4.0
-  IL_000d:  stloc.0
-  IL_000e:  ldloc.0
-  IL_000f:  ret
-}
-");
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void TypePattern_05_UnionInstance_Only_BindIsOperator()
-        {
-            var src = @"
-class C0 {}
-
-[System.Runtime.CompilerServices.Union]
-class C1 : C0
-{
-    private readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C0 x) { _value = x; }
-    public object Value => _value;
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C1(new C1(1))));
-        System.Console.Write(Test1(new C1(new C0())));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u is C1;
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
-
-            verifier.VerifyIL("Program.Test1", @"
-{
-  // Code size        5 (0x5)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldnull
-  IL_0002:  cgt.un
-  IL_0004:  ret
-}
-");
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular6);
-            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void TypePattern_06_UnionInstance_Only_BindIsOperator()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    private readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(string x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(string x) : C1(x);
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C1(""a"")));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(new C2(""a"")));
-        System.Console.Write(Test1(new C2(null)));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u is C2;
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
-
-            verifier.VerifyIL("Program.Test1", @"
-{
-  // Code size       10 (0xa)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  isinst     ""C2""
-  IL_0006:  ldnull
-  IL_0007:  cgt.un
-  IL_0009:  ret
-}
-");
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void TypePattern_07_UnionInstance_And_Value_BindConstantPatternWithFallbackToTypePattern()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(new C2(11))));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C3(10)));
-        System.Console.Write(Test1(new C3(new C2(11))));
-        System.Console.Write(Test1(new C3(null)));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { I1 => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [4] : [1]
-[1]: t0 != null ? [2] : [5]
-[2]: t1 = t0.Value; [3]
-[3]: t1 is I1 ? [4] : [5]
-[4]: leaf <arm> `I1 => true`
-[5]: leaf <arm> `_ => false`
-",
-forLowering: true);
-
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalseFalseTrueTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp, expectedOutput: "FalseTrueFalseFalseTrueTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            comp.VerifyDiagnostics(
-                // (42,27): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         return u switch { I1 => true, _ => false };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1").WithArguments("unions").WithLocation(42, 27)
-                );
-        }
-
-        [Fact]
-        public void TypePattern_08_UnionInstance_And_Value_Plus_Conjunction()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(11)));
-        System.Console.Write(Test1(new C1(new C2(10))));
-        System.Console.Write(Test1(new C1(new C2(11))));
-        System.Console.Write(Test1(new C1(new C2(null))));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C3(10)));
-        System.Console.Write(Test1(new C3(11)));
-        System.Console.Write(Test1(new C3(new C2(10))));
-        System.Console.Write(Test1(new C3(new C2(11))));
-        System.Console.Write(Test1(new C3(new C2(null))));
-        System.Console.Write(Test1(new C3(null)));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { I1 and { Value1: 10 } => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [1] : [6]
-[1]: t1 = (I1)t0; [2]
-[2]: t2 = t1.Value1; [3]
-[3]: t2 is int ? [4] : [15]
-[4]: t3 = (int)t2; [5]
-[5]: t3 == 10 ? [14] : [15]
-[6]: t0 != null ? [7] : [15]
-[7]: t4 = t0.Value; [8]
-[8]: t4 is I1 ? [9] : [15]
-[9]: t5 = (I1)t4; [10]
-[10]: t6 = t5.Value1; [11]
-[11]: t6 is int ? [12] : [15]
-[12]: t7 = (int)t6; [13]
-[13]: t7 == 10 ? [14] : [15]
-[14]: leaf <arm> `I1 and { Value1: 10 } => true`
-[15]: leaf <arm> `_ => false`
-",
-forLowering: true);
-
-            CompileAndVerify(comp, expectedOutput: "FalseFalseTrueFalseFalseFalseFalseTrueFalseFalseFalseFalseFalse").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void TypePattern_09_UnionInstance_And_Value_Plus_Conjunction()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C4 x) { _value = x; }
-    public C1(C5 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-interface I2
-{
-    object Value2 { get; }
-}
-
-[System.Runtime.CompilerServices.Union]
-class C4 : C1
-{
-    public C4(int x) : base(x) {}
-    public C4(C5 x) : base(x) {}
-    protected C4(object x) : base(x) {}
-}
-
-class C5(object x) : I2
-{
-    public object Value2 => x;
-}
-
-class C6(object x) : C4(x), I2
-{
-    object I2.Value2 => _value;
-}
-
-class Program
-{
-    static bool Test1(C1 u)
-    {
-        return u switch { C4 and I2 and { Value2: 11 } => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is C4 ? [1] : [15]
-[1]: t1 = (C4)t0; [2]
-[2]: t1 is I2 ? [3] : [8]
-[3]: t2 = (I2)t1; [4]
-[4]: t3 = t2.Value2; [5]
-[5]: t3 is int ? [6] : [33]
-[6]: t4 = (int)t3; [7]
-[7]: t4 == 11 ? [32] : [33]
-[8]: t5 = t1.Value; [9]
-[9]: t5 is I2 ? [10] : [33]
-[10]: t6 = (I2)t5; [11]
-[11]: t7 = t6.Value2; [12]
-[12]: t7 is int ? [13] : [33]
-[13]: t8 = (int)t7; [14]
-[14]: t8 == 11 ? [32] : [33]
-[15]: t0 != null ? [16] : [33]
-[16]: t9 = t0.Value; [17]
-[17]: t9 is C4 ? [18] : [33]
-[18]: t10 = (C4)t9; [19]
-[19]: t10 is I2 ? [20] : [25]
-[20]: t11 = (I2)t10; [21]
-[21]: t12 = t11.Value2; [22]
-[22]: t12 is int ? [23] : [33]
-[23]: t13 = (int)t12; [24]
-[24]: t13 == 11 ? [32] : [33]
-[25]: t14 = t10.Value; [26]
-[26]: t14 is I2 ? [27] : [33]
-[27]: t15 = (I2)t14; [28]
-[28]: t16 = t15.Value2; [29]
-[29]: t16 is int ? [30] : [33]
-[30]: t17 = (int)t16; [31]
-[31]: t17 == 11 ? [32] : [33]
-[32]: leaf <arm> `C4 and I2 and { Value2: 11 } => true`
-[33]: leaf <arm> `_ => false`
-",
-forLowering: true);
-
-            CompileAndVerify(comp).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void TypePattern_10_UnionInstance_And_Value_Plus_Conjunction()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    public C1(C4 x) { _value = x; }
-    public C1(C5 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-interface I2
-{
-    object Value2 { get; }
-}
-
-[System.Runtime.CompilerServices.Union]
-class C4 : C1
-{
-    public C4(int x) : base(x) {}
-    public C4(C5 x) : base(x) {}
-    protected C4(object x) : base(x) {}
-}
-
-class C5(object x) : I2
-{
-    public object Value2 => x;
-}
-
-class C6(object x) : C4(x), I2
-{
-    object I2.Value2 => _value;
-}
-
-class C7(object x) : C6(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-class Program
-{
-    static bool Test1(C1 u)
-    {
-        return u switch { I1 and { Value1: 10 } and C4 and I2 and { Value2: 11 } => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [1] : [21]
-[1]: t1 = (I1)t0; [2]
-[2]: t2 = t1.Value1; [3]
-[3]: t2 is int ? [4] : [45]
-[4]: t3 = (int)t2; [5]
-[5]: t3 == 10 ? [6] : [45]
-[6]: t1 is C4 ? [7] : [45]
-[7]: t4 = (C4)t1; [8]
-[8]: t4 is I2 ? [9] : [14]
-[9]: t5 = (I2)t4; [10]
-[10]: t6 = t5.Value2; [11]
-[11]: t6 is int ? [12] : [45]
-[12]: t7 = (int)t6; [13]
-[13]: t7 == 11 ? [44] : [45]
-[14]: t8 = t4.Value; [15]
-[15]: t8 is I2 ? [16] : [45]
-[16]: t9 = (I2)t8; [17]
-[17]: t10 = t9.Value2; [18]
-[18]: t10 is int ? [19] : [45]
-[19]: t11 = (int)t10; [20]
-[20]: t11 == 11 ? [44] : [45]
-[21]: t0 != null ? [22] : [45]
-[22]: t12 = t0.Value; [23]
-[23]: t12 is I1 ? [24] : [45]
-[24]: t13 = (I1)t12; [25]
-[25]: t14 = t13.Value1; [26]
-[26]: t14 is int ? [27] : [45]
-[27]: t15 = (int)t14; [28]
-[28]: t15 == 10 ? [29] : [45]
-[29]: t13 is C4 ? [30] : [45]
-[30]: t16 = (C4)t13; [31]
-[31]: t16 is I2 ? [32] : [37]
-[32]: t17 = (I2)t16; [33]
-[33]: t18 = t17.Value2; [34]
-[34]: t18 is int ? [35] : [45]
-[35]: t19 = (int)t18; [36]
-[36]: t19 == 11 ? [44] : [45]
-[37]: t20 = t16.Value; [38]
-[38]: t20 is I2 ? [39] : [45]
-[39]: t21 = (I2)t20; [40]
-[40]: t22 = t21.Value2; [41]
-[41]: t22 is int ? [42] : [45]
-[42]: t23 = (int)t22; [43]
-[43]: t23 == 11 ? [44] : [45]
-[44]: leaf <arm> `I1 and { Value1: 10 } and C4 and I2 and { Value2: 11 } => true`
-[45]: leaf <arm> `_ => false`
-",
-forLowering: true);
-
-            CompileAndVerify(comp).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void TypePattern_11_UnionInstance_And_Value_Exhaustiveness_And_Reachability()
-        {
-            var src0 = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2 : I1
-{
-    public bool Value1 => throw null;
-}
-
-class C3(object x) : C1(x), I1
-{
-    bool I1.Value1 => throw null;
-}
-
-interface I1
-{
-    bool Value1 { get; }
-}
-";
-            var src1 = @"
-class Program
-{
-    static int Test1(C1 u)
-    {
-        return u switch
-        {
-            I1 => 1,
-#line 100
-            I1 and { Value1: true } => 2,
-            _ => 3
-        };
-    }   
-}
-";
-            var comp = CreateCompilation([src1, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (100,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //             I1 and { Value1: true } => 2,
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "I1 and { Value1: true }").WithLocation(100, 13)
-                );
-
-            var src2 = @"
-class Program
-{
-    static int Test2(C1 u)
-    {
-        return u switch
-        {
-            I1 and { Value1: true } => 2,
-            I1 => 1,
-            _ => 3
-        };
-    }   
-}
-";
-            comp = CreateCompilation([src2, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics();
-
-            var src3 = @"
-class Program
-{
-    static int Test3(C1 u)
-    {
-#line 300
-        return u switch
-        {
-            I1 and { Value1: true } => 2,
-            not I1 => 3
-        };
-    }   
-}
-";
-            comp = CreateCompilation([src3, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (300,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'I1{ Value1: false }' is not covered.
-                //         return u switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("I1{ Value1: false }").WithLocation(300, 18)
-                );
-
-            src3 = @"
-class Program
-{
-    static int Test3(object u)
-    {
-#line 300
-        return u switch
-        {
-            C1 and I1 and { Value1: true } => 2,
-            not C1 => 3,
-            not I1 => 3
-        };
-    }   
-}
-";
-            comp = CreateCompilation([src3, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (300,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'I1{ Value1: false }' is not covered.
-                //         return u switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("I1{ Value1: false }").WithLocation(300, 18)
-                );
-
-            src3 = @"
-class Program
-{
-    static int Test3(object u)
-    {
-#line 300
-        return u switch
-        {
-            C1 { Value: I1 { Value1: false } } => 1,
-            C1 and I1 and { Value1: true } => 2,
-            not C1 => 3,
-        };
-    }  
-
-    static int Test4(object u)
-    {
-#line 400
-        return u switch
-        {
-            C1 { Value: I1 { Value1: false } } => 1,
-            C1 and I1 and { Value1: true } => 2,
-            not C1 => 3,
-            C1 { Value: int } => 4,
-        };
-    }   
-
-    static int Test5(object u)
-    {
-#line 500
-        return u switch
-        {
-            C1 { Value: I1 { Value1: false } } => 1,
-            C1 and I1 and { Value1: true } => 2,
-            not C1 => 3,
-            C1 { Value: int } => 4,
-            C1 => 5,
-        };
-    }   
-}
-";
-            comp = CreateCompilation([src3, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
-
-            comp.VerifyDiagnostics(
-                // (300,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C1{ Value: int }' is not covered.
-                //         return u switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C1{ Value: int }").WithLocation(300, 18),
-                // (400,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C1' is not covered.
-                //         return u switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C1").WithLocation(400, 18)
-                );
-
-            var src4 = @"
-class Program
-{
-    static int Test4(object u)
-    {
-        return u switch
-        {
-            I1 => 1,
-            C1 { Value: I1 } => 4,
-#line 400
-            C1 and I1 and { Value1: true } => 2,
-            _ => 3
-        };
-    }   
-}
-";
-            comp = CreateCompilation([src4, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (400,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //             C1 and I1 and { Value1: true } => 2,
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "C1 and I1 and { Value1: true }").WithLocation(400, 13)
-                );
-
-            var src5 = @"
-class Program
-{
-    static int Test4(object u)
-    {
-        return u switch
-        {
-            I1 => 1,
-            C1 and I1 and { Value1: true } => 2,
-            _ => 3
-        };
-    }   
-}
-";
-            comp = CreateCompilation([src5, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [1] : [2]
-[1]: leaf <arm> `I1 => 1`
-[2]: t0 is C1 ? [3] : [10]
-[3]: t1 = (C1)t0; [4]
-[4]: t2 = t1.Value; [5]
-[5]: t2 is I1 ? [6] : [10]
-[6]: t3 = (I1)t2; [7]
-[7]: t4 = t3.Value1; [8]
-[8]: t4 == True ? [9] : [10]
-[9]: leaf <arm> `C1 and I1 and { Value1: true } => 2`
-[10]: leaf <arm> `_ => 3`
-",
-forLowering: true);
-
-            comp.VerifyDiagnostics(
-                );
-
-            var src6 = @"
-class Program
-{
-    static int Test4(object u)
-    {
-        return u switch
-        {
-            C1 { Value: I1 } => 4,
-            C1 and I1 and { Value1: true } => 2,
-            _ => 3
-        };
-    }   
-}
-";
-            comp = CreateCompilation([src6, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is C1 ? [1] : [10]
-[1]: t1 = (C1)t0; [2]
-[2]: t2 = t1.Value; [3]
-[3]: t2 is I1 ? [4] : [5]
-[4]: leaf <arm> `C1 { Value: I1 } => 4`
-[5]: t1 is I1 ? [6] : [10]
-[6]: t3 = (I1)t1; [7]
-[7]: t4 = t3.Value1; [8]
-[8]: t4 == True ? [9] : [10]
-[9]: leaf <arm> `C1 and I1 and { Value1: true } => 2`
-[10]: leaf <arm> `_ => 3`
-",
-forLowering: true);
-
-            comp.VerifyDiagnostics(
-                );
-
-            var src7 = @"
-class Program
-{
-    static int Test4(object u)
-    {
-        return u switch
-        {
-            I1 { Value1: false } => 1,
-            C1 { Value: I1 { Value1: false } } => 4,
-            C1 and I1 and { Value1: true } => 2,
-            _ => 3
-        };
-    }   
-}
-";
-            comp = CreateCompilation([src7, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [1] : [9]
-[1]: t1 = (I1)t0; [2]
-[2]: t2 = t1.Value1; [3]
-[3]: t2 == False ? [4] : [5]
-[4]: leaf <arm> `I1 { Value1: false } => 1`
-[5]: t0 is C1 ? [6] : [18]
-[6]: t3 = (C1)t0; [7]
-[7]: t4 = t3.Value; [8]
-[8]: t4 is I1 ? [13] : [17]
-[9]: t0 is C1 ? [10] : [18]
-[10]: t3 = (C1)t0; [11]
-[11]: t4 = t3.Value; [12]
-[12]: t4 is I1 ? [13] : [18]
-[13]: t5 = (I1)t4; [14]
-[14]: t6 = t5.Value1; [15]
-[15]: t6 == False ? [16] : [17]
-[16]: leaf <arm> `C1 { Value: I1 { Value1: false } } => 4`
-[17]: leaf <arm> `C1 and I1 and { Value1: true } => 2`
-[18]: leaf <arm> `_ => 3`
-",
-forLowering: true);
-
-            comp.VerifyDiagnostics(
-                );
-
-            var src8 = @"
-class Program
-{
-    static int Test4(object u)
-    {
-        return u switch
-        {
-            I1 => 1,
-            C1 { Value: I1 { Value1: false } } => 4,
-            C1 and I1 and { Value1: true } => 2,
-            _ => 3
-        };
-    }   
-}
-";
-            comp = CreateCompilation([src8, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [1] : [2]
-[1]: leaf <arm> `I1 => 1`
-[2]: t0 is C1 ? [3] : [11]
-[3]: t1 = (C1)t0; [4]
-[4]: t2 = t1.Value; [5]
-[5]: t2 is I1 ? [6] : [11]
-[6]: t3 = (I1)t2; [7]
-[7]: t4 = t3.Value1; [8]
-[8]: t4 == False ? [9] : [10]
-[9]: leaf <arm> `C1 { Value: I1 { Value1: false } } => 4`
-[10]: leaf <arm> `C1 and I1 and { Value1: true } => 2`
-[11]: leaf <arm> `_ => 3`
-",
-forLowering: true);
-
-            comp.VerifyDiagnostics(
-                );
-
-            var src9 = @"
-class Program
-{
-    static int Test4(object u)
-    {
-        return u switch
-        {
-            I1 { Value1: false } => 1,
-            C1 { Value: I1 } => 4,
-            C1 and I1 and { Value1: true } => 2,
-            _ => 3
-        };
-    }   
-}
-";
-            comp = CreateCompilation([src9, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [1] : [10]
-[1]: t1 = (I1)t0; [2]
-[2]: t2 = t1.Value1; [3]
-[3]: t2 == False ? [4] : [5]
-[4]: leaf <arm> `I1 { Value1: false } => 1`
-[5]: t0 is C1 ? [6] : [15]
-[6]: t3 = (C1)t0; [7]
-[7]: t4 = t3.Value; [8]
-[8]: t4 is I1 ? [14] : [9]
-[9]: leaf <arm> `C1 and I1 and { Value1: true } => 2`
-[10]: t0 is C1 ? [11] : [15]
-[11]: t3 = (C1)t0; [12]
-[12]: t4 = t3.Value; [13]
-[13]: t4 is I1 ? [14] : [15]
-[14]: leaf <arm> `C1 { Value: I1 } => 4`
-[15]: leaf <arm> `_ => 3`
-",
-forLowering: true);
-
-            comp.VerifyDiagnostics(
-                );
-        }
-
-        [Fact]
-        public void TypePattern_12_UnionInstance_And_Value_BindTypePattern()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(new C2(11))));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C3(10)));
-        System.Console.Write(Test1(new C3(new C2(11))));
-        System.Console.Write(Test1(new C3(null)));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { global::I1 => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [4] : [1]
-[1]: t0 != null ? [2] : [5]
-[2]: t1 = t0.Value; [3]
-[3]: t1 is I1 ? [4] : [5]
-[4]: leaf <arm> `global::I1 => true`
-[5]: leaf <arm> `_ => false`
-",
-forLowering: true);
-
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalseFalseTrueTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp, expectedOutput: "FalseTrueFalseFalseTrueTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            comp.VerifyDiagnostics(
-                // (42,27): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         return u switch { global::I1 => true, _ => false };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "global::I1").WithArguments("unions").WithLocation(42, 27)
-                );
-        }
-
-        [Fact]
-        public void TypePattern_13_UnionInstance_And_Value_BindIsOperator()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2 : I1
-{
-    private object _x;
-    public C2(object x) { _x = x; }
-    public object Value1 => _x;
-}
-
-class C3 : C1, I1
-{
-    public C3(object x) : base(x) { }
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(new C2(11))));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C3(10)));
-        System.Console.Write(Test1(new C3(new C2(11))));
-        System.Console.Write(Test1(new C3(null)));
-    }
-
-    static bool Test1(C1 u)
-    {
-#line 42
-        return u is I1;
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-
-            VerifyDecisionDagDump<BinaryExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [4] : [1]
-[1]: t0 != null ? [2] : [5]
-[2]: t1 = t0.Value; [3]
-[3]: t1 is I1 ? [4] : [5]
-[4]: leaf <isPatternSuccess> `u is I1`
-[5]: leaf <isPatternFailure> `u is I1`
-",
-forLowering: true);
-
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalseFalseTrueTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp, expectedOutput: "FalseTrueFalseFalseTrueTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            comp.VerifyDiagnostics(
-                // (42,16): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         return u is I1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "u is I1").WithArguments("unions").WithLocation(42, 16)
-                );
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular6);
-            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrueTrue").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void TypePattern_14_UnionInstance_And_Value_Plus_Designation()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(11)));
-        System.Console.Write(Test1(new C1(new C2(12))));
-        System.Console.Write(Test1(new C1(new C2(13))));
-        System.Console.Write(Test1(new C1(new C2(null))));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C3(14)));
-        System.Console.Write(Test1(new C3(15)));
-        System.Console.Write(Test1(new C3(new C2(16))));
-        System.Console.Write(Test1(new C3(new C2(17))));
-        System.Console.Write(Test1(new C3(new C2(null))));
-        System.Console.Write(Test1(new C3(null)));
-    }
-
-    static int Test1(C1 u)
-    {
-        return u switch { I1 and { Value1: int i } => -i, _ => -999 };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-
-            comp.VerifyDiagnostics(
-                // (48,48): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //         return u switch { I1 and { Value1: int i } => -i, _ => -999 };
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i").WithLocation(48, 48)
-                );
-        }
-
-        [Fact]
-        public void TypePattern_15_UnionInstance_And_Value_Plus_Designation()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(11)));
-        System.Console.Write(Test1(new C1(new C2(12))));
-        System.Console.Write(Test1(new C1(new C2(13))));
-        System.Console.Write(Test1(new C1(new C2(null))));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C3(14)));
-        System.Console.Write(Test1(new C3(15)));
-        System.Console.Write(Test1(new C3(new C2(16))));
-        System.Console.Write(Test1(new C3(new C2(17))));
-        System.Console.Write(Test1(new C3(new C2(null))));
-        System.Console.Write(Test1(new C3(null)));
-    }
-
-    static int Test1(C1 u)
-    {
-        if ( u is not (I1 and { Value1: int i }))
-            return -999;
-
-        return -i;
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics(
-                // (48,45): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //         if ( u is not (I1 and { Value1: int i }))
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i").WithLocation(48, 45)
-                );
-        }
-
-        [Fact]
-        public void TypePattern_16_UnionInstance_And_Value_Plus_Designation()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(11)));
-        System.Console.Write(Test1(new C1(new C2(12))));
-        System.Console.Write(Test1(new C1(new C2(13))));
-        System.Console.Write(Test1(new C1(new C2(null))));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C3(14)));
-        System.Console.Write(Test1(new C3(15)));
-        System.Console.Write(Test1(new C3(new C2(16))));
-        System.Console.Write(Test1(new C3(new C2(17))));
-        System.Console.Write(Test1(new C3(new C2(null))));
-        System.Console.Write(Test1(new C3(null)));
-    }
-
-    static int Test1(C1 u)
-    {
-        return u switch { I1 and var i1 and { Value1: int } => -(int)i1.Value1, _ => -999 };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics(
-                // (48,38): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //         return u switch { I1 and var i1 and { Value1: int } => -(int)i1.Value1, _ => -999 };
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(48, 38)
-                );
-        }
-
-        [Fact]
-        public void TypePattern_17_UnionInstance_And_Value_Plus_Designation()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class Program
-{
-    static void Main()
-    {
-        //System.Console.Write(Test1(new C1(10)));
-        //System.Console.Write(Test1(new C1(11)));
-        //System.Console.Write(Test1(new C1(new C2(12))));
-        //System.Console.Write(Test1(new C1(new C2(13))));
-        //System.Console.Write(Test1(new C1(new C2(null))));
-        //System.Console.Write(Test1(new C1(null)));
-        //System.Console.Write(Test1(null));
-        //System.Console.Write(Test1(new C3(14)));
-        //System.Console.Write(Test1(new C3(15)));
-        //System.Console.Write(Test1(new C3(new C2(16))));
-        //System.Console.Write(Test1(new C3(new C2(17))));
-        //System.Console.Write(Test1(new C3(new C2(null))));
-        //System.Console.Write(Test1(new C3(null)));
-    }
-
-    static int Test1(C1 u)
-    {
-        switch (u)
-        {
-#line 100
-            case I1 and var i1 and { Value1: int } when GetTrue(ref i1):
-                return -(int)i1.Value1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test2(object u)
-    {
-        switch (u)
-        {
-#line 200
-            case C1 and I1 and var i1 and { Value1: int } when GetTrue(ref i1):
-                return -(int)i1.Value1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test3(object u)
-    {
-        switch (u)
-        {
-#line 300
-            case C1 and (I1) and var i1 and { Value1: int } when GetTrue(ref i1):
-                return -(int)i1.Value1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test4(object u)
-    {
-        switch (u)
-        {
-#line 400
-            case (C1 and I1) and var i1 and { Value1: int } when GetTrue(ref i1):
-                return -(int)i1.Value1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test5(object u)
-    {
-        switch (u)
-        {
-#line 500
-            case C1 and (I1 and { Value1: int }) and var i1 when GetTrue(ref i1):
-                return -(int)i1.Value1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test6(object u)
-    {
-        switch (u)
-        {
-#line 600
-            case (C1 and I1) and ({ Value1: int } and var i1) when GetTrue(ref i1):
-                return -(int)i1.Value1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test7(object u)
-    {
-        switch (u)
-        {
-#line 700
-            case C1 and I1 and { Value1: int } i1 when GetTrue(ref i1):
-                return -(int)i1.Value1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test8(C1 u)
-    {
-        switch (u)
-        {
-#line 800
-            case (I1 or int) and var i1:
-                return 0;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test9(C1 u)
-    {
-        switch (u)
-        {
-#line 900
-            case (int or I1) and var i1:
-                return 0;
-            default:
-                return -999;
-        }
-    }   
-
-    static bool GetTrue(ref I1 i1) => true;
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics(
-                // (100,29): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case I1 and var i1 and { Value1: int } when GetTrue(ref i1):
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 29),
-                // (200,36): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case C1 and I1 and var i1 and { Value1: int } when GetTrue(ref i1):
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(200, 36),
-                // (300,38): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case C1 and (I1) and var i1 and { Value1: int } when GetTrue(ref i1):
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 38),
-                // (400,38): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case (C1 and I1) and var i1 and { Value1: int } when GetTrue(ref i1):
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(400, 38),
-                // (500,58): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case C1 and (I1 and { Value1: int }) and var i1 when GetTrue(ref i1):
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(500, 58),
-                // (600,59): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case (C1 and I1) and ({ Value1: int } and var i1) when GetTrue(ref i1):
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(600, 59),
-                // (700,48): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case C1 and I1 and { Value1: int } i1 when GetTrue(ref i1):
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(700, 48)
-                );
-        }
-
-        [Fact]
-        public void TypePattern_18_UnionInstance_And_Value_Plus_Designation()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-
-    public int Length => 0;
-    public object this[int i] => null;
-    public C1 this[System.Range i] => null;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class Program
-{
-    static int Test1(C1 u)
-    {
-        switch (u)
-        {
-#line 100
-            case [.. I1 and var i1, _ ]:
-                return -(int)i1.Value1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test2(C1 u)
-    {
-        switch (u)
-        {
-#line 200
-            case [.. I1, var i1 ] and var u1:
-                return -(int)i1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test3(C1 u)
-    {
-        switch (u)
-        {
-#line 300
-            case not [.. var i1, _ ]:
-                return -1;
-            default:
-                return -999;
-        }
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (100,33): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case [.. I1 and var i1, _ ]:
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 33),
-                // (300,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case not [.. var i1, _ ]:
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 30)
-                );
-        }
-
-        [Fact]
-        public void TypePattern_19_UnionInstance_And_Value_Plus_Designation()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class Program
-{
-    static int Test1(C1[] u)
-    {
-        switch (u)
-        {
-#line 100
-            case [I1 and var i1, _ ]:
-                return -(int)i1.Value1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test2(C1[] u)
-    {
-        switch (u)
-        {
-#line 200
-            case [I1, var i1 ] and var u1:
-                return -1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test3(C1[] u)
-    {
-        switch (u)
-        {
-#line 300
-            case not [var i1, _ ]:
-                return -1;
-            default:
-                return -999;
-        }
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (100,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case [I1 and var i1, _ ]:
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 30),
-                // (300,27): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case not [var i1, _ ]:
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 27)
-                );
-        }
-
-        [Fact]
-        public void TypePattern_20_UnionInstance_And_Value_Plus_Designation()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class Program
-{
-    static int Test1((C1, object) u)
-    {
-        switch (u)
-        {
-#line 100
-            case (I1 and var i1, _ ):
-                return -(int)i1.Value1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test2((C1, object) u)
-    {
-        switch (u)
-        {
-#line 200
-            case (I1, var i1 ) and var u1:
-                return -1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test3((C1, object) u)
-    {
-        switch (u)
-        {
-#line 300
-            case not (var i1, _ ):
-                return -1;
-            default:
-                return -999;
-        }
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (100,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case (I1 and var i1, _ ):
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 30),
-                // (300,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
-                //             case not (var i1, _ ):
-                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "not (var i1, _ )").WithLocation(300, 18),
-                // (300,27): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case not (var i1, _ ):
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 27)
-                );
-        }
-
-        [Fact]
-        public void TypePattern_21_UnionInstance_And_Value_Plus_Designation()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class C4
-{
-    public void Deconstruct(out C1 c, out object x) => throw null;
-}
-
-class Program
-{
-    static int Test1(C4 u)
-    {
-        switch (u)
-        {
-#line 100
-            case (I1 and var i1, _ ):
-                return -(int)i1.Value1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test2(C4 u)
-    {
-        switch (u)
-        {
-#line 200
-            case (I1, var i1 ) and var u1:
-                return -1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test3(C4 u)
-    {
-        switch (u)
-        {
-#line 300
-            case not (var i1, _ ):
-                return -1;
-            default:
-                return -999;
-        }
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (100,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case (I1 and var i1, _ ):
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 30),
-                // (300,27): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case not (var i1, _ ):
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 27)
-                );
-        }
-
-        [Fact]
-        public void TypePattern_22_UnionInstance_And_Value_Plus_Designation()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class Program
-{
-    static int Test1(System.Runtime.CompilerServices.ITuple u)
-    {
-        switch (u)
-        {
-#line 100
-            case (C1 and I1 and var i1, _ ):
-                return -(int)i1.Value1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test2(System.Runtime.CompilerServices.ITuple u)
-    {
-        switch (u)
-        {
-#line 200
-            case (C1 and I1, var i1 ) and var u1:
-                return -1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test3(System.Runtime.CompilerServices.ITuple u)
-    {
-        switch (u)
-        {
-#line 300
-            case not (var i1, _ ):
-                return -1;
-            default:
-                return -999;
-        }
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (100,37): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case (C1 and I1 and var i1, _ ):
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 37),
-                // (300,27): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case not (var i1, _ ):
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 27)
-                );
-        }
-
-        [Fact]
-        public void TypePattern_23_UnionInstance_And_Value_Plus_Designation()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class C4
-{
-    public C1 C => throw null;
-    public object O => throw null;
-}
-
-class Program
-{
-    static int Test1(C4 u)
-    {
-        switch (u)
-        {
-#line 100
-            case { C: I1 and var i1, O: _ }:
-                return -(int)i1.Value1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test2(C4 u)
-    {
-        switch (u)
-        {
-#line 200
-            case { C: I1, O: var i1 } and var u1:
-                return -1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test3(C4 u)
-    {
-        switch (u)
-        {
-#line 300
-            case not { C: var i1, O: _ }:
-                return -1;
-            default:
-                return -999;
-        }
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (100,34): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case { C: I1 and var i1, O: _ }:
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 34),
-                // (300,31): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case not { C: var i1, O: _ }:
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 31)
-                );
-        }
-
-        [Fact]
-        public void TypePattern_24_UnionInstance_And_Value()
-        {
-            var source1 = @"
-#nullable enable
-
-public union U<T>(T);
-
-class Program
-{
-    int M9<Y>(U<Y> y)
-    {
-        return y switch
-        {
-            Y => 1,
-        };
-    }
-}
-";
-
-            var comp = CreateCompilation([source1, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is Y ? [3] : [1]
-[1]: t1 = t0.Value; [2]
-[2]: t1 != null ? [3] : [4]
-[3]: leaf <arm> `Y => 1`
-[4]: leaf <default> `y switch
-        {
-            Y => 1,
-        }`
-",
-forLowering: false);
-
-            comp.VerifyEmitDiagnostics(
-                // (10,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //         return y switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(10, 18)
-                );
-
-            var source2 = @"
-#nullable enable
-
-public union U<T>(T);
-
-class Program
-{
-    int M9<Y>(U<Y> y)
-    {
-        return y switch
-        {
-            Y => 1,
-            null => 2,
-        };
-    }
-}
-";
-
-            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is Y ? [3] : [1]
-[1]: t1 = t0.Value; [2]
-[2]: t1 != null ? [3] : [4]
-[3]: leaf <arm> `Y => 1`
-[4]: leaf <arm> `null => 2`
-",
-forLowering: false);
-
-            comp.VerifyEmitDiagnostics(
-                );
-        }
-
-        [Fact]
-        public void TypePattern_25_UnionInstance_And_Value()
-        {
-            var source1 = @"
-#nullable enable
-
-public union U<T>(T);
-
-class Program
-{
-    int M9<Y>(U<Y> y) where Y : struct
-    {
-        return y switch
-        {
-            Y => 1,
-        };
-    }
-}
-";
-
-            var comp = CreateCompilation([source1, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is Y ? [3] : [1]
-[1]: t1 = t0.Value; [2]
-[2]: t1 != null ? [3] : [4]
-[3]: leaf <arm> `Y => 1`
-[4]: leaf <default> `y switch
-        {
-            Y => 1,
-        }`
-",
-forLowering: false);
-
-            comp.VerifyEmitDiagnostics();
-
-            var source2 = @"
-#nullable enable
-
-public union U<T>(T);
-
-class Program
-{
-    int M9<Y>(U<Y> y) where Y : struct
-    {
-        return y switch
-        {
-            Y => 1,
-            null => 2,
-        };
-    }
-}
-";
-
-            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is Y ? [3] : [1]
-[1]: t1 = t0.Value; [2]
-[2]: t1 != null ? [3] : [4]
-[3]: leaf <arm> `Y => 1`
-[4]: leaf <arm> `null => 2`
-",
-forLowering: false);
-
-            comp.VerifyEmitDiagnostics(
-                );
-        }
-
-        [Fact]
-        public void TypePattern_26_UnionInstance_And_Value()
-        {
-            var source1 = @"
-#nullable enable
-
-public union U<T>(T);
-
-class Program
-{
-    int M9<Y>(U<Y> y) where Y : class?
-    {
-        return y switch
-        {
-            Y => 1,
-        };
-    }
-}
-";
-
-            var comp = CreateCompilation([source1, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is Y ? [3] : [1]
-[1]: t1 = t0.Value; [2]
-[2]: t1 != null ? [3] : [4]
-[3]: leaf <arm> `Y => 1`
-[4]: leaf <default> `y switch
-        {
-            Y => 1,
-        }`
-",
-forLowering: false);
-
-            comp.VerifyEmitDiagnostics(
-                // (10,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //         return y switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(10, 18)
-                );
-
-            var source2 = @"
-#nullable enable
-
-public union U<T>(T);
-
-class Program
-{
-    int M9<Y>(U<Y> y) where Y : class?
-    {
-        return y switch
-        {
-            Y => 1,
-            null => 2,
-        };
-    }
-}
-";
-
-            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is Y ? [3] : [1]
-[1]: t1 = t0.Value; [2]
-[2]: t1 != null ? [3] : [4]
-[3]: leaf <arm> `Y => 1`
-[4]: leaf <arm> `null => 2`
-",
-forLowering: false);
-
-            comp.VerifyEmitDiagnostics(
-                );
-        }
-
-        [Fact]
-        public void TypePattern_27_UnionInstance_And_Value()
-        {
-            var source1 = @"
-#nullable enable
-
-public union U<T>(T);
-
-class Program
-{
-    int M9<Y>(U<Y> y) where Y : notnull
-    {
-        return y switch
-        {
-            Y => 1,
-        };
-    }
-}
-";
-
-            var comp = CreateCompilation([source1, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is Y ? [3] : [1]
-[1]: t1 = t0.Value; [2]
-[2]: t1 != null ? [3] : [4]
-[3]: leaf <arm> `Y => 1`
-[4]: leaf <default> `y switch
-        {
-            Y => 1,
-        }`
-",
-forLowering: false);
-
-            comp.VerifyEmitDiagnostics();
-
-            var source2 = @"
-#nullable enable
-
-public union U<T>(T);
-
-class Program
-{
-    int M9<Y>(U<Y> y) where Y : notnull
-    {
-        return y switch
-        {
-            Y => 1,
-            null => 2,
-        };
-    }
-}
-";
-
-            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is Y ? [3] : [1]
-[1]: t1 = t0.Value; [2]
-[2]: t1 != null ? [3] : [4]
-[3]: leaf <arm> `Y => 1`
-[4]: leaf <arm> `null => 2`
-",
-forLowering: false);
-
-            comp.VerifyEmitDiagnostics(
-                );
-        }
-
-        [Fact]
-        public void TypePattern_28_UnionInstance_And_Value()
-        {
-            var source1 = @"
-#nullable enable
-
-public union U<T>(T);
-
-class Program
-{
-    int M9<Y>(U<Y> y) where Y : class
-    {
-        return y switch
-        {
-            Y => 1,
-        };
-    }
-}
-";
-
-            var comp = CreateCompilation([source1, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is Y ? [3] : [1]
-[1]: t1 = t0.Value; [2]
-[2]: t1 != null ? [3] : [4]
-[3]: leaf <arm> `Y => 1`
-[4]: leaf <default> `y switch
-        {
-            Y => 1,
-        }`
-",
-forLowering: false);
-
-            comp.VerifyEmitDiagnostics();
-
-            var source2 = @"
-#nullable enable
-
-public union U<T>(T);
-
-class Program
-{
-    int M9<Y>(U<Y> y) where Y : class
-    {
-        return y switch
-        {
-            Y => 1,
-            null => 2,
-        };
-    }
-}
-";
-
-            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is Y ? [3] : [1]
-[1]: t1 = t0.Value; [2]
-[2]: t1 != null ? [3] : [4]
-[3]: leaf <arm> `Y => 1`
-[4]: leaf <arm> `null => 2`
-",
-forLowering: false);
-
-            comp.VerifyEmitDiagnostics(
-                );
-        }
-
-        [Fact]
-        public void TypePattern_29_UnionInstance_And_Value()
-        {
-            var source1 = @"
-[System.Runtime.CompilerServices.Union]
-class U<T>
-{
-    private readonly object _value;
-    public U(T x) { _value = x; }
-    public object Value => _value;
-}
-";
-
-            var source2 = @"
-#nullable enable
-
-class Program
-{
-    int M9<X, Y>(U<Y> y) where Y : X
-    {
-    #line 100
-        return y switch
-        {
-            Y => 1,
-    #line 400
-            X => 2,
-        };
-    }
-}
-";
-
-            var comp = CreateCompilation([source1 + source2, UnionAttributeSource]);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is Y ? [4] : [1]
-[1]: t0 != null ? [2] : [7]
-[2]: t1 = t0.Value; [3]
-[3]: t1 != null ? [4] : [5]
-[4]: leaf <arm> `Y => 1`
-[5]: t0 is X ? [6] : [7]
-[6]: leaf <arm> `X => 2`
-[7]: leaf <default> `y switch
-        {
-            Y => 1,
-    #line 400
-            X => 2,
-        }`
-",
-forLowering: false);
-
-            comp.VerifyEmitDiagnostics(
-                // (100,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //         return y switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(100, 18)
-                );
-
-            var source3 = @"
-class U<T>
-{
-}
-";
-
-            comp = CreateCompilation([source3 + source2]);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is Y ? [1] : [2]
-[1]: leaf <arm> `Y => 1`
-[2]: t0 is X ? [3] : [4]
-[3]: leaf <arm> `X => 2`
-[4]: leaf <default> `y switch
-        {
-            Y => 1,
-    #line 400
-            X => 2,
-        }`
-",
-forLowering: false);
-
-            comp.VerifyEmitDiagnostics(
-                // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
-                //         return y switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(100, 18)
-                );
-        }
-
-        [Fact]
-        public void DeclarationPattern_01_UnionInstance_Only()
-        {
-            var src = @"
-class C0;
-
-[System.Runtime.CompilerServices.Union]
-class C1 : C0
-{
-    private readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C0 x) { _value = x; }
-    public object Value => _value;
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C1(new C1(1))));
-        System.Console.Write(Test1(new C1(new C0())));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { C1 x => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
-
-            verifier.VerifyIL("Program.Test1", @"
-{
-  // Code size       11 (0xb)
-  .maxstack  1
-  .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0007
-  IL_0003:  ldc.i4.1
-  IL_0004:  stloc.0
-  IL_0005:  br.s       IL_0009
-  IL_0007:  ldc.i4.0
-  IL_0008:  stloc.0
-  IL_0009:  ldloc.0
-  IL_000a:  ret
-}
-");
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void DeclarationPattern_02_UnionInstance_Only()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    private readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(string x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(string x) : C1(x);
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C1(""a"")));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(new C2(""a"")));
-        System.Console.Write(Test1(new C2(null)));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { C2 x => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
-
-            verifier.VerifyIL("Program.Test1", @"
-{
-  // Code size       16 (0x10)
-  .maxstack  1
-  .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  isinst     ""C2""
-  IL_0006:  brfalse.s  IL_000c
-  IL_0008:  ldc.i4.1
-  IL_0009:  stloc.0
-  IL_000a:  br.s       IL_000e
-  IL_000c:  ldc.i4.0
-  IL_000d:  stloc.0
-  IL_000e:  ldloc.0
-  IL_000f:  ret
-}
-");
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void DeclarationPattern_03_UnionInstance_And_Value()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(new C2(11))));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C3(10)));
-        System.Console.Write(Test1(new C3(new C2(11))));
-        System.Console.Write(Test1(new C3(null)));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { I1 x => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [1] : [2]
-[1]: t1 = (I1)t0; [7]
-[2]: t0 != null ? [3] : [9]
-[3]: t2 = t0.Value; [4]
-[4]: t2 != null ? [5] : [9]
-[5]: t2 is I1 ? [6] : [9]
-[6]: t3 = (I1)t2; [7]
-[7]: when <true> ? [8] : <unreachable>
-[8]: leaf <arm> `I1 x => true`
-[9]: leaf <arm> `_ => false`
-",
-forLowering: false);
-
-            comp.VerifyDiagnostics(
-                // (42,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //         return u switch { I1 x => true, _ => false };
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x").WithLocation(42, 30)
-                );
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
-            comp.VerifyDiagnostics(
-                // (42,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //         return u switch { I1 x => true, _ => false };
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x").WithLocation(42, 30)
-                );
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            comp.VerifyDiagnostics(
-                // (42,27): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         return u switch { I1 x => true, _ => false };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1 x").WithArguments("unions").WithLocation(42, 27),
-                // (42,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //         return u switch { I1 x => true, _ => false };
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x").WithLocation(42, 30)
-                );
-        }
-
-        [Fact]
-        public void PropertyPattern_01_UnionInstance_Only()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    private readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(string x) { _value = x; }
-    public object Value => _value;
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(""11"")));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { {} => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "TrueTrueTrueFalse").VerifyDiagnostics();
-
-            verifier.VerifyIL("Program.Test1", @"
-{
-  // Code size       11 (0xb)
-  .maxstack  1
-  .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0007
-  IL_0003:  ldc.i4.1
-  IL_0004:  stloc.0
-  IL_0005:  br.s       IL_0009
-  IL_0007:  ldc.i4.0
-  IL_0008:  stloc.0
-  IL_0009:  ldloc.0
-  IL_000a:  ret
-}
-");
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp, expectedOutput: "TrueTrueTrueFalse").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            CompileAndVerify(comp, expectedOutput: "TrueTrueTrueFalse").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void PropertyPattern_02_UnionInstance_Only()
-        {
-            var src = @"
-class C0;
-
-[System.Runtime.CompilerServices.Union]
-class C1 : C0
-{
-    private readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C0 x) { _value = x; }
-    public object Value => _value;
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C1(new C1(1))));
-        System.Console.Write(Test1(new C1(new C0())));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { C0 {} => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
-
-            verifier.VerifyIL("Program.Test1", @"
-{
-  // Code size       11 (0xb)
-  .maxstack  1
-  .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0007
-  IL_0003:  ldc.i4.1
-  IL_0004:  stloc.0
-  IL_0005:  br.s       IL_0009
-  IL_0007:  ldc.i4.0
-  IL_0008:  stloc.0
-  IL_0009:  ldloc.0
-  IL_000a:  ret
-}
-");
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void PropertyPattern_03_UnionInstance_Only()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    private readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(string x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(string x) : C1(x);
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C1(""a"")));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(new C2(""a"")));
-        System.Console.Write(Test1(new C2(null)));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { C2 {} => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
-
-            verifier.VerifyIL("Program.Test1", @"
-{
-  // Code size       16 (0x10)
-  .maxstack  1
-  .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  isinst     ""C2""
-  IL_0006:  brfalse.s  IL_000c
-  IL_0008:  ldc.i4.1
-  IL_0009:  stloc.0
-  IL_000a:  br.s       IL_000e
-  IL_000c:  ldc.i4.0
-  IL_000d:  stloc.0
-  IL_000e:  ldloc.0
-  IL_000f:  ret
-}
-");
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void PropertyPattern_04_UnionInstance_And_Value()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(new C2(11))));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C3(10)));
-        System.Console.Write(Test1(new C3(new C2(11))));
-        System.Console.Write(Test1(new C3(null)));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { I1 {} => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [4] : [1]
-[1]: t0 != null ? [2] : [5]
-[2]: t1 = t0.Value; [3]
-[3]: t1 is I1 ? [4] : [5]
-[4]: leaf <arm> `I1 {} => true`
-[5]: leaf <arm> `_ => false`
-",
-forLowering: true);
-
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalseFalseTrueTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp, expectedOutput: "FalseTrueFalseFalseTrueTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            comp.VerifyDiagnostics(
-                // (42,27): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         return u switch { I1 {} => true, _ => false };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1 {}").WithArguments("unions").WithLocation(42, 27)
-                );
-        }
-
-        [Fact]
-        public void PropertyPattern_05_UnionInstance_And_Value()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(11)));
-        System.Console.Write(Test1(new C1(new C2(10))));
-        System.Console.Write(Test1(new C1(new C2(11))));
-        System.Console.Write(Test1(new C1(new C2(null))));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C3(10)));
-        System.Console.Write(Test1(new C3(11)));
-        System.Console.Write(Test1(new C3(new C2(10))));
-        System.Console.Write(Test1(new C3(new C2(11))));
-        System.Console.Write(Test1(new C3(new C2(null))));
-        System.Console.Write(Test1(new C3(null)));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { I1 { Value1: 10 } => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [1] : [6]
-[1]: t1 = (I1)t0; [2]
-[2]: t2 = t1.Value1; [3]
-[3]: t2 is int ? [4] : [15]
-[4]: t3 = (int)t2; [5]
-[5]: t3 == 10 ? [14] : [15]
-[6]: t0 != null ? [7] : [15]
-[7]: t4 = t0.Value; [8]
-[8]: t4 is I1 ? [9] : [15]
-[9]: t5 = (I1)t4; [10]
-[10]: t6 = t5.Value1; [11]
-[11]: t6 is int ? [12] : [15]
-[12]: t7 = (int)t6; [13]
-[13]: t7 == 10 ? [14] : [15]
-[14]: leaf <arm> `I1 { Value1: 10 } => true`
-[15]: leaf <arm> `_ => false`
-",
-forLowering: true);
-
-            CompileAndVerify(comp, expectedOutput: "FalseFalseTrueFalseFalseFalseFalseTrueFalseFalseFalseFalseFalse").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void PropertyPattern_06_UnionInstance_And_Value_Plus_Conjunction()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C4 x) { _value = x; }
-    public C1(C5 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-interface I2
-{
-    object Value2 { get; }
-}
-
-[System.Runtime.CompilerServices.Union]
-class C4 : C1
-{
-    public C4(int x) : base(x) {}
-    public C4(C5 x) : base(x) {}
-    protected C4(object x) : base(x) {}
-}
-
-class C5(object x) : I2
-{
-    public object Value2 => x;
-}
-
-class C6(object x) : C4(x), I2
-{
-    object I2.Value2 => _value;
-}
-
-class Program
-{
-    static bool Test1(C1 u)
-    {
-        return u switch { C4 { } and I2 and { Value2: 11 } => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is C4 ? [1] : [15]
-[1]: t1 = (C4)t0; [2]
-[2]: t1 is I2 ? [3] : [8]
-[3]: t2 = (I2)t1; [4]
-[4]: t3 = t2.Value2; [5]
-[5]: t3 is int ? [6] : [33]
-[6]: t4 = (int)t3; [7]
-[7]: t4 == 11 ? [32] : [33]
-[8]: t5 = t1.Value; [9]
-[9]: t5 is I2 ? [10] : [33]
-[10]: t6 = (I2)t5; [11]
-[11]: t7 = t6.Value2; [12]
-[12]: t7 is int ? [13] : [33]
-[13]: t8 = (int)t7; [14]
-[14]: t8 == 11 ? [32] : [33]
-[15]: t0 != null ? [16] : [33]
-[16]: t9 = t0.Value; [17]
-[17]: t9 is C4 ? [18] : [33]
-[18]: t10 = (C4)t9; [19]
-[19]: t10 is I2 ? [20] : [25]
-[20]: t11 = (I2)t10; [21]
-[21]: t12 = t11.Value2; [22]
-[22]: t12 is int ? [23] : [33]
-[23]: t13 = (int)t12; [24]
-[24]: t13 == 11 ? [32] : [33]
-[25]: t14 = t10.Value; [26]
-[26]: t14 is I2 ? [27] : [33]
-[27]: t15 = (I2)t14; [28]
-[28]: t16 = t15.Value2; [29]
-[29]: t16 is int ? [30] : [33]
-[30]: t17 = (int)t16; [31]
-[31]: t17 == 11 ? [32] : [33]
-[32]: leaf <arm> `C4 { } and I2 and { Value2: 11 } => true`
-[33]: leaf <arm> `_ => false`
-",
-forLowering: true);
-
-            CompileAndVerify(comp).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void PropertyPattern_07_UnionInstance_And_Value_Plus_Conjunction()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    public C1(C4 x) { _value = x; }
-    public C1(C5 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-interface I2
-{
-    object Value2 { get; }
-}
-
-[System.Runtime.CompilerServices.Union]
-class C4 : C1
-{
-    public C4(int x) : base(x) {}
-    public C4(C5 x) : base(x) {}
-    protected C4(object x) : base(x) {}
-}
-
-class C5(object x) : I2
-{
-    public object Value2 => x;
-}
-
-class C6(object x) : C4(x), I2
-{
-    object I2.Value2 => _value;
-}
-
-class C7(object x) : C6(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-class Program
-{
-    static bool Test1(C1 u)
-    {
-        return u switch { I1 { Value1: 10 } and C4 and I2 and { Value2: 11 } => true, _ => false };
-    }   
-
-    static bool Test2(C1 u)
-    {
-        return u switch { I1 {} and { Value1: 10 } and C4 and I2 and { Value2: 11 } => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [1] : [21]
-[1]: t1 = (I1)t0; [2]
-[2]: t2 = t1.Value1; [3]
-[3]: t2 is int ? [4] : [45]
-[4]: t3 = (int)t2; [5]
-[5]: t3 == 10 ? [6] : [45]
-[6]: t1 is C4 ? [7] : [45]
-[7]: t4 = (C4)t1; [8]
-[8]: t4 is I2 ? [9] : [14]
-[9]: t5 = (I2)t4; [10]
-[10]: t6 = t5.Value2; [11]
-[11]: t6 is int ? [12] : [45]
-[12]: t7 = (int)t6; [13]
-[13]: t7 == 11 ? [44] : [45]
-[14]: t8 = t4.Value; [15]
-[15]: t8 is I2 ? [16] : [45]
-[16]: t9 = (I2)t8; [17]
-[17]: t10 = t9.Value2; [18]
-[18]: t10 is int ? [19] : [45]
-[19]: t11 = (int)t10; [20]
-[20]: t11 == 11 ? [44] : [45]
-[21]: t0 != null ? [22] : [45]
-[22]: t12 = t0.Value; [23]
-[23]: t12 is I1 ? [24] : [45]
-[24]: t13 = (I1)t12; [25]
-[25]: t14 = t13.Value1; [26]
-[26]: t14 is int ? [27] : [45]
-[27]: t15 = (int)t14; [28]
-[28]: t15 == 10 ? [29] : [45]
-[29]: t13 is C4 ? [30] : [45]
-[30]: t16 = (C4)t13; [31]
-[31]: t16 is I2 ? [32] : [37]
-[32]: t17 = (I2)t16; [33]
-[33]: t18 = t17.Value2; [34]
-[34]: t18 is int ? [35] : [45]
-[35]: t19 = (int)t18; [36]
-[36]: t19 == 11 ? [44] : [45]
-[37]: t20 = t16.Value; [38]
-[38]: t20 is I2 ? [39] : [45]
-[39]: t21 = (I2)t20; [40]
-[40]: t22 = t21.Value2; [41]
-[41]: t22 is int ? [42] : [45]
-[42]: t23 = (int)t22; [43]
-[43]: t23 == 11 ? [44] : [45]
-[44]: leaf <arm> `I1 { Value1: 10 } and C4 and I2 and { Value2: 11 } => true`
-[45]: leaf <arm> `_ => false`
-",
-forLowering: true);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [1] : [21]
-[1]: t1 = (I1)t0; [2]
-[2]: t2 = t1.Value1; [3]
-[3]: t2 is int ? [4] : [45]
-[4]: t3 = (int)t2; [5]
-[5]: t3 == 10 ? [6] : [45]
-[6]: t1 is C4 ? [7] : [45]
-[7]: t4 = (C4)t1; [8]
-[8]: t4 is I2 ? [9] : [14]
-[9]: t5 = (I2)t4; [10]
-[10]: t6 = t5.Value2; [11]
-[11]: t6 is int ? [12] : [45]
-[12]: t7 = (int)t6; [13]
-[13]: t7 == 11 ? [44] : [45]
-[14]: t8 = t4.Value; [15]
-[15]: t8 is I2 ? [16] : [45]
-[16]: t9 = (I2)t8; [17]
-[17]: t10 = t9.Value2; [18]
-[18]: t10 is int ? [19] : [45]
-[19]: t11 = (int)t10; [20]
-[20]: t11 == 11 ? [44] : [45]
-[21]: t0 != null ? [22] : [45]
-[22]: t12 = t0.Value; [23]
-[23]: t12 is I1 ? [24] : [45]
-[24]: t13 = (I1)t12; [25]
-[25]: t14 = t13.Value1; [26]
-[26]: t14 is int ? [27] : [45]
-[27]: t15 = (int)t14; [28]
-[28]: t15 == 10 ? [29] : [45]
-[29]: t13 is C4 ? [30] : [45]
-[30]: t16 = (C4)t13; [31]
-[31]: t16 is I2 ? [32] : [37]
-[32]: t17 = (I2)t16; [33]
-[33]: t18 = t17.Value2; [34]
-[34]: t18 is int ? [35] : [45]
-[35]: t19 = (int)t18; [36]
-[36]: t19 == 11 ? [44] : [45]
-[37]: t20 = t16.Value; [38]
-[38]: t20 is I2 ? [39] : [45]
-[39]: t21 = (I2)t20; [40]
-[40]: t22 = t21.Value2; [41]
-[41]: t22 is int ? [42] : [45]
-[42]: t23 = (int)t22; [43]
-[43]: t23 == 11 ? [44] : [45]
-[44]: leaf <arm> `I1 {} and { Value1: 10 } and C4 and I2 and { Value2: 11 } => true`
-[45]: leaf <arm> `_ => false`
-",
-index: 1, forLowering: true);
-
-            CompileAndVerify(comp).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void PropertyPattern_08_UnionInstance_And_Value_Plus_Designation()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(new C2(11))));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C3(10)));
-        System.Console.Write(Test1(new C3(new C2(11))));
-        System.Console.Write(Test1(new C3(null)));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { I1 {} i1 => true, _ => false };
-    }   
-
-    static bool Test2(C1 u)
-    {
-        return u switch { I1 { Value1: var v1 } => true, _ => false };
-    }   
-
-    static bool Test3(C1 u)
-    {
-        return u switch { I1 {} and var i1 => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics(
-                // (42,33): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //         return u switch { I1 {} i1 => true, _ => false };
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(42, 33),
-                // (47,44): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //         return u switch { I1 { Value1: var v1 } => true, _ => false };
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "v1").WithLocation(47, 44),
-                // (52,41): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //         return u switch { I1 {} and var i1 => true, _ => false };
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(52, 41)
-                );
-        }
-
-        [Fact]
-        public void PositionalPattern_01_UnionInstance_Only()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    private readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(string x) { _value = x; }
-    public object Value => _value;
-
-    public void Deconstruct(out object x, out object y)
-    {
-        x = 1;
-        y = 2;
-    }
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(""11"")));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { (_, _) => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "TrueTrueTrueFalse").VerifyDiagnostics();
-
-            verifier.VerifyIL("Program.Test1", @"
-{
-  // Code size       11 (0xb)
-  .maxstack  1
-  .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0007
-  IL_0003:  ldc.i4.1
-  IL_0004:  stloc.0
-  IL_0005:  br.s       IL_0009
-  IL_0007:  ldc.i4.0
-  IL_0008:  stloc.0
-  IL_0009:  ldloc.0
-  IL_000a:  ret
-}
-");
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp, expectedOutput: "TrueTrueTrueFalse").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            CompileAndVerify(comp, expectedOutput: "TrueTrueTrueFalse").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void PositionalPattern_02_UnionInstance_Only()
-        {
-            var src = @"
-class C0
-{
-    public void Deconstruct(out object x, out object y)
-    {
-        x = 1;
-        y = 2;
-    }
-}
-
-[System.Runtime.CompilerServices.Union]
-class C1 : C0
-{
-    private readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C0 x) { _value = x; }
-    public object Value => _value;
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C1(new C1(1))));
-        System.Console.Write(Test1(new C1(new C0())));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { C0 (_, _) => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
-
-            verifier.VerifyIL("Program.Test1", @"
-{
-  // Code size       11 (0xb)
-  .maxstack  1
-  .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0007
-  IL_0003:  ldc.i4.1
-  IL_0004:  stloc.0
-  IL_0005:  br.s       IL_0009
-  IL_0007:  ldc.i4.0
-  IL_0008:  stloc.0
-  IL_0009:  ldloc.0
-  IL_000a:  ret
-}
-");
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void PositionalPattern_03_UnionInstance_Only()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    private readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(string x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(string x) : C1(x)
-{
-    public void Deconstruct(out object x, out object y)
-    {
-        x = 1;
-        y = 2;
-    }
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C1(""a"")));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(new C2(""a"")));
-        System.Console.Write(Test1(new C2(null)));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { C2 (_, _) => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
-
-            verifier.VerifyIL("Program.Test1", @"
-{
-  // Code size       16 (0x10)
-  .maxstack  1
-  .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  isinst     ""C2""
-  IL_0006:  brfalse.s  IL_000c
-  IL_0008:  ldc.i4.1
-  IL_0009:  stloc.0
-  IL_000a:  br.s       IL_000e
-  IL_000c:  ldc.i4.0
-  IL_000d:  stloc.0
-  IL_000e:  ldloc.0
-  IL_000f:  ret
-}
-");
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void PositionalPattern_04_UnionInstance_And_Value()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-    void I1.Deconstruct(out object x, out object y) => throw null;
-}
-
-class C3(object x) : C1(x), I1
-{
-    void I1.Deconstruct(out object x, out object y) => throw null;
-}
-
-interface I1
-{
-    public void Deconstruct(out object x, out object y);
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(new C2(11))));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C3(10)));
-        System.Console.Write(Test1(new C3(new C2(11))));
-        System.Console.Write(Test1(new C3(null)));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { I1 (_, _) => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [4] : [1]
-[1]: t0 != null ? [2] : [5]
-[2]: t1 = t0.Value; [3]
-[3]: t1 is I1 ? [4] : [5]
-[4]: leaf <arm> `I1 (_, _) => true`
-[5]: leaf <arm> `_ => false`
-",
-forLowering: true);
-
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalseFalseTrueTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp, expectedOutput: "FalseTrueFalseFalseTrueTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            comp.VerifyDiagnostics(
-                // (43,27): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         return u switch { I1 (_, _) => true, _ => false };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1 (_, _)").WithArguments("unions").WithLocation(43, 27)
-                );
-        }
-
-        [Fact]
-        public void PositionalPattern_05_UnionInstance_And_Value()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    void I1.Deconstruct(out object x1, out object y1)
-    {
-        x1 = x;
-        y1 = 2;
-    }
-}
-
-class C3(object x) : C1(x), I1
-{
-    void I1.Deconstruct(out object x, out object y)
-    {
-        x = _value;
-        y = 2;
-    }
-}
-
-interface I1
-{
-    public void Deconstruct(out object x, out object y);
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(11)));
-        System.Console.Write(Test1(new C1(new C2(10))));
-        System.Console.Write(Test1(new C1(new C2(11))));
-        System.Console.Write(Test1(new C1(new C2(null))));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C3(10)));
-        System.Console.Write(Test1(new C3(11)));
-        System.Console.Write(Test1(new C3(new C2(10))));
-        System.Console.Write(Test1(new C3(new C2(11))));
-        System.Console.Write(Test1(new C3(new C2(null))));
-        System.Console.Write(Test1(new C3(null)));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { I1 (10, _) => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [1] : [6]
-[1]: t1 = (I1)t0; [2]
-[2]: (Item1, Item2) t2 = t1; [3]
-[3]: t2.Item1 is int ? [4] : [15]
-[4]: t3 = (int)t2.Item1; [5]
-[5]: t3 == 10 ? [14] : [15]
-[6]: t0 != null ? [7] : [15]
-[7]: t4 = t0.Value; [8]
-[8]: t4 is I1 ? [9] : [15]
-[9]: t5 = (I1)t4; [10]
-[10]: (Item1, Item2) t6 = t5; [11]
-[11]: t6.Item1 is int ? [12] : [15]
-[12]: t7 = (int)t6.Item1; [13]
-[13]: t7 == 10 ? [14] : [15]
-[14]: leaf <arm> `I1 (10, _) => true`
-[15]: leaf <arm> `_ => false`
-",
-forLowering: true);
-
-            CompileAndVerify(comp, expectedOutput: "FalseFalseTrueFalseFalseFalseFalseTrueFalseFalseFalseFalseFalse").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void PositionalPattern_06_UnionInstance_And_Value_Plus_Conjunction()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C4 x) { _value = x; }
-    public C1(C5 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-interface I2
-{
-    public void Deconstruct(out object x1, out object y1);
-}
-
-[System.Runtime.CompilerServices.Union]
-class C4 : C1
-{
-    public C4(int x) : base(x) {}
-    public C4(C5 x) : base(x) {}
-    protected C4(object x) : base(x) {}
-
-    public void Deconstruct(out object x1, out object y1) => throw null;
-}
-
-class C5(object x) : I2
-{
-    public object Value2 => x;
-    void I2.Deconstruct(out object x1, out object y1) => throw null;
-}
-
-class C6(object x) : C4(x), I2
-{
-    void I2.Deconstruct(out object x1, out object y1) => throw null;
-}
-
-class Program
-{
-    static bool Test1(C1 u)
-    {
-        return u switch { C4 (_, _) and I2 and (11, _) => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is C4 ? [1] : [15]
-[1]: t1 = (C4)t0; [2]
-[2]: t1 is I2 ? [3] : [8]
-[3]: t2 = (I2)t1; [4]
-[4]: (Item1, Item2) t3 = t2; [5]
-[5]: t3.Item1 is int ? [6] : [33]
-[6]: t4 = (int)t3.Item1; [7]
-[7]: t4 == 11 ? [32] : [33]
-[8]: t5 = t1.Value; [9]
-[9]: t5 is I2 ? [10] : [33]
-[10]: t6 = (I2)t5; [11]
-[11]: (Item1, Item2) t7 = t6; [12]
-[12]: t7.Item1 is int ? [13] : [33]
-[13]: t8 = (int)t7.Item1; [14]
-[14]: t8 == 11 ? [32] : [33]
-[15]: t0 != null ? [16] : [33]
-[16]: t9 = t0.Value; [17]
-[17]: t9 is C4 ? [18] : [33]
-[18]: t10 = (C4)t9; [19]
-[19]: t10 is I2 ? [20] : [25]
-[20]: t11 = (I2)t10; [21]
-[21]: (Item1, Item2) t12 = t11; [22]
-[22]: t12.Item1 is int ? [23] : [33]
-[23]: t13 = (int)t12.Item1; [24]
-[24]: t13 == 11 ? [32] : [33]
-[25]: t14 = t10.Value; [26]
-[26]: t14 is I2 ? [27] : [33]
-[27]: t15 = (I2)t14; [28]
-[28]: (Item1, Item2) t16 = t15; [29]
-[29]: t16.Item1 is int ? [30] : [33]
-[30]: t17 = (int)t16.Item1; [31]
-[31]: t17 == 11 ? [32] : [33]
-[32]: leaf <arm> `C4 (_, _) and I2 and (11, _) => true`
-[33]: leaf <arm> `_ => false`
-",
-forLowering: true);
-
-            CompileAndVerify(comp).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void PositionalPattern_07_UnionInstance_And_Value_Plus_Conjunction()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    public C1(C4 x) { _value = x; }
-    public C1(C5 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-    void I1.Deconstruct(out object x1, out object y1) => throw null;
-}
-
-class C3(object x) : C1(x), I1
-{
-    void I1.Deconstruct(out object x1, out object y1) => throw null;
-}
-
-interface I1
-{
-    public void Deconstruct(out object x1, out object y1);
-}
-
-interface I2
-{
-    public void Deconstruct(out object x1, out object y1);
-}
-
-[System.Runtime.CompilerServices.Union]
-class C4 : C1
-{
-    public C4(int x) : base(x) {}
-    public C4(C5 x) : base(x) {}
-    protected C4(object x) : base(x) {}
-}
-
-class C5(object x) : I2
-{
-    public object Value2 => x;
-    void I2.Deconstruct(out object x1, out object y1) => throw null;
-}
-
-class C6(object x) : C4(x), I2
-{
-    void I2.Deconstruct(out object x1, out object y1) => throw null;
-}
-
-class C7(object x) : C6(x), I1
-{
-    void I1.Deconstruct(out object x1, out object y1) => throw null;
-}
-
-class Program
-{
-    static bool Test1(C1 u)
-    {
-        return u switch { I1 (10, _) and C4 and I2 and (_, 11) => true, _ => false };
-    }   
-
-    static bool Test2(C1 u)
-    {
-        return u switch { I1 (_, _) and (10, _) and C4 and I2 and (_, 11) => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [1] : [21]
-[1]: t1 = (I1)t0; [2]
-[2]: (Item1, Item2) t2 = t1; [3]
-[3]: t2.Item1 is int ? [4] : [45]
-[4]: t3 = (int)t2.Item1; [5]
-[5]: t3 == 10 ? [6] : [45]
-[6]: t1 is C4 ? [7] : [45]
-[7]: t4 = (C4)t1; [8]
-[8]: t4 is I2 ? [9] : [14]
-[9]: t5 = (I2)t4; [10]
-[10]: (Item1, Item2) t6 = t5; [11]
-[11]: t6.Item2 is int ? [12] : [45]
-[12]: t7 = (int)t6.Item2; [13]
-[13]: t7 == 11 ? [44] : [45]
-[14]: t8 = t4.Value; [15]
-[15]: t8 is I2 ? [16] : [45]
-[16]: t9 = (I2)t8; [17]
-[17]: (Item1, Item2) t10 = t9; [18]
-[18]: t10.Item2 is int ? [19] : [45]
-[19]: t11 = (int)t10.Item2; [20]
-[20]: t11 == 11 ? [44] : [45]
-[21]: t0 != null ? [22] : [45]
-[22]: t12 = t0.Value; [23]
-[23]: t12 is I1 ? [24] : [45]
-[24]: t13 = (I1)t12; [25]
-[25]: (Item1, Item2) t14 = t13; [26]
-[26]: t14.Item1 is int ? [27] : [45]
-[27]: t15 = (int)t14.Item1; [28]
-[28]: t15 == 10 ? [29] : [45]
-[29]: t13 is C4 ? [30] : [45]
-[30]: t16 = (C4)t13; [31]
-[31]: t16 is I2 ? [32] : [37]
-[32]: t17 = (I2)t16; [33]
-[33]: (Item1, Item2) t18 = t17; [34]
-[34]: t18.Item2 is int ? [35] : [45]
-[35]: t19 = (int)t18.Item2; [36]
-[36]: t19 == 11 ? [44] : [45]
-[37]: t20 = t16.Value; [38]
-[38]: t20 is I2 ? [39] : [45]
-[39]: t21 = (I2)t20; [40]
-[40]: (Item1, Item2) t22 = t21; [41]
-[41]: t22.Item2 is int ? [42] : [45]
-[42]: t23 = (int)t22.Item2; [43]
-[43]: t23 == 11 ? [44] : [45]
-[44]: leaf <arm> `I1 (10, _) and C4 and I2 and (_, 11) => true`
-[45]: leaf <arm> `_ => false`
-",
-forLowering: true);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [1] : [21]
-[1]: t1 = (I1)t0; [2]
-[2]: (Item1, Item2) t2 = t1; [3]
-[3]: t2.Item1 is int ? [4] : [45]
-[4]: t3 = (int)t2.Item1; [5]
-[5]: t3 == 10 ? [6] : [45]
-[6]: t1 is C4 ? [7] : [45]
-[7]: t4 = (C4)t1; [8]
-[8]: t4 is I2 ? [9] : [14]
-[9]: t5 = (I2)t4; [10]
-[10]: (Item1, Item2) t6 = t5; [11]
-[11]: t6.Item2 is int ? [12] : [45]
-[12]: t7 = (int)t6.Item2; [13]
-[13]: t7 == 11 ? [44] : [45]
-[14]: t8 = t4.Value; [15]
-[15]: t8 is I2 ? [16] : [45]
-[16]: t9 = (I2)t8; [17]
-[17]: (Item1, Item2) t10 = t9; [18]
-[18]: t10.Item2 is int ? [19] : [45]
-[19]: t11 = (int)t10.Item2; [20]
-[20]: t11 == 11 ? [44] : [45]
-[21]: t0 != null ? [22] : [45]
-[22]: t12 = t0.Value; [23]
-[23]: t12 is I1 ? [24] : [45]
-[24]: t13 = (I1)t12; [25]
-[25]: (Item1, Item2) t14 = t13; [26]
-[26]: t14.Item1 is int ? [27] : [45]
-[27]: t15 = (int)t14.Item1; [28]
-[28]: t15 == 10 ? [29] : [45]
-[29]: t13 is C4 ? [30] : [45]
-[30]: t16 = (C4)t13; [31]
-[31]: t16 is I2 ? [32] : [37]
-[32]: t17 = (I2)t16; [33]
-[33]: (Item1, Item2) t18 = t17; [34]
-[34]: t18.Item2 is int ? [35] : [45]
-[35]: t19 = (int)t18.Item2; [36]
-[36]: t19 == 11 ? [44] : [45]
-[37]: t20 = t16.Value; [38]
-[38]: t20 is I2 ? [39] : [45]
-[39]: t21 = (I2)t20; [40]
-[40]: (Item1, Item2) t22 = t21; [41]
-[41]: t22.Item2 is int ? [42] : [45]
-[42]: t23 = (int)t22.Item2; [43]
-[43]: t23 == 11 ? [44] : [45]
-[44]: leaf <arm> `I1 (_, _) and (10, _) and C4 and I2 and (_, 11) => true`
-[45]: leaf <arm> `_ => false`
-",
-index: 1, forLowering: true);
-
-            CompileAndVerify(comp).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void PositionalPattern_08_UnionInstance_And_Value_Plus_Designation()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-    void I1.Deconstruct(out object x, out object y) => throw null;
-}
-
-class C3(object x) : C1(x), I1
-{
-    void I1.Deconstruct(out object x, out object y) => throw null;
-}
-
-interface I1
-{
-    public void Deconstruct(out object x, out object y);
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(new C2(11))));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C3(10)));
-        System.Console.Write(Test1(new C3(new C2(11))));
-        System.Console.Write(Test1(new C3(null)));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { I1 (_, _) i1 => true, _ => false };
-    }   
-
-    static bool Test2(C1 u)
-    {
-        return u switch { I1 (var v1, _) => true, _ => false };
-    }   
-
-    static bool Test3(C1 u)
-    {
-        return u switch { I1 (_, _) and var i1 => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics(
-                // (43,37): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //         return u switch { I1 (_, _) i1 => true, _ => false };
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(43, 37),
-                // (48,35): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //         return u switch { I1 (var v1, _) => true, _ => false };
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "v1").WithLocation(48, 35),
-                // (53,45): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //         return u switch { I1 (_, _) and var i1 => true, _ => false };
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(53, 45)
-                );
         }
 
         [Fact]

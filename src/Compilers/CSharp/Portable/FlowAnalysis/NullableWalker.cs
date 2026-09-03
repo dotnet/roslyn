@@ -3246,7 +3246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // When the local is used before or during initialization, there can potentially be a mismatch between node.LocalSymbol.Type and node.Type. We
                 // need to prefer node.Type as we shouldn't be changing the type of the BoundLocal node during rewrite.
                 // https://github.com/dotnet/roslyn/issues/34158
-                Debug.Assert(node.Type.IsErrorType() || type.Type.IsErrorType());
+                Debug.Assert(node.Type.ContainsErrorType() || type.Type.ContainsErrorType());
                 type = TypeWithAnnotations.Create(node.Type, type.NullableAnnotation);
             }
 
@@ -12391,8 +12391,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(containingType.IsNullableType());
             Debug.Assert(TypeSymbol.Equals(NominalSlotType(containingSlot), containingType, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
-            var getValue = (MethodSymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value);
-            valueProperty = getValue?.AsMember((NamedTypeSymbol)containingType)?.AssociatedSymbol;
+            var getValue = (MethodSymbol?)compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value);
+
+            // 'containingType' can be a constructed error type over a missing 'System.Nullable<T>', for example when it
+            // comes from a compilation without a core library. Adjusting 'get_Value' to such a type is not possible.
+            if (getValue is null || !ReferenceEquals(containingType.OriginalDefinition, getValue.ContainingSymbol))
+            {
+                valueProperty = null;
+                return -1;
+            }
+
+            valueProperty = getValue.AsMember((NamedTypeSymbol)containingType).AssociatedSymbol;
             return (valueProperty is null) ? -1 : GetOrCreateSlot(valueProperty, containingSlot, forceSlotEvenIfEmpty: forceSlotEvenIfEmpty);
         }
 

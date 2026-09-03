@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -12,6 +13,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
+using Microsoft.NET.ProjectData;
 using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
@@ -90,6 +92,10 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
         if (solutionPath is null)
             return projectsThatNeedRestore;
 
+        // If there's only one project to restore, then there's no advantage to restoring the entire solution
+        if (projectsThatNeedRestore.Length == 1)
+            return projectsThatNeedRestore;
+
         // Re-read the solution's current project set so a solution-level restore only collapses projects that are
         // actually part of the solution as it exists on disk right now (the set can change if the solution file is
         // edited between restores).
@@ -126,8 +132,24 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
         return [solutionPath, .. projectsNotInSolution];
     }
 
+    private string NormalizeDriveLetter(string filePath)
+    {
+        // VS Code likes to have drive letters lowercase, so let's match what the rest of the system will expect;
+        // if we don't do this, when we shell out to things like dotnet restore, we'll pass lowercase drive letters,
+        // and this tends to result in various part of NuGet writing out cache files with different casing
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && filePath.Length > 3)
+        {
+            if (char.IsLower(filePath[0]) && filePath[1] == ':' && filePath[2] == Path.DirectorySeparatorChar)
+                return char.ToUpper(filePath[0]) + filePath.Substring(1);
+        }
+
+        return filePath;
+    }
+
     public async Task OpenSolutionAsync(string solutionFilePath, IProgress<LSP.WorkDoneProgress>? progressReporter = null)
     {
+        solutionFilePath = NormalizeDriveLetter(solutionFilePath);
+
         _logger.LogInformation(string.Format(LanguageServerResources.Loading_0, solutionFilePath));
         _hostProjectFactory.SolutionPath = solutionFilePath;
 
@@ -157,7 +179,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
 
         foreach (var path in projectFilePaths)
         {
-            await BeginLoadingProjectAsync(path, projectGuid: null, progressTracker);
+            await BeginLoadingProjectAsync(NormalizeDriveLetter(path), projectGuid: null, progressTracker);
         }
 
         await WaitForProjectsToFinishLoadingAsync();
@@ -189,4 +211,66 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
             ActualBuildHostKind = actualBuildHostKind
         };
     }
+
+    protected override async Task<(ImmutableArray<ProjectFileInfo>, ProjectSystemProjectFactory)?> TryLoadProjectFromCacheAsync(string projectPath, CancellationToken cancellationToken)
+    {
+        if (!_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out var languageName))
+            return null;
+
+        var projectSnapshots = await CacheFileReader.ReadProjectDataSnapshotsAsync(
+            projectPath,
+            cacheInProject: false,
+            solutionPath: _hostProjectFactory.SolutionPath,
+            stringPool: null,
+            cancellationToken);
+
+        if (projectSnapshots.IsEmpty)
+            return null;
+
+        return (projectSnapshots.SelectAsArray(snapshot =>
+        {
+            return new ProjectFileInfo
+            {
+                IsEmpty = false,
+                Language = languageName,
+                FilePath = snapshot.ProjectPath,
+                OutputFilePath = snapshot.Properties["TargetPath"],
+                OutputRefFilePath = snapshot.Properties["TargetRefPath"],
+                IntermediateOutputFilePath = snapshot.Properties["IntermediateAssembly"],
+                GeneratedFilesOutputDirectory = snapshot.Properties["CompilerGeneratedFilesOutputPath"],
+                DefaultNamespace = snapshot.Properties["RootNamespace"],
+                TargetFramework = snapshot.Properties["TargetFramework"],
+                TargetFrameworkIdentifier = snapshot.Properties["TargetFrameworkIdentifier"],
+                TargetFrameworkVersion = snapshot.Properties["TargetFrameworkVersion"],
+                ProjectAssetsFilePath = snapshot.Properties["ProjectAssetsFile"],
+                CommandLineArgs = GetItems("CommandLineArgument").Select(static item => item.ItemSpec).ToArray(),
+                Documents = GetItems("Compile").Select(CreateDocumentFileInfo).ToArray(),
+                AdditionalDocuments = GetItems("AdditionalFile").Select(CreateDocumentFileInfo).ToArray(),
+                AnalyzerConfigDocuments = GetItems("AnalyzerConfigFile").Select(CreateDocumentFileInfo).ToArray(),
+                ProjectReferences = GetItems("ProjectReference").Select(item =>
+                    new ProjectFileReference(item.ItemSpec, GetAliases(item), GetReferenceOutputAssembly(item))).ToArray(),
+                MetadataReferences = GetItems("MetadataReference").Select(item =>
+                    new MetadataReferenceItem(item.ItemSpec, GetAliases(item))).ToArray(),
+                ProjectCapabilities = [.. snapshot.Capabilities],
+                ContentFilePaths = [],
+                PackageReferences = [],
+                FileGlobs = [],
+            };
+
+            ImmutableArray<ProjectDataItem> GetItems(string itemType)
+                => snapshot.ItemsByType.TryGetValue(itemType, out var items) ? items : [];
+
+            static DocumentFileInfo CreateDocumentFileInfo(ProjectDataItem item)
+            {
+                var link = item.Metadata["Link"];
+                return new DocumentFileInfo(item.ItemSpec, link ?? item.ItemSpec, isLinked: link is not null, isGenerated: false, folders: []);
+            }
+
+            static string[] GetAliases(ProjectDataItem item)
+                => item.Metadata["aliases"] is string aliases ? aliases.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) : [];
+        }), _hostProjectFactory);
+    }
+
+    internal static bool GetReferenceOutputAssembly(ProjectDataItem item)
+        => !string.Equals(item.Metadata["ReferenceOutputAssembly"], bool.FalseString, StringComparison.OrdinalIgnoreCase);
 }

@@ -38,14 +38,26 @@ their original sub-tree layout
   `GetUnusedDirectives()`) rather than storing computed results as fields.
 - **Razor documents in Roslyn**: Stored as additional documents. Resolve via
   `solution.GetDocumentIdsWithFilePath(filePath)` then `solution.GetAdditionalDocument(documentId)`.
+- **Razor documents with virtual URIs**: Remote Razor document classification preserves the full
+  additional-document `FilePath` for identity. For parseable absolute URI file paths, inspect the
+  URI's local path when checking the `.razor` or `.cshtml` extension; do not strip the query from
+  the stored file path.
 - **Remote services**: Place the public stub method (calling `RunServiceAsync`) directly
   above its private implementation method.
-- **Formatting options across OOP**: Cohost endpoints must read
-  `CSharpSyntaxFormattingOptions` from the local Roslyn solution services and include them in
-  `RazorFormattingOptions` sent to remote formatting consumers. Remote `IClientSettingsManager`
-  state does not contain the user's C# formatting preferences, so do not reconstruct them OOP.
-  Resolve the options at the public handler boundary and keep downstream product parameters
-  non-null.
+- **Formatting options across OOP**: Cohost endpoints must resolve
+  `CSharpSyntaxFormattingOptions` from the Razor document's analyzer-config options with
+  `CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument, cancellationToken)`.
+  This applies `.editorconfig` sections matching the `.razor` or `.cshtml` path and falls back to
+  the user's global C# options. Include the resolved options in `RazorFormattingOptions` sent to
+  remote formatting consumers; remote `IClientSettingsManager` state does not contain the user's
+  C# formatting preferences.
+- **Runtime-declared attribute lists**: When the runtime declares a set the compiler must read
+  (e.g. `[EventHandler]`, `[AcceptsAssetPath]`), it applies the attributes to a public type with
+  a well-known name (`EventHandlers`, `AssetPathAttributes`). A `TagHelperProducer` under
+  `Language/TagHelpers/Producers/` keys off that type name (`IsCandidateType`) and emits carrier
+  `TagHelperDescriptor`s whose descriptor-level metadata carries the parsed values. A later
+  optimization pass reads the full discovered set via `ITagHelperFeature.GetTagHelpers()` (not the
+  document's in-scope tag helpers, which are namespace-scoped) and filters by metadata kind.
 - **Visual Studio options**: Register Razor Advanced settings in
   `Microsoft.VisualStudio.RazorExtension\UnifiedSettings\razor.registration.json`, localize
   their UI text in `VSPackage.resx`, read them through `OptionsStorage`, and add remotely consumed

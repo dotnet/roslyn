@@ -222,6 +222,11 @@
         <target state="translated">Das Argument "{0}" darf nicht mit dem Schlüsselwort "ref" in der Sprachversion {1} übergeben werden. Um ref-Argumente an in-Parameter zu übergeben, führen Sie ein Upgrade auf die Sprachversion {2} oder höher durch.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAwaitInFixed">
+        <source>Cannot await in context of a 'fixed' statement</source>
+        <target state="translated">Im Kontext einer „fixed“-Anweisung kann nicht gewartet werden.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
         <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</source>
         <target state="translated">Der Operator ‚{0}‘ kann nicht auf Operanden des Typs ‚{1}‘ und ‚{2}‘ angewendet werden, die keine UTF-8-Bytedarstellungen sind</target>
@@ -241,6 +246,11 @@
         <source>No overload for method '{0}' takes {1} 'with(...)' element arguments</source>
         <target state="translated">Keine Überladung der Methode „{0}“ akzeptiert {1} Argumente des with(...)-Elements.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadCompilationOptionValueAccepted">
+        <source>Invalid '{0}' value: '{1}'. Accepted values are: {2}</source>
+        <target state="new">Invalid '{0}' value: '{1}'. Accepted values are: {2}</target>
+        <note>{2} is a comma-separated list.</note>
       </trans-unit>
       <trans-unit id="ERR_BadCompoundAssignmentOpArgs">
         <source>Overloaded compound assignment operator '{0}' takes one parameter</source>
@@ -723,8 +733,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
-        <source>A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.</source>
-        <target state="translated">Eine Variable darf nicht innerhalb eines „not“- oder „or“-Musters oder innerhalb eines Union-Abgleichs deklariert werden, der einen Abgleich mit der Instanz oder ihrem zugrunde liegenden Wert umfasst.</target>
+        <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
+        <target state="translated">Eine Variable darf nicht innerhalb eines not- oder or-Musters deklariert werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
@@ -1030,6 +1040,11 @@
       <trans-unit id="ERR_FeatureNotAvailableInVersion14">
         <source>Feature '{0}' is not available in C# 14.0. Please use language version {1} or greater.</source>
         <target state="translated">Die Funktion „{0}“ ist in C# 14.0 nicht verfügbar. Verwenden Sie Sprachversion {1} oder höher.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion15">
+        <source>Feature '{0}' is not available in C# 15.0. Please use language version {1} or greater.</source>
+        <target state="translated">Die Funktion „{0}“ ist in C# 15.0 nicht verfügbar. Verwenden Sie Sprachversion {1} oder höher.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -2960,6 +2975,11 @@
       <trans-unit id="HDN_RedundantPatternStackGuard_Title">
         <source>The pattern is too complex to analyze for redundancy.</source>
         <target state="translated">Das Muster ist zu komplex, um auf Redundanz analysiert zu werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ICoalesceOperationIsNotCSharpCoalesceOperation">
+        <source>{0} is not a valid C# coalesce operation</source>
+        <target state="new">{0} is not a valid C# coalesce operation</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
@@ -11434,11 +11454,6 @@ Unterstützen Sie den Compiler bei der Unterscheidung zwischen den Methoden. Daz
       <trans-unit id="ERR_BadAwaitInStaticVariableInitializer">
         <source>The 'await' operator cannot be used in a static script variable initializer.</source>
         <target state="translated">Der Operator "await" kann nicht in einem statischen Skriptvariableninitialisierer verwendet werden.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AwaitInUnsafeContext">
-        <source>Cannot await in an unsafe context</source>
-        <target state="translated">Kann nicht in unsicherem Kontext warten.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLacksBody">

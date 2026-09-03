@@ -20,14 +20,6 @@ internal sealed class WorkspaceFolder
     [JsonRequired]
     public DocumentUri DocumentUri { get; init; }
 
-    [Obsolete("Use DocumentUri instead. This property will be removed in a future version.")]
-    [JsonIgnore]
-    public Uri Uri
-    {
-        get => DocumentUri.GetRequiredParsedUri();
-        init => DocumentUri = new DocumentUri(value);
-    }
-
     /// <summary>
     /// The name of the workspace folder used in the UI.
     /// </summary>
