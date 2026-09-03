@@ -20,12 +20,16 @@
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
+  <ItemGroup Label="PkgDef">
+    <PkgDefPackageRegistration Include="{A435156A-8EA1-4A32-BC2E-118681C4DEE8}" Name="EditorconfigResourcePackage" Class="EditorconfigResourcePackage.EditorconfigResourcePackage" AllowsBackgroundLoad="true" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Wizard\Microsoft.VisualStudio.Templates.Editorconfig.Wizard.csproj">
       <Name>Microsoft.VisualStudio.Templates.Editorconfig.Wizard</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;GetCopyToOutputDirectoryItems;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <PkgDefEntry>CodeBase</PkgDefEntry>
     </ProjectReference>
   </ItemGroup>
 

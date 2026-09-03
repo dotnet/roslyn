@@ -27,11 +27,16 @@
     </VSCTCompile>
   </ItemGroup>
 
+  <ItemGroup Label="PkgDef">
+    <PkgDefPackageRegistration Include="{57a6a527-1255-45c4-bcdb-6a4f50b73b3e}" Name="EditorconfigCommandPackage" Class="Microsoft.VisualStudio.Templates.Editorconfig.Command.EditorconfigCommandPackage" AllowsBackgroundLoad="true" />
+    <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
+  </ItemGroup>
+
   <!-- Project References -->
   <ItemGroup>
     <ProjectReference Include="..\Wizard\Microsoft.VisualStudio.Templates.Editorconfig.Wizard.csproj">
       <Name>Microsoft.VisualStudio.Templates.Editorconfig.Wizard</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;GetCopyToOutputDirectoryItems;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>

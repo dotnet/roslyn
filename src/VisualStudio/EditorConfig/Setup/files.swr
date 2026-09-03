@@ -1,6 +1,6 @@
 use vs
 
-package name=Templates.Editorconfig.SolutionFile.Setup
+package name=Templates.Editorconfig.Setup
         version=$(Version)
 
 vs.localizedResources
@@ -10,7 +10,7 @@ vs.localizedResources
 
 folder "InstallDir:Common7\IDE\NewFileItems"
   file source="$(MSBuildProjectDirectory)\..\Templates\ModifiedTemplates\EditorconfigDefault.vstemplate"
-  file source="$(MSBuildProjectDirectory)\..\Templates\ModifiedTemplates\EditorconfigDotNet.vstemplate"
+  file source="$(MSBuildProjectDirectory)\..\Templates\ModifiedTemplates\EditorconfigDotnet.vstemplate"
   file source="$(MSBuildProjectDirectory)\NewEditorconfigFileItem.vsdir"
 folder "InstallDir:Common7\IDE\ItemTemplates\CSharp\General\EditorConfig"
   file source="$(MSBuildProjectDirectory)\..\Templates\ModifiedTemplates\Editorconfig.CS.DotNet.vstemplate"

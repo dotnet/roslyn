@@ -32,6 +32,6 @@
            AssemblyName="|Microsoft.VisualStudio.Templates.Editorconfig.Wizard;AssemblyName|" />
   </Assets>
   <Prerequisites>
-    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,18.0)" DisplayName="Visual Studio core editor" />
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,19.0)" DisplayName="Visual Studio core editor" />
   </Prerequisites>
 </PackageManifest>
