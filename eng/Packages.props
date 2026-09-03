@@ -298,6 +298,7 @@
     <PackageVersion Include="System.Management" Version="10.0.10" />
     <PackageVersion Include="System.Drawing.Common" Version="10.0.10" />
     <PackageVersion Include="Moq" Version="4.10.1" />
+    <PackageVersion Include="NuGet.Versioning" Version="6.14.3" />
     <PackageVersion Include="System.CodeDom" Version="$(SystemCodeDomVersion)" />
     <PackageVersion Include="InputSimulatorPlus" Version="1.0.7" />
     <PackageVersion Include="UIAComWrapper" Version="1.1.0.14" />

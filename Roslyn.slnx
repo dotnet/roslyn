@@ -537,6 +537,8 @@
   <Folder Name="/LanguageServer/ProjectData/">
     <Project Path="src/LanguageServer/ProjectData/Microsoft.NET.ProjectData.Generators/Microsoft.NET.ProjectData.Generators.csproj" />
     <Project Path="src/LanguageServer/ProjectData/Microsoft.NET.ProjectData.Generators.Tests/Microsoft.NET.ProjectData.Generators.Tests.csproj" />
+    <Project Path="src/LanguageServer/ProjectData/Microsoft.NET.ProjectData.Tasks/Microsoft.NET.ProjectData.Tasks.csproj" />
+    <Project Path="src/LanguageServer/ProjectData/Microsoft.NET.ProjectData.Tasks.Tests/Microsoft.NET.ProjectData.Tasks.Tests.csproj" />
     <Project Path="src/LanguageServer/ProjectData/Microsoft.NET.ProjectData.Tests/Microsoft.NET.ProjectData.Tests.csproj" />
     <Project Path="src/LanguageServer/ProjectData/Microsoft.NET.ProjectData/Microsoft.NET.ProjectData.csproj" />
   </Folder>
