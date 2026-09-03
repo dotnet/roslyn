@@ -1247,9 +1247,6 @@ new partial class C { }
         {
             var source = "new partial public class C { }";
             CreateCompilation(source).VerifyDiagnostics(
-                    // (1,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                    // new partial public class C { }
-                    Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 5),
                     // (1,26): error CS0106: The modifier 'new' is not valid for this item
                     // new partial public class C { }
                     Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("new").WithLocation(1, 26)
@@ -1276,9 +1273,6 @@ new partial class C { }
         {
             var source = "new static partial public class C { }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                // new static partial public class C { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 12),
                 // (1,33): error CS0106: The modifier 'new' is not valid for this item
                 // new static partial public class C { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("new").WithLocation(1, 33));

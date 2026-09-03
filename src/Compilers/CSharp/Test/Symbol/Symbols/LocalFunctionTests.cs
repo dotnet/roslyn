@@ -119,9 +119,6 @@ class C
                 // (4,6): error CS1513: } expected
                 //     {
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 6),
-                // (5,9): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                //         partial static void local() { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 9),
                 // (5,29): error CS0759: No defining declaration found for implementing declaration of partial method 'C.local()'
                 //         partial static void local() { }
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "local").WithArguments("C.local()").WithLocation(5, 29),

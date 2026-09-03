@@ -127,13 +127,7 @@ public sealed class FileModifierParsingTests : ParsingTests
     {
         UsingNode($$"""
             partial file {{SyntaxFacts.GetText(typeKeyword)}} C { }
-            """,
-            expectedBindingDiagnostics: new[]
-            {
-                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                // partial file {{SyntaxFacts.GetText(typeKeyword)}} C { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1)
-            });
+            """);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxFacts.GetBaseTypeDeclarationKind(typeKeyword));
@@ -155,13 +149,7 @@ public sealed class FileModifierParsingTests : ParsingTests
     {
         UsingNode("""
             partial file record C { }
-            """,
-            expectedBindingDiagnostics: new DiagnosticDescription[]
-            {
-                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                // partial file record C { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1)
-            });
+            """);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.RecordDeclaration);
@@ -206,13 +194,7 @@ public sealed class FileModifierParsingTests : ParsingTests
     {
         UsingNode($$"""
             partial file record struct C { }
-            """,
-            expectedBindingDiagnostics: new DiagnosticDescription[]
-            {
-                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                // partial file record struct C { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1)
-            });
+            """);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.RecordStructDeclaration);
@@ -239,9 +221,9 @@ public sealed class FileModifierParsingTests : ParsingTests
             options: TestOptions.Regular10,
             expectedBindingDiagnostics: new[]
             {
-                // (1,6): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                // (1,6): error CS8936: Feature 'relaxed modifier ordering' is not available in C# 10.0. Please use language version 15.0 or greater.
                 // file partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 6),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 6),
                 // (1,25): error CS8936: Feature 'file types' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // file partial ref struct C { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "C").WithArguments("file types", "11.0").WithLocation(1, 25)
@@ -268,13 +250,7 @@ public sealed class FileModifierParsingTests : ParsingTests
     {
         UsingNode($$"""
             file partial ref struct C { }
-            """,
-            expectedBindingDiagnostics: new[]
-            {
-                // (1,6): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                // file partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 6)
-            });
+            """);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -298,13 +274,7 @@ public sealed class FileModifierParsingTests : ParsingTests
     {
         UsingNode($$"""
             partial file ref struct C { }
-            """,
-            expectedBindingDiagnostics: new[]
-            {
-                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                // partial file ref struct C { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1)
-            });
+            """);
 
         N(SyntaxKind.CompilationUnit);
         {

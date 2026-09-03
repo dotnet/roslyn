@@ -22229,9 +22229,6 @@ using System.Runtime.CompilerServices;
                 }
                 """
             }).VerifyDiagnostics(
-                // 2.cs(3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                //     partial public PartialPublicCtor() { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
                 // 0.cs(3,13): error CS0751: A partial member must be declared within a partial type
                 //     partial PartialCtor() { }
                 Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "PartialCtor").WithLocation(3, 13),

@@ -18,6 +18,7 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
 
     [Theory]
     [InlineData(LanguageVersion.CSharp14)]
+    [InlineData(LanguageVersion.CSharp15)]
     [InlineData(LanguageVersion.Preview)]
     public void Partial_BeforeAccessibilityOnClass(LanguageVersion languageVersion)
     {
@@ -40,10 +41,18 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
         }
         EOF();
 
-        CreateCompilation(src, parseOptions: options).VerifyDiagnostics(
-            // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-            // partial public class C { }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
+        var compilation = CreateCompilation(src, parseOptions: options);
+        if (languageVersion >= LanguageVersion.CSharp15)
+        {
+            compilation.VerifyDiagnostics();
+        }
+        else
+        {
+            compilation.VerifyDiagnostics(
+                // (1,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                // partial public class C { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 1));
+        }
     }
 
     [Fact]
@@ -81,10 +90,7 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
 
         CreateCompilation(
             [src, UnionAttributeSource, IUnionSource],
-            parseOptions: options).VerifyDiagnostics(
-            // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-            // partial public union U(int);
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
+            parseOptions: options).VerifyDiagnostics();
     }
 
     [Fact]
@@ -424,6 +430,7 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
 
     [Theory]
     [InlineData(LanguageVersion.CSharp14)]
+    [InlineData(LanguageVersion.CSharp15)]
     [InlineData(LanguageVersion.Preview)]
     public void Partial_BeforeAccessibilityOnMethod(LanguageVersion languageVersion)
     {
@@ -435,13 +442,21 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
             }
             """;
 
-        CreateCompilation(src, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-            // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-            //     partial public void M();
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-            // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-            //     partial public void M() { }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5));
+        var compilation = CreateCompilation(src, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+        if (languageVersion >= LanguageVersion.CSharp15)
+        {
+            compilation.VerifyDiagnostics();
+        }
+        else
+        {
+            compilation.VerifyDiagnostics(
+                // (3,5): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                //     partial public void M();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(3, 5),
+                // (4,5): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                //     partial public void M() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(4, 5));
+        }
     }
 
     /// <summary>
@@ -499,12 +514,13 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
 
     /// <summary>
     /// When <c>partial</c> is neither last nor second-to-last immediately before <c>async</c>,
-    /// it falls outside the historical <c>partial async</c> carve-out and remains an error.
+    /// it requires relaxed modifier ordering.
     /// </summary>
     [Theory]
     [InlineData(LanguageVersion.CSharp14)]
+    [InlineData(LanguageVersion.CSharp15)]
     [InlineData(LanguageVersion.Preview)]
-    public void Partial_NonCanonicalWithAsync_AllLangversError(LanguageVersion languageVersion)
+    public void Partial_NonCanonicalWithAsync(LanguageVersion languageVersion)
     {
         var src = """
             partial class C
@@ -514,17 +530,26 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
             }
             """;
 
-        CreateCompilation(src, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-            // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-            //     partial public void M();
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-            // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-            //     partial public async void M() { }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5));
+        var compilation = CreateCompilation(src, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+        if (languageVersion >= LanguageVersion.CSharp15)
+        {
+            compilation.VerifyDiagnostics();
+        }
+        else
+        {
+            compilation.VerifyDiagnostics(
+                // (3,5): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                //     partial public void M();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(3, 5),
+                // (4,5): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                //     partial public async void M() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(4, 5));
+        }
     }
 
     [Theory]
     [InlineData(LanguageVersion.CSharp14)]
+    [InlineData(LanguageVersion.CSharp15)]
     [InlineData(LanguageVersion.Preview)]
     public void Partial_BeforeAccessibilityOnProperty(LanguageVersion languageVersion)
     {
@@ -536,13 +561,21 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
             }
             """;
 
-        CreateCompilation(src, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-            // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-            //     partial public int P { get; set; }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-            // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-            //     partial public int P { get => 0; set { } }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5));
+        var compilation = CreateCompilation(src, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+        if (languageVersion >= LanguageVersion.CSharp15)
+        {
+            compilation.VerifyDiagnostics();
+        }
+        else
+        {
+            compilation.VerifyDiagnostics(
+                // (3,5): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                //     partial public int P { get; set; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(3, 5),
+                // (4,5): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                //     partial public int P { get => 0; set { } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(4, 5));
+        }
     }
 
     [Fact]
