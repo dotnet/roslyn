@@ -30,6 +30,7 @@
   <ItemGroup Label="PkgDef">
     <PkgDefPackageRegistration Include="{57a6a527-1255-45c4-bcdb-6a4f50b73b3e}" Name="EditorconfigCommandPackage" Class="Microsoft.VisualStudio.Templates.Editorconfig.Command.EditorconfigCommandPackage" AllowsBackgroundLoad="true" />
     <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
+    <None Include="source.extension.vsixmanifest" />
   </ItemGroup>
 
   <!-- Project References -->

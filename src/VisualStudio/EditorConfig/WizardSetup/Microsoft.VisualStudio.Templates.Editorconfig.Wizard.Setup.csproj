@@ -22,6 +22,7 @@
   </ItemGroup>
   <ItemGroup Label="PkgDef">
     <PkgDefPackageRegistration Include="{A435156A-8EA1-4A32-BC2E-118681C4DEE8}" Name="EditorconfigResourcePackage" Class="EditorconfigResourcePackage.EditorconfigResourcePackage" AllowsBackgroundLoad="true" />
+    <None Include="source.extension.vsixmanifest" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Wizard\Microsoft.VisualStudio.Templates.Editorconfig.Wizard.csproj">
