@@ -8,4 +8,3 @@ public interface ILogMessageData
 
     string? GetMessage();
 }
-

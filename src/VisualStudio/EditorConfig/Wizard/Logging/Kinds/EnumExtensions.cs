@@ -13,4 +13,3 @@ internal static class EnumExtensions
     public static int AsInt(this UserTask id)
         => 3000 + (int)id;
 }
-

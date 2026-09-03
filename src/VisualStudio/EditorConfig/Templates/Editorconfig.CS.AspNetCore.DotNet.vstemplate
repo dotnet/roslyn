@@ -8,7 +8,7 @@
     <TemplateID>Microsoft.VisualStudio.Templates.Editorconfig.AspNetCore.dotnet</TemplateID>
     <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
     <DefaultName>.editorconfig</DefaultName>
-    <ShowByDefault>false</ShowByDefault> 
+    <ShowByDefault>false</ShowByDefault>
   </TemplateData>
   <TemplateContent>
     <CustomParameters>

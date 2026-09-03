@@ -8,4 +8,3 @@ public enum UserTask
     CreateFromRightClickMenu,
     CreateFromRightClickMenuAnyCode,
 }
-

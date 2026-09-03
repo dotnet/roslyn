@@ -55,4 +55,3 @@ internal abstract class CommandBase
 
     protected abstract Task ExecuteAsync(OleMenuCmdEventArgs e);
 }
-

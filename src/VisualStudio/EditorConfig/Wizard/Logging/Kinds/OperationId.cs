@@ -12,4 +12,3 @@ public enum OperationId
     CreatingRoslynVisualBasicFileContent,
     InitializePackage,
 }
-

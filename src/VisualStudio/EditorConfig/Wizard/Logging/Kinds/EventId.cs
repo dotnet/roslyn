@@ -11,4 +11,3 @@ public enum EventId
     Options,
     CommandRegistered
 }
-

@@ -29,4 +29,3 @@ internal class AddEditorConfigFileCommandHandler : CommandHandlerBase
         return false;
     }
 }
-

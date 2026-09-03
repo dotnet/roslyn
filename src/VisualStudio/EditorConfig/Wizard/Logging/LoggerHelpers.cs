@@ -97,4 +97,3 @@ namespace Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Logging
         }
     }
 }
-

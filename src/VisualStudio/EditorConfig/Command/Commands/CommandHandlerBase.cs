@@ -53,4 +53,3 @@ internal abstract class CommandHandlerBase : IWorkspaceCommandHandler
     private bool IsSupportedCommand(Guid cmdGroup, uint cmdId)
         => cmdGroup == Id.Guid && cmdId == Id.ID;
 }
-

@@ -8,4 +8,3 @@ public interface ILogMessage<T> where T : ILogMessageData
 {
     ImmutableArray<T> GetMessageData();
 }
-

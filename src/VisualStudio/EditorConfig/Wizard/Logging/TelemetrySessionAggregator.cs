@@ -139,4 +139,3 @@ public class TelemetrySessionAggregator
     }
 #endif
 }
-
