@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="CanNotCreateWindow">
         <source>Can not create tool window.</source>
-        <target state="translated">Araç penceresi oluşturulamıyor.</target>
+        <target state="new">Can not create tool window.</target>
         <note />
       </trans-unit>
       <trans-unit id="ToolWindowTitle">
         <source>Syntax Visualizer</source>
-        <target state="translated">Syntax Visualizer</target>
+        <target state="new">Syntax Visualizer</target>
         <note />
       </trans-unit>
     </body>

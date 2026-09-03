@@ -93,7 +93,7 @@ See [Browser compatibility](https://developer.mozilla.org/docs/Web/HTML/Referenc
 
 Tarayıcılar genellikle en kötü senaryoyu varsayar ve HTML ayrıştırması sırasında betikleri zaman uyumlu olarak (ör. `async="false"`) yükler.
 
-Dinamik olarak eklenen betikler ([`document.createElement()`] kullanılarak](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement "Bir HTML belgede, document.createElement() yöntemi tagName tarafından belirtilen HTML öğesini veya tagName tanınmıyorsa htmlUnknownElement oluşturur.")) varsayılan olarak zaman uyumsuz yüklenir; bu nedenle zaman uyumlu yüklemeyi açmak için (betikler eklendiği sırayla yüklenir) `async="false"` olarak ayarlanır.
+Dinamik olarak eklenen betikler ([`document.createElement()`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement "Bir HTML belgede, document.createElement() yöntemi tagName tarafından belirtilen HTML öğesini veya tagName tanınmıyorsa htmlUnknownElement oluşturur.")) kullanılarak varsayılan olarak zaman uyumsuz yüklenir; bu nedenle zaman uyumlu yüklemeyi açmak için (betikler eklendiği sırayla yüklenir) `async="false"` olarak ayarlanır.
 
 Tarayıcı desteğiyle ilgili notlar için [Tarayıcı uyumluluğu](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/script#Browser_compatibility) bölümüne bakın. Ayrıca [Asm.js için zaman uyumsuz betikler](https://developer.mozilla.org/en-US/docs/Games/Techniques/Async_scripts) bölümüne de bakın.</target>
         <note />
@@ -183,7 +183,7 @@ For most modern browsers (including Firefox 38+, Google Chrome 34+, IE 11+) sett
 * Kodlamayı bildiren [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTML &lt;meta&gt; öğesi, &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; veya &lt;title&gt; gibi diğer HTML meta verileriyle ilgili öğelerde temsil edilemeyen meta verileri temsil eder.") öğesi [`&lt;head&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/head "HTML &lt;head&gt; öğesi belge hakkında, başlığı ve betikleriyle stil sayfalarına bağlantıları gibi genel bilgileri (meta veriler) sağlar.") öğesinin içinde ve HTML'nin **ilk 1024 baytı içinde** yer almalıdır çünkü bazı tarayıcılar kodlamayı seçmeden önce yalnızca bu baytlara bakar.
 * Bu [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTML &lt;meta&gt; öğesi &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; veya &lt;title&gt; gibi diğer HTML meta verileriyle ilgili öğelerde temsil edilemeyen meta verileri temsil eder.") öğesi, [sayfanın karakter kümesini saptayan algoritmanın](https://www.whatwg.org/specs/web-apps/current-work/multipage/parsing.html#encoding-sniffing-algorithm "Algorithm charset page") yalnızca bir parçasıdır. [`Content-Type` üst bilgisi](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type) ve herhangi bir [Byte-Order Marks](https://developer.mozilla.org/en-US/docs/Glossary/Byte-Order_Mark "Bu terimin tanımı (Byte-Order Marks) henüz yazılmadı; lütfen katkıda bulunmayı düşünün!") bu öğeyi geçersiz kılar.
 * Karakter kodlamasını tanımlamanız kesinlikle önerilir. Bir sayfanın kodlaması tanımsızsa, [`UTF-7` yedek siteler arası komut dosyası çalıştırma tekniği](https://code.google.com/p/doctype-mirror/wiki/ArticleUtf7) gibi siteler arası komut dosyası çalıştırma teknikleri kullanılabilir.
-* `charset` özniteliğini içeren [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTML &lt;meta&gt; öğesi &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; veya &lt;title&gt; gibi diğer HTML meta verileriyle ilgili öğelerde temsil edilemeyen meta verileri temsil eder.") öğesi, HTML5 öncesi `&lt;meta http-equiv="Content-Type" content="text/html; charset=_IANAcharset_"&gt;` ile eş anlamlıdır; burada _`IANAcharset`_ , eşdeğer [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) özniteliğinin değerini içerir. Bu söz dizimine hala izin verilir, ancak artık önerilmez.</target>
+* `charset` özniteliğini içeren [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTML &lt;meta&gt; öğesi &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; veya &lt;title&gt; gibi diğer HTML meta verileriyle ilgili öğelerde temsil edilemeyen meta verileri temsil eder.") öğesi, HTML5 öncesi `&lt;meta http-equiv="Content-Type" content="text/html; charset=_IANAcharset_"&gt;` ile eş anlamlıdır; burada _`IANAcharset`_, eşdeğer [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) özniteliğinin değerini içerir. Bu söz dizimine hala izin verilir, ancak artık önerilmez.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_cite">
@@ -535,7 +535,7 @@ Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page
 * `"content-language"` 
 Sayfanın varsayılan dilini tanımlar. Herhangi bir öğedeki [lang](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/lang) özniteliğiyle geçersiz kılınabilir.
 
-**Uyarı:** Kullanımdan kaldırıldığı için bu değeri kullanmayın. [`&lt;html&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/html "HTML &lt;html&gt; öğesi bir HTML belgesinin kök (üst düzey öğesi) öğesini temsil eder, bu nedenle kök öğe olarak da adlandırılır. Diğer tüm öğeler bu öğenin alt öğeleri olmalıdır.") öğesinde `lang` özniteliğini tercih edin .
+**Uyarı:** Kullanımdan kaldırıldığı için bu değeri kullanmayın. [`&lt;html&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/html "HTML &lt;html&gt; öğesi bir HTML belgesinin kök (üst düzey öğesi) öğesini temsil eder, bu nedenle kök öğe olarak da adlandırılır. Diğer tüm öğeler bu öğenin alt öğeleri olmalıdır.") öğesinde `lang` özniteliğini tercih edin.
 
 * `"content-security-policy"` 
 Sayfa yazarlarının geçerli sayfa için bir [içerik ilkesi](https://developer.mozilla.org/en-US/docs/Web/Security/CSP/CSP_policy_directives) tanımlamasına olanak sağlar. İçerik ilkeleri çoğunlukla izin verilen sunucu çıkış noktalarını ve betik uç noktalarını belirtir. Bu da siteler arası betik çalıştırma saldırılarına karşı koruma sağlamaya yardımcı olur.
@@ -587,7 +587,7 @@ Sayfa için bir [çerez](https://developer.mozilla.org/en-US/docs/cookie) tanım
 **Note:** This attribute is allowed only if the `&lt;img&gt;` element is a descendant of an [`&lt;a&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a "The HTML &lt;a&gt; element (or anchor element) creates a hyperlink to other web pages, files, locations within the same page, email addresses, or any other URL.") element with a valid [`href`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-href) attribute.</source>
         <target state="translated">Bu Boole özniteliği, görüntünün bir sunucu tarafı eşlemesinin parçası olduğunu gösterir. Bu durumda, bir tıklamanın kesin koordinatları sunucuya gönderilir.
 
-**Not:** Bu öznitelik yalnızca `&lt;img&gt;` öğesi geçerli bir [`href`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-href(&lt;a&gt;) özniteliğine sahip [`&lt;a&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a "HTML öğesi (veya bağlayıcı öğesi) aynı sayfa, e-posta adresleri veya başka bir URL içindeki diğer web sayfalarına, dosyalara, konumlara köprü oluşturur.") öğesinin alt öğesi ise izin verilir.</target>
+**Not:** Bu öznitelik yalnızca `&lt;img&gt;` öğesi geçerli bir [`href`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-href) özniteliğine sahip [`&lt;a&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a "HTML &lt;a&gt; öğesi (veya bağlayıcı öğesi) aynı sayfa, e-posta adresleri veya başka bir URL içindeki diğer web sayfalarına, dosyalara, konumlara köprü oluşturur.") öğesinin alt öğesi ise izin verilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_itemid">
@@ -647,7 +647,7 @@ Sayfa için bir [çerez](https://developer.mozilla.org/en-US/docs/cookie) tanım
 * `chapters`
 * Bölüm başlıkları, kullanıcı medya kaynağında gezinirken kullanılmak üzere tasarlanmıştır.
 * `metadata`
-* Betikler tarafından kullanılan parçalar. Kullanıcıya görünmez.</target>
+* Betikler tarafından kullanılan parçalar. Kullanıcı tarafından görülmez.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_label">
@@ -1142,7 +1142,7 @@ Açıklama
 
 Viewport META öğesini normatif olmayan bir şekilde açıklar
 
-Ayrıca bkz: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewport "@viewport CSS at-rule, belgenin görüntüleneceği görünüm penceresini yapılandırmanıza olanaktanır. Asıl olarak mobil cihazlarda kullanılır ancak "kenara yasla" gibi özellikleri destekleyen masaüstü tarayıcıları tarafından da kullanılır (Microsoft Edge gibi).")
+Ayrıca bkz: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewport "@viewport CSS at-rule, belgenin görüntüleneceği görünüm penceresini yapılandırmanıza olanak tanır. Asıl olarak mobil cihazlarda kullanılır ancak "kenara yasla" gibi özellikleri destekleyen masaüstü tarayıcıları tarafından da kullanılır (Microsoft Edge gibi).")
 
 **Notlar:**
 
@@ -1797,7 +1797,7 @@ Bu öznitelik belirtilirse bu öğe, değeri URL olan özniteliklere sahip diğe
 **Note**: This attribute was deprecated in HTML4, but reintroduced in HTML5.
 
 **Note:** Prior to Gecko 9.0, negative values were incorrectly converted to 0. Starting in Gecko 9.0 all integer values are correctly parsed.</source>
-        <target state="translated">Bu tamsayı özniteliği, [`&lt;ol&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ol "HTML &lt;ol&gt; öğesi, genellikle numaralanmış liste olarak işlenen sıralı bir öğe listesini temsil eder.") öğesi tarafından tanımlandığında liste öğesinin geçerli sıra değerini gösterir. Bu öznitelik için izin verilen tek değer sayıdır. Liste Romen rakamlarıyla veya harflerle gösterilse bile bu değişmez. Bu öğeyi izleyen liste öğeleri, ayarlanan değerden itibaren numaralandırmaya devam eder. **value** özniteliğinin sıralanmamış listeler ([`&lt;ul&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ul "HTML &lt;ul&gt; öğesi, normalde madde işaretli liste olarak işlenen öğelerin sıralanmamış bir listesini temsil eder.") veya menüler ([`&lt;menu&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/menu "HTML &lt;menu&gt; öğesi kullanıcının gerçekleştirip etkinleştirene bir komut grubunu temsil eder. Bu, ekranın üst kısmında görüntülenebilir liste menülerinin yanı sıra tıklandıktan sonra düğmenin altında görünenler gibi bağlam menülerini de içerir.")).
+        <target state="translated">Bu tamsayı özniteliği, [`&lt;ol&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ol "HTML &lt;ol&gt; öğesi, genellikle numaralanmış liste olarak işlenen sıralı bir öğe listesini temsil eder.") öğesi tarafından tanımlandığında liste öğesinin geçerli sıra değerini gösterir. Bu öznitelik için izin verilen tek değer sayıdır. Liste Romen rakamlarıyla veya harflerle gösterilse bile bu değişmez. Bu öğeyi izleyen liste öğeleri, ayarlanan değerden itibaren numaralandırmaya devam eder. **value** özniteliğinin sıralanmamış listeler ([`&lt;ul&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ul "HTML &lt;ul&gt; öğesi, normalde madde işaretli liste olarak işlenen öğelerin sıralanmamış bir listesini temsil eder.")) veya menüler ([`&lt;menu&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/menu "HTML &lt;menu&gt; öğesi kullanıcının gerçekleştirip etkinleştirene bir komut grubunu temsil eder. Bu, ekranın üst kısmında görüntülenebilir liste menülerinin yanı sıra tıklandıktan sonra düğmenin altında görünenler gibi bağlam menülerini de içerir.")).
 
 **Not**: Bu öznitelik HTML4'te kullanım dışı bırakılmıştı, ancak HTML5'te yeniden kullanıma sunuldu.
 

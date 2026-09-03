@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="AddOutOrRefTitle">
         <source>Add Out/Ref Modifier</source>
-        <target state="translated">Out/Ref 한정자 추가</target>
+        <target state="new">Add Out/Ref Modifier</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveOutOrRefTitle">
         <source>Remove Out/Ref Modifier</source>
-        <target state="translated">Out/Ref 한정자</target>
+        <target state="new">Remove Out/Ref Modifier</target>
         <note />
       </trans-unit>
     </body>
