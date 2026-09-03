@@ -37319,7 +37319,7 @@ partial class Program
                 """);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75863")]
         public void IEnumerableToSpan_Spreads()
         {
             var source = """
@@ -37366,7 +37366,7 @@ partial class Program
                 """);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75863")]
         public void IEnumerableToSpan_Spreads_MissingCollectionsMarshal()
         {
             var source = """
@@ -37417,7 +37417,7 @@ partial class Program
                 """);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75863")]
         public void IEnumerableToReadOnlySpan_Spreads()
         {
             var source = """
@@ -37465,7 +37465,7 @@ partial class Program
                 """);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75863")]
         public void IEnumerableToReadOnlySpan_Spreads_MissingImplicitCast()
         {
             var source = """
@@ -37498,8 +37498,9 @@ partial class Program
                 );
         }
 
-        [Fact]
-        public void IEnumerableToReadOnlySpan_Spreads_MissingCollectionsMarshal()
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75863")]
+        [CombinatorialData]
+        public void IEnumerableToReadOnlySpan_Spreads_MissingCollectionsMarshal(bool missingImplicitCast)
         {
             var source = """
                 using System;
@@ -37524,6 +37525,8 @@ partial class Program
 
             var comp = CreateCompilation(new[] { source, s_collectionExtensionsWithSpan }, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
             comp.MakeMemberMissing(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T);
+            if (missingImplicitCast)
+                comp.MakeMemberMissing(WellKnownMember.System_Span_T__op_Implicit_ReadOnlySpan_T);
 
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("[1, 2, 3, 4, 5, 6], "));
             verifier.VerifyDiagnostics();
