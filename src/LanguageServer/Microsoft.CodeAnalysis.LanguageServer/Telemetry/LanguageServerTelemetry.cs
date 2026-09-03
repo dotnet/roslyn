@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 /// <summary>
 /// Initializes language server telemetry using a standalone session or from C#DK.  Flushes telemetry on shutdown.
 /// </summary>
-internal sealed class LanguageServerTelemetry : ILanguageServerTelemetry, IDisposable
+internal sealed class LanguageServerTelemetry : IDisposable
 {
     internal const string CopilotTelemetryLevelEnvironmentVariable = "COPILOT_TELEMETRY_LEVEL";
     internal const string DaemonSessionIdPropertyName = "vs.roslyn.languageserver.daemonsessionid";
@@ -140,8 +140,11 @@ internal sealed class LanguageServerTelemetry : ILanguageServerTelemetry, IDispo
     }
 
     internal static TelemetrySession? GetCurrentSession()
-        => s_telemetryServices.TryGetValue(RoslynTelemetry.Current, out var telemetryService)
-            ? telemetryService.Session
+        => GetTelemetryService(RoslynTelemetry.Current)?.Session;
+
+    internal static LanguageServerTelemetry? GetTelemetryService(RoslynTelemetry telemetry)
+        => s_telemetryServices.TryGetValue(telemetry, out var telemetryService)
+            ? telemetryService
             : null;
 
     public void Dispose()

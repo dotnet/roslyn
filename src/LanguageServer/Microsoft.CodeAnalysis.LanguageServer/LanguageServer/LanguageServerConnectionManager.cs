@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
@@ -110,28 +109,11 @@ internal sealed class LanguageServerConnectionManager
 
         async Task StartAndSuperviseAsync(LanguageServerConnection connection)
         {
-            LanguageServerTelemetry? perServerTelemetry = null;
-            var telemetryHandedToSupervisor = false;
-            var perServerInstanceStarted = false;
-            IDisposable? telemetryScope = null;
-
             try
             {
-                perServerTelemetry = isolateFaults ? telemetryService.CreatePerServerSession() : null;
-                var telemetryForServer = perServerTelemetry ?? telemetryService;
-                if (isolateFaults)
-                {
-                    RoslynTelemetry.OnPerServerInstanceStarted();
-                    perServerInstanceStarted = true;
-                    telemetryScope = RoslynTelemetry.SetCurrent(telemetryForServer.Telemetry);
-                }
-
-                var entry = await TryStartServerAsync(connection, telemetryForServer, perServerTelemetry).ConfigureAwait(false);
+                var entry = await TryStartServerAsync(connection).ConfigureAwait(false);
                 if (entry is not null)
-                {
-                    telemetryHandedToSupervisor = true;
                     await SuperviseAsync(entry).ConfigureAwait(false);
-                }
             }
             catch (Exception ex) when (isolateFaults)
             {
@@ -141,35 +123,23 @@ internal sealed class LanguageServerConnectionManager
                 // propagating failures here so one connection cannot tear down the daemon.
                 logger.LogError(ex, "Language server connection supervisor faulted.");
             }
-            finally
-            {
-                try
-                {
-                    if (!telemetryHandedToSupervisor)
-                        perServerTelemetry?.Dispose();
-                }
-                finally
-                {
-                    telemetryScope?.Dispose();
-
-                    if (perServerInstanceStarted)
-                        RoslynTelemetry.OnPerServerInstanceStopped();
-                }
-            }
         }
 
         // Creates, registers, and starts a language server for the connection. Returns null if shutdown won the
         // race with startup; construction and startup failures are cleaned up and propagated to the caller.
-        async Task<ServerEntry?> TryStartServerAsync(
-            LanguageServerConnection connection,
-            LanguageServerTelemetry serverTelemetry,
-            LanguageServerTelemetry? ownedTelemetry)
+        async Task<ServerEntry?> TryStartServerAsync(LanguageServerConnection connection)
         {
             // --- Phase 1: construct the LanguageServerHost (MEF composition happens here) ---
             LanguageServerHost server;
             try
             {
-                server = new LanguageServerHost(connection.InputStream, connection.OutputStream, exportProvider, typeRefResolver, serverTelemetry);
+                server = new LanguageServerHost(
+                    connection.InputStream,
+                    connection.OutputStream,
+                    exportProvider,
+                    typeRefResolver,
+                    telemetryService,
+                    createPerServerTelemetry: isolateFaults);
             }
             catch
             {
@@ -177,7 +147,7 @@ internal sealed class LanguageServerConnectionManager
                 throw;
             }
 
-            var entry = new ServerEntry(server, connection.Resource, ownedTelemetry);
+            var entry = new ServerEntry(server, connection.Resource);
             var abortStartup = false;
 
             // --- Phase 2: register and start ---
@@ -254,7 +224,6 @@ internal sealed class LanguageServerConnectionManager
                 // Dispose this connection's transport (e.g. the daemon's NamedPipeServerStream) now that its
                 // server has fully exited. Disposal is idempotent, so it is safe even if transport already closed.
                 entry.Connection?.Dispose();
-                entry.OwnedTelemetry?.Dispose();
             }
         }
     }
@@ -285,10 +254,9 @@ internal sealed class LanguageServerConnectionManager
         }
     }
 
-    private sealed class ServerEntry(LanguageServerHost server, IDisposable? connection, LanguageServerTelemetry? ownedTelemetry)
+    private sealed class ServerEntry(LanguageServerHost server, IDisposable? connection)
     {
         public LanguageServerHost Server { get; } = server;
         public IDisposable? Connection { get; } = connection;
-        public LanguageServerTelemetry? OwnedTelemetry { get; } = ownedTelemetry;
     }
 }

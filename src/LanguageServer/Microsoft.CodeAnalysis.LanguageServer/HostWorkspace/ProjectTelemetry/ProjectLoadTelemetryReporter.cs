@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 using Microsoft.Extensions.Logging;
@@ -22,17 +23,18 @@ internal sealed class ProjectLoadTelemetryReporterFactory() : ILspServiceFactory
         return new ProjectLoadTelemetryReporter(
             lspServices.GetRequiredService<IClientLanguageServerManager>(),
             lspServices.GetRequiredService<ILoggerFactory>(),
-            lspServices.GetRequiredService<ILanguageServerTelemetry>());
+            lspServices.GetRequiredService<RoslynTelemetry>());
     }
 }
 
 internal sealed class ProjectLoadTelemetryReporter(
     IClientLanguageServerManager clientLanguageServerManager,
     ILoggerFactory loggerFactory,
-    ILanguageServerTelemetry telemetry) : ILspService
+    RoslynTelemetry telemetry) : ILspService
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<ProjectLoadTelemetryReporter>();
-    private readonly string _hashedSessionId = VsTfmAndFileExtHashingAlgorithm.HashInput(telemetry.SessionId ?? string.Empty);
+    private readonly string _hashedSessionId = VsTfmAndFileExtHashingAlgorithm.HashInput(
+        LanguageServerTelemetry.GetTelemetryService(telemetry)?.SessionId ?? string.Empty);
 
     public sealed record TelemetryInfo
     {
@@ -54,7 +56,7 @@ internal sealed class ProjectLoadTelemetryReporter(
     {
         try
         {
-            if (telemetry.TelemetryLevel is null or "off")
+            if (LanguageServerTelemetry.GetTelemetryService(telemetry)?.TelemetryLevel is null or "off")
             {
                 return;
             }

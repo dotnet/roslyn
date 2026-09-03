@@ -31,8 +31,7 @@ internal sealed class CSharpVisualBasicLanguageServerFactory
         JsonSerializerOptions options,
         WellKnownLspServerKinds serverKind,
         HostServices hostServices,
-        AbstractTypeRefResolver? typeRefResolver = null,
-        ILanguageServerTelemetry? telemetryService = null)
+        AbstractTypeRefResolver? typeRefResolver = null)
     {
         var server = new RoslynLanguageServer(
             _lspServiceProvider,
@@ -41,8 +40,7 @@ internal sealed class CSharpVisualBasicLanguageServerFactory
             hostServices,
             ProtocolConstants.RoslynLspLanguages,
             serverKind,
-            typeRefResolver,
-            telemetryService: telemetryService);
+            typeRefResolver);
 
         return server;
     }
