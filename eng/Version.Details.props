@@ -7,6 +7,7 @@ This file should be imported by eng/Versions.props
   <PropertyGroup>
     <!-- dotnet-arcade dependencies -->
     <MicrosoftDotNetArcadeSdkPackageVersion>10.0.0-beta.26453.2</MicrosoftDotNetArcadeSdkPackageVersion>
+    <MicrosoftDotNetHelixJobMonitorPackageVersion>10.0.0-beta.26453.2</MicrosoftDotNetHelixJobMonitorPackageVersion>
     <MicrosoftDotNetHelixSdkPackageVersion>10.0.0-beta.26453.2</MicrosoftDotNetHelixSdkPackageVersion>
     <MicrosoftDotNetXliffTasksPackageVersion>10.0.0-beta.26453.2</MicrosoftDotNetXliffTasksPackageVersion>
     <!-- dotnet-dotnet dependencies -->
@@ -52,6 +53,7 @@ This file should be imported by eng/Versions.props
   <PropertyGroup>
     <!-- dotnet-arcade dependencies -->
     <MicrosoftDotNetArcadeSdkVersion>$(MicrosoftDotNetArcadeSdkPackageVersion)</MicrosoftDotNetArcadeSdkVersion>
+    <MicrosoftDotNetHelixJobMonitorVersion>$(MicrosoftDotNetHelixJobMonitorPackageVersion)</MicrosoftDotNetHelixJobMonitorVersion>
     <MicrosoftDotNetHelixSdkVersion>$(MicrosoftDotNetHelixSdkPackageVersion)</MicrosoftDotNetHelixSdkVersion>
     <MicrosoftDotNetXliffTasksVersion>$(MicrosoftDotNetXliffTasksPackageVersion)</MicrosoftDotNetXliffTasksVersion>
     <!-- dotnet-dotnet dependencies -->

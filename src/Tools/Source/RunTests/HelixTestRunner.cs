@@ -35,6 +35,10 @@ public sealed class HelixWorkItem(
 
 internal sealed class HelixTestRunner
 {
+    private const string IOperationEnvironmentVariable = "ROSLYN_TEST_IOPERATION";
+    private const string RuntimeAsyncEnvironmentVariable = "DOTNET_RuntimeAsync";
+    private const string UsedAssembliesEnvironmentVariable = "ROSLYN_TEST_USEDASSEMBLIES";
+
     internal enum TestOS
     {
         Windows,
@@ -59,6 +63,7 @@ internal sealed class HelixTestRunner
             : TestOS.Linux;
 
         var platform = !string.IsNullOrEmpty(options.Architecture) ? options.Architecture : "x64";
+        var testRunName = GetTestRunName(options);
         var dotnetSdkVersion = GetDotNetSdkVersion(options.ArtifactsDirectory);
 
         // This is the directory where all of the work item payloads are stored.
@@ -66,13 +71,14 @@ internal sealed class HelixTestRunner
         var logsDir = Path.Combine(options.ArtifactsDirectory, "log", options.Configuration);
 
         // Retrieve test runtimes from azure devops historical data.
-        var testHistory = await TestHistoryManager.GetTestHistoryAsync(options, cancellationToken);
+        var testHistory = await TestHistoryManager.GetTestHistoryAsync(options, testRunName, cancellationToken);
         var helixWorkItems = AssemblyScheduler.Schedule(assemblies.Select(x => x.AssemblyPath), testHistory);
         var helixProjectFileContent = GetHelixProjectFileContent(
             helixWorkItems,
             testOS,
             dotnetSdkVersion,
             platform,
+            testRunName,
             options.HelixQueueName,
             options.ArtifactsDirectory,
             payloadsDir);
@@ -104,6 +110,13 @@ internal sealed class HelixTestRunner
             onOutputDataReceived: (e) => { Debug.Assert(e.Data is not null); ConsoleUtil.WriteLine(e.Data); },
             cancellationToken: cancellationToken);
         var processResult = await process.Result.ConfigureAwait(false);
+        if (processResult.ExitCode == 0)
+        {
+            ConsoleUtil.WriteLine(
+                ConsoleColor.Green,
+                "Helix jobs were submitted successfully. Follow the 'Monitor Helix Jobs' job in this stage for status and automatic retries.");
+        }
+
         return processResult.ExitCode;
 
         void Verify([DoesNotReturnIf(false)] bool condition, [CallerArgumentExpression("condition")] string? message = null)
@@ -123,6 +136,7 @@ internal sealed class HelixTestRunner
         TestOS testOS,
         string dotnetSdkVersion,
         string platform,
+        string testRunName,
         string helixQueueName,
         string artifactsDir,
         string payloadsDir)
@@ -136,7 +150,7 @@ internal sealed class HelixTestRunner
         // setup makes running the RunTests program destructive to the environment variables
         // of the runner
         //
-        var sourceBranch = SetEnv("BUILD_SOURCEBRANCH", "local");
+        _ = SetEnv("BUILD_SOURCEBRANCH", "local");
         _ = SetEnv("BUILD_REPOSITORY_NAME", "dotnet/roslyn");
         _ = SetEnv("SYSTEM_TEAMPROJECT", "dnceng-public");
         _ = SetEnv("BUILD_REASON", "pr");
@@ -145,7 +159,6 @@ internal sealed class HelixTestRunner
         // it's possible we should be using the BUILD_SOURCEVERSIONAUTHOR instead here a la https://github.com/dotnet/arcade/blob/main/src/Microsoft.DotNet.Helix/Sdk/tools/xharness-runner/Readme.md#how-to-use
         // however that variable isn't documented at https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables?view=azure-devops&tabs=yaml
         var queuedBy = GetEnv("BUILD_QUEUEDBY", "roslyn").Replace(" ", "");
-        var jobName = GetEnv("SYSTEM_JOBDISPLAYNAME", "");
         var buildNumber = GetEnv("BUILD_BUILDNUMBER", "0");
         var duplicateDir = Path.Combine(Path.GetDirectoryName(artifactsDir)!, ".duplicate");
 
@@ -153,15 +166,14 @@ internal sealed class HelixTestRunner
         builder.AppendLine($"""
             <Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
               <PropertyGroup>
-                <TestRunNamePrefix>{jobName}_</TestRunNamePrefix>
-                <HelixSource>pr/{sourceBranch}</HelixSource>
+                <TestRunNamePrefix>{testRunName}_</TestRunNamePrefix>
                 <HelixType>test</HelixType>
                 <HelixBuild>{buildNumber}</HelixBuild>
                 <HelixTargetQueues>{helixQueueName}</HelixTargetQueues>
                 <IncludeDotNetCli>true</IncludeDotNetCli>
                 <DotNetCliVersion>{dotnetSdkVersion}</DotNetCliVersion>
                 <DotNetCliPackageType>sdk</DotNetCliPackageType>
-                <EnableAzurePipelinesReporter>true</EnableAzurePipelinesReporter>
+                <EnableHelixJobMonitor>true</EnableHelixJobMonitor>
               </PropertyGroup>
 
               <ItemGroup>
@@ -175,6 +187,11 @@ internal sealed class HelixTestRunner
 
         builder.AppendLine("""
               </ItemGroup>
+
+              <Target Name="PrintHelixJobId" AfterTargets="CoreTest" Condition="'$(HelixJobId)' != ''">
+                <Message Text="HelixJobId=$(HelixJobId)" Importance="high" />
+              </Target>
+
             </Project>
             """);
 
@@ -257,8 +274,9 @@ internal sealed class HelixTestRunner
 
             string[] knownEnvironmentVariables =
             [
-                "ROSLYN_TEST_IOPERATION",
-                "ROSLYN_TEST_USEDASSEMBLIES"
+                IOperationEnvironmentVariable,
+                UsedAssembliesEnvironmentVariable,
+                RuntimeAsyncEnvironmentVariable
             ];
 
             foreach (var knownEnvironmentVariable in knownEnvironmentVariables)
@@ -361,6 +379,38 @@ internal sealed class HelixTestRunner
         }
     }
 
+    private static string GetTestRunName(Options options)
+    {
+        var runtime = options.TestRuntime switch
+        {
+            TestRuntime.Core => "CoreClr",
+            TestRuntime.Framework => "Desktop",
+            TestRuntime.Both => "Both",
+            _ => throw new ArgumentOutOfRangeException(nameof(options.TestRuntime)),
+        };
+
+        var nameParts = new List<string>
+        {
+            options.Configuration,
+            runtime,
+            options.Architecture,
+        };
+
+        AddEnvironmentVariableToken(IOperationEnvironmentVariable, "IOperation");
+        AddEnvironmentVariableToken(RuntimeAsyncEnvironmentVariable, "RuntimeAsync");
+        AddEnvironmentVariableToken(UsedAssembliesEnvironmentVariable, "UsedAssemblies");
+
+        return string.Join("_", nameParts);
+
+        void AddEnvironmentVariableToken(string environmentVariable, string token)
+        {
+            if (Environment.GetEnvironmentVariable(environmentVariable) is { Length: > 0 })
+            {
+                nameParts.Add(token);
+            }
+        }
+    }
+
     private static string GetEnv(string name, string defaultValue)
     {
         if (Environment.GetEnvironmentVariable(name) is { } value)
@@ -428,7 +478,7 @@ internal sealed class HelixTestRunner
         builder.AppendLine($@"/Platform:{platform}");
 
         // The xml file must end in test-results.xml for the Azure Pipelines reporter to pick it up.
-        builder.AppendLine($@"/Logger:xunit;LogFilePath=work-item-test-results.xml");
+        builder.AppendLine($@"/Logger:xunit;LogFilePath=test-results.xml");
 
         // Also add a console logger so that the helix log reports results as we go.
         builder.AppendLine($@"/Logger:console;verbosity=detailed");
