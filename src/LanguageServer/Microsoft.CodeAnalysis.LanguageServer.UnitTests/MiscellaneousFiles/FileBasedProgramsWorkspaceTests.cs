@@ -1205,7 +1205,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         // the FileSystemWatcher has delivered the event that enqueues the reload.
         var fileChangeWatcher = testLspServer.GetRequiredLspService<IFileChangeWatcher>();
         using var fileChangeContext = fileChangeWatcher.CreateContext([new WatchedDirectory(Path.GetDirectoryName(appCsFile.Path)!, extensionFilters: [])]);
-        var fileChangeTcs = new TaskCompletionSource();
+        var fileChangeTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         fileChangeContext.FileChanged += (_, e) =>
         {
             if (e.FilePath == appCsFile.Path)
