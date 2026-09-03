@@ -1672,7 +1672,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return false;
 
                 // For example, 'async' starts the return type in 'partial async M()'.
-                if (isMemberDeclarationStartBeforeConsumingModifier())
+                if (shouldStopSkippingModifiers())
                     return true;
 
                 this.EatToken();
@@ -1695,7 +1695,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                        this.PeekToken(1).Kind == SyntaxKind.OpenParenToken;
             }
 
-            bool isMemberDeclarationStartBeforeConsumingModifier()
+            bool shouldStopSkippingModifiers()
             {
                 if (!allowMembers)
                     return false;
