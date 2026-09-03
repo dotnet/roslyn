@@ -6,6 +6,7 @@ using System;
 using System.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -98,6 +99,28 @@ public sealed class LspServicesTests(ITestOutputHelper testOutputHelper) : Abstr
         await Assert.ThrowsAnyAsync<Exception>(async () => await CreateTestLspServerAsync("", mutatingLspWorkspace, initializationOptions: new() { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer }, composition));
     }
 
+    [Fact]
+    public async Task ConstructsLazyServicesWithServerTelemetry()
+    {
+        var telemetry = new RoslynTelemetry();
+        var composition = base.Composition.AddParts(typeof(TelemetryCapturingLspServiceFactory));
+        TestLspServer server;
+        using (RoslynTelemetry.SetCurrent(telemetry))
+        {
+            server = await CreateTestLspServerAsync(
+                string.Empty,
+                mutatingLspWorkspace: false,
+                initializationOptions: new() { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer },
+                composition);
+        }
+
+        await using (server)
+        {
+            var service = server.GetRequiredLspService<TelemetryCapturingLspService>();
+            Assert.Same(telemetry, service.Telemetry);
+        }
+    }
+
     [Theory, CombinatorialData]
     public async Task ReturnsLspServiceForMatchingServer(bool mutatingLspWorkspace)
     {
@@ -117,11 +140,22 @@ public sealed class LspServicesTests(ITestOutputHelper testOutputHelper) : Abstr
 
     internal sealed record class TestLspServiceFromFactory(string FactoryName) : ILspService { }
 
+    internal sealed record class TelemetryCapturingLspService(RoslynTelemetry Telemetry) : ILspService { }
+
     internal interface ITestLspServiceInterface : ILspService { }
 
     internal class TestLspServiceFactory : ILspServiceFactory
     {
         public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind) => new TestLspServiceFromFactory(this.GetType().Name);
+    }
+
+    [ExportLspServiceFactory(typeof(TelemetryCapturingLspService), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class TelemetryCapturingLspServiceFactory() : ILspServiceFactory
+    {
+        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+            => new TelemetryCapturingLspService(RoslynTelemetry.Current);
     }
 
     [ExportStatelessLspService(typeof(TestLspService), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared]

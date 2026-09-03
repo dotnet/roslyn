@@ -20,13 +20,6 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-internal interface ILanguageServerTelemetry
-{
-    RoslynTelemetry Telemetry { get; }
-    string? TelemetryLevel { get; }
-    string? SessionId { get; }
-}
-
 internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<RequestContext>, IOnInitialized
 {
     private static int s_clientProcessId = -1;
@@ -45,15 +38,14 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         ImmutableArray<string> supportedLanguages,
         WellKnownLspServerKinds serverKind,
         AbstractTypeRefResolver? typeRefResolver = null,
-        ILspLogger? logger = null,
-        ILanguageServerTelemetry? telemetryService = null)
+        ILspLogger? logger = null)
         : base(jsonRpc, serializerOptions, typeRefResolver)
     {
         _lspServiceProvider = lspServiceProvider;
         _serverKind = serverKind;
 
         // Create services that require base dependencies (jsonrpc) or are more complex to create to the set manually.
-        _baseServices = GetBaseServices(jsonRpc, hostServices, serverKind, supportedLanguages, logger, telemetryService);
+        _baseServices = GetBaseServices(jsonRpc, hostServices, serverKind, supportedLanguages, logger);
 
         // This spins up the queue and ensure the LSP is ready to start receiving requests
         Initialize();
@@ -122,8 +114,7 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         HostServices hostServices,
         WellKnownLspServerKinds serverKind,
         ImmutableArray<string> supportedLanguages,
-        ILspLogger? logger,
-        ILanguageServerTelemetry? telemetryService)
+        ILspLogger? logger)
     {
         // This map will hold either a single BaseService instance, or an ImmutableArray<BaseService>.Builder.
         var baseServiceMap = new Dictionary<string, object>();
@@ -148,9 +139,7 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         AddService<IOnInitialized>(this);
         AddService<ILanguageInfoProvider>(new LanguageInfoProvider());
         AddService<HostServices>(hostServices);
-        AddService(telemetryService?.Telemetry ?? RoslynTelemetry.Current);
-        if (telemetryService is not null)
-            AddService<ILanguageServerTelemetry>(telemetryService);
+        AddService(RoslynTelemetry.Current);
 
         return baseServiceMap.ToFrozenDictionary(
             keySelector: kvp => kvp.Key,

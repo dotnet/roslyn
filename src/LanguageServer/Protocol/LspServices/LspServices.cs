@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.Utilities;
@@ -26,6 +27,7 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
     /// so these are manually created in <see cref="RoslynLanguageServer"/>.
     /// </summary>
     private readonly FrozenDictionary<string, ImmutableArray<BaseService>> _baseServices;
+    private readonly RoslynTelemetry? _telemetry;
 
     /// <summary>
     /// Gates access to <see cref="_servicesToDispose"/> and <see cref="_servicesToDisposeAsync"/>.
@@ -61,6 +63,13 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
         _lazyMefLspServices = serviceMap.ToFrozenDictionary();
 
         _baseServices = baseServices;
+        var telemetryTypeName = typeof(RoslynTelemetry).FullName;
+        Contract.ThrowIfNull(telemetryTypeName);
+        if (_baseServices.TryGetValue(telemetryTypeName, out var telemetryServices) &&
+            telemetryServices is [var telemetryService])
+        {
+            _telemetry = (RoslynTelemetry)telemetryService.GetInstance(this);
+        }
 
         void AddSpecificService(Lazy<ILspService, LspServiceMetadataView> serviceGetter)
         {
@@ -166,6 +175,8 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
             // Stateless LSP services will be disposed of on MEF container disposal.
             var checkDisposal = !lazyService.Metadata.IsStateless && !lazyService.IsValueCreated;
 
+            // Services are lazy and may first be requested outside the request queue.
+            using var _ = _telemetry is null ? null : RoslynTelemetry.SetCurrent(_telemetry);
             var lspService = lazyService.Value;
             if (checkDisposal)
             {

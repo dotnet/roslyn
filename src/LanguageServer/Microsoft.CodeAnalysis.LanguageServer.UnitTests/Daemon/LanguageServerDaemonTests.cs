@@ -130,8 +130,10 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
         var first = await daemon.CreateClientAsync();
         await using var second = await daemon.CreateClientAsync();
 
-        var firstTelemetry = Assert.IsType<LanguageServerTelemetry>(first.GetRequiredLspService<ILanguageServerTelemetry>());
-        var secondTelemetry = Assert.IsType<LanguageServerTelemetry>(second.GetRequiredLspService<ILanguageServerTelemetry>());
+        var firstTelemetry = Assert.IsType<LanguageServerTelemetry>(
+            LanguageServerTelemetry.GetTelemetryService(first.GetRequiredLspService<RoslynTelemetry>()));
+        var secondTelemetry = Assert.IsType<LanguageServerTelemetry>(
+            LanguageServerTelemetry.GetTelemetryService(second.GetRequiredLspService<RoslynTelemetry>()));
         Assert.NotNull(daemon.TelemetryService.SessionId);
         Assert.NotNull(firstTelemetry.SessionId);
         Assert.NotNull(secondTelemetry.SessionId);
@@ -174,6 +176,7 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
             firstMetrics.FlushCount > 0 &&
             daemonEvents.Events.Length == daemonEventsBeforeDisconnect + 1);
 
+        Assert.Null(LanguageServerTelemetry.GetTelemetryService(firstTelemetry.Telemetry));
         Assert.Equal(0, secondMetrics.FlushCount);
         Assert.Equal(daemonEventsBeforeDisconnect + 1, daemonEvents.Events.Length);
         Assert.Equal(FunctionId.VSCode_LanguageServer_Daemon_Client_Disconnected, daemonEvents.Events[^1]);
