@@ -142,6 +142,29 @@ public sealed class RoslynTelemetryTests
     }
 
     [Fact]
+    public async Task CurrentFlowsToChildAfterParentScopeIsDisposed()
+    {
+        var previousTelemetry = RoslynTelemetry.Current;
+        var telemetry = new RoslynTelemetry();
+        var releaseChild = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        Task<RoslynTelemetry> child;
+
+        using (RoslynTelemetry.SetCurrent(telemetry))
+        {
+            child = Task.Run(async () =>
+            {
+                await releaseChild.Task;
+                return RoslynTelemetry.Current;
+            });
+        }
+
+        releaseChild.SetResult(true);
+
+        Assert.Same(telemetry, await child);
+        Assert.Same(previousTelemetry, RoslynTelemetry.Current);
+    }
+
+    [Fact]
     public void FlushOnlyFlushesCurrentInstance()
     {
         var firstTelemetry = new RoslynTelemetry();

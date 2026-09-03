@@ -19,11 +19,6 @@ internal sealed partial class RoslynTelemetry
     private static readonly AsyncLocal<RoslynTelemetry?> s_current = new();
     private static readonly RoslynTelemetry s_default = new();
 
-    // Counting active scopes rather than instances means default-only hosts never read the AsyncLocal.
-    // The count is incremented before setting the ambient and decremented after restoring it, so a
-    // live scope cannot observe zero and incorrectly take the fast path.
-    private static int s_currentScopeCount;
-
     /// <summary>
     /// The registered <see cref="IEventSink"/> each event fans out to.
     /// </summary>
@@ -35,7 +30,7 @@ internal sealed partial class RoslynTelemetry
     private static int s_lastUniqueBlockId;
 
     public static RoslynTelemetry Current
-        => Volatile.Read(ref s_currentScopeCount) == 0 ? s_default : s_current.Value ?? s_default;
+        => s_current.Value ?? s_default;
 
     /// <summary>
     /// Sets the telemetry instance for the current asynchronous control flow. Disposing the result
@@ -46,15 +41,8 @@ internal sealed partial class RoslynTelemetry
         Contract.ThrowIfNull(telemetry);
 
         var previous = s_current.Value;
-        var registration = new Registration(() =>
-        {
-            s_current.Value = previous;
-            Interlocked.Decrement(ref s_currentScopeCount);
-        });
-
-        Interlocked.Increment(ref s_currentScopeCount);
         s_current.Value = telemetry;
-        return registration;
+        return new Registration(() => s_current.Value = previous);
     }
 
     /// <summary>
@@ -122,7 +110,6 @@ internal sealed partial class RoslynTelemetry
             ImmutableInterlocked.InterlockedExchange(ref s_default._eventSinks, []);
             ImmutableInterlocked.InterlockedExchange(ref s_default._metricSinks, []);
             s_current.Value = null;
-            Interlocked.Exchange(ref s_currentScopeCount, 0);
         }
     }
 
