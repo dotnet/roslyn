@@ -247,6 +247,11 @@
         <target state="translated">'{0}' yöntemi için {1} ‘with(...)’ öğe bağımsız değişkenleri için aşırı yükleme yok</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadCompilationOptionValueAccepted">
+        <source>Invalid '{0}' value: '{1}'. Accepted values are: {2}</source>
+        <target state="translated">Geçersiz '{0}' değeri: '{1}'. Kabul edilen değerler şunlardır: {2}</target>
+        <note>{2} is a comma-separated list.</note>
+      </trans-unit>
       <trans-unit id="ERR_BadCompoundAssignmentOpArgs">
         <source>Overloaded compound assignment operator '{0}' takes one parameter</source>
         <target state="translated">Aşırı yüklenmiş bileşik atama işleci ‘{0}’, bir parametre alır</target>
@@ -2970,6 +2975,11 @@
       <trans-unit id="HDN_RedundantPatternStackGuard_Title">
         <source>The pattern is too complex to analyze for redundancy.</source>
         <target state="translated">Desen, yedeklilik analizi için çok karmaşık.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ICoalesceOperationIsNotCSharpCoalesceOperation">
+        <source>{0} is not a valid C# coalesce operation</source>
+        <target state="new">{0} is not a valid C# coalesce operation</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
