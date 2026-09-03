@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -36,7 +36,7 @@ public sealed class LanguageServerRequestTelemetryTests(ITestOutputHelper testOu
     {
         var poster = new RecordingPoster();
         using var sink = VSMetricSink.TestAccessor.CreateSink(poster);
-        using var registration = RoslynTelemetry.AddMetricSink(sink);
+        using var registration = RoslynTelemetry.Current.AddMetricSink(sink);
 
         var server = await CreateLanguageServerAsync();
 

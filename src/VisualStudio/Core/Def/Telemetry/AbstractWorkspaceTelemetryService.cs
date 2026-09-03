@@ -34,8 +34,8 @@ internal abstract class AbstractWorkspaceTelemetryService : IWorkspaceTelemetryS
         var metricSink = new VSMetricSink(telemetrySession);
         _registrations =
         [
-            .. CreateEventSinks(telemetrySession, logDelta).SelectAsArray(RoslynTelemetry.AddEventSink),
-            RoslynTelemetry.AddMetricSink(metricSink),
+            .. CreateEventSinks(telemetrySession, logDelta).SelectAsArray(RoslynTelemetry.Current.AddEventSink),
+            RoslynTelemetry.Current.AddMetricSink(metricSink),
             metricSink,
         ];
 
@@ -70,7 +70,7 @@ internal abstract class AbstractWorkspaceTelemetryService : IWorkspaceTelemetryS
     {
         // Ensure any aggregate telemetry is flushed when the catalog is destroyed.
         // It is fine for this to be called multiple times - if telemetry has already been flushed this will no-op.
-        RoslynTelemetry.Flush();
+        RoslynTelemetry.Current.Flush();
 
         foreach (var registration in _registrations)
             registration.Dispose();

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -90,6 +90,6 @@ internal sealed partial class RemoteProcessTelemetryService(
         // Its predicate is a snapshot of the per-FunctionId options, so a fresh sink is built on every
         // apply. Mirrors the Performance Loggers page, which is the only way these get enabled.
         static void Register(ref IDisposable? registration, bool enabled, Func<IEventSink> create)
-            => Interlocked.Exchange(ref registration, enabled ? RoslynTelemetry.AddEventSink(create()) : null)?.Dispose();
+            => Interlocked.Exchange(ref registration, enabled ? RoslynTelemetry.Current.AddEventSink(create()) : null)?.Dispose();
     }
 }

@@ -68,7 +68,7 @@ internal sealed class PerformanceTrackerService : IPerformanceTrackerService
 
             var delay = (long)perfInfo.TimeSpan.TotalMilliseconds;
 
-            RoslynTelemetry.Record(FunctionId.PerformAnalysis_Summary, "IndividualTimes", delay);
+            RoslynTelemetry.Current.Record(FunctionId.PerformAnalysis_Summary, "IndividualTimes", delay);
 
             if (delay > PerformAnalysisTelemetryDelay)
             {
@@ -85,7 +85,7 @@ internal sealed class PerformanceTrackerService : IPerformanceTrackerService
                     m[ForSpanAnalysis] = forSpanAnalysis;
                 });
 
-                RoslynTelemetry.Log(FunctionId.PerformAnalysis_Delay, logMessage);
+                RoslynTelemetry.Current.Log(FunctionId.PerformAnalysis_Delay, logMessage);
             }
         }
 

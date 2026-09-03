@@ -91,8 +91,8 @@ internal sealed class LanguageServerTelemetry : IDisposable
         var metricSink = new VSMetricSink(session);
         _registrations =
         [
-            RoslynTelemetry.AddEventSink(TelemetryEventSink.Create(session, logDelta: true)),
-            RoslynTelemetry.AddMetricSink(metricSink),
+            RoslynTelemetry.Current.AddEventSink(TelemetryEventSink.Create(session, logDelta: true)),
+            RoslynTelemetry.Current.AddMetricSink(metricSink),
             metricSink,
         ];
 
@@ -116,7 +116,7 @@ internal sealed class LanguageServerTelemetry : IDisposable
         if (_telemetrySession is { } session)
         {
             FeaturesSessionTelemetry.Report();
-            RoslynTelemetry.Flush();
+            RoslynTelemetry.Current.Flush();
 
             foreach (var registration in _registrations)
                 registration.Dispose();

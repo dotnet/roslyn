@@ -32,7 +32,7 @@ public sealed class PerfMarginPanel : UserControl
     static PerfMarginPanel()
     {
         // Keep collecting into the process-wide model while the tool window is closed.
-        _ = RoslynTelemetry.AddEventSink(s_sink);
+        _ = RoslynTelemetry.Current.AddEventSink(s_sink);
     }
 
     public PerfMarginPanel()
