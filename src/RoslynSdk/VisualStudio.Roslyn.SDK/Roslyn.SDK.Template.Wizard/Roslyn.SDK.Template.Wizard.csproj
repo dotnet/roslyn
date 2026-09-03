@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <AssemblyName>Roslyn.SDK.Template.Wizard</AssemblyName>
+    <PublishWindowsPdb>true</PublishWindowsPdb>
   </PropertyGroup>
 
   <!-- Package References -->

@@ -137,7 +137,7 @@
   <!-- Arcade features -->
   <PropertyGroup>
     <UsingToolVSSDK Condition="$([MSBuild]::IsOSPlatform('Windows'))">true</UsingToolVSSDK>
-    <UsingToolPdbConverter>false</UsingToolPdbConverter>
+    <UsingToolPdbConverter>true</UsingToolPdbConverter>
     <UsingToolSymbolUploader>true</UsingToolSymbolUploader>
     <UsingToolNuGetRepack>true</UsingToolNuGetRepack>
     <!-- Avoid attempting IBC on platforms where ngen won't work, or the IBC tooling won't work -->
