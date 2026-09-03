@@ -12,7 +12,7 @@
     <ExtensionInstallationFolder>Microsoft\Editorconfig\Wizard</ExtensionInstallationFolder>
     <VisualStudioInsertionComponent>Templates.Editorconfig.Setup</VisualStudioInsertionComponent>
     <UseCodebase>true</UseCodebase>
-    <Ngen>false</Ngen>    
+    <Ngen>false</Ngen>
     <SetupProductArch>Neutral</SetupProductArch>
   </PropertyGroup>
   <ItemGroup>
@@ -21,7 +21,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Tools\Microsoft.VisualStudio.Templates.Editorconfig.Wizard\Microsoft.VisualStudio.Templates.Editorconfig.Wizard.csproj">
+    <ProjectReference Include="..\Wizard\Microsoft.VisualStudio.Templates.Editorconfig.Wizard.csproj">
       <Name>Microsoft.VisualStudio.Templates.Editorconfig.Wizard</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>

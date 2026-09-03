@@ -29,7 +29,7 @@
 
   <!-- Project References -->
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.VisualStudio.Templates.Editorconfig.Wizard\Microsoft.VisualStudio.Templates.Editorconfig.Wizard.csproj">
+    <ProjectReference Include="..\Wizard\Microsoft.VisualStudio.Templates.Editorconfig.Wizard.csproj">
       <Name>Microsoft.VisualStudio.Templates.Editorconfig.Wizard</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>

@@ -8,7 +8,7 @@
     <SetupProductArch>Neutral</SetupProductArch>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Templates\Editorconfig\Microsoft.VisualStudio.Templates.Editorconfig\Microsoft.VisualStudio.Templates.Editorconfig.csproj" />
+    <ProjectReference Include="..\Templates\Microsoft.VisualStudio.Templates.Editorconfig.csproj" />
   </ItemGroup>
   <ItemGroup>
     <SwrProperty Include="Version=$(VsixVersion)" />

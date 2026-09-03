@@ -8,7 +8,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace EditorconfigResourcePackage
 {
-    [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = false, RegisterUsing = RegistrationMethod.CodeBase)]
+    [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true, RegisterUsing = RegistrationMethod.CodeBase)]
     [Guid(PackageGuidString)]
     public sealed class EditorconfigResourcePackage : AsyncPackage
     {

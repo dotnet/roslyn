@@ -7,17 +7,19 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <!-- Package References -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" />
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServices" />
-    <PackageReference Include="Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator" />
+    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+    <ProjectReference Include="..\..\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
+    <ProjectReference Include="..\..\ExternalAccess\EditorConfigGenerator\Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.SDK" />
     <PackageReference Include="Microsoft.VisualStudio.Telemetry" />
     <PackageReference Include="Microsoft.VisualStudio.TemplateWizardInterface" />
-    <PackageReference Include="StreamJsonRpc" Version="2.17.9" />
+    <PackageReference Include="StreamJsonRpc" />
     <PackageReference Include="System.ValueTuple" />
-    <PackageReference Include="Microsoft.VisualStudio.RpcContracts" Version="17.9.4-alpha"/>
+    <PackageReference Include="Microsoft.VisualStudio.RpcContracts" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="WizardResource.Designer.cs">
