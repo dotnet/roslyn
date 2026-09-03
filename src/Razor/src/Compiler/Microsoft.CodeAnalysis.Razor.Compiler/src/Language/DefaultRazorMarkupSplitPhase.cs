@@ -17,6 +17,9 @@ namespace Microsoft.AspNetCore.Razor.Language;
 /// markup-bearing "impl" (the render method plus any markup-bearing methods). The decl subtree is stashed
 /// on the document node for <see cref="DefaultRazorDeclCSharpLoweringPhase"/> to lower before discovery;
 /// the working node is rewritten into the impl half and flows through the rest of the pipeline.
+/// The phase is always registered but only does anything when
+/// <c>RazorCodeGenerationOptions.EnableMarkupSplit</c> is set; it is off by default so a host that reads
+/// only the impl document keeps getting the whole component as a single file.
 /// </summary>
 /// <remarks>
 /// Running before tag-helper resolution is the point: the decl half is markup-free and depends only on
@@ -34,6 +37,15 @@ internal sealed class DefaultRazorMarkupSplitPhase : RazorEnginePhaseBase
     {
         var documentNode = codeDocument.GetDocumentNode();
         ThrowForMissingDocumentDependency(documentNode);
+
+        // The split is opt-in: it produces a second (decl) C# document that only a host consuming both
+        // halves -- the Razor source generator -- knows how to emit. A host that reads just the
+        // implementation document (e.g. the SDK's classic, non-source-generator compilation) would
+        // otherwise silently drop everything the split moved into the decl half.
+        if (!codeDocument.CodeGenerationOptions.EnableMarkupSplit)
+        {
+            return codeDocument;
+        }
 
         // Only components are split. A component import or legacy .cshtml has no component surface to
         // partition.
@@ -110,6 +122,19 @@ internal sealed class DefaultRazorMarkupSplitPhase : RazorEnginePhaseBase
             documentNode.FallbackComponentTypeName = primaryNamespace?.Name is { } namespaceName
                 ? $"{namespaceName}.{primaryClass.Name}"
                 : primaryClass.Name;
+
+            // Retain the full discoverable decl so the source generator can produce this fallback
+            // component's descriptor from the already-parsed document rather than re-parsing the source
+            // through a separate declaration engine. Built exactly like a split component's decl over the
+            // whole class body (no plan), it is never emitted to pre-compilation -- only its syntax tree
+            // is fed into slow discovery. Needs the render method (to exclude) and namespace; when either
+            // is absent the generator falls back to re-parsing.
+            if (renderMethod is not null && primaryNamespace is not null)
+            {
+                documentNode.FallbackDiscoveryDeclDocumentNode =
+                    BuildDeclDocument(documentNode, primaryNamespace, primaryClass, renderMethod, plan: null);
+            }
+
             return codeDocument.WithDocumentNode(documentNode);
         }
     }

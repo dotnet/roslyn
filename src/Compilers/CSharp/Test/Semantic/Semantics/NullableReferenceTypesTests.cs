@@ -52561,7 +52561,7 @@ class C
                 // 0.cs(17,13): warning CS8794: An expression of type 'bool?' always matches the provided pattern.
                 //         _ = c?.M0(out obj) is true or var x // 3, 4
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "c?.M0(out obj) is true or var x").WithArguments("bool?").WithLocation(17, 13),
-                // 0.cs(17,43): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
+                // 0.cs(17,43): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //         _ = c?.M0(out obj) is true or var x // 3, 4
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x").WithLocation(17, 43),
                 // 0.cs(18,15): warning CS8602: Dereference of a possibly null reference.
@@ -52573,7 +52573,7 @@ class C
                 // 0.cs(25,15): warning CS8602: Dereference of a possibly null reference.
                 //             ? obj.ToString() // 7
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "obj").WithLocation(25, 15),
-                // 0.cs(31,44): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
+                // 0.cs(31,44): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //         _ = c?.M0(out obj) is true or bool b // 8
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "b").WithLocation(31, 44),
                 // 0.cs(32,15): warning CS8602: Dereference of a possibly null reference.
@@ -161777,6 +161777,77 @@ class C
                 // (5,32): warning CS8602: Dereference of a possibly null reference.
                 // M(new() { [x = null] = 1 }, M2(x.ToString()));
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(5, 32));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84398")]
+        public void NullableOfErrorType_IsPatternInLocalFunction_NullableMissing()
+        {
+            var source = """
+                #pragma warning disable 649 // unused field
+                #nullable enable
+                class C
+                {
+                    Undefined? _f;
+                    void M()
+                    {
+                        local();
+                        void local()
+                        {
+                            if (_f is { } v)
+                            {
+                                v.ToString();
+                            }
+                        }
+                    }
+                }
+                """;
+
+            // 'System.Nullable<T>' is missing, but its members are still available through the core library,
+            // so '_f' has a constructed error type whose original definition is the missing 'System.Nullable<T>'.
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(SpecialType.System_Nullable_T);
+            comp.VerifyDiagnostics(
+                // (5,5): error CS0246: The type or namespace name 'Undefined' could not be found (are you missing a using directive or an assembly reference?)
+                //     Undefined? _f;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Undefined").WithArguments("Undefined").WithLocation(5, 5),
+                // (5,5): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     Undefined? _f;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Undefined?").WithArguments("System.Nullable`1").WithLocation(5, 5));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84398")]
+        public void NullableOfErrorType_IsPattern_TypeFromCompilationWithoutCorLibrary()
+        {
+            // This compilation has no core library at all, so 'Undefined?' binds to a constructed
+            // error type over the missing 'System.Nullable<T>'.
+            var libSource = """
+                public class C
+                {
+                    public Undefined? F;
+                }
+                """;
+            var libComp = CreateEmptyCompilation(libSource, assemblyName: "lib");
+
+            // The referencing compilation does have a core library, so 'System.Nullable<T>.Value' is
+            // available even though the original definition of the type of 'C.F' is an error type.
+            var source = """
+                #nullable enable
+                class D
+                {
+                    void M(C c)
+                    {
+                        if (c.F is { } v)
+                        {
+                            v.ToString();
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, references: [libComp.ToMetadataReference()]);
+            comp.VerifyDiagnostics(
+                // (6,15): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //         if (c.F is { } v)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "F").WithArguments("System.Nullable`1").WithLocation(6, 15));
         }
     }
 }

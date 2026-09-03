@@ -61,9 +61,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- The generated accessor looks the resources up under a namespace RootNamespace
+         cannot produce, so the manifest name has to be spelled out to match it. -->
     <EmbeddedResource Update="FSharp\ExternalAccessFSharpResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>ExternalAccessFSharpResources.Designer.cs</LastGenOutput>
+      <LogicalName>Microsoft.CodeAnalysis.ExternalAccess.FSharp.ExternalAccessFSharpResources.resources</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
 

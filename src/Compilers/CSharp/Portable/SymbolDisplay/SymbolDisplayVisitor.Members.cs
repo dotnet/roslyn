@@ -961,6 +961,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddSpace();
                 }
 
+                // unsafe is added only for new code (code that opts into unsafe evolution and uses the keyword to annotate caller-unsafe members)
+                if (symbol.RequiresUnsafeContext &&
+                    symbol.ContainingModule.MemorySafetyRulesVersion == MemorySafetyRulesVersion.Version2)
+                {
+                    AddKeyword(SyntaxKind.UnsafeKeyword);
+                    AddSpace();
+                }
+
                 if (symbol.IsExtern)
                 {
                     AddKeyword(SyntaxKind.ExternKeyword);

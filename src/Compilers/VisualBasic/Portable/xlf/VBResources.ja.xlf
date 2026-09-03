@@ -222,6 +222,11 @@
         <target state="translated">'unmanaged' 制約を認識しています</target>
         <note />
       </trans-unit>
+      <trans-unit id="ICoalesceOperationIsNotVisualBasicCoalesceOperation">
+        <source>{0} is not a valid Visual Basic coalesce operation</source>
+        <target state="new">{0} is not a valid Visual Basic coalesce operation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_VBCHelp">
         <source>                  Visual Basic Compiler Options
 
@@ -448,9 +453,8 @@
 -debug:pdbonly                    完全なデバッグ情報を生成します。
 -debug:portable                   クロスプラットフォーム デバッグ情報を生成します。
 -debug:embedded                   クロスプラットフォームのデバッグ情報を、ターゲットの .dll または .exe に
-                                  生成ます。
--deterministic                   決定論的アセンブリ
-を生成します
+                                  生成します。
+-deterministic                   決定論的アセンブリを生成します
                                   (モジュール バージョン GUID とタイムスタンプを含む)
 -refonly                          メイン出力の代わりに参照アセンブリを生成します
 -instrument:TestCoverage          カバレッジ情報を収集するようにインストルメント化されたアセンブリを

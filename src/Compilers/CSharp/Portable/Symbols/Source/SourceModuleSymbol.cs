@@ -681,9 +681,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeRefSafetyRulesAttribute(version));
             }
 
-            if (UseUpdatedMemorySafetyRules)
+            if (MemorySafetyRulesVersion != MemorySafetyRulesVersion.Version1)
             {
-                var version = ImmutableArray.Create(new TypedConstant(compilation.GetSpecialType(SpecialType.System_Int32), TypedConstantKind.Primitive, CSharpCompilationOptions.UpdatedMemorySafetyRulesVersion));
+                var version = ImmutableArray.Create(new TypedConstant(compilation.GetSpecialType(SpecialType.System_Int32), TypedConstantKind.Primitive, (int)MemorySafetyRulesVersion));
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeMemorySafetyRulesAttribute(version));
             }
 
@@ -747,13 +747,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool UseUpdatedMemorySafetyRules
+        internal override MemorySafetyRulesVersion MemorySafetyRulesVersion
         {
             get
             {
                 return _assemblySymbol.DeclaringCompilation.Options.UseUpdatedMemorySafetyRules ||
-                    // https://github.com/dotnet/roslyn/issues/82546: temporary way to opt in
-                    _assemblySymbol.DeclaringCompilation.Feature(Feature.UpdatedMemorySafetyRules) != null;
+                    // legacy way to opt in, kept for backwards compatibility
+                    _assemblySymbol.DeclaringCompilation.Feature(Feature.UpdatedMemorySafetyRules) != null
+                    ? MemorySafetyRulesVersion.Version2
+                    : MemorySafetyRulesVersion.Version1;
             }
         }
 

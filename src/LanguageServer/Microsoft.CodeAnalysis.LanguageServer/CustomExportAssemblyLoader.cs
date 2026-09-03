@@ -83,6 +83,7 @@ internal sealed class CustomExportAssemblyLoader(ExtensionAssemblyManager extens
         // This can cause issues during URI parsing, but we will handle that below.  First we try to parse the code base as a normal URI, which handles all the cases where we get
         // a non-URI string as well as the majority of the cases where we get a file URI string.
         var codeBaseUri = ProtocolConversions.CreateAbsoluteUri(codeBaseUriStr);
+#pragma warning disable RS0030 // Do not use banned APIs - System.Uri is required here by corlib APIs.
         if (!codeBaseUri.IsFile)
         {
             throw new ArgumentException($"Code base {codeBaseUriStr} for {assemblyName} is not a file URI.", nameof(codeBaseUriStr));
@@ -109,6 +110,8 @@ internal sealed class CustomExportAssemblyLoader(ExtensionAssemblyManager extens
         // We can attempt to reconstruct the real code base file path by combining all the URI parts following the authority (the path, query, and fragment).
         // Note - System.URI returns the escaped versions of all these parts, so we unescape them first.
         var possibleCodeBasePath = Uri.UnescapeDataString(codeBaseUri.PathAndQuery) + Uri.UnescapeDataString(codeBaseUri.Fragment);
+#pragma warning restore RS0030 // Do not use banned APIs
+
         if (TryLoadAssemblyFromCodeBasePath(assemblyName, possibleCodeBasePath, out assembly))
         {
             return assembly;

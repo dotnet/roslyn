@@ -267,6 +267,7 @@ public sealed class RazorProjectEngine
         phases.Add(new DefaultTagHelperResolutionPhase());
         phases.Add(new DefaultRazorTagHelperRewritePhase());
         phases.Add(new DefaultRazorOptimizationPhase());
+        phases.Add(new Utf8WriteLiteralPhase());
         phases.Add(new DefaultRazorCSharpLoweringPhase());
     }
 
@@ -286,7 +287,6 @@ public sealed class RazorProjectEngine
         // Intermediate Node Passes
         features.Add(new DefaultDocumentClassifierPass());
         features.Add(new MetadataAttributePass());
-        features.Add(new Utf8WriteLiteralDetectionPass());
         features.Add(new DirectiveRemovalOptimizationPass());
         features.Add(new DefaultTagHelperOptimizationPass());
         features.Add(new PreallocatedTagHelperAttributeOptimizationPass());
@@ -367,6 +367,7 @@ public sealed class RazorProjectEngine
         builder.Features.Add(new ComponentFormNameLoweringPass());
         builder.Features.Add(new ComponentBindLoweringPass());
         builder.Features.Add(new ComponentRenderModeLoweringPass());
+        builder.Features.Add(new ComponentTildePathPass(razorLanguageVersion));
         builder.Features.Add(new ComponentCssScopePass());
         builder.Features.Add(new ComponentTemplateDiagnosticPass());
         builder.Features.Add(new ComponentGenericTypePass());

@@ -125,27 +125,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             Assert.Equal(BuildResponse.ResponseType.IncorrectHash, buildResponse.Type);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
-        [WorkItem(33452, "https://github.com/dotnet/roslyn/issues/33452")]
-        public void QuotePipeName_Desktop()
-        {
-            var serverInfo = BuildServerConnection.GetServerProcessInfo(@"q:\tools", "name with space");
-            Assert.EndsWith(@"\dotnet.exe", serverInfo.processFilePath);
-            AssertEx.Equal(@"exec ""q:\tools\VBCSCompiler.dll"" ""-pipename:name with space""", serverInfo.commandLineArguments);
-        }
-
-        [ConditionalFact(typeof(CoreClrOnly))]
-        [WorkItem(33452, "https://github.com/dotnet/roslyn/issues/33452")]
-        public void QuotePipeName_CoreClr()
-        {
-            var toolDir = ExecutionConditionUtil.IsWindows
-                ? @"q:\tools"
-                : "/tools";
-            var serverInfo = BuildServerConnection.GetServerProcessInfo(toolDir, "name with space");
-            var vbcsFilePath = Path.Combine(toolDir, "VBCSCompiler.dll");
-            AssertEx.Equal($@"exec ""{vbcsFilePath}"" ""-pipename:name with space""", serverInfo.commandLineArguments);
-        }
-
         [Theory]
         [InlineData(@"OLqrNgkgZRf14qL91MdaUn8coiKckUIZCIEkpy0Lt18", "name with space", true, "basename")]
         [InlineData(@"8VDiJptv892LtWpeN86z76_YI0Yg0BV6j0SOv8CjQVA", @"ha""ha", true, "basename")]

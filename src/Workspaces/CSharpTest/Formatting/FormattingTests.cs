@@ -6,7 +6,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -11250,7 +11249,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             """
             union  U  <  T   >   (  T ,string   )  {  }
             """,
-            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp15));
 
     [Fact]
     public async Task FormatListPattern()

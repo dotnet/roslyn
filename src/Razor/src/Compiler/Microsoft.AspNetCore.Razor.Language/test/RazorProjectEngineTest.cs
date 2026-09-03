@@ -46,6 +46,7 @@ public class RazorProjectEngineTest
             phase => Assert.IsType<DefaultTagHelperResolutionPhase>(phase),
             phase => Assert.IsType<DefaultRazorTagHelperRewritePhase>(phase),
             phase => Assert.IsType<DefaultRazorOptimizationPhase>(phase),
+            phase => Assert.IsType<Utf8WriteLiteralPhase>(phase),
             phase => Assert.IsType<DefaultRazorCSharpLoweringPhase>(phase));
     }
 
@@ -76,6 +77,7 @@ public class RazorProjectEngineTest
             feature => Assert.IsType<ComponentRenderModeLoweringPass>(feature),
             feature => Assert.IsType<ComponentSplatLoweringPass>(feature),
             feature => Assert.IsType<ComponentTemplateDiagnosticPass>(feature),
+            feature => Assert.IsType<ComponentTildePathPass>(feature),
             feature => Assert.IsType<ComponentWhitespacePass>(feature),
             feature => Assert.IsType<ConfigureDirectivesFeature>(feature),
             feature => Assert.IsType<DefaultDirectiveSyntaxTreePass>(feature),
@@ -93,7 +95,6 @@ public class RazorProjectEngineTest
             feature => Assert.IsType<MetadataAttributePass>(feature),
             feature => Assert.IsType<PreallocatedTagHelperAttributeOptimizationPass>(feature),
             feature => Assert.IsType<TagHelperDiscoveryService>(feature),
-            feature => Assert.IsType<Utf8WriteLiteralDetectionPass>(feature),
             feature => Assert.IsType<ViewCssScopePass>(feature));
     }
 
