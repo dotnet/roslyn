@@ -106,13 +106,6 @@ internal static class Guids
     public const string RoslynCommandSetIdString = "9ed8fbd1-02d6-4223-a99c-a938f97e6dbe";
     public const string RoslynGroupIdString = "b61e1a20-8c13-49a9-a727-a0ec091647dd";
 
-    public const string RoslynOptionPageFeatureManagerComponentsIdString = "6F738951-348C-4816-9BA4-F60D92D3E98E";
-    public const string RoslynOptionPageFeatureManagerFeaturesIdString = "67989704-F8D7-454A-9053-8E1D3CFF679C";
-    public const string RoslynOptionPagePerformanceFunctionIdIdString = "0C537218-3BDD-4CC8-AC4B-CEC152D4871A";
-    public const string RoslynOptionPagePerformanceLoggersIdString = "236AC96F-A60D-4BD6-A480-D315151EDC2B";
-    public const string RoslynOptionPageInternalDiagnosticsIdString = "48993C4C-C619-42AD-B1C8-79378AD8BEF2";
-    public const string RoslynOptionPageInternalSolutionCrawlerIdString = "9702D3BD-F06C-4A6A-974B-7D0C2BC89A72";
-
     public static readonly Guid RoslynPackageId = new(RoslynPackageIdString);
     public static readonly Guid RoslynCommandSetId = new(RoslynCommandSetIdString);
     public static readonly Guid RoslynGroupId = new(RoslynGroupIdString);
