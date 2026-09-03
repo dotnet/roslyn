@@ -1566,7 +1566,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     @if (showGrid)
                     {
                         <text>
-                              const ids = grid.getIds();
+                            const ids = grid.getIds();
                         </text>
                     }
                 </script>
@@ -15957,6 +15957,316 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             fileKind: RazorFileKind.Legacy,
             validateHtmlFormattedMatchesWebTools: true);
+    }
+
+    [Fact]
+    public Task LegacyDocumentWithJavaScriptFormattingChanges()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @page
+                @using System.Globalization
+                @model IndexModel
+                @{
+                    ViewData["Title"] = "Home page";
+                }
+
+                <div class="col col-2">
+                    <partial name="_StatCounterCard" model='@new StatCounterCardModel
+                    {
+                    Title = "Last Date",
+                    Subtitle = "Last date subtitle",
+                    IsPlaceholderLoading = false,
+                    StaticValue = (Model.LatestDate == null || Model.LatestDate == DateTime.MinValue)
+                    ? null
+                    : Model.LatestDate?. ToString("d", CultureInfo.CurrentCulture)
+                    }' />
+                </div>
+
+                @section scripts {
+                    <script>
+                        $(document).ready(function() {
+                            const config = {
+                                numbers: [],
+                                strings: []
+                            };
+
+                                @foreach (var num in Model.Q.Numbers)
+                                {
+                                    @:config.numbers.push(@num);
+                            }
+
+                                @foreach (var str in Model.Q.Strings)
+                                {
+                                    @:config.strings.push("@str");
+                            }
+                                        })
+                    </script>
+                }
+                """,
+            htmlFormatted: """
+                @page
+                @using System.Globalization
+                @model IndexModel
+                @{
+                    ViewData["Title"] = "Home page";
+                }
+
+                <div class="col col-2">
+                    <partial name="_StatCounterCard" model='@new StatCounterCardModel
+                    {
+                    Title = "Last Date",
+                    Subtitle = "Last date subtitle",
+                    IsPlaceholderLoading = false,
+                    StaticValue = (Model.LatestDate == null || Model.LatestDate == DateTime.MinValue)
+                    ? null
+                    : Model.LatestDate?. ToString("d", CultureInfo.CurrentCulture)
+                    }' />
+                </div>
+
+                @section scripts {
+                <script>
+                    $(document).ready(function() {
+                        const config = {
+                            numbers: [],
+                            strings: []
+                        };
+
+                            @foreach (var num in Model.Q.Numbers)
+                            {
+                                @:config.numbers.push(@num);
+                        }
+
+                            @foreach (var str in Model.Q.Strings)
+                            {
+                                @:config.strings.push("@str");
+                        }
+                                    })
+                </script>
+                }
+                """,
+            expected: """
+                @page
+                @using System.Globalization
+                @model IndexModel
+                @{
+                    ViewData["Title"] = "Home page";
+                }
+
+                <div class="col col-2">
+                    <partial name="_StatCounterCard" model='@new StatCounterCardModel
+                             {
+                                 Title = "Last Date",
+                                 Subtitle = "Last date subtitle",
+                                 IsPlaceholderLoading = false,
+                                 StaticValue = (Model.LatestDate == null || Model.LatestDate == DateTime.MinValue)
+                             ? null
+                             : Model.LatestDate?.ToString("d", CultureInfo.CurrentCulture)
+                             }' />
+                </div>
+
+                @section scripts {
+                    <script>
+                        $(document).ready(function() {
+                            const config = {
+                                numbers: [],
+                                strings: []
+                            };
+
+                                @foreach (var num in Model.Q.Numbers)
+                                {
+                                    @:config.numbers.push(@num);
+                            }
+
+                                @foreach (var str in Model.Q.Strings)
+                                {
+                                    @:config.strings.push("@str");
+                            }
+                                        })
+                    </script>
+                }
+                """,
+            fileKind: RazorFileKind.Legacy,
+            codeBlockBraceOnNextLine: true);
+    }
+
+    [Fact]
+    public Task ComplexScriptPreservesSourceIndentationWithTabs()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                <script>
+                		const config = {
+                			value: 1
+                		};
+                		@if (condition)
+                		{
+                			@:config.value++;
+                		}
+                </script>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                	<script>
+                		const config = {
+                			value: 1
+                		};
+                		@if (condition)
+                		{
+                			@:config.value++;
+                		}
+                	</script>
+                </div>
+                """,
+            expected: """
+                <div>
+                	<script>
+                		const config = {
+                			value: 1
+                		};
+                		@if (condition)
+                		{
+                			@:config.value++;
+                		}
+                	</script>
+                </div>
+                """,
+            insertSpaces: false,
+            tabSize: 4);
+    }
+
+    [Fact]
+    public Task ComplexScriptPreservesSourceIndentation()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <script>
+                    value=1;
+                    @* Keep this comment. *@
+                </script>
+                """,
+            htmlFormatted: """
+                <script>
+                    value=1;
+                    @* Keep this comment. *@
+                </script>
+                """,
+            expected: """
+                <script>
+                    value=1;
+                    @* Keep this comment. *@
+                </script>
+                """);
+    }
+
+    [Fact]
+    public Task ComplexScriptFormatsIndentationWhenOptionDisabled()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <script>
+                    value=1;
+                    @* Keep this comment. *@
+                </script>
+                """,
+            htmlFormatted: """
+                <script>
+                    value=1;
+                    @* Keep this comment. *@
+                </script>
+                """,
+            expected: """
+                <script>
+                    value=1;
+                    @* Keep this comment. *@
+                </script>
+                """,
+            ignoreIndentationInScriptOrStyleBlocksWithComplexRazor: false);
+    }
+
+    [Fact]
+    public Task ComplexScriptWithMultilineStartTagPreservesOnlyBodyIndentation()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <script
+                type="text/javascript">
+                        @foreach (var item in items)
+                        {
+                            @:use(item);
+                        }
+                </script>
+                """,
+            htmlFormatted: """
+                <script type="text/javascript">
+                    @foreach (var item in items)
+                    {
+                        @:use(item);
+                    }
+                </script>
+                """,
+            expected: """
+                <script type="text/javascript">
+                        @foreach (var item in items)
+                        {
+                            @:use(item);
+                        }
+                </script>
+                """);
+    }
+
+    [Fact]
+    public Task ComplexScriptWithMultilineStartTagDoesNotAffectFollowingContent()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <script
+                type="application/json">@Model.Value</script>
+                @{
+                var value=1;
+                }
+                """,
+            htmlFormatted: """
+                <script type="application/json">@Model.Value</script>
+                @{
+                var value=1;
+                }
+                """,
+            expected: """
+                <script type="application/json">@Model.Value</script>
+                @{
+                    var value = 1;
+                }
+                """);
+    }
+
+    [Fact]
+    public Task ComplexScriptPreservesIndentationWhenEndTagSharesBodyLine()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <script>
+                        @if (condition)
+                        {
+                            value++;
+                        }</script>
+                """,
+            htmlFormatted: """
+                <script>
+                    @if (condition)
+                    {
+                        value++;
+                    }</script>
+                """,
+            expected: """
+                <script>
+                        @if (condition)
+                        {
+                            value++;
+                        }</script>
+                """);
     }
 
     private (string fileName, string contents)[] GetCheckBoxButtonComponentFiles()
