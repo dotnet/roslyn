@@ -2,21 +2,26 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Text;
-using Microsoft.CodeAnalysis.Contracts.Telemetry;
+using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Telemetry;
+using Microsoft.VisualStudio.Telemetry.Metrics.Events;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 
-[Export(typeof(ITelemetryReporter)), Shared]
-internal sealed class LanguageServerTelemetryReporter : ITelemetryReporter
+/// <summary>
+/// Initializes language server telemetry using a standalone session or from C#DK.  Flushes telemetry on shutdown.
+/// </summary>
+[Export, Shared]
+internal sealed class LanguageServerTelemetry : IDisposable
 {
     internal const string CopilotTelemetryLevelEnvironmentVariable = "COPILOT_TELEMETRY_LEVEL";
 
@@ -30,18 +35,21 @@ internal sealed class LanguageServerTelemetryReporter : ITelemetryReporter
     /// </summary>
     private const string VSCollectorApiKey = "f3e86b4023cc43f0be495508d51f588a-f70d0e59-0fb0-4473-9f19-b4024cc340be-7296";
 
-    private static readonly ConcurrentDictionary<int, object> s_pendingScopes = new(concurrencyLevel: 2, capacity: 10);
-
     private readonly ServerConfiguration _serverConfiguration;
     private readonly ILogger _logger;
     private TelemetrySession? _telemetrySession;
 
+    /// <summary>
+    /// Ordered list of sinks that must be disposed of on shutdown.
+    /// </summary>
+    private ImmutableArray<IDisposable> _registrations = [];
+
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public LanguageServerTelemetryReporter(ServerConfiguration serverConfiguration, ILoggerFactory loggerFactory)
+    public LanguageServerTelemetry(ServerConfiguration serverConfiguration, ILoggerFactory loggerFactory)
     {
         _serverConfiguration = serverConfiguration;
-        _logger = loggerFactory.CreateLogger<LanguageServerTelemetryReporter>();
+        _logger = loggerFactory.CreateLogger<LanguageServerTelemetry>();
     }
 
     public void InitializeSession(string telemetryLevel, string? sessionId, bool isDefaultSession)
@@ -80,7 +88,13 @@ internal sealed class LanguageServerTelemetryReporter : ITelemetryReporter
 
         _telemetrySession = session;
 
-        TelemetryLogger.Create(session, logDelta: false);
+        var metricSink = new VSMetricSink(session);
+        _registrations =
+        [
+            RoslynTelemetry.AddEventSink(TelemetryEventSink.Create(session, logDelta: true)),
+            RoslynTelemetry.AddMetricSink(metricSink),
+            metricSink,
+        ];
 
         FaultReporter.InitializeFatalErrorHandlers();
         FaultReporter.IncludeServiceHubLogFiles = false;
@@ -95,60 +109,20 @@ internal sealed class LanguageServerTelemetryReporter : ITelemetryReporter
             ? serverConfiguration.TelemetryLevel
             : Environment.GetEnvironmentVariable(CopilotTelemetryLevelEnvironmentVariable);
 
-    public void Log(string name, List<KeyValuePair<string, object?>> properties)
-    {
-        if (_telemetrySession is null)
-        {
-            return;
-        }
-
-        var telemetryEvent = new TelemetryEvent(name);
-        SetProperties(telemetryEvent, properties);
-        _telemetrySession.PostEvent(telemetryEvent);
-    }
-
-    public void LogBlockStart(string eventName, int kind, int blockId)
-    {
-        if (_telemetrySession is null)
-        {
-            return;
-        }
-
-        s_pendingScopes[blockId] = kind switch
-        {
-            0 => _telemetrySession.StartOperation(eventName), // LogType.Trace
-            1 => _telemetrySession.StartUserTask(eventName),  // LogType.UserAction
-            _ => new InvalidOperationException($"Unknown BlockStart kind: {kind}")
-        };
-    }
-
-    public void LogBlockEnd(int blockId, List<KeyValuePair<string, object?>> properties, CancellationToken cancellationToken)
-    {
-        if (!s_pendingScopes.TryRemove(blockId, out var scope))
-        {
-            return;
-        }
-
-        var endEvent = GetEndEvent(scope);
-        SetProperties(endEvent, properties);
-
-        var result = cancellationToken.IsCancellationRequested ? TelemetryResult.UserCancel : TelemetryResult.Success;
-
-        if (scope is TelemetryScope<OperationEvent> operation)
-            operation.End(result);
-        else if (scope is TelemetryScope<UserTaskEvent> userTask)
-            userTask.End(result);
-        else
-            throw new InvalidCastException($"Unexpected value for scope: {scope}");
-    }
+    internal TelemetrySession? Session => _telemetrySession;
 
     public void Dispose()
     {
-        // Ensure that we flush any pending telemetry *before* we dispose of the telemetry session.
-        TelemetryLogging.Flush();
-
         if (_telemetrySession is { } session)
         {
+            FeaturesSessionTelemetry.Report();
+            RoslynTelemetry.Flush();
+
+            foreach (var registration in _registrations)
+                registration.Dispose();
+
+            _registrations = [];
+
             FaultReporter.UnregisterTelemetrySesssion(session);
             session.Dispose();
             _telemetrySession = null;
@@ -201,22 +175,6 @@ internal sealed class LanguageServerTelemetryReporter : ITelemetryReporter
             }
 
             return '"' + value + '"';
-        }
-    }
-
-    private static TelemetryEvent GetEndEvent(object scope)
-        => scope switch
-        {
-            TelemetryScope<OperationEvent> operation => operation.EndEvent,
-            TelemetryScope<UserTaskEvent> userTask => userTask.EndEvent,
-            _ => throw new InvalidCastException($"Unexpected value for scope: {scope}")
-        };
-
-    private static void SetProperties(TelemetryEvent telemetryEvent, List<KeyValuePair<string, object?>> properties)
-    {
-        foreach (var property in properties)
-        {
-            telemetryEvent.Properties.Add(property);
         }
     }
 }

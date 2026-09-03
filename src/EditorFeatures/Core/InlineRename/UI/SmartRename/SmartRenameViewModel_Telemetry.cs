@@ -45,7 +45,7 @@ internal partial class SmartRenameViewModel
         if (_suggestionsPanelTelemetry is not null)
         {
             RoslynDebug.Assert(_suggestionsDropdownTelemetry is null);
-            TelemetryLogging.Log(FunctionId.Copilot_Rename, KeyValueLogMessage.Create(m =>
+            RoslynTelemetry.Log(FunctionId.Copilot_Rename, KeyValueLogMessage.Create(m =>
             {
                 m[nameof(isCommit)] = isCommit;
                 m["UseSuggestionsPanel"] = true;
@@ -61,7 +61,7 @@ internal partial class SmartRenameViewModel
         else
         {
             RoslynDebug.Assert(_suggestionsDropdownTelemetry is not null);
-            TelemetryLogging.Log(FunctionId.Copilot_Rename, KeyValueLogMessage.Create(m =>
+            RoslynTelemetry.Log(FunctionId.Copilot_Rename, KeyValueLogMessage.Create(m =>
             {
                 m[nameof(isCommit)] = isCommit;
                 m["UseDropDown"] = true;

@@ -11,9 +11,12 @@ using CodeMarkerId = System.Int32;
 
 namespace Microsoft.VisualStudio.LanguageServices.Telemetry;
 
-internal sealed class CodeMarkerLogger : ILogger
+/// <summary>
+/// Publishes selected Roslyn events as Visual Studio code markers.
+/// </summary>
+internal sealed class CodeMarkerEventSink : IEventSink
 {
-    public static readonly CodeMarkerLogger Instance = new();
+    public static readonly CodeMarkerEventSink Instance = new();
 
     private static readonly Dictionary<FunctionId, List<Tuple<CodeMarkerId, CodeMarkerId>>> s_blockMap
         = new()
@@ -125,7 +128,7 @@ internal sealed class CodeMarkerLogger : ILogger
     private static Func<Tuple<CodeMarkerId, CodeMarkerId>, CodeMarkerId> s_startGetter => t => t.Item1;
     private static Func<Tuple<CodeMarkerId, CodeMarkerId>, CodeMarkerId> s_endGetter => t => t.Item2;
 
-    private CodeMarkerLogger()
+    private CodeMarkerEventSink()
     {
     }
 

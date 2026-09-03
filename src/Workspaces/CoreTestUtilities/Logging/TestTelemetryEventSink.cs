@@ -10,9 +10,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Logging;
 
-internal sealed class TestTelemetryLogger : TelemetryLogger
+internal sealed class TestTelemetryEventSink : TelemetryEventSink
 {
-    public TestTelemetryLogger(bool logDelta = false)
+    public TestTelemetryEventSink(bool logDelta = false)
     {
         LogDelta = logDelta;
     }

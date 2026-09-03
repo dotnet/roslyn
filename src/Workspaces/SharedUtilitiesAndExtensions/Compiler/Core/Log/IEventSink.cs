@@ -7,27 +7,26 @@ using System.Threading;
 namespace Microsoft.CodeAnalysis.Internal.Log;
 
 /// <summary>
-/// logger interface actual logger should implements
+/// A destination for events reported by <see cref="RoslynTelemetry"/>.
 /// </summary>
-internal interface ILogger
+internal interface IEventSink
 {
     /// <summary>
-    /// answer whether it is enabled or not for the specific function id
+    /// Whether this sink will record anything for <paramref name="functionId"/>.
     /// </summary>
     bool IsEnabled(FunctionId functionId);
 
-    /// <summary>
-    /// log a specific event with context message
-    /// </summary>
     void Log(FunctionId functionId, LogMessage logMessage);
 
     /// <summary>
-    /// log a start event with context message
+    /// Records the start of a scope. <paramref name="uniquePairId"/> pairs this call with the
+    /// <see cref="LogBlockEnd"/> that closes it.
     /// </summary>
     void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken);
 
     /// <summary>
-    /// log an end event
+    /// Records the end of the scope opened by <see cref="LogBlockStart"/> with the same
+    /// <paramref name="uniquePairId"/>. <paramref name="delta"/> is the elapsed milliseconds.
     /// </summary>
     void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int uniquePairId, int delta, CancellationToken cancellationToken);
 }

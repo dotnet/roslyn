@@ -7,15 +7,15 @@ using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Roslyn.Hosting.Diagnostics.PerfMargin;
 
-// A slightly modified version of Roslyn.Services.Internal.Log.EtwLogger.
+// A slightly modified version of EtwEventSink.
 // This version updates the DataModel whenever an operations starts or stops.  There
 // isn't an efficient way to listen to ETW events within the same process unless
 // running as admin, so we need to add our logic to the logger instead.
-internal sealed class PerfEventActivityLogger : ILogger
+internal sealed class PerfActivityEventSink : IEventSink
 {
     private readonly DataModel _model;
 
-    public PerfEventActivityLogger(DataModel model)
+    public PerfActivityEventSink(DataModel model)
     {
         _model = model;
     }
