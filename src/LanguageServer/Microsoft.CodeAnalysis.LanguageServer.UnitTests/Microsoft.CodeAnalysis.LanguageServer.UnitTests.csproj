@@ -27,10 +27,10 @@
     <InternalsVisibleTo Include="IdeCoreBenchmarks" />
   </ItemGroup>
 
-  <ItemGroup Label="Shared named-pipe helper for daemon client tests">
-    <!-- Tests connect to the daemon as a client using the same compiler-server pipe helper the thin client
-         uses, so the test's client stream agrees with the daemon's server stream on pipe path -->
+  <ItemGroup Label="Shared thin-client helpers for daemon tests">
+    <!-- Tests use these helpers verbatim so their argument parsing and named-pipe behavior match the thin client. -->
     <Compile Include="..\..\Compilers\Shared\NamedPipeUtil.cs" Link="Daemon\NamedPipeUtil.cs" />
+    <Compile Include="..\roslyn-language-server\ThinClientArguments.cs" Link="Daemon\ThinClientArguments.cs" />
   </ItemGroup>
 
   <!--

@@ -19,6 +19,8 @@ using Microsoft.CodeAnalysis.LanguageServer.Daemon;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
+using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
+using RoslynTelemetry = Microsoft.CodeAnalysis.Internal.Log.RoslynTelemetry;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
@@ -98,10 +100,26 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         return TestDaemon.Create(
             exportProvider,
             typeRefResolver,
+            configuration,
             keepAlive ?? Timeout.InfiniteTimeSpan,
             LoggerFactory,
             TestOutputHelper,
             initialConnectionTimeout);
+    }
+
+    private static LanguageServerTelemetry CreateTelemetryService(
+        ServerConfiguration serverConfiguration,
+        ILoggerFactory loggerFactory,
+        RoslynTelemetry telemetry)
+    {
+        var telemetryService = new LanguageServerTelemetry(serverConfiguration, loggerFactory, telemetry);
+        var telemetryLevel = serverConfiguration.DevKitDependencyPath is not null
+            ? serverConfiguration.TelemetryLevel
+            : null;
+        if (telemetryLevel is not null)
+            telemetryService.InitializeSession(telemetryLevel, serverConfiguration.SessionId, isDefaultSession: false);
+
+        return telemetryService;
     }
 
     internal static async Task WaitForConditionAsync(Func<bool> condition)
@@ -307,7 +325,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             var clientToServerPipe = new Pipe();
             var serverToClientPipe = new Pipe();
             var testLspServer = new SingleServerTestLspServer(
-                exportProvider, typeRefResolver, loggerFactory, hostTests.TestOutputHelper, clientToServerPipe, serverToClientPipe);
+                exportProvider, typeRefResolver, serverConfiguration, loggerFactory, hostTests.TestOutputHelper, clientToServerPipe, serverToClientPipe);
 
             await testLspServer.InitializeAsync(clientCapabilities);
             return testLspServer;
@@ -316,6 +334,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         private SingleServerTestLspServer(
             ExportProvider exportProvider,
             ExtensionTypeRefResolver typeRefResolver,
+            ServerConfiguration serverConfiguration,
             ILoggerFactory loggerFactory,
             ITestOutputHelper testOutputHelper,
             Pipe clientToServerPipe,
@@ -335,8 +354,21 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             // connection.
             var connectionSource = new SingleLanguageServerConnectionSource(new LanguageServerConnection(serverInputStream, serverOutputStream));
             var logger = loggerFactory.CreateLogger<LanguageServerConnectionManager>();
-            _serverTask = _connectionManager.RunAsync(
-                connectionSource, exportProvider, typeRefResolver, logger, CancellationToken.None);
+            var telemetryService = CreateTelemetryService(serverConfiguration, loggerFactory, RoslynTelemetry.Current);
+            _serverTask = RunServerAsync();
+
+            async Task RunServerAsync()
+            {
+                try
+                {
+                    await _connectionManager.RunAsync(
+                        connectionSource, exportProvider, typeRefResolver, logger, telemetryService, CancellationToken.None);
+                }
+                finally
+                {
+                    telemetryService.Dispose();
+                }
+            }
         }
 
         /// <summary>The host task; completes once the single in-memory server exits.</summary>
@@ -439,10 +471,12 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         private readonly CancellationTokenSource _cts;
         private readonly ExportProvider _exportProvider;
         private readonly ITestOutputHelper _testOutputHelper;
+        private readonly LanguageServerTelemetry _telemetryService;
 
         internal static TestDaemon Create(
             ExportProvider exportProvider,
             ExtensionTypeRefResolver typeRefResolver,
+            ServerConfiguration serverConfiguration,
             TimeSpan keepAlive,
             ILoggerFactory loggerFactory,
             ITestOutputHelper testOutputHelper,
@@ -450,8 +484,9 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         {
             var pipeName = "roslyn-daemon-test." + Guid.NewGuid().ToString("N");
             var logger = loggerFactory.CreateLogger<LanguageServerConnectionManager>();
+            var telemetryService = CreateTelemetryService(serverConfiguration, loggerFactory, new RoslynTelemetry());
             var created = NamedPipeDaemonConnectionSource.TryCreate(
-                pipeName, keepAlive, logger, out var source, initialConnectionTimeout);
+                pipeName, keepAlive, logger, telemetryService.Telemetry, out var source, initialConnectionTimeout);
             Contract.ThrowIfFalse(
                 created,
                 "Unexpectedly failed to become the daemon for a fresh pipe name.");
@@ -468,15 +503,17 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
                         exportProvider,
                         typeRefResolver,
                         logger,
+                        telemetryService,
                         cts.Token).ConfigureAwait(false);
                 }
                 finally
                 {
                     source.Dispose();
+                    telemetryService.Dispose();
                 }
             });
 
-            return new TestDaemon(pipeName, source, connectionManager, daemonTask, cts, exportProvider, testOutputHelper);
+            return new TestDaemon(pipeName, source, connectionManager, daemonTask, cts, exportProvider, testOutputHelper, telemetryService);
         }
 
         private TestDaemon(
@@ -486,7 +523,8 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             Task daemonTask,
             CancellationTokenSource cts,
             ExportProvider exportProvider,
-            ITestOutputHelper testOutputHelper)
+            ITestOutputHelper testOutputHelper,
+            LanguageServerTelemetry telemetryService)
         {
             _pipeName = pipeName;
             _connectionSource = connectionSource;
@@ -495,6 +533,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             _cts = cts;
             _exportProvider = exportProvider;
             _testOutputHelper = testOutputHelper;
+            _telemetryService = telemetryService;
         }
 
         /// <summary>The pipe the daemon listens on. Identifies the daemon for single-instance checks.</summary>
@@ -505,6 +544,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
 
         /// <summary>Completes when the daemon exits (its keepalive elapsed with no clients, or it was disposed).</summary>
         internal Task DaemonExitTask => _daemonTask;
+        internal LanguageServerTelemetry TelemetryService => _telemetryService;
 
         /// <summary>The language servers the daemon currently has running, one per connected client.</summary>
         internal ImmutableArray<LanguageServerHost> GetStartedServers() => _connectionManager.GetStartedServers();

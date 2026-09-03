@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.Extensions.Logging;
@@ -15,7 +16,9 @@ internal sealed class WorkspaceProjectFactoryService(
     LanguageServerWorkspaceFactory workspaceFactory,
     ProjectTargetFrameworkManager targetFrameworkManager,
     ProjectInitializationHandler projectInitializationHandler,
-    ILoggerFactory loggerFactory) : IWorkspaceProjectFactoryService
+    ILoggerFactory loggerFactory,
+    VSCodeRequestTelemetryLogger requestTelemetryLogger,
+    RoslynTelemetry telemetry) : IWorkspaceProjectFactoryService
 {
     private readonly LanguageServerWorkspaceFactory _workspaceFactory = workspaceFactory;
     private readonly ProjectInitializationHandler _projectInitializationHandler = projectInitializationHandler;
@@ -23,11 +26,15 @@ internal sealed class WorkspaceProjectFactoryService(
     private readonly ILoggerFactory _loggerFactory = loggerFactory;
 
     public async Task InitializeAsync(CancellationToken cancellationToken)
-        => await _projectInitializationHandler.SubscribeToInitializationCompleteAsync(cancellationToken);
+    {
+        using var _ = RoslynTelemetry.SetCurrent(telemetry);
+        await _projectInitializationHandler.SubscribeToInitializationCompleteAsync(cancellationToken);
+    }
 
     public async Task<IWorkspaceProject> CreateAndAddProjectAsync(WorkspaceProjectCreationInfo creationInfo, CancellationToken cancellationToken)
     {
-        VSCodeRequestTelemetryLogger.ReportProjectLoadStarted();
+        using var _ = RoslynTelemetry.SetCurrent(telemetry);
+        requestTelemetryLogger.ReportProjectLoadStarted();
         try
         {
             if (creationInfo.BuildSystemProperties.TryGetValue("SolutionPath", out var solutionPath))
@@ -63,6 +70,8 @@ internal sealed class WorkspaceProjectFactoryService(
 
     public async Task<IReadOnlyCollection<string>> GetSupportedBuildSystemPropertiesAsync(CancellationToken _)
     {
+        using var telemetryScope = RoslynTelemetry.SetCurrent(telemetry);
+
         // TODO: implement
         return [];
     }

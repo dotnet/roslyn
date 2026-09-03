@@ -26,7 +26,8 @@ internal sealed class LanguageServerHost
         Stream inputStream,
         Stream outputStream,
         ExportProvider exportProvider,
-        AbstractTypeRefResolver typeRefResolver)
+        AbstractTypeRefResolver typeRefResolver,
+        ILanguageServerTelemetry telemetryService)
     {
         var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
 
@@ -48,7 +49,8 @@ internal sealed class LanguageServerHost
                 messageFormatter.JsonSerializerOptions,
                 WellKnownLspServerKinds.CSharpVisualBasicLspServer,
                 hostServices,
-                typeRefResolver);
+                typeRefResolver,
+                telemetryService);
 
             GlobalLogger = _roslynLanguageServer.GetLspServices().GetRequiredService<ILoggerFactory>().CreateLogger("Global");
         }

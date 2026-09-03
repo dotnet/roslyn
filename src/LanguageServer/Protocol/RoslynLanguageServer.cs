@@ -12,12 +12,20 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
+
+internal interface ILanguageServerTelemetry
+{
+    RoslynTelemetry Telemetry { get; }
+    string? TelemetryLevel { get; }
+    string? SessionId { get; }
+}
 
 internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<RequestContext>, IOnInitialized
 {
@@ -37,14 +45,15 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         ImmutableArray<string> supportedLanguages,
         WellKnownLspServerKinds serverKind,
         AbstractTypeRefResolver? typeRefResolver = null,
-        ILspLogger? logger = null)
+        ILspLogger? logger = null,
+        ILanguageServerTelemetry? telemetryService = null)
         : base(jsonRpc, serializerOptions, typeRefResolver)
     {
         _lspServiceProvider = lspServiceProvider;
         _serverKind = serverKind;
 
         // Create services that require base dependencies (jsonrpc) or are more complex to create to the set manually.
-        _baseServices = GetBaseServices(jsonRpc, hostServices, serverKind, supportedLanguages, logger);
+        _baseServices = GetBaseServices(jsonRpc, hostServices, serverKind, supportedLanguages, logger, telemetryService);
 
         // This spins up the queue and ensure the LSP is ready to start receiving requests
         Initialize();
@@ -113,7 +122,8 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         HostServices hostServices,
         WellKnownLspServerKinds serverKind,
         ImmutableArray<string> supportedLanguages,
-        ILspLogger? logger)
+        ILspLogger? logger,
+        ILanguageServerTelemetry? telemetryService)
     {
         // This map will hold either a single BaseService instance, or an ImmutableArray<BaseService>.Builder.
         var baseServiceMap = new Dictionary<string, object>();
@@ -138,6 +148,9 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         AddService<IOnInitialized>(this);
         AddService<ILanguageInfoProvider>(new LanguageInfoProvider());
         AddService<HostServices>(hostServices);
+        AddService(telemetryService?.Telemetry ?? RoslynTelemetry.Current);
+        if (telemetryService is not null)
+            AddService<ILanguageServerTelemetry>(telemetryService);
 
         return baseServiceMap.ToFrozenDictionary(
             keySelector: kvp => kvp.Key,

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Options;
@@ -39,7 +40,8 @@ internal sealed class FileBasedProgramsEntryPointDiscoveryFactory(IGlobalOptionS
             listenerProvider.GetListener(FeatureAttribute.Workspace),
             lspServices.GetRequiredService<IHostWorkspaceProvider>().Workspace.Services.GetRequiredService<IFileBasedProgramService>(),
             lspServices.GetRequiredService<ILoggerFactory>(),
-            lspServices);
+            lspServices,
+            lspServices.GetRequiredService<RoslynTelemetry>());
     }
 }
 
@@ -48,7 +50,8 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
     IAsynchronousOperationListener listener,
     IFileBasedProgramService fileBasedProgramService,
     ILoggerFactory loggerFactory,
-    LspServices lspServices) : ILspService, IOnInitialized
+    LspServices lspServices,
+    RoslynTelemetry telemetry) : ILspService, IOnInitialized
 {
     private static readonly StringComparer s_pathComparer = StringComparer.OrdinalIgnoreCase;
 
@@ -70,6 +73,8 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         _workspaceFolders = initializeManager.GetRequiredWorkspaceFolderPaths();
         Task.Run(async () =>
         {
+            using var _ = RoslynTelemetry.SetCurrent(telemetry);
+
             try
             {
                 using var token = listener.BeginAsyncOperation(nameof(FindAndLoadEntryPointsAsync));

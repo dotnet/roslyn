@@ -26,6 +26,13 @@ var csharpService = workspace.Services.GetLanguageServices(LanguageNames.CSharp)
     .GetRequiredService<IMyCSharpService>();
 ```
 
+### Language Server Telemetry
+
+- Daemon mode owns one process telemetry session plus one `RoslynTelemetry`/`TelemetrySession` pair per connected language server. Per-server services resolve both through `LspServices`.
+- The server's `RoslynTelemetry` ambient is established before host construction and reapplied at request dispatch. Per-server callbacks and background entry points that may run outside the request queue must capture the instance from `LspServices` and use a nested `RoslynTelemetry.SetCurrent(...)` scope.
+- Daemon lifecycle events bypass the ambient and log through the daemon's explicitly captured `RoslynTelemetry`.
+- `FeaturesSessionTelemetry.Report()` currently reports process-wide aggregators once during process shutdown; do not invoke it from per-server telemetry disposal.
+
 ### MEF Export Patterns
 ```csharp
 // Workspace service (language-agnostic)
@@ -96,6 +103,7 @@ var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 - **Cancellation**: Always thread `CancellationToken` through async operations
 - **Performance**: Avoid LINQ in hot paths, prefer `for` loops or `.AsSpan()`, use `ObjectPool<T>`
 - **LanguageServer request context**: Handlers should use the asynchronous `RequestContext.Get*Async` methods for workspace, solution, and document access. Obsolete synchronous members remain only for compatibility with existing external-access consumers and forward to the asynchronous accessors.
+- **LanguageServer daemon tests**: Use `AbstractLanguageServerHostTests.CreateDaemonServerAsync` for in-process multi-client tests. The harness creates isolated daemon/per-server telemetry owners; opt-in levels must be explicit so tests never inherit telemetry consent from the machine environment.
 
 ## Common Gotchas
 

@@ -165,6 +165,23 @@ public sealed class RoslynTelemetryTests
     }
 
     [Fact]
+    public void RequestScopeRestoresServerInstance()
+    {
+        var previousTelemetry = RoslynTelemetry.Current;
+        var serverTelemetry = new RoslynTelemetry();
+
+        using (RoslynTelemetry.SetCurrent(serverTelemetry))
+        {
+            using (RoslynTelemetry.SetCurrent(serverTelemetry))
+                Assert.Same(serverTelemetry, RoslynTelemetry.Current);
+
+            Assert.Same(serverTelemetry, RoslynTelemetry.Current);
+        }
+
+        Assert.Same(previousTelemetry, RoslynTelemetry.Current);
+    }
+
+    [Fact]
     public void FlushOnlyFlushesCurrentInstance()
     {
         var firstTelemetry = new RoslynTelemetry();

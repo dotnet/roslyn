@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Options;
@@ -36,6 +37,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
     protected readonly IGlobalOptionService GlobalOptionService;
     protected readonly ILoggerFactory LoggerFactory;
     protected readonly IAsynchronousOperationListener Listener;
+    protected readonly RoslynTelemetry Telemetry;
     private readonly ILogger _logger;
     private readonly ProjectLoadTelemetryReporter _projectLoadTelemetryReporter;
     private readonly IBinLogPathProvider _binLogPathProvider;
@@ -96,6 +98,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
         GlobalOptionService = globalOptionService;
         LoggerFactory = loggerFactory;
         Listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
+        Telemetry = lspServices.GetRequiredService<RoslynTelemetry>();
         _logger = loggerFactory.CreateLogger(this.GetTypeDisplayName());
         _projectLoadTelemetryReporter = lspServices.GetRequiredService<ProjectLoadTelemetryReporter>();
         _binLogPathProvider = binLogPathProvider;
@@ -146,6 +149,8 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
 
     private async ValueTask ReloadProjectsAsync(ImmutableSegmentedList<ProjectToLoad> projectsToLoadOrReload, CancellationToken cancellationToken)
     {
+        using var _ = RoslynTelemetry.SetCurrent(Telemetry);
+
         // TODO: support configuration switching
         var stopwatch = Stopwatch.StartNew();
         ImmutableArray<string> projectsThatNeedRestore;
@@ -321,7 +326,9 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
             foreach (var logItem in diagnosticLogItems)
             {
                 var projectName = Path.GetFileName(projectPath);
-                _logger.Log(logItem.Kind is DiagnosticLogItemKind.Error ? LogLevel.Error : LogLevel.Warning, $"{logItem.Kind} while loading {logItem.ProjectFilePath}: {logItem.Message}");
+                _logger.Log(
+                    logItem.Kind is DiagnosticLogItemKind.Error ? Microsoft.Extensions.Logging.LogLevel.Error : Microsoft.Extensions.Logging.LogLevel.Warning,
+                    $"{logItem.Kind} while loading {logItem.ProjectFilePath}: {logItem.Message}");
             }
 
             var worstLspMessageKind = diagnosticLogItems.Any(logItem => logItem.Kind is DiagnosticLogItemKind.Error) ? LSP.MessageType.Error : LSP.MessageType.Warning;

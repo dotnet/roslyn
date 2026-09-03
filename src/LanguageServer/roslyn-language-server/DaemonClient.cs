@@ -33,15 +33,20 @@ internal sealed class DaemonConnectResult : IDisposable
 
 internal static class DaemonClient
 {
+    private const string CopilotTelemetryLevelEnvironmentVariable = "COPILOT_TELEMETRY_LEVEL";
+
     private static readonly TimeSpan s_daemonMutexTimeout = TimeSpan.FromSeconds(20);
     private static readonly TimeSpan s_existingDaemonConnectTimeout = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan s_newDaemonConnectTimeout = TimeSpan.FromSeconds(20);
 
     public static Task<DaemonConnectResult> ConnectAsync(
         ServerExecutable executable,
-        IReadOnlyList<string> serverArguments)
+        ThinClientArguments arguments)
     {
-        var pipeName = GetDaemonPipeName(executable);
+        var telemetryLevel = arguments.DevKitDependencyPath is not null
+            ? arguments.TelemetryLevel
+            : Environment.GetEnvironmentVariable(CopilotTelemetryLevelEnvironmentVariable);
+        var pipeName = GetDaemonPipeName(executable, telemetryLevel);
 
         if (!DaemonClientMutex.TryAcquire(pipeName, s_daemonMutexTimeout, out var clientMutex))
         {
@@ -54,7 +59,7 @@ internal static class DaemonClient
             var launchedDaemon = false;
             if (!DaemonServerMutex.IsRunning(pipeName))
             {
-                LaunchDaemon(pipeName, serverArguments);
+                LaunchDaemon(pipeName, arguments.ServerArguments);
                 launchedDaemon = true;
             }
 
@@ -73,14 +78,14 @@ internal static class DaemonClient
         }
     }
 
-    private static string GetDaemonPipeName(ServerExecutable executable)
+    private static string GetDaemonPipeName(ServerExecutable executable, string? telemetryLevel)
     {
         // Honor an explicit override so independent instances (chiefly end-to-end tests) can run isolated
         // daemons. Normal clients leave it unset and derive the name from the bundled server path so only
         // version-compatible clients share a daemon.
         var pipeNameOverride = Environment.GetEnvironmentVariable(DaemonPipeName.PipeNameOverrideEnvironmentVariable);
         return string.IsNullOrEmpty(pipeNameOverride)
-            ? DaemonPipeName.GetPipeName(executable.FileName)
+            ? DaemonPipeName.GetPipeName(executable.FileName, telemetryLevel)
             : pipeNameOverride;
     }
 

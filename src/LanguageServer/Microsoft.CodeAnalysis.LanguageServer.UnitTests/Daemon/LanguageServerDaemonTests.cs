@@ -2,11 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.IO.Pipes;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
@@ -16,6 +20,47 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
 public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerHostTests(testOutputHelper)
 {
+    private sealed class RecordingEventSink : IEventSink
+    {
+        private readonly ConcurrentQueue<FunctionId> _events = new();
+
+        public ImmutableArray<FunctionId> Events => [.. _events];
+
+        public bool IsEnabled(FunctionId functionId)
+            => functionId is FunctionId.VSCode_LanguageServer_Daemon_Started
+                or FunctionId.VSCode_LanguageServer_Daemon_Client_Connected
+                or FunctionId.VSCode_LanguageServer_Daemon_Client_Disconnected;
+
+        public void Log(FunctionId functionId, LogMessage logMessage)
+            => _events.Enqueue(functionId);
+
+        public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken)
+        {
+        }
+
+        public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int uniquePairId, int delta, CancellationToken cancellationToken)
+        {
+        }
+    }
+
+    private sealed class RecordingMetricSink : IMetricSink
+    {
+        private int _measurementCount;
+        private int _flushCount;
+
+        public int MeasurementCount => Volatile.Read(ref _measurementCount);
+        public int FlushCount => Volatile.Read(ref _flushCount);
+
+        public void Count(string eventName, string metricName, long delta, ReadOnlySpan<KeyValuePair<string, object?>> tags)
+            => Interlocked.Increment(ref _measurementCount);
+
+        public void Record(string eventName, string metricName, long value, ReadOnlySpan<KeyValuePair<string, object?>> tags)
+            => Interlocked.Increment(ref _measurementCount);
+
+        public void Flush()
+            => Interlocked.Increment(ref _flushCount);
+    }
+
     [Fact]
     public async Task Daemon_SecondInstanceOnSamePipe_TryCreateReturnsFalse()
     {
@@ -26,7 +71,7 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
 
         // ...so a second daemon on the same pipe must observe it and fail to become the daemon.
         Assert.False(NamedPipeDaemonConnectionSource.TryCreate(
-            daemon.PipeName, Timeout.InfiniteTimeSpan, LoggerFactory.CreateLogger("Daemon2"), out var secondSource));
+            daemon.PipeName, Timeout.InfiniteTimeSpan, LoggerFactory.CreateLogger("Daemon2"), daemon.TelemetryService.Telemetry, out var secondSource));
         Assert.Null(secondSource);
     }
 
@@ -72,6 +117,75 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
         // Both clients have their own independent server, and the daemon stays up.
         Assert.False(daemon.DaemonExitTask.IsCompleted);
         Assert.Equal(2, daemon.GetStartedServers().Length);
+    }
+
+    [Fact]
+    public async Task Daemon_EachServerHasAnIsolatedTelemetrySession()
+    {
+        var configuration = DefaultServerConfiguration with { IsDaemon = true, TelemetryLevel = "off" };
+        await using var daemon = await CreateDaemonServerAsync(serverConfiguration: configuration);
+        var daemonEvents = new RecordingEventSink();
+        using var daemonEventRegistration = daemon.TelemetryService.Telemetry.AddEventSink(daemonEvents);
+
+        var first = await daemon.CreateClientAsync();
+        await using var second = await daemon.CreateClientAsync();
+
+        var firstTelemetry = Assert.IsType<LanguageServerTelemetry>(first.GetRequiredLspService<ILanguageServerTelemetry>());
+        var secondTelemetry = Assert.IsType<LanguageServerTelemetry>(second.GetRequiredLspService<ILanguageServerTelemetry>());
+        Assert.NotNull(daemon.TelemetryService.SessionId);
+        Assert.NotNull(firstTelemetry.SessionId);
+        Assert.NotNull(secondTelemetry.SessionId);
+        Assert.NotEqual(firstTelemetry.SessionId, secondTelemetry.SessionId);
+        Assert.Equal(
+            daemon.TelemetryService.SessionId,
+            GetDaemonSessionId(firstTelemetry));
+        Assert.Equal(
+            daemon.TelemetryService.SessionId,
+            GetDaemonSessionId(secondTelemetry));
+
+        var firstEvents = new RecordingEventSink();
+        var secondEvents = new RecordingEventSink();
+        var firstMetrics = new RecordingMetricSink();
+        var secondMetrics = new RecordingMetricSink();
+        using var firstEventRegistration = firstTelemetry.Telemetry.AddEventSink(firstEvents);
+        using var secondEventRegistration = secondTelemetry.Telemetry.AddEventSink(secondEvents);
+        using var firstMetricRegistration = firstTelemetry.Telemetry.AddMetricSink(firstMetrics);
+        using var secondMetricRegistration = secondTelemetry.Telemetry.AddMetricSink(secondMetrics);
+
+        var firstDocumentUri = LoadProjectWithDocument(
+            first.GetRequiredLspService<LanguageServerWorkspaceFactory>(),
+            "FirstTelemetryServer");
+        var hover = await first.ExecuteRequestAsync<HoverParams, Hover>(
+            Methods.TextDocumentHoverName,
+            new HoverParams
+            {
+                TextDocument = new TextDocumentIdentifier { DocumentUri = firstDocumentUri },
+                Position = new Position(0, 6),
+            },
+            CancellationToken.None);
+
+        Assert.NotNull(hover);
+        Assert.True(firstMetrics.MeasurementCount > 0);
+        Assert.Equal(0, secondMetrics.MeasurementCount);
+
+        var daemonEventsBeforeDisconnect = daemonEvents.Events.Length;
+        await first.DisposeAsync();
+        await WaitForConditionAsync(() =>
+            firstMetrics.FlushCount > 0 &&
+            daemonEvents.Events.Length == daemonEventsBeforeDisconnect + 1);
+
+        Assert.Equal(0, secondMetrics.FlushCount);
+        Assert.Equal(daemonEventsBeforeDisconnect + 1, daemonEvents.Events.Length);
+        Assert.Equal(FunctionId.VSCode_LanguageServer_Daemon_Client_Disconnected, daemonEvents.Events[^1]);
+        Assert.Empty(firstEvents.Events);
+        Assert.Empty(secondEvents.Events);
+
+        static string GetDaemonSessionId(LanguageServerTelemetry telemetry)
+        {
+            Assert.NotNull(telemetry.Session);
+            Assert.True(telemetry.Session.TryGetCommonPropertyValue(LanguageServerTelemetry.DaemonSessionIdPropertyName, out var daemonSessionId));
+            return Assert.IsType<string>(daemonSessionId);
+        }
     }
 
     // Each connected client gets its own server with its own Host workspace. A project loaded into one server's

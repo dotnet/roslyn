@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 [Export(typeof(ILanguageServerTelemetryReporterWrapper))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class TelemetryReporterWrapper([Import(AllowDefault = true)] Lazy<LanguageServerTelemetry>? telemetryService) : ILanguageServerTelemetryReporterWrapper
+internal sealed class TelemetryReporterWrapper() : ILanguageServerTelemetryReporterWrapper
 {
     public void ReportEvent(string name, List<KeyValuePair<string, object?>> properties)
     {
-        if (telemetryService?.Value.Session is not { } session)
+        if (LanguageServerTelemetry.GetCurrentSession() is not { } session)
             return;
 
         var telemetryEvent = new TelemetryEvent(name);
@@ -33,5 +33,5 @@ internal sealed class TelemetryReporterWrapper([Import(AllowDefault = true)] Laz
     }
 
     public void ReportMetric(TelemetryMetricEvent metricEvent)
-        => telemetryService?.Value.Session?.PostMetricEvent(metricEvent);
+        => LanguageServerTelemetry.GetCurrentSession()?.PostMetricEvent(metricEvent);
 }

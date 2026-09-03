@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
+using Microsoft.CodeAnalysis.Internal.Log;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -19,13 +20,19 @@ internal abstract partial class LanguageServerProjectLoader
         private readonly IProgress<LSP.WorkDoneProgress> _reporter;
         private readonly int _totalItems;
         private readonly AsyncBatchingWorkQueue _progressQueue;
+        private readonly RoslynTelemetry _telemetry;
         private int _itemsProcessed;
         private int _lastReportedPercentage = -1;
 
-        public WorkDoneProgressTracker(IProgress<LSP.WorkDoneProgress> reporter, int totalItems, IAsynchronousOperationListener? listener = null)
+        public WorkDoneProgressTracker(
+            IProgress<LSP.WorkDoneProgress> reporter,
+            int totalItems,
+            RoslynTelemetry telemetry,
+            IAsynchronousOperationListener? listener = null)
         {
             _reporter = reporter;
             _totalItems = totalItems;
+            _telemetry = telemetry;
             _progressQueue = new AsyncBatchingWorkQueue(
                 TimeSpan.Zero,
                 ReportProgressAsync,
@@ -46,6 +53,8 @@ internal abstract partial class LanguageServerProjectLoader
 
         private ValueTask ReportProgressAsync(CancellationToken cancellationToken)
         {
+            using var _ = RoslynTelemetry.SetCurrent(_telemetry);
+
             var processed = Volatile.Read(ref _itemsProcessed);
             var percentage = processed * 100 / _totalItems;
             percentage = Math.Min(percentage, 99);

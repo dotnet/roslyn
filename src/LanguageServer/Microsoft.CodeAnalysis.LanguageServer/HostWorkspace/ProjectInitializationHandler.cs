@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.Definitions;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
@@ -22,17 +23,25 @@ internal sealed class ProjectInitializationHandler : IDisposable
     private readonly ILogger _logger;
     private readonly TaskCompletionSource _serviceAvailable = new();
     private readonly ProjectInitializationCompleteObserver _projectInitializationCompleteObserver;
+    private readonly RoslynTelemetry _telemetry;
 
     private IDisposable? _subscription;
 
-    public ProjectInitializationHandler(IClientLanguageServerManager clientLanguageServerManager, IServiceBroker serviceBroker, ILoggerFactory loggerFactory)
+    public ProjectInitializationHandler(
+        IClientLanguageServerManager clientLanguageServerManager,
+        IServiceBroker serviceBroker,
+        ILoggerFactory loggerFactory,
+        VSCodeRequestTelemetryLogger requestTelemetryLogger,
+        RoslynTelemetry telemetry)
     {
         _serviceBroker = serviceBroker;
         _serviceBroker.AvailabilityChanged += AvailabilityChanged;
         _serviceBrokerClient = new ServiceBrokerClient(_serviceBroker, joinableTaskFactory: null);
 
         _logger = loggerFactory.CreateLogger<ProjectInitializationHandler>();
-        _projectInitializationCompleteObserver = new ProjectInitializationCompleteObserver(clientLanguageServerManager, _logger);
+        _projectInitializationCompleteObserver = new ProjectInitializationCompleteObserver(
+            clientLanguageServerManager, _logger, requestTelemetryLogger, telemetry);
+        _telemetry = telemetry;
     }
 
     public static async ValueTask SendProjectInitializationCompleteNotificationAsync(IClientLanguageServerManager clientLanguageServerManager)
@@ -67,18 +76,26 @@ internal sealed class ProjectInitializationHandler : IDisposable
 
     private void AvailabilityChanged(object? sender, BrokeredServicesChangedEventArgs e)
     {
+        using var _ = RoslynTelemetry.SetCurrent(_telemetry);
+
         if (e.ImpactedServices.Contains(Descriptors.RemoteProjectInitializationStatusService.Moniker))
             _serviceAvailable.SetResult();
     }
 
     public void Dispose()
     {
+        using var _ = RoslynTelemetry.SetCurrent(_telemetry);
+
         _serviceBroker.AvailabilityChanged -= AvailabilityChanged;
         _subscription?.Dispose();
         _serviceBrokerClient.Dispose();
     }
 
-    internal sealed class ProjectInitializationCompleteObserver(IClientLanguageServerManager clientLanguageServerManager, ILogger logger) : IObserver<ProjectInitializationCompletionState>
+    internal sealed class ProjectInitializationCompleteObserver(
+        IClientLanguageServerManager clientLanguageServerManager,
+        ILogger logger,
+        VSCodeRequestTelemetryLogger requestTelemetryLogger,
+        RoslynTelemetry telemetry) : IObserver<ProjectInitializationCompletionState>
     {
         [JsonRpcMethod("onCompleted")]
         public void OnCompleted()
@@ -89,14 +106,16 @@ internal sealed class ProjectInitializationHandler : IDisposable
         [JsonRpcMethod("onError", UseSingleObjectParameterDeserialization = true)]
         public void OnError(Exception error)
         {
+            using var _ = RoslynTelemetry.SetCurrent(telemetry);
             logger.LogError(error, "Devkit project initialization observer failed");
         }
 
         [JsonRpcMethod("onNext", UseSingleObjectParameterDeserialization = true)]
         public void OnNext(ProjectInitializationCompletionState value)
         {
+            using var telemetryScope = RoslynTelemetry.SetCurrent(telemetry);
             logger.LogDebug("Devkit project initialization completed");
-            VSCodeRequestTelemetryLogger.ReportProjectInitializationComplete();
+            requestTelemetryLogger.ReportProjectInitializationComplete();
             _ = SendProjectInitializationCompleteNotificationAsync(clientLanguageServerManager).AsTask().ReportNonFatalErrorAsync();
         }
     }

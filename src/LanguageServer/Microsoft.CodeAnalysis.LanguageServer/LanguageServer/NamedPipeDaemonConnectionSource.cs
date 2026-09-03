@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -31,6 +31,7 @@ internal sealed class NamedPipeDaemonConnectionSource : ILanguageServerConnectio
 
     private readonly string _pipeName;
     private readonly ILogger _logger;
+    private readonly RoslynLog.RoslynTelemetry _daemonTelemetry;
     private readonly Mutex _serverMutex;
     private readonly ConnectionIdleTimeout _idleTimeout;
 
@@ -41,12 +42,14 @@ internal sealed class NamedPipeDaemonConnectionSource : ILanguageServerConnectio
         Mutex serverMutex,
         TimeSpan initialConnectionTimeout,
         TimeSpan keepAlive,
-        ILogger logger)
+        ILogger logger,
+        RoslynLog.RoslynTelemetry daemonTelemetry)
     {
         _pipeName = pipeName;
         _serverMutex = serverMutex;
         _idleTimeout = new ConnectionIdleTimeout(initialConnectionTimeout, keepAlive, logger);
         _logger = logger;
+        _daemonTelemetry = daemonTelemetry;
     }
 
     public bool ShouldIsolateConnectionFaults => true;
@@ -59,6 +62,7 @@ internal sealed class NamedPipeDaemonConnectionSource : ILanguageServerConnectio
         string pipeName,
         TimeSpan keepAlive,
         ILogger logger,
+        RoslynLog.RoslynTelemetry daemonTelemetry,
         [NotNullWhen(true)] out NamedPipeDaemonConnectionSource? source,
         TimeSpan? initialConnectionTimeout = null)
     {
@@ -72,8 +76,8 @@ internal sealed class NamedPipeDaemonConnectionSource : ILanguageServerConnectio
         }
 
         source = new NamedPipeDaemonConnectionSource(
-            pipeName, serverMutex, initialConnectionTimeout ?? s_initialConnectionTimeout, keepAlive, logger);
-        RoslynLog.Logger.Log(RoslynLog.FunctionId.VSCode_LanguageServer_Daemon_Started, logLevel: RoslynLog.LogLevel.Information);
+            pipeName, serverMutex, initialConnectionTimeout ?? s_initialConnectionTimeout, keepAlive, logger, daemonTelemetry);
+        daemonTelemetry.Log(RoslynLog.FunctionId.VSCode_LanguageServer_Daemon_Started, logLevel: RoslynLog.LogLevel.Information);
         return true;
     }
 
@@ -115,7 +119,7 @@ internal sealed class NamedPipeDaemonConnectionSource : ILanguageServerConnectio
             _onConnectionAccepted?.Invoke();
             _idleTimeout.OpenConnection();
             _logger.LogInformation("Daemon accepted a new client connection.");
-            RoslynLog.Logger.Log(RoslynLog.FunctionId.VSCode_LanguageServer_Daemon_Client_Connected, logLevel: RoslynLog.LogLevel.Information);
+            _daemonTelemetry.Log(RoslynLog.FunctionId.VSCode_LanguageServer_Daemon_Client_Connected, logLevel: RoslynLog.LogLevel.Information);
 
             // The accepted stream is both input and output, and is disposed when its language server exits.
             yield return new LanguageServerConnection(pipeStream, pipeStream, new ConnectionResource(pipeStream, this));
@@ -156,7 +160,7 @@ internal sealed class NamedPipeDaemonConnectionSource : ILanguageServerConnectio
             finally
             {
                 source._idleTimeout.CloseConnection();
-                RoslynLog.Logger.Log(RoslynLog.FunctionId.VSCode_LanguageServer_Daemon_Client_Disconnected, logLevel: RoslynLog.LogLevel.Information);
+                source._daemonTelemetry.Log(RoslynLog.FunctionId.VSCode_LanguageServer_Daemon_Client_Disconnected, logLevel: RoslynLog.LogLevel.Information);
             }
         }
     }
