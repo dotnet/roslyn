@@ -12775,24 +12775,42 @@ class C<T>
                     {
                         Prop1 = null;
                         Prop2 = null; // 4
+
+                        if (string.Empty == "")
+                        {
+                            Prop1.ToString(); // 5
+                            Prop2.ToString(); // 6
+                        }
                     }
 
-                    public C(D4 d4) : this(false) // 5
+                    public C(D4 d4) : this(false) // 7
                     {
                         Prop1 = null;
-                        Prop2 = null; // 6
+                        Prop2 = null; // 8
+
+                        if (string.Empty == "")
+                        {
+                            Prop1.ToString(); // 9
+                            Prop2.ToString(); // 10
+                        }
                     }
 
                     public C(D5 d5)
                     {
                         Prop1 = "a";
                         Prop2 = "a";
+
+                        Prop1.ToString();
+                        Prop2.ToString();
                     }
 
                     public C(D6 d6) : this(false)
                     {
                         Prop1 = "a";
                         Prop2 = "a";
+
+                        Prop1.ToString();
+                        Prop2.ToString();
                     }
 
                     public void M()
@@ -12816,12 +12834,24 @@ class C<T>
                 // (39,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //         Prop2 = null; // 4
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(39, 17),
-                // (42,12): warning CS9264: Non-nullable property 'Prop2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
-                //     public C(D4 d4) : this(false) // 5
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop2").WithLocation(42, 12),
-                // (45,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         Prop2 = null; // 6
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(45, 17));
+                // (43,13): warning CS8602: Dereference of a possibly null reference.
+                //             Prop1.ToString(); // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop1").WithLocation(43, 13),
+                // (44,13): warning CS8602: Dereference of a possibly null reference.
+                //             Prop2.ToString(); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop2").WithLocation(44, 13),
+                // (48,12): warning CS9264: Non-nullable property 'Prop2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                //     public C(D4 d4) : this(false) // 7
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop2").WithLocation(48, 12),
+                // (51,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         Prop2 = null; // 8
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(51, 17),
+                // (55,13): warning CS8602: Dereference of a possibly null reference.
+                //             Prop1.ToString(); // 9
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop1").WithLocation(55, 13),
+                // (56,13): warning CS8602: Dereference of a possibly null reference.
+                //             Prop2.ToString(); // 10
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop2").WithLocation(56, 13));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77991")]
@@ -12877,13 +12907,27 @@ class C<T>
                         Prop1 = null;
                         Prop2 = null; // 1
                         Prop3 = null;
+
+                        if (string.Empty == "")
+                        {
+                            Prop1.ToString();
+                            Prop2.ToString(); // 2
+                            Prop3.ToString();
+                        }
                     }
 
                     public C(D4 d4) : this(false)
                     {
                         Prop1 = null;
-                        Prop2 = null; // 2
+                        Prop2 = null; // 3
                         Prop3 = null;
+
+                        if (string.Empty == "")
+                        {
+                            Prop1.ToString();
+                            Prop2.ToString(); // 4
+                            Prop3.ToString();
+                        }
                     }
 
                     public C(D5 d5)
@@ -12891,6 +12935,10 @@ class C<T>
                         Prop1 = "a";
                         Prop2 = "a";
                         Prop3 = "a";
+
+                        Prop1.ToString();
+                        Prop2.ToString();
+                        Prop3.ToString();
                     }
 
                     public C(D6 d6) : this(false)
@@ -12898,6 +12946,10 @@ class C<T>
                         Prop1 = "a";
                         Prop2 = "a";
                         Prop3 = "a";
+
+                        Prop1.ToString();
+                        Prop2.ToString();
+                        Prop3.ToString();
                     }
 
                     public void M()
@@ -12911,9 +12963,15 @@ class C<T>
                 // (47,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //         Prop2 = null; // 1
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(47, 17),
-                // (54,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         Prop2 = null; // 2
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(54, 17));
+                // (53,13): warning CS8602: Dereference of a possibly null reference.
+                //             Prop2.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop2").WithLocation(53, 13),
+                // (61,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         Prop2 = null; // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(61, 17),
+                // (67,13): warning CS8602: Dereference of a possibly null reference.
+                //             Prop2.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop2").WithLocation(67, 13));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77991")]
@@ -12958,21 +13016,31 @@ class C<T>
                     public C(D3 d3)
                     {
                         Prop1 = null;
+                        if (string.Empty == "")
+                        {
+                            Prop1.ToString(); // 3
+                        }
                     }
 
                     public C(D4 d4) : this(false)
                     {
                         Prop1 = null;
+                        if (string.Empty == "")
+                        {
+                            Prop1.ToString(); // 4
+                        }
                     }
 
                     public C(D5 d5)
                     {
                         Prop1 = "a";
+                        Prop1.ToString();
                     }
 
                     public C(D6 d6) : this(false)
                     {
                         Prop1 = "a";
+                        Prop1.ToString();
                     }
 
                     public void M()
@@ -12989,9 +13057,15 @@ class C<T>
                 // (24,9): warning CS8602: Dereference of a possibly null reference.
                 //         Prop1.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop1").WithLocation(24, 9),
-                // (57,9): warning CS8602: Dereference of a possibly null reference.
+                // (40,13): warning CS8602: Dereference of a possibly null reference.
+                //             Prop1.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop1").WithLocation(40, 13),
+                // (49,13): warning CS8602: Dereference of a possibly null reference.
+                //             Prop1.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop1").WithLocation(49, 13),
+                // (67,9): warning CS8602: Dereference of a possibly null reference.
                 //         Prop1.ToString(); // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop1").WithLocation(57, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop1").WithLocation(67, 9));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77991")]
@@ -13032,11 +13106,21 @@ class C<T>
                     public C(D3 d)
                     {
                         Prop1 = "a";
+
+                        if (string.Empty == "")
+                        {
+                            Prop1.ToString();
+                        }
                     }
 
                     public C(D4 d) : this(false)
                     {
                         Prop1 = "a";
+
+                        if (string.Empty == "")
+                        {
+                            Prop1.ToString();
+                        }
                     }
 
                     public void M()
