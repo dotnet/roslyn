@@ -36,8 +36,6 @@ jobs:
   - ${{ if and(eq(parameters.runAsPublic, 'false'), ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
     - name: _BuildConfig
       value: ${{ parameters.configuration }}
-    - group: Publish-Build-Assets
-    - group: AzureDevOps-Artifact-Feeds-Pats
     - name: runCodesignValidationInjection
       value: false
 
@@ -52,19 +50,8 @@ jobs:
       condition: ${{ parameters.condition }}
       continueOnError: ${{ parameters.continueOnError }}
 
-    - task: NuGetAuthenticate@1
-
-    - task: NuGetAuthenticate@1
-      displayName: Authenticate to azure-public/vs-impl
-      inputs:
-        azureDevOpsServiceConnection: dnceng-azure-public-vs-impl-push
-        feedUrl: https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json
-
-    - task: NuGetAuthenticate@1
-      displayName: Authenticate to azure-public/vssdk
-      inputs:
-        azureDevOpsServiceConnection: dnceng-azure-public-vs-impl-push
-        feedUrl: https://pkgs.dev.azure.com/azure-public/vside/_packaging/vssdk/nuget/v3/index.json
+    - ${{ if and(eq(parameters.runAsPublic, 'false'), ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+      - task: NuGetAuthenticate@1
 
     - task: AzureCLI@2
       displayName: Publish Build Assets
