@@ -116,15 +116,18 @@ class C
                     }
                 }
                 """).VerifyDiagnostics(
-                // (5,9): error CS0103: The name 'partial' does not exist in the current context
+                // (4,6): error CS1513: } expected
+                //     {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 6),
+                // (5,29): error CS0759: No defining declaration found for implementing declaration of partial method 'C.local()'
                 //         partial static void local() { }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "partial").WithArguments("partial").WithLocation(5, 9),
-                // (5,17): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "local").WithArguments("C.local()").WithLocation(5, 29),
+                // (5,29): error CS0751: A partial member must be declared within a partial type
                 //         partial static void local() { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(5, 17),
-                // (5,29): warning CS8321: The local function 'local' is declared but never used
-                //         partial static void local() { }
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(5, 29));
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "local").WithLocation(5, 29),
+                // (7,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(7, 1));
         }
 
         [Fact]

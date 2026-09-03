@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void PartialLocationInModifierList()
         {
-            var comp = CreateCompilation(@"
+            var source = @"
 class Program
 {
     partial abstract class A {}
@@ -39,14 +39,32 @@ class Program
 
     partial abstract struct S {}
     partial abstract struct S {}
-}");
-            comp.VerifyDiagnostics(
-                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+}";
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+                // (4,5): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     partial abstract class A {}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
-                // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(4, 5),
+                // (5,5): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     partial abstract class A {}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(5, 5),
+                // (7,13): error CS1004: Duplicate 'partial' modifier
+                //     partial partial class B {}
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(7, 13),
+                // (8,13): error CS1004: Duplicate 'partial' modifier
+                //     partial partial class B {}
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(8, 13),
+                // (10,5): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                //     partial abstract struct S {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(10, 5),
+                // (10,29): error CS0106: The modifier 'abstract' is not valid for this item
+                //     partial abstract struct S {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "S").WithArguments("abstract").WithLocation(10, 29),
+                // (11,5): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                //     partial abstract struct S {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(11, 5));
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
                 // (7,13): error CS1004: Duplicate 'partial' modifier
                 //     partial partial class B {}
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(7, 13),
@@ -55,13 +73,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(8, 13),
                 // (10,29): error CS0106: The modifier 'abstract' is not valid for this item
                 //     partial abstract struct S {}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "S").WithArguments("abstract").WithLocation(10, 29),
-                // (10,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                //     partial abstract struct S {}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(10, 5),
-                // (11,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                //     partial abstract struct S {}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(11, 5));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "S").WithArguments("abstract").WithLocation(10, 29));
         }
 
         [Fact]

@@ -3222,6 +3222,11 @@
         <target state="translated">非同期および反復子メソッドの ref と unsafe</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureRelaxedModifierOrdering">
+        <source>relaxed modifier ordering</source>
+        <target state="new">relaxed modifier ordering</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
         <source>relaxed shift operator</source>
         <target state="translated">緩和されたシフト演算子</target>
@@ -7361,8 +7366,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</source>
-        <target state="translated">'partial' 修飾子は、'class'、'record'、'struct'、'interface'、'event'、インスタンス コンストラクター名、またはメソッドまたはプロパティの戻り値の型の直前にのみ使用できます。</target>
+        <source>The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.</source>
+        <target state="needs-review-translation">'partial' 修飾子は、'class'、'record'、'struct'、'interface'、'event'、インスタンス コンストラクター名、またはメソッドまたはプロパティの戻り値の型の直前にのみ使用できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
