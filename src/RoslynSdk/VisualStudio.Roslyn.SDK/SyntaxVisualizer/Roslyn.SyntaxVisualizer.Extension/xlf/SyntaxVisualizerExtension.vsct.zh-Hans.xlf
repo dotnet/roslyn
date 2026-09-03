@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="cmdidRoslynSyntaxVisualizer|CommandName">
         <source>cmdidRoslynSyntaxVisualizer</source>
-        <target state="new">cmdidRoslynSyntaxVisualizer</target>
+        <target state="translated">cmdidRoslynSyntaxVisualizer</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidRoslynSyntaxVisualizer|ButtonText">
         <source>Syntax Visualizer</source>
-        <target state="new">Syntax Visualizer</target>
+        <target state="translated">Syntax Visualizer</target>
         <note />
       </trans-unit>
     </body>
