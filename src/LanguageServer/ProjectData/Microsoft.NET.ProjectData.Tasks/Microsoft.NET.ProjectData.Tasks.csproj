@@ -1,0 +1,90 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <!-- AOT/trim analyzers require net7.0+; not applicable to this netstandard2.0 task assembly. -->
+    <EnableAotAnalyzer>false</EnableAotAnalyzer>
+    <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
+    <RootNamespace>Microsoft.NET.ProjectData.Tasks</RootNamespace>
+    <!-- Task assemblies are not shipped as NuGet packages from this repo. -->
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <!-- These members are used by source files that are intentionally not linked into this
+         netstandard2.0 task assembly, so Roslyn's partial view reports them as unused. -->
+    <NoWarn>$(NoWarn);IDE0051;IDE0060</NoWarn>
+    <!-- Roslyn's library defaults omit framework-provided transitive dependencies from
+         the output, but this task is loaded by MSBuild outside Roslyn's app context. -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- MSBuild task base class and IBuildEngine. ExcludeAssets=runtime so the MSBuild
+         assemblies are not copied to the output; MSBuild loads them from its own install. -->
+    <PackageReference Include="Microsoft.Build.Utilities.Core" ExcludeAssets="Runtime" PrivateAssets="All" />
+    <PackageReference Include="NuGet.Versioning" />
+    <PackageReference Include="System.Collections.Immutable" />
+    <PackageReference Include="System.Text.Json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.NET.ProjectData.Generators\Microsoft.NET.ProjectData.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" SkipGetTargetFrameworkProperties="true" SetPlatform="" />
+    <AdditionalFiles Include="..\Microsoft.NET.ProjectData.Generators\project-data-schema.json" />
+    <InternalsVisibleTo Include="Microsoft.NET.ProjectData.Tasks.UnitTests" Key="$(VsPublicKey)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The targets file ships next to this assembly so MSBuild can resolve the DLL via
+         $(MSBuildThisFileDirectory). Copying it to the build output keeps both files together. -->
+    <None Include="build\Microsoft.NET.ProjectData.targets" Link="Microsoft.NET.ProjectData.targets" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Generated property allow-list imported by the .targets; must travel with it. -->
+    <None Include="build\Microsoft.NET.ProjectData.Schema.props" Link="Microsoft.NET.ProjectData.Schema.props" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The Tasks project targets netstandard2.0, so it cannot reference Roslyn's net10.0
+         Microsoft.NET.ProjectData assembly. Source-link only the writer-side donor-index
+         contract and repository discovery; reader selection and Git process code remain
+         in Microsoft.NET.ProjectData. Remove these links and reference that assembly
+         directly when the target frameworks become compatible. -->
+    <Compile Include="..\Microsoft.NET.ProjectData\UserFolderCachePath.cs" Link="Shared\UserFolderCachePath.cs" />
+    <Compile Include="..\Microsoft.NET.ProjectData\Donor\ProjectDataDonorConfiguration.cs" Link="Shared\ProjectDataDonorConfiguration.cs" />
+    <Compile Include="..\Microsoft.NET.ProjectData\Donor\ProjectDataDonorIndex.cs" Link="Shared\ProjectDataDonorIndex.cs" />
+    <Compile Include="..\Microsoft.NET.ProjectData\Donor\ProjectDataDonorIndex.Serialization.cs" Link="Shared\ProjectDataDonorIndex.Serialization.cs" />
+    <Compile Include="..\Microsoft.NET.ProjectData\Donor\ProjectDataDonorIndexEntry.cs" Link="Shared\ProjectDataDonorIndexEntry.cs" />
+    <Compile Include="..\Microsoft.NET.ProjectData\Donor\ProjectDataDonorWriteOptions.cs" Link="Shared\ProjectDataDonorWriteOptions.cs" />
+    <Compile Include="..\Microsoft.NET.ProjectData\UnsupportedProjectDataMarker.cs" Link="Shared\UnsupportedProjectDataMarker.cs" />
+    <Compile Include="..\Microsoft.NET.ProjectData\ProjectDataBuildReceipt.cs" Link="Shared\ProjectDataBuildReceipt.cs" />
+    <Compile Include="..\Microsoft.NET.ProjectData\ProjectDataBuildAttemptManifest.cs" Link="Shared\ProjectDataBuildAttemptManifest.cs" />
+    <Compile Include="..\Microsoft.NET.ProjectData\ProjectDataBuildDiagnosticProtocol.cs" Link="Shared\ProjectDataBuildDiagnosticProtocol.cs" />
+    <Compile Include="..\Microsoft.NET.ProjectData\HexEncoder.cs" Link="Shared\HexEncoder.cs" />
+  </ItemGroup>
+
+  <!--
+    Roslyn does not deploy this task into C# Dev Kit's extension/dist directory.
+    Instead, expose the same explicit distribution closure so the test project can
+    copy it beside the test assembly and exercise the task under the layout MSBuild
+    consumers require.
+  -->
+  <Target Name="GetProjectDataDistFiles" DependsOnTargets="Build;ResolveReferences" Returns="@(_ProjectDataDistFiles)">
+    <ItemGroup>
+      <_ProjectDataDistFiles Include="$(TargetPath)" />
+      <_ProjectDataDistFiles Include="$(OutputPath)Microsoft.NET.ProjectData.targets" />
+      <_ProjectDataDistFiles Include="$(OutputPath)Microsoft.NET.ProjectData.Schema.props" />
+      <_ProjectDataDistFiles
+        Include="@(ReferencePath)"
+        Condition="
+          '%(ReferencePath.NuGetPackageId)' == 'System.Buffers'
+          Or '%(ReferencePath.NuGetPackageId)' == 'Microsoft.Bcl.AsyncInterfaces'
+          Or '%(ReferencePath.NuGetPackageId)' == 'System.Collections.Immutable'
+          Or '%(ReferencePath.NuGetPackageId)' == 'System.IO.Pipelines'
+          Or '%(ReferencePath.NuGetPackageId)' == 'System.Memory'
+          Or '%(ReferencePath.NuGetPackageId)' == 'System.Numerics.Vectors'
+          Or '%(ReferencePath.NuGetPackageId)' == 'NuGet.Versioning'
+          Or '%(ReferencePath.NuGetPackageId)' == 'System.Runtime.CompilerServices.Unsafe'
+          Or '%(ReferencePath.NuGetPackageId)' == 'System.Text.Encodings.Web'
+          Or '%(ReferencePath.NuGetPackageId)' == 'System.Text.Json'
+          Or '%(ReferencePath.NuGetPackageId)' == 'System.Threading.Tasks.Extensions'" />
+    </ItemGroup>
+  </Target>
+
+</Project>
