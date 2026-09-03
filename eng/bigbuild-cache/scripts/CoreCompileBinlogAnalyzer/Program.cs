@@ -25,6 +25,7 @@ static CoreCompileResult Analyze(string binlog)
     const string SkipPrefix = "Skipping target \"CoreCompile\" because all output files are up-to-date";
 
     var projects = new Dictionary<int, ProjectInfo>();
+    var activeTargets = new Dictionary<(int ProjectContextId, int TargetId), CoreCompileProject>();
     var result = new CoreCompileResult();
     var replay = new BinaryLogReplayEventSource();
 
@@ -42,35 +43,60 @@ static CoreCompileResult Analyze(string binlog)
             targetFramework ?? "");
     };
 
+    replay.TargetStarted += (_, e) =>
+    {
+        if (e.TargetName != "CoreCompile" || e.BuildEventContext is not { } context)
+        {
+            return;
+        }
+
+        activeTargets[(context.ProjectContextId, context.TargetId)] =
+            CreateEntry(e.ProjectFile, context.ProjectContextId, projects);
+    };
+
     replay.MessageRaised += (_, e) =>
     {
         var message = e.Message ?? "";
         var ran = message.StartsWith(RunPrefix, StringComparison.Ordinal);
         var skipped = message.StartsWith(SkipPrefix, StringComparison.Ordinal);
-        if (!ran && !skipped)
+        var context = e.BuildEventContext;
+        var key = context is null
+            ? ((int ProjectContextId, int TargetId)?)null
+            : (context.ProjectContextId, context.TargetId);
+
+        if (ran)
         {
+            var entry = key is { } targetKey && activeTargets.TryGetValue(targetKey, out var active)
+                ? active
+                : CreateEntry(e.ProjectFile, context?.ProjectContextId, projects);
+            result.RanCompletely++;
+            result.Compiled.Add(entry);
             return;
         }
 
-        var project = e.ProjectFile ?? "";
-        var targetFramework = "";
-        if (e.BuildEventContext is { } context &&
-            projects.TryGetValue(context.ProjectContextId, out var info))
+        if (skipped)
         {
-            project = info.Project;
-            targetFramework = info.TargetFramework;
-        }
-
-        var entry = new CoreCompileProject(project, targetFramework, message);
-        if (ran)
-        {
-            result.RanCompletely++;
-            result.Compiled.Add(entry);
-        }
-        else
-        {
+            var entry = CreateEntry(e.ProjectFile, context?.ProjectContextId, projects);
+            entry.Reasons.Add(message);
             result.SkippedUpToDate++;
             result.Skipped.Add(entry);
+            return;
+        }
+
+        if (key is { } activeKey &&
+            activeTargets.TryGetValue(activeKey, out var activeEntry) &&
+            IsRebuildReason(message) &&
+            !activeEntry.Reasons.Contains(message, StringComparer.Ordinal))
+        {
+            activeEntry.Reasons.Add(message);
+        }
+    };
+
+    replay.TargetFinished += (_, e) =>
+    {
+        if (e.TargetName == "CoreCompile" && e.BuildEventContext is { } context)
+        {
+            activeTargets.Remove((context.ProjectContextId, context.TargetId));
         }
     };
 
@@ -78,9 +104,43 @@ static CoreCompileResult Analyze(string binlog)
     return result;
 }
 
+static CoreCompileProject CreateEntry(
+    string? projectFile,
+    int? projectContextId,
+    Dictionary<int, ProjectInfo> projects)
+{
+    var project = projectFile ?? "";
+    var targetFramework = "";
+    if (projectContextId is { } contextId && projects.TryGetValue(contextId, out var info))
+    {
+        project = info.Project;
+        targetFramework = info.TargetFramework;
+    }
+
+    return new CoreCompileProject
+    {
+        Project = project,
+        TargetFramework = targetFramework,
+    };
+}
+
+static bool IsRebuildReason(string message) =>
+    message.StartsWith("Input file ", StringComparison.Ordinal) ||
+    message.StartsWith("Output file ", StringComparison.Ordinal) ||
+    message.StartsWith("The input file ", StringComparison.Ordinal) ||
+    message.Contains(" is newer than output file ", StringComparison.Ordinal) ||
+    message.Contains(" does not exist", StringComparison.Ordinal);
+
 internal sealed record ProjectInfo(string Project, string TargetFramework);
 
-internal sealed record CoreCompileProject(string Project, string TargetFramework, string Reason);
+internal sealed class CoreCompileProject
+{
+    public string Project { get; set; } = "";
+
+    public string TargetFramework { get; set; } = "";
+
+    public List<string> Reasons { get; } = [];
+}
 
 internal sealed class CoreCompileResult
 {
