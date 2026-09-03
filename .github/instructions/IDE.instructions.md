@@ -15,6 +15,7 @@ Roslyn uses a **layered service architecture** built on MEF (Managed Extensibili
 - **LanguageServer** (`src/LanguageServer/`): Shared LSP protocol implementation and Roslyn LSP executable (`roslyn-language-server`)
 - **EditorFeatures** (`src/EditorFeatures/`): VS Editor integration and text manipulation
 - **VisualStudio** (`src/VisualStudio/`): Visual Studio-specific implementations
+- **EditorConfig templates** (`src/VisualStudio/EditorConfig/`): item templates, generation wizard, context-menu command, VSIX projects, and Visual Studio insertion setup
 
 ### Service Resolution
 ```csharp
