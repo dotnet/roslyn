@@ -186,7 +186,9 @@ internal sealed class VSMetricSink : IMetricSink, IDisposable
 
                 // Removed per key rather than clearing at the end, so measurements recorded under a
                 // new key while this loop runs survive to the next flush.
-                ImmutableInterlocked.TryRemove(ref _aggregations, pair.Key, out _);
+                Contract.ThrowIfFalse(
+                    ImmutableInterlocked.TryRemove(ref _aggregations, pair.Key, out var removed) &&
+                    removed == aggregation);
             }
         }
     }

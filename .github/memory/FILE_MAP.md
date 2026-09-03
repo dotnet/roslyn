@@ -19,11 +19,11 @@ This file is a **top-level map only**. For per-area directory detail, read the m
 | `Dependencies/` | compiler | High-performance pooled collections & threading. |
 | `ExpressionEvaluator/` | compiler | Debugger expression evaluator. |
 | `Tools/` | compiler | Compiler and infrastructure tooling (including `dotnet-roslyn-tools`) and benchmark harnesses. |
-| `Workspaces/` | ide | Solution/Project/Document model, MSBuild loading, Remote (OOP), and the shared `RoslynTelemetry` entry point/sink contracts. |
+| `Workspaces/` | ide | Solution/Project/Document model, MSBuild loading, Remote (OOP). |
 | `Features/`, `EditorFeatures/` | ide | IDE feature logic and editor integration. |
 | `Analyzers/`, `CodeStyle/` | ide | IDE0xxx code-style analyzers & fixes. |
 | `LanguageServer/` | ide | LSP server. |
-| `VisualStudio/` | ide | VS language services, UI, and Visual Studio telemetry sink implementations shared with other hosts. |
+| `VisualStudio/` | ide | VS language services & UI. |
 | `Razor/src/` | razor | Razor compiler + tooling (own sub-tree layout). |
 | `Scripting/`, `Interactive/` | — | C#/VB scripting engine and REPL. |
 | `RoslynAnalyzers/` | — | Shipping `Microsoft.CodeAnalysis.*` analyzer packages. |
