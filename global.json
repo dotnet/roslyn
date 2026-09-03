@@ -1,11 +1,11 @@
 {
   "sdk": {
-    "version": "11.0.100-rc.1.26420.103",
+    "version": "11.0.100-preview.6.26359.118",
     "allowPrerelease": true,
     "rollForward": "patch"
   },
   "tools": {
-    "dotnet": "11.0.100-rc.1.26420.103",
+    "dotnet": "11.0.100-preview.6.26359.118",
     "runtimes": {
       "dotnet": [
         "10.0.10"
