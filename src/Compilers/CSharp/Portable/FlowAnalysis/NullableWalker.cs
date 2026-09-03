@@ -5569,7 +5569,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // The left operand was visited without its stripped conversion.
                     if (binary.Left is BoundConversion leftConversionNode && leftConversionNode != leftOperand)
                     {
-                        Debug.Assert(leftConversionNode.Type is not null);
                         VisitConversion(
                             leftConversionNode,
                             leftOperand,
