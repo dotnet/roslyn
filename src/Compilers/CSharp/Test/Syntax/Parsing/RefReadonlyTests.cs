@@ -386,15 +386,15 @@ class Program
             EOF();
 
             CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (3,12): error CS1585: Member modifier 'ref' must precede the member type and name
+                //     public ref readonly virtual int* P1 => throw null;
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(3, 12),
                 // (3,33): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     public ref readonly virtual int* P1 => throw null;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 33),
                 // (3,38): error CS0106: The modifier 'readonly' is not valid for this item
                 //     public ref readonly virtual int* P1 => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("readonly").WithLocation(3, 38),
-                // (3,38): error CS0106: The modifier 'ref' is not valid for this item
-                //     public ref readonly virtual int* P1 => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("ref").WithLocation(3, 38));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("readonly").WithLocation(3, 38));
         }
 
         [Fact]

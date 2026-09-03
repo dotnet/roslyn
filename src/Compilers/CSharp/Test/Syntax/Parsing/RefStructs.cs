@@ -87,9 +87,6 @@ class Program
                 // (6,30): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 //     public ref unsafe struct S2{}
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "S2").WithLocation(6, 30),
-                // (6,12): error CS1585: Member modifier 'ref' must precede the member type and name
-                //     public ref unsafe struct S2{}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(6, 12),
                 // (8,19): error CS0106: The modifier 'ref' is not valid for this item
                 //     ref interface I1{};
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "I1").WithArguments("ref").WithLocation(8, 19),
@@ -778,13 +775,7 @@ class Program
         {
             const string source = "ref readonly struct R { } class C { ref readonly struct R { } }";
 
-            CreateCompilation(source).VerifyDiagnostics(
-                // (1,1): error CS1585: Member modifier 'ref' must precede the member type and name
-                // ref readonly struct R { } class C { ref readonly struct R { } }
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 1),
-                // (1,37): error CS1585: Member modifier 'ref' must precede the member type and name
-                // ref readonly struct R { } class C { ref readonly struct R { } }
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 37));
+            CreateCompilation(source).VerifyDiagnostics();
             UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
@@ -2224,10 +2215,7 @@ class C
             }
             EOF();
 
-            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (1,11): error CS1585: Member modifier 'ref' must precede the member type and name
-                // class C { ref unsafe struct S {} }
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 11));
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2258,10 +2246,7 @@ class C
             }
             EOF();
 
-            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (1,11): error CS1585: Member modifier 'ref' must precede the member type and name
-                // class C { ref readonly struct S {} }
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 11));
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2293,14 +2278,11 @@ class C
             }
             EOF();
 
-            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (1,11): error CS1585: Member modifier 'ref' must precede the member type and name
-                // class C { ref unsafe readonly struct S {} }
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 11));
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
-        public void RefReadonlyStruct_RemainsRejected()
+        public void RefReadonlyStruct()
         {
             const string source = """
                 ref readonly struct R { }
@@ -2342,13 +2324,7 @@ class C
             }
             EOF();
 
-            CreateCompilation(source).VerifyDiagnostics(
-                // (1,1): error CS1585: Member modifier 'ref' must precede the member type and name
-                // ref readonly struct R { }
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 1),
-                // (4,5): error CS1585: Member modifier 'ref' must precede the member type and name
-                //     ref readonly struct S { }
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 5));
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2473,13 +2449,7 @@ class C
     ref partial readonly struct S {}
     ref partial readonly struct S {}
 }");
-            comp.VerifyDiagnostics(
-                // (4,5): error CS1585: Member modifier 'ref' must precede the member type and name
-                //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 5),
-                // (5,5): error CS1585: Member modifier 'ref' must precede the member type and name
-                //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 5));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -2511,10 +2481,7 @@ class C
             }
             EOF();
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (1,11): error CS1585: Member modifier 'ref' must precede the member type and name
-                // class C { ref readonly partial struct S {} }
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 11));
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2560,13 +2527,7 @@ class C
             }
             EOF();
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (4,13): error CS1585: Member modifier 'ref' must precede the member type and name
-                //     partial ref readonly struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 13),
-                // (5,13): error CS1585: Member modifier 'ref' must precede the member type and name
-                //     partial ref readonly struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 13));
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         [Fact]
