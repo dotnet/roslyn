@@ -883,7 +883,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         appCsFile.WriteAllText(newAppCsText);
 
         // Wait for the file change event to be delivered, ensuring the reload is enqueued.
-        await fileChangeTcs.Task.WaitAsync(TimeSpan.FromSeconds(30));
+        await fileChangeTcs.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
         await WaitForProjectLoad(appCsUri, testLspServer);
 
         // Now the document is a miscellaneous file
@@ -1201,10 +1201,23 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         );
 
         // Trivial edit+save of the App.cs file will trigger a reload though.
+        // Subscribe before writing to disk so the workspace waiter cannot finish before
+        // the FileSystemWatcher has delivered the event that enqueues the reload.
+        var fileChangeWatcher = testLspServer.GetRequiredLspService<IFileChangeWatcher>();
+        using var fileChangeContext = fileChangeWatcher.CreateContext([new WatchedDirectory(Path.GetDirectoryName(appCsFile.Path)!, extensionFilters: [])]);
+        var fileChangeTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        fileChangeContext.FileChanged += (_, e) =>
+        {
+            if (PathUtilities.Comparer.Equals(e.FilePath, appCsFile.Path))
+                fileChangeTcs.TrySetResult();
+        };
+
         appCsFile.WriteAllText(appCsText + Environment.NewLine);
         var appCsSourceText = SourceText.From(appCsText);
         var appCsEndPosition = appCsSourceText.Lines.GetLinePosition(appCsSourceText.Length);
         await testLspServer.InsertTextAsync(appCsUri, (Line: appCsEndPosition.Line, Column: appCsEndPosition.Character, Text: Environment.NewLine));
+
+        await fileChangeTcs.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
         await WaitForProjectLoad(appCsUri, testLspServer);
 
         // Get the Util.cs document again
