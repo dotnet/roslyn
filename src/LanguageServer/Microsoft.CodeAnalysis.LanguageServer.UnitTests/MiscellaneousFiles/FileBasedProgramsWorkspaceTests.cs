@@ -1208,7 +1208,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         var fileChangeTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         fileChangeContext.FileChanged += (_, e) =>
         {
-            if (e.FilePath == appCsFile.Path)
+            if (PathUtilities.Comparer.Equals(e.FilePath, appCsFile.Path))
                 fileChangeTcs.TrySetResult();
         };
 
@@ -1217,7 +1217,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         var appCsEndPosition = appCsSourceText.Lines.GetLinePosition(appCsSourceText.Length);
         await testLspServer.InsertTextAsync(appCsUri, (Line: appCsEndPosition.Line, Column: appCsEndPosition.Character, Text: Environment.NewLine));
 
-        await fileChangeTcs.Task.WaitAsync(TimeSpan.FromSeconds(30));
+        await fileChangeTcs.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
         await WaitForProjectLoad(appCsUri, testLspServer);
 
         // Get the Util.cs document again
