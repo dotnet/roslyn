@@ -30,20 +30,22 @@ internal sealed class LanguageServerHost
         Stream inputStream,
         Stream outputStream,
         ExportProvider exportProvider,
-        AbstractTypeRefResolver typeRefResolver)
+        AbstractTypeRefResolver typeRefResolver,
+        LanguageServerTelemetry? processTelemetryService)
     {
-        var processTelemetry = RoslynTelemetry.Current;
         var serverConfiguration = exportProvider.GetExportedValue<ServerConfiguration>();
 
         if (serverConfiguration.IsDaemon)
         {
-            _ownedTelemetry = LanguageServerTelemetry.CreatePerServerSession(
-                serverConfiguration,
-                exportProvider.GetExportedValue<ILoggerFactory>());
-            RoslynTelemetry.OnPerServerInstanceStarted();
+            // Every daemon server needs an isolated router even when VS telemetry is disabled, so sinks
+            // registered by one server cannot receive another server's events.
+            _telemetry = new RoslynTelemetry();
+            _ownedTelemetry = processTelemetryService?.CreatePerServerSession(_telemetry);
         }
-
-        _telemetry = _ownedTelemetry?.Telemetry ?? processTelemetry;
+        else
+        {
+            _telemetry = processTelemetryService?.Telemetry ?? RoslynTelemetry.Current;
+        }
 
         // In daemon mode the ambient here is the process owner, not this server, so establish the server's
         // instance for everything constructed below that captures it - the RoslynTelemetry LSP service, and the
@@ -159,18 +161,5 @@ internal sealed class LanguageServerHost
         => _roslynLanguageServer.GetLspServices();
 
     private void DisposeOwnedTelemetry()
-    {
-        var telemetry = Interlocked.Exchange(ref _ownedTelemetry, null);
-        if (telemetry is null)
-            return;
-
-        try
-        {
-            telemetry.Dispose();
-        }
-        finally
-        {
-            RoslynTelemetry.OnPerServerInstanceStopped();
-        }
-    }
+        => Interlocked.Exchange(ref _ownedTelemetry, null)?.Dispose();
 }

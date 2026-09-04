@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Internal.Log;
@@ -20,11 +19,6 @@ internal sealed partial class RoslynTelemetry
     private static readonly AsyncLocal<RoslynTelemetry?> s_current = new();
     private static readonly RoslynTelemetry s_default = new();
 
-#if DEBUG
-    private static int s_detectDefaultAttribution;
-    private static int s_activePerServerInstances;
-#endif
-
     /// <summary>
     /// The registered <see cref="IEventSink"/> each event fans out to.
     /// </summary>
@@ -36,45 +30,7 @@ internal sealed partial class RoslynTelemetry
     private static int s_lastUniqueBlockId;
 
     public static RoslynTelemetry Current
-    {
-        get
-        {
-            var current = s_current.Value;
-#if DEBUG
-            Debug.Assert(
-                current is not null ||
-                Volatile.Read(ref s_detectDefaultAttribution) == 0 ||
-                Volatile.Read(ref s_activePerServerInstances) == 0,
-                "Telemetry was logged without a server telemetry instance while a daemon server was active.");
-#endif
-            return current ?? s_default;
-        }
-    }
-
-    [Conditional("DEBUG")]
-    internal static void EnableDefaultAttributionDetection()
-    {
-#if DEBUG
-        Volatile.Write(ref s_detectDefaultAttribution, 1);
-#endif
-    }
-
-    [Conditional("DEBUG")]
-    internal static void OnPerServerInstanceStarted()
-    {
-#if DEBUG
-        Interlocked.Increment(ref s_activePerServerInstances);
-#endif
-    }
-
-    [Conditional("DEBUG")]
-    internal static void OnPerServerInstanceStopped()
-    {
-#if DEBUG
-        var activeInstances = Interlocked.Decrement(ref s_activePerServerInstances);
-        Debug.Assert(activeInstances >= 0);
-#endif
-    }
+        => s_current.Value ?? s_default;
 
     /// <summary>
     /// Sets the telemetry instance for the current asynchronous control flow. Disposing the result

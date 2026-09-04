@@ -25,11 +25,9 @@ public sealed class WorkspaceProjectFactoryServiceTests(ITestOutputHelper testOu
         var serviceBrokerFactory = testLspServer.GetRequiredLspService<ServiceBrokerFactory>();
         var projectTargetFrameworkManager = testLspServer.GetRequiredLspService<ProjectTargetFrameworkManager>();
         var clientLanguageServerManager = testLspServer.GetRequiredLspService<IClientLanguageServerManager>();
-        var telemetry = testLspServer.GetRequiredLspService<Microsoft.CodeAnalysis.Internal.Log.RoslynTelemetry>();
         var requestTelemetryLogger = (VSCodeRequestTelemetryLogger)testLspServer.GetRequiredLspService<RequestTelemetryLogger>();
         var container = await serviceBrokerFactory.CreateAsync(workspaceFactory.HostWorkspace);
 
-        using var telemetryScope = Microsoft.CodeAnalysis.Internal.Log.RoslynTelemetry.SetCurrent(telemetry);
         var workspaceProjectFactoryService = new WorkspaceProjectFactoryService(
             workspaceFactory,
             projectTargetFrameworkManager,

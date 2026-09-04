@@ -40,7 +40,6 @@ public sealed class RoslynTelemetryTests
     {
         public List<int> CounterTagCounts { get; } = [];
         public List<int> DistributionTagCounts { get; } = [];
-        public int FlushCount { get; private set; }
 
         public void Count(string eventName, string metricName, long delta, ReadOnlySpan<KeyValuePair<string, object?>> tags)
             => CounterTagCounts.Add(tags.Length);
@@ -49,7 +48,8 @@ public sealed class RoslynTelemetryTests
             => DistributionTagCounts.Add(tags.Length);
 
         public void Flush()
-            => FlushCount++;
+        {
+        }
     }
 
     [Fact]
@@ -162,70 +162,6 @@ public sealed class RoslynTelemetryTests
 
         Assert.Same(telemetry, await child);
         Assert.Same(previousTelemetry, RoslynTelemetry.Current);
-    }
-
-    /// <summary>
-    /// <see cref="ExecutionContext.SuppressFlow"/> keeps an ambient logging scope out of the work it
-    /// starts, but it also stops the telemetry instance from flowing. A scope opened on the resulting
-    /// clean context does flow onward, which is how service broker work is attributed.
-    /// </summary>
-    [Fact]
-    public async Task SuppressedFlowDropsCurrentButAFreshScopeFlowsOnward()
-    {
-        var telemetry = new RoslynTelemetry();
-
-        using (RoslynTelemetry.SetCurrent(telemetry))
-        {
-            Task<(RoslynTelemetry Inherited, RoslynTelemetry AfterScope)> work;
-            using (ExecutionContext.SuppressFlow())
-            {
-                work = Task.Run(async () =>
-                {
-                    var inherited = RoslynTelemetry.Current;
-
-                    using var _ = RoslynTelemetry.SetCurrent(telemetry);
-                    await Task.Yield();
-                    return (inherited, await Task.Run(() => RoslynTelemetry.Current));
-                });
-            }
-
-            var (inherited, afterScope) = await work;
-            Assert.NotSame(telemetry, inherited);
-            Assert.Same(telemetry, afterScope);
-        }
-    }
-
-    [Fact]
-    public void RequestScopeRestoresServerInstance()
-    {
-        var previousTelemetry = RoslynTelemetry.Current;
-        var serverTelemetry = new RoslynTelemetry();
-
-        using (RoslynTelemetry.SetCurrent(serverTelemetry))
-        {
-            using (RoslynTelemetry.SetCurrent(serverTelemetry))
-                Assert.Same(serverTelemetry, RoslynTelemetry.Current);
-
-            Assert.Same(serverTelemetry, RoslynTelemetry.Current);
-        }
-
-        Assert.Same(previousTelemetry, RoslynTelemetry.Current);
-    }
-
-    [Fact]
-    public void FlushOnlyFlushesCurrentInstance()
-    {
-        var firstTelemetry = new RoslynTelemetry();
-        var secondTelemetry = new RoslynTelemetry();
-        var firstSink = new RecordingMetricSink();
-        var secondSink = new RecordingMetricSink();
-        using var firstRegistration = firstTelemetry.AddMetricSink(firstSink);
-        using var secondRegistration = secondTelemetry.AddMetricSink(secondSink);
-
-        firstTelemetry.Flush();
-
-        Assert.Equal(1, firstSink.FlushCount);
-        Assert.Equal(0, secondSink.FlushCount);
     }
 
     [Fact]

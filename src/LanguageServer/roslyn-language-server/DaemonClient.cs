@@ -33,8 +33,6 @@ internal sealed class DaemonConnectResult : IDisposable
 
 internal static class DaemonClient
 {
-    private const string CopilotTelemetryLevelEnvironmentVariable = "COPILOT_TELEMETRY_LEVEL";
-
     private static readonly TimeSpan s_daemonMutexTimeout = TimeSpan.FromSeconds(20);
     private static readonly TimeSpan s_existingDaemonConnectTimeout = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan s_newDaemonConnectTimeout = TimeSpan.FromSeconds(20);
@@ -43,8 +41,7 @@ internal static class DaemonClient
         ServerExecutable executable,
         ThinClientArguments arguments)
     {
-        var telemetryLevel = arguments.TelemetryLevel
-            ?? Environment.GetEnvironmentVariable(CopilotTelemetryLevelEnvironmentVariable);
+        var telemetryLevel = TelemetryLevelResolver.Resolve(arguments.TelemetryLevel);
         var pipeName = GetDaemonPipeName(executable, telemetryLevel);
 
         if (!DaemonClientMutex.TryAcquire(pipeName, s_daemonMutexTimeout, out var clientMutex))
