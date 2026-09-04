@@ -145,7 +145,7 @@ internal sealed class CopilotGenerateDocumentationCommentManager
         }
 
         if (document.GetLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
-                await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false) is false)
+            !await copilotService.IsGenerateDocumentationCommentAvailableAsync(cancellationToken).ConfigureAwait(false))
         {
             return null;
         }
@@ -166,8 +166,7 @@ internal sealed class CopilotGenerateDocumentationCommentManager
             return null;
         }
 
-        // Check to see if the file containing the member being documented has been excluded.
-        if (await copilotService.IsFileExcludedAsync(memberNode.SyntaxTree.FilePath, cancellationToken).ConfigureAwait(false))
+        if (await copilotService.IsFileExcludedFromDocumentationCommentGenerationAsync(memberNode.SyntaxTree.FilePath, cancellationToken).ConfigureAwait(false))
         {
             return null;
         }
