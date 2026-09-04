@@ -135,8 +135,12 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
         Directory.CreateDirectory(serverConfiguration.ExtensionLogDirectory);
     }
 
-    using var telemetryService = LanguageServerTelemetry.CreateProcessSession(
-        serverConfiguration, loggerFactory, RoslynLog.RoslynTelemetry.Current, isDefaultSession: true);
+    using var telemetryService = LanguageServerTelemetry.CreateSession(
+        serverConfiguration,
+        loggerFactory,
+        RoslynLog.RoslynTelemetry.Current,
+        serverConfiguration.SessionId,
+        isDefaultSession: true);
 
     // Build the connection source for the configured mode. Single-server mode (stdio / connect-out pipe) yields
     // exactly one connection; daemon mode accepts many and manages its own idle timeout. Both run through the same
@@ -197,7 +201,8 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
     {
         using (connectionSource as IDisposable)
         {
-            await connectionManager.RunAsync(connectionSource, exportProvider, typeRefResolver, logger, telemetryService, cancellationToken);
+            await connectionManager.RunAsync(
+                connectionSource, exportProvider, typeRefResolver, logger, telemetryService?.SessionId, cancellationToken);
         }
     }
     finally
