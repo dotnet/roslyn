@@ -26,18 +26,6 @@ var csharpService = workspace.Services.GetLanguageServices(LanguageNames.CSharp)
     .GetRequiredService<IMyCSharpService>();
 ```
 
-### Language Server Telemetry
-
-- `DaemonConnection/TelemetryLevelResolver.cs` is source-shared by the thin client and server. It resolves the command-line telemetry level first and falls back to `COPILOT_TELEMETRY_LEVEL`; `Program` stores that effective value in `ServerConfiguration` before MEF composition.
-- Daemon mode always gives each connected language server an isolated `RoslynTelemetry`. `Program` owns the optional process `TelemetrySession`, and `LanguageServerHost` owns an optional child `TelemetrySession` only when telemetry is enabled; an explicit `off` still creates the opted-out process session but no child sessions.
-- `LanguageServerHost` establishes the server's ambient in two places and both are load-bearing. The **constructor** scope covers everything constructed under it that captures `RoslynTelemetry.Current` — the `RoslynTelemetry` LSP base service, and `RequestExecutionQueue`'s processing loop, which captures its execution context once when it is started and then runs for the life of the server. **`Start`** covers `JsonRpc.StartListening`: StreamJsonRpc captures the execution context at `StartListening`, *not* at construction, and dispatches every inbound message on it. `LspServices` reapplies the ambient when lazily constructing services so their factories can capture it.
-- `ExecutionContext` therefore already carries the owning server's instance through `Task.Run`, awaits, LSP request dispatch, and inbound brokered service calls (`ConstructRpc` constructs and starts listening in one scope), so **do not** reapply it per request or per brokered call. `Daemon_EachServerHasAnIsolatedTelemetrySession` and `InboundBrokeredServiceCallsUseTheOwningServersTelemetryAsync` guard those two paths respectively.
-- Reapply the ambient only where the execution context genuinely does not reach the owning server: OS file-watcher callbacks (`DefaultFileChangeWatcher`, whose watchers are shared across servers, so only the per-context instance is correct), work queues whose batch may be started by an arbitrary `AddWork` caller (`LanguageServerProjectLoader.ReloadProjectsAsync`), continuations scheduled from disposal paths (`LspFileWatchRegistration.Dispose`), and code reached through `ExecutionContext.SuppressFlow` (the `serviceBroker/connect` path, which re-establishes the ambient on a clean context so it flows to the whole bridge).
-- An `AsyncLocal` write inside a **synchronous** method leaks to its caller, so such scopes need the `SetCurrent` disposable; a write inside an **async** method does not, because the state machine restores the execution context after its synchronous prefix.
-- The Razor telemetry bridge is process-shared, so it uses a weak map from the ambient `RoslynTelemetry` to the corresponding active `TelemetrySession`; storing one mutable session on the wrapper would allow concurrent servers to overwrite each other's routing.
-- `NamedPipeDaemonConnectionSource` logs production daemon lifecycle events through the process-default `RoslynTelemetry`. The daemon test harness establishes its dedicated test instance as ambient, and per-server scopes do not leak into the supervision loop that reports client disconnect.
-- `FeaturesSessionTelemetry.Report()` currently reports process-wide aggregators once during process shutdown; do not invoke it from per-server telemetry disposal.
-
 ### MEF Export Patterns
 ```csharp
 // Workspace service (language-agnostic)
@@ -108,7 +96,6 @@ var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 - **Cancellation**: Always thread `CancellationToken` through async operations
 - **Performance**: Avoid LINQ in hot paths, prefer `for` loops or `.AsSpan()`, use `ObjectPool<T>`
 - **LanguageServer request context**: Handlers should use the asynchronous `RequestContext.Get*Async` methods for workspace, solution, and document access. Obsolete synchronous members remain only for compatibility with existing external-access consumers and forward to the asynchronous accessors.
-- **LanguageServer daemon tests**: Use `AbstractLanguageServerHostTests.CreateDaemonServerAsync` for in-process multi-client tests. The harness creates isolated daemon/per-server telemetry owners; opt-in levels must be explicit so tests never inherit telemetry consent from the machine environment.
 
 ## Common Gotchas
 

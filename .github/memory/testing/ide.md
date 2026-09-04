@@ -35,8 +35,3 @@ public class MyTests
   test source code.
 - Keep tests focused — avoid unnecessary intermediary assertions; use `.Single()`
   rather than asserting a count then indexing.
-
-## Language Server daemon tests
-
-- `AbstractLanguageServerHostTests.CreateDaemonServerAsync` runs the real multi-client connection manager and named-pipe listener in process. Each connected test client exposes its server's `LspServices`.
-- The harness gives daemon tests a dedicated process-level `RoslynTelemetry` and creates its `TelemetrySession` only when the test supplies an explicit level. Each daemon `LanguageServerHost` gets an isolated `RoslynTelemetry` and owns a child session only when telemetry is enabled. Single-server tests use the ambient default `RoslynTelemetry` directly; tests never inherit `COPILOT_TELEMETRY_LEVEL`.

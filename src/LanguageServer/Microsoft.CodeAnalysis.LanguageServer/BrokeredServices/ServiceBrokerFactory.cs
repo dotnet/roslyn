@@ -24,10 +24,7 @@ internal sealed class ServiceBrokerFactory : ILspService
     private class ServiceBrokerFactoryFactory(ExportProvider exportProvider) : ILspServiceFactory
     {
         public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-            => new ServiceBrokerFactory(
-                lspServices.GetRequiredServices<IServiceBrokerInitializer>(),
-                exportProvider,
-                lspServices.GetRequiredService<ILoggerFactory>());
+            => new ServiceBrokerFactory(lspServices.GetRequiredServices<IServiceBrokerInitializer>(), exportProvider, lspServices.GetRequiredService<ILoggerFactory>());
     }
 
     private readonly ExportProvider _exportProvider;
@@ -95,8 +92,7 @@ internal sealed class ServiceBrokerFactory : ILspService
         var container = await CreateAsync(workspace);
 
         var bridgeProvider = _exportProvider.GetExportedValue<BrokeredServiceBridgeProvider>();
-        _bridgeCompletionTask = bridgeProvider.SetupBrokeredServicesBridgeAsync(
-            brokeredServicePipeName, container, _loggerFactory, _cancellationTokenSource.Token);
+        _bridgeCompletionTask = bridgeProvider.SetupBrokeredServicesBridgeAsync(brokeredServicePipeName, container, _loggerFactory, _cancellationTokenSource.Token);
     }
 
     public async Task ShutdownAndWaitForCompletionAsync()

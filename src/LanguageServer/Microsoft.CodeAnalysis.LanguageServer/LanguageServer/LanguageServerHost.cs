@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
@@ -33,43 +33,42 @@ internal sealed class LanguageServerHost
         AbstractTypeRefResolver typeRefResolver,
         LanguageServerTelemetry? processTelemetryService)
     {
-        var serverConfiguration = exportProvider.GetExportedValue<ServerConfiguration>();
+        var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
 
-        if (serverConfiguration.IsDaemon)
+        var handler = new HeaderDelimitedMessageHandler(outputStream, inputStream, messageFormatter);
+
+        // If there is a jsonrpc disconnect or server shutdown, that is handled by the AbstractLanguageServer.  No need to do anything here.
+        _jsonRpc = new JsonRpc(handler)
         {
-            // Every daemon server needs an isolated router even when VS telemetry is disabled, so sinks
-            // registered by one server cannot receive another server's events.
-            _telemetry = new RoslynTelemetry();
-            _ownedTelemetry = processTelemetryService?.CreatePerServerSession(_telemetry);
-        }
-        else
-        {
-            _telemetry = processTelemetryService?.Telemetry ?? RoslynTelemetry.Current;
-        }
+            ExceptionStrategy = ExceptionProcessing.CommonErrorData,
+        };
 
-        // In daemon mode the ambient here is the process owner, not this server, so establish the server's
-        // instance for everything constructed below that captures it - the RoslynTelemetry LSP service, and the
-        // request queue's processing loop, which runs for the life of the server on this context.
-        using var telemetryScope = RoslynTelemetry.SetCurrent(_telemetry);
-
-        JsonRpc? jsonRpc = null;
         try
         {
-            var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
-            var handler = new HeaderDelimitedMessageHandler(outputStream, inputStream, messageFormatter);
+            var serverConfiguration = exportProvider.GetExportedValue<ServerConfiguration>();
 
-            // If there is a jsonrpc disconnect or server shutdown, that is handled by the AbstractLanguageServer.  No need to do anything here.
-            jsonRpc = new JsonRpc(handler)
+            if (serverConfiguration.IsDaemon)
             {
-                ExceptionStrategy = ExceptionProcessing.CommonErrorData,
-            };
-            _jsonRpc = jsonRpc;
+                // Every daemon server needs an isolated router even when VS telemetry is disabled, so sinks
+                // registered by one server cannot receive another server's events.
+                _telemetry = new RoslynTelemetry();
+                _ownedTelemetry = processTelemetryService?.CreatePerServerSession(_telemetry);
+            }
+            else
+            {
+                _telemetry = processTelemetryService?.Telemetry ?? RoslynTelemetry.Current;
+            }
+
+            // In daemon mode the ambient here is the process owner, not this server, so establish the server's
+            // instance for everything constructed below that captures it - the RoslynTelemetry LSP service, and the
+            // request queue's processing loop, which runs for the life of the server on this context.
+            using var telemetryScope = RoslynTelemetry.SetCurrent(_telemetry);
 
             var roslynLspFactory = exportProvider.GetExportedValue<CSharpVisualBasicLanguageServerFactory>();
 
             var hostServices = exportProvider.GetExportedValue<HostServicesProvider>().HostServices;
             _roslynLanguageServer = roslynLspFactory.Create(
-                jsonRpc,
+                _jsonRpc,
                 messageFormatter.JsonSerializerOptions,
                 WellKnownLspServerKinds.CSharpVisualBasicLspServer,
                 hostServices,
@@ -79,7 +78,7 @@ internal sealed class LanguageServerHost
         }
         catch
         {
-            jsonRpc?.Dispose();
+            _jsonRpc.Dispose();
             DisposeOwnedTelemetry();
             throw;
         }
