@@ -20,7 +20,6 @@ public sealed class TargetsFileSmokeTests : IDisposable
 	private static readonly string TargetsFile = Path.Combine(
 		AppContext.BaseDirectory,
 		"Microsoft.NET.ProjectData.targets");
-	private static readonly string ExtensionMSBuildDir = AppContext.BaseDirectory;
 
 	/// <summary>
 	/// Safety-net timeout for each spawned <c>dotnet msbuild</c> invocation. If a child MSBuild/restore
@@ -53,22 +52,6 @@ public sealed class TargetsFileSmokeTests : IDisposable
 		Assert.True(
 			File.Exists(TargetsFile),
 			$"Expected the targets file to be next to the test binary so MSBuild can resolve it. Looked for: {TargetsFile}");
-	}
-
-	[Theory]
-	[InlineData("NuGet.Versioning.dll")]
-	[InlineData("System.Buffers.dll")]
-	[InlineData("System.Collections.Immutable.dll")]
-	[InlineData("System.Memory.dll")]
-	[InlineData("System.Numerics.Vectors.dll")]
-	[InlineData("System.Runtime.CompilerServices.Unsafe.dll")]
-	public void ExtensionDistShipsTaskRuntimeDependencies(string fileName)
-	{
-		string path = Path.Combine(ExtensionMSBuildDir, fileName);
-
-		Assert.True(
-			File.Exists(path),
-			$"Expected the ProjectData MSBuild task runtime dependency to be copied to extension dist. Looked for: {path}");
 	}
 
 	[Fact]

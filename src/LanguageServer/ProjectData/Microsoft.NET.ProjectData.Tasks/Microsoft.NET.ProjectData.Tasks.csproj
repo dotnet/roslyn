@@ -12,9 +12,6 @@
     <!-- These members are used by source files that are intentionally not linked into this
          netstandard2.0 task assembly, so Roslyn's partial view reports them as unused. -->
     <NoWarn>$(NoWarn);IDE0051;IDE0060</NoWarn>
-    <!-- Roslyn's library defaults omit framework-provided transitive dependencies from
-         the output, but this task is loaded by MSBuild outside Roslyn's app context. -->
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
@@ -58,33 +55,5 @@
     <Compile Include="..\Microsoft.NET.ProjectData\ProjectDataBuildDiagnosticProtocol.cs" Link="Shared\ProjectDataBuildDiagnosticProtocol.cs" />
     <Compile Include="..\Microsoft.NET.ProjectData\HexEncoder.cs" Link="Shared\HexEncoder.cs" />
   </ItemGroup>
-
-  <!--
-    Roslyn does not deploy this task into C# Dev Kit's extension/dist directory.
-    Instead, expose the same explicit distribution closure so the test project can
-    copy it beside the test assembly and exercise the task under the layout MSBuild
-    consumers require.
-  -->
-  <Target Name="GetProjectDataDistFiles" DependsOnTargets="Build;ResolveReferences" Returns="@(_ProjectDataDistFiles)">
-    <ItemGroup>
-      <_ProjectDataDistFiles Include="$(TargetPath)" />
-      <_ProjectDataDistFiles Include="$(OutputPath)Microsoft.NET.ProjectData.targets" />
-      <_ProjectDataDistFiles Include="$(OutputPath)Microsoft.NET.ProjectData.Schema.props" />
-      <_ProjectDataDistFiles
-        Include="@(ReferencePath)"
-        Condition="
-          '%(ReferencePath.NuGetPackageId)' == 'System.Buffers'
-          Or '%(ReferencePath.NuGetPackageId)' == 'Microsoft.Bcl.AsyncInterfaces'
-          Or '%(ReferencePath.NuGetPackageId)' == 'System.Collections.Immutable'
-          Or '%(ReferencePath.NuGetPackageId)' == 'System.IO.Pipelines'
-          Or '%(ReferencePath.NuGetPackageId)' == 'System.Memory'
-          Or '%(ReferencePath.NuGetPackageId)' == 'System.Numerics.Vectors'
-          Or '%(ReferencePath.NuGetPackageId)' == 'NuGet.Versioning'
-          Or '%(ReferencePath.NuGetPackageId)' == 'System.Runtime.CompilerServices.Unsafe'
-          Or '%(ReferencePath.NuGetPackageId)' == 'System.Text.Encodings.Web'
-          Or '%(ReferencePath.NuGetPackageId)' == 'System.Text.Json'
-          Or '%(ReferencePath.NuGetPackageId)' == 'System.Threading.Tasks.Extensions'" />
-    </ItemGroup>
-  </Target>
 
 </Project>

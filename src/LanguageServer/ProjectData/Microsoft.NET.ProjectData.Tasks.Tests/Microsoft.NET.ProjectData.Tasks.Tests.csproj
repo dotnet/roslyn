@@ -23,18 +23,4 @@
     <PackageReference Include="Moq" />
   </ItemGroup>
 
-  <!-- The mirrored smoke tests load the task and its targets from the test output.
-       Copy the explicit deployment closure exposed by the task project so those tests
-       validate the same isolated MSBuild loading behavior as C# Dev Kit. -->
-  <Target Name="CopyProjectDataDistFiles" AfterTargets="Build">
-    <MSBuild
-      Projects="..\Microsoft.NET.ProjectData.Tasks\Microsoft.NET.ProjectData.Tasks.csproj"
-      Targets="GetProjectDataDistFiles"
-      Properties="Configuration=$(Configuration)"
-      RemoveProperties="TargetFramework">
-      <Output TaskParameter="TargetOutputs" ItemName="_ProjectDataDistFiles" />
-    </MSBuild>
-    <Copy SourceFiles="@(_ProjectDataDistFiles)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
-  </Target>
-
 </Project>
