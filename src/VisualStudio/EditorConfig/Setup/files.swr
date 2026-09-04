@@ -1,6 +1,6 @@
 use vs
 
-package name=Templates.Editorconfig.Setup
+package name=Templates.Editorconfig.SolutionFile.Setup
         version=$(Version)
 
 vs.localizedResources

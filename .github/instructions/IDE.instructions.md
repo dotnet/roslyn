@@ -16,6 +16,7 @@ Roslyn uses a **layered service architecture** built on MEF (Managed Extensibili
 - **EditorFeatures** (`src/EditorFeatures/`): VS Editor integration and text manipulation
 - **VisualStudio** (`src/VisualStudio/`): Visual Studio-specific implementations
 - **EditorConfig templates** (`src/VisualStudio/EditorConfig/`): item templates, generation wizard, context-menu command, VSIX projects, and Visual Studio insertion setup
+  - The setup insertion component is `Templates.Editorconfig.Setup`, but its SWR package identity must remain `Templates.Editorconfig.SolutionFile.Setup` because existing Visual Studio template packages depend on that ID.
 
 ### Service Resolution
 ```csharp
