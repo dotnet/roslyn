@@ -49,6 +49,15 @@ internal static class TestSkip
             return (assemblies, fingerprints, 0);
         }
 
+        var forceRun = string.Equals(
+            Environment.GetEnvironmentVariable("ROSLYN_TEST_SKIP_FORCE_RUN"),
+            "true",
+            StringComparison.OrdinalIgnoreCase);
+        if (forceRun)
+        {
+            ConsoleUtil.WriteLine("Test-skip: force-run enabled; prior PASS records will not skip assemblies.");
+        }
+
         var toRun = ImmutableArray.CreateBuilder<AssemblyInfo>();
         var skipped = 0;
         foreach (var asm in assemblies)
@@ -57,7 +66,7 @@ internal static class TestSkip
             var fp = ComputeFingerprint(deployDir);
             fingerprints[asm.AssemblyPath] = fp;
             var key = Key(asm.AssemblyName, EnvAxis(options, Path.GetFileName(deployDir)), fp);
-            if (HasPass(store, key))
+            if (!forceRun && HasPass(store, key))
             {
                 ConsoleUtil.WriteLine($"SKIP {asm.AssemblyName} (closure unchanged) fp={fp[..12]}");
                 skipped++;

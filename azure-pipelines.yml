@@ -1,44 +1,18 @@
-# Branches that trigger a build on commit
-trigger:
-- main
-- main-vs-deps
-- community
-- release/*
-- features/*
-- demos/*
-
-# Branches that trigger builds on PR
-pr:
-  branches:
-    include:
-    - main
-    - main-vs-deps
-    - community
-    - release/*
-    - features/*
-    - demos/*
-  paths:
-    exclude:
-      - docs/*
-      - eng/config/OptProf.json
-      - eng/config/PublishData.json
-      - eng/setup-pr-validation.ps1
-      - src/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework/README.md
-      - .vscode/*
-      - .github/*
-      - .devcontainer/*
-      - .git-blame-ignore-revs
-      - .vsconfig
-      - azure-pipelines-compliance.yml
-      - azure-pipelines-integration-dartlab.yml
-      - azure-pipelines-integration-scouting.yml
-      - azure-pipelines-official.yml
-      - azure-pipelines-pr-validation.yml
-      - CODE-OF-CONDUCT.md
-      - CONTRIBUTING.md
-      - README.md
+trigger: none
+pr: none
 
 variables:
+  - name: HistoricalSourceBuildId
+    value: ${{ parameters.SourceBuildId }}
+  - name: ReplaySequence
+    value: ${{ parameters.ReplaySequence }}
+  - name: ReplayExperimentId
+    value: ${{ parameters.ReplayExperimentId }}
+  - name: TestSkipStoreGeneration
+    value: ${{ parameters.TestSkipStoreGeneration }}
+  - name: ForceTests
+    value: ${{ parameters.ForceTests }}
+
   # This value is conditionally overriden by the variable group DotNet-HelixApi-Access.
   # ADO only lets us conditionally include a variable group on individual stages.
   - name: HelixApiAccessToken
@@ -111,6 +85,22 @@ variables:
       value: OSX.15.Amd64
 
 parameters:
+  - name: SourceBuildId
+    type: number
+    default: 0
+  - name: ReplaySequence
+    type: number
+    default: 0
+  - name: ReplayExperimentId
+    type: string
+    default: 'roslyn-history-testskip-20260904-10'
+  - name: TestSkipStoreGeneration
+    type: string
+    default: 'hist0904'
+  - name: ForceTests
+    type: boolean
+    default: false
+
   # These pools allow us to configure the pools once for multiple jobs.
   # We have to use parameters here as these are object typed.
   - name: ubuntuPool
@@ -134,8 +124,62 @@ parameters:
       demands: ImageOverride -equals $(Vs2026PreviewQueueName)
 
 stages:
+- stage: Patched_RunTests
+  dependsOn: []
+  jobs:
+  - job: Build_Patched_RunTests
+    displayName: Build result-gated RunTests
+    pool: ${{ parameters.vs2026PreviewPool }}
+    timeoutInMinutes: 30
+    variables:
+      - template: eng/pipelines/variables-build.yml
+        parameters:
+          configuration: Release
+    steps:
+      - template: eng/pipelines/checkout-windows-task.yml
+
+      - task: PowerShell@2
+        displayName: Validate replay parameters
+        inputs:
+          targetType: inline
+          pwsh: true
+          script: |
+            if (${{ parameters.SourceBuildId }} -le 0) { throw 'SourceBuildId is required.' }
+            if ('${{ parameters.TestSkipStoreGeneration }}' -notmatch '^[A-Za-z0-9._-]+$') {
+              throw 'TestSkipStoreGeneration contains unsafe artifact-name characters.'
+            }
+            Write-Host "Sequence ${{ parameters.ReplaySequence }} source build ${{ parameters.SourceBuildId }}"
+            Write-Host "Experiment ${{ parameters.ReplayExperimentId }} forceTests=${{ parameters.ForceTests }}"
+
+      - task: PowerShell@2
+        displayName: Build patched RunTests
+        inputs:
+          filePath: eng/build.ps1
+          arguments: -configuration Release -prepareMachine -ci -restore -build
+            -solution src/Tools/RunTests/RunTests.csproj -msbuildEngine dotnet
+            -binaryLogName PatchedRunTests.binlog
+
+      - task: PowerShell@2
+        displayName: Stage patched RunTests
+        inputs:
+          targetType: inline
+          pwsh: true
+          script: |
+            $source = "$(Build.SourcesDirectory)\artifacts\bin\RunTests\Release\net10.0\RunTests.dll"
+            $target = "$(Build.ArtifactStagingDirectory)\patched-runtests"
+            if (-not (Test-Path $source)) { throw "Patched RunTests not found at $source" }
+            New-Item -ItemType Directory -Force $target | Out-Null
+            Copy-Item $source (Join-Path $target 'RunTests.dll') -Force
+
+      - task: PublishPipelineArtifact@1
+        displayName: Publish patched RunTests
+        inputs:
+          targetPath: $(Build.ArtifactStagingDirectory)\patched-runtests
+          artifactName: patched-runtests
+
 - stage: Windows_Debug_Build
   dependsOn: []
+  condition: false
   jobs:
   - template: eng/pipelines/build-windows-job.yml
     parameters:
@@ -148,6 +192,7 @@ stages:
 
 - stage: Windows_Release_Build
   dependsOn: []
+  condition: false
   jobs:
   - template: eng/pipelines/build-windows-job.yml
     parameters:
@@ -160,6 +205,7 @@ stages:
 
 - stage: Unix_Build
   dependsOn: []
+  condition: false
   jobs:
   - template: eng/pipelines/build-unix-job.yml
     parameters:
@@ -170,6 +216,7 @@ stages:
 - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
   - stage: MacOS_Build
     dependsOn: []
+    condition: false
     jobs:
     - template: eng/pipelines/build-unix-job.yml
       parameters:
@@ -179,6 +226,7 @@ stages:
 
 - stage: Source_Build
   dependsOn: []
+  condition: false
   jobs:
   # Like template `eng/common/templates/jobs/source-build.yml`
   - job: Source_Build_Managed
@@ -202,7 +250,7 @@ stages:
           container: 'mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream9'
 
 - stage: Windows_Debug_Desktop
-  dependsOn: Windows_Debug_Build
+  dependsOn: Patched_RunTests
   variables:
   - ${{ if ne(variables['System.TeamProject'], 'public') }}:
     - group: DotNet-HelixApi-Access
@@ -231,7 +279,7 @@ stages:
       poolParameters: ${{ parameters.windowsPool }}
 
 - stage: Windows_Release_Desktop
-  dependsOn: Windows_Release_Build
+  dependsOn: Patched_RunTests
   variables:
   - ${{ if ne(variables['System.TeamProject'], 'public') }}:
     - group: DotNet-HelixApi-Access
@@ -272,7 +320,7 @@ stages:
         poolParameters: ${{ parameters.windowsPool }}
 
 - stage: Windows_Debug_CoreClr
-  dependsOn: Windows_Debug_Build
+  dependsOn: Patched_RunTests
   variables:
   - ${{ if ne(variables['System.TeamProject'], 'public') }}:
     - group: DotNet-HelixApi-Access
@@ -346,7 +394,7 @@ stages:
       poolParameters: ${{ parameters.windowsPool }}
 
 - stage: Windows_Release_CoreClr
-  dependsOn: Windows_Release_Build
+  dependsOn: Patched_RunTests
   variables:
   - ${{ if ne(variables['System.TeamProject'], 'public') }}:
     - group: DotNet-HelixApi-Access
@@ -363,7 +411,7 @@ stages:
       poolParameters: ${{ parameters.windowsPool }}
 
 - stage: Unix_Debug_CoreClr
-  dependsOn: Unix_Build
+  dependsOn: Patched_RunTests
   variables:
   - ${{ if ne(variables['System.TeamProject'], 'public') }}:
     - group: DotNet-HelixApi-Access
@@ -389,7 +437,7 @@ stages:
 
 - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
   - stage: MacOS_Debug_CoreClr
-    dependsOn: MacOS_Build
+    dependsOn: Patched_RunTests
     variables:
     - ${{ if ne(variables['System.TeamProject'], 'public') }}:
       - group: DotNet-HelixApi-Access
@@ -408,6 +456,7 @@ stages:
 
 - stage: Correctness
   dependsOn: []
+  condition: false
   jobs:
   - template: eng/pipelines/evaluate-changed-files.yml
     parameters:

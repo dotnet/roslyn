@@ -40,8 +40,30 @@ jobs:
     - task: DownloadPipelineArtifact@2
       displayName: Download Test Payload
       inputs:
-        artifact: ${{ parameters.testArtifactName }}
-        path: '$(Build.SourcesDirectory)'
+        buildType: specific
+        project: $(System.TeamProjectId)
+        definition: $(System.DefinitionId)
+        buildVersionToDownload: specific
+        pipelineId: $(HistoricalSourceBuildId)
+        artifactName: ${{ parameters.testArtifactName }}
+        targetPath: '$(Build.SourcesDirectory)'
+
+    - task: DownloadPipelineArtifact@2
+      displayName: Download patched RunTests
+      inputs:
+        buildType: current
+        artifactName: patched-runtests
+        targetPath: $(Pipeline.Workspace)/patched-runtests
+
+    - script: |
+        source="$(find "$(Pipeline.Workspace)/patched-runtests" -type f -name RunTests.dll | head -n 1)"
+        target="$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll"
+        if [ -z "$source" ] || [ ! -f "$target" ]; then
+          echo "RunTests overlay path missing: source=$source target=$target"
+          exit 1
+        fi
+        cp "$source" "$target"
+      displayName: Overlay patched RunTests
 
     - task: ShellScript@2
       displayName: Rehydrate Unit Tests Environment
@@ -62,7 +84,7 @@ jobs:
         branchName: $(Build.SourceBranch)
         allowPartiallySucceededBuilds: true
         allowFailedBuilds: true
-        artifact: testskipstore3-${{ parameters.jobName }}
+        artifact: testskip-$(TestSkipStoreGeneration)-${{ parameters.jobName }}
         path: $(Agent.TempDirectory)/testskipstore
 
     - task: ShellScript@2
@@ -72,6 +94,7 @@ jobs:
       displayName: Test
       env:
         ROSLYN_TEST_SKIP_STORE: $(Agent.TempDirectory)/testskipstore
+        ROSLYN_TEST_SKIP_FORCE_RUN: $(ForceTests)
 
     # Persist the updated PASS store only when the whole leg (tests included) was green. This is the
     # authoritative soundness gate: a failed leg publishes nothing, so its assemblies re-run next time.
@@ -80,7 +103,7 @@ jobs:
       condition: succeeded()
       inputs:
         targetPath: $(Agent.TempDirectory)/testskipstore
-        artifact: testskipstore3-${{ parameters.jobName }}
+        artifact: testskip-$(TestSkipStoreGeneration)-${{ parameters.jobName }}
 
     - template: publish-logs.yml
       parameters:

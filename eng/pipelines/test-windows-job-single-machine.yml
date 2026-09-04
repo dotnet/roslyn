@@ -39,8 +39,32 @@ jobs:
     - task: DownloadPipelineArtifact@2
       displayName: Download Test Payload
       inputs:
-        artifact: ${{ parameters.testArtifactName }}
-        path: '$(Build.SourcesDirectory)'
+        buildType: specific
+        project: $(System.TeamProjectId)
+        definition: $(System.DefinitionId)
+        buildVersionToDownload: specific
+        pipelineId: $(HistoricalSourceBuildId)
+        artifactName: ${{ parameters.testArtifactName }}
+        targetPath: '$(Build.SourcesDirectory)'
+
+    - task: DownloadPipelineArtifact@2
+      displayName: Download patched RunTests
+      inputs:
+        buildType: current
+        artifactName: patched-runtests
+        targetPath: $(Pipeline.Workspace)\patched-runtests
+
+    - task: PowerShell@2
+      displayName: Overlay patched RunTests
+      inputs:
+        targetType: inline
+        pwsh: true
+        script: |
+          $source = Get-ChildItem "$(Pipeline.Workspace)\patched-runtests" -Recurse -Filter RunTests.dll |
+            Select-Object -First 1 -ExpandProperty FullName
+          $target = "$(Build.SourcesDirectory)\artifacts\bin\RunTests\${{ parameters.configuration }}\net10.0\RunTests.dll"
+          if (-not $source -or -not (Test-Path $target)) { throw "RunTests overlay path missing: source=$source target=$target" }
+          Copy-Item $source $target -Force
     
     - task: BatchScript@1
       displayName: Rehydrate Unit Tests Environment
@@ -61,7 +85,7 @@ jobs:
         branchName: $(Build.SourceBranch)
         allowPartiallySucceededBuilds: true
         allowFailedBuilds: true
-        artifact: testskipstore3-${{ parameters.jobName }}
+        artifact: testskip-$(TestSkipStoreGeneration)-${{ parameters.jobName }}
         path: $(Agent.TempDirectory)/testskipstore
 
     - task: PowerShell@2
@@ -71,6 +95,7 @@ jobs:
         arguments: -ci -configuration ${{ parameters.configuration }} ${{ parameters.testArguments }} -collectDumps
       env:
         ROSLYN_TEST_SKIP_STORE: $(Agent.TempDirectory)/testskipstore
+        ROSLYN_TEST_SKIP_FORCE_RUN: $(ForceTests)
 
     # Persist the updated PASS store only when the whole leg (tests included) was green. This is the
     # authoritative soundness gate: a failed leg publishes nothing, so its assemblies re-run next time.
@@ -79,7 +104,7 @@ jobs:
       condition: succeeded()
       inputs:
         targetPath: $(Agent.TempDirectory)/testskipstore
-        artifact: testskipstore3-${{ parameters.jobName }}
+        artifact: testskip-$(TestSkipStoreGeneration)-${{ parameters.jobName }}
 
     - template: publish-logs.yml
       parameters:
