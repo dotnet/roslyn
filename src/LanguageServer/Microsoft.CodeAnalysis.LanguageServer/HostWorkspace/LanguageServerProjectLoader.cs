@@ -149,6 +149,8 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
 
     private async ValueTask ReloadProjectsAsync(ImmutableSegmentedList<ProjectToLoad> projectsToLoadOrReload, CancellationToken cancellationToken)
     {
+        // A batch runs on the context of whichever AddWork caller started it, which may be a file-change
+        // notification or other non-request caller that carries no ambient instance of its own.
         using var _ = RoslynTelemetry.SetCurrent(Telemetry);
 
         // TODO: support configuration switching

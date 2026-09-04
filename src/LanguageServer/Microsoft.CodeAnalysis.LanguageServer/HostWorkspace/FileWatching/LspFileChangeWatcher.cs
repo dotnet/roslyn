@@ -114,8 +114,6 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
 
         private void WatchedFilesHandler_OnNotificationRaised(object? sender, DidChangeWatchedFilesParams e)
         {
-            using var _ = RoslynTelemetry.SetCurrent(_lspFileChangeWatcher._telemetry);
-
             foreach (var changedFile in e.Changes)
             {
                 var filePath = changedFile.Uri.GetRequiredParsedUri().FsPath;
@@ -265,6 +263,9 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
 
             _registrationTask.ContinueWith(async _ =>
             {
+                // Dispose runs on whatever context released the last watch (often a project-system callback with
+                // no ambient of its own), and ContinueWith captures that context, so re-establish the owning
+                // server's instance for the unregistration request.
                 using var telemetryScope = RoslynTelemetry.SetCurrent(_changeWatcher._telemetry);
 
                 var unregistrationParams = new UnregistrationParams()

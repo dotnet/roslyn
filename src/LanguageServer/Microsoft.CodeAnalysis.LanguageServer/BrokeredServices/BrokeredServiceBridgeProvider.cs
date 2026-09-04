@@ -5,9 +5,7 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using System.IO.Pipelines;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.ServiceHub.Framework;
@@ -43,10 +41,6 @@ internal sealed class BrokeredServiceBridgeProvider
         ILoggerFactory loggerFactory,
         CancellationToken cancellationToken)
     {
-        // Captured for TelemetryServiceBroker, which is invoked later by inbound requests that carry
-        // no ambient of their own.
-        var telemetry = RoslynTelemetry.Current;
-
         var logger = loggerFactory.CreateLogger<BrokeredServiceBridgeProvider>();
         var brokeredServiceTraceSource = BrokeredServiceTraceListener.CreateTraceSource(loggerFactory);
 
@@ -60,11 +54,11 @@ internal sealed class BrokeredServiceBridgeProvider
         async Task ProfferServicesToRemoteAsync()
         {
             using var profferedServiceBrokerChannel = await bridgeMxStream.OfferChannelAsync(ServiceBrokerChannelName, cancellationToken);
-            var serviceBroker = new TelemetryServiceBroker(
-                container.GetLimitedAccessServiceBroker(ServiceAudience.Local, ImmutableDictionary<string, string>.Empty, ClientCredentialsPolicy.RequestOverridesDefault),
-                telemetry);
+            var serviceBroker = container.GetLimitedAccessServiceBroker(ServiceAudience.Local, ImmutableDictionary<string, string>.Empty, ClientCredentialsPolicy.RequestOverridesDefault);
             using IpcRelayServiceBroker relayServiceBroker = new(serviceBroker);
 
+            // ConstructRpc starts listening here, so every inbound request that activates a service through
+            // this broker is dispatched on this execution context and inherits the owning server's telemetry.
             FrameworkServices.RemoteServiceBroker
                 .WithTraceSource(brokeredServiceTraceSource)
                 .ConstructRpc(relayServiceBroker, profferedServiceBrokerChannel);
@@ -85,35 +79,5 @@ internal sealed class BrokeredServiceBridgeProvider
             }
         }
 
-    }
-
-    private sealed class TelemetryServiceBroker(IServiceBroker serviceBroker, RoslynTelemetry telemetry) : IServiceBroker
-    {
-        public event EventHandler<BrokeredServicesChangedEventArgs>? AvailabilityChanged
-        {
-            add => serviceBroker.AvailabilityChanged += value;
-            remove => serviceBroker.AvailabilityChanged -= value;
-        }
-
-        public async ValueTask<IDuplexPipe?> GetPipeAsync(
-            ServiceMoniker serviceMoniker,
-            ServiceActivationOptions options = default,
-            CancellationToken cancellationToken = default)
-        {
-            using var _ = RoslynTelemetry.SetCurrent(telemetry);
-            return await serviceBroker.GetPipeAsync(serviceMoniker, options, cancellationToken);
-        }
-
-        public async ValueTask<T?> GetProxyAsync<T>(
-            ServiceRpcDescriptor serviceDescriptor,
-            ServiceActivationOptions options = default,
-            CancellationToken cancellationToken = default)
-            where T : class
-        {
-            using var _ = RoslynTelemetry.SetCurrent(telemetry);
-#pragma warning disable ISB001 // Dispose of proxies - caller is responsible for disposing the proxy.
-            return await serviceBroker.GetProxyAsync<T>(serviceDescriptor, options, cancellationToken);
-#pragma warning restore ISB001 // Dispose of proxies
-        }
     }
 }

@@ -90,6 +90,9 @@ internal sealed partial class DefaultFileChangeWatcher
         /// </summary>
         internal void OnFileSystemEvent(FileSystemEventArgs e)
         {
+            // The underlying FileSystemWatcher is shared between contexts (and so between servers), and raises its
+            // events on an OS notification thread whose context is whichever caller happened to arm the watch, so
+            // attribute to the instance that owns this context rather than to the ambient one.
             using var _ = RoslynTelemetry.SetCurrent(_telemetry);
 
             bool shouldRaiseForNewPath;

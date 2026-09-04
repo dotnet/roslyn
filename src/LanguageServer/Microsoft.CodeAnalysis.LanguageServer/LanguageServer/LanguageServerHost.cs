@@ -44,6 +44,10 @@ internal sealed class LanguageServerHost
         }
 
         _telemetry = _ownedTelemetry?.Telemetry ?? processTelemetry;
+
+        // In daemon mode the ambient here is the process owner, not this server, so establish the server's
+        // instance for everything constructed below that captures it - the RoslynTelemetry LSP service, and the
+        // request queue's processing loop, which runs for the life of the server on this context.
         using var telemetryScope = RoslynTelemetry.SetCurrent(_telemetry);
 
         JsonRpc? jsonRpc = null;
@@ -81,6 +85,9 @@ internal sealed class LanguageServerHost
 
     public void Start()
     {
+        // StreamJsonRpc captures the execution context at StartListening (not at construction), and dispatches
+        // every inbound message on it, so this scope - not the constructor's - is what attributes LSP requests to
+        // this server. The daemon calls Start on its own context, so the ambient here is not yet this server's.
         using var telemetryScope = RoslynTelemetry.SetCurrent(_telemetry);
 
         Contract.ThrowIfTrue(_hasStarted);
@@ -96,6 +103,8 @@ internal sealed class LanguageServerHost
 
     public async Task WaitForExitAsync()
     {
+        // The daemon supervises every server from its own context, so attribute this server's shutdown - including
+        // the telemetry session flush in DisposeOwnedTelemetry - to the server rather than to the daemon.
         using var telemetryScope = RoslynTelemetry.SetCurrent(_telemetry);
 
         // Wait until the server exits.  Once complete, we can return and proceed with shutdown.
@@ -119,6 +128,8 @@ internal sealed class LanguageServerHost
 
     public async Task AbortAsync()
     {
+        // Startup is aborted from the daemon's context, so attribute the shutdown/exit of this server - which
+        // never began listening, and so has no context of its own to inherit - to the server itself.
         using var telemetryScope = RoslynTelemetry.SetCurrent(_telemetry);
 
         try

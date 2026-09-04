@@ -175,7 +175,9 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
             // Stateless LSP services will be disposed of on MEF container disposal.
             var checkDisposal = !lazyService.Metadata.IsStateless && !lazyService.IsValueCreated;
 
-            // Services are lazy and may first be requested outside the request queue.
+            // A service can first be requested from a context that carries no ambient instance of its own (for
+            // example a file-watcher callback or work-queue batch), so re-establish this server's instance for
+            // factories that capture RoslynTelemetry.Current.
             using var _ = _telemetry is null ? null : RoslynTelemetry.SetCurrent(_telemetry);
             var lspService = lazyService.Value;
             if (checkDisposal)

@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.BrokeredServiceBridgeManifest;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.Extensions.Logging;
@@ -36,7 +35,6 @@ internal sealed class ServiceBrokerFactory : ILspService
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly ImmutableArray<IServiceBrokerInitializer> _serviceBrokerInitializers;
     private readonly ILoggerFactory _loggerFactory;
-    private readonly RoslynTelemetry _telemetry = RoslynTelemetry.Current;
 
     public ServiceBrokerFactory(
         IEnumerable<IServiceBrokerInitializer> onServiceBrokerInitialized,
@@ -57,7 +55,7 @@ internal sealed class ServiceBrokerFactory : ILspService
         var container = await BrokeredServiceContainer.CreateAsync(_exportProvider, _serviceBrokerInitializers, _loggerFactory, _cancellationTokenSource.Token);
 
         // Proffer the manifest service that describes the services proffered by this process across the bridge, so the other side can know what services to expect.
-        ProfferBridgeManifest(container, _loggerFactory, _telemetry);
+        ProfferBridgeManifest(container, _loggerFactory);
 
         // Make the container available to workspace services.
         var provider = (ServiceBrokerProvider)workspace.Services.GetRequiredService<IServiceBrokerProvider>();
@@ -76,7 +74,7 @@ internal sealed class ServiceBrokerFactory : ILspService
 
         return container;
 
-        static void ProfferBridgeManifest(BrokeredServiceContainer container, ILoggerFactory loggerFactory, RoslynTelemetry telemetry)
+        static void ProfferBridgeManifest(BrokeredServiceContainer container, ILoggerFactory loggerFactory)
         {
             container.RegisterServices(new Dictionary<ServiceMoniker, ServiceRegistration>
             {
@@ -86,7 +84,6 @@ internal sealed class ServiceBrokerFactory : ILspService
                 BrokeredServiceBridgeManifest.ServiceDescriptor,
                 (moniker, options, innerServiceBroker, cancellationToken) =>
                 {
-                    using var _ = RoslynTelemetry.SetCurrent(telemetry);
                     var bridgeManifestService = new BrokeredServiceBridgeManifest(container, loggerFactory);
                     return new ValueTask<object?>(bridgeManifestService);
                 });
