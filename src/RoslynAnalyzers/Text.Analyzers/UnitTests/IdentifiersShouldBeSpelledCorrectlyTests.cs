@@ -243,6 +243,27 @@ namespace Text.Analyzers.UnitTests
                     .WithLocation(0)
                     .WithArguments(typeName));
 
+        [Fact]
+        public Task MemberParameterUnmeaningfulAndSingleLetterParametersExcluded_Verify_NoDiagnosticsAsync()
+            => VerifyCSharpWithSingleLetterParametersExcludedAsync(
+                "class Program { public void Method(string a) { } }");
+
+        [Fact]
+        public Task MemberParameterMisspelledAndSingleLetterParametersExcluded_Verify_EmitsDiagnosticAsync()
+            => VerifyCSharpWithSingleLetterParametersExcludedAsync(
+                "class Program { public void Method(string {|#0:yourNaem|}) { } }",
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterRule)
+                    .WithLocation(0)
+                    .WithArguments("Program.Method(string)", "Naem", "yourNaem"));
+
+        [Fact]
+        public Task TypeUnmeaningfulAndSingleLetterParametersExcluded_Verify_EmitsDiagnosticAsync()
+            => VerifyCSharpWithSingleLetterParametersExcludedAsync(
+                "class {|#0:A|} {}",
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.TypeMoreMeaningfulNameRule)
+                    .WithLocation(0)
+                    .WithArguments("A"));
+
         [Theory]
         [MemberData(nameof(MisspelledMembers))]
         public Task MemberMisspelled_Verify_EmitsDiagnosticAsync(string source, string misspelling, string memberName)
@@ -722,6 +743,28 @@ namespace Text.Analyzers.UnitTests
                 TestState =
                 {
                     AdditionalFilesFactories = { () => additionalTexts.Select(x => (x.Path, SourceText.From(x.Text))) }
+                },
+                TestBehaviors = TestBehaviors.SkipSuppressionCheck,
+            };
+
+            csharpTest.ExpectedDiagnostics.AddRange(expected);
+
+            await csharpTest.RunAsync();
+        }
+
+        private async Task VerifyCSharpWithSingleLetterParametersExcludedAsync(string source, params DiagnosticResult[] expected)
+        {
+            var csharpTest = new VerifyCS.Test
+            {
+                TestCode = source,
+                TestState =
+                {
+                    AnalyzerConfigFiles = { ("/.editorconfig", """
+                        root = true
+
+                        [*]
+                        dotnet_code_quality.CA1704.exclude_single_letter_parameters = true
+                        """), },
                 },
                 TestBehaviors = TestBehaviors.SkipSuppressionCheck,
             };
