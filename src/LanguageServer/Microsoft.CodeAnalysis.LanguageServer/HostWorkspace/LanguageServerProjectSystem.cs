@@ -6,9 +6,11 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.FileBasedPrograms;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -159,12 +161,14 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
             ? new WorkDoneProgressTracker(progressReporter, projects.Length)
             : null;
 
+        var loadedProjects = ImmutableArray.CreateBuilder<LoadedProject>(projects.Length);
         foreach (var (path, guid) in projects)
         {
-            await BeginLoadingProjectAsync(path, guid, progressTracker);
+            var loadedProject = await BeginLoadingProjectAsync(path, guid);
+            loadedProjects.Add(loadedProject);
         }
 
-        await WaitForProjectsToFinishLoadingAsync();
+        await WaitForProjectLoadsAsync(loadedProjects.MoveToImmutable(), progressTracker);
         await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync(_clientLanguageServerManager);
     }
 
@@ -177,13 +181,25 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
             ? new WorkDoneProgressTracker(progressReporter, projectFilePaths.Length)
             : null;
 
+        var loadedProjects = ImmutableArray.CreateBuilder<LoadedProject>(projectFilePaths.Length);
         foreach (var path in projectFilePaths)
         {
-            await BeginLoadingProjectAsync(NormalizeDriveLetter(path), projectGuid: null, progressTracker);
+            var loadedProject = await BeginLoadingProjectAsync(NormalizeDriveLetter(path), projectGuid: null);
+            loadedProjects.Add(loadedProject);
         }
 
-        await WaitForProjectsToFinishLoadingAsync();
+        await WaitForProjectLoadsAsync(loadedProjects.MoveToImmutable(), progressTracker, CancellationToken.None).ConfigureAwait(false);
         await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync(_clientLanguageServerManager);
+    }
+
+    internal Task<LoadedProject> BeginLoadingProjectAsync(string projectFilePath)
+        => BeginLoadingProjectAsync(projectFilePath, projectGuid: null);
+
+    internal ImmutableArray<string> GetSupportedProjectFileExtensions()
+    {
+        var supportedLanguages = _hostProjectFactory.Workspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>();
+        return _projectFileExtensionRegistry.GetRegisteredProjectFileExtensions().WhereAsArray(
+            extension => _projectFileExtensionRegistry.TryGetLanguageNameFromExtension(extension, out var languageName) && supportedLanguages.Contains(languageName));
     }
 
     protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(

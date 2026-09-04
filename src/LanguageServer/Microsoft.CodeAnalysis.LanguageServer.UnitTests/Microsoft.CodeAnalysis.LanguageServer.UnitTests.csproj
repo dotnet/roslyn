@@ -15,6 +15,7 @@
     <ProjectReference Include="..\Microsoft.CodeAnalysis.LanguageServer\Microsoft.CodeAnalysis.LanguageServer.csproj" />
     <ProjectReference Include="..\Protocol.TestUtilities\Microsoft.CodeAnalysis.LanguageServer.Protocol.Test.Utilities.csproj" />
     <ProjectReference Include="..\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
+    <ProjectReference Include="..\..\Workspaces\MSBuild\Contracts\Microsoft.CodeAnalysis.Workspaces.MSBuild.Contracts.csproj" Aliases="MSBuildWorkspacesContracts" />
     <ProjectReference Include="..\..\VisualStudio\DevKit\Impl\Microsoft.VisualStudio.LanguageServices.DevKit.csproj" ReferenceOutputAssembly="false" Private="false" />
   </ItemGroup>
 
@@ -25,12 +26,6 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="IdeCoreBenchmarks" />
-  </ItemGroup>
-
-  <ItemGroup Label="Shared named-pipe helper for daemon client tests">
-    <!-- Tests connect to the daemon as a client using the same compiler-server pipe helper the thin client
-         uses, so the test's client stream agrees with the daemon's server stream on pipe path -->
-    <Compile Include="..\..\Compilers\Shared\NamedPipeUtil.cs" Link="Daemon\NamedPipeUtil.cs" />
   </ItemGroup>
 
   <!--
