@@ -40,19 +40,70 @@ jobs:
     - task: DownloadPipelineArtifact@2
       displayName: Download Test Payload
       inputs:
-        artifact: ${{ parameters.testArtifactName }}
-        path: '$(Build.SourcesDirectory)'
+        buildType: specific
+        project: $(System.TeamProjectId)
+        definition: $(System.DefinitionId)
+        buildVersionToDownload: specific
+        pipelineId: $(HistoricalSourceBuildId)
+        artifactName: ${{ parameters.testArtifactName }}
+        targetPath: '$(Build.SourcesDirectory)'
+
+    - task: DownloadPipelineArtifact@2
+      displayName: Download patched RunTests
+      inputs:
+        buildType: current
+        artifactName: patched-runtests
+        targetPath: $(Pipeline.Workspace)/patched-runtests
+
+    - script: |
+        source="$(find "$(Pipeline.Workspace)/patched-runtests" -type f -name RunTests.dll | head -n 1)"
+        target="$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll"
+        if [ -z "$source" ] || [ ! -f "$target" ]; then
+          echo "RunTests overlay path missing: source=$source target=$target"
+          exit 1
+        fi
+        cp "$source" "$target"
+      displayName: Overlay patched RunTests
 
     - task: ShellScript@2
       displayName: Rehydrate Unit Tests Environment
       inputs:
         scriptPath: ./rehydrate-all.sh
 
+    # Pull this leg's closure-fingerprint PASS store from the most recent build on the branch. A leg
+    # only skips an assembly whose full deploy closure has a recorded PASS under this same leg. Missing
+    # on the first run (nothing to download) -> everything runs, so continueOnError is intentional.
+    - task: DownloadPipelineArtifact@2
+      displayName: Pull test-skip store
+      continueOnError: true
+      inputs:
+        buildType: specific
+        project: $(System.TeamProject)
+        definition: $(System.DefinitionId)
+        buildVersionToDownload: latestFromBranch
+        branchName: $(Build.SourceBranch)
+        allowPartiallySucceededBuilds: true
+        allowFailedBuilds: true
+        artifact: testskip-$(TestSkipStoreGeneration)-${{ parameters.jobName }}
+        path: $(Agent.TempDirectory)/testskipstore
+
     - task: ShellScript@2
       inputs:
         scriptPath: ./eng/build.sh
         args: --ci --configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
       displayName: Test
+      env:
+        ROSLYN_TEST_SKIP_STORE: $(Agent.TempDirectory)/testskipstore
+        ROSLYN_TEST_SKIP_FORCE_RUN: $(ForceTests)
+
+    # Persist the updated PASS store only when the whole leg (tests included) was green. This is the
+    # authoritative soundness gate: a failed leg publishes nothing, so its assemblies re-run next time.
+    - task: PublishPipelineArtifact@1
+      displayName: Publish test-skip store
+      condition: succeeded()
+      inputs:
+        targetPath: $(Agent.TempDirectory)/testskipstore
+        artifact: testskip-$(TestSkipStoreGeneration)-${{ parameters.jobName }}
 
     - template: publish-logs.yml
       parameters:
