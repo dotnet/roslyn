@@ -6925,27 +6925,9 @@ class Program
                     }
                 }
                 """).VerifyDiagnostics(
-                // (5,27): error CS0103: The name 'partial' does not exist in the current context
+                // (5,27): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
                 //         System.Action x = partial static () => { };
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "partial").WithArguments("partial").WithLocation(5, 27),
-                // (5,35): error CS1002: ; expected
-                //         System.Action x = partial static () => { };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(5, 35),
-                // (5,35): error CS0106: The modifier 'static' is not valid for this item
-                //         System.Action x = partial static () => { };
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "static").WithArguments("static").WithLocation(5, 35),
-                // (5,43): error CS8124: Tuple must contain at least two elements.
-                //         System.Action x = partial static () => { };
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 43),
-                // (5,45): error CS1001: Identifier expected
-                //         System.Action x = partial static () => { };
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(5, 45),
-                // (5,45): error CS1003: Syntax error, ',' expected
-                //         System.Action x = partial static () => { };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(5, 45),
-                // (5,48): error CS1002: ; expected
-                //         System.Action x = partial static () => { };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(5, 48));
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 27));
         }
 
         [Fact]
