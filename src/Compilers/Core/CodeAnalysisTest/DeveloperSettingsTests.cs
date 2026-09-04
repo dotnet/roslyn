@@ -4,8 +4,6 @@
 
 using System;
 using System.Diagnostics;
-using System.IO;
-using System.Runtime.CompilerServices;
 using Microsoft.Win32;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -29,33 +27,15 @@ public sealed class DeveloperSettingsTests
     [Fact]
     public void SourceFileLineEndingsMatchPlatform()
     {
-        var sourceText = File.ReadAllText(GetThisSourceFilePath());
+        // The line break inside this literal is taken verbatim from this source file, so it
+        // reflects the line endings the file was checked out with.
+        const string twoLines = """
+            first
+            second
+            """;
 
-        if (Path.DirectorySeparatorChar == '\\')
-        {
-            Assert.Contains("\r\n", sourceText);
-            Assert.False(ContainsBareLineFeed(sourceText));
-        }
-        else
-        {
-            Assert.Contains("\n", sourceText);
-            Assert.DoesNotContain("\r\n", sourceText);
-        }
+        var lineEnding = twoLines["first".Length..^"second".Length];
+
+        Assert.Equal(Environment.NewLine, lineEnding);
     }
-
-    private static bool ContainsBareLineFeed(string text)
-    {
-        for (var i = 0; i < text.Length; i++)
-        {
-            if (text[i] == '\n' && (i == 0 || text[i - 1] != '\r'))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static string GetThisSourceFilePath([CallerFilePath] string sourceFilePath = "")
-        => sourceFilePath;
 }
