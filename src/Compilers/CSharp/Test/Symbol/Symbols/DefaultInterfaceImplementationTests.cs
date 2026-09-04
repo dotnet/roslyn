@@ -2291,7 +2291,7 @@ class Test1 : I2, I1<string?>
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.Regular15,
                                                  targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics();
 
@@ -11746,11 +11746,7 @@ public partial interface I1
                 Diagnostic(ErrorCode.ERR_PartialMethodToDelegate, "M1").WithArguments("I1.M1()").WithLocation(9, 27),
                 // (10,27): error CS0762: Cannot create delegate from method 'I1.M2()' because it is a partial method without an implementing declaration
                 //         new System.Action(M2).Invoke();
-                Diagnostic(ErrorCode.ERR_PartialMethodToDelegate, "M2").WithArguments("I1.M2()").WithLocation(10, 27),
-                // (13,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                //     partial static void M4();
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(13, 5)
-                );
+                Diagnostic(ErrorCode.ERR_PartialMethodToDelegate, "M2").WithArguments("I1.M2()").WithLocation(10, 27));
         }
 
         [Fact]

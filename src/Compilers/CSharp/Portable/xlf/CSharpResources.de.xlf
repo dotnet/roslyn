@@ -3222,6 +3222,11 @@
         <target state="translated">„ref“ und „unsicher“ in asynchronen und Enumeratormethoden</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureRelaxedModifierOrdering">
+        <source>relaxed modifier ordering</source>
+        <target state="new">relaxed modifier ordering</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
         <source>relaxed shift operator</source>
         <target state="translated">entspannter Schichtoperator</target>
@@ -7361,8 +7366,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</source>
-        <target state="translated">Der partial-Modifizierer kann nur unmittelbar vor „class“, „record“, „struct“, „interface“, „event“, einem Instanzkonstruktornamen oder einem Methoden- Eigenschaftsrückgabetyp verwendet werden.</target>
+        <source>The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.</source>
+        <target state="needs-review-translation">Der partial-Modifizierer kann nur unmittelbar vor „class“, „record“, „struct“, „interface“, „event“, einem Instanzkonstruktornamen oder einem Methoden- Eigenschaftsrückgabetyp verwendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">

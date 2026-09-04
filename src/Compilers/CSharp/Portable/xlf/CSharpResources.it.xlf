@@ -3222,6 +3222,11 @@
         <target state="translated">ref e unsafe nei metodi asincroni e iteratori</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureRelaxedModifierOrdering">
+        <source>relaxed modifier ordering</source>
+        <target state="new">relaxed modifier ordering</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
         <source>relaxed shift operator</source>
         <target state="translated">operatore di spostamento rilassato</target>
@@ -7361,8 +7366,8 @@ target:module               Compila un modulo che può essere aggiunto ad altro
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</source>
-        <target state="translated">Il modificatore 'partial' può trovarsi solo immediatamente prima di 'class', 'record', 'struct', 'interface, 'event', un nome di costruttore di istanza o il tipo restituito di un metodo o di una proprietà.</target>
+        <source>The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.</source>
+        <target state="needs-review-translation">Il modificatore 'partial' può trovarsi solo immediatamente prima di 'class', 'record', 'struct', 'interface, 'event', un nome di costruttore di istanza o il tipo restituito di un metodo o di una proprietà.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">

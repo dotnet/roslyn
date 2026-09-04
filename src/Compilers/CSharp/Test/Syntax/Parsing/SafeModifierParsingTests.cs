@@ -682,31 +682,32 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [Fact]
     public void Constructor_BeforePartial_Before()
     {
-        UsingDeclaration("public safe partial C();", TestOptions.Regular14,
-            // (1,13): error CS1525: Invalid expression term 'partial'
-            // public safe partial C();
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 13),
-            // (1,13): error CS1003: Syntax error, ',' expected
-            // public safe partial C();
-            Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(1, 13));
+        UsingDeclaration("public safe partial C();", TestOptions.Regular14);
 
-        N(SyntaxKind.FieldDeclaration);
+        N(SyntaxKind.ConstructorDeclaration);
         {
             N(SyntaxKind.PublicKeyword);
-            N(SyntaxKind.VariableDeclaration);
+            N(SyntaxKind.SafeKeyword);
+            N(SyntaxKind.PartialKeyword);
+            N(SyntaxKind.IdentifierToken, "C");
+            N(SyntaxKind.ParameterList);
             {
-                N(SyntaxKind.IdentifierName);
-                {
-                    N(SyntaxKind.IdentifierToken, "safe");
-                }
-                M(SyntaxKind.VariableDeclarator);
-                {
-                    M(SyntaxKind.IdentifierToken);
-                }
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.CloseParenToken);
             }
             N(SyntaxKind.SemicolonToken);
         }
         EOF();
+
+        CreateCompilation(
+            "class C { public safe partial C(); }",
+            parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            // (1,18): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // class C { public safe partial C(); }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(1, 18),
+            // (1,31): error CS9275: Partial member 'C.C()' must have an implementation part.
+            // class C { public safe partial C(); }
+            Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "C").WithArguments("C.C()").WithLocation(1, 31));
     }
 
     [Theory, CombinatorialData]

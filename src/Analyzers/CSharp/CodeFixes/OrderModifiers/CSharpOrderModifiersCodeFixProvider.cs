@@ -19,10 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers;
 internal sealed class CSharpOrderModifiersCodeFixProvider()
     : AbstractOrderModifiersCodeFixProvider(CSharpSyntaxFacts.Instance, CSharpOrderModifiersHelper.Instance)
 {
-    private const string CS0267 = nameof(CS0267); // The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+    private const string CS9327 = nameof(CS9327); // Feature is not available in C# 14. Please use language version 15.0 or greater.
 
     protected override CodeStyleOption2<string> GetCodeStyleOption(AnalyzerOptionsProvider options)
         => ((CSharpAnalyzerOptionsProvider)options).PreferredModifierOrder;
 
-    protected override ImmutableArray<string> FixableCompilerErrorIds { get; } = [CS0267];
+    protected override ImmutableArray<string> FixableCompilerErrorIds { get; } = [CS9327];
 }

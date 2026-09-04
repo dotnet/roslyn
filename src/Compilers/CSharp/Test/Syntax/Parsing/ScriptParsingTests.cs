@@ -827,28 +827,26 @@ new partial partial Goo();
             }
 
             tree = UsingTree(src,
-                // (1,13): error CS1525: Invalid expression term 'partial'
+                // (1,21): error CS1520: Method must have a return type
                 // new partial partial Goo();
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 13),
-                // (1,13): error CS1003: Syntax error, ',' expected
-                // new partial partial Goo();
-                Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(1, 13));
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "Goo").WithLocation(1, 21));
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.FieldDeclaration);
+                N(SyntaxKind.MethodDeclaration);
                 {
                     N(SyntaxKind.NewKeyword);
-                    N(SyntaxKind.VariableDeclaration);
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.PartialKeyword);
+                    M(SyntaxKind.PredefinedType);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "partial");
-                        }
-                        M(SyntaxKind.VariableDeclarator);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
+                        M(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "Goo");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
                     }
                     N(SyntaxKind.SemicolonToken);
                 }
@@ -1249,9 +1247,6 @@ new partial class C { }
         {
             var source = "new partial public class C { }";
             CreateCompilation(source).VerifyDiagnostics(
-                    // (1,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                    // new partial public class C { }
-                    Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 5),
                     // (1,26): error CS0106: The modifier 'new' is not valid for this item
                     // new partial public class C { }
                     Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("new").WithLocation(1, 26)
@@ -1278,9 +1273,6 @@ new partial class C { }
         {
             var source = "new static partial public class C { }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                // new static partial public class C { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 12),
                 // (1,33): error CS0106: The modifier 'new' is not valid for this item
                 // new static partial public class C { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("new").WithLocation(1, 33));
@@ -2479,18 +2471,9 @@ partial partial<int> Goo() { }
                 // (11,9): error CS1520: Method must have a return type
                 // partial Goo() { } 
                 Diagnostic(ErrorCode.ERR_MemberNeedsType, "Goo").WithLocation(11, 9),
-                // (12,9): error CS1525: Invalid expression term 'partial'
+                // (12,17): error CS1520: Method must have a return type
                 // partial partial Goo() { } 
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(12, 9),
-                // (12,9): error CS1003: Syntax error, ',' expected
-                // partial partial Goo() { } 
-                Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(12, 9),
-                // (12,17): error CS1002: ; expected
-                // partial partial Goo() { } 
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "Goo").WithLocation(12, 17),
-                // (12,23): error CS1002: ; expected
-                // partial partial Goo() { } 
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(12, 23));
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "Goo").WithLocation(12, 17));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2666,42 +2649,20 @@ partial partial<int> Goo() { }
                         N(SyntaxKind.CloseBraceToken);
                     }
                 }
-                N(SyntaxKind.FieldDeclaration);
+                N(SyntaxKind.MethodDeclaration);
                 {
-                    N(SyntaxKind.VariableDeclaration);
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.PartialKeyword);
+                    M(SyntaxKind.PredefinedType);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "partial");
-                        }
-                        M(SyntaxKind.VariableDeclarator);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
+                        M(SyntaxKind.VoidKeyword);
                     }
-                    M(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.ExpressionStatement);
+                    N(SyntaxKind.IdentifierToken, "Goo");
+                    N(SyntaxKind.ParameterList);
                     {
-                        N(SyntaxKind.InvocationExpression);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Goo");
-                            }
-                            N(SyntaxKind.ArgumentList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                        }
-                        M(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
                     }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
                     N(SyntaxKind.Block);
                     {
                         N(SyntaxKind.OpenBraceToken);

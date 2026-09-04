@@ -18,6 +18,7 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
 
     [Theory]
     [InlineData(LanguageVersion.CSharp14)]
+    [InlineData(LanguageVersion.CSharp15)]
     [InlineData(LanguageVersion.Preview)]
     public void Partial_BeforeAccessibilityOnClass(LanguageVersion languageVersion)
     {
@@ -40,10 +41,18 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
         }
         EOF();
 
-        CreateCompilation(src, parseOptions: options).VerifyDiagnostics(
-            // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-            // partial public class C { }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
+        var compilation = CreateCompilation(src, parseOptions: options);
+        if (languageVersion >= LanguageVersion.CSharp15)
+        {
+            compilation.VerifyDiagnostics();
+        }
+        else
+        {
+            compilation.VerifyDiagnostics(
+                // (1,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                // partial public class C { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 1));
+        }
     }
 
     [Fact]
@@ -81,10 +90,7 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
 
         CreateCompilation(
             [src, UnionAttributeSource, IUnionSource],
-            parseOptions: options).VerifyDiagnostics(
-            // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-            // partial public union U(int);
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
+            parseOptions: options).VerifyDiagnostics();
     }
 
     [Fact]
@@ -192,13 +198,7 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
     {
         UsingTree(
             "class C { partial partial M(); }",
-            TestOptions.Regular.WithLanguageVersion(languageVersion),
-            // (1,19): error CS1525: Invalid expression term 'partial'
-            // class C { partial partial M(); }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 19),
-            // (1,19): error CS1002: ; expected
-            // class C { partial partial M(); }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(1, 19));
+            TestOptions.Regular.WithLanguageVersion(languageVersion));
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
@@ -206,23 +206,9 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.FieldDeclaration);
-                {
-                    N(SyntaxKind.VariableDeclaration);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "partial");
-                        }
-                        M(SyntaxKind.VariableDeclarator);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                }
                 N(SyntaxKind.ConstructorDeclaration);
                 {
+                    N(SyntaxKind.PartialKeyword);
                     N(SyntaxKind.PartialKeyword);
                     N(SyntaxKind.IdentifierToken, "M");
                     N(SyntaxKind.ParameterList);
@@ -241,15 +227,9 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
         CreateCompilation(
             "partial class M { partial partial M(); }",
             parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-            // (1,19): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+            // (1,27): error CS1004: Duplicate 'partial' modifier
             // partial class M { partial partial M(); }
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(1, 19),
-            // (1,27): error CS1525: Invalid expression term 'partial'
-            // partial class M { partial partial M(); }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 27),
-            // (1,27): error CS1002: ; expected
-            // partial class M { partial partial M(); }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(1, 27),
+            Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(1, 27),
             // (1,35): error CS9275: Partial member 'M.M()' must have an implementation part.
             // partial class M { partial partial M(); }
             Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "M").WithArguments("M.M()").WithLocation(1, 35));
@@ -263,15 +243,7 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
         const string source = "class Holder { partial partial partial M(); }";
         var parseOptions = TestOptions.Regular.WithLanguageVersion(languageVersion);
 
-        UsingTree(
-            source,
-            parseOptions,
-            // (1,32): error CS1525: Invalid expression term 'partial'
-            // class Holder { partial partial partial M(); }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 32),
-            // (1,32): error CS1002: ; expected
-            // class Holder { partial partial partial M(); }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(1, 32));
+        UsingTree(source, parseOptions);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
@@ -279,24 +251,10 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "Holder");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.FieldDeclaration);
-                {
-                    N(SyntaxKind.PartialKeyword);
-                    N(SyntaxKind.VariableDeclaration);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "partial");
-                        }
-                        M(SyntaxKind.VariableDeclarator);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                }
                 N(SyntaxKind.ConstructorDeclaration);
                 {
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.PartialKeyword);
                     N(SyntaxKind.PartialKeyword);
                     N(SyntaxKind.IdentifierToken, "M");
                     N(SyntaxKind.ParameterList);
@@ -313,18 +271,9 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
         EOF();
 
         CreateCompilation(source, parseOptions: parseOptions).VerifyDiagnostics(
-            // (1,16): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            // (1,24): error CS1004: Duplicate 'partial' modifier
             // class Holder { partial partial partial M(); }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 16),
-            // (1,24): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
-            // class Holder { partial partial partial M(); }
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(1, 24),
-            // (1,32): error CS1525: Invalid expression term 'partial'
-            // class Holder { partial partial partial M(); }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 32),
-            // (1,32): error CS1002: ; expected
-            // class Holder { partial partial partial M(); }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(1, 32),
+            Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(1, 24),
             // (1,40): error CS1520: Method must have a return type
             // class Holder { partial partial partial M(); }
             Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(1, 40),
@@ -344,52 +293,43 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
         const string source = "partial partial partial int M();";
         var parseOptions = TestOptions.Regular.WithLanguageVersion(languageVersion);
 
-        UsingTree(
-            source,
-            parseOptions,
-            // (1,1): error CS1031: Type expected
-            // partial partial partial int M();
-            Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(1, 1),
-            // (1,1): error CS1525: Invalid expression term 'partial'
-            // partial partial partial int M();
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 1),
-            // (1,1): error CS1003: Syntax error, ',' expected
-            // partial partial partial int M();
-            Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(1, 1));
+        UsingTree(source, parseOptions);
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.GlobalStatement);
+            N(SyntaxKind.MethodDeclaration);
             {
-                N(SyntaxKind.LocalDeclarationStatement);
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.PredefinedType);
                 {
-                    M(SyntaxKind.VariableDeclaration);
-                    {
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        M(SyntaxKind.VariableDeclarator);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                    N(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.IntKeyword);
                 }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.SemicolonToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
         EOF();
 
         CreateCompilation(source, parseOptions: parseOptions).VerifyDiagnostics(
-            // (1,1): error CS1031: Type expected
+            // (1,9): error CS1004: Duplicate 'partial' modifier
             // partial partial partial int M();
-            Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(1, 1),
-            // (1,1): error CS1525: Invalid expression term 'partial'
+            Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(1, 9),
+            // (1,29): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
             // partial partial partial int M();
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 1),
-            // (1,1): error CS1003: Syntax error, ',' expected
+            Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "M").WithLocation(1, 29),
+            // (1,29): error CS0751: A partial member must be declared within a partial type
             // partial partial partial int M();
-            Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "M").WithLocation(1, 29),
+            // (1,29): error CS8796: Partial method '<invalid-global-code>.M()' must have accessibility modifiers because it has a non-void return type.
+            // partial partial partial int M();
+            Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "M").WithArguments("<invalid-global-code>.M()").WithLocation(1, 29));
     }
 
     [Theory]
@@ -401,28 +341,35 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
         UsingTree(
             source,
             TestOptions.Regular.WithLanguageVersion(languageVersion),
-            // (1,9): error CS1525: Invalid expression term 'partial'
+            // (1,17): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
             // partial partial C();
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 9),
-            // (1,9): error CS1003: Syntax error, ',' expected
+            Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "C").WithLocation(1, 17),
+            // (1,19): error CS1525: Invalid expression term ')'
             // partial partial C();
-            Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(1, 9));
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 19));
         N(SyntaxKind.CompilationUnit);
         {
+            N(SyntaxKind.IncompleteMember);
+            {
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "C");
+                }
+            }
             N(SyntaxKind.GlobalStatement);
             {
-                N(SyntaxKind.LocalDeclarationStatement);
+                N(SyntaxKind.ExpressionStatement);
                 {
-                    N(SyntaxKind.VariableDeclaration);
+                    N(SyntaxKind.ParenthesizedExpression);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "partial");
-                        }
-                        M(SyntaxKind.VariableDeclarator);
+                        N(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.IdentifierName);
                         {
                             M(SyntaxKind.IdentifierToken);
                         }
+                        N(SyntaxKind.CloseParenToken);
                     }
                     N(SyntaxKind.SemicolonToken);
                 }
@@ -432,7 +379,7 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
         EOF();
     }
 
-    [Theory(Skip = "Enabled by the parser recovery change.")]
+    [Theory]
     [InlineData(LanguageVersion.CSharp13)]
     [InlineData(LanguageVersion.Preview)]
     public void ManyPartialModifiers_MakesProgress(LanguageVersion languageVersion)
@@ -459,12 +406,12 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
             """;
 
         CreateCompilation(source).VerifyDiagnostics(
-            // (3,19): error CS1553: Declaration is not valid; use 'implicit operator <dest-type> (...' instead
+            // (3,19): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
             //     public static partial implicit operator int(C c) => 0;
-            Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "partial").WithArguments("implicit").WithLocation(3, 19),
-            // (4,19): error CS1553: Declaration is not valid; use 'explicit operator <dest-type> (...' instead
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 19),
+            // (4,19): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
             //     public static partial explicit operator C(int i) => new();
-            Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "partial").WithArguments("explicit").WithLocation(4, 19));
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 19));
     }
 
     [Fact]
@@ -483,6 +430,7 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
 
     [Theory]
     [InlineData(LanguageVersion.CSharp14)]
+    [InlineData(LanguageVersion.CSharp15)]
     [InlineData(LanguageVersion.Preview)]
     public void Partial_BeforeAccessibilityOnMethod(LanguageVersion languageVersion)
     {
@@ -494,13 +442,21 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
             }
             """;
 
-        CreateCompilation(src, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-            // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-            //     partial public void M();
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-            // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-            //     partial public void M() { }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5));
+        var compilation = CreateCompilation(src, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+        if (languageVersion >= LanguageVersion.CSharp15)
+        {
+            compilation.VerifyDiagnostics();
+        }
+        else
+        {
+            compilation.VerifyDiagnostics(
+                // (3,5): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                //     partial public void M();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(3, 5),
+                // (4,5): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                //     partial public void M() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(4, 5));
+        }
     }
 
     /// <summary>
@@ -558,12 +514,13 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
 
     /// <summary>
     /// When <c>partial</c> is neither last nor second-to-last immediately before <c>async</c>,
-    /// it falls outside the historical <c>partial async</c> carve-out and remains an error.
+    /// it requires relaxed modifier ordering.
     /// </summary>
     [Theory]
     [InlineData(LanguageVersion.CSharp14)]
+    [InlineData(LanguageVersion.CSharp15)]
     [InlineData(LanguageVersion.Preview)]
-    public void Partial_NonCanonicalWithAsync_AllLangversError(LanguageVersion languageVersion)
+    public void Partial_NonCanonicalWithAsync(LanguageVersion languageVersion)
     {
         var src = """
             partial class C
@@ -573,17 +530,26 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
             }
             """;
 
-        CreateCompilation(src, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-            // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-            //     partial public void M();
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-            // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-            //     partial public async void M() { }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5));
+        var compilation = CreateCompilation(src, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+        if (languageVersion >= LanguageVersion.CSharp15)
+        {
+            compilation.VerifyDiagnostics();
+        }
+        else
+        {
+            compilation.VerifyDiagnostics(
+                // (3,5): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                //     partial public void M();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(3, 5),
+                // (4,5): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                //     partial public async void M() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(4, 5));
+        }
     }
 
     [Theory]
     [InlineData(LanguageVersion.CSharp14)]
+    [InlineData(LanguageVersion.CSharp15)]
     [InlineData(LanguageVersion.Preview)]
     public void Partial_BeforeAccessibilityOnProperty(LanguageVersion languageVersion)
     {
@@ -595,13 +561,21 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
             }
             """;
 
-        CreateCompilation(src, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-            // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-            //     partial public int P { get; set; }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-            // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-            //     partial public int P { get => 0; set { } }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5));
+        var compilation = CreateCompilation(src, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+        if (languageVersion >= LanguageVersion.CSharp15)
+        {
+            compilation.VerifyDiagnostics();
+        }
+        else
+        {
+            compilation.VerifyDiagnostics(
+                // (3,5): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                //     partial public int P { get; set; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(3, 5),
+                // (4,5): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                //     partial public int P { get => 0; set { } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(4, 5));
+        }
     }
 
     [Fact]
