@@ -1,6 +1,8 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -8,12 +10,49 @@ namespace Microsoft.AspNetCore.Razor.Language;
 public class DefaultTagHelperResolutionPhaseTest
 {
     [Fact]
+    public void Process_ConcurrentMixedFileKinds_UsesCorrectResolver()
+    {
+        // Arrange
+        var configuration = new RazorConfiguration(
+            RazorLanguageVersion.Version_5_0,
+            "MVC-3.0",
+            Extensions: []);
+
+        var projectEngine = RazorProjectEngine.Create(
+            configuration,
+            RazorProjectFileSystem.Empty,
+            builder => builder.RegisterExtensions());
+
+        var inputs = new[]
+        {
+            (Source: RazorSourceDocument.Create("<h1>View</h1>", "/Views/Index.cshtml"), FileKind: RazorFileKind.Legacy),
+            (Source: RazorSourceDocument.Create("<p>Component</p>", "/Components/App.razor"), FileKind: RazorFileKind.Component),
+        };
+
+        // Act and assert
+        Parallel.For(0, 10_000, iteration =>
+        {
+            var (source, fileKind) = inputs[iteration % inputs.Length];
+            var codeDocument = projectEngine.Process(
+                source,
+                fileKind,
+                ImmutableArray<RazorSourceDocument>.Empty,
+                tagHelpers: null);
+
+            var generatedCode = codeDocument.GetCSharpDocument().GeneratedCode.ToString();
+            Assert.Contains(
+                fileKind == RazorFileKind.Component ? "BuildRenderTree" : "ExecuteAsync",
+                generatedCode);
+        });
+    }
+
+    [Fact]
     public void MergeSourceSpans_SameLine_ReturnsCorrectSpan()
     {
         // Arrange
         var filePath = "test.razor";
         var first = new SourceSpan(filePath, absoluteIndex: 10, lineIndex: 2, characterIndex: 5, length: 3, lineCount: 0, endCharacterIndex: 8);
-        var last  = new SourceSpan(filePath, absoluteIndex: 15, lineIndex: 2, characterIndex: 10, length: 4, lineCount: 0, endCharacterIndex: 14);
+        var last = new SourceSpan(filePath, absoluteIndex: 15, lineIndex: 2, characterIndex: 10, length: 4, lineCount: 0, endCharacterIndex: 14);
 
         // Act
         var result = DefaultTagHelperResolutionPhase.MergeSourceSpans(first, last);
@@ -36,7 +75,7 @@ public class DefaultTagHelperResolutionPhaseTest
         // first spans lines 1-2 (lineCount = 1 means it crosses into the next line)
         var first = new SourceSpan(filePath, absoluteIndex: 0, lineIndex: 1, characterIndex: 0, length: 10, lineCount: 1, endCharacterIndex: 5);
         // last is on line 3 (lineIndex = 3)
-        var last  = new SourceSpan(filePath, absoluteIndex: 20, lineIndex: 3, characterIndex: 2, length: 5, lineCount: 0, endCharacterIndex: 7);
+        var last = new SourceSpan(filePath, absoluteIndex: 20, lineIndex: 3, characterIndex: 2, length: 5, lineCount: 0, endCharacterIndex: 7);
 
         // Act
         var result = DefaultTagHelperResolutionPhase.MergeSourceSpans(first, last);
@@ -58,7 +97,7 @@ public class DefaultTagHelperResolutionPhaseTest
         var filePath = "test.razor";
         var first = new SourceSpan(filePath, absoluteIndex: 5, lineIndex: 0, characterIndex: 5, length: 3, lineCount: 0, endCharacterIndex: 8);
         // last starts right where first ends
-        var last  = new SourceSpan(filePath, absoluteIndex: 8, lineIndex: 0, characterIndex: 8, length: 4, lineCount: 0, endCharacterIndex: 12);
+        var last = new SourceSpan(filePath, absoluteIndex: 8, lineIndex: 0, characterIndex: 8, length: 4, lineCount: 0, endCharacterIndex: 12);
 
         // Act
         var result = DefaultTagHelperResolutionPhase.MergeSourceSpans(first, last);
@@ -94,7 +133,7 @@ public class DefaultTagHelperResolutionPhaseTest
     {
         // Arrange — file path is null (e.g. for in-memory content)
         var first = new SourceSpan(filePath: null, absoluteIndex: 0, lineIndex: 0, characterIndex: 0, length: 3, lineCount: 0, endCharacterIndex: 3);
-        var last  = new SourceSpan(filePath: null, absoluteIndex: 5, lineIndex: 0, characterIndex: 5, length: 2, lineCount: 0, endCharacterIndex: 7);
+        var last = new SourceSpan(filePath: null, absoluteIndex: 5, lineIndex: 0, characterIndex: 5, length: 2, lineCount: 0, endCharacterIndex: 7);
 
         // Act
         var result = DefaultTagHelperResolutionPhase.MergeSourceSpans(first, last);
