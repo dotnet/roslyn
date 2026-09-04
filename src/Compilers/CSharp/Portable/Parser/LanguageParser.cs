@@ -1655,6 +1655,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword)
                 return false;
 
+            // A leading 'partial' followed by anonymous-function modifiers and '(', such as
+            // 'partial static () => ...' or 'partial async static () => ...', begins a lambda.
+            if (this.IsUnambiguousAnonymousFunctionModifierListFollowedByOpenParen())
+                return false;
+
             using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
 
             // Consume the 'partial' being classified before scanning the declaration head.
@@ -1667,10 +1672,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // instead begin the member itself, such as 'ref' in 'partial ref int M()'.
             while (GetModifierExcludingScoped(this.CurrentToken) != DeclarationModifiers.None)
             {
-                // Do not reinterpret 'partial static () => { }' as a member.
-                if (isPossibleStaticLambdaStart())
-                    return false;
-
                 // For example, 'async' starts the return type in 'partial async M()'.
                 if (shouldStopSkippingModifiers())
                     return true;
@@ -1688,12 +1689,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return true;
 
             return isMemberDeclarationStart();
-
-            bool isPossibleStaticLambdaStart()
-            {
-                return this.CurrentToken.Kind == SyntaxKind.StaticKeyword &&
-                       this.PeekToken(1).Kind == SyntaxKind.OpenParenToken;
-            }
 
             bool shouldStopSkippingModifiers()
             {
@@ -13123,6 +13118,9 @@ done:
                     return false;
             }
 
+            if (this.IsUnambiguousAnonymousFunctionModifierListFollowedByOpenParen())
+                return true;
+
             bool seenStatic;
             if (this.CurrentToken.Kind == SyntaxKind.StaticKeyword)
             {
@@ -13821,8 +13819,22 @@ done:
         {
             var modifiers = _pool.Allocate();
 
+            // A leading 'partial' is treated as a recovery modifier only when a later 'static'
+            // makes the lambda shape unambiguous, as in 'partial async static () => ...'.
+            // In 'partial () => ...' and 'partial async()', it remains a type or member name.
+            var allowPartial = this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword &&
+                isStaticModifierAhead();
+
             while (true)
             {
+                // 'partial' is not a valid anonymous-function modifier. Consume it for better
+                // error recovery and let binding report the invalid modifier.
+                if (allowPartial && this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
+                {
+                    modifiers.Add(this.EatContextualToken(SyntaxKind.PartialKeyword));
+                    continue;
+                }
+
                 if (this.CurrentToken.Kind == SyntaxKind.StaticKeyword)
                 {
                     modifiers.Add(this.EatToken(SyntaxKind.StaticKeyword));
@@ -13840,6 +13852,35 @@ done:
             }
 
             return _pool.ToTokenListAndFree(modifiers);
+
+            bool isStaticModifierAhead()
+            {
+                for (var i = 1; ; i++)
+                {
+                    var token = this.PeekToken(i);
+                    if (token.Kind == SyntaxKind.StaticKeyword)
+                        return true;
+
+                    if (token.ContextualKind is not (SyntaxKind.PartialKeyword or SyntaxKind.AsyncKeyword))
+                        return false;
+                }
+            }
+        }
+
+        private bool IsUnambiguousAnonymousFunctionModifierListFollowedByOpenParen()
+        {
+            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+            var modifiers = this.ParseAnonymousFunctionModifiers();
+
+            if (this.CurrentToken.Kind != SyntaxKind.OpenParenToken)
+                return false;
+
+            // Without 'static', 'partial' and 'async' are contextual identifiers and may instead be
+            // a return type or member name. For example, 'partial async()' can be a constructor, and
+            // 'async partial () => ...' is an async lambda with the explicit return type 'partial'.
+            // 'async (' alone is intentionally left to the regular lambda lookahead, which must also
+            // distinguish an async lambda from an invocation of a method named 'async'.
+            return modifiers.Any((int)SyntaxKind.StaticKeyword);
         }
 
         private bool IsAnonymousFunctionAsyncModifier()
