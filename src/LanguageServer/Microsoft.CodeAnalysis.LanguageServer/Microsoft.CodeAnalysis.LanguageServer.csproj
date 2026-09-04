@@ -21,8 +21,12 @@
     <!-- List of runtime identifiers that we want to publish an executable for. -->
     <RuntimeIdentifiers>win-x64;win-arm64;linux-x64;linux-arm64;linux-musl-x64;linux-musl-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
 
-    <!-- Publish ready to run executables when we're publishing platform specific executables. -->
-    <PublishReadyToRun Condition="'$(Configuration)' == 'Release' ">true</PublishReadyToRun>
+    <!-- This perf-test snapshot only needs managed builds, not native/R2R publishing.
+         Avoid downloading runtime/apphost packs that may not be published during SDK insertions. -->
+    <EnableRuntimePackDownload>false</EnableRuntimePackDownload>
+    <EnableAppHostPackDownload>false</EnableAppHostPackDownload>
+    <UseAppHost>false</UseAppHost>
+    <PublishReadyToRun>false</PublishReadyToRun>
 
   </PropertyGroup>
 
