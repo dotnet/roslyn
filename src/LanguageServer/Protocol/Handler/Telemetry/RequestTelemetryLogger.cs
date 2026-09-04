@@ -32,7 +32,7 @@ internal class RequestTelemetryLogger : IDisposable, ILspService
 
     protected virtual void IncreaseFindDocumentCount(string workspaceCounterMetricName)
     {
-        RoslynTelemetry.Count(FunctionId.LSP_FindDocumentInWorkspace, workspaceCounterMetricName, 1,
+        RoslynTelemetry.Current.Count(FunctionId.LSP_FindDocumentInWorkspace, workspaceCounterMetricName, 1,
             new("server", ServerTypeName),
             new("workspace", workspaceCounterMetricName));
     }
@@ -40,7 +40,7 @@ internal class RequestTelemetryLogger : IDisposable, ILspService
     public void UpdateUsedForkedSolutionCounter(bool usedForkedSolution)
     {
         var metricName = usedForkedSolution ? "ForkedCount" : "NonForkedCount";
-        RoslynTelemetry.Count(FunctionId.LSP_UsedForkedSolution, metricName, 1,
+        RoslynTelemetry.Current.Count(FunctionId.LSP_UsedForkedSolution, metricName, 1,
             new("server", ServerTypeName),
             new("usedForkedSolution", usedForkedSolution));
     }
@@ -53,10 +53,10 @@ internal class RequestTelemetryLogger : IDisposable, ILspService
         Result result)
     {
         // Store the request time metrics per LSP method.
-        RoslynTelemetry.Record(FunctionId.LSP_TimeInQueue, "TimeInQueue", (long)queuedDuration.TotalMilliseconds,
+        RoslynTelemetry.Current.Record(FunctionId.LSP_TimeInQueue, "TimeInQueue", (long)queuedDuration.TotalMilliseconds,
             new("server", ServerTypeName));
 
-        RoslynTelemetry.Record(FunctionId.LSP_RequestDuration, "RequestDuration", (long)requestDuration.TotalMilliseconds,
+        RoslynTelemetry.Current.Record(FunctionId.LSP_RequestDuration, "RequestDuration", (long)requestDuration.TotalMilliseconds,
             new("server", ServerTypeName),
             new("method", methodName),
             new("language", language));
@@ -69,7 +69,7 @@ internal class RequestTelemetryLogger : IDisposable, ILspService
             _ => throw ExceptionUtilities.UnexpectedValue(result)
         };
 
-        RoslynTelemetry.Count(FunctionId.LSP_RequestCounter, metricName, 1,
+        RoslynTelemetry.Current.Count(FunctionId.LSP_RequestCounter, metricName, 1,
             new("server", ServerTypeName),
             new("method", methodName),
             new("language", language));
@@ -79,7 +79,7 @@ internal class RequestTelemetryLogger : IDisposable, ILspService
     {
         // Ensure that telemetry logged for this server instance is flushed before potentially creating a new instance.
         // This is also called on disposal of the telemetry session, but will no-op if already flushed.
-        RoslynTelemetry.Flush();
+        RoslynTelemetry.Current.Flush();
     }
 
     internal enum Result

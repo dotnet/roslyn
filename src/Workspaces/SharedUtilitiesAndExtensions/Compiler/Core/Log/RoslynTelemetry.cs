@@ -14,27 +14,46 @@ namespace Microsoft.CodeAnalysis.Internal.Log;
 /// <see cref="IEventSink"/> or <see cref="IMetricSink"/>.  When no sinks are registered calls are
 /// cheap no-ops.
 /// </summary>
-internal static partial class RoslynTelemetry
+internal sealed partial class RoslynTelemetry
 {
+    private static readonly AsyncLocal<RoslynTelemetry?> s_current = new();
+    private static readonly RoslynTelemetry s_default = new();
+
     /// <summary>
     /// The registered <see cref="IEventSink"/> each event fans out to.
     /// </summary>
-    private static ImmutableArray<IEventSink> s_eventSinks = [];
+    private ImmutableArray<IEventSink> _eventSinks = [];
 
     /// <summary>
     /// next unique block id that will be given to each LogBlock
     /// </summary>
     private static int s_lastUniqueBlockId;
 
+    public static RoslynTelemetry Current
+        => s_current.Value ?? s_default;
+
+    /// <summary>
+    /// Sets the telemetry instance for the current asynchronous control flow. Disposing the result
+    /// restores the previous instance.
+    /// </summary>
+    public static IDisposable SetCurrent(RoslynTelemetry telemetry)
+    {
+        Contract.ThrowIfNull(telemetry);
+
+        var previous = s_current.Value;
+        s_current.Value = telemetry;
+        return new Registration(() => s_current.Value = previous);
+    }
+
     /// <summary>
     /// Registers <paramref name="sink"/> to receive events. A sink instance may have only one active
     /// registration. Dispose the result to unregister it; a host that keeps its sinks for the life of
     /// the process can simply never dispose.
     /// </summary>
-    public static IDisposable AddEventSink(IEventSink sink)
+    public IDisposable AddEventSink(IEventSink sink)
     {
-        ImmutableInterlocked.Update(ref s_eventSinks, static (sinks, sink) => AddSink(sinks, sink), sink);
-        return new Registration(() => ImmutableInterlocked.Update(ref s_eventSinks, static (sinks, sink) => sinks.Remove(sink, ReferenceEqualityComparer.Instance), sink));
+        ImmutableInterlocked.Update(ref _eventSinks, static (sinks, sink) => AddSink(sinks, sink), sink);
+        return new Registration(() => ImmutableInterlocked.Update(ref _eventSinks, static (sinks, sink) => sinks.Remove(sink, ReferenceEqualityComparer.Instance), sink));
     }
 
     private static ImmutableArray<TSink> AddSink<TSink>(ImmutableArray<TSink> sinks, TSink sink)
@@ -59,9 +78,9 @@ internal static partial class RoslynTelemetry
     /// <see cref="LogMessage"/> is constructed, so that logging costs nothing when everything is
     /// disabled.
     /// </summary>
-    private static bool TryGetEnabledSinks(FunctionId functionId, out ImmutableArray<IEventSink> sinks)
+    private bool TryGetEnabledSinks(FunctionId functionId, out ImmutableArray<IEventSink> sinks)
     {
-        sinks = s_eventSinks;
+        sinks = _eventSinks;
 
         foreach (var sink in sinks)
         {
@@ -84,19 +103,20 @@ internal static partial class RoslynTelemetry
     internal static class TestAccessor
     {
         /// <summary>
-        /// Unregisters every sink, so that one test cannot leak a sink into the next.
+        /// Resets the default sinks and ambient state so one test cannot leak telemetry into the next.
         /// </summary>
         public static void RemoveAllSinks()
         {
-            ImmutableInterlocked.InterlockedExchange(ref s_eventSinks, []);
-            ImmutableInterlocked.InterlockedExchange(ref s_metricSinks, []);
+            ImmutableInterlocked.InterlockedExchange(ref s_default._eventSinks, []);
+            ImmutableInterlocked.InterlockedExchange(ref s_default._metricSinks, []);
+            s_current.Value = null;
         }
     }
 
     /// <summary>
     /// log a specific event with a simple context message which should be very cheap to create
     /// </summary>
-    public static void Log(FunctionId functionId, string? message = null, LogLevel logLevel = LogLevel.Debug)
+    public void Log(FunctionId functionId, string? message = null, LogLevel logLevel = LogLevel.Debug)
     {
         if (TryGetEnabledSinks(functionId, out var sinks))
         {
@@ -111,7 +131,7 @@ internal static partial class RoslynTelemetry
     /// log a specific event with a context message that will only be created when it is needed.
     /// the messageGetter should be cheap to create. in another word, it shouldn't capture any locals
     /// </summary>
-    public static void Log(FunctionId functionId, Func<string> messageGetter, LogLevel logLevel = LogLevel.Debug)
+    public void Log(FunctionId functionId, Func<string> messageGetter, LogLevel logLevel = LogLevel.Debug)
     {
         if (TryGetEnabledSinks(functionId, out var sinks))
         {
@@ -126,7 +146,7 @@ internal static partial class RoslynTelemetry
     /// log a specific event with a context message that requires some arguments to be created when requested.
     /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
     /// </summary>
-    public static void Log<TArg>(FunctionId functionId, Func<TArg, string> messageGetter, TArg arg, LogLevel logLevel = LogLevel.Debug)
+    public void Log<TArg>(FunctionId functionId, Func<TArg, string> messageGetter, TArg arg, LogLevel logLevel = LogLevel.Debug)
     {
         if (TryGetEnabledSinks(functionId, out var sinks))
         {
@@ -140,7 +160,7 @@ internal static partial class RoslynTelemetry
     /// log a specific event with a context message that requires some arguments to be created when requested.
     /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
     /// </summary>
-    public static void Log<TArg0, TArg1>(FunctionId functionId, Func<TArg0, TArg1, string> messageGetter, TArg0 arg0, TArg1 arg1, LogLevel logLevel = LogLevel.Debug)
+    public void Log<TArg0, TArg1>(FunctionId functionId, Func<TArg0, TArg1, string> messageGetter, TArg0 arg0, TArg1 arg1, LogLevel logLevel = LogLevel.Debug)
     {
         if (TryGetEnabledSinks(functionId, out var sinks))
         {
@@ -154,7 +174,7 @@ internal static partial class RoslynTelemetry
     /// log a specific event with a context message that requires some arguments to be created when requested.
     /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
     /// </summary>
-    public static void Log<TArg0, TArg1, TArg2>(FunctionId functionId, Func<TArg0, TArg1, TArg2, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2, LogLevel logLevel = LogLevel.Debug)
+    public void Log<TArg0, TArg1, TArg2>(FunctionId functionId, Func<TArg0, TArg1, TArg2, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2, LogLevel logLevel = LogLevel.Debug)
     {
         if (TryGetEnabledSinks(functionId, out var sinks))
         {
@@ -168,7 +188,7 @@ internal static partial class RoslynTelemetry
     /// log a specific event with a context message that requires some arguments to be created when requested.
     /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
     /// </summary>
-    public static void Log<TArg0, TArg1, TArg2, TArg3>(FunctionId functionId, Func<TArg0, TArg1, TArg2, TArg3, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2, TArg3 arg3, LogLevel logLevel = LogLevel.Debug)
+    public void Log<TArg0, TArg1, TArg2, TArg3>(FunctionId functionId, Func<TArg0, TArg1, TArg2, TArg3, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2, TArg3 arg3, LogLevel logLevel = LogLevel.Debug)
     {
         if (TryGetEnabledSinks(functionId, out var sinks))
         {
@@ -181,7 +201,7 @@ internal static partial class RoslynTelemetry
     /// <summary>
     /// log a specific event with a context message.
     /// </summary>
-    public static void Log(FunctionId functionId, LogMessage logMessage)
+    public void Log(FunctionId functionId, LogMessage logMessage)
     {
         if (TryGetEnabledSinks(functionId, out var sinks))
         {
@@ -202,13 +222,13 @@ internal static partial class RoslynTelemetry
     /// <summary>
     /// simplest way to log a start and end pair
     /// </summary>
-    public static IDisposable LogBlock(FunctionId functionId, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
+    public IDisposable LogBlock(FunctionId functionId, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
         => LogBlock(functionId, string.Empty, token, logLevel);
 
     /// <summary>
     /// simplest way to log a start and end pair with a simple context message which should be very cheap to create
     /// </summary>
-    public static IDisposable LogBlock(FunctionId functionId, string? message, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
+    public IDisposable LogBlock(FunctionId functionId, string? message, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
         => TryGetEnabledSinks(functionId, out var sinks)
             ? CreateLogBlock(sinks, functionId, LogMessage.Create(message ?? "", logLevel), GetNextUniqueBlockId(), token)
             : EmptyLogBlock.Instance;
@@ -217,7 +237,7 @@ internal static partial class RoslynTelemetry
     /// log a start and end pair with a context message that will only be created when it is needed.
     /// the messageGetter should be cheap to create. in another word, it shouldn't capture any locals
     /// </summary>
-    public static IDisposable LogBlock(FunctionId functionId, Func<string> messageGetter, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
+    public IDisposable LogBlock(FunctionId functionId, Func<string> messageGetter, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
         => TryGetEnabledSinks(functionId, out var sinks)
             ? CreateLogBlock(sinks, functionId, LogMessage.Create(messageGetter, logLevel), GetNextUniqueBlockId(), token)
             : EmptyLogBlock.Instance;
@@ -226,7 +246,7 @@ internal static partial class RoslynTelemetry
     /// log a start and end pair with a context message that requires some arguments to be created when requested.
     /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
     /// </summary>
-    public static IDisposable LogBlock<TArg>(FunctionId functionId, Func<TArg, string> messageGetter, TArg arg, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
+    public IDisposable LogBlock<TArg>(FunctionId functionId, Func<TArg, string> messageGetter, TArg arg, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
         => TryGetEnabledSinks(functionId, out var sinks)
             ? CreateLogBlock(sinks, functionId, LogMessage.Create(messageGetter, arg, logLevel), GetNextUniqueBlockId(), token)
             : EmptyLogBlock.Instance;
@@ -235,7 +255,7 @@ internal static partial class RoslynTelemetry
     /// log a start and end pair with a context message that requires some arguments to be created when requested.
     /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
     /// </summary>
-    public static IDisposable LogBlock<TArg0, TArg1>(FunctionId functionId, Func<TArg0, TArg1, string> messageGetter, TArg0 arg0, TArg1 arg1, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
+    public IDisposable LogBlock<TArg0, TArg1>(FunctionId functionId, Func<TArg0, TArg1, string> messageGetter, TArg0 arg0, TArg1 arg1, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
         => TryGetEnabledSinks(functionId, out var sinks)
             ? CreateLogBlock(sinks, functionId, LogMessage.Create(messageGetter, arg0, arg1, logLevel), GetNextUniqueBlockId(), token)
             : EmptyLogBlock.Instance;
@@ -244,7 +264,7 @@ internal static partial class RoslynTelemetry
     /// log a start and end pair with a context message that requires some arguments to be created when requested.
     /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
     /// </summary>
-    public static IDisposable LogBlock<TArg0, TArg1, TArg2>(FunctionId functionId, Func<TArg0, TArg1, TArg2, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
+    public IDisposable LogBlock<TArg0, TArg1, TArg2>(FunctionId functionId, Func<TArg0, TArg1, TArg2, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
         => TryGetEnabledSinks(functionId, out var sinks)
             ? CreateLogBlock(sinks, functionId, LogMessage.Create(messageGetter, arg0, arg1, arg2, logLevel), GetNextUniqueBlockId(), token)
             : EmptyLogBlock.Instance;
@@ -253,7 +273,7 @@ internal static partial class RoslynTelemetry
     /// log a start and end pair with a context message that requires some arguments to be created when requested.
     /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
     /// </summary>
-    public static IDisposable LogBlock<TArg0, TArg1, TArg2, TArg3>(FunctionId functionId, Func<TArg0, TArg1, TArg2, TArg3, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2, TArg3 arg3, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
+    public IDisposable LogBlock<TArg0, TArg1, TArg2, TArg3>(FunctionId functionId, Func<TArg0, TArg1, TArg2, TArg3, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2, TArg3 arg3, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
         => TryGetEnabledSinks(functionId, out var sinks)
             ? CreateLogBlock(sinks, functionId, LogMessage.Create(messageGetter, arg0, arg1, arg2, arg3, logLevel), GetNextUniqueBlockId(), token)
             : EmptyLogBlock.Instance;
@@ -262,7 +282,7 @@ internal static partial class RoslynTelemetry
     /// log a start and end pair with a context message. Takes ownership of <paramref name="logMessage"/>
     /// whether or not anything is listening.
     /// </summary>
-    public static IDisposable LogBlock(FunctionId functionId, LogMessage logMessage, CancellationToken token)
+    public IDisposable LogBlock(FunctionId functionId, LogMessage logMessage, CancellationToken token)
     {
         if (TryGetEnabledSinks(functionId, out var sinks))
             return CreateLogBlock(sinks, functionId, logMessage, GetNextUniqueBlockId(), token);
