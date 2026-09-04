@@ -83,7 +83,12 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
     {
         var configuration = DefaultServerConfiguration with { IsDaemon = true, TelemetryLevel = "error" };
         await using var daemon = await CreateDaemonServerAsync(serverConfiguration: configuration);
-        var daemonEvents = new RecordingEventSink();
+        var daemonClientDisconnected = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var daemonEvents = new RecordingEventSink(onLog: functionId =>
+        {
+            if (functionId == FunctionId.VSCode_LanguageServer_Daemon_Client_Disconnected)
+                daemonClientDisconnected.TrySetResult(true);
+        });
         using var daemonEventRegistration = daemon.DaemonTelemetry.AddEventSink(daemonEvents);
 
         var first = await daemon.CreateClientAsync();
@@ -93,6 +98,8 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
         var secondTelemetry = second.GetRequiredLspService<RoslynTelemetry>();
         var firstSession = Assert.IsType<TelemetrySession>(TelemetryReporterWrapper.GetSession(firstTelemetry));
         var secondSession = Assert.IsType<TelemetrySession>(TelemetryReporterWrapper.GetSession(secondTelemetry));
+
+        // Each server has a distinct child session correlated to the shared daemon session.
         Assert.NotNull(daemon.DaemonSessionId);
         Assert.NotEqual(firstSession.SessionId, secondSession.SessionId);
         Assert.Equal(
@@ -104,7 +111,8 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
 
         var firstEvents = new RecordingEventSink();
         var secondEvents = new RecordingEventSink();
-        var firstMetrics = new RecordingMetricSink();
+        var firstTelemetryFlushed = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var firstMetrics = new RecordingMetricSink(onFlush: () => firstTelemetryFlushed.TrySetResult(true));
         var secondMetrics = new RecordingMetricSink();
         using var firstEventRegistration = firstTelemetry.AddEventSink(firstEvents);
         using var secondEventRegistration = secondTelemetry.AddEventSink(secondEvents);
@@ -123,16 +131,16 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
             },
             CancellationToken.None);
 
+        // A request handled by the first server records metrics only in that server's sink.
         Assert.NotNull(hover);
         Assert.True(firstMetrics.MeasurementCount > 0);
         Assert.Equal(0, secondMetrics.MeasurementCount);
 
         var daemonEventsBeforeDisconnect = daemonEvents.Events.Length;
         await first.DisposeAsync();
-        await WaitForConditionAsync(() =>
-            firstMetrics.FlushCount > 0 &&
-            daemonEvents.Events.Length == daemonEventsBeforeDisconnect + 1);
+        await Task.WhenAll(firstTelemetryFlushed.Task, daemonClientDisconnected.Task);
 
+        // Disconnecting the first server flushes it, preserves the second, and attributes lifecycle telemetry to the daemon.
         Assert.Null(TelemetryReporterWrapper.GetSession(firstTelemetry));
         Assert.Equal(0, secondMetrics.FlushCount);
         Assert.Equal(daemonEventsBeforeDisconnect + 1, daemonEvents.Events.Length);
