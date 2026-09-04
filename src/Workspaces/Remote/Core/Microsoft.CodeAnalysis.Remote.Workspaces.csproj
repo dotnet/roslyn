@@ -45,7 +45,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests" />
-    <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CodeLens" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />

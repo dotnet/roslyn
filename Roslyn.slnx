@@ -462,7 +462,6 @@
     <Project Path="src/VisualStudio/Setup/Roslyn.VisualStudio.Setup.csproj" />
     <Project Path="src/VisualStudio/TestUtilities2/Microsoft.VisualStudio.LanguageServices.Test.Utilities2.vbproj" />
     <Project Path="src/VisualStudio/VisualBasic/Impl/Microsoft.VisualStudio.LanguageServices.VisualBasic.vbproj" />
-    <Project Path="src/VisualStudio/VisualStudioDiagnosticsToolWindow/Roslyn.VisualStudio.DiagnosticsWindow.csproj" />
     <Project Path="src/VisualStudio/Xaml/Impl/Microsoft.VisualStudio.LanguageServices.Xaml.csproj" />
   </Folder>
   <Folder Name="/VisualStudio/ExternalAccess/">
@@ -490,7 +489,6 @@
     </Project>
     <Project Path="src/VisualStudio/IntegrationTest/TestSetup/Microsoft.VisualStudio.IntegrationTest.Setup.csproj">
       <BuildDependency Project="src/Deployment/RoslynDeployment.csproj" />
-      <BuildDependency Project="src/VisualStudio/VisualStudioDiagnosticsToolWindow/Roslyn.VisualStudio.DiagnosticsWindow.csproj" />
     </Project>
   </Folder>
   <Folder Name="/VisualStudio/Packages/">

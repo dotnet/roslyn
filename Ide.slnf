@@ -227,7 +227,6 @@
       "src\\VisualStudio\\Setup\\Roslyn.VisualStudio.Setup.csproj",
       "src\\VisualStudio\\TestUtilities2\\Microsoft.VisualStudio.LanguageServices.Test.Utilities2.vbproj",
       "src\\VisualStudio\\VisualBasic\\Impl\\Microsoft.VisualStudio.LanguageServices.VisualBasic.vbproj",
-      "src\\VisualStudio\\VisualStudioDiagnosticsToolWindow\\Roslyn.VisualStudio.DiagnosticsWindow.csproj",
       "src\\VisualStudio\\Xaml\\Impl\\Microsoft.VisualStudio.LanguageServices.Xaml.csproj",
       "src\\Workspaces\\CSharpTest\\Microsoft.CodeAnalysis.CSharp.Workspaces.UnitTests.csproj",
       "src\\Workspaces\\CSharp\\Portable\\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj",
