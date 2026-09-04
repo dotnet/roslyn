@@ -20,7 +20,7 @@ the one for your area):
 | IDE/analyzer tests | `*Test` projects under `src/Features`, `src/Analyzers`, `src/EditorFeatures`. |
 | Integration tests | VS integration tests (`azure-pipelines-integration*.yml`); runnable locally on **Windows** hosts with a VS install, also run in CI. |
 
-Frameworks: xUnit with Roslyn test utilities.
+Frameworks: xUnit v3 with Roslyn test utilities. Tests continue to run through the existing VSTest-based setup.
 
 ## Repo-wide Authoring Conventions
 
