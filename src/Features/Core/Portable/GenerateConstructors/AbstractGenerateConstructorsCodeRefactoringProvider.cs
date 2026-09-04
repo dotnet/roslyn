@@ -283,7 +283,9 @@ internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvi
     {
         using var result = TemporaryArray<CodeAction>.Empty;
 
-        result.Add(new FieldDelegatingCodeAction(this, document, state, addNullChecks));
+        if (state.DelegatedConstructor?.IsPrimaryConstructor() != true)
+            result.Add(new FieldDelegatingCodeAction(this, document, state, addNullChecks));
+
         if (state.DelegatedConstructor != null)
             result.Add(new ConstructorDelegatingCodeAction(this, document, state, addNullChecks));
 
