@@ -45,7 +45,7 @@ var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
 
 - Keep each change focused on one coherent concern. Split independently reviewable, validatable, mergeable, or revertible work instead of combining it into a broad diff.
 - Judge change size by cognitive load and validation boundaries, not an arbitrary line count; generated and mechanical updates may be large while still representing one focused change.
-- A change is complete only after applicable formatting, analyzers, affected builds, targeted tests, generated/resource/API updates, final diff review, and documentation freshness work are complete. The canonical ordered checklist is the **Definition of Done** in `.github/copilot-instructions.md`.
+- A change is complete only after applicable formatting, analyzers, affected builds, targeted tests, generated/resource/API updates, and final diff review are complete. The canonical ordered checklist is the **Definition of Done** in `.github/copilot-instructions.md`.
 
 ## Patterns Explicitly Avoided
 
