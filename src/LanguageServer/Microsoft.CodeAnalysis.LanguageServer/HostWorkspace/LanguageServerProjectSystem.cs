@@ -49,6 +49,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
     private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
     private readonly ProjectSystemProjectFactory _hostProjectFactory;
     private readonly IClientLanguageServerManager _clientLanguageServerManager;
+
     public LanguageServerProjectSystem(
         ILspServices lspServices,
         IGlobalOptionService globalOptionService,
