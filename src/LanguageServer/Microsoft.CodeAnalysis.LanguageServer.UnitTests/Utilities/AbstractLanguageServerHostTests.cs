@@ -310,7 +310,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             var clientToServerPipe = new Pipe();
             var serverToClientPipe = new Pipe();
             var testLspServer = new SingleServerTestLspServer(
-                exportProvider, typeRefResolver, serverConfiguration, loggerFactory, hostTests.TestOutputHelper, clientToServerPipe, serverToClientPipe);
+                exportProvider, typeRefResolver, loggerFactory, hostTests.TestOutputHelper, clientToServerPipe, serverToClientPipe);
 
             await testLspServer.InitializeAsync(clientCapabilities);
             return testLspServer;
@@ -319,7 +319,6 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         private SingleServerTestLspServer(
             ExportProvider exportProvider,
             ExtensionTypeRefResolver typeRefResolver,
-            ServerConfiguration serverConfiguration,
             ILoggerFactory loggerFactory,
             ITestOutputHelper testOutputHelper,
             Pipe clientToServerPipe,
@@ -340,7 +339,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             var connectionSource = new SingleLanguageServerConnectionSource(new LanguageServerConnection(serverInputStream, serverOutputStream));
             var logger = loggerFactory.CreateLogger<LanguageServerConnectionManager>();
             _serverTask = _connectionManager.RunAsync(
-                connectionSource, exportProvider, typeRefResolver, logger, CancellationToken.None);
+                connectionSource, exportProvider, typeRefResolver, logger, processTelemetryService: null, CancellationToken.None);
         }
 
         /// <summary>The host task; completes once the single in-memory server exits.</summary>
@@ -459,14 +458,10 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             var logger = loggerFactory.CreateLogger<LanguageServerConnectionManager>();
             var daemonTelemetry = new RoslynTelemetry();
 
-            // This mirrors Program's process-level daemon owner. Each LanguageServerHost creates and
-            // disposes its own child; the daemon task owns this shared root until all hosts have stopped.
-            var daemonTelemetryService = new LanguageServerTelemetry(serverConfiguration, loggerFactory, daemonTelemetry);
-            if (serverConfiguration.TelemetryLevel is { } telemetryLevel)
-            {
-                daemonTelemetryService.InitializeSession(
-                    telemetryLevel, serverConfiguration.SessionId, isDefaultSession: false);
-            }
+            // This mirrors Program's optional process-level owner. Each host always creates its own
+            // RoslynTelemetry and creates a child VS telemetry session only when telemetry is enabled.
+            var daemonTelemetryService = LanguageServerTelemetry.CreateProcessSession(
+                serverConfiguration, loggerFactory, daemonTelemetry, isDefaultSession: false);
 
             var connectionManager = new LanguageServerConnectionManager();
             var cts = new CancellationTokenSource();
@@ -490,12 +485,13 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
                             exportProvider,
                             typeRefResolver,
                             logger,
+                            daemonTelemetryService,
                             cts.Token).ConfigureAwait(false);
                     }
                     finally
                     {
                         source.Dispose();
-                        daemonTelemetryService.Dispose();
+                        daemonTelemetryService?.Dispose();
                     }
                 });
             }
@@ -509,7 +505,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
                 exportProvider,
                 testOutputHelper,
                 daemonTelemetry,
-                daemonTelemetryService.SessionId);
+                daemonTelemetryService?.SessionId);
         }
 
         private TestDaemon(

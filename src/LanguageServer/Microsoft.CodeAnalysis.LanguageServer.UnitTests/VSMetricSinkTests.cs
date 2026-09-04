@@ -13,36 +13,36 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
+internal sealed class RecordingPoster : VSMetricSink.IMetricPoster
+{
+    public List<TelemetryMetricEvent> Posted { get; } = [];
+
+    /// <summary>
+    /// Runs inside the aggregation lock a flush holds while posting.
+    /// </summary>
+    public Action? OnPost { get; set; }
+
+    /// <summary>
+    /// The telemetry events carried by <see cref="Posted"/>, captured at post time because
+    /// <c>TelemetryMetricEvent</c> does not expose them.
+    /// </summary>
+    public List<TelemetryEvent> PostedEvents { get; } = [];
+    public bool IsOptedIn { get; set; } = true;
+
+    public void Post(TelemetryEvent telemetryEvent, TelemetryMetricEvent metricEvent)
+    {
+        Posted.Add(metricEvent);
+        PostedEvents.Add(telemetryEvent);
+        OnPost?.Invoke();
+    }
+}
+
 /// <summary>
 /// Covers the aggregation invariants: every recorded measurement is posted exactly once per flush -
 /// never dropped, never double-counted - and measurements land in the right bucket.
 /// </summary>
 public sealed class VSMetricSinkTests
 {
-    private sealed class RecordingPoster : VSMetricSink.IMetricPoster
-    {
-        public List<TelemetryMetricEvent> Posted { get; } = [];
-
-        /// <summary>
-        /// Runs inside the aggregation lock a flush holds while posting.
-        /// </summary>
-        public Action? OnPost { get; set; }
-
-        /// <summary>
-        /// The telemetry events carried by <see cref="Posted"/>, captured at post time because
-        /// <c>TelemetryMetricEvent</c> does not expose them.
-        /// </summary>
-        public List<TelemetryEvent> PostedEvents { get; } = [];
-        public bool IsOptedIn { get; set; } = true;
-
-        public void Post(TelemetryEvent telemetryEvent, TelemetryMetricEvent metricEvent)
-        {
-            Posted.Add(metricEvent);
-            PostedEvents.Add(telemetryEvent);
-            OnPost?.Invoke();
-        }
-    }
-
     [Fact]
     public void RecordedMeasurementsArePostedExactlyOncePerFlush()
     {

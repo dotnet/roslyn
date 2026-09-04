@@ -5,9 +5,8 @@
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
+using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
@@ -16,35 +15,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 [ExportCSharpVisualBasicLspServiceFactory(typeof(ProjectLoadTelemetryReporter)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class ProjectLoadTelemetryReporterFactory() : ILspServiceFactory
+internal sealed class ProjectLoadTelemetryReporterFactory(ServerConfiguration serverConfiguration) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
         return new ProjectLoadTelemetryReporter(
             lspServices.GetRequiredService<IClientLanguageServerManager>(),
-            lspServices.GetRequiredService<ILoggerFactory>());
+            lspServices.GetRequiredService<ILoggerFactory>(),
+            serverConfiguration);
     }
 }
 
-internal sealed class ProjectLoadTelemetryReporter : ILspService
+internal sealed class ProjectLoadTelemetryReporter(
+    IClientLanguageServerManager clientLanguageServerManager,
+    ILoggerFactory loggerFactory,
+    ServerConfiguration serverConfiguration) : ILspService
 {
-    private readonly IClientLanguageServerManager _clientLanguageServerManager;
-    private readonly ILogger _logger;
-    private readonly RoslynTelemetry _telemetry;
-    private readonly string _hashedSessionId;
+    private readonly ILogger _logger = loggerFactory.CreateLogger<ProjectLoadTelemetryReporter>();
 
-    public ProjectLoadTelemetryReporter(
-        IClientLanguageServerManager clientLanguageServerManager,
-        ILoggerFactory loggerFactory)
-    {
-        _clientLanguageServerManager = clientLanguageServerManager;
-        _logger = loggerFactory.CreateLogger<ProjectLoadTelemetryReporter>();
-        _telemetry = RoslynTelemetry.Current;
-
-        // An anonymous, per-server correlation id for the project-load events below. It deliberately
-        // does not derive from the telemetry session id, which may not exist when telemetry is off.
-        _hashedSessionId = VsTfmAndFileExtHashingAlgorithm.HashInput(Guid.NewGuid().ToString());
-    }
+    // An anonymous, per-server correlation id for the project-load events below. It deliberately
+    // does not derive from the telemetry session id, which may not exist when telemetry is off.
+    private readonly string _hashedSessionId = VsTfmAndFileExtHashingAlgorithm.HashInput(Guid.NewGuid().ToString());
 
     public sealed record TelemetryInfo
     {
@@ -66,7 +57,7 @@ internal sealed class ProjectLoadTelemetryReporter : ILspService
     {
         try
         {
-            if (LanguageServerTelemetry.GetTelemetryService(_telemetry)?.TelemetryLevel is null or "off")
+            if (serverConfiguration.TelemetryLevel is null or "off")
             {
                 return;
             }
@@ -123,7 +114,7 @@ internal sealed class ProjectLoadTelemetryReporter : ILspService
 
     private async Task ReportEventAsync(ProjectLoadTelemetryEvent telemetryEvent, CancellationToken cancellationToken)
     {
-        await _clientLanguageServerManager.SendNotificationAsync("workspace/projectConfigurationTelemetry", telemetryEvent, cancellationToken);
+        await clientLanguageServerManager.SendNotificationAsync("workspace/projectConfigurationTelemetry", telemetryEvent, cancellationToken);
     }
 
     private static ImmutableDictionary<string, int> GetUniqueHashedFileExtensionsAndCounts(ProjectFileInfo projectFileInfo)

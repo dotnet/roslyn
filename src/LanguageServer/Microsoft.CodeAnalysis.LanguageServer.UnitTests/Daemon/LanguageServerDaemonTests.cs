@@ -10,37 +10,39 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Telemetry;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
-public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerHostTests(testOutputHelper)
+internal sealed class RecordingEventSink : IEventSink
 {
-    private sealed class RecordingEventSink : IEventSink
+    private readonly ConcurrentQueue<FunctionId> _events = new();
+
+    public ImmutableArray<FunctionId> Events => [.. _events];
+
+    public bool IsEnabled(FunctionId functionId)
+        => true;
+
+    public void Log(FunctionId functionId, LogMessage logMessage)
+        => _events.Enqueue(functionId);
+
+    public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken)
     {
-        private readonly ConcurrentQueue<FunctionId> _events = new();
-
-        public ImmutableArray<FunctionId> Events => [.. _events];
-
-        public bool IsEnabled(FunctionId functionId)
-            => true;
-
-        public void Log(FunctionId functionId, LogMessage logMessage)
-            => _events.Enqueue(functionId);
-
-        public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken)
-        {
-        }
-
-        public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int uniquePairId, int delta, CancellationToken cancellationToken)
-        {
-        }
     }
 
+    public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int uniquePairId, int delta, CancellationToken cancellationToken)
+    {
+    }
+}
+
+public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerHostTests(testOutputHelper)
+{
     private sealed class RecordingMetricSink : IMetricSink
     {
         private int _measurementCount;
@@ -120,7 +122,7 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
     [Fact]
     public async Task Daemon_EachServerHasAnIsolatedTelemetrySession()
     {
-        var configuration = DefaultServerConfiguration with { IsDaemon = true, TelemetryLevel = "off" };
+        var configuration = DefaultServerConfiguration with { IsDaemon = true, TelemetryLevel = "error" };
         await using var daemon = await CreateDaemonServerAsync(serverConfiguration: configuration);
         var daemonEvents = new RecordingEventSink();
         using var daemonEventRegistration = daemon.DaemonTelemetry.AddEventSink(daemonEvents);
@@ -128,29 +130,27 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
         var first = await daemon.CreateClientAsync();
         await using var second = await daemon.CreateClientAsync();
 
-        var firstTelemetry = Assert.IsType<LanguageServerTelemetry>(
-            LanguageServerTelemetry.GetTelemetryService(first.GetRequiredLspService<RoslynTelemetry>()));
-        var secondTelemetry = Assert.IsType<LanguageServerTelemetry>(
-            LanguageServerTelemetry.GetTelemetryService(second.GetRequiredLspService<RoslynTelemetry>()));
+        var firstTelemetry = first.GetRequiredLspService<RoslynTelemetry>();
+        var secondTelemetry = second.GetRequiredLspService<RoslynTelemetry>();
+        var firstSession = Assert.IsType<TelemetrySession>(TelemetryReporterWrapper.GetSession(firstTelemetry));
+        var secondSession = Assert.IsType<TelemetrySession>(TelemetryReporterWrapper.GetSession(secondTelemetry));
         Assert.NotNull(daemon.DaemonSessionId);
-        Assert.NotNull(firstTelemetry.SessionId);
-        Assert.NotNull(secondTelemetry.SessionId);
-        Assert.NotEqual(firstTelemetry.SessionId, secondTelemetry.SessionId);
+        Assert.NotEqual(firstSession.SessionId, secondSession.SessionId);
         Assert.Equal(
             daemon.DaemonSessionId,
-            GetDaemonSessionId(firstTelemetry));
+            GetDaemonSessionId(firstSession));
         Assert.Equal(
             daemon.DaemonSessionId,
-            GetDaemonSessionId(secondTelemetry));
+            GetDaemonSessionId(secondSession));
 
         var firstEvents = new RecordingEventSink();
         var secondEvents = new RecordingEventSink();
         var firstMetrics = new RecordingMetricSink();
         var secondMetrics = new RecordingMetricSink();
-        using var firstEventRegistration = firstTelemetry.Telemetry.AddEventSink(firstEvents);
-        using var secondEventRegistration = secondTelemetry.Telemetry.AddEventSink(secondEvents);
-        using var firstMetricRegistration = firstTelemetry.Telemetry.AddMetricSink(firstMetrics);
-        using var secondMetricRegistration = secondTelemetry.Telemetry.AddMetricSink(secondMetrics);
+        using var firstEventRegistration = firstTelemetry.AddEventSink(firstEvents);
+        using var secondEventRegistration = secondTelemetry.AddEventSink(secondEvents);
+        using var firstMetricRegistration = firstTelemetry.AddMetricSink(firstMetrics);
+        using var secondMetricRegistration = secondTelemetry.AddMetricSink(secondMetrics);
 
         var firstDocumentUri = LoadProjectWithDocument(
             first.GetRequiredLspService<LanguageServerWorkspaceFactory>(),
@@ -174,17 +174,16 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
             firstMetrics.FlushCount > 0 &&
             daemonEvents.Events.Length == daemonEventsBeforeDisconnect + 1);
 
-        Assert.Null(LanguageServerTelemetry.GetTelemetryService(firstTelemetry.Telemetry));
+        Assert.Null(TelemetryReporterWrapper.GetSession(firstTelemetry));
         Assert.Equal(0, secondMetrics.FlushCount);
         Assert.Equal(daemonEventsBeforeDisconnect + 1, daemonEvents.Events.Length);
         Assert.Equal(FunctionId.VSCode_LanguageServer_Daemon_Client_Disconnected, daemonEvents.Events[^1]);
-        Assert.Empty(firstEvents.Events);
-        Assert.Empty(secondEvents.Events);
+        Assert.DoesNotContain(FunctionId.VSCode_LanguageServer_Daemon_Client_Disconnected, firstEvents.Events);
+        Assert.DoesNotContain(FunctionId.VSCode_LanguageServer_Daemon_Client_Disconnected, secondEvents.Events);
 
-        static string GetDaemonSessionId(LanguageServerTelemetry telemetry)
+        static string GetDaemonSessionId(TelemetrySession telemetrySession)
         {
-            Assert.NotNull(telemetry.Session);
-            Assert.True(telemetry.Session.TryGetCommonPropertyValue(LanguageServerTelemetry.DaemonSessionIdPropertyName, out var daemonSessionId));
+            Assert.True(telemetrySession.TryGetCommonPropertyValue(LanguageServerTelemetry.DaemonSessionIdPropertyName, out var daemonSessionId));
             return Assert.IsType<string>(daemonSessionId);
         }
     }

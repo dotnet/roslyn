@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO.Pipes;
@@ -40,10 +39,23 @@ public sealed class ServiceBrokerFactoryTests(ITestOutputHelper testOutputHelper
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
 
     [Fact]
-    public async Task ServiceBrokerFactoryIsManagedPerServerAsync()
+    public async Task ServiceBrokerFactoryAndTelemetryAreManagedPerServerAsync()
     {
-        var server1 = await CreateLanguageServerAsync();
-        var server2 = await CreateLanguageServerAsync();
+        var serverTelemetry1 = new RoslynTelemetry();
+        var serverTelemetry2 = new RoslynTelemetry();
+        var serverEvents1 = new RecordingEventSink();
+        var serverEvents2 = new RecordingEventSink();
+        using var registration1 = serverTelemetry1.AddEventSink(serverEvents1);
+        using var registration2 = serverTelemetry2.AddEventSink(serverEvents2);
+
+        TestLspServer server1;
+        using (RoslynTelemetry.SetCurrent(serverTelemetry1))
+            server1 = await CreateLanguageServerAsync();
+
+        TestLspServer server2;
+        using (RoslynTelemetry.SetCurrent(serverTelemetry2))
+            server2 = await CreateLanguageServerAsync();
+
         var server1Disposed = false;
 
         await using var brokeredServiceClient1 = new TestBrokeredServiceClient();
@@ -69,6 +81,27 @@ public sealed class ServiceBrokerFactoryTests(ITestOutputHelper testOutputHelper
             Assert.NotNull(await workspaceProjectFactory2.GetSupportedBuildSystemPropertiesAsync(CancellationToken.None));
             Assert.NotSame(workspaceProjectFactory1, workspaceProjectFactory2);
 
+            Assert.NotSame(serverTelemetry1, RoslynTelemetry.Current);
+            Assert.NotSame(serverTelemetry2, RoslynTelemetry.Current);
+
+            using var workspaceProject = await workspaceProjectFactory1.CreateAndAddProjectAsync(
+                new WorkspaceProjectCreationInfo(LanguageNames.CSharp, "DisplayName", FilePath: null, new Dictionary<string, string>()),
+                CancellationToken.None);
+            Assert.Contains(FunctionId.VSCode_Project_Load_Started, serverEvents1.Events);
+            Assert.DoesNotContain(FunctionId.VSCode_Project_Load_Started, serverEvents2.Events);
+
+            var observer = await brokeredServiceClient1.InitializationObserver.WaitAsync(s_timeout);
+            observer.OnNext(new ProjectInitializationCompletionState { EnvironmentStateVersion = 1, ProjectsLoadedCount = 1 });
+
+            using var completionTimeout = new CancellationTokenSource(s_timeout);
+            while (!serverEvents1.Events.Contains(FunctionId.VSCode_Projects_Load_Completed))
+            {
+                completionTimeout.Token.ThrowIfCancellationRequested();
+                await Task.Delay(50, completionTimeout.Token);
+            }
+
+            Assert.DoesNotContain(FunctionId.VSCode_Projects_Load_Completed, serverEvents2.Events);
+
             await server1.DisposeAsync();
             server1Disposed = true;
             // Now that the server is disposed, the client connection should close.
@@ -85,76 +118,6 @@ public sealed class ServiceBrokerFactoryTests(ITestOutputHelper testOutputHelper
             }
 
             await server2.DisposeAsync();
-        }
-    }
-
-    /// <summary>
-    /// Inbound brokered service calls are dispatched by StreamJsonRpc on the execution context captured
-    /// when the bridge connection began listening, so they inherit the owning server's telemetry instance
-    /// rather than whatever ambient the caller happens to have.
-    /// </summary>
-    [Fact]
-    public async Task InboundBrokeredServiceCallsUseTheOwningServersTelemetryAsync()
-    {
-        var serverTelemetry = new RoslynTelemetry();
-        var events = new RecordingEventSink();
-        using var registration = serverTelemetry.AddEventSink(events);
-
-        TestLspServer server;
-        var brokeredServiceClient = new TestBrokeredServiceClient();
-        await using var clientScope = brokeredServiceClient;
-
-        using (RoslynTelemetry.SetCurrent(serverTelemetry))
-        {
-            server = await CreateLanguageServerAsync();
-            await brokeredServiceClient.ConnectAsync(server);
-        }
-
-        await using var serverScope = server;
-
-        // The caller's ambient is the default instance here, not the server's.
-        Assert.NotSame(serverTelemetry, RoslynTelemetry.Current);
-
-        var workspaceProjectFactory = await GetRequiredServiceAsync<IWorkspaceProjectFactoryService>(
-            brokeredServiceClient.ServiceBroker, WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor, CancellationToken.None);
-
-        using var workspaceProject = await workspaceProjectFactory.CreateAndAddProjectAsync(
-            new WorkspaceProjectCreationInfo(LanguageNames.CSharp, "DisplayName", FilePath: null, new Dictionary<string, string>()),
-            CancellationToken.None);
-
-        // CreateAndAddProjectAsync reports project-load telemetry through the ambient instance.
-        Assert.Contains(FunctionId.VSCode_Project_Load_Started, events.Events);
-
-        // Dev Kit's initialization-complete callback is dispatched onto the observer the server
-        // registered over the broker, and is likewise attributed to the owning server.
-        var observer = await brokeredServiceClient.InitializationObserver.WaitAsync(s_timeout);
-        observer.OnNext(new ProjectInitializationCompletionState { EnvironmentStateVersion = 1, ProjectsLoadedCount = 1 });
-
-        using var completionTimeout = new CancellationTokenSource(s_timeout);
-        while (!events.Events.Contains(FunctionId.VSCode_Projects_Load_Completed))
-        {
-            completionTimeout.Token.ThrowIfCancellationRequested();
-            await Task.Delay(50, completionTimeout.Token);
-        }
-    }
-
-    private sealed class RecordingEventSink : IEventSink
-    {
-        private readonly ConcurrentQueue<FunctionId> _events = new();
-
-        public ImmutableArray<FunctionId> Events => [.. _events];
-
-        public bool IsEnabled(FunctionId functionId) => true;
-
-        public void Log(FunctionId functionId, LogMessage logMessage)
-            => _events.Enqueue(functionId);
-
-        public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken)
-        {
-        }
-
-        public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int uniquePairId, int delta, CancellationToken cancellationToken)
-        {
         }
     }
 

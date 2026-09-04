@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Daemon;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
@@ -47,6 +48,11 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
     {
         Contract.ThrowIfNull(serverConfiguration.ServerPipeName, "Server must be started with either --stdio or --pipe option.");
     }
+
+    serverConfiguration = serverConfiguration with
+    {
+        TelemetryLevel = TelemetryLevelResolver.Resolve(serverConfiguration.TelemetryLevel),
+    };
 
     if (serverConfiguration.UseStdIo)
     {
@@ -130,19 +136,8 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
         Directory.CreateDirectory(serverConfiguration.ExtensionLogDirectory);
     }
 
-    using var telemetryService = new LanguageServerTelemetry(serverConfiguration, loggerFactory, RoslynLog.RoslynTelemetry.Current);
-    var telemetryLevel = LanguageServerTelemetry.GetTelemetryLevel(serverConfiguration);
-    if (telemetryLevel is not null)
-        telemetryService.InitializeSession(telemetryLevel, serverConfiguration.SessionId, isDefaultSession: true);
-
-    // Mark daemon work as explicitly attributed even though this is normally the private default instance.
-    // Child hosts inherit this context, and the debug fallback detector can distinguish it from lost attribution.
-    using var daemonTelemetryScope = serverConfiguration.IsDaemon
-        ? RoslynLog.RoslynTelemetry.SetCurrent(telemetryService.Telemetry)
-        : null;
-
-    if (serverConfiguration.IsDaemon)
-        RoslynLog.RoslynTelemetry.EnableDefaultAttributionDetection();
+    using var telemetryService = LanguageServerTelemetry.CreateProcessSession(
+        serverConfiguration, loggerFactory, RoslynLog.RoslynTelemetry.Current, isDefaultSession: true);
 
     // Build the connection source for the configured mode. Single-server mode (stdio / connect-out pipe) yields
     // exactly one connection; daemon mode accepts many and manages its own idle timeout. Both run through the same
@@ -203,7 +198,7 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
     {
         using (connectionSource as IDisposable)
         {
-            await connectionManager.RunAsync(connectionSource, exportProvider, typeRefResolver, logger, cancellationToken);
+            await connectionManager.RunAsync(connectionSource, exportProvider, typeRefResolver, logger, telemetryService, cancellationToken);
         }
     }
     finally
