@@ -36,6 +36,8 @@ internal sealed class DevKitProjectLoadingServiceContributor(
     LspServices lspServices,
     ILoggerFactory loggerFactory) : IServiceBrokerInitializer, ILspService
 {
+    private readonly RoslynTelemetry _telemetry = RoslynTelemetry.Current;
+
     public ImmutableDictionary<ServiceMoniker, ServiceRegistration> ServicesToRegister => new Dictionary<ServiceMoniker, ServiceRegistration>
     {
         { WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) }
@@ -47,16 +49,15 @@ internal sealed class DevKitProjectLoadingServiceContributor(
             WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor,
             async (moniker, options, innerServiceBroker, cancellationToken) =>
             {
-                var telemetry = lspServices.GetRequiredService<RoslynTelemetry>();
-                using var _ = RoslynTelemetry.SetCurrent(telemetry);
+                using var _ = RoslynTelemetry.SetCurrent(_telemetry);
                 var workspaceFactory = lspServices.GetRequiredService<LanguageServerWorkspaceFactory>();
                 var targetFrameworkManager = lspServices.GetRequiredService<ProjectTargetFrameworkManager>();
                 var clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
                 var requestTelemetryLogger = (VSCodeRequestTelemetryLogger)lspServices.GetRequiredService<RequestTelemetryLogger>();
                 var projectInitializationHandler = new ProjectInitializationHandler(
-                    clientLanguageServerManager, innerServiceBroker, loggerFactory, requestTelemetryLogger, telemetry);
+                    clientLanguageServerManager, innerServiceBroker, loggerFactory, requestTelemetryLogger);
                 var service = new WorkspaceProjectFactoryService(
-                    workspaceFactory, targetFrameworkManager, projectInitializationHandler, loggerFactory, requestTelemetryLogger, telemetry);
+                    workspaceFactory, targetFrameworkManager, projectInitializationHandler, loggerFactory, requestTelemetryLogger);
                 await service.InitializeAsync(cancellationToken);
                 return service;
             });

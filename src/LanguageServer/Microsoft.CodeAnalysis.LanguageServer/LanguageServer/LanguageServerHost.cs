@@ -30,19 +30,20 @@ internal sealed class LanguageServerHost
         Stream inputStream,
         Stream outputStream,
         ExportProvider exportProvider,
-        AbstractTypeRefResolver typeRefResolver,
-        LanguageServerTelemetry telemetryService,
-        bool createPerServerTelemetry)
+        AbstractTypeRefResolver typeRefResolver)
     {
-        // The daemon's process session creates one child owned by each host. A standalone host uses
-        // the process session directly and leaves its lifetime with Program.
-        if (createPerServerTelemetry)
+        var processTelemetry = RoslynTelemetry.Current;
+        var serverConfiguration = exportProvider.GetExportedValue<ServerConfiguration>();
+
+        if (serverConfiguration.IsDaemon)
         {
-            _ownedTelemetry = telemetryService.CreatePerServerSession();
+            _ownedTelemetry = LanguageServerTelemetry.CreatePerServerSession(
+                serverConfiguration,
+                exportProvider.GetExportedValue<ILoggerFactory>());
             RoslynTelemetry.OnPerServerInstanceStarted();
         }
 
-        _telemetry = (_ownedTelemetry ?? telemetryService).Telemetry;
+        _telemetry = _ownedTelemetry?.Telemetry ?? processTelemetry;
         using var telemetryScope = RoslynTelemetry.SetCurrent(_telemetry);
 
         JsonRpc? jsonRpc = null;

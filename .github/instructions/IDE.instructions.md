@@ -28,9 +28,9 @@ var csharpService = workspace.Services.GetLanguageServices(LanguageNames.CSharp)
 
 ### Language Server Telemetry
 
-- Daemon mode owns one process telemetry session plus one `RoslynTelemetry`/`TelemetrySession` pair per connected language server. `LanguageServerHost` owns each per-server session, while services resolve its `RoslynTelemetry` through `LspServices`.
-- `LanguageServerHost` establishes the server's `RoslynTelemetry` ambient before constructing `RoslynLanguageServer`, and `LspServices` reapplies it when lazily constructing services. Request dispatch and per-server callbacks or background entry points that may run outside the request queue must likewise use a nested `RoslynTelemetry.SetCurrent(...)` scope.
-- Daemon lifecycle events bypass the ambient and log through the daemon's explicitly captured `RoslynTelemetry`.
+- Daemon mode owns one process telemetry session plus one `RoslynTelemetry`/`TelemetrySession` pair per connected language server. `LanguageServerHost` creates each child from the ambient process owner and owns its lifetime; the connection manager has no telemetry ownership.
+- `LanguageServerHost` establishes the server's `RoslynTelemetry` ambient before constructing `RoslynLanguageServer`, and `LspServices` reapplies it when lazily constructing services so their factories can capture `RoslynTelemetry.Current`. Request dispatch and per-server callbacks or background entry points that may run outside the request queue must likewise use a nested `RoslynTelemetry.SetCurrent(...)` scope.
+- `NamedPipeDaemonConnectionSource` captures the daemon's `RoslynTelemetry` when constructed. Daemon lifecycle events bypass the ambient and log through that captured instance.
 - `FeaturesSessionTelemetry.Report()` currently reports process-wide aggregators once during process shutdown; do not invoke it from per-server telemetry disposal.
 
 ### MEF Export Patterns

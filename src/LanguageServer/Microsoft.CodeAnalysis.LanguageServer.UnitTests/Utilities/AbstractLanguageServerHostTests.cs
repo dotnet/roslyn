@@ -362,7 +362,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
                 try
                 {
                     await _connectionManager.RunAsync(
-                        connectionSource, exportProvider, typeRefResolver, logger, telemetryService, CancellationToken.None);
+                        connectionSource, exportProvider, typeRefResolver, logger, CancellationToken.None);
                 }
                 finally
                 {
@@ -485,33 +485,37 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             var pipeName = "roslyn-daemon-test." + Guid.NewGuid().ToString("N");
             var logger = loggerFactory.CreateLogger<LanguageServerConnectionManager>();
             var telemetryService = CreateTelemetryService(serverConfiguration, loggerFactory, new RoslynTelemetry());
-            var created = NamedPipeDaemonConnectionSource.TryCreate(
-                pipeName, keepAlive, logger, telemetryService.Telemetry, out var source, initialConnectionTimeout);
-            Contract.ThrowIfFalse(
-                created,
-                "Unexpectedly failed to become the daemon for a fresh pipe name.");
-            Contract.ThrowIfNull(source);
-
             var connectionManager = new LanguageServerConnectionManager();
             var cts = new CancellationTokenSource();
-            var daemonTask = Task.Run(async () =>
+            NamedPipeDaemonConnectionSource? source;
+            Task daemonTask;
+            using (RoslynTelemetry.SetCurrent(telemetryService.Telemetry))
             {
-                try
+                var created = NamedPipeDaemonConnectionSource.TryCreate(
+                    pipeName, keepAlive, logger, out source, initialConnectionTimeout);
+                Contract.ThrowIfFalse(
+                    created,
+                    "Unexpectedly failed to become the daemon for a fresh pipe name.");
+                Contract.ThrowIfNull(source);
+
+                daemonTask = Task.Run(async () =>
                 {
-                    await connectionManager.RunAsync(
-                        source,
-                        exportProvider,
-                        typeRefResolver,
-                        logger,
-                        telemetryService,
-                        cts.Token).ConfigureAwait(false);
-                }
-                finally
-                {
-                    source.Dispose();
-                    telemetryService.Dispose();
-                }
-            });
+                    try
+                    {
+                        await connectionManager.RunAsync(
+                            source,
+                            exportProvider,
+                            typeRefResolver,
+                            logger,
+                            cts.Token).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        source.Dispose();
+                        telemetryService.Dispose();
+                    }
+                });
+            }
 
             return new TestDaemon(pipeName, source, connectionManager, daemonTask, cts, exportProvider, testOutputHelper, telemetryService);
         }

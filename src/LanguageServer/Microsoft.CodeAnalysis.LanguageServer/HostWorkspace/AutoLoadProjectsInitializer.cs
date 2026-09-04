@@ -28,16 +28,14 @@ internal sealed class AutoLoadProjectsInitializerFactory(
             lspServices.GetRequiredService<LanguageServerProjectSystem>(),
             lspServices.GetRequiredService<ILoggerFactory>(),
             serverConfiguration,
-            globalOptionService,
-            lspServices.GetRequiredService<RoslynTelemetry>());
+            globalOptionService);
 }
 
 internal sealed class AutoLoadProjectsInitializer(
     LanguageServerProjectSystem projectSystem,
     ILoggerFactory loggerFactory,
     ServerConfiguration serverConfiguration,
-    IGlobalOptionService globalOptionService,
-    RoslynTelemetry telemetry) : ILspService, IOnInitialized
+    IGlobalOptionService globalOptionService) : ILspService, IOnInitialized
 {
     private static readonly EnumerationOptions s_recursiveEnumerationOptions = new() { RecurseSubdirectories = true, IgnoreInaccessible = true };
     private readonly ILogger _logger = loggerFactory.CreateLogger<AutoLoadProjectsInitializer>();
@@ -145,6 +143,7 @@ internal sealed class AutoLoadProjectsInitializer(
         async Task StartAndReportProgressAsync(Func<IWorkDoneProgressReporter, Task> loadOperation, string title, string startMessage, string endMessage)
         {
             var workDoneProgressManager = context.GetRequiredLspService<WorkDoneProgressManager>();
+            var telemetry = RoslynTelemetry.Current;
 
             // We will await for the client to know that we are starting work...
             var progressReporter = await workDoneProgressManager.CreateWorkDoneProgressAsync(reportProgressToClient: true,

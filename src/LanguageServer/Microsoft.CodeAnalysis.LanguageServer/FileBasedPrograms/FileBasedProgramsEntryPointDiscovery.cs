@@ -40,8 +40,7 @@ internal sealed class FileBasedProgramsEntryPointDiscoveryFactory(IGlobalOptionS
             listenerProvider.GetListener(FeatureAttribute.Workspace),
             lspServices.GetRequiredService<IHostWorkspaceProvider>().Workspace.Services.GetRequiredService<IFileBasedProgramService>(),
             lspServices.GetRequiredService<ILoggerFactory>(),
-            lspServices,
-            lspServices.GetRequiredService<RoslynTelemetry>());
+            lspServices);
     }
 }
 
@@ -50,8 +49,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
     IAsynchronousOperationListener listener,
     IFileBasedProgramService fileBasedProgramService,
     ILoggerFactory loggerFactory,
-    LspServices lspServices,
-    RoslynTelemetry telemetry) : ILspService, IOnInitialized
+    LspServices lspServices) : ILspService, IOnInitialized
 {
     private static readonly StringComparer s_pathComparer = StringComparer.OrdinalIgnoreCase;
 
@@ -71,6 +69,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
     {
         var initializeManager = context.GetRequiredService<IInitializeManager>();
         _workspaceFolders = initializeManager.GetRequiredWorkspaceFolderPaths();
+        var telemetry = RoslynTelemetry.Current;
         Task.Run(async () =>
         {
             using var _ = RoslynTelemetry.SetCurrent(telemetry);

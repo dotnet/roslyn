@@ -27,9 +27,7 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
         public ImmutableArray<FunctionId> Events => [.. _events];
 
         public bool IsEnabled(FunctionId functionId)
-            => functionId is FunctionId.VSCode_LanguageServer_Daemon_Started
-                or FunctionId.VSCode_LanguageServer_Daemon_Client_Connected
-                or FunctionId.VSCode_LanguageServer_Daemon_Client_Disconnected;
+            => true;
 
         public void Log(FunctionId functionId, LogMessage logMessage)
             => _events.Enqueue(functionId);
@@ -71,7 +69,7 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
 
         // ...so a second daemon on the same pipe must observe it and fail to become the daemon.
         Assert.False(NamedPipeDaemonConnectionSource.TryCreate(
-            daemon.PipeName, Timeout.InfiniteTimeSpan, LoggerFactory.CreateLogger("Daemon2"), daemon.TelemetryService.Telemetry, out var secondSource));
+            daemon.PipeName, Timeout.InfiniteTimeSpan, LoggerFactory.CreateLogger("Daemon2"), out var secondSource));
         Assert.Null(secondSource);
     }
 

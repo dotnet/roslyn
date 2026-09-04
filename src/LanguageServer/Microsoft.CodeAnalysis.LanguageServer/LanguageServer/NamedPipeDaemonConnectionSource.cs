@@ -42,14 +42,13 @@ internal sealed class NamedPipeDaemonConnectionSource : ILanguageServerConnectio
         Mutex serverMutex,
         TimeSpan initialConnectionTimeout,
         TimeSpan keepAlive,
-        ILogger logger,
-        RoslynLog.RoslynTelemetry daemonTelemetry)
+        ILogger logger)
     {
         _pipeName = pipeName;
         _serverMutex = serverMutex;
         _idleTimeout = new ConnectionIdleTimeout(initialConnectionTimeout, keepAlive, logger);
         _logger = logger;
-        _daemonTelemetry = daemonTelemetry;
+        _daemonTelemetry = RoslynLog.RoslynTelemetry.Current;
     }
 
     public bool ShouldIsolateConnectionFaults => true;
@@ -62,7 +61,6 @@ internal sealed class NamedPipeDaemonConnectionSource : ILanguageServerConnectio
         string pipeName,
         TimeSpan keepAlive,
         ILogger logger,
-        RoslynLog.RoslynTelemetry daemonTelemetry,
         [NotNullWhen(true)] out NamedPipeDaemonConnectionSource? source,
         TimeSpan? initialConnectionTimeout = null)
     {
@@ -76,8 +74,8 @@ internal sealed class NamedPipeDaemonConnectionSource : ILanguageServerConnectio
         }
 
         source = new NamedPipeDaemonConnectionSource(
-            pipeName, serverMutex, initialConnectionTimeout ?? s_initialConnectionTimeout, keepAlive, logger, daemonTelemetry);
-        daemonTelemetry.Log(RoslynLog.FunctionId.VSCode_LanguageServer_Daemon_Started, logLevel: RoslynLog.LogLevel.Information);
+            pipeName, serverMutex, initialConnectionTimeout ?? s_initialConnectionTimeout, keepAlive, logger);
+        source._daemonTelemetry.Log(RoslynLog.FunctionId.VSCode_LanguageServer_Daemon_Started, logLevel: RoslynLog.LogLevel.Information);
         return true;
     }
 

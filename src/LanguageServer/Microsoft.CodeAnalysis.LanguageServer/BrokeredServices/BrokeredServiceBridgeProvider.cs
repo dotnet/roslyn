@@ -41,9 +41,9 @@ internal sealed class BrokeredServiceBridgeProvider
         string brokeredServicePipeName,
         BrokeredServiceContainer container,
         ILoggerFactory loggerFactory,
-        RoslynTelemetry telemetry,
         CancellationToken cancellationToken)
     {
+        var telemetry = RoslynTelemetry.Current;
         using var _ = RoslynTelemetry.SetCurrent(telemetry);
 
         var logger = loggerFactory.CreateLogger<BrokeredServiceBridgeProvider>();

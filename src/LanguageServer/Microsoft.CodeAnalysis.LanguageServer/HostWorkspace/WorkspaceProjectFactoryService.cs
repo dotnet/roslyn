@@ -17,23 +17,23 @@ internal sealed class WorkspaceProjectFactoryService(
     ProjectTargetFrameworkManager targetFrameworkManager,
     ProjectInitializationHandler projectInitializationHandler,
     ILoggerFactory loggerFactory,
-    VSCodeRequestTelemetryLogger requestTelemetryLogger,
-    RoslynTelemetry telemetry) : IWorkspaceProjectFactoryService
+    VSCodeRequestTelemetryLogger requestTelemetryLogger) : IWorkspaceProjectFactoryService
 {
     private readonly LanguageServerWorkspaceFactory _workspaceFactory = workspaceFactory;
     private readonly ProjectInitializationHandler _projectInitializationHandler = projectInitializationHandler;
     private readonly ILogger _logger = loggerFactory.CreateLogger(nameof(WorkspaceProjectFactoryService));
     private readonly ILoggerFactory _loggerFactory = loggerFactory;
+    private readonly RoslynTelemetry _telemetry = RoslynTelemetry.Current;
 
     public async Task InitializeAsync(CancellationToken cancellationToken)
     {
-        using var _ = RoslynTelemetry.SetCurrent(telemetry);
+        using var _ = RoslynTelemetry.SetCurrent(_telemetry);
         await _projectInitializationHandler.SubscribeToInitializationCompleteAsync(cancellationToken);
     }
 
     public async Task<IWorkspaceProject> CreateAndAddProjectAsync(WorkspaceProjectCreationInfo creationInfo, CancellationToken cancellationToken)
     {
-        using var _ = RoslynTelemetry.SetCurrent(telemetry);
+        using var _ = RoslynTelemetry.SetCurrent(_telemetry);
         requestTelemetryLogger.ReportProjectLoadStarted();
         try
         {
@@ -70,7 +70,7 @@ internal sealed class WorkspaceProjectFactoryService(
 
     public async Task<IReadOnlyCollection<string>> GetSupportedBuildSystemPropertiesAsync(CancellationToken _)
     {
-        using var telemetryScope = RoslynTelemetry.SetCurrent(telemetry);
+        using var telemetryScope = RoslynTelemetry.SetCurrent(_telemetry);
 
         // TODO: implement
         return [];

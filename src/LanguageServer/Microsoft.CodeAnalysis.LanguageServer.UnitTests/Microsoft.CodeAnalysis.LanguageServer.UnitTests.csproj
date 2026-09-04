@@ -27,10 +27,8 @@
     <InternalsVisibleTo Include="IdeCoreBenchmarks" />
   </ItemGroup>
 
-  <ItemGroup Label="Shared thin-client helpers for daemon tests">
-    <!-- Tests use these helpers verbatim so their argument parsing and named-pipe behavior match the thin client. -->
+  <ItemGroup Label="Shared named-pipe helper for daemon tests">
     <Compile Include="..\..\Compilers\Shared\NamedPipeUtil.cs" Link="Daemon\NamedPipeUtil.cs" />
-    <Compile Include="..\roslyn-language-server\ThinClientArguments.cs" Link="Daemon\ThinClientArguments.cs" />
   </ItemGroup>
 
   <!--
