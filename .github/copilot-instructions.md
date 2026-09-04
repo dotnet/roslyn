@@ -40,6 +40,8 @@ dotnet build Razor.slnf          # Razor compiler & tooling only
 dotnet build <path/to/Project.csproj>
 ```
 
+- In this repository, local `dotnet build` will not run analyzers by default. To include analyzers in the build, use the `-p:RunAnalyzersDuringBuild=true` flag to run them. Consider using this when searching for diagnostics you need to fix, or when you're doing a final build before creating a pull request.
+
 ### Run tests for modified code
 ```bash
 dotnet test <path/to/Specific.UnitTests.csproj>
@@ -53,6 +55,8 @@ Tests can take a while to build and run — monitor output and wait for completi
 ./build.sh   # Build.cmd on Windows
 ./test.sh    # Test.cmd on Windows
 ```
+
+- If you need build.sh to run analyzers, pass `--runAnalyzers`. If you need build.cmd to run analyzers, pass `-runAnalyzers`.
 
 Other entry points: `dotnet run --file eng/generate-compiler-code.cs` (regenerate Syntax/BoundNodes code), `dotnet msbuild <proj> /t:UpdateXlf` (refresh `.xlf` after `.resx` edits).
 
