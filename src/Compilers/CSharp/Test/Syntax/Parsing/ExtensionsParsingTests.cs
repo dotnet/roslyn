@@ -2397,6 +2397,7 @@ class C
     public void WithModifiers_Ref_CSharp13()
     {
         const string source = "class C { ref extension(Type) { } }";
+
         UsingTree(
             source,
             TestOptions.Regular13,
@@ -2505,14 +2506,8 @@ class C
         UsingTree(
             source,
             TestOptions.Regular13,
-            // (1,1): error CS0106: The modifier 'readonly' is not valid for this item
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 1),
-            // (1,19): error CS1001: Identifier expected
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 19),
-            // (1,26): error CS1001: Identifier expected
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 26));
         N(SyntaxKind.CompilationUnit);
         {
@@ -2551,20 +2546,10 @@ class C
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-            // (1,1): error CS0106: The modifier 'readonly' is not valid for this item
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 1),
-            // (1,10): error CS0246: The type or namespace name 'extension' could not be found (are you missing a using directive or an assembly reference?)
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "extension").WithArguments("extension").WithLocation(1, 10),
-            // (1,19): error CS1001: Identifier expected
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 19),
-            // (1,19): error CS0161: '(object)': not all code paths return a value
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("(object)").WithLocation(1, 19),
-            // (1,26): error CS1001: Identifier expected
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 26));
     }
 
@@ -2710,14 +2695,8 @@ class C
         UsingTree(
             source,
             TestOptions.Regular14,
-            // (1,1): error CS0106: The modifier 'readonly' is not valid for this item
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 1),
-            // (1,19): error CS1001: Identifier expected
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 19),
-            // (1,26): error CS1001: Identifier expected
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 26));
         N(SyntaxKind.CompilationUnit);
         {
@@ -2756,20 +2735,10 @@ class C
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,1): error CS0106: The modifier 'readonly' is not valid for this item
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 1),
-            // (1,10): error CS0246: The type or namespace name 'extension' could not be found (are you missing a using directive or an assembly reference?)
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "extension").WithArguments("extension").WithLocation(1, 10),
-            // (1,19): error CS1001: Identifier expected
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 19),
-            // (1,19): error CS0161: '(object)': not all code paths return a value
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("(object)").WithLocation(1, 19),
-            // (1,26): error CS1001: Identifier expected
-            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 26));
     }
 
@@ -2915,8 +2884,6 @@ class C
         UsingTree(
             source,
             TestOptions.Regular13,
-            // (1,36): error CS1001: Identifier expected
-            // class C { readonly extension(object) { } }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 36));
         N(SyntaxKind.CompilationUnit);
         {
@@ -2955,14 +2922,8 @@ class C
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-            // (1,11): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
-            // class C { readonly extension(object) { } }
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "readonly extension(object) { }").WithArguments("extensions", "14.0").WithLocation(1, 11),
-            // (1,20): error CS0106: The modifier 'readonly' is not valid for this item
-            // class C { readonly extension(object) { } }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("readonly").WithLocation(1, 20),
-            // (1,36): error CS1001: Identifier expected
-            // class C { readonly extension(object) { } }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 36));
     }
 
@@ -3125,9 +3086,220 @@ class C
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,27): error CS0106: The modifier 'readonly' is not valid for this item
-            // static class C { readonly extension(object) { } }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("readonly").WithLocation(1, 27));
+    }
+
+    [Fact]
+    public void ModifierParsing_CSharp14_Ref_TypeMember()
+    {
+        const string source = "static class C { ref extension(object) { } }";
+        UsingTree(source, TestOptions.Regular14);
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ExtensionBlockDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("ref").WithLocation(1, 22));
+    }
+
+    [Fact]
+    public void RefReturnTypeNamedExtension_CSharp13()
+    {
+        const string declaration = "ref extension M() => ref field;";
+
+        UsingDeclaration(declaration, options: TestOptions.Regular13);
+        N(SyntaxKind.MethodDeclaration);
+        {
+            N(SyntaxKind.RefType);
+            {
+                N(SyntaxKind.RefKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "extension");
+                }
+            }
+            N(SyntaxKind.IdentifierToken, "M");
+            N(SyntaxKind.ParameterList);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.ArrowExpressionClause);
+            {
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.RefExpression);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "field");
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+        EOF();
+
+        CreateCompilation(
+            """
+            class extension;
+
+            class C
+            {
+                private extension field;
+                ref extension M() => ref field;
+            }
+            """,
+            parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (1,7): warning CS8981: The type name 'extension' only contains lower-cased ascii characters. Such names may become reserved for the language.
+            // class extension;
+            Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "extension").WithArguments("extension").WithLocation(1, 7));
+    }
+
+    [Fact]
+    public void RefReturnTypeNamedExtension_CSharp14()
+    {
+        UsingDeclaration(
+            "ref extension M() => ref field;",
+            options: TestOptions.Regular14,
+            // (1,1): error CS1073: Unexpected token '=>'
+            // ref extension M() => ref field;
+            Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref extension M() ").WithArguments("=>").WithLocation(1, 1),
+            // (1,15): error CS9281: Extension declarations may not have a name.
+            // ref extension M() => ref field;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsName, "M").WithLocation(1, 15),
+            // (1,17): error CS1031: Type expected
+            // ref extension M() => ref field;
+            Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(1, 17),
+            // (1,19): error CS1514: { expected
+            // ref extension M() => ref field;
+            Diagnostic(ErrorCode.ERR_LbraceExpected, "=>").WithLocation(1, 19),
+            // (1,19): error CS1513: } expected
+            // ref extension M() => ref field;
+            Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(1, 19));
+        N(SyntaxKind.ExtensionBlockDeclaration);
+        {
+            N(SyntaxKind.RefKeyword);
+            N(SyntaxKind.ExtensionKeyword);
+            N(SyntaxKind.ParameterList);
+            {
+                N(SyntaxKind.OpenParenToken);
+                M(SyntaxKind.Parameter);
+                {
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            M(SyntaxKind.OpenBraceToken);
+            M(SyntaxKind.CloseBraceToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void PartialReturnTypeNamedExtension_CSharp13()
+    {
+        const string declaration = "private partial extension M();";
+
+        UsingDeclaration(declaration, options: TestOptions.Regular13);
+        N(SyntaxKind.MethodDeclaration);
+        {
+            N(SyntaxKind.PrivateKeyword);
+            N(SyntaxKind.PartialKeyword);
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "extension");
+            }
+            N(SyntaxKind.IdentifierToken, "M");
+            N(SyntaxKind.ParameterList);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+        EOF();
+
+        CreateCompilation(
+            """
+            class extension;
+
+            partial class C
+            {
+                private partial extension M();
+                private partial extension M() => new();
+            }
+            """,
+            parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (1,7): warning CS8981: The type name 'extension' only contains lower-cased ascii characters. Such names may become reserved for the language.
+            // class extension;
+            Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "extension").WithArguments("extension").WithLocation(1, 7));
+    }
+
+    [Fact]
+    public void PartialReturnTypeNamedExtension_CSharp14()
+    {
+        UsingDeclaration(
+            "private partial extension M();",
+            options: TestOptions.Regular14,
+            // (1,27): error CS9281: Extension declarations may not have a name.
+            // private partial extension M();
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsName, "M").WithLocation(1, 27),
+            // (1,29): error CS1031: Type expected
+            // private partial extension M();
+            Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(1, 29));
+        N(SyntaxKind.ExtensionBlockDeclaration);
+        {
+            N(SyntaxKind.PrivateKeyword);
+            N(SyntaxKind.PartialKeyword);
+            N(SyntaxKind.ExtensionKeyword);
+            N(SyntaxKind.ParameterList);
+            {
+                N(SyntaxKind.OpenParenToken);
+                M(SyntaxKind.Parameter);
+                {
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+        EOF();
     }
 
     [Fact]

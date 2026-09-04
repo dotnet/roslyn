@@ -1484,16 +1484,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 Debug.Assert(this.CurrentToken.Kind == SyntaxKind.RefKeyword);
 
-                // For back compatibility, parse 'ref record', 'ref partial record', 'ref union',
-                // and 'ref partial union' as type declarations when the corresponding feature is enabled.
-                var nextToken = this.PeekToken(1);
-                if (this.IsEnabledRecordOrUnionKeyword(nextToken))
+                var peekIndex = 1;
+
+                // Skip ordinary modifiers while looking for the type declaration. 'scoped' is
+                // intentionally excluded: it is contextual and may instead be the type in a
+                // 'ref scoped ...' return-type prefix.
+                while (GetModifierExcludingScoped(this.PeekToken(peekIndex)) != DeclarationModifiers.None)
                 {
-                    return false;
+                    peekIndex++;
                 }
 
-                if (nextToken.ContextualKind == SyntaxKind.PartialKeyword &&
-                    this.IsEnabledRecordOrUnionKeyword(this.PeekToken(2)))
+                if (this.IsTypeDeclarationStart(peekIndex))
                 {
                     return false;
                 }
@@ -1710,7 +1711,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 peekIndex++;
             }
 
-            return this.IsClassStructInterfaceRecordOrUnionKeyword(this.PeekToken(peekIndex));
+            return this.IsTypeDeclarationStart(peekIndex);
         }
 
         private bool IsPartialMember()
@@ -2519,6 +2520,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 default:
                     return false;
             }
+        }
+
+        private bool IsTypeDeclarationStart(int peekIndex)
+        {
+            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+
+            while (peekIndex > 0)
+            {
+                this.EatToken();
+                peekIndex--;
+            }
+
+            return this.IsTypeDeclarationStart();
         }
 
         private bool CanReuseMemberDeclaration(SyntaxKind kind, bool isGlobal)

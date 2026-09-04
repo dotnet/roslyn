@@ -184,9 +184,8 @@ public sealed class ClosedModifierParsingTests : ParsingTests
     [Fact]
     public void ClosedModifier_03_Class()
     {
-        const SyntaxKind typeKeyword = SyntaxKind.ClassKeyword;
-        UsingNode($$"""
-            partial closed {{SyntaxFacts.GetText(typeKeyword)}} C { }
+        UsingNode("""
+            partial closed class C { }
             """,
             expectedBindingDiagnostics: [
                 // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
@@ -195,11 +194,11 @@ public sealed class ClosedModifierParsingTests : ParsingTests
             ]);
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxFacts.GetBaseTypeDeclarationKind(typeKeyword));
+            N(SyntaxKind.ClassDeclaration);
             {
                 N(SyntaxKind.PartialKeyword);
                 N(SyntaxKind.ClosedKeyword);
-                N(typeKeyword);
+                N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.CloseBraceToken);
@@ -212,9 +211,8 @@ public sealed class ClosedModifierParsingTests : ParsingTests
     [Fact]
     public void ClosedModifier_03_Struct()
     {
-        const SyntaxKind typeKeyword = SyntaxKind.StructKeyword;
-        UsingNode($$"""
-            partial closed {{SyntaxFacts.GetText(typeKeyword)}} C { }
+        UsingNode("""
+            partial closed struct C { }
             """,
             expectedBindingDiagnostics: [
                 // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
@@ -226,11 +224,11 @@ public sealed class ClosedModifierParsingTests : ParsingTests
             ]);
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxFacts.GetBaseTypeDeclarationKind(typeKeyword));
+            N(SyntaxKind.StructDeclaration);
             {
                 N(SyntaxKind.PartialKeyword);
                 N(SyntaxKind.ClosedKeyword);
-                N(typeKeyword);
+                N(SyntaxKind.StructKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.CloseBraceToken);
@@ -243,9 +241,8 @@ public sealed class ClosedModifierParsingTests : ParsingTests
     [Fact]
     public void ClosedModifier_03_Interface()
     {
-        const SyntaxKind typeKeyword = SyntaxKind.InterfaceKeyword;
-        UsingNode($$"""
-            partial closed {{SyntaxFacts.GetText(typeKeyword)}} C { }
+        UsingNode("""
+            partial closed interface C { }
             """,
             expectedBindingDiagnostics: [
                 // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
@@ -257,11 +254,11 @@ public sealed class ClosedModifierParsingTests : ParsingTests
             ]);
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxFacts.GetBaseTypeDeclarationKind(typeKeyword));
+            N(SyntaxKind.InterfaceDeclaration);
             {
                 N(SyntaxKind.PartialKeyword);
                 N(SyntaxKind.ClosedKeyword);
-                N(typeKeyword);
+                N(SyntaxKind.InterfaceKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.CloseBraceToken);
