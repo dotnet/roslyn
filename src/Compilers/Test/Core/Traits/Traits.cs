@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public static class TestGates
         {
             public const string RoslynVSIntegration = nameof(RoslynVSIntegration);
+            public const string NuGetPackageUpgrade = nameof(NuGetPackageUpgrade);
         }
 
         public const string Feature = nameof(Feature);
