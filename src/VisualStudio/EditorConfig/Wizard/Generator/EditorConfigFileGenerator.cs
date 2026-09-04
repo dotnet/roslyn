@@ -1,11 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Logging.Kinds;
-using Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Utilities;
 using System;
 using System.IO;
 using System.Windows;
+using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Logging.Kinds;
+using Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Utilities;
 using static Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Logging.Logger;
 
 namespace Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Generator;
@@ -14,7 +16,7 @@ public static class EditorConfigFileGenerator
 {
     public static (bool success, string? fileName) TryAddFileToSolution(bool? isDotnet = null)
     {
-        bool hasDotNetProjects = isDotnet ?? VSHelpers.IsDotnet();
+        var hasDotNetProjects = isDotnet ?? VSHelpers.IsDotnet();
         LogEvent(EventId.FoundDotnetProjects, hasDotNetProjects);
         var (isAtSolutionLevel, path, language, selectedItem) = VSHelpers.TryGetSelectedItemLanguageAndPath();
         if (language is not null)
@@ -67,7 +69,7 @@ public static class EditorConfigFileGenerator
 
     public static (bool success, string? fileName) TryAddFileToFolder(string directory)
     {
-        bool isDotnet = VSHelpers.IsDotnet(directory);
+        var isDotnet = VSHelpers.IsDotnet(directory);
         LogEvent(EventId.FoundDotnetProjects, isDotnet);
         var language = VSHelpers.GetLanguageFromDirectory(directory);
         if (language is not null)
@@ -92,7 +94,7 @@ public static class EditorConfigFileGenerator
 
     private static (bool success, string? fileName) TryCreateFile(string projectPath, bool isDotnet, bool isAtSolutionLevel, string language)
     {
-        string fileName = Path.Combine(projectPath, TemplateConstants.FileName);
+        var fileName = Path.Combine(projectPath, TemplateConstants.FileName);
         if (File.Exists(fileName))
         {
             LogEvent(EventId.CreationFailedFileExists);
@@ -108,7 +110,7 @@ public static class EditorConfigFileGenerator
 
     private static void WriteFile(string fileName, bool isDotnet, bool isAtSolutionLevel, string language)
     {
-        string? editorconfigFileContents = GetEditorconfigFileContents(isDotnet, isAtSolutionLevel, language);
+        var editorconfigFileContents = GetEditorconfigFileContents(isDotnet, isAtSolutionLevel, language);
         File.WriteAllText(fileName, editorconfigFileContents);
         LogEvent(EventId.FileCreatedSuccessfully);
 

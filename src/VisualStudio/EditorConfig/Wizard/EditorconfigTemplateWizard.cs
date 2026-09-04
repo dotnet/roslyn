@@ -1,5 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Generator;
@@ -7,8 +11,6 @@ using Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Logging.Kinds;
 using Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Logging.Messages;
 using Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Utilities;
 using Microsoft.VisualStudio.TemplateWizard;
-using System;
-using System.Collections.Generic;
 using static Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Logging.Logger;
 
 public partial class EditorconfigTemplateWizard : IWizard
@@ -36,8 +38,8 @@ public partial class EditorconfigTemplateWizard : IWizard
                 return;
             }
 
-            bool isDotnet = StringComparer.OrdinalIgnoreCase.Compare(result, "dotnet") == 0;
-            (bool success, string? fileName) = EditorConfigFileGenerator.TryAddFileToSolution(isDotnet);
+            var isDotnet = StringComparer.OrdinalIgnoreCase.Compare(result, "dotnet") == 0;
+            (var success, var fileName) = EditorConfigFileGenerator.TryAddFileToSolution(isDotnet);
             Assert(success, "Unable to add the editorconfig file to the solution");
 
             if (success && fileName is not null)

@@ -1,14 +1,23 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using Microsoft.VisualStudio.Workspace.VSIntegration.UI;
+using System;
 using System.ComponentModel.Composition;
+using Microsoft.VisualStudio.Workspace.VSIntegration.UI;
 
 namespace Microsoft.VisualStudio.Templates.Editorconfig.Command.Commands;
 
 [Export(typeof(INodeExtender))]
 internal class AddEditorConfigFileCommandProvider : INodeExtender
 {
-    private IWorkspaceCommandHandler _handler = new AddEditorConfigFileCommandHandler();
+    private readonly IWorkspaceCommandHandler _handler = new AddEditorConfigFileCommandHandler();
+
+    [ImportingConstructor]
+    [Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+    public AddEditorConfigFileCommandProvider()
+    {
+    }
 
     public IChildrenSource? ProvideChildren(WorkspaceVisualNodeBase parentNode) => null;
 

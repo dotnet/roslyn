@@ -1,10 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
+using System.Threading;
 using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Logging.Kinds;
 using Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Logging.Messages;
-using System;
-using System.Threading;
 using static Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Logging.LoggerHelpers;
 
 namespace Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Logging;
@@ -18,7 +20,7 @@ public partial class Logger
         _session = session ?? throw new ArgumentNullException(nameof(session));
     }
 
-    private static Lazy<Logger> _lazyInstance = new(() => new Logger(new TelemetrySessionAggregator(TelemetryService.DefaultSession)));
+    private static readonly Lazy<Logger> _lazyInstance = new(() => new Logger(new TelemetrySessionAggregator(TelemetryService.DefaultSession)));
 
     public static Logger GetLogger()
     {

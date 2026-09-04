@@ -1,12 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Utilities;
-using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Threading.Tasks;
 
 namespace Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Logging;
 
@@ -89,22 +91,22 @@ public class TelemetrySessionAggregator
 #if DEBUG
     public async Task WriteTelemetryEventToOutputWindowAsync(TelemetryEvent telemetryEvent, string descrption)
     {
-        await WriteLineToOutputWindowAsync($"{descrption}: {telemetryEvent}");
+        await WriteLineToOutputWindowAsync($"{descrption}: {telemetryEvent}").ConfigureAwait(true);
         if (telemetryEvent.HasProperties)
         {
             foreach (var kvp in telemetryEvent.Properties)
             {
                 _ = WriteLineToOutputWindowAsync($"       {kvp.Key} : {kvp.Value}");
-
             }
         }
     }
 
-
     public async Task WriteLineToOutputWindowAsync(string value)
     {
+#pragma warning disable RS0030 // Debug-only VS tracing has no Roslyn IThreadingContext.
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-        await EnsurePaneAsync();
+#pragma warning restore RS0030
+        await EnsurePaneAsync().ConfigureAwait(true);
         if (_outputWindowPane == null)
         {
             throw new InvalidOperationException("IVsOutputWindowPane should exist");
@@ -124,7 +126,9 @@ public class TelemetrySessionAggregator
 
     private static async Task EnsurePaneAsync()
     {
+#pragma warning disable RS0030 // Debug-only VS tracing has no Roslyn IThreadingContext.
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+#pragma warning restore RS0030
 
         if (_outputWindowPane is null)
         {
