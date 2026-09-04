@@ -642,6 +642,14 @@ namespace Text.Analyzers.UnitTests
                     .WithLocation(0)
                     .WithArguments(typeName, typeParameterName));
 
+        [Theory]
+        [InlineData("class MyClass<T1, T2> { }")]
+        [InlineData("struct MyStructure<T1> { }")]
+        [InlineData("interface IInterface<T1> { }")]
+        [InlineData("delegate int MyDelegate<T1>();")]
+        public Task TypeTypeParameterNumeric_Verify_NoDiagnosticsAsync(string source)
+            => VerifyCSharpAsync(source);
+
         [Fact]
         public Task MethodTypeParameterMisspelled_Verify_EmitsDiagnosticAsync()
             => VerifyCSharpAsync(
@@ -671,6 +679,18 @@ namespace Text.Analyzers.UnitTests
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MethodTypeParameterMoreMeaningfulNameRule)
                     .WithLocation(0)
                     .WithArguments("Program.Method<TA>(TA)", "TA"));
+
+        [Fact]
+        public Task MethodTypeParameterNumeric_Verify_NoDiagnosticsAsync()
+            => VerifyCSharpAsync(
+                """
+                class Program
+                {
+                    void Method<T1, T2>(T1 first, T2 second)
+                    {
+                    }
+                }
+                """);
 
         [Fact]
         public Task MisspellingContainsOnlyCapitalizedLetters_Verify_NoDiagnosticsAsync()
