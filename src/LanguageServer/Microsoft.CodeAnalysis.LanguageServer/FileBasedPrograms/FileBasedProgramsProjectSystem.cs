@@ -223,7 +223,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
     public async ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo? documentInfo)
     {
-        if (documentInfo is null && documentUri.ParsedUri?.IsFile != true)
+        if (documentInfo is null && documentUri.ParsedDocumentUri?.IsFile != true)
             return null;
 
         var languageInfoProvider = _lspServices.GetRequiredService<ILanguageInfoProvider>();
@@ -237,7 +237,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         var documentFilePath = GetDocumentFilePath(documentUri);
         if (documentInfo is null)
         {
-            Contract.ThrowIfFalse(documentUri.ParsedUri?.IsFile == true);
+            Contract.ThrowIfFalse(documentUri.ParsedDocumentUri?.IsFile == true);
 
             var projectFactory = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory;
             var projectInfo = CreateMiscellaneousProjectInfo(projectFactory.CreateFileTextLoader(documentFilePath), SourceHashAlgorithms.Default);

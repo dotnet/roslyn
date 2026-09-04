@@ -32,11 +32,13 @@ internal sealed class IncompatibleProjectService(IIncompatibleProjectNotifier in
             return;
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete - https://github.com/dotnet/roslyn/issues/84785
         if (textDocumentIdentifier?.DocumentUri.ParsedUri is not Uri uri)
         {
             // Can't do anything without a uri
             return;
         }
+#pragma warning restore CS0618 // Type or member is obsolete
 
         // We know that the textDocumentIdentifier doesn't map to a document in the solution, or we wouldn't be here,
         // but we don't want to notify the user for each file, so we try to find the project that contains the file

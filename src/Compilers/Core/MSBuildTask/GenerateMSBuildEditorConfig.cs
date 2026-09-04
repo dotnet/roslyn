@@ -3,15 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using Microsoft.CodeAnalysis.CommandLine;
 using Roslyn.Utilities;
-
-// https://github.com/dotnet/roslyn/issues/84893
-#pragma warning disable RS0030
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -40,8 +39,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// The Microsoft.Managed.Core.targets calls this task with the collected results of the <c>AnalyzerProperty</c> and 
     /// <c>AnalyzerItemMetadata</c> item groups. 
     /// </remarks>
-    public sealed class GenerateMSBuildEditorConfig : Task
+    [MSBuildMultiThreadableTask]
+    public sealed class GenerateMSBuildEditorConfig : Task, IMultiThreadableTask
     {
+        public TaskEnvironment TaskEnvironment { get; set; } = TaskEnvironment.Fallback;
+
         /// <remarks>
         /// Although this task does its own writing to disk, this
         /// output parameter is here for testing purposes.
@@ -114,19 +116,21 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         internal bool WriteMSBuildEditorConfig()
         {
+            Debug.Assert(!string.IsNullOrEmpty(FileName.ItemSpec), "WriteMSBuildEditorConfig should only be called when FileName.ItemSpec is not null or empty.");
+
             try
             {
-                var targetFileName = FileName.ItemSpec;
-                if (File.Exists(targetFileName))
+                var targetFileName = TaskEnvironment.GetAbsolutePath(FileName.ItemSpec);
+                if (TaskEnvironment.FileExists(targetFileName))
                 {
-                    string existingContents = File.ReadAllText(targetFileName);
+                    string existingContents = TaskEnvironment.FileReadAllText(targetFileName);
                     if (existingContents.Equals(ConfigFileContents))
                     {
                         return true;
                     }
                 }
                 var encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
-                File.WriteAllText(targetFileName, ConfigFileContents, encoding);
+                TaskEnvironment.FileWriteAllText(targetFileName, ConfigFileContents, encoding);
                 return true;
             }
             catch (IOException ex)

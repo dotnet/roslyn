@@ -11,6 +11,7 @@ T:System.ComponentModel.Composition.PartNotDiscoverableAttribute; Use types from
 T:System.ComponentModel.Composition.SharedAttribute; Use types from System.Composition instead
 T:System.ComponentModel.Composition.SharingBoundaryAttribute; Use types from System.Composition instead
 T:System.ComponentModel.Composition.Convention.AttributedModelProvider; Use types from System.Composition instead
+T:System.Uri; Use DocumentUri or ParsedUri unless a System.Uri is absolutely required for API calls.
 M:System.Uri.#ctor(System.String); Use Extensions.GetURI() if you have a document, or ProtocolConversions.CreateAbsoluteUri if you are sure the path is a real file path and not a generated file path
 M:System.Uri.#ctor(System.String,System.Boolean); Use Extensions.GetURI() if you have a document, or ProtocolConversions.CreateAbsoluteUri if you are sure the path is a real file path and not a generated file path
 M:System.Uri.#ctor(System.String,System.UriCreationOptions); Use Extensions.GetURI() if you have a document, or ProtocolConversions.CreateAbsoluteUri if you are sure the path is a real file path and not a generated file path
