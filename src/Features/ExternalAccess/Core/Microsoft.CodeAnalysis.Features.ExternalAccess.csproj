@@ -21,6 +21,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.AspNetCore" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Copilot" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Extensions" />
 
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
@@ -54,6 +55,10 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
     <PublicAPI Include="InternalAPI.Shipped.txt" />
     <PublicAPI Include="InternalAPI.Unshipped.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Extensions/ExternalAccessExtensionsResources.resx" GenerateSource="true" />
   </ItemGroup>
 
 </Project>

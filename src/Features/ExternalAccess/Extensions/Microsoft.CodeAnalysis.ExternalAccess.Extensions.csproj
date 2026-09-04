@@ -15,12 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.ComponentModel.Composition" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.Features.ExternalAccess.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,7 +25,4 @@
     <PublicAPI Include="InternalAPI.Unshipped.txt" />
   </ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Update="ExternalAccessExtensionsResources.resx" GenerateSource="true" />
-  </ItemGroup>
 </Project>
