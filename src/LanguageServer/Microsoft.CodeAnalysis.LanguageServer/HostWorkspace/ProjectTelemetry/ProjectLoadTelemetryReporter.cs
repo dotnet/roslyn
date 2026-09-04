@@ -27,8 +27,7 @@ internal sealed class ProjectLoadTelemetryReporter(IClientLanguageServerManager 
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<ProjectLoadTelemetryReporter>();
 
-    // An anonymous, per-server correlation id for the project-load events below. It deliberately
-    // does not derive from the telemetry session id, which may not exist when telemetry is off.
+    // An anonymous, per-server correlation id for the project-load events below.
     private readonly string _hashedSessionId = VsTfmAndFileExtHashingAlgorithm.HashInput(Guid.NewGuid().ToString());
 
     public sealed record TelemetryInfo

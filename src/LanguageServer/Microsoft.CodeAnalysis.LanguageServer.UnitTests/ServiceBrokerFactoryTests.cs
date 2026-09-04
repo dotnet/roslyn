@@ -43,7 +43,12 @@ public sealed class ServiceBrokerFactoryTests(ITestOutputHelper testOutputHelper
     {
         var serverTelemetry1 = new RoslynTelemetry();
         var serverTelemetry2 = new RoslynTelemetry();
-        var serverEvents1 = new RecordingEventSink();
+        var projectLoadCompleted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var serverEvents1 = new RecordingEventSink(onLog: functionId =>
+        {
+            if (functionId == FunctionId.VSCode_Projects_Load_Completed)
+                projectLoadCompleted.TrySetResult(true);
+        });
         var serverEvents2 = new RecordingEventSink();
         using var registration1 = serverTelemetry1.AddEventSink(serverEvents1);
         using var registration2 = serverTelemetry2.AddEventSink(serverEvents2);
@@ -66,6 +71,7 @@ public sealed class ServiceBrokerFactoryTests(ITestOutputHelper testOutputHelper
             var serviceBrokerFactory1 = server1.GetRequiredLspService<ServiceBrokerFactory>();
             var serviceBrokerFactory2 = server2.GetRequiredLspService<ServiceBrokerFactory>();
 
+            // Each language server owns a distinct stateful broker factory.
             Assert.NotSame(serviceBrokerFactory1, serviceBrokerFactory2);
 
             await brokeredServiceClient1.ConnectAsync(server1);
@@ -79,27 +85,29 @@ public sealed class ServiceBrokerFactoryTests(ITestOutputHelper testOutputHelper
 
             Assert.NotNull(await workspaceProjectFactory1.GetSupportedBuildSystemPropertiesAsync(CancellationToken.None));
             Assert.NotNull(await workspaceProjectFactory2.GetSupportedBuildSystemPropertiesAsync(CancellationToken.None));
+
+            // Each bridge resolves a distinct workspace project service from its owning server.
             Assert.NotSame(workspaceProjectFactory1, workspaceProjectFactory2);
 
+            // Broker calls run under the owning server's telemetry rather than the test caller's ambient.
             Assert.NotSame(serverTelemetry1, RoslynTelemetry.Current);
             Assert.NotSame(serverTelemetry2, RoslynTelemetry.Current);
 
             using var workspaceProject = await workspaceProjectFactory1.CreateAndAddProjectAsync(
                 new WorkspaceProjectCreationInfo(LanguageNames.CSharp, "DisplayName", FilePath: null, new Dictionary<string, string>()),
                 CancellationToken.None);
+
+            // Project creation reports its start event only to the first server.
             Assert.Contains(FunctionId.VSCode_Project_Load_Started, serverEvents1.Events);
             Assert.DoesNotContain(FunctionId.VSCode_Project_Load_Started, serverEvents2.Events);
 
             var observer = await brokeredServiceClient1.InitializationObserver.WaitAsync(s_timeout);
+            Assert.DoesNotContain(FunctionId.VSCode_Projects_Load_Completed, serverEvents1.Events);
             observer.OnNext(new ProjectInitializationCompletionState { EnvironmentStateVersion = 1, ProjectsLoadedCount = 1 });
+            await projectLoadCompleted.Task;
 
-            using var completionTimeout = new CancellationTokenSource(s_timeout);
-            while (!serverEvents1.Events.Contains(FunctionId.VSCode_Projects_Load_Completed))
-            {
-                completionTimeout.Token.ThrowIfCancellationRequested();
-                await Task.Delay(50, completionTimeout.Token);
-            }
-
+            // The asynchronous initialization callback reports completion only to the first server.
+            Assert.Contains(FunctionId.VSCode_Projects_Load_Completed, serverEvents1.Events);
             Assert.DoesNotContain(FunctionId.VSCode_Projects_Load_Completed, serverEvents2.Events);
 
             await server1.DisposeAsync();
@@ -107,6 +115,7 @@ public sealed class ServiceBrokerFactoryTests(ITestOutputHelper testOutputHelper
             // Now that the server is disposed, the client connection should close.
             await brokeredServiceClient1.Connection;
 
+            // Disposing the first server leaves the second broker connection usable.
             Assert.False(brokeredServiceClient2.Connection.IsCompleted);
             Assert.NotNull(await workspaceProjectFactory2.GetSupportedBuildSystemPropertiesAsync(CancellationToken.None));
         }

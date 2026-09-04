@@ -11,7 +11,9 @@ using Microsoft.VisualStudio.Telemetry.Metrics.Events;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
-internal sealed class RecordingEventSink(Func<FunctionId, bool>? isEnabled = null) : IEventSink
+internal sealed class RecordingEventSink(
+    Func<FunctionId, bool>? isEnabled = null,
+    Action<FunctionId>? onLog = null) : IEventSink
 {
     private readonly ConcurrentQueue<FunctionId> _events = new();
 
@@ -21,7 +23,10 @@ internal sealed class RecordingEventSink(Func<FunctionId, bool>? isEnabled = nul
         => isEnabled?.Invoke(functionId) ?? true;
 
     public void Log(FunctionId functionId, LogMessage logMessage)
-        => _events.Enqueue(functionId);
+    {
+        _events.Enqueue(functionId);
+        onLog?.Invoke(functionId);
+    }
 
     public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken)
     {
