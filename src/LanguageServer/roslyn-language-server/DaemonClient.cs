@@ -43,9 +43,8 @@ internal static class DaemonClient
         ServerExecutable executable,
         ThinClientArguments arguments)
     {
-        var telemetryLevel = arguments.DevKitDependencyPath is not null
-            ? arguments.TelemetryLevel
-            : Environment.GetEnvironmentVariable(CopilotTelemetryLevelEnvironmentVariable);
+        var telemetryLevel = arguments.TelemetryLevel
+            ?? Environment.GetEnvironmentVariable(CopilotTelemetryLevelEnvironmentVariable);
         var pipeName = GetDaemonPipeName(executable, telemetryLevel);
 
         if (!DaemonClientMutex.TryAcquire(pipeName, s_daemonMutexTimeout, out var clientMutex))
