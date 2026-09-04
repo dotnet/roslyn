@@ -132,6 +132,7 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         AddLazyService<AbstractRequestContextFactory<RequestContext>>(lspServices => new RequestContextFactory(lspServices));
         AddLazyService<AbstractTelemetryService>(lspServices => new TelemetryService(lspServices));
         AddLazyService<AbstractHandlerProvider>(_ => HandlerProvider);
+        AddService<IWorkspaceFolderTracker>(new WorkspaceFolderTracker());
         AddService<IInitializeManager>(new InitializeManager());
         AddService<IMethodHandler>(new InitializeHandler());
         AddService<IMethodHandler>(new InitializedHandler());
