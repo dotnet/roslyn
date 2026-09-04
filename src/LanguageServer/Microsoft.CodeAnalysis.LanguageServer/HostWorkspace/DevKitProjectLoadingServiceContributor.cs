@@ -36,6 +36,9 @@ internal sealed class DevKitProjectLoadingServiceContributor(
     LspServices lspServices,
     ILoggerFactory loggerFactory) : IServiceBrokerInitializer, ILspService
 {
+    // Captured while the owning server's ambient is in scope. The proffer callback below runs on a
+    // service-activation request, which may originate from Dev Kit rather than the LSP queue, and it
+    // is where the long-lived per-server objects capture their own telemetry instance.
     private readonly RoslynTelemetry _telemetry = RoslynTelemetry.Current;
 
     public ImmutableDictionary<ServiceMoniker, ServiceRegistration> ServicesToRegister => new Dictionary<ServiceMoniker, ServiceRegistration>

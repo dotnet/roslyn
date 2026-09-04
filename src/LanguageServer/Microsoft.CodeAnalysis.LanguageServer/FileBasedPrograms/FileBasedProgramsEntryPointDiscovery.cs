@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Options;
@@ -69,11 +68,8 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
     {
         var initializeManager = context.GetRequiredService<IInitializeManager>();
         _workspaceFolders = initializeManager.GetRequiredWorkspaceFolderPaths();
-        var telemetry = RoslynTelemetry.Current;
         Task.Run(async () =>
         {
-            using var _ = RoslynTelemetry.SetCurrent(telemetry);
-
             try
             {
                 using var token = listener.BeginAsyncOperation(nameof(FindAndLoadEntryPointsAsync));

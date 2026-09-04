@@ -43,8 +43,9 @@ internal sealed class BrokeredServiceBridgeProvider
         ILoggerFactory loggerFactory,
         CancellationToken cancellationToken)
     {
+        // Captured for TelemetryServiceBroker, which is invoked later by inbound requests that carry
+        // no ambient of their own.
         var telemetry = RoslynTelemetry.Current;
-        using var _ = RoslynTelemetry.SetCurrent(telemetry);
 
         var logger = loggerFactory.CreateLogger<BrokeredServiceBridgeProvider>();
         var brokeredServiceTraceSource = BrokeredServiceTraceListener.CreateTraceSource(loggerFactory);

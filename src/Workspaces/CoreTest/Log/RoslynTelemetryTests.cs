@@ -164,9 +164,39 @@ public sealed class RoslynTelemetryTests
         Assert.Same(previousTelemetry, RoslynTelemetry.Current);
     }
 
+    /// <summary>
+    /// <see cref="ExecutionContext.SuppressFlow"/> keeps an ambient logging scope out of the work it
+    /// starts, but it also stops the telemetry instance from flowing. A scope opened on the resulting
+    /// clean context does flow onward, which is how service broker work is attributed.
+    /// </summary>
     [Fact]
-    public void RequestScopeRestoresServerInstance()
+    public async Task SuppressedFlowDropsCurrentButAFreshScopeFlowsOnward()
     {
+        var telemetry = new RoslynTelemetry();
+
+        using (RoslynTelemetry.SetCurrent(telemetry))
+        {
+            Task<(RoslynTelemetry Inherited, RoslynTelemetry AfterScope)> work;
+            using (ExecutionContext.SuppressFlow())
+            {
+                work = Task.Run(async () =>
+                {
+                    var inherited = RoslynTelemetry.Current;
+
+                    using var _ = RoslynTelemetry.SetCurrent(telemetry);
+                    await Task.Yield();
+                    return (inherited, await Task.Run(() => RoslynTelemetry.Current));
+                });
+            }
+
+            var (inherited, afterScope) = await work;
+            Assert.NotSame(telemetry, inherited);
+            Assert.Same(telemetry, afterScope);
+        }
+    }
+
+    [Fact]
+    public void RequestScopeRestoresServerInstance()    {
         var previousTelemetry = RoslynTelemetry.Current;
         var serverTelemetry = new RoslynTelemetry();
 

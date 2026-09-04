@@ -54,8 +54,6 @@ internal sealed class ServiceBrokerFactory : ILspService
     /// </summary>
     public async Task<BrokeredServiceContainer> CreateAsync(Workspace workspace)
     {
-        using var _ = RoslynTelemetry.SetCurrent(_telemetry);
-
         var container = await BrokeredServiceContainer.CreateAsync(_exportProvider, _serviceBrokerInitializers, _loggerFactory, _cancellationTokenSource.Token);
 
         // Proffer the manifest service that describes the services proffered by this process across the bridge, so the other side can know what services to expect.
@@ -97,8 +95,6 @@ internal sealed class ServiceBrokerFactory : ILspService
 
     public async Task CreateAndConnectAsync(string brokeredServicePipeName, Workspace workspace)
     {
-        using var _ = RoslynTelemetry.SetCurrent(_telemetry);
-
         var container = await CreateAsync(workspace);
 
         var bridgeProvider = _exportProvider.GetExportedValue<BrokeredServiceBridgeProvider>();
@@ -108,8 +104,6 @@ internal sealed class ServiceBrokerFactory : ILspService
 
     public async Task ShutdownAndWaitForCompletionAsync()
     {
-        using var _ = RoslynTelemetry.SetCurrent(_telemetry);
-
         _cancellationTokenSource.Cancel();
 
         // Await the task we created when we created the bridge; if we never started it in the first place, we'll just return the
