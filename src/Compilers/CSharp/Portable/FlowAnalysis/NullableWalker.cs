@@ -5565,6 +5565,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (binary.Left.ConstantValueOpt is { IsBoolean: true } leftConstant)
                 {
                     Unsplit();
+
+                    // The left operand was visited without its stripped conversion.
+                    if (binary.Left is BoundConversion leftConversionNode && leftConversionNode != leftOperand)
+                    {
+                        VisitConversion(
+                            leftConversionNode,
+                            leftOperand,
+                            leftConversion,
+                            TypeWithAnnotations.Create(leftConversionNode.Type),
+                            leftResult,
+                            checkConversion: true,
+                            fromExplicitCast: false,
+                            useLegacyWarnings: false,
+                            AssignmentKind.Argument);
+                    }
+
                     Visit(binary.Right);
                     UseRvalueOnly(binary.Right);
                     if (IsConditionalState && isEquals(binary) != leftConstant.BooleanValue)
