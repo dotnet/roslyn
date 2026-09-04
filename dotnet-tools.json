@@ -12,6 +12,12 @@
       "commands": [
         "pwsh"
       ]
+    },
+    "microsoft.dotnet.helix.jobmonitor": {
+      "version": "10.0.0-beta.26453.2",
+      "commands": [
+        "dotnet-helix-job-monitor"
+      ]
     }
   }
 }

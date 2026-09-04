@@ -24,10 +24,10 @@ internal class TestHistoryManager
     private const int MaxTestsReturnedPerRequest = 10_000;
 
     /// <summary>
-    /// Looks up the last passing test run for the current build and stage to estimate execution times for each
+    /// Looks up the last passing test run for the current build to estimate execution times for each
     /// tests. The dictionary is indexed by test full name.
     /// </summary>
-    public static async Task<ImmutableDictionary<string, TimeSpan>> GetTestHistoryAsync(Options options, CancellationToken cancellationToken)
+    public static async Task<ImmutableDictionary<string, TimeSpan>> GetTestHistoryAsync(Options options, string testRunNamePrefix, CancellationToken cancellationToken)
     {
         // Access token that has permissions to lookup test history.  This typically comes from the pipeline.
         var accessToken = options.AccessToken ?? GetEnvironmentVariable("SYSTEM_ACCESSTOKEN");
@@ -38,23 +38,19 @@ internal class TestHistoryManager
         // Id of the pipeline to get test history from.
         var pipelineDefinitionIdStr = options.PipelineDefinitionId ?? GetEnvironmentVariable("SYSTEM_DEFINITIONID");
 
-        // The phase name is used to filter the tests on the last passing build to only those that apply to the currently running phase.
-        //   Note here that 'phaseName' corresponds to the 'jobName' defined in our pipeline yaml file and the job name env var is not correct.
-        //   See https://developercommunity.visualstudio.com/t/systemjobname-seems-to-be-incorrectly-assigned-and/1209736
-        var phaseName = options.PhaseName ?? GetEnvironmentVariable("SYSTEM_PHASENAME");
-
         // We use the target branch of the current build to lookup the last successful build for the same branch.
         // For PR builds, SYSTEM_PULLREQUEST_TARGETBRANCH gives us the target (e.g. "main").
         // For CI builds, we need the full branch ref. BUILD_SOURCEBRANCH gives us the full ref
         // (e.g. "refs/heads/features/unions") while BUILD_SOURCEBRANCHNAME only gives the last
         // segment (e.g. "unions"), which breaks history lookup for nested branch names.
         var targetBranch = options.TargetBranchName ?? GetEnvironmentVariable("SYSTEM_PULLREQUEST_TARGETBRANCH") ?? GetEnvironmentVariable("BUILD_SOURCEBRANCH");
-        if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(projectUri) || string.IsNullOrEmpty(phaseName) || string.IsNullOrEmpty(targetBranch) || !int.TryParse(pipelineDefinitionIdStr, out var pipelineDefinitionId))
+        if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(projectUri) || string.IsNullOrEmpty(testRunNamePrefix) || string.IsNullOrEmpty(options.HelixQueueName) || string.IsNullOrEmpty(targetBranch) || !int.TryParse(pipelineDefinitionIdStr, out var pipelineDefinitionId))
         {
-            ConsoleUtil.Warning($"Missing required options to lookup test history, projectUri={projectUri}, phaseName={phaseName}, targetBranchName={targetBranch}, pipelineDefinitionId={pipelineDefinitionIdStr}");
+            ConsoleUtil.Warning($"Missing required options to lookup test history, projectUri={projectUri}, testRunName={testRunNamePrefix}, helixQueueName={options.HelixQueueName}, targetBranchName={targetBranch}, pipelineDefinitionId={pipelineDefinitionIdStr}");
             return ImmutableDictionary<string, TimeSpan>.Empty;
         }
 
+        var testRunName = $"{testRunNamePrefix}_{options.HelixQueueName}";
         var credentials = new Microsoft.VisualStudio.Services.Common.VssBasicCredential(string.Empty, accessToken);
 
         var connection = new VssConnection(new Uri(projectUri), credentials);
@@ -82,17 +78,16 @@ internal class TestHistoryManager
         }
 
         using var testClient = connection.GetClient<TestResultsHttpClient>();
-        var runForThisStage = await GetRunForStageAsync(lastSuccessfulBuild, phaseName, testClient, cancellationToken);
-        if (runForThisStage == null)
+        var testRun = await GetTestRunAsync(lastSuccessfulBuild, testRunName, testClient, cancellationToken);
+        if (testRun == null)
         {
-            // If this is a new stage, historical runs will not have any data for it.
-            ConsoleUtil.Warning($"Unable to get a run with name {phaseName} from build {lastSuccessfulBuild.Url}.");
+            ConsoleUtil.Warning($"Unable to get a run with name {testRunName} from build {lastSuccessfulBuild.Url}.");
             return ImmutableDictionary<string, TimeSpan>.Empty;
         }
 
-        ConsoleUtil.WriteLine($"Looking up test execution data for build {lastSuccessfulBuild.Id} on branch {targetBranch} and stage {phaseName}");
+        ConsoleUtil.WriteLine($"Looking up test execution data for build {lastSuccessfulBuild.Id} on branch {targetBranch} and test run {testRunName}");
 
-        var totalTests = runForThisStage.TotalTests;
+        var totalTests = testRun.TotalTests;
 
         Dictionary<string, TimeSpan> testInfos = new();
         var duplicateCount = 0;
@@ -102,7 +97,7 @@ internal class TestHistoryManager
         timer.Start();
         for (var i = 0; i < totalTests; i += MaxTestsReturnedPerRequest)
         {
-            var testResults = await GetTestResultsAsync(runForThisStage, i, MaxTestsReturnedPerRequest, testClient, cancellationToken);
+            var testResults = await GetTestResultsAsync(testRun, i, MaxTestsReturnedPerRequest, testClient, cancellationToken);
             foreach (var testResult in testResults)
             {
                 // Helix outputs results for the whole dll work item suffixed with WorkItemExecution which we should ignore.
@@ -131,7 +126,7 @@ internal class TestHistoryManager
 
         if (duplicateCount > 0)
         {
-            Logger.Log($"Found {duplicateCount} duplicate tests in run {runForThisStage.Name}.");
+            Logger.Log($"Found {duplicateCount} duplicate tests in run {testRun.Name}.");
         }
 
         var totalTestRuntime = TimeSpan.FromMilliseconds(testInfos.Values.Sum(t => t.TotalMilliseconds));
@@ -180,7 +175,7 @@ internal class TestHistoryManager
         }
     }
 
-    private static async Task<TestRun?> GetRunForStageAsync(Build build, string phaseName, TestResultsHttpClient testClient, CancellationToken cancellationToken)
+    private static async Task<TestRun?> GetTestRunAsync(Build build, string testRunName, TestResultsHttpClient testClient, CancellationToken cancellationToken)
     {
         try
         {
@@ -191,8 +186,7 @@ internal class TestHistoryManager
 
             // If the last successful builds had multiple attempts then there are potentially multiple runs with 
             // the same name. Take the last one as it will be the successful one.
-            var runForThisStage = runsInBuild.LastOrDefault(r => r.Name.Contains(phaseName));
-            return runForThisStage;
+            return runsInBuild.LastOrDefault(r => string.Equals(r.Name, testRunName, StringComparison.OrdinalIgnoreCase));
         }
         catch (Exception ex)
         {
