@@ -1,3 +1,10 @@
 ﻿Document - 
     NamespaceDeclaration -  - Test
-        ClassDeclaration -  - public partial - TestComponent -  -  - TDomain, TValue
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase -  - TDomain, TValue
+            CSharpCode - (161:5,7 [87] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (161:5,7 [87] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter]\n    public List<(TDomain Domain, TValue Value)> Data { get; set; }\n

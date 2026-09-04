@@ -21,5 +21,3 @@
                 MarkupElement - (181:12,0 [30] x:\dir\subdir\Test\TestComponent.cshtml) - p
                     CSharpExpression - (185:12,4 [22] x:\dir\subdir\Test\TestComponent.cshtml)
                         LazyIntermediateToken - (185:12,4 [22] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ChildContent(Items3())
-            CSharpCode - (222:14,7 [248] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (222:14,7 [248] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter] public TItem[] Items1 { get; set; }\n    [Parameter] public List<TItem[]> Items2 { get; set; }\n    [Parameter] public Func<TItem[]> Items3 { get; set; }\n    [Parameter] public RenderFragment<TItem[]> ChildContent { get; set; }\n

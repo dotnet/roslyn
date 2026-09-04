@@ -39,16 +39,3 @@ Generated Location: (1913:71,0 [3] )
 |}
 |
 
-Source Location: (207:13,7 [215] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    [Parameter] public (TItem1, TItem2) Item1 { get; set; }
-    [Parameter] public List<(TItem1, TItem2)> Items2 { get; set; }
-    [Parameter] public RenderFragment<(TItem1, TItem2)> ChildContent { get; set; }
-|
-Generated Location: (2099:81,0 [215] )
-|
-    [Parameter] public (TItem1, TItem2) Item1 { get; set; }
-    [Parameter] public List<(TItem1, TItem2)> Items2 { get; set; }
-    [Parameter] public RenderFragment<(TItem1, TItem2)> ChildContent { get; set; }
-|
-
