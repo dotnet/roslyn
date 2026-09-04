@@ -123,7 +123,7 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
         var configuration = DefaultServerConfiguration with { IsDaemon = true, TelemetryLevel = "off" };
         await using var daemon = await CreateDaemonServerAsync(serverConfiguration: configuration);
         var daemonEvents = new RecordingEventSink();
-        using var daemonEventRegistration = daemon.TelemetryService.Telemetry.AddEventSink(daemonEvents);
+        using var daemonEventRegistration = daemon.DaemonTelemetry.AddEventSink(daemonEvents);
 
         var first = await daemon.CreateClientAsync();
         await using var second = await daemon.CreateClientAsync();
@@ -132,15 +132,15 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
             LanguageServerTelemetry.GetTelemetryService(first.GetRequiredLspService<RoslynTelemetry>()));
         var secondTelemetry = Assert.IsType<LanguageServerTelemetry>(
             LanguageServerTelemetry.GetTelemetryService(second.GetRequiredLspService<RoslynTelemetry>()));
-        Assert.NotNull(daemon.TelemetryService.SessionId);
+        Assert.NotNull(daemon.DaemonSessionId);
         Assert.NotNull(firstTelemetry.SessionId);
         Assert.NotNull(secondTelemetry.SessionId);
         Assert.NotEqual(firstTelemetry.SessionId, secondTelemetry.SessionId);
         Assert.Equal(
-            daemon.TelemetryService.SessionId,
+            daemon.DaemonSessionId,
             GetDaemonSessionId(firstTelemetry));
         Assert.Equal(
-            daemon.TelemetryService.SessionId,
+            daemon.DaemonSessionId,
             GetDaemonSessionId(secondTelemetry));
 
         var firstEvents = new RecordingEventSink();

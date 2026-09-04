@@ -107,21 +107,6 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             initialConnectionTimeout);
     }
 
-    private static LanguageServerTelemetry CreateTelemetryService(
-        ServerConfiguration serverConfiguration,
-        ILoggerFactory loggerFactory,
-        RoslynTelemetry telemetry)
-    {
-        var telemetryService = new LanguageServerTelemetry(serverConfiguration, loggerFactory, telemetry);
-        var telemetryLevel = serverConfiguration.DevKitDependencyPath is not null
-            ? serverConfiguration.TelemetryLevel
-            : null;
-        if (telemetryLevel is not null)
-            telemetryService.InitializeSession(telemetryLevel, serverConfiguration.SessionId, isDefaultSession: false);
-
-        return telemetryService;
-    }
-
     internal static async Task WaitForConditionAsync(Func<bool> condition)
     {
         while (!condition())
@@ -354,21 +339,8 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             // connection.
             var connectionSource = new SingleLanguageServerConnectionSource(new LanguageServerConnection(serverInputStream, serverOutputStream));
             var logger = loggerFactory.CreateLogger<LanguageServerConnectionManager>();
-            var telemetryService = CreateTelemetryService(serverConfiguration, loggerFactory, RoslynTelemetry.Current);
-            _serverTask = RunServerAsync();
-
-            async Task RunServerAsync()
-            {
-                try
-                {
-                    await _connectionManager.RunAsync(
-                        connectionSource, exportProvider, typeRefResolver, logger, CancellationToken.None);
-                }
-                finally
-                {
-                    telemetryService.Dispose();
-                }
-            }
+            _serverTask = _connectionManager.RunAsync(
+                connectionSource, exportProvider, typeRefResolver, logger, CancellationToken.None);
         }
 
         /// <summary>The host task; completes once the single in-memory server exits.</summary>
@@ -471,7 +443,8 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         private readonly CancellationTokenSource _cts;
         private readonly ExportProvider _exportProvider;
         private readonly ITestOutputHelper _testOutputHelper;
-        private readonly LanguageServerTelemetry _telemetryService;
+        private readonly RoslynTelemetry _daemonTelemetry;
+        private readonly string? _daemonSessionId;
 
         internal static TestDaemon Create(
             ExportProvider exportProvider,
@@ -484,12 +457,23 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         {
             var pipeName = "roslyn-daemon-test." + Guid.NewGuid().ToString("N");
             var logger = loggerFactory.CreateLogger<LanguageServerConnectionManager>();
-            var telemetryService = CreateTelemetryService(serverConfiguration, loggerFactory, new RoslynTelemetry());
+            var daemonTelemetry = new RoslynTelemetry();
+
+            // This mirrors Program's process-level daemon owner. Each LanguageServerHost creates and
+            // disposes its own child; the daemon task owns this shared root until all hosts have stopped.
+            var daemonTelemetryService = new LanguageServerTelemetry(serverConfiguration, loggerFactory, daemonTelemetry);
+            if (serverConfiguration.DevKitDependencyPath is not null &&
+                serverConfiguration.TelemetryLevel is { } telemetryLevel)
+            {
+                daemonTelemetryService.InitializeSession(
+                    telemetryLevel, serverConfiguration.SessionId, isDefaultSession: false);
+            }
+
             var connectionManager = new LanguageServerConnectionManager();
             var cts = new CancellationTokenSource();
             NamedPipeDaemonConnectionSource? source;
             Task daemonTask;
-            using (RoslynTelemetry.SetCurrent(telemetryService.Telemetry))
+            using (RoslynTelemetry.SetCurrent(daemonTelemetry))
             {
                 var created = NamedPipeDaemonConnectionSource.TryCreate(
                     pipeName, keepAlive, logger, out source, initialConnectionTimeout);
@@ -512,12 +496,21 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
                     finally
                     {
                         source.Dispose();
-                        telemetryService.Dispose();
+                        daemonTelemetryService.Dispose();
                     }
                 });
             }
 
-            return new TestDaemon(pipeName, source, connectionManager, daemonTask, cts, exportProvider, testOutputHelper, telemetryService);
+            return new TestDaemon(
+                pipeName,
+                source,
+                connectionManager,
+                daemonTask,
+                cts,
+                exportProvider,
+                testOutputHelper,
+                daemonTelemetry,
+                daemonTelemetryService.SessionId);
         }
 
         private TestDaemon(
@@ -528,7 +521,8 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             CancellationTokenSource cts,
             ExportProvider exportProvider,
             ITestOutputHelper testOutputHelper,
-            LanguageServerTelemetry telemetryService)
+            RoslynTelemetry daemonTelemetry,
+            string? daemonSessionId)
         {
             _pipeName = pipeName;
             _connectionSource = connectionSource;
@@ -537,7 +531,8 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             _cts = cts;
             _exportProvider = exportProvider;
             _testOutputHelper = testOutputHelper;
-            _telemetryService = telemetryService;
+            _daemonTelemetry = daemonTelemetry;
+            _daemonSessionId = daemonSessionId;
         }
 
         /// <summary>The pipe the daemon listens on. Identifies the daemon for single-instance checks.</summary>
@@ -548,7 +543,8 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
 
         /// <summary>Completes when the daemon exits (its keepalive elapsed with no clients, or it was disposed).</summary>
         internal Task DaemonExitTask => _daemonTask;
-        internal LanguageServerTelemetry TelemetryService => _telemetryService;
+        internal RoslynTelemetry DaemonTelemetry => _daemonTelemetry;
+        internal string? DaemonSessionId => _daemonSessionId;
 
         /// <summary>The language servers the daemon currently has running, one per connected client.</summary>
         internal ImmutableArray<LanguageServerHost> GetStartedServers() => _connectionManager.GetStartedServers();

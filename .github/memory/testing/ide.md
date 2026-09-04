@@ -39,4 +39,4 @@ public class MyTests
 ## Language Server daemon tests
 
 - `AbstractLanguageServerHostTests.CreateDaemonServerAsync` runs the real multi-client connection manager and named-pipe listener in process. Each connected test client exposes its server's `LspServices`.
-- The harness creates an isolated daemon telemetry owner, and each `LanguageServerHost` owns its per-server telemetry session. Tests that require a real `TelemetrySession` must supply an explicit DevKit telemetry level; the harness does not inherit `COPILOT_TELEMETRY_LEVEL`.
+- The harness creates a process-level telemetry owner only for daemon tests; each daemon `LanguageServerHost` owns its child session. Single-server tests use the ambient default `RoslynTelemetry` directly. Tests that require a real `TelemetrySession` must supply an explicit DevKit telemetry level; the harness does not inherit `COPILOT_TELEMETRY_LEVEL`.
