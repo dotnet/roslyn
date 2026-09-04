@@ -101,7 +101,7 @@ internal abstract partial class EditorSuggestedAction(
     {
         try
         {
-            using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.SuggestedAction_Application_Summary, $"Total");
+            using var _ = RoslynTelemetry.RecordBlockTime(FunctionId.SuggestedAction_Application_Summary, $"Total");
 
             using var token = SourceProvider.OperationListener.BeginAsyncOperation($"{nameof(EditorSuggestedAction)}.{nameof(Invoke)}");
             using var context = SourceProvider.UIThreadOperationExecutor.BeginExecute(

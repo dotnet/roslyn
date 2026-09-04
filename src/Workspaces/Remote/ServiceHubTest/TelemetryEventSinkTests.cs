@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
-public sealed class TelemetryLoggerTests
+public sealed class TelemetryEventSinkTests
 {
     private static IEnumerable<string> InspectProperties(TelemetryEvent @event, string? keyToIgnoreValueInspection = null)
         => @event.Properties.Select(p => $"{p.Key}={(keyToIgnoreValueInspection == p.Key ? string.Empty : InspectPropertyValue(p.Value))}");
@@ -29,7 +29,7 @@ public sealed class TelemetryLoggerTests
     [Theory, CombinatorialData]
     internal void IgnoredSeverity(LogLevel level)
     {
-        var logger = new TestTelemetryLogger();
+        var logger = new TestTelemetryEventSink();
 
         logger.Log(FunctionId.Debugging_EncSession_EditSession_EmitDeltaErrorId, LogMessage.Create("test", level));
         Assert.Equal((level < LogLevel.Information) ? 0 : 1, logger.PostedEvents.Count);
@@ -38,7 +38,7 @@ public sealed class TelemetryLoggerTests
     [Fact]
     public void EventWithProperties()
     {
-        var logger = new TestTelemetryLogger();
+        var logger = new TestTelemetryEventSink();
 
         logger.Log(FunctionId.Debugging_EncSession_EditSession_EmitDeltaErrorId, KeyValueLogMessage.Create(p =>
         {
@@ -62,7 +62,7 @@ public sealed class TelemetryLoggerTests
     [Theory, CombinatorialData]
     public void LogBlockStartEnd(bool logDelta)
     {
-        var logger = new TestTelemetryLogger(logDelta);
+        var logger = new TestTelemetryEventSink(logDelta);
 
         logger.LogBlockStart(FunctionId.Debugging_EncSession_EditSession_EmitDeltaErrorId, KeyValueLogMessage.Create(p => p.Add("test", "start"), logLevel: LogLevel.Information), blockId: 1, CancellationToken.None);
 

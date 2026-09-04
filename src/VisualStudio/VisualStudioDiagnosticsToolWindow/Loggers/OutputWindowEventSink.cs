@@ -16,13 +16,13 @@ using Microsoft.VisualStudio.Shell.Interop;
 namespace Microsoft.CodeAnalysis.Internal.Log;
 
 /// <summary>
-/// Implementation of <see cref="ILogger"/> that output to output window
+/// Implementation of <see cref="IEventSink"/> that output to output window
 /// </summary>
-internal sealed class OutputWindowLogger : ILogger
+internal sealed class OutputWindowEventSink : IEventSink
 {
     private readonly Func<FunctionId, bool> _isEnabledPredicate;
 
-    public OutputWindowLogger(Func<FunctionId, bool> isEnabledPredicate)
+    public OutputWindowEventSink(Func<FunctionId, bool> isEnabledPredicate)
     {
         _isEnabledPredicate = isEnabledPredicate;
     }

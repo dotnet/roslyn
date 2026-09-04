@@ -22,9 +22,9 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Telemetry;
 
 /// <summary>
-/// A logger that publishes events to a log file.
+/// An event sink that publishes events to a log file.
 /// </summary>
-internal sealed class FileLogger : ILogger
+internal sealed class FileEventSink : IEventSink
 {
     private readonly string _logFilePath;
     private bool _enabled;
@@ -34,7 +34,7 @@ internal sealed class FileLogger : ILogger
     /// </summary>
     private readonly AsyncBatchingWorkQueue<(FunctionId functionId, string message)> _workQueue;
 
-    public FileLogger(IGlobalOptionService optionService, IThreadingContext threadingContext)
+    public FileEventSink(IGlobalOptionService optionService, IThreadingContext threadingContext)
     {
         _logFilePath = Path.Combine(Path.GetTempPath(), "Roslyn", "Telemetry", GetLogFileName());
         _workQueue = new(

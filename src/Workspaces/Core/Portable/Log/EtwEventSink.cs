@@ -9,12 +9,12 @@ using System.Threading;
 namespace Microsoft.CodeAnalysis.Internal.Log;
 
 /// <summary>
-/// A logger that publishes events to ETW using an EventSource.
+/// A sink that publishes events to ETW using an EventSource. Opt-in per <see cref="FunctionId"/>, via
+/// Tools -&gt; Options -&gt; Performance Loggers.
 /// </summary>
-internal sealed class EtwLogger(Func<FunctionId, bool> isEnabledPredicate) : ILogger
+internal sealed class EtwEventSink(Func<FunctionId, bool> isEnabledPredicate) : IEventSink
 {
-
-    // Due to ETW specifics, RoslynEventSource.Instance needs to be initialized during EtwLogger construction 
+    // Due to ETW specifics, RoslynEventSource.Instance needs to be initialized during EtwEventSink construction
     // so that we can enable the listeners synchronously before any events are logged.
     private readonly RoslynEventSource _source = RoslynEventSource.Instance;
 

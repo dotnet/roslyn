@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -14,9 +14,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Telemetry;
 
-internal abstract class TelemetryLogger : ILogger
+internal abstract class TelemetryEventSink : IEventSink
 {
-    private sealed class Implementation : TelemetryLogger
+    private sealed class Implementation : TelemetryEventSink
     {
         private readonly TelemetrySession _session;
 
@@ -27,15 +27,7 @@ internal abstract class TelemetryLogger : ILogger
         }
 
         public static new Implementation Create(TelemetrySession session, bool logDelta)
-        {
-            var logger = new Implementation(session, logDelta);
-
-            // Two stage initialization as TelemetryLogProvider.Create needs access to
-            //  the ILogger that this class implements.
-            TelemetryLogProvider.Create(session, logger);
-
-            return logger;
-        }
+            => new(session, logDelta);
 
         protected override bool LogDelta { get; }
 
@@ -74,26 +66,9 @@ internal abstract class TelemetryLogger : ILogger
 
     private readonly ConcurrentDictionary<int, object> _pendingScopes = new(concurrencyLevel: 2, capacity: 10);
 
-    private const string EventPrefix = "vs/ide/vbcs/";
-    private const string PropertyPrefix = "vs.ide.vbcs.";
-
-    // these don't have concurrency limit on purpose to reduce chance of lock contention. 
-    // if that becomes a problem - by showing up in our perf investigation, then we will consider adding concurrency limit.
-    private static readonly ConcurrentDictionary<FunctionId, string> s_eventMap = [];
-    private static readonly ConcurrentDictionary<(FunctionId id, string name), string> s_propertyMap = [];
-
     protected abstract bool LogDelta { get; }
 
-    internal static string GetEventName(FunctionId id)
-         => s_eventMap.GetOrAdd(id, id => EventPrefix + GetTelemetryName(id, separator: '/'));
-
-    internal static string GetPropertyName(FunctionId id, string name)
-        => s_propertyMap.GetOrAdd((id, name), key => PropertyPrefix + GetTelemetryName(id, separator: '.') + "." + key.name.ToLowerInvariant());
-
-    private static string GetTelemetryName(FunctionId id, char separator)
-        => Enum.GetName(typeof(FunctionId), id)!.Replace('_', separator).ToLowerInvariant();
-
-    public static TelemetryLogger Create(TelemetrySession session, bool logDelta)
+    public static TelemetryEventSink Create(TelemetrySession session, bool logDelta)
         => Implementation.Create(session, logDelta);
 
     public abstract bool IsEnabled(FunctionId functionId);
@@ -109,7 +84,7 @@ internal abstract class TelemetryLogger : ILogger
             return;
         }
 
-        var telemetryEvent = new TelemetryEvent(GetEventName(functionId));
+        var telemetryEvent = new TelemetryEvent(TelemetryNaming.GetEventName(functionId));
         SetProperties(telemetryEvent, functionId, logMessage);
 
         try
@@ -128,7 +103,7 @@ internal abstract class TelemetryLogger : ILogger
             return;
         }
 
-        var eventName = GetEventName(functionId);
+        var eventName = TelemetryNaming.GetEventName(functionId);
         var kind = GetKind(logMessage);
 
         try
@@ -147,7 +122,9 @@ internal abstract class TelemetryLogger : ILogger
             return;
         }
 
-        Contract.ThrowIfFalse(_pendingScopes.TryRemove(blockId, out var scope));
+        // There might be no start if this sink was enabled or disabled in between.
+        if (!_pendingScopes.TryRemove(blockId, out var scope))
+            return;
 
         var endEvent = GetEndEvent(scope);
         SetProperties(endEvent, functionId, logMessage, LogDelta ? delta : null);
@@ -186,14 +163,14 @@ internal abstract class TelemetryLogger : ILogger
             var message = logMessage.GetMessage();
             if (!string.IsNullOrWhiteSpace(message))
             {
-                var propertyName = GetPropertyName(functionId, "Message");
+                var propertyName = TelemetryNaming.GetPropertyName(functionId, "Message");
                 telemetryEvent.Properties.Add(propertyName, message);
             }
         }
 
         if (delta.HasValue)
         {
-            var propertyName = GetPropertyName(functionId, "Delta");
+            var propertyName = TelemetryNaming.GetPropertyName(functionId, "Delta");
             telemetryEvent.Properties.Add(propertyName, delta.Value);
         }
     }
@@ -207,7 +184,7 @@ internal abstract class TelemetryLogger : ILogger
             // 
             // numeric data will show up in ES with measurement prefix.
 
-            telemetryEvent.Properties.Add(GetPropertyName(functionId, name), value switch
+            telemetryEvent.Properties.Add(TelemetryNaming.GetPropertyName(functionId, name), value switch
             {
                 PiiValue pii => new TelemetryPiiProperty(pii.Value),
                 IEnumerable<object> items => new TelemetryComplexProperty(items.Select(item => (item is PiiValue pii) ? new TelemetryPiiProperty(pii.Value) : item)),

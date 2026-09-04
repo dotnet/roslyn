@@ -47,6 +47,51 @@ public class GenerateConversionTests(ITestOutputHelper testOutputHelper) : Cohos
     }
 
     [Fact]
+    public async Task GenerateExplicitConversion_FromCodeBlock_ExistingCodeBlock_UsesEditorConfig()
+    {
+        var input = """
+            @code
+            {
+                private int M()
+                {
+                    return [||](int)this;
+                }
+            }
+            """;
+
+        var expected = """
+            @using System
+            @code
+            {
+                private int M()
+                {
+                    return (int)this;
+                }
+
+                public static explicit operator int (File1 v)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(
+            input,
+            expected,
+            PredefinedCodeFixProviderNames.GenerateConversion,
+            makeDiagnosticsRequest: true,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_space_between_method_declaration_name_and_open_parenthesis = true
+                    """)
+            ]);
+    }
+
+    [Fact]
     public async Task GenerateExplicitConversion_FromExplicitExpression_WithoutCodeBlock()
     {
         var input = """

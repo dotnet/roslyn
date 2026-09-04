@@ -9,14 +9,13 @@ using System.Threading;
 namespace Microsoft.CodeAnalysis.Internal.Log;
 
 /// <summary>
-/// Implementation of <see cref="ILogger"/> that produce timing debug output. 
+/// Implementation of <see cref="IEventSink"/> that produces timing debug output. Opt-in: registered by
+/// the Performance Loggers options page while enabled, and unregistered when not.
 /// </summary>
-internal sealed class TraceLogger(Func<FunctionId, bool>? isEnabledPredicate) : ILogger
+internal sealed class TraceEventSink(Func<FunctionId, bool> isEnabledPredicate) : IEventSink
 {
-    public static readonly TraceLogger Instance = new(isEnabledPredicate: null);
-
     public bool IsEnabled(FunctionId functionId)
-        => isEnabledPredicate == null || isEnabledPredicate(functionId);
+        => isEnabledPredicate(functionId);
 
     public void Log(FunctionId functionId, LogMessage logMessage)
         => Trace.WriteLine(string.Format("[{0}] {1} - {2}", Environment.CurrentManagedThreadId, functionId.ToString(), logMessage.GetMessage()));

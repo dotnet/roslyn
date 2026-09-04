@@ -23,7 +23,7 @@ This file should be imported by eng/Versions.props
     <MicrosoftExtensionsPrimitivesPackageVersion>10.0.10</MicrosoftExtensionsPrimitivesPackageVersion>
     <SystemCodeDomPackageVersion>10.0.10</SystemCodeDomPackageVersion>
     <SystemCollectionsImmutablePackageVersion>10.0.10</SystemCollectionsImmutablePackageVersion>
-    <SystemCommandLinePackageVersion>3.0.0-rc.2.26426.126</SystemCommandLinePackageVersion>
+    <SystemCommandLinePackageVersion>3.0.0-rc.2.26453.107</SystemCommandLinePackageVersion>
     <SystemComponentModelCompositionPackageVersion>10.0.10</SystemComponentModelCompositionPackageVersion>
     <SystemCompositionPackageVersion>10.0.10</SystemCompositionPackageVersion>
     <SystemConfigurationConfigurationManagerPackageVersion>10.0.10</SystemConfigurationConfigurationManagerPackageVersion>
@@ -41,11 +41,11 @@ This file should be imported by eng/Versions.props
     <SystemThreadingTasksDataflowPackageVersion>10.0.10</SystemThreadingTasksDataflowPackageVersion>
     <SystemWindowsExtensionsPackageVersion>10.0.10</SystemWindowsExtensionsPackageVersion>
     <!-- dotnet-roslyn dependencies -->
-    <MicrosoftCodeAnalysisPackageVersion>5.11.0-1.26423.6</MicrosoftCodeAnalysisPackageVersion>
-    <MicrosoftCodeAnalysisAnalyzersPackageVersion>5.11.0-1.26423.6</MicrosoftCodeAnalysisAnalyzersPackageVersion>
-    <MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>5.11.0-1.26423.6</MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>
-    <MicrosoftNetCompilersToolsetPackageVersion>5.11.0-1.26423.6</MicrosoftNetCompilersToolsetPackageVersion>
-    <RoslynDiagnosticsAnalyzersPackageVersion>5.11.0-1.26423.6</RoslynDiagnosticsAnalyzersPackageVersion>
+    <MicrosoftCodeAnalysisPackageVersion>5.12.0-1.26428.6</MicrosoftCodeAnalysisPackageVersion>
+    <MicrosoftCodeAnalysisAnalyzersPackageVersion>5.12.0-1.26428.6</MicrosoftCodeAnalysisAnalyzersPackageVersion>
+    <MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>5.12.0-1.26428.6</MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>
+    <MicrosoftNetCompilersToolsetPackageVersion>5.12.0-1.26428.6</MicrosoftNetCompilersToolsetPackageVersion>
+    <RoslynDiagnosticsAnalyzersPackageVersion>5.12.0-1.26428.6</RoslynDiagnosticsAnalyzersPackageVersion>
     <!-- dotnet-symreader dependencies -->
     <MicrosoftDiaSymReaderPackageVersion>2.2.10</MicrosoftDiaSymReaderPackageVersion>
   </PropertyGroup>

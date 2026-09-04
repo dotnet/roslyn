@@ -104,14 +104,14 @@ internal sealed partial class SuggestedActionsSourceProvider
 
                 try
                 {
-                    using var _2 = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.SuggestedAction_Summary, $"Total");
+                    using var _2 = RoslynTelemetry.RecordBlockTime(FunctionId.SuggestedAction_Summary, $"Total");
 
                     // Collectors are in priority order.  So just walk them from highest to lowest.
                     foreach (var collector in collectors)
                     {
                         if (TryGetPriority(collector.Priority) is CodeActionRequestPriority priority)
                         {
-                            using var _3 = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.SuggestedAction_Summary, $"Total.Pri{(int)priority}");
+                            using var _3 = RoslynTelemetry.RecordBlockTime(FunctionId.SuggestedAction_Summary, $"Total.Pri{(int)priority}");
 
                             var allSets = GetCodeFixesAndRefactoringsAsync(
                                 state, requestedActionCategories, document,
@@ -219,7 +219,7 @@ internal sealed partial class SuggestedActionsSourceProvider
 
             async Task<ImmutableArray<CodeAnalysis.Suggestions.SuggestedActionSet>> GetCodeFixesAsync()
             {
-                using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.SuggestedAction_Summary, $"Total.Pri{priority.GetPriorityInt()}.{nameof(GetCodeFixesAsync)}");
+                using var _ = RoslynTelemetry.RecordBlockTime(FunctionId.SuggestedAction_Summary, $"Total.Pri{priority.GetPriorityInt()}.{nameof(GetCodeFixesAsync)}");
 
                 if (owner._codeFixService == null ||
                     !supportsFeatureService.SupportsCodeFixes(target.SubjectBuffer) ||
@@ -235,7 +235,7 @@ internal sealed partial class SuggestedActionsSourceProvider
 
             async Task<ImmutableArray<CodeAnalysis.Suggestions.SuggestedActionSet>> GetRefactoringsAsync()
             {
-                using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.SuggestedAction_Summary, $"Total.Pri{priority.GetPriorityInt()}.{nameof(GetRefactoringsAsync)}");
+                using var _ = RoslynTelemetry.RecordBlockTime(FunctionId.SuggestedAction_Summary, $"Total.Pri{priority.GetPriorityInt()}.{nameof(GetRefactoringsAsync)}");
 
                 if (!selection.HasValue)
                 {
