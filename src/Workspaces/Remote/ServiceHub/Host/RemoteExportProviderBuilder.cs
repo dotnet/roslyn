@@ -27,7 +27,7 @@ internal sealed class RemoteExportProviderBuilder : ExportProviderBuilder
             .Add("Microsoft.CodeAnalysis.Remote.Workspaces")
             .Add("Microsoft.CodeAnalysis.ExternalAccess.AspNetCore")
             .Add("Microsoft.CodeAnalysis.ExternalAccess.Extensions")
-            .Add("Microsoft.CodeAnalysis.ExternalAccess.Copilot")
+            .Add("Microsoft.CodeAnalysis.Features.ExternalAccess")
             .Add("Microsoft.VisualStudio.Copilot.Roslyn.SemanticSearch");
 
     private static ExportProvider? s_instance;

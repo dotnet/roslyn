@@ -16,6 +16,17 @@ Roslyn uses a **layered service architecture** built on MEF (Managed Extensibili
 - **EditorFeatures** (`src/EditorFeatures/`): VS Editor integration and text manipulation
 - **VisualStudio** (`src/VisualStudio/`): Visual Studio-specific implementations
 
+### External Access assemblies
+
+Partner APIs that depend on IDE layers are grouped into one ExternalAccess assembly per layer:
+
+- `src/Features/ExternalAccess/Core/`
+- `src/EditorFeatures/ExternalAccess/Core/`
+- `src/LanguageServer/ExternalAccess/Core/`
+- `src/VisualStudio/ExternalAccess/Core/`
+
+Partner-specific source remains organized in subdirectories of those projects. Compatibility assemblies remain for ASP.NET under `src/Features/ExternalAccess/AspNetCore/` and EditorConfigGenerator under `src/VisualStudio/ExternalAccess/EditorConfigGenerator/`; ExternalAccess projects for APIs that are not part of the unified layer assemblies remain separate.
+
 ### Service Resolution
 ```csharp
 // Workspace services
