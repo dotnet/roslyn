@@ -111,3 +111,44 @@ Make sure to install the following via `apt install`
 - lldb
 - cmake
 - xrdp
+
+
+## Troubleshooting
+
+### Build fails with "MSB3103: Invalid Resx file ... Could not find a part of the path"
+
+If `build.sh` fails with errors like:
+
+```
+error MSB3103: Invalid Resx file. Could not find a part of the path
+'<OLD-PATH>/src/RoslynAnalyzers/Text.Analyzers/Core/Dictionary.dic'. [Text.Analyzers.csproj]
+```
+
+where `<OLD-PATH>` is not the current location of your clone, the source `.resx` files are
+fine. The failing files are generated localized resources under `artifacts/obj/.../*.xlf/`.
+
+This happens because the [XliffTasks](https://github.com/dotnet/xliff-tasks) MSBuild tasks
+bake the **absolute** path of `ResXFileRef` entries into the cached translated `.resx` files
+placed in `artifacts/obj`. When you rename or move the repository root, those paths become
+stale. MSBuild's incremental-build check doesn't detect the rename because the file timestamps
+and contents haven't changed, so the cached files are never regenerated.
+
+**Fix (cheapest first):**
+
+- Delete only the stale generated resources and rebuild:
+  ```sh
+  rm -rf artifacts/obj/Text.Analyzers/*/*/Text.Analyzers.xlf
+  rm -rf artifacts/obj/Microsoft.VisualStudio.RazorExtension/*/*/Microsoft.VisualStudio.RazorExtension.xlf
+  ```
+  XliffTasks regenerates them with the correct path on the next build.
+- Or, the bigger hammer: `git clean -xdn` (dry run) then `git clean -xdf`. Note this also
+  deletes the locally-provisioned `.dotnet` SDK and the entire `artifacts/` tree, forcing a
+  full restore + rebuild, so prefer the targeted delete above.
+
+**To avoid it:** When renaming your clone, delete `artifacts/obj` (or the two `*.xlf` folders
+above) afterwards.
+
+> **Upstream fix:** The root cause is being tracked in
+> [dotnet/xliff-tasks](https://github.com/dotnet/xliff-tasks). The fix is to store paths in
+> the cached translated `.resx` files as relative (relative to the output file) rather than
+> absolute, so the cached artifacts survive a repository rename.
