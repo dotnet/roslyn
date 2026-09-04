@@ -48,6 +48,11 @@ dotnet test <proj> --filter "FullyQualifiedName~MyTestClass"
 
 Tests can take a while to build and run — monitor output and wait for completion unless you're confident a run is hung.
 
+Where a measured fast iteration slice exists for the affected component, select
+it explicitly from `.github/memory/agent-inner-loop.md`. Do not use a slice for
+unrelated components. Inner-loop slices do not replace final Definition-of-Done
+validation.
+
 ### Full build/test (final validation only)
 ```bash
 ./build.sh   # Build.cmd on Windows

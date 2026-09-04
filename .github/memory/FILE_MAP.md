@@ -34,6 +34,6 @@ This file is a **top-level map only**. For per-area directory detail, read the m
 
 | Path | Status | Purpose |
 |------|--------|---------|
-| `eng/` | Config / Generated | Arcade build engineering. Pipeline definitions and templates live in `eng/pipelines/`; `eng/common/` is DARC-synced and must not be hand-edited. `eng/generate-compiler-code.cs` regenerates compiler code. |
+| `eng/` | Config / Generated | Arcade build engineering. Pipeline definitions and templates live in `eng/pipelines/`; `eng/common/` is DARC-synced and must not be hand-edited. `eng/generate-compiler-code.cs` regenerates compiler code. `eng/measure-agent-inner-loop.cs` benchmarks documented fast validation slices. |
 | `docs/` | Active | Contributor & design docs. New docs use kebab-case filenames in the right subdirectory. |
 | Root | Config | Entry points & solution filters: `build.sh`/`Build.cmd`, `test.sh`/`Test.cmd`, `Roslyn.slnx`, `Compilers.slnf`, `Ide.slnf`, `Razor.slnf`, `global.json`, `Directory.*.props/targets`, `Directory.Packages.props`. |

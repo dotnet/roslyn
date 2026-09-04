@@ -102,3 +102,10 @@ var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 - **ImportingConstructor must be marked `[Obsolete]`** with `MefConstruction.ImportingConstructorMessage`
 - **Language services must be exported with a specific language name** — don't use generic exports for both C#/VB
 - **Workspace changes must use immutable updates** — `Workspace.SetCurrentSolution()`
+
+## Build & Test Workflows
+
+Measured pilots currently cover C# CodeStyle and formatting. Explicitly select
+the matching slice from `.github/memory/agent-inner-loop.md`; do not use one
+component's slice for another area. Run the affected IDE test project or broader
+validation before completion.
