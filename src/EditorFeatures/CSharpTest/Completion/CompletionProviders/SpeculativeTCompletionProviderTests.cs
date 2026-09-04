@@ -738,6 +738,20 @@ public sealed class SpeculativeTCompletionProviderTests : AbstractCSharpCompleti
             }
             """, "T");
 
+    [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+    [WorkItem("https://github.com/dotnet/vscode-csharp/issues/8050")]
+    public Task NotAfterLowercaseTInMethod()
+        => VerifyItemIsAbsentAsync("""
+            class Main
+            {
+                static void Main()
+                {
+                    var t = 1;
+                    t$$
+                }
+            }
+            """, "T");
+
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14525")]
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public Task LocalFunctionAfterAyncTask()
