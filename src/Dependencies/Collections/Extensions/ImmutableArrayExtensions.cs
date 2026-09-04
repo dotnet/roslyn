@@ -305,6 +305,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="array">The array to transform</param>
         /// <param name="selector">A transform function to apply to each element.</param>
         /// <returns>If the array's length is 0, this will return an empty immutable array.</returns>
+        public static ImmutableArray<TResult> SelectManyAsArray<TItem, TArg, TResult>(this ImmutableArray<TItem> array, Func<TItem, TArg, OneOrMany<TResult>> selector, TArg arg)
         {
             if (array.Length == 0)
                 return [];
