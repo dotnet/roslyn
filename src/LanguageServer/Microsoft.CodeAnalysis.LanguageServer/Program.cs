@@ -13,11 +13,16 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using RoslynLog = Microsoft.CodeAnalysis.Internal.Log;
 
 WindowsErrorReporting.SetErrorModeOnWindows();
+
+// Child processes receive their own redirected standard handles. Do not also let them inherit the server's standard
+// handles, since a long-lived descendant could keep the thin client's pipes open after the server exits.
+StandardHandleInheritance.SetStandardHandlesInheritable(false);
 
 var command = LanguageServerCommandLine.CreateCommand(RunAsync);
 var invocationConfiguration = new InvocationConfiguration()

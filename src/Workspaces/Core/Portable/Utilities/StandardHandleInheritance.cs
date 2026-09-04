@@ -2,27 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Runtime.InteropServices;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Client;
+namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
 /// <summary>
-/// Toggles whether this process's standard input, output, and error handles are inheritable by child processes. Used
-/// around both stages of the daemon double launch (this thin client launching the bootstrap, and the bootstrap
-/// launching the daemon).
+/// Controls whether this process's standard input, output, and error handles are inheritable by child processes.
 /// <para>
 /// On Windows a <see cref="System.Diagnostics.Process"/> started with any redirected stream is created with
 /// <c>CreateProcess(bInheritHandles: true)</c>, which leaks <em>all</em> of this process's inheritable handles - in
-/// particular its own standard handles - to the child. In the daemon launch chain (thin client → bootstrap → daemon)
-/// those standard handles are the editor's LSP stdio pipes; if the long-lived daemon inherits copies of them it holds
-/// them open after this process exits (so the editor's <c>WaitForExit</c>/output draining never sees EOF) and, in
-/// stdio mode, corrupts the editor's LSP channel. Marking the standard handles non-inheritable across the launch
-/// prevents the child from receiving them, while the freshly created redirection pipes (which the runtime sets up
-/// separately) are unaffected. A no-op off Windows, where redirected children don't leak the parent's standard handles.
+/// particular its own standard handles - to the child. Marking the standard handles non-inheritable prevents the child
+/// from receiving them, while the freshly created redirection pipes (which the runtime sets up separately) are
+/// unaffected. A no-op off Windows, where redirected children don't leak the parent's standard handles.
 /// </para>
 /// TODO - Switch to ProcessStartInfo.InheritedHandles when we upgrade to .NET 11 which allows us to configure handle inheritance directly.
 /// </summary>
-internal static class DaemonHandleInheritance
+internal static class StandardHandleInheritance
 {
     private const int STD_INPUT_HANDLE = -10;
     private const int STD_OUTPUT_HANDLE = -11;
@@ -40,12 +36,11 @@ internal static class DaemonHandleInheritance
 
     /// <summary>
     /// On Windows, sets whether this process's standard input, output, and error handles are inheritable by child
-    /// processes. Must be paired (set <see langword="false"/> before <c>Process.Start</c>, restore <see langword="true"/>
-    /// after). A no-op off Windows.
+    /// processes. A no-op off Windows.
     /// </summary>
     public static void SetStandardHandlesInheritable(bool inheritable)
     {
-        if (!OperatingSystem.IsWindows())
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             return;
 
         var flags = inheritable ? HANDLE_FLAG_INHERIT : 0u;

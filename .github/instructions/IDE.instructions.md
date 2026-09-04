@@ -58,6 +58,7 @@ public MyService(IDependency dependency) { }
 ## Out-of-Process (OOP) Services
 
 - ServiceHub components live under `src/Workspaces/Remote/` and have special deployment considerations for .NET Core vs .NET Framework — keep both targets in mind when changing remote services
+- `src/Workspaces/Core/Portable/Utilities/StandardHandleInheritance.cs` prevents redirected Windows child processes from inheriting unrelated standard handles. The LanguageServer and MSBuild BuildHost disable inheritance for their lifetimes before launching descendants; dependency-light hosts may source-link this utility.
 
 ## Key Development Patterns
 
