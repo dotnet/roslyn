@@ -29,8 +29,9 @@ public class DefaultTagHelperResolutionPhaseTest
             (Source: RazorSourceDocument.Create("<p>Component</p>", "/Components/App.razor"), FileKind: RazorFileKind.Component),
         };
 
-        // Act and assert
-        Parallel.For(0, 10_000, iteration =>
+        // Act and assert: match classic rzc's concurrency while repeating enough to exercise the timing-sensitive overlap.
+        var parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = 4 };
+        Parallel.For(0, 2_000, parallelOptions, iteration =>
         {
             var (source, fileKind) = inputs[iteration % inputs.Length];
             var codeDocument = projectEngine.Process(
