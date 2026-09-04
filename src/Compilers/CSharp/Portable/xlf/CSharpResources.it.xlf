@@ -2979,7 +2979,7 @@
       </trans-unit>
       <trans-unit id="ICoalesceOperationIsNotCSharpCoalesceOperation">
         <source>{0} is not a valid C# coalesce operation</source>
-        <target state="new">{0} is not a valid C# coalesce operation</target>
+        <target state="translated">{0} non è un'operazione di coalescenza C# valida</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
