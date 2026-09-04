@@ -12,11 +12,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 internal sealed class WorkspaceFolderTracker : IWorkspaceFolderTracker
 {
-    // Mutations are serialized by the request queue, but non-mutating requests may read the current folders concurrently.
+    /// <summary>
+    /// Mutations are serialized by the request queue, but non-mutating requests may read the current folders concurrently.
+    /// </summary>
     private readonly object _gate = new();
     private ImmutableHashSet<string> _workspaceFolderPaths = ImmutableHashSet.Create(PathUtilities.Comparer);
 
-    public event Action<ImmutableHashSet<string>>? WorkspaceFoldersChanged;
+    public event Action? WorkspaceFoldersChanged;
 
     public void Update(WorkspaceFolder[]? addedFolders, WorkspaceFolder[]? removedFolders)
     {
@@ -52,16 +54,11 @@ internal sealed class WorkspaceFolderTracker : IWorkspaceFolderTracker
             _workspaceFolderPaths = updatedWorkspaceFolderPaths;
         }
 
-        WorkspaceFoldersChanged?.Invoke(updatedWorkspaceFolderPaths);
+        WorkspaceFoldersChanged?.Invoke();
     }
 
     public ImmutableHashSet<string> GetRequiredWorkspaceFolderPaths()
-    {
-        lock (_gate)
-        {
-            return _workspaceFolderPaths;
-        }
-    }
+        => _workspaceFolderPaths;
 
     private static string? GetNormalizedFilePath(WorkspaceFolder workspaceFolder)
         => workspaceFolder.DocumentUri.ParsedDocumentUri?.IsFile == true
