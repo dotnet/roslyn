@@ -2,7 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Option Strict Off
+Option Strict On
 
 Imports System.Composition
 Imports System.Threading
@@ -68,10 +68,10 @@ Class RemoveByValCodeRefactoringProvider
     Class RemoveByValCodeAction
         Inherits CodeAction
 
-        Private ReadOnly createChangedDocument As Func(Of Object, Task(Of Document))
+        Private ReadOnly createChangedDocument As Func(Of CancellationToken, Task(Of Document))
         Private ReadOnly _title As String
 
-        Public Sub New(title As String, createChangedDocument As Func(Of Object, Task(Of Document)))
+        Public Sub New(title As String, createChangedDocument As Func(Of CancellationToken, Task(Of Document)))
             _title = title
             Me.createChangedDocument = createChangedDocument
         End Sub
