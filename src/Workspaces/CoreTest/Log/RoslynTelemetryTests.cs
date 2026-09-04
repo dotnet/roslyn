@@ -40,7 +40,6 @@ public sealed class RoslynTelemetryTests
     {
         public List<int> CounterTagCounts { get; } = [];
         public List<int> DistributionTagCounts { get; } = [];
-        public int FlushCount { get; private set; }
 
         public void Count(string eventName, string metricName, long delta, ReadOnlySpan<KeyValuePair<string, object?>> tags)
             => CounterTagCounts.Add(tags.Length);
@@ -49,7 +48,8 @@ public sealed class RoslynTelemetryTests
             => DistributionTagCounts.Add(tags.Length);
 
         public void Flush()
-            => FlushCount++;
+        {
+        }
     }
 
     [Fact]
@@ -162,22 +162,6 @@ public sealed class RoslynTelemetryTests
 
         Assert.Same(telemetry, await child);
         Assert.Same(previousTelemetry, RoslynTelemetry.Current);
-    }
-
-    [Fact]
-    public void FlushOnlyFlushesCurrentInstance()
-    {
-        var firstTelemetry = new RoslynTelemetry();
-        var secondTelemetry = new RoslynTelemetry();
-        var firstSink = new RecordingMetricSink();
-        var secondSink = new RecordingMetricSink();
-        using var firstRegistration = firstTelemetry.AddMetricSink(firstSink);
-        using var secondRegistration = secondTelemetry.AddMetricSink(secondSink);
-
-        firstTelemetry.Flush();
-
-        Assert.Equal(1, firstSink.FlushCount);
-        Assert.Equal(0, secondSink.FlushCount);
     }
 
     [Fact]

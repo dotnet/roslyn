@@ -41,9 +41,10 @@ internal static class DaemonPipeName
     public const string PipeNameOverrideEnvironmentVariable = "ROSLYN_LANGUAGE_SERVER_DAEMON_PIPE_NAME";
 
     /// <summary>
-    /// Computes the pipe name for the current user, scoped by <paramref name="toolIdentifier"/>.
+    /// Computes the pipe name for the current user, scoped by <paramref name="toolIdentifier"/> and
+    /// <paramref name="telemetryLevel"/>.
     /// </summary>
-    public static string GetPipeName(string toolIdentifier)
+    public static string GetPipeName(string toolIdentifier, string? telemetryLevel)
     {
         // Prefix with username and elevation so different users / elevation levels don't share a daemon.
         var isAdmin = false;
@@ -54,7 +55,7 @@ internal static class DaemonPipeName
             isAdmin = principal.IsInRole(WindowsBuiltInRole.Administrator);
         }
 
-        return GetPipeName(Environment.UserName, isAdmin, toolIdentifier);
+        return GetPipeName(Environment.UserName, isAdmin, toolIdentifier, telemetryLevel);
     }
 
     /// <summary>
@@ -62,14 +63,14 @@ internal static class DaemonPipeName
     /// <paramref name="toolIdentifier"/> ensures only compatible clients connect to a compatible
     /// server; we use the full path to the server executable (in a versioned location).
     /// </summary>
-    public static string GetPipeName(string userName, bool isAdmin, string toolIdentifier)
+    public static string GetPipeName(string userName, bool isAdmin, string toolIdentifier, string? telemetryLevel)
     {
         // Windows paths are case-insensitive. Preserve casing on other platforms, where paths may be
         // case-sensitive and distinct executables must not share a daemon.
         if (OperatingSystem.IsWindows())
             toolIdentifier = toolIdentifier.ToLowerInvariant();
 
-        var pipeNameInput = $"{userName}.{isAdmin}.{toolIdentifier}";
+        var pipeNameInput = $"{userName}.{isAdmin}.{toolIdentifier}.{telemetryLevel}";
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(pipeNameInput));
         return Convert.ToBase64String(bytes)
             .Replace("/", "_")

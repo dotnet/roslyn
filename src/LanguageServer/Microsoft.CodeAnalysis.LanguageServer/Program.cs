@@ -8,8 +8,10 @@ using System.IO.Pipes;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Daemon;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
@@ -45,6 +47,11 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
     {
         Contract.ThrowIfNull(serverConfiguration.ServerPipeName, "Server must be started with either --stdio or --pipe option.");
     }
+
+    serverConfiguration = serverConfiguration with
+    {
+        TelemetryLevel = TelemetryLevelResolver.Resolve(serverConfiguration.TelemetryLevel),
+    };
 
     if (serverConfiguration.UseStdIo)
     {
@@ -128,12 +135,12 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
         Directory.CreateDirectory(serverConfiguration.ExtensionLogDirectory);
     }
 
-    var telemetryLevel = LanguageServerTelemetry.GetTelemetryLevel(serverConfiguration);
-    if (telemetryLevel is not null)
-    {
-        var telemetryService = exportProvider.GetExportedValue<LanguageServerTelemetry>();
-        telemetryService.InitializeSession(telemetryLevel, serverConfiguration.SessionId, isDefaultSession: true);
-    }
+    using var telemetryService = LanguageServerTelemetry.CreateSession(
+        serverConfiguration,
+        loggerFactory,
+        RoslynLog.RoslynTelemetry.Current,
+        serverConfiguration.SessionId,
+        isDefaultSession: true);
 
     // Build the connection source for the configured mode. Single-server mode (stdio / connect-out pipe) yields
     // exactly one connection; daemon mode accepts many and manages its own idle timeout. Both run through the same
@@ -190,9 +197,17 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
     logger.LogInformation("Language server initialized");
     RoslynLog.Logger.Log(RoslynLog.FunctionId.VSCode_LanguageServer_Started, logLevel: RoslynLog.LogLevel.Information);
 
-    using (connectionSource as IDisposable)
+    try
     {
-        await connectionManager.RunAsync(connectionSource, exportProvider, typeRefResolver, logger, cancellationToken);
+        using (connectionSource as IDisposable)
+        {
+            await connectionManager.RunAsync(
+                connectionSource, exportProvider, typeRefResolver, logger, telemetryService?.SessionId, cancellationToken);
+        }
+    }
+    finally
+    {
+        FeaturesSessionTelemetry.Report();
     }
 
     return ServerExitCodes.Success;
