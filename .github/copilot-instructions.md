@@ -1,6 +1,6 @@
 # Roslyn (.NET Compiler Platform) — Copilot Instructions
 
-> This is the **canonical** repo-wide agent entry point. `AGENTS.md` at the repo root points here. Path-scoped rules in `.github/instructions/{Compiler,IDE,Razor}.instructions.md` apply automatically by area and supplement this file. This file establishes the memory-first orientation protocol and doc-maintenance obligation.
+> This is the **canonical** repo-wide agent entry point. `AGENTS.md` at the repo root points here. Path-scoped rules in `.github/instructions/{Compiler,IDE,Razor}.instructions.md` apply automatically by area and supplement this file. This file establishes the memory-first orientation protocol.
 
 ## Project Overview
 
@@ -75,29 +75,16 @@ When starting any task or answering any question about this repo:
 1. **Read `.github/memory/INDEX.md` first** — it's the loading map for the knowledge base. Use it to find authoritative answers before searching the file system.
 2. **For any non-trivial task, also read `.github/memory/ARCHITECTURE.md` and `.github/memory/CONVENTIONS.md`** as your baseline.
 3. **Read the path-scoped instruction file for the area you're editing** — `.github/instructions/Compiler.instructions.md`, `IDE.instructions.md`, or `Razor.instructions.md` (these auto-apply to `.cs`/`.vb` under their glob and carry the layer's directory detail, conventions, and key files/APIs). For that layer's **test conventions**, load `.github/memory/testing/<area>.md` on demand (see the INDEX loading map).
-4. After completing work, run the `update-agent-docs` skill.
 
 ### Memory
 
-`.github/memory/` is your persistent knowledge base. You may freely create new focused files, update existing ones when you find corrections, and reorganize when structure no longer fits. Use descriptive filenames.
+`.github/memory/` is the persistent knowledge base. Always cross-check its claims against actual code before relying on them because the files can drift.
 
-**Memory freshness is your responsibility.** Files can drift from the code:
-- **Always cross-check memory claims against actual code** before relying on them.
-- **If a memory file is stale, fix it immediately.** If you learn something worth keeping, write it to `.github/memory/` immediately.
-
-### Doc Update Obligation
-
-Every task that changes code must end with a doc pass:
-- Added or moved files? → Update `.github/memory/FILE_MAP.md` (top-level) and the matching `.github/instructions/<area>.instructions.md` (directory detail).
-- Changed a public interface, diagnostic ID, or API? → Update the relevant `.github/instructions/<area>.instructions.md` and `PublicAPI.Unshipped.txt`.
-- Hit something surprising or undocumented? → Ask the user how they want it documented.
-- Established a new pattern? → Repo-wide → `.github/memory/CONVENTIONS.md`; layer-specific → the matching `.github/instructions/<area>.instructions.md`.
-- Changed test base classes or conventions? → Repo-wide layout → `.github/memory/TESTING_STRATEGY.md`; layer-specific → `.github/memory/testing/<area>.md`.
-- Added/removed/renamed a memory file? → Update `.github/memory/INDEX.md`.
+Do not update AI guidance as a side effect of unrelated product work. The weekly AI Artifact Audit reports stale guidance; edit these files only when the task explicitly targets agent documentation.
 
 ### Skills
 
-Skills live in `.github/skills/<skill-name>/SKILL.md` and are auto-discovered by their YAML `description`. Useful ones here include `code-review`, `ci-analysis`, `analyzer-codefix`, `merge-into-branch`, `snap`, and `update-agent-docs`.
+Skills live in `.github/skills/<skill-name>/SKILL.md` and are auto-discovered by their YAML `description`. Useful ones here include `code-review`, `ci-analysis`, `analyzer-codefix`, `merge-into-branch`, and `snap`.
 
 ## Working Loop (plan first)
 
@@ -142,5 +129,4 @@ Work is done only when every applicable step below is complete:
 4. **Targeted tests:** Run the affected test project or focused test filter. Add or update tests when behavior changes; explain when no relevant automated test exists.
 5. **Generated/resource/API updates:** Regenerate Syntax/BoundNodes outputs when their XML changes, run `/t:UpdateXlf` after `.resx` edits, and update `PublicAPI.Unshipped.txt` for public API changes.
 6. **Diff review:** Review the final diff and confirm it matches the approved plan, contains no unrelated edits, and follows nearby patterns.
-7. **Docs:** Run the `update-agent-docs` skill and apply the Doc Update Obligation above.
-8. **Final evidence:** Inspect repository status and the final diff, then report the exact validation performed. Do not claim completion while required validation is failing or was silently skipped.
+7. **Final evidence:** Inspect repository status and the final diff, then report the exact validation performed. Do not claim completion while required validation is failing or was silently skipped.
