@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.Definitions;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
@@ -23,7 +22,6 @@ internal sealed class ProjectInitializationHandler : IDisposable
     private readonly ILogger _logger;
     private readonly TaskCompletionSource _serviceAvailable = new();
     private readonly ProjectInitializationCompleteObserver _projectInitializationCompleteObserver;
-    private readonly RoslynTelemetry _telemetry;
 
     private IDisposable? _subscription;
 
@@ -40,7 +38,6 @@ internal sealed class ProjectInitializationHandler : IDisposable
         _logger = loggerFactory.CreateLogger<ProjectInitializationHandler>();
         _projectInitializationCompleteObserver = new ProjectInitializationCompleteObserver(
             clientLanguageServerManager, _logger, requestTelemetryLogger);
-        _telemetry = RoslynTelemetry.Current;
     }
 
     public static async ValueTask SendProjectInitializationCompleteNotificationAsync(IClientLanguageServerManager clientLanguageServerManager)
@@ -75,17 +72,12 @@ internal sealed class ProjectInitializationHandler : IDisposable
 
     private void AvailabilityChanged(object? sender, BrokeredServicesChangedEventArgs e)
     {
-        // Raised by the service broker, not the LSP queue, so the ambient must be re-established.
-        using var _ = RoslynTelemetry.SetCurrent(_telemetry);
-
         if (e.ImpactedServices.Contains(Descriptors.RemoteProjectInitializationStatusService.Moniker))
             _serviceAvailable.SetResult();
     }
 
     public void Dispose()
     {
-        using var _ = RoslynTelemetry.SetCurrent(_telemetry);
-
         _serviceBroker.AvailabilityChanged -= AvailabilityChanged;
         _subscription?.Dispose();
         _serviceBrokerClient.Dispose();
@@ -96,9 +88,6 @@ internal sealed class ProjectInitializationHandler : IDisposable
         ILogger logger,
         VSCodeRequestTelemetryLogger requestTelemetryLogger) : IObserver<ProjectInitializationCompletionState>
     {
-        // These callbacks are dispatched by StreamJsonRpc from Dev Kit, so they carry no ambient.
-        private readonly RoslynTelemetry _telemetry = RoslynTelemetry.Current;
-
         [JsonRpcMethod("onCompleted")]
         public void OnCompleted()
         {
@@ -108,14 +97,12 @@ internal sealed class ProjectInitializationHandler : IDisposable
         [JsonRpcMethod("onError", UseSingleObjectParameterDeserialization = true)]
         public void OnError(Exception error)
         {
-            using var _ = RoslynTelemetry.SetCurrent(_telemetry);
             logger.LogError(error, "Devkit project initialization observer failed");
         }
 
         [JsonRpcMethod("onNext", UseSingleObjectParameterDeserialization = true)]
         public void OnNext(ProjectInitializationCompletionState value)
         {
-            using var telemetryScope = RoslynTelemetry.SetCurrent(_telemetry);
             logger.LogDebug("Devkit project initialization completed");
             requestTelemetryLogger.ReportProjectInitializationComplete();
             _ = SendProjectInitializationCompleteNotificationAsync(clientLanguageServerManager).AsTask().ReportNonFatalErrorAsync();
