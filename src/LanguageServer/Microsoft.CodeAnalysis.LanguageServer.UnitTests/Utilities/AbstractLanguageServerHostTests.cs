@@ -462,8 +462,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             // This mirrors Program's process-level daemon owner. Each LanguageServerHost creates and
             // disposes its own child; the daemon task owns this shared root until all hosts have stopped.
             var daemonTelemetryService = new LanguageServerTelemetry(serverConfiguration, loggerFactory, daemonTelemetry);
-            if (serverConfiguration.DevKitDependencyPath is not null &&
-                serverConfiguration.TelemetryLevel is { } telemetryLevel)
+            if (serverConfiguration.TelemetryLevel is { } telemetryLevel)
             {
                 daemonTelemetryService.InitializeSession(
                     telemetryLevel, serverConfiguration.SessionId, isDefaultSession: false);

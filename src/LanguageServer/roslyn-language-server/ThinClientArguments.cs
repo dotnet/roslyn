@@ -17,7 +17,6 @@ internal sealed class ThinClientArguments
     public string? EditorPipeName { get; }
     public int? ClientProcessId { get; }
     public string? TelemetryLevel { get; }
-    public string? DevKitDependencyPath { get; }
     public string[] ServerArguments { get; }
 
     private ThinClientArguments(
@@ -26,7 +25,6 @@ internal sealed class ThinClientArguments
         string? editorPipeName,
         int? clientProcessId,
         string? telemetryLevel,
-        string? devKitDependencyPath,
         string[] serverArguments)
     {
         DaemonMode = daemonMode;
@@ -34,7 +32,6 @@ internal sealed class ThinClientArguments
         EditorPipeName = editorPipeName;
         ClientProcessId = clientProcessId;
         TelemetryLevel = telemetryLevel;
-        DevKitDependencyPath = devKitDependencyPath;
         ServerArguments = serverArguments;
     }
 
@@ -45,7 +42,6 @@ internal sealed class ThinClientArguments
         string? editorPipeName = null;
         int? clientProcessId = null;
         string? telemetryLevel = null;
-        string? devKitDependencyPath = null;
         var serverArguments = new List<string>(args.Length);
 
         for (var i = 0; i < args.Length; i++)
@@ -96,21 +92,10 @@ internal sealed class ThinClientArguments
                 continue;
             }
 
-            if (TryGetInlineOptionValue(arg, "--devKitDependencyPath", out var inlineDevKitDependencyPath))
-            {
-                devKitDependencyPath = inlineDevKitDependencyPath;
-                serverArguments.Add(arg);
-                continue;
-            }
-
-            if (arg is "--telemetryLevel" or "--devKitDependencyPath")
+            if (arg == "--telemetryLevel")
             {
                 var value = GetRequiredNextValue(args, ref i, arg);
-                if (arg == "--telemetryLevel")
-                    telemetryLevel = value;
-                else
-                    devKitDependencyPath = value;
-
+                telemetryLevel = value;
                 serverArguments.Add(arg);
                 serverArguments.Add(value);
                 continue;
@@ -128,7 +113,6 @@ internal sealed class ThinClientArguments
             editorPipeName,
             clientProcessId,
             telemetryLevel,
-            devKitDependencyPath,
             serverArguments.ToArray());
     }
 

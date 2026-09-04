@@ -196,7 +196,8 @@ public sealed class RoslynTelemetryTests
     }
 
     [Fact]
-    public void RequestScopeRestoresServerInstance()    {
+    public void RequestScopeRestoresServerInstance()
+    {
         var previousTelemetry = RoslynTelemetry.Current;
         var serverTelemetry = new RoslynTelemetry();
 
