@@ -339,7 +339,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             var connectionSource = new SingleLanguageServerConnectionSource(new LanguageServerConnection(serverInputStream, serverOutputStream));
             var logger = loggerFactory.CreateLogger<LanguageServerConnectionManager>();
             _serverTask = _connectionManager.RunAsync(
-                connectionSource, exportProvider, typeRefResolver, logger, processTelemetryService: null, CancellationToken.None);
+                connectionSource, exportProvider, typeRefResolver, logger, daemonSessionId: null, CancellationToken.None);
         }
 
         /// <summary>The host task; completes once the single in-memory server exits.</summary>
@@ -460,8 +460,12 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
 
             // This mirrors Program's optional process-level owner. Each host always creates its own
             // RoslynTelemetry and creates a child VS telemetry session only when telemetry is enabled.
-            var daemonTelemetryService = LanguageServerTelemetry.CreateProcessSession(
-                serverConfiguration, loggerFactory, daemonTelemetry, isDefaultSession: false);
+            var daemonTelemetryService = LanguageServerTelemetry.CreateSession(
+                serverConfiguration,
+                loggerFactory,
+                daemonTelemetry,
+                serverConfiguration.SessionId,
+                isDefaultSession: false);
 
             var connectionManager = new LanguageServerConnectionManager();
             var cts = new CancellationTokenSource();
@@ -485,7 +489,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
                             exportProvider,
                             typeRefResolver,
                             logger,
-                            daemonTelemetryService,
+                            daemonTelemetryService?.SessionId,
                             cts.Token).ConfigureAwait(false);
                     }
                     finally

@@ -35,11 +35,9 @@ internal sealed class LanguageServerTelemetry : IDisposable
     private const string VSCollectorApiKey = "f3e86b4023cc43f0be495508d51f588a-f70d0e59-0fb0-4473-9f19-b4024cc340be-7296";
 
     private readonly ServerConfiguration _serverConfiguration;
-    private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger _logger;
     private readonly RoslynTelemetry _telemetry;
     private TelemetrySession? _telemetrySession;
-    private string? _telemetryLevel;
 
     /// <summary>
     /// Ordered list of sinks that must be disposed of on shutdown.
@@ -49,25 +47,29 @@ internal sealed class LanguageServerTelemetry : IDisposable
     public LanguageServerTelemetry(ServerConfiguration serverConfiguration, ILoggerFactory loggerFactory, RoslynTelemetry telemetry)
     {
         _serverConfiguration = serverConfiguration;
-        _loggerFactory = loggerFactory;
         _logger = loggerFactory.CreateLogger<LanguageServerTelemetry>();
         _telemetry = telemetry;
     }
 
-    internal static LanguageServerTelemetry? CreateProcessSession(
+    internal static LanguageServerTelemetry? CreateSession(
         ServerConfiguration serverConfiguration,
         ILoggerFactory loggerFactory,
         RoslynTelemetry telemetry,
-        bool isDefaultSession)
+        string? sessionId,
+        bool isDefaultSession,
+        string? daemonSessionId = null)
     {
-        if (serverConfiguration.TelemetryLevel is not { } telemetryLevel)
+        if (serverConfiguration.TelemetryLevel is not { } telemetryLevel ||
+            (!isDefaultSession && telemetryLevel == "off"))
+        {
             return null;
+        }
 
         var telemetryService = new LanguageServerTelemetry(serverConfiguration, loggerFactory, telemetry);
         try
         {
             telemetryService.InitializeSession(
-                telemetryLevel, serverConfiguration.SessionId, isDefaultSession);
+                telemetryLevel, sessionId, isDefaultSession, daemonSessionId);
             return telemetryService;
         }
         catch
@@ -80,7 +82,6 @@ internal sealed class LanguageServerTelemetry : IDisposable
     public void InitializeSession(string telemetryLevel, string? sessionId, bool isDefaultSession, string? daemonSessionId = null)
     {
         Debug.Assert(_telemetrySession is null);
-        _telemetryLevel = telemetryLevel;
 
         var useDevKitTelemetry = _serverConfiguration.DevKitDependencyPath is not null;
 
@@ -134,28 +135,6 @@ internal sealed class LanguageServerTelemetry : IDisposable
 
     public RoslynTelemetry Telemetry => _telemetry;
     public string? SessionId => _telemetrySession?.SessionId;
-
-    internal LanguageServerTelemetry? CreatePerServerSession(RoslynTelemetry telemetry)
-    {
-        if (_telemetryLevel is null or "off")
-            return null;
-
-        var telemetryService = new LanguageServerTelemetry(_serverConfiguration, _loggerFactory, telemetry);
-        try
-        {
-            telemetryService.InitializeSession(
-                _telemetryLevel,
-                sessionId: null,
-                isDefaultSession: false,
-                daemonSessionId: SessionId);
-            return telemetryService;
-        }
-        catch
-        {
-            telemetryService.Dispose();
-            throw;
-        }
-    }
 
     public void Dispose()
     {

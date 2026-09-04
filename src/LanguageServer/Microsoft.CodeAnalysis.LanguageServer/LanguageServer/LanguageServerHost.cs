@@ -31,7 +31,7 @@ internal sealed class LanguageServerHost
         Stream outputStream,
         ExportProvider exportProvider,
         AbstractTypeRefResolver typeRefResolver,
-        LanguageServerTelemetry? processTelemetryService)
+        string? daemonSessionId)
     {
         var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
 
@@ -52,11 +52,17 @@ internal sealed class LanguageServerHost
                 // Every daemon server needs an isolated router even when VS telemetry is disabled, so sinks
                 // registered by one server cannot receive another server's events.
                 _telemetry = new RoslynTelemetry();
-                _ownedTelemetry = processTelemetryService?.CreatePerServerSession(_telemetry);
+                _ownedTelemetry = LanguageServerTelemetry.CreateSession(
+                    serverConfiguration,
+                    exportProvider.GetExportedValue<ILoggerFactory>(),
+                    _telemetry,
+                    sessionId: null,
+                    isDefaultSession: false,
+                    daemonSessionId: daemonSessionId);
             }
             else
             {
-                _telemetry = processTelemetryService?.Telemetry ?? RoslynTelemetry.Current;
+                _telemetry = RoslynTelemetry.Current;
             }
 
             // In daemon mode the ambient here is the process owner, not this server, so establish the server's
