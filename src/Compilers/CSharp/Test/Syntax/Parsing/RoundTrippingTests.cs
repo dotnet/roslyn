@@ -512,6 +512,13 @@ partial class PartialPartial
 }
 ";
             ParseAndRoundTripping(text);
+            CSharpTestBase.CreateCompilation(text).VerifyDiagnostics(
+                // (5,13): error CS1004: Duplicate 'partial' modifier
+                //     partial partial void PM();
+                TestHelpers.Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(5, 13),
+                // (6,13): error CS1004: Duplicate 'partial' modifier
+                //     partial partial void PM()
+                TestHelpers.Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(6, 13));
         }
 
         [Fact]
