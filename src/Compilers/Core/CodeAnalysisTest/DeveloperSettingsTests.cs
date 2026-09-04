@@ -3,10 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using Microsoft.Win32;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
@@ -16,9 +18,12 @@ public sealed class DeveloperSettingsTests
     [ConditionalFact(typeof(WindowsOnly))]
     public void LongPathsAreEnabledOnWindows()
     {
-        using var fileSystemKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\FileSystem");
+        Debug.Assert(PlatformInformation.IsWindows);
 
-        Assert.Equal(1, fileSystemKey?.GetValue("LongPathsEnabled"));
+        using var fileSystemKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\FileSystem");
+        var longPathsEnabled = fileSystemKey?.GetValue("LongPathsEnabled") as int? ?? 0;
+
+        Assert.Equal(1, longPathsEnabled);
     }
 
     [Fact]
