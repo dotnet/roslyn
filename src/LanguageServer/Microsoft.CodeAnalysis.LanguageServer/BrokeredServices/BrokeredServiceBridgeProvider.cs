@@ -35,11 +35,7 @@ internal sealed class BrokeredServiceBridgeProvider
     /// <param name="container">our local container.</param>
     /// <param name="cancellationToken">a cancellation token.</param>
     /// <returns>a task that represents the lifetime of the bridge.  It will complete when the bridge closes.</returns>
-    public async Task SetupBrokeredServicesBridgeAsync(
-        string brokeredServicePipeName,
-        BrokeredServiceContainer container,
-        ILoggerFactory loggerFactory,
-        CancellationToken cancellationToken)
+    public async Task SetupBrokeredServicesBridgeAsync(string brokeredServicePipeName, BrokeredServiceContainer container, ILoggerFactory loggerFactory, CancellationToken cancellationToken)
     {
         var logger = loggerFactory.CreateLogger<BrokeredServiceBridgeProvider>();
         var brokeredServiceTraceSource = BrokeredServiceTraceListener.CreateTraceSource(loggerFactory);
@@ -78,6 +74,5 @@ internal sealed class BrokeredServiceBridgeProvider
                 await consumingServiceBrokerChannel.Completion.WaitAsync(cancellationToken);
             }
         }
-
     }
 }

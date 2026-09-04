@@ -24,9 +24,7 @@ internal sealed class WorkspaceProjectFactoryService(
     private readonly ILoggerFactory _loggerFactory = loggerFactory;
 
     public async Task InitializeAsync(CancellationToken cancellationToken)
-    {
-        await _projectInitializationHandler.SubscribeToInitializationCompleteAsync(cancellationToken);
-    }
+        => await _projectInitializationHandler.SubscribeToInitializationCompleteAsync(cancellationToken);
 
     public async Task<IWorkspaceProject> CreateAndAddProjectAsync(WorkspaceProjectCreationInfo creationInfo, CancellationToken cancellationToken)
     {

@@ -22,10 +22,7 @@ internal abstract partial class LanguageServerProjectLoader
         private int _itemsProcessed;
         private int _lastReportedPercentage = -1;
 
-        public WorkDoneProgressTracker(
-            IProgress<LSP.WorkDoneProgress> reporter,
-            int totalItems,
-            IAsynchronousOperationListener? listener = null)
+        public WorkDoneProgressTracker(IProgress<LSP.WorkDoneProgress> reporter, int totalItems, IAsynchronousOperationListener? listener = null)
         {
             _reporter = reporter;
             _totalItems = totalItems;

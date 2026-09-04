@@ -6,7 +6,6 @@ using System.Composition;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Telemetry.Metrics.Events;
 using Microsoft.VisualStudioCode.RazorExtension.Services;

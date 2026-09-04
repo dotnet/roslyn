@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Concurrent;
-using System.Collections.Immutable;
 using System.IO.Pipes;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -20,47 +18,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
-internal sealed class RecordingEventSink : IEventSink
-{
-    private readonly ConcurrentQueue<FunctionId> _events = new();
-
-    public ImmutableArray<FunctionId> Events => [.. _events];
-
-    public bool IsEnabled(FunctionId functionId)
-        => true;
-
-    public void Log(FunctionId functionId, LogMessage logMessage)
-        => _events.Enqueue(functionId);
-
-    public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken)
-    {
-    }
-
-    public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int uniquePairId, int delta, CancellationToken cancellationToken)
-    {
-    }
-}
-
 public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerHostTests(testOutputHelper)
 {
-    private sealed class RecordingMetricSink : IMetricSink
-    {
-        private int _measurementCount;
-        private int _flushCount;
-
-        public int MeasurementCount => Volatile.Read(ref _measurementCount);
-        public int FlushCount => Volatile.Read(ref _flushCount);
-
-        public void Count(string eventName, string metricName, long delta, ReadOnlySpan<KeyValuePair<string, object?>> tags)
-            => Interlocked.Increment(ref _measurementCount);
-
-        public void Record(string eventName, string metricName, long value, ReadOnlySpan<KeyValuePair<string, object?>> tags)
-            => Interlocked.Increment(ref _measurementCount);
-
-        public void Flush()
-            => Interlocked.Increment(ref _flushCount);
-    }
-
     [Fact]
     public async Task Daemon_SecondInstanceOnSamePipe_TryCreateReturnsFalse()
     {

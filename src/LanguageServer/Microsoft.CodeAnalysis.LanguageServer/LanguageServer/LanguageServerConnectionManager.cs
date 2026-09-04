@@ -117,8 +117,6 @@ internal sealed class LanguageServerConnectionManager
             }
             catch (Exception ex) when (isolateFaults)
             {
-                connection.Resource?.Dispose();
-
                 // This is the daemon supervisor's startup fault boundary. TryStartServerAsync cleans up before
                 // propagating failures here so one connection cannot tear down the daemon.
                 logger.LogError(ex, "Language server connection supervisor faulted.");

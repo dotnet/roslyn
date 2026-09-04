@@ -19,17 +19,11 @@ internal sealed class ProjectLoadTelemetryReporterFactory(ServerConfiguration se
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
-        return new ProjectLoadTelemetryReporter(
-            lspServices.GetRequiredService<IClientLanguageServerManager>(),
-            lspServices.GetRequiredService<ILoggerFactory>(),
-            serverConfiguration);
+        return new ProjectLoadTelemetryReporter(lspServices.GetRequiredService<IClientLanguageServerManager>(), lspServices.GetRequiredService<ILoggerFactory>(), serverConfiguration);
     }
 }
 
-internal sealed class ProjectLoadTelemetryReporter(
-    IClientLanguageServerManager clientLanguageServerManager,
-    ILoggerFactory loggerFactory,
-    ServerConfiguration serverConfiguration) : ILspService
+internal sealed class ProjectLoadTelemetryReporter(IClientLanguageServerManager clientLanguageServerManager, ILoggerFactory loggerFactory, ServerConfiguration serverConfiguration) : ILspService
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<ProjectLoadTelemetryReporter>();
 
