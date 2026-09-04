@@ -5,7 +5,6 @@
 using System;
 using System.Globalization;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 
@@ -14,7 +13,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 internal sealed class RoslynRequestExecutionQueue : RequestExecutionQueue<RequestContext>
 {
     private readonly IInitializeManager _initializeManager;
-    private readonly RoslynTelemetry _telemetry;
 
     /// <summary>
     /// Serial access is guaranteed by the queue.
@@ -25,7 +23,6 @@ internal sealed class RoslynRequestExecutionQueue : RequestExecutionQueue<Reques
         : base(languageServer, handlerProvider)
     {
         _initializeManager = languageServer.GetLspServices().GetRequiredService<IInitializeManager>();
-        _telemetry = languageServer.GetLspServices().GetRequiredService<RoslynTelemetry>();
     }
 
     public override async Task WrapStartRequestTaskAsync(Task requestTask, bool rethrowExceptions)
@@ -43,8 +40,6 @@ internal sealed class RoslynRequestExecutionQueue : RequestExecutionQueue<Reques
 
     protected internal override void BeforeRequest<TRequest>(TRequest request)
     {
-        _ = RoslynTelemetry.SetCurrent(_telemetry);
-
         // Update the locale for this request to the desired LSP locale.
         var culture = GetCultureForRequest();
         if (!ReferenceEquals(CultureInfo.CurrentUICulture, culture))

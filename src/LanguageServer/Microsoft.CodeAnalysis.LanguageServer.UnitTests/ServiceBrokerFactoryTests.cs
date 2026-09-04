@@ -90,7 +90,7 @@ public sealed class ServiceBrokerFactoryTests(ITestOutputHelper testOutputHelper
 
     /// <summary>
     /// Inbound brokered service calls are dispatched by StreamJsonRpc on the execution context captured
-    /// when the bridge connection was created, so they inherit the owning server's telemetry instance
+    /// when the bridge connection began listening, so they inherit the owning server's telemetry instance
     /// rather than whatever ambient the caller happens to have.
     /// </summary>
     [Fact]
