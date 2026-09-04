@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
@@ -31,7 +30,6 @@ internal sealed class LanguageServerConnectionManager
         ExportProvider exportProvider,
         AbstractTypeRefResolver typeRefResolver,
         ILogger logger,
-        LanguageServerTelemetry telemetryService,
         CancellationToken cancellationToken)
     {
         // For a source that isolates faults (the daemon), a server fault is logged and confined to that one
@@ -137,9 +135,7 @@ internal sealed class LanguageServerConnectionManager
                     connection.InputStream,
                     connection.OutputStream,
                     exportProvider,
-                    typeRefResolver,
-                    telemetryService,
-                    createPerServerTelemetry: isolateFaults);
+                    typeRefResolver);
             }
             catch
             {

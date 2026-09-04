@@ -28,8 +28,7 @@ internal sealed class ServiceBrokerFactory : ILspService
             => new ServiceBrokerFactory(
                 lspServices.GetRequiredServices<IServiceBrokerInitializer>(),
                 exportProvider,
-                lspServices.GetRequiredService<ILoggerFactory>(),
-                lspServices.GetRequiredService<RoslynTelemetry>());
+                lspServices.GetRequiredService<ILoggerFactory>());
     }
 
     private readonly ExportProvider _exportProvider;
@@ -37,19 +36,17 @@ internal sealed class ServiceBrokerFactory : ILspService
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly ImmutableArray<IServiceBrokerInitializer> _serviceBrokerInitializers;
     private readonly ILoggerFactory _loggerFactory;
-    private readonly RoslynTelemetry _telemetry;
+    private readonly RoslynTelemetry _telemetry = RoslynTelemetry.Current;
 
     public ServiceBrokerFactory(
         IEnumerable<IServiceBrokerInitializer> onServiceBrokerInitialized,
         ExportProvider exportProvider,
-        ILoggerFactory loggerFactory,
-        RoslynTelemetry telemetry)
+        ILoggerFactory loggerFactory)
     {
         _exportProvider = exportProvider;
         _loggerFactory = loggerFactory;
         _bridgeCompletionTask = Task.CompletedTask;
         _serviceBrokerInitializers = [.. onServiceBrokerInitialized];
-        _telemetry = telemetry;
     }
 
     /// <summary>
@@ -106,7 +103,7 @@ internal sealed class ServiceBrokerFactory : ILspService
 
         var bridgeProvider = _exportProvider.GetExportedValue<BrokeredServiceBridgeProvider>();
         _bridgeCompletionTask = bridgeProvider.SetupBrokeredServicesBridgeAsync(
-            brokeredServicePipeName, container, _loggerFactory, _telemetry, _cancellationTokenSource.Token);
+            brokeredServicePipeName, container, _loggerFactory, _cancellationTokenSource.Token);
     }
 
     public async Task ShutdownAndWaitForCompletionAsync()

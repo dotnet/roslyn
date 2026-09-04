@@ -135,6 +135,12 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
     if (telemetryLevel is not null)
         telemetryService.InitializeSession(telemetryLevel, serverConfiguration.SessionId, isDefaultSession: true);
 
+    // Mark daemon work as explicitly attributed even though this is normally the private default instance.
+    // Child hosts inherit this context, and the debug fallback detector can distinguish it from lost attribution.
+    using var daemonTelemetryScope = serverConfiguration.IsDaemon
+        ? RoslynLog.RoslynTelemetry.SetCurrent(telemetryService.Telemetry)
+        : null;
+
     if (serverConfiguration.IsDaemon)
         RoslynLog.RoslynTelemetry.EnableDefaultAttributionDetection();
 
@@ -146,7 +152,7 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
     if (serverConfiguration.IsDaemon)
     {
         if (!NamedPipeDaemonConnectionSource.TryCreate(
-                serverConfiguration.ServerPipeName!, serverConfiguration.DaemonKeepAlive, logger, telemetryService.Telemetry, out var daemonSource))
+                serverConfiguration.ServerPipeName!, serverConfiguration.DaemonKeepAlive, logger, out var daemonSource))
         {
             // Another daemon already owns this pipe. With the thin client holding its startup mutex through
             // the connect, this generally only happens when a '--daemon' process is started outside that
@@ -197,7 +203,7 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
     {
         using (connectionSource as IDisposable)
         {
-            await connectionManager.RunAsync(connectionSource, exportProvider, typeRefResolver, logger, telemetryService, cancellationToken);
+            await connectionManager.RunAsync(connectionSource, exportProvider, typeRefResolver, logger, cancellationToken);
         }
     }
     finally

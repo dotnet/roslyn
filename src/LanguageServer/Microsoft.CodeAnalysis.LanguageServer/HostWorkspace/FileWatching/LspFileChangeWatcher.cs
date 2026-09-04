@@ -33,7 +33,7 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
         _didChangeWatchedFilesHandler = lspServices.GetRequiredService<LspDidChangeWatchedFilesHandler>();
         _clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
         _asynchronousOperationListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Workspace);
-        _telemetry = lspServices.GetRequiredService<RoslynTelemetry>();
+        _telemetry = RoslynTelemetry.Current;
     }
 
     public static bool TryCreate(ILspServices lspServices, IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider, [NotNullWhen(true)] out LspFileChangeWatcher? fileChangeWatcher)

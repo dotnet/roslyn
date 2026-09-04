@@ -22,19 +22,27 @@ internal sealed class ProjectLoadTelemetryReporterFactory() : ILspServiceFactory
     {
         return new ProjectLoadTelemetryReporter(
             lspServices.GetRequiredService<IClientLanguageServerManager>(),
-            lspServices.GetRequiredService<ILoggerFactory>(),
-            lspServices.GetRequiredService<RoslynTelemetry>());
+            lspServices.GetRequiredService<ILoggerFactory>());
     }
 }
 
-internal sealed class ProjectLoadTelemetryReporter(
-    IClientLanguageServerManager clientLanguageServerManager,
-    ILoggerFactory loggerFactory,
-    RoslynTelemetry telemetry) : ILspService
+internal sealed class ProjectLoadTelemetryReporter : ILspService
 {
-    private readonly ILogger _logger = loggerFactory.CreateLogger<ProjectLoadTelemetryReporter>();
-    private readonly string _hashedSessionId = VsTfmAndFileExtHashingAlgorithm.HashInput(
-        LanguageServerTelemetry.GetTelemetryService(telemetry)?.SessionId ?? string.Empty);
+    private readonly IClientLanguageServerManager _clientLanguageServerManager;
+    private readonly ILogger _logger;
+    private readonly RoslynTelemetry _telemetry;
+    private readonly string _hashedSessionId;
+
+    public ProjectLoadTelemetryReporter(
+        IClientLanguageServerManager clientLanguageServerManager,
+        ILoggerFactory loggerFactory)
+    {
+        _clientLanguageServerManager = clientLanguageServerManager;
+        _logger = loggerFactory.CreateLogger<ProjectLoadTelemetryReporter>();
+        _telemetry = RoslynTelemetry.Current;
+        _hashedSessionId = VsTfmAndFileExtHashingAlgorithm.HashInput(
+            LanguageServerTelemetry.GetTelemetryService(_telemetry)?.SessionId ?? string.Empty);
+    }
 
     public sealed record TelemetryInfo
     {
@@ -56,7 +64,7 @@ internal sealed class ProjectLoadTelemetryReporter(
     {
         try
         {
-            if (LanguageServerTelemetry.GetTelemetryService(telemetry)?.TelemetryLevel is null or "off")
+            if (LanguageServerTelemetry.GetTelemetryService(_telemetry)?.TelemetryLevel is null or "off")
             {
                 return;
             }
@@ -113,7 +121,7 @@ internal sealed class ProjectLoadTelemetryReporter(
 
     private async Task ReportEventAsync(ProjectLoadTelemetryEvent telemetryEvent, CancellationToken cancellationToken)
     {
-        await clientLanguageServerManager.SendNotificationAsync("workspace/projectConfigurationTelemetry", telemetryEvent, cancellationToken);
+        await _clientLanguageServerManager.SendNotificationAsync("workspace/projectConfigurationTelemetry", telemetryEvent, cancellationToken);
     }
 
     private static ImmutableDictionary<string, int> GetUniqueHashedFileExtensionsAndCounts(ProjectFileInfo projectFileInfo)

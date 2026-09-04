@@ -98,7 +98,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
         GlobalOptionService = globalOptionService;
         LoggerFactory = loggerFactory;
         Listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
-        Telemetry = lspServices.GetRequiredService<RoslynTelemetry>();
+        Telemetry = RoslynTelemetry.Current;
         _logger = loggerFactory.CreateLogger(this.GetTypeDisplayName());
         _projectLoadTelemetryReporter = lspServices.GetRequiredService<ProjectLoadTelemetryReporter>();
         _binLogPathProvider = binLogPathProvider;

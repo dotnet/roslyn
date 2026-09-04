@@ -31,8 +31,7 @@ internal sealed class ProjectInitializationHandler : IDisposable
         IClientLanguageServerManager clientLanguageServerManager,
         IServiceBroker serviceBroker,
         ILoggerFactory loggerFactory,
-        VSCodeRequestTelemetryLogger requestTelemetryLogger,
-        RoslynTelemetry telemetry)
+        VSCodeRequestTelemetryLogger requestTelemetryLogger)
     {
         _serviceBroker = serviceBroker;
         _serviceBroker.AvailabilityChanged += AvailabilityChanged;
@@ -40,8 +39,8 @@ internal sealed class ProjectInitializationHandler : IDisposable
 
         _logger = loggerFactory.CreateLogger<ProjectInitializationHandler>();
         _projectInitializationCompleteObserver = new ProjectInitializationCompleteObserver(
-            clientLanguageServerManager, _logger, requestTelemetryLogger, telemetry);
-        _telemetry = telemetry;
+            clientLanguageServerManager, _logger, requestTelemetryLogger);
+        _telemetry = RoslynTelemetry.Current;
     }
 
     public static async ValueTask SendProjectInitializationCompleteNotificationAsync(IClientLanguageServerManager clientLanguageServerManager)
@@ -94,9 +93,10 @@ internal sealed class ProjectInitializationHandler : IDisposable
     internal sealed class ProjectInitializationCompleteObserver(
         IClientLanguageServerManager clientLanguageServerManager,
         ILogger logger,
-        VSCodeRequestTelemetryLogger requestTelemetryLogger,
-        RoslynTelemetry telemetry) : IObserver<ProjectInitializationCompletionState>
+        VSCodeRequestTelemetryLogger requestTelemetryLogger) : IObserver<ProjectInitializationCompletionState>
     {
+        private readonly RoslynTelemetry _telemetry = RoslynTelemetry.Current;
+
         [JsonRpcMethod("onCompleted")]
         public void OnCompleted()
         {
@@ -106,14 +106,14 @@ internal sealed class ProjectInitializationHandler : IDisposable
         [JsonRpcMethod("onError", UseSingleObjectParameterDeserialization = true)]
         public void OnError(Exception error)
         {
-            using var _ = RoslynTelemetry.SetCurrent(telemetry);
+            using var _ = RoslynTelemetry.SetCurrent(_telemetry);
             logger.LogError(error, "Devkit project initialization observer failed");
         }
 
         [JsonRpcMethod("onNext", UseSingleObjectParameterDeserialization = true)]
         public void OnNext(ProjectInitializationCompletionState value)
         {
-            using var telemetryScope = RoslynTelemetry.SetCurrent(telemetry);
+            using var telemetryScope = RoslynTelemetry.SetCurrent(_telemetry);
             logger.LogDebug("Devkit project initialization completed");
             requestTelemetryLogger.ReportProjectInitializationComplete();
             _ = SendProjectInitializationCompleteNotificationAsync(clientLanguageServerManager).AsTask().ReportNonFatalErrorAsync();

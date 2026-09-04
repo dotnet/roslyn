@@ -122,13 +122,24 @@ internal sealed class LanguageServerTelemetry : IDisposable
     public string? SessionId => _telemetrySession?.SessionId;
     internal TelemetrySession? Session => _telemetrySession;
 
-    internal LanguageServerTelemetry CreatePerServerSession()
+    internal static LanguageServerTelemetry CreatePerServerSession(
+        ServerConfiguration serverConfiguration,
+        ILoggerFactory loggerFactory)
     {
-        var telemetryService = new LanguageServerTelemetry(_serverConfiguration, _loggerFactory, new RoslynTelemetry());
+        var daemonTelemetryService = GetTelemetryService(RoslynTelemetry.Current);
+        var telemetryService = new LanguageServerTelemetry(serverConfiguration, loggerFactory, new RoslynTelemetry());
         try
         {
-            if (_telemetryLevel is not null)
-                telemetryService.InitializeSession(_telemetryLevel, sessionId: null, isDefaultSession: false, daemonSessionId: SessionId);
+            // A daemon without a VS telemetry session still needs an isolated RoslynTelemetry instance
+            // so any sinks registered later cannot leak data between servers.
+            if (daemonTelemetryService?._telemetryLevel is { } telemetryLevel)
+            {
+                telemetryService.InitializeSession(
+                    telemetryLevel,
+                    sessionId: null,
+                    isDefaultSession: false,
+                    daemonSessionId: daemonTelemetryService.SessionId);
+            }
 
             return telemetryService;
         }
@@ -149,19 +160,25 @@ internal sealed class LanguageServerTelemetry : IDisposable
 
     public void Dispose()
     {
-        if (_telemetrySession is { } session)
+        try
         {
-            _telemetry.Flush();
+            if (_telemetrySession is { } session)
+            {
+                _telemetry.Flush();
 
-            foreach (var registration in _registrations)
-                registration.Dispose();
+                foreach (var registration in _registrations)
+                    registration.Dispose();
 
-            _registrations = [];
+                _registrations = [];
 
+                FaultReporter.UnregisterTelemetrySesssion(session);
+                session.Dispose();
+                _telemetrySession = null;
+            }
+        }
+        finally
+        {
             s_telemetryServices.Remove(_telemetry);
-            FaultReporter.UnregisterTelemetrySesssion(session);
-            session.Dispose();
-            _telemetrySession = null;
         }
     }
 

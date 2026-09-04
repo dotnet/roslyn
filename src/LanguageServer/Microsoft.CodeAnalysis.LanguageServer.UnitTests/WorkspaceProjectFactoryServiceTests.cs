@@ -29,6 +29,7 @@ public sealed class WorkspaceProjectFactoryServiceTests(ITestOutputHelper testOu
         var requestTelemetryLogger = (VSCodeRequestTelemetryLogger)testLspServer.GetRequiredLspService<RequestTelemetryLogger>();
         var container = await serviceBrokerFactory.CreateAsync(workspaceFactory.HostWorkspace);
 
+        using var telemetryScope = Microsoft.CodeAnalysis.Internal.Log.RoslynTelemetry.SetCurrent(telemetry);
         var workspaceProjectFactoryService = new WorkspaceProjectFactoryService(
             workspaceFactory,
             projectTargetFrameworkManager,
@@ -36,11 +37,9 @@ public sealed class WorkspaceProjectFactoryServiceTests(ITestOutputHelper testOu
                 clientLanguageServerManager,
                 container.GetFullAccessServiceBroker(),
                 loggerFactory,
-                requestTelemetryLogger,
-                telemetry),
+                requestTelemetryLogger),
             loggerFactory,
-            requestTelemetryLogger,
-            telemetry);
+            requestTelemetryLogger);
         using var workspaceProject = await workspaceProjectFactoryService.CreateAndAddProjectAsync(
             new WorkspaceProjectCreationInfo(LanguageNames.CSharp, "DisplayName", FilePath: null, new Dictionary<string, string>()),
             CancellationToken.None);
