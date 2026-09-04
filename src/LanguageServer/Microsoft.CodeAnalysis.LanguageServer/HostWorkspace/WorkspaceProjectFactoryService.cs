@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.Extensions.Logging;
@@ -24,19 +23,13 @@ internal sealed class WorkspaceProjectFactoryService(
     private readonly ILogger _logger = loggerFactory.CreateLogger(nameof(WorkspaceProjectFactoryService));
     private readonly ILoggerFactory _loggerFactory = loggerFactory;
 
-    // This is a brokered service; its methods are dispatched from Dev Kit over StreamJsonRpc rather
-    // than through the LSP queue, so each entry point re-establishes the owning server's ambient.
-    private readonly RoslynTelemetry _telemetry = RoslynTelemetry.Current;
-
     public async Task InitializeAsync(CancellationToken cancellationToken)
     {
-        using var _ = RoslynTelemetry.SetCurrent(_telemetry);
         await _projectInitializationHandler.SubscribeToInitializationCompleteAsync(cancellationToken);
     }
 
     public async Task<IWorkspaceProject> CreateAndAddProjectAsync(WorkspaceProjectCreationInfo creationInfo, CancellationToken cancellationToken)
     {
-        using var _ = RoslynTelemetry.SetCurrent(_telemetry);
         requestTelemetryLogger.ReportProjectLoadStarted();
         try
         {
@@ -73,8 +66,6 @@ internal sealed class WorkspaceProjectFactoryService(
 
     public async Task<IReadOnlyCollection<string>> GetSupportedBuildSystemPropertiesAsync(CancellationToken _)
     {
-        using var telemetryScope = RoslynTelemetry.SetCurrent(_telemetry);
-
         // TODO: implement
         return [];
     }
