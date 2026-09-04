@@ -79,6 +79,9 @@
     <Project Path="src/RoslynAnalyzers/Utilities/Workspaces/Workspaces.Utilities.shproj" />
   </Folder>
   <Folder Name="/Compilers/" />
+  <Folder Name="/Compilers/Benchmarks/">
+    <Project Path="src/Compilers/Benchmarks/CompilerBenchmarks.csproj" />
+  </Folder>
   <Folder Name="/Compilers/Core/">
     <Project Path="src/Compilers/Core/AnalyzerDriver/AnalyzerDriver.shproj" />
     <Project Path="src/Compilers/Core/CodeAnalysisTest/Microsoft.CodeAnalysis.UnitTests.csproj" />
