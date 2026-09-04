@@ -31,7 +31,6 @@ internal sealed class NamedPipeDaemonConnectionSource : ILanguageServerConnectio
 
     private readonly string _pipeName;
     private readonly ILogger _logger;
-    private readonly RoslynLog.RoslynTelemetry _daemonTelemetry;
     private readonly Mutex _serverMutex;
     private readonly ConnectionIdleTimeout _idleTimeout;
 
@@ -48,7 +47,6 @@ internal sealed class NamedPipeDaemonConnectionSource : ILanguageServerConnectio
         _serverMutex = serverMutex;
         _idleTimeout = new ConnectionIdleTimeout(initialConnectionTimeout, keepAlive, logger);
         _logger = logger;
-        _daemonTelemetry = RoslynLog.RoslynTelemetry.Current;
     }
 
     public bool ShouldIsolateConnectionFaults => true;
@@ -75,7 +73,7 @@ internal sealed class NamedPipeDaemonConnectionSource : ILanguageServerConnectio
 
         source = new NamedPipeDaemonConnectionSource(
             pipeName, serverMutex, initialConnectionTimeout ?? s_initialConnectionTimeout, keepAlive, logger);
-        source._daemonTelemetry.Log(RoslynLog.FunctionId.VSCode_LanguageServer_Daemon_Started, logLevel: RoslynLog.LogLevel.Information);
+        RoslynLog.Logger.Log(RoslynLog.FunctionId.VSCode_LanguageServer_Daemon_Started, logLevel: RoslynLog.LogLevel.Information);
         return true;
     }
 
@@ -117,7 +115,7 @@ internal sealed class NamedPipeDaemonConnectionSource : ILanguageServerConnectio
             _onConnectionAccepted?.Invoke();
             _idleTimeout.OpenConnection();
             _logger.LogInformation("Daemon accepted a new client connection.");
-            _daemonTelemetry.Log(RoslynLog.FunctionId.VSCode_LanguageServer_Daemon_Client_Connected, logLevel: RoslynLog.LogLevel.Information);
+            RoslynLog.Logger.Log(RoslynLog.FunctionId.VSCode_LanguageServer_Daemon_Client_Connected, logLevel: RoslynLog.LogLevel.Information);
 
             // The accepted stream is both input and output, and is disposed when its language server exits.
             yield return new LanguageServerConnection(pipeStream, pipeStream, new ConnectionResource(pipeStream, this));
@@ -158,7 +156,7 @@ internal sealed class NamedPipeDaemonConnectionSource : ILanguageServerConnectio
             finally
             {
                 source._idleTimeout.CloseConnection();
-                source._daemonTelemetry.Log(RoslynLog.FunctionId.VSCode_LanguageServer_Daemon_Client_Disconnected, logLevel: RoslynLog.LogLevel.Information);
+                RoslynLog.Logger.Log(RoslynLog.FunctionId.VSCode_LanguageServer_Daemon_Client_Disconnected, logLevel: RoslynLog.LogLevel.Information);
             }
         }
     }

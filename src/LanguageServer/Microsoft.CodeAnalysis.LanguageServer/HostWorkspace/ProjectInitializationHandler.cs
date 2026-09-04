@@ -75,6 +75,7 @@ internal sealed class ProjectInitializationHandler : IDisposable
 
     private void AvailabilityChanged(object? sender, BrokeredServicesChangedEventArgs e)
     {
+        // Raised by the service broker, not the LSP queue, so the ambient must be re-established.
         using var _ = RoslynTelemetry.SetCurrent(_telemetry);
 
         if (e.ImpactedServices.Contains(Descriptors.RemoteProjectInitializationStatusService.Moniker))
@@ -95,6 +96,7 @@ internal sealed class ProjectInitializationHandler : IDisposable
         ILogger logger,
         VSCodeRequestTelemetryLogger requestTelemetryLogger) : IObserver<ProjectInitializationCompletionState>
     {
+        // These callbacks are dispatched by StreamJsonRpc from Dev Kit, so they carry no ambient.
         private readonly RoslynTelemetry _telemetry = RoslynTelemetry.Current;
 
         [JsonRpcMethod("onCompleted")]

@@ -6,7 +6,6 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -143,7 +142,6 @@ internal sealed class AutoLoadProjectsInitializer(
         async Task StartAndReportProgressAsync(Func<IWorkDoneProgressReporter, Task> loadOperation, string title, string startMessage, string endMessage)
         {
             var workDoneProgressManager = context.GetRequiredLspService<WorkDoneProgressManager>();
-            var telemetry = RoslynTelemetry.Current;
 
             // We will await for the client to know that we are starting work...
             var progressReporter = await workDoneProgressManager.CreateWorkDoneProgressAsync(reportProgressToClient: true,
@@ -156,8 +154,6 @@ internal sealed class AutoLoadProjectsInitializer(
             // ...but we'll fire-and-forget for the actual loading. Pass CancellationToken.None since we want to ensure the progressReporter is always disposed.
             Task.Run(async () =>
                 {
-                    using var _ = RoslynTelemetry.SetCurrent(telemetry);
-
                     try
                     {
                         await loadOperation(progressReporter);

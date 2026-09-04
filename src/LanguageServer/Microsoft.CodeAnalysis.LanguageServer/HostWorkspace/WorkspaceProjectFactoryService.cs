@@ -23,6 +23,9 @@ internal sealed class WorkspaceProjectFactoryService(
     private readonly ProjectInitializationHandler _projectInitializationHandler = projectInitializationHandler;
     private readonly ILogger _logger = loggerFactory.CreateLogger(nameof(WorkspaceProjectFactoryService));
     private readonly ILoggerFactory _loggerFactory = loggerFactory;
+
+    // This is a brokered service; its methods are dispatched from Dev Kit over StreamJsonRpc rather
+    // than through the LSP queue, so each entry point re-establishes the owning server's ambient.
     private readonly RoslynTelemetry _telemetry = RoslynTelemetry.Current;
 
     public async Task InitializeAsync(CancellationToken cancellationToken)
