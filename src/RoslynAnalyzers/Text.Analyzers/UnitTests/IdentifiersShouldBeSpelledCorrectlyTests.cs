@@ -644,6 +644,7 @@ namespace Text.Analyzers.UnitTests
 
         [Theory]
         [InlineData("class MyClass<T1, T2> { }")]
+        [InlineData("class MyOtherClass<T10> { }")]
         [InlineData("struct MyStructure<T1> { }")]
         [InlineData("interface IInterface<T1> { }")]
         [InlineData("delegate int MyDelegate<T1>();")]
