@@ -13330,6 +13330,41 @@ namespace Test
     }
 
     [Fact]
+    public void TildePath_ComponentParam_InheritedAssetPath()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(AssetPathStubs));
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                public abstract class ImageBase : ComponentBase
+                {
+                    [Parameter, AssetPath]
+                    public virtual string Source { get; set; }
+                }
+
+                public class Image : ImageBase
+                {
+                    [Parameter]
+                    public override string Source { get; set; }
+                }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <Image Source="~/images/logo.png" />
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
     public void TildePath_ComponentParam_NotOptedIn()
     {
         // Arrange - Source has no [AssetPath], so ~/ is not expanded.
