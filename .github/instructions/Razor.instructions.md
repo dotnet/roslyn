@@ -61,7 +61,9 @@ their original sub-tree layout
 - **Visual Studio options**: Register Razor Advanced settings in
   `Microsoft.VisualStudio.RazorExtension\UnifiedSettings\razor.registration.json`, localize
   their UI text in `VSPackage.resx`, read them through `OptionsStorage`, and add remotely consumed
-  values to `ClientAdvancedSettings` so `IClientSettingsManager` synchronizes changes live.
+  values to `ClientAdvancedSettings` so `IClientSettingsManager` synchronizes changes live. Whenever
+  `razor.registration.json` changes, also change the `CacheTag` in
+  `Microsoft.VisualStudio.RazorExtension\Microsoft.VisualStudio.RazorExtension.Custom.pkgdef`.
 
 ## Adding OOP Remote Services
 
