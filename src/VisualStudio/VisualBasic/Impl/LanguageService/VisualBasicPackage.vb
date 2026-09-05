@@ -21,7 +21,7 @@ Imports Task = System.Threading.Tasks.Task
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
-    ' The option page configuration is duplicated in PackageRegistration.pkgdef.
+    ' The option page configuration is duplicated in Microsoft.VisualStudio.LanguageServices.VisualBasic.Extra.pkgdef.
     '
     ' VB option pages tree
     '   Visual Basic
@@ -32,14 +32,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     '     Code Style (category)
     '       General
     '       Naming
+#Disable Warning BC40000 ' Preserve the installed-product registration.
+    <PackageRegistration(UseManagedResourcesOnly:=True, AllowsBackgroundLoading:=False)>
     <ProvideLanguageEditorOptionPage(GetType(AdvancedOptionPage), "Basic", Nothing, "Advanced", "#102", 10160)>
     <ProvideLanguageEditorToolsOptionCategory("Basic", "Code Style", "#109")>
     <ProvideLanguageEditorOptionPage(GetType(CodeStylePage), "Basic", "Code Style", "General", "#111", 10161)>
     <ProvideLanguageEditorOptionPage(GetType(NamingStylesOptionPage), "Basic", "Code Style", "Naming", "#110", 10162)>
     <ProvideSettingsManifest(PackageRelativeManifestFile:="UnifiedSettings\visualBasicSettings.registration.json")>
     <ProvideService(GetType(IVbTempPECompilerFactory), IsAsyncQueryable:=False, IsCacheable:=True, IsFreeThreaded:=True, ServiceName:="Visual Basic TempPE Compiler Factory Service")>
+    <InstalledProductRegistration("#113", "#114", PkgDefProductVersion.InformationalVersion, LanguageIndependentName:="Microsoft Visual Basic")>
     <Guid(Guids.VisualBasicPackageIdString)>
     Friend NotInheritable Class VisualBasicPackage
+#Enable Warning BC40000
         Inherits AbstractPackage(Of VisualBasicPackage, VisualBasicLanguageService)
         Implements IVbCompilerService
         Implements IVsUserSettingsQuery

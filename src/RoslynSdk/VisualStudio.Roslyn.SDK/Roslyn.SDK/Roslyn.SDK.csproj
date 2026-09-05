@@ -5,7 +5,7 @@
     <RootNamespace>Roslyn.SDK</RootNamespace>
     <AssemblyName>Roslyn.SDK</AssemblyName>
     <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
-    <GeneratePkgDefFile>true</GeneratePkgDefFile>
+    <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <!-- The explicit Microsoft.VSSDK.BuildTools reference below is needed when a .NET SDK restore
          precedes full-framework evaluation. Suppress Arcade's later implicit duplicate. -->
     <IncludeMicrosoftVSSDKBuildToolsPackageReference>false</IncludeMicrosoftVSSDKBuildToolsPackageReference>
@@ -115,7 +115,7 @@
     </ProjectReference>
     <ProjectReference Include="..\SyntaxVisualizer\Roslyn.SyntaxVisualizer.Extension\Roslyn.SyntaxVisualizer.Extension.csproj">
       <Name>Roslyn.SyntaxVisualizer.Extension</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bGetCopyToOutputDirectoryItems%3bPkgdefProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bGetCopyToOutputDirectoryItems%3bPkgdefProjectOutputGroup%3bContentFilesProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <Ngen>false</Ngen>

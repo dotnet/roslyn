@@ -34,6 +34,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Setup;
 
+[PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
 [Guid(Guids.RoslynPackageIdString)]
 [ProvideToolWindow(typeof(ValueTracking.ValueTrackingToolWindow))]
 [ProvideToolWindow(typeof(StackTraceExplorerToolWindow))]

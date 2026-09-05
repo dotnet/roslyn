@@ -18,12 +18,8 @@
 
   </PropertyGroup>
   <ItemGroup Label="PkgDef">
-    <PkgDefPackageRegistration Include="{31c0675e-87a4-4061-a0dd-a4e510fccf97}"
-                               Name="CompilerPackage"
-                               Class="Roslyn.Compilers.Extension.CompilerPackage"
-                               AllowsBackgroundLoad="true"/>
     <PkgDefBindingRedirect Include="$(TargetPath)" />
-    <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
+    <Content Include="Roslyn.Compilers.Extension.Extra.pkgdef" IncludeInVSIX="true" />
   </ItemGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">

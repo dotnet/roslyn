@@ -5,10 +5,12 @@
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.LanguageServices.Interactive;
+using Microsoft.VisualStudio.Shell;
 using LanguageServiceGuids = Microsoft.VisualStudio.LanguageServices.Guids;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive;
 
+[PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
 [Guid(LanguageServiceGuids.CSharpReplPackageIdString)]
 internal sealed partial class CSharpVsInteractiveWindowPackage : VsInteractiveWindowPackage<CSharpVsInteractiveWindowProvider>
 {

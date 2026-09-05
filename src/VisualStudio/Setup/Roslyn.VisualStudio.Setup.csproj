@@ -8,7 +8,7 @@
     <IsShippingAssembly>false</IsShippingAssembly>
 
     <!-- VSIX -->
-    <GeneratePkgDefFile>true</GeneratePkgDefFile>
+    <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
@@ -21,7 +21,7 @@
     <VisualStudioInsertionComponent>Microsoft.CodeAnalysis.LanguageServices</VisualStudioInsertionComponent>
   </PropertyGroup>
   <ItemGroup Label="PkgDef">
-    <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
+    <Content Include="Roslyn.VisualStudio.Setup.Extra.pkgdef" IncludeInVSIX="true" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj">
@@ -214,7 +214,7 @@
     </ProjectReference>
     <ProjectReference Include="..\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj">
       <Name>ServicesVisualStudio</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;PkgDefProjectOutputGroup;ContentFilesProjectOutputGroup;VsdConfigOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;PkgDefProjectOutputGroup;BrokeredServicesPkgdefOutputGroup;ContentFilesProjectOutputGroup;VsdConfigOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
       <NgenPriority>2</NgenPriority>

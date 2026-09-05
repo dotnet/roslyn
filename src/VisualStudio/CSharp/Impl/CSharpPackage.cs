@@ -22,7 +22,8 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService;
 
-// The option page configuration is duplicated in PackageRegistration.pkgdef.
+[PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
+// The option page configuration is duplicated in Microsoft.VisualStudio.LanguageServices.CSharp.Extra.pkgdef.
 //
 // C# option pages tree:
 //   CSharp
@@ -54,6 +55,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService;
 [ProvideService(typeof(ICSharpTempPECompilerService), IsAsyncQueryable = false, IsCacheable = true, IsFreeThreaded = true, ServiceName = "C# TempPE Compiler Service")]
 // ICSharpProjectHost requests the language service under the covers, and since that needs the UI thread to create a COM aggregation wrapper, this cannot be free-threaded either
 [ProvideService(typeof(ICSharpProjectHost), IsAsyncQueryable = true, IsCacheable = true, IsFreeThreaded = false, ServiceName = nameof(ICSharpProjectHost))]
+#pragma warning disable CS0618 // Preserve the installed-product registration.
+[InstalledProductRegistration("#116", "#117", PkgDefProductVersion.InformationalVersion, LanguageIndependentName = "Microsoft Visual C#")]
+#pragma warning restore CS0618
 [Guid(Guids.CSharpPackageIdString)]
 internal sealed class CSharpPackage : AbstractPackage<CSharpPackage, CSharpLanguageService>, IVsUserSettingsQuery
 {
