@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             var self = this;
 
-            var index = self.IndexOf(value, 0, Count, equalityComparer);
+            var index = self.IndexOf(value, 0, self.Count, equalityComparer);
             if (index < 0)
                 return self;
 
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (self.IsEmpty)
                 return self;
 
-            var builder = ToValueBuilder();
+            var builder = self.ToValueBuilder();
             foreach (var item in items)
             {
                 var index = builder.IndexOf(item);
@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (self.IsEmpty)
                 return self;
 
-            var builder = ToValueBuilder();
+            var builder = self.ToValueBuilder();
             foreach (var item in items)
             {
                 var index = builder.IndexOf(item, 0, builder.Count, equalityComparer);
@@ -637,7 +637,17 @@ namespace Microsoft.CodeAnalysis.Collections
             => Replace(oldValue, newValue, equalityComparer);
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
-            => IsEmpty ? Enumerable.Empty<T>().GetEnumerator() : GetEnumerator();
+        {
+            var self = this;
+            if (self.IsEmpty)
+            {
+                return Enumerable.Empty<T>().GetEnumerator();
+            }
+            else
+            {
+                return self.GetEnumerator();
+            }
+        }
 
         IEnumerator IEnumerable.GetEnumerator()
             => ((IEnumerable<T>)this).GetEnumerator();
