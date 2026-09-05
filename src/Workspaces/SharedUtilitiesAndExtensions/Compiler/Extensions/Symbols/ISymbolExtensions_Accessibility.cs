@@ -256,6 +256,8 @@ internal static partial class ISymbolExtensions
 
         failedThroughTypeCheck = false;
 
+        var declaringType = GetDeclaringTypeForAccessibility(containingType);
+        var originalContainingType = declaringType.OriginalDefinition;
         var withinNamedType = within as INamedTypeSymbol;
         var withinAssembly = (within as IAssemblySymbol) ?? ((INamedTypeSymbol)within).ContainingAssembly;
 
@@ -264,9 +266,6 @@ internal static partial class ISymbolExtensions
         {
             return false;
         }
-
-        var declaringType = GetDeclaringTypeForAccessibility(containingType);
-        var originalContainingType = declaringType.OriginalDefinition;
 
         switch (declaredAccessibility)
         {
