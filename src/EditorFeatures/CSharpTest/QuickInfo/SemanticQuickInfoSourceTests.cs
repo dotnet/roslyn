@@ -10109,6 +10109,28 @@ AnonymousTypes(
             MainDescription("string extension<string>(string).Goo()"),
             NullabilityAnalysis(""));
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80648")]
+    public Task TestModernExtension8()
+        => TestWithOptionsAsync(
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+            """
+            static class Extensions
+            {
+                extension(string s)
+                {
+                    private string Goo() => s;
+                }
+
+                static void M()
+                {
+            #nullable enable
+                    "".$$Goo();
+                }
+            }
+            """,
+            MainDescription("string extension(string).Goo()"),
+            NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_nullable_aware, "Goo")));
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72780")]
     public Task TestLocalVariableComment1()
         => TestAsync(
