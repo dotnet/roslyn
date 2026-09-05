@@ -22,7 +22,10 @@ internal class CompletionTriggerAndCommitCharacters(IClientCapabilitiesService c
     private static readonly FrozenSet<char> _csharpTriggerCharacters = [' ', '(', '=', '#', '.', '<', '[', '{', '"', '/', ':', '~'];
     private static readonly FrozenSet<char> _vsHtmlTriggerCharacters = [TransitionCharacter, ':', '#', '.', '!', '*', ',', '(', '[', '-', '<', '&', '\\', '/', '\'', '"', '=', ':', ' ', '`'];
     private static readonly FrozenSet<char> _vsCodeHtmlTriggerCharacters = [TransitionCharacter, '#', '.', '!', ',', '<'];
-    private static readonly FrozenSet<char> _razorTriggerCharacters = [TransitionCharacter, '<', ':', ' '];
+    // '/' and '~' are here so that typing '~/' inside an opted-in attribute value pops the static
+    // web asset list. Both are already registered overall via the C# set, so this only widens which
+    // triggers reach the Razor providers; every provider that doesn't care returns immediately.
+    private static readonly FrozenSet<char> _razorTriggerCharacters = [TransitionCharacter, '<', ':', ' ', '~', '/'];
 
     private FrozenSet<char> HtmlTriggerCharacters => _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions
         ? _vsHtmlTriggerCharacters
