@@ -313,24 +313,19 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
 
                     foreach (var attribute in otherParameter.GetAttributes())
                     {
-                        if (!interpolatedStringHandlerArgumentAttributeType.Equals(attribute.AttributeClass))
-                            continue;
-
-                        // The attribute has both a 'string' and a 'params string[]' constructor.
-                        foreach (var constructorArgument in attribute.ConstructorArguments)
+                        // Both constructors of the attribute take a single argument: either one parameter
+                        // name, or an array of them.
+                        if (!interpolatedStringHandlerArgumentAttributeType.Equals(attribute.AttributeClass) ||
+                            attribute.ConstructorArguments is not [var argument])
                         {
-                            if (constructorArgument.Kind == TypedConstantKind.Array)
-                            {
-                                foreach (var value in constructorArgument.Values)
-                                {
-                                    if (Equals(value.Value, parameter.Name))
-                                        return true;
-                                }
-                            }
-                            else if (Equals(constructorArgument.Value, parameter.Name))
-                            {
-                                return true;
-                            }
+                            continue;
+                        }
+
+                        if (argument.Kind == TypedConstantKind.Array
+                                ? argument.Values.Any(static (value, name) => Equals(value.Value, name), parameter.Name)
+                                : Equals(argument.Value, parameter.Name))
+                        {
+                            return true;
                         }
                     }
                 }
