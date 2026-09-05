@@ -43,7 +43,7 @@ internal class CSharpSyntaxFormatting : AbstractSyntaxFormatting
         => new CSharpSyntaxFormattingOptions(options);
 
     protected override IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, TextSpanMutableIntervalTree? formattingSpans = null)
-        => new AggregatedFormattingResult(node, results, formattingSpans);
+        => new AggregatedFormattingResult(node, results, formattingSpans, DefaultOptions);
 
     protected override AbstractFormattingResult Format(SyntaxNode node, SyntaxFormattingOptions options, ImmutableArray<AbstractFormattingRule> formattingRules, SyntaxToken startToken, SyntaxToken endToken, CancellationToken cancellationToken)
         => new CSharpFormatEngine(node, options, formattingRules, startToken, endToken).Format(cancellationToken);
