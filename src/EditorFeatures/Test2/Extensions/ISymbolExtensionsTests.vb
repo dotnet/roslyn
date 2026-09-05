@@ -139,7 +139,6 @@ static class Extensions
         private void Goo() { }
     }
 }
-
 class C
 {
     void M()
