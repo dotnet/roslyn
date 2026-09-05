@@ -47,6 +47,11 @@ namespace Analyzer.Utilities
         public const string ExcludeSingleLetterTypeParameters = "exclude_single_letter_type_parameters";
 
         /// <summary>
+        /// Boolean option to configure if single letter parameter names are not flagged as unmeaningful for CA1704 (https://learn.microsoft.com/visualstudio/code-quality/ca1704).
+        /// </summary>
+        public const string ExcludeSingleLetterParameters = "exclude_single_letter_parameters";
+
+        /// <summary>
         /// Integral option to configure sufficient IterationCount when using weak KDF algorithm.
         /// </summary>
         public const string SufficientIterationCountForWeakKDFAlgorithm = "sufficient_IterationCount_for_weak_KDF_algorithm";
