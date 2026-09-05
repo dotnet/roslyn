@@ -40,7 +40,6 @@ internal abstract class AbstractInlineRenameUndoManager<TBufferState>
     {
         this.InlineRenameService = inlineRenameService;
 
-        InlineRenameService.ActiveSessionChanged += InlineRenameService_ActiveSessionChanged;
     }
 
     private void InlineRenameService_ActiveSessionChanged(object sender, InlineRenameService.ActiveSessionChangedEventArgs e)
@@ -81,6 +80,7 @@ internal abstract class AbstractInlineRenameUndoManager<TBufferState>
         this.RedoStack.Clear();
         this.initialState = null;
         this.currentState = null;
+        InlineRenameService.ActiveSessionChanged -= InlineRenameService_ActiveSessionChanged;
     }
 
     private void UpdateCurrentState(string replacementText, ITextSelection selection, SnapshotSpan activeSpan)
@@ -103,6 +103,7 @@ internal abstract class AbstractInlineRenameUndoManager<TBufferState>
     {
         UpdateCurrentState(replacementText, selection, startingSpan);
         this.initialState = this.currentState;
+        InlineRenameService.ActiveSessionChanged += InlineRenameService_ActiveSessionChanged;
     }
 
     public void OnTextChanged(ITextSelection selection, SnapshotSpan singleTrackingSpanTouched)
