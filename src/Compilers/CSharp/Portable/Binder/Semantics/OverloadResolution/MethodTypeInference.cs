@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal abstract TypeWithAnnotations GetTypeWithAnnotations(BoundExpression expr);
 
-            internal abstract TypeWithAnnotations GetMethodGroupResultType(BoundMethodGroup group, MethodSymbol method);
+            internal abstract TypeWithAnnotations GetMethodGroupResultType(BoundMethodGroup group, MethodSymbol method, ImmutableArray<ParameterSymbol> delegateParameters);
 
             private sealed class DefaultExtensions : Extensions
             {
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return TypeWithAnnotations.Create(expr.GetTypeOrFunctionType());
                 }
 
-                internal override TypeWithAnnotations GetMethodGroupResultType(BoundMethodGroup group, MethodSymbol method)
+                internal override TypeWithAnnotations GetMethodGroupResultType(BoundMethodGroup group, MethodSymbol method, ImmutableArray<ParameterSymbol> delegateParameters)
                 {
                     return method.ReturnTypeWithAnnotations;
                 }
@@ -1530,7 +1530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = resolution.OverloadResolutionResult;
                 if (result.Succeeded)
                 {
-                    type = _extensions.GetMethodGroupResultType(source, result.BestResult.Member);
+                    type = _extensions.GetMethodGroupResultType(source, result.BestResult.Member, delegateParameters);
                 }
             }
 
