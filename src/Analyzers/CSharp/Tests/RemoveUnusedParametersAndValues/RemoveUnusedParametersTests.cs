@@ -1861,7 +1861,7 @@ public sealed class RemoveUnusedParametersTests : AbstractCSharpDiagnosticProvid
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76578")]
-    public Task TestInterpolatedStringHandlerArgument()
+    public Task TestInterpolatedStringHandlerArgumentAttribute()
         => TestDiagnosticMissingAsync("""
             using System.Runtime.CompilerServices;
 

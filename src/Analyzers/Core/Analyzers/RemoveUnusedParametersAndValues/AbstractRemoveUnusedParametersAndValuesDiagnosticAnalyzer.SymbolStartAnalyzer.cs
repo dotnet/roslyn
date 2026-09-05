@@ -321,7 +321,7 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
                             continue;
                         }
 
-                        if (argument.Kind == TypedConstantKind.Array
+                        if (argument.Kind is TypedConstantKind.Array
                                 ? argument.Values.Any(static (value, name) => Equals(value.Value, name), parameter.Name)
                                 : Equals(argument.Value, parameter.Name))
                         {
