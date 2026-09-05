@@ -10086,6 +10086,29 @@ AnonymousTypes(
             """,
             MainDescription($"Extensions.extension(System.String)"));
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80648")]
+    public Task TestModernExtension7()
+        => TestWithOptionsAsync(
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+            """
+            #nullable enable
+
+            static class Extensions
+            {
+                static void M()
+                {
+                    "".$$Goo();
+                }
+
+                extension<T>(T s)
+                {
+                    private T Goo() => s;
+                }
+            }
+            """,
+            MainDescription("string extension<string>(string).Goo()"),
+            NullabilityAnalysis(""));
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72780")]
     public Task TestLocalVariableComment1()
         => TestAsync(

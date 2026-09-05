@@ -256,7 +256,6 @@ internal static partial class ISymbolExtensions
 
         failedThroughTypeCheck = false;
 
-        var originalContainingType = containingType.OriginalDefinition;
         var withinNamedType = within as INamedTypeSymbol;
         var withinAssembly = (within as IAssemblySymbol) ?? ((INamedTypeSymbol)within).ContainingAssembly;
 
@@ -265,6 +264,14 @@ internal static partial class ISymbolExtensions
         {
             return false;
         }
+
+        // For the purpose of accessibility checks, extension members are considered to be declared within the
+        // enclosing static type.  Keep in sync with AccessCheck.IsMemberAccessible in the compiler.
+        var declaringType = containingType.IsExtension && containingType.ContainingType is { } extensionEnclosingType
+            ? extensionEnclosingType
+            : containingType;
+
+        var originalContainingType = declaringType.OriginalDefinition;
 
         switch (declaredAccessibility)
         {
@@ -284,7 +291,7 @@ internal static partial class ISymbolExtensions
                 // type) can access previous submission's private top-level members. Previous
                 // submissions are treated like outer classes for the current submission - the
                 // inner class can access private members of the outer class.
-                if (withinAssembly.IsInteractive && containingType.IsScriptClass)
+                if (withinAssembly.IsInteractive && declaringType.IsScriptClass)
                 {
                     return true;
                 }
@@ -295,10 +302,10 @@ internal static partial class ISymbolExtensions
             case Accessibility.Internal:
                 // An internal type is accessible if we're in the same assembly or we have
                 // friend access to the assembly it was defined in.
-                return withinAssembly.IsSameAssemblyOrHasFriendAccessTo(containingType.ContainingAssembly);
+                return withinAssembly.IsSameAssemblyOrHasFriendAccessTo(declaringType.ContainingAssembly);
 
             case Accessibility.ProtectedAndInternal:
-                if (!withinAssembly.IsSameAssemblyOrHasFriendAccessTo(containingType.ContainingAssembly))
+                if (!withinAssembly.IsSameAssemblyOrHasFriendAccessTo(declaringType.ContainingAssembly))
                 {
                     // We require internal access.  If we don't have it, then this symbol is
                     // definitely not accessible to us.
@@ -309,7 +316,7 @@ internal static partial class ISymbolExtensions
                 return IsProtectedSymbolAccessible(withinNamedType, withinAssembly, throughType, originalContainingType, out failedThroughTypeCheck);
 
             case Accessibility.ProtectedOrInternal:
-                if (withinAssembly.IsSameAssemblyOrHasFriendAccessTo(containingType.ContainingAssembly))
+                if (withinAssembly.IsSameAssemblyOrHasFriendAccessTo(declaringType.ContainingAssembly))
                 {
                     // If we have internal access to this symbol, then that's sufficient.  no
                     // need to do the complicated protected case.
