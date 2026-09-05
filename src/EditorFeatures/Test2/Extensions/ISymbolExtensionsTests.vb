@@ -126,5 +126,31 @@ class Outer
             Await TestIsAccessibleWithinAsync(workspace, True)
         End Function
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80648")>
+        Public Async Function TestIsAccessibleWithin_PrivateExtensionMemberFromOtherType() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document>
+static class Extensions
+{
+    extension(string s)
+    {
+        private void Goo() { }
+    }
+}
+
+class C
+{
+    void M()
+    {
+        "".$$Goo();
+    }
+}        </Document>
+    </Project>
+</Workspace>
+            Await TestIsAccessibleWithinAsync(workspace, False)
+        End Function
+
     End Class
 End Namespace

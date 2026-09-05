@@ -265,17 +265,7 @@ internal static partial class ISymbolExtensions
             return false;
         }
 
-        // For the purpose of accessibility checks, extension members are considered to be declared within the
-        // enclosing static type.  Keep in sync with AccessCheck.IsMemberAccessible in the compiler.
-#if !OLDER_ROSLYN
-        var declaringType = containingType.IsExtension && containingType.ContainingType is { } extensionEnclosingType
-            ? extensionEnclosingType
-            : containingType;
-#else
-        // Extension blocks cannot be represented in the Roslyn version these projects build against.
-        var declaringType = containingType;
-#endif
-
+        var declaringType = GetDeclaringTypeForAccessibility(containingType);
         var originalContainingType = declaringType.OriginalDefinition;
 
         switch (declaredAccessibility)
@@ -339,6 +329,17 @@ internal static partial class ISymbolExtensions
                 throw ExceptionUtilities.UnexpectedValue(declaredAccessibility);
         }
     }
+
+    // For the purpose of accessibility checks, extension members are considered to be declared within the
+    // enclosing static type.  Keep in sync with AccessCheck.IsMemberAccessible in the compiler.
+    private static INamedTypeSymbol GetDeclaringTypeForAccessibility(INamedTypeSymbol containingType)
+#if !OLDER_ROSLYN
+        => containingType is { IsExtension: true, ContainingType: { } enclosingType } ? enclosingType : containingType;
+#else
+        // Extension blocks cannot be represented in the Roslyn version these projects build against, so there is
+        // never anything to redirect here.
+        => containingType;
+#endif
 
     // Is a protected symbol inside "originalContainingType" accessible from within "within",
     // which much be a named type or an assembly.
