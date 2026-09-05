@@ -613,11 +613,6 @@
         <target state="translated">A inclusão de membros privados não deve ser usada ao emitir para a saída do assembly secundário.</target>
         <note />
       </trans-unit>
-      <trans-unit id="EmbeddingPdbUnexpectedWhenEmittingMetadata">
-        <source>Embedding PDB is not allowed when emitting metadata.</source>
-        <target state="translated">Não é permitido inserir PDB ao emitir metadados.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="CannotTargetNetModuleWhenEmittingRefAssembly">
         <source>Cannot target net module when emitting ref assembly.</source>
         <target state="translated">Não é possível destinar o módulo de rede ao emitir o assembly de referência.</target>
