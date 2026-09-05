@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Sealed
 
+#nullable enable
         public sealed override Symbol ContainingSymbol
         {
             get { return _containingType; }
@@ -98,6 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return false; }
         }
+#nullable disable
 
         public sealed override DllImportData GetDllImportData()
         {

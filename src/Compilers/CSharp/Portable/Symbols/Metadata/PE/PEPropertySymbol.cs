@@ -418,6 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+#nullable enable
         public override Symbol ContainingSymbol
         {
             get
@@ -433,6 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return _containingType;
             }
         }
+#nullable disable
 
         /// <remarks>
         /// To facilitate lookup, all indexer symbols have the same name.

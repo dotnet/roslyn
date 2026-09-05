@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var curMethod = _factory.CurrentFunction;
                 Debug.Assert(curMethod is { });
                 if ((curMethod.MethodKind != MethodKind.SharedConstructor ||
-                   curMethod.ContainingType.SpecialType != SpecialType.System_Decimal) &&
+                   curMethod.RequiredContainingType.SpecialType != SpecialType.System_Decimal) &&
                    !_inExpressionLambda)
                 {
                     Symbol? useField = null;
@@ -130,13 +130,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var ctor = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(member);
             Debug.Assert((object)ctor != null);
-            Debug.Assert(ctor.ContainingType.SpecialType == SpecialType.System_Decimal);
+            Debug.Assert(ctor.RequiredContainingType.SpecialType == SpecialType.System_Decimal);
 
             return new BoundObjectCreationExpression(
                 syntax, ctor, arguments.ToImmutableAndFree(),
                 argumentNamesOpt: default(ImmutableArray<string?>), argumentRefKindsOpt: default(ImmutableArray<RefKind>), expanded: false,
                 argsToParamsOpt: default(ImmutableArray<int>), defaultArguments: default(BitVector),
-                constantValueOpt: constantValue, initializerExpressionOpt: null, type: ctor.ContainingType);
+                constantValueOpt: constantValue, initializerExpressionOpt: null, type: ctor.RequiredContainingType);
         }
 
         private BoundExpression MakeDateTimeLiteral(SyntaxNode syntax, ConstantValue constantValue)
@@ -149,14 +149,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var ctor = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(SpecialMember.System_DateTime__CtorInt64);
             Debug.Assert((object)ctor != null);
-            Debug.Assert(ctor.ContainingType.SpecialType == SpecialType.System_DateTime);
+            Debug.Assert(ctor.RequiredContainingType.SpecialType == SpecialType.System_DateTime);
 
             // This is not a constant from C#'s perspective, so do not mark it as one.
             return new BoundObjectCreationExpression(
                 syntax, ctor, arguments.ToImmutableAndFree(),
                 argumentNamesOpt: default(ImmutableArray<string?>), argumentRefKindsOpt: default(ImmutableArray<RefKind>), expanded: false,
                 argsToParamsOpt: default(ImmutableArray<int>), defaultArguments: default(BitVector),
-                constantValueOpt: ConstantValue.NotAvailable, initializerExpressionOpt: null, type: ctor.ContainingType);
+                constantValueOpt: ConstantValue.NotAvailable, initializerExpressionOpt: null, type: ctor.RequiredContainingType);
         }
     }
 }

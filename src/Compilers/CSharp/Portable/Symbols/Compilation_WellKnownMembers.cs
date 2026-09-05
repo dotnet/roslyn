@@ -1145,7 +1145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return null;
                 }
-                if ((object)named.ContainingType != null)
+                if ((object?)named.ContainingType != null)
                 {
                     return null;
                 }
@@ -1159,7 +1159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
                 NamedTypeSymbol named = (NamedTypeSymbol)type;
-                if ((object)named.ContainingType != null)
+                if ((object?)named.ContainingType != null)
                 {
                     return null;
                 }

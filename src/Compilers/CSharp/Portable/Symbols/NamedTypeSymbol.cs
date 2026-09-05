@@ -151,7 +151,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override NamedTypeSymbol ContainingType
+#nullable enable
+        public override NamedTypeSymbol? ContainingType
         {
             get
             {
@@ -162,6 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this.ContainingSymbol as NamedTypeSymbol;
             }
         }
+#nullable disable
 
         /// <summary>
         /// Returns true for a struct type containing a cycle.
@@ -2074,7 +2076,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         for (int i = 0; i < definitionFactoryMethods.Length; i++)
                         {
-                            NamedTypeSymbol interfaceForDefinition = definitionFactoryMethods[i].ContainingType;
+                            NamedTypeSymbol interfaceForDefinition = definitionFactoryMethods[i].RequiredContainingType;
                             Debug.Assert(interfaceForDefinition.IsInterface);
                             NamedTypeSymbol constructedOrSubstitutedInterface = typeSubstitution.SubstituteNamedType(interfaceForDefinition);
                             bool canShadow = !interfaceForDefinition.OriginalDefinition.InterfacesNoUseSiteDiagnostics().IsEmpty;
@@ -2152,8 +2154,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 !isShadowed(method, shadowingMethods, baseInterfaceForDefinition))
                             {
                                 Debug.Assert(result.Count == 0 ||
-                                             !method.ContainingType.Equals(result[result.Count - 1].ContainingType, TypeCompareKind.ConsiderEverything) ||
-                                             method.ContainingType == (object)result[result.Count - 1].ContainingType);
+                                             !method.RequiredContainingType.Equals(result[result.Count - 1].RequiredContainingType, TypeCompareKind.ConsiderEverything) ||
+                                             method.RequiredContainingType == (object)result[result.Count - 1].RequiredContainingType);
                                 result.Add(method);
 
                                 if (canShadow)
@@ -2185,7 +2187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(unionType.IsDefinition);
                 Debug.Assert(unionType.IsUnionType);
-                Debug.Assert(factory.IsDefinition || factory.ContainingType.IsInterface);
+                Debug.Assert(factory.IsDefinition || factory.RequiredContainingType.IsInterface);
 
                 return factory is
                 {
@@ -2206,13 +2208,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 for (int i = 0; i < shadowingMethods.Count; i++)
                 {
                     MethodSymbol shadowingMethod = shadowingMethods[i];
-                    if (shadowingMethod.ContainingType == (object)methodContainingType)
+                    if (shadowingMethod.RequiredContainingType == (object)methodContainingType)
                     {
                         continue;
                     }
 
                     if (MemberSignatureComparer.CSharpOverrideComparer.Equals(shadowingMethod, method) &&
-                        shadowingMethod.ContainingType.AllInterfacesNoUseSiteDiagnostics.Contains(methodContainingType, Symbols.SymbolEqualityComparer.AllIgnoreOptions))
+                        shadowingMethod.RequiredContainingType.AllInterfacesNoUseSiteDiagnostics.Contains(methodContainingType, Symbols.SymbolEqualityComparer.AllIgnoreOptions))
                     {
                         // Shadowed
                         return true;
@@ -2420,7 +2422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 result = this.OriginalDefinition.UnionValueProperty(ref useSiteInfo);
                 if (result is not null)
                 {
-                    NamedTypeSymbol containingType = result.ContainingType;
+                    NamedTypeSymbol containingType = result.RequiredContainingType;
                     result = result.OriginalDefinition.AsMember(
                         containingType == (object)this.OriginalDefinition ? this : this.TypeSubstitution.SubstituteNamedType(containingType));
                 }
@@ -2491,7 +2493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (GetMemberProviderInterfaceForDefinition() is { } memberProviderInterface)
                     {
-                        if (valueProperty?.ContainingType.OriginalDefinition != (object)memberProviderInterface)
+                        if (valueProperty?.RequiredContainingType.OriginalDefinition != (object)memberProviderInterface)
                         {
                             foreach (var iface in GetMemberProviderInterfaceAllInterfacesForDefinition())
                             {
@@ -2501,7 +2503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     else
                     {
-                        NamedTypeSymbol? containingTypeOriginalDefinition = valueProperty?.ContainingType.OriginalDefinition;
+                        NamedTypeSymbol? containingTypeOriginalDefinition = valueProperty?.RequiredContainingType.OriginalDefinition;
 
                         for (NamedTypeSymbol declaringType = this.OriginalDefinition;
                              declaringType is not null;
@@ -2559,7 +2561,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             match = member;
                         }
-                        else if (!match.ContainingType.AllInterfacesNoUseSiteDiagnostics.Contains(baseInterfaceForDefinition, Symbols.SymbolEqualityComparer.AllIgnoreOptions))
+                        else if (!match.RequiredContainingType.AllInterfacesNoUseSiteDiagnostics.Contains(baseInterfaceForDefinition, Symbols.SymbolEqualityComparer.AllIgnoreOptions))
                         {
                             // Ambiguity
                             return null;
@@ -2620,7 +2622,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 result = this.OriginalDefinition.UnionHasValueProperty();
                 if (result is not null)
                 {
-                    NamedTypeSymbol containingType = result.ContainingType;
+                    NamedTypeSymbol containingType = result.RequiredContainingType;
                     result = result.OriginalDefinition.AsMember(
                         containingType == (object)this.OriginalDefinition ? this : this.TypeSubstitution.SubstituteNamedType(containingType));
                 }
@@ -2762,7 +2764,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 for (int i = 0; i < definitionTryGetValueMethods.Length; i++)
                 {
-                    NamedTypeSymbol containerForDefinition = definitionTryGetValueMethods[i].ContainingType;
+                    NamedTypeSymbol containerForDefinition = definitionTryGetValueMethods[i].RequiredContainingType;
                     NamedTypeSymbol constructedOrSubstitutedContainer = containerForDefinition == (object)this.OriginalDefinition ? this : typeSubstitution.SubstituteNamedType(containerForDefinition);
 
                     for (int j = i; j < definitionTryGetValueMethods.Length; j++)
@@ -2871,7 +2873,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MethodSymbol originalDefinition = method.OriginalDefinition;
             NamedTypeSymbol? membersInterfaceForDefinition = this.GetMemberProviderInterfaceForDefinition();
 
-            if (membersInterfaceForDefinition is not null == originalDefinition.ContainingType.IsInterface)
+            if (membersInterfaceForDefinition is not null == originalDefinition.RequiredContainingType.IsInterface)
             {
                 foreach (var candidate in this.UnionTryGetValueMethods())
                 {

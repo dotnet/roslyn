@@ -1041,7 +1041,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (type is ArrayTypeSymbol { IsSZArray: true } arrayType
                 && _factory.WellKnownMethod(writableOnly ? WellKnownMember.System_Span_T__ctor_Array : WellKnownMember.System_ReadOnlySpan_T__ctor_Array, isOptional: true) is { } spanCtorArray)
             {
-                var spanOfElementType = spanCtorArray.ContainingType.Construct(arrayType.ElementType);
+                var spanOfElementType = spanCtorArray.RequiredContainingType.Construct(arrayType.ElementType);
                 if (spanOfElementType.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(_compilation, _compilation.Conversions, Location.None, BindingDiagnosticBag.Discarded)))
                 {
                     asSpanMethod = spanCtorArray.AsMember(spanOfElementType);

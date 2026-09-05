@@ -1061,7 +1061,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            if (isGenericMethod(this) || ContainingType.IsGenericType)
+            if (isGenericMethod(this) || this.RequiredContainingType.IsGenericType)
             {
                 diagnostics?.Add(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, node!.Location);
                 return true;
@@ -1285,7 +1285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable enable
         protected static void AddRequiredMembersMarkerAttributes(ref ArrayBuilder<CSharpAttributeData> attributes, MethodSymbol methodToAttribute)
         {
-            if (methodToAttribute.ShouldCheckRequiredMembers() && methodToAttribute.ContainingType.HasAnyRequiredMembers)
+            if (methodToAttribute.ShouldCheckRequiredMembers() && methodToAttribute.RequiredContainingType.HasAnyRequiredMembers)
             {
                 var obsoleteData = methodToAttribute.ObsoleteAttributeData;
                 Debug.Assert(obsoleteData != ObsoleteAttributeData.Uninitialized, "getting synthesized attributes before attributes are decoded");
@@ -1308,7 +1308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected static void AddClosedClassesFeatureRequiredAttribute(ref ArrayBuilder<CSharpAttributeData> attributes, MethodSymbol methodToAttribute)
         {
-            if (methodToAttribute.ContainingType.IsClosed)
+            if (methodToAttribute.RequiredContainingType.IsClosed)
             {
                 CSharpCompilation declaringCompilation = methodToAttribute.DeclaringCompilation;
                 AddSynthesizedAttribute(
@@ -1323,7 +1323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(this.IsDefinition);
             Debug.Assert(this.IsExtensionBlockMember());
-            return this.ContainingType.TryGetCorrespondingExtensionImplementationMethod(this);
+            return this.RequiredContainingType.TryGetCorrespondingExtensionImplementationMethod(this);
         }
     }
 }

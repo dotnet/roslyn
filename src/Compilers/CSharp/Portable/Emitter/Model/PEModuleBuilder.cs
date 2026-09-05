@@ -810,7 +810,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 foreach (NamedTypeSymbol forwardedType in orderedForwardedTypes)
                 {
                     NamedTypeSymbol originalDefinition = forwardedType.OriginalDefinition;
-                    Debug.Assert((object)originalDefinition.ContainingType == null, "How did a nested type get forwarded?");
+                    Debug.Assert((object?)originalDefinition.ContainingType == null, "How did a nested type get forwarded?");
 
                     // Since we need to allow multiple constructions of the same generic type at the source
                     // level, we need to de-dup the original definitions before emitting.
@@ -1399,7 +1399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             object? reference;
             Cci.IMethodReference methodRef;
-            NamedTypeSymbol container = methodSymbol.ContainingType;
+            NamedTypeSymbol? container = methodSymbol.ContainingType;
 
             // Method of anonymous type being translated
             if (container?.IsAnonymousType == true)

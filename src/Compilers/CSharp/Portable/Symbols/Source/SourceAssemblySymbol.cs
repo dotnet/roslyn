@@ -2857,7 +2857,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     foreach (NamedTypeSymbol forwardedType in forwardedTypes)
                     {
                         NamedTypeSymbol originalDefinition = forwardedType.OriginalDefinition;
-                        Debug.Assert((object)originalDefinition.ContainingType == null, "How did a nested type get forwarded?");
+                        Debug.Assert((object?)originalDefinition.ContainingType == null, "How did a nested type get forwarded?");
 
                         string fullEmittedName = MetadataHelpers.BuildQualifiedName(originalDefinition.ContainingSymbol.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat),
                                                                                     originalDefinition.MetadataName);

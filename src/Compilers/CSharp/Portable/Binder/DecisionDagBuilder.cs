@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var getLengthProperty = (PropertySymbol)pattern.GetLengthMethod.AssociatedSymbol;
             RoslynDebug.Assert(getLengthProperty.Type.SpecialType == SpecialType.System_Int32);
             var getItemProperty = (PropertySymbol)pattern.GetItemMethod.AssociatedSymbol;
-            var iTupleType = getLengthProperty.ContainingType;
+            var iTupleType = getLengthProperty.RequiredContainingType;
             RoslynDebug.Assert(iTupleType.Name == "ITuple");
             var tests = ArrayBuilder<Tests>.GetInstance(4 + patternLength * 2);
 
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundDagTemp OriginalInput(BoundDagTemp input, Symbol symbol)
         {
-            while (input.Source is BoundDagTypeEvaluation source && isDerivedType(source.Input.Type, symbol.ContainingType))
+            while (input.Source is BoundDagTypeEvaluation source && isDerivedType(source.Input.Type, symbol.RequiredContainingType))
             {
                 if (IsAnyUnionValue(source.Input, out _))
                 {

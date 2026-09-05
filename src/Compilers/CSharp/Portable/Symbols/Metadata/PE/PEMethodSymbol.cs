@@ -459,13 +459,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return true;
         }
 
-#nullable disable
-
         public override Symbol ContainingSymbol => _containingType;
 
         public override NamedTypeSymbol ContainingType => _containingType;
 
         public override string Name => _name;
+
+#nullable disable
 
         public override int MetadataToken => MetadataTokens.GetToken(_handle);
 

@@ -809,8 +809,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsNestedTypeOfUnconstructedGenericType(NamedTypeSymbol type)
         {
-            NamedTypeSymbol containing = type.ContainingType;
-            while ((object)containing != null)
+            NamedTypeSymbol? containing = type.ContainingType;
+            while ((object?)containing != null)
             {
                 if (containing.Arity > 0 && containing.IsDefinition)
                 {
