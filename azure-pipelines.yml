@@ -12,6 +12,8 @@ variables:
     value: ${{ parameters.TestSkipStoreGeneration }}
   - name: ForceTests
     value: ${{ parameters.ForceTests }}
+  - name: SingleMachineTestTimeoutMinutes
+    value: ${{ parameters.SingleMachineTestTimeoutMinutes }}
   - name: Codeql.Enabled
     value: false
   - name: Codeql.SkipTaskAutoInjection
@@ -49,6 +51,9 @@ parameters:
   - name: ForceTests
     type: boolean
     default: false
+  - name: SingleMachineTestTimeoutMinutes
+    type: number
+    default: 90
   - name: ubuntuPool
     type: object
     default:

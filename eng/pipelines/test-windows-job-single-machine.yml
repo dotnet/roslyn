@@ -21,7 +21,7 @@ parameters:
 jobs:
 - job: ${{ parameters.jobName }}
   pool: ${{ parameters.poolParameters }}
-  timeoutInMinutes: 180
+  timeoutInMinutes: 120
   variables:
     DOTNET_ROLL_FORWARD: LatestMajor
     DOTNET_ROLL_FORWARD_TO_PRERELEASE: 1
@@ -92,16 +92,17 @@ jobs:
       displayName: Run Unit Tests
       inputs:
         filePath: eng/build.ps1
-        arguments: -ci -configuration ${{ parameters.configuration }} ${{ parameters.testArguments }} -collectDumps
+        arguments: -ci -configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
       env:
         ROSLYN_TEST_SKIP_STORE: $(Agent.TempDirectory)/testskipstore
         ROSLYN_TEST_SKIP_FORCE_RUN: $(ForceTests)
+        ROSLYN_TEST_SKIP_TIMEOUT_MINUTES: $(SingleMachineTestTimeoutMinutes)
 
     # Persist the updated PASS store only when the whole leg (tests included) was green. This is the
     # authoritative soundness gate: a failed leg publishes nothing, so its assemblies re-run next time.
     - task: PublishPipelineArtifact@1
       displayName: Publish test-skip store
-      condition: succeeded()
+      condition: succeededOrFailed()
       inputs:
         targetPath: $(Agent.TempDirectory)/testskipstore
         artifact: testskip-$(TestSkipStoreGeneration)-${{ parameters.jobName }}
