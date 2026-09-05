@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -487,7 +487,7 @@ public sealed class ConvertIfToSwitchTests
         }.RunAsync();
     }
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     public Task TestIsPatternExpression_01()
         => VerifyCS.VerifyRefactoringAsync(
             """
@@ -518,7 +518,7 @@ public sealed class ConvertIfToSwitchTests
             }
             """);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     public Task TestIsPatternExpression_02_CSharp8()
         => new VerifyCS.Test
         {
@@ -552,7 +552,7 @@ public sealed class ConvertIfToSwitchTests
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     public Task TestIsPatternExpression_02_CSharp9()
         => new VerifyCS.Test
         {
@@ -586,7 +586,7 @@ public sealed class ConvertIfToSwitchTests
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     public Task TestIsPatternExpression_03()
         => VerifyCS.VerifyRefactoringAsync(
             """
@@ -617,7 +617,7 @@ public sealed class ConvertIfToSwitchTests
             }
             """);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     public Task TestIsPatternExpression_04()
         => VerifyCS.VerifyRefactoringAsync(
             """
@@ -648,7 +648,7 @@ public sealed class ConvertIfToSwitchTests
             }
             """);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     public Task TestComplexExpression_01()
         => VerifyCS.VerifyRefactoringAsync(
             """
