@@ -2,7 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Option Strict Off
+Option Strict On
 
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis
@@ -100,23 +100,23 @@ Namespace VisualBasicToCSharpConverter
                                ) As CS.Syntax.EqualsValueClauseSyntax
 
                 If initializerOpt IsNot Nothing Then
-                    Return Visit(initializerOpt)
+                    Return DirectCast(Visit(initializerOpt), EqualsValueClauseSyntax)
                 End If
 
                 If asClauseOpt IsNot Nothing AndAlso asClauseOpt.IsKind(VB.SyntaxKind.AsNewClause) Then
                     Dim newExpression = DirectCast(asClauseOpt, VB.Syntax.AsNewClauseSyntax).NewExpression
                     Select Case newExpression.Kind
                         Case VB.SyntaxKind.ObjectCreationExpression
-                            Return EqualsValueClause(VisitObjectCreationExpression(newExpression))
+                            Return EqualsValueClause(DirectCast(VisitObjectCreationExpression(DirectCast(newExpression, VB.Syntax.ObjectCreationExpressionSyntax)), CS.Syntax.ExpressionSyntax))
                         Case VB.SyntaxKind.ArrayCreationExpression
-                            Return EqualsValueClause(VisitArrayCreationExpression(newExpression))
+                            Return EqualsValueClause(DirectCast(VisitArrayCreationExpression(DirectCast(newExpression, VB.Syntax.ArrayCreationExpressionSyntax)), CS.Syntax.ExpressionSyntax))
                         Case VB.SyntaxKind.AnonymousObjectCreationExpression
-                            Return EqualsValueClause(VisitAnonymousObjectCreationExpression(newExpression))
+                            Return EqualsValueClause(DirectCast(VisitAnonymousObjectCreationExpression(DirectCast(newExpression, VB.Syntax.AnonymousObjectCreationExpressionSyntax)), CS.Syntax.ExpressionSyntax))
                     End Select
                 End If
 
                 If identifier.ArrayBounds IsNot Nothing Then
-                    Return EqualsValueClause(ArrayCreationExpression(DeriveType(identifier, asClauseOpt, initializerOpt, includeSizes:=True)))
+                    Return EqualsValueClause(ArrayCreationExpression(DirectCast(DeriveType(identifier, asClauseOpt, initializerOpt, includeSizes:=True), CS.Syntax.ArrayTypeSyntax)))
                 End If
 
                 Return Nothing
@@ -160,7 +160,7 @@ Namespace VisualBasicToCSharpConverter
                     If asClause.IsKind(VB.SyntaxKind.AsNewClause) Then
                         Return IdentifierName("var")
                     Else
-                        Return Visit(asClause)
+                        Return DirectCast(Visit(asClause), CS.Syntax.TypeSyntax)
                     End If
 
                 ElseIf methodKeyword.IsKind(VB.SyntaxKind.SubKeyword) Then
@@ -260,7 +260,7 @@ Namespace VisualBasicToCSharpConverter
 
             Public Overrides Function VisitAccessorStatement(node As VB.Syntax.AccessorStatementSyntax) As SyntaxNode
 
-                Dim accessorBlock As VB.Syntax.AccessorBlockSyntax = node.Parent
+                Dim accessorBlock As VB.Syntax.AccessorBlockSyntax = DirectCast(node.Parent, AccessorBlockSyntax)
 
                 Dim kind As CS.SyntaxKind
                 Select Case node.Kind
@@ -288,9 +288,9 @@ Namespace VisualBasicToCSharpConverter
             Public Overrides Function VisitAddRemoveHandlerStatement(node As VB.Syntax.AddRemoveHandlerStatementSyntax) As SyntaxNode
 
                 If node.IsKind(VB.SyntaxKind.AddHandlerStatement) Then
-                    Return TransferTrivia(node, ExpressionStatement(AssignmentExpression(CS.SyntaxKind.AddAssignmentExpression, Visit(node.EventExpression), Visit(node.DelegateExpression))))
+                    Return TransferTrivia(node, ExpressionStatement(AssignmentExpression(CS.SyntaxKind.AddAssignmentExpression, DirectCast(Visit(node.EventExpression), CS.Syntax.ExpressionSyntax), DirectCast(Visit(node.DelegateExpression), CS.Syntax.ExpressionSyntax))))
                 Else
-                    Return TransferTrivia(node, ExpressionStatement(AssignmentExpression(CS.SyntaxKind.SubtractAssignmentExpression, Visit(node.EventExpression), Visit(node.DelegateExpression))))
+                    Return TransferTrivia(node, ExpressionStatement(AssignmentExpression(CS.SyntaxKind.SubtractAssignmentExpression, DirectCast(Visit(node.EventExpression), CS.Syntax.ExpressionSyntax), DirectCast(Visit(node.DelegateExpression), CS.Syntax.ExpressionSyntax))))
                 End If
 
             End Function
@@ -311,9 +311,9 @@ Namespace VisualBasicToCSharpConverter
 
             Public Overrides Function VisitArrayCreationExpression(node As VB.Syntax.ArrayCreationExpressionSyntax) As SyntaxNode
 
-                Return ArrayCreationExpression(ArrayType(Visit(node.Type)) _
+                Return ArrayCreationExpression(ArrayType(DirectCast(Visit(node.Type), CS.Syntax.TypeSyntax)) _
                         .WithRankSpecifiers(List(DeriveRankSpecifiers(node.ArrayBounds, node.RankSpecifiers, includeSizes:=True)))) _
-                        .WithInitializer(If(node.ArrayBounds IsNot Nothing AndAlso node.Initializer.Initializers.Count = 0, Nothing, VisitCollectionInitializer(node.Initializer)))
+                        .WithInitializer(DirectCast(If(node.ArrayBounds IsNot Nothing AndAlso node.Initializer.Initializers.Count = 0, Nothing, VisitCollectionInitializer(node.Initializer)), InitializerExpressionSyntax))
 
             End Function
 
@@ -328,7 +328,7 @@ Namespace VisualBasicToCSharpConverter
                 If node Is Nothing Then Return Nothing
 
                 If TypeOf node Is VB.Syntax.RangeArgumentSyntax Then
-                    Dim arg As VB.Syntax.RangeArgumentSyntax = node
+                    Dim arg As VB.Syntax.RangeArgumentSyntax = DirectCast(node, RangeArgumentSyntax)
 
                     Return VisitArrayBound(arg.UpperBound)
                 Else
@@ -340,7 +340,7 @@ Namespace VisualBasicToCSharpConverter
             Protected Function VisitArrayBound(expression As SyntaxNode) As SyntaxNode
 
                 If expression.Kind = VB.SyntaxKind.SubtractExpression Then
-                    Dim be As VB.Syntax.BinaryExpressionSyntax = expression
+                    Dim be As VB.Syntax.BinaryExpressionSyntax = DirectCast(expression, VB.Syntax.BinaryExpressionSyntax)
 
                     If be.Right.Kind = VB.SyntaxKind.NumericLiteralExpression Then
                         If CInt(CType(be.Right, VB.Syntax.LiteralExpressionSyntax).Token.Value) = 1 Then
@@ -357,7 +357,7 @@ Namespace VisualBasicToCSharpConverter
 
                 ElseIf expression.IsKind(VB.SyntaxKind.UnaryMinusExpression) Then
 
-                    Dim negate As VB.Syntax.UnaryExpressionSyntax = expression
+                    Dim negate As VB.Syntax.UnaryExpressionSyntax = DirectCast(expression, UnaryExpressionSyntax)
                     If negate.Operand.IsKind(VB.SyntaxKind.NumericLiteralExpression) Then
                         Dim length = -CInt(CType(negate.Operand, VB.Syntax.LiteralExpressionSyntax).Token.Value) + 1
 
@@ -368,7 +368,7 @@ Namespace VisualBasicToCSharpConverter
 
                 Return BinaryExpression(
                            CS.SyntaxKind.AddExpression,
-                           ParenthesizedExpression(Visit(expression)),
+                           ParenthesizedExpression(DirectCast(Visit(expression), CS.Syntax.ExpressionSyntax)),
                            LiteralExpression(CS.SyntaxKind.NumericLiteralExpression, Literal("1", 1))
                        )
 
@@ -376,19 +376,19 @@ Namespace VisualBasicToCSharpConverter
 
             Public Overrides Function VisitArrayType(node As VB.Syntax.ArrayTypeSyntax) As SyntaxNode
 
-                Return ArrayType(Visit(node.ElementType), List(DeriveRankSpecifiers(Nothing, node.RankSpecifiers.ToList())))
+                Return ArrayType(DirectCast(Visit(node.ElementType), CS.Syntax.TypeSyntax), List(DeriveRankSpecifiers(Nothing, node.RankSpecifiers.ToList())))
 
             End Function
 
             Public Overrides Function VisitAssignmentStatement(node As VB.Syntax.AssignmentStatementSyntax) As SyntaxNode
 
-                Return TransferTrivia(node, ExpressionStatement(AssignmentExpression(CS.SyntaxKind.SimpleAssignmentExpression, Visit(node.Left), Visit(node.Right))))
+                Return TransferTrivia(node, ExpressionStatement(AssignmentExpression(CS.SyntaxKind.SimpleAssignmentExpression, DirectCast(Visit(node.Left), CS.Syntax.ExpressionSyntax), DirectCast(Visit(node.Right), CS.Syntax.ExpressionSyntax))))
 
             End Function
 
             Public Overrides Function VisitAttribute(node As VB.Syntax.AttributeSyntax) As SyntaxNode
 
-                Return TransferTrivia(node.Parent, AttributeList(SingletonSeparatedList(Attribute(Visit(node.Name), VisitAttributeArgumentList(node.ArgumentList)))).WithTarget(VisitAttributeTarget(node.Target)))
+                Return TransferTrivia(node.Parent, AttributeList(SingletonSeparatedList(Attribute(DirectCast(Visit(node.Name), CS.Syntax.NameSyntax), DirectCast(VisitAttributeArgumentList(node.ArgumentList), AttributeArgumentListSyntax)))).WithTarget(DirectCast(VisitAttributeTarget(node.Target), AttributeTargetSpecifierSyntax)))
 
             End Function
 
@@ -406,9 +406,9 @@ Namespace VisualBasicToCSharpConverter
 
             End Function
 
-            Protected Function VisitAttributeLists(nodes As IEnumerable(Of VB.Syntax.AttributeListSyntax)) As IEnumerable(Of SyntaxNode)
+            Protected Function VisitAttributeLists(nodes As IEnumerable(Of VB.Syntax.AttributeListSyntax)) As IEnumerable(Of CS.Syntax.AttributeListSyntax)
 
-                Return Visit((From list In nodes, attribute In list.Attributes Select attribute))
+                Return Visit((From list In nodes, attribute In list.Attributes Select attribute)).Cast(Of CS.Syntax.AttributeListSyntax)()
 
             End Function
 
@@ -418,10 +418,10 @@ Namespace VisualBasicToCSharpConverter
 
             End Function
 
-            Protected Function VisitAttributeStatements(statements As IEnumerable(Of VB.Syntax.AttributesStatementSyntax)) As IEnumerable(Of SyntaxNode)
+            Protected Function VisitAttributeStatements(statements As IEnumerable(Of VB.Syntax.AttributesStatementSyntax)) As IEnumerable(Of CS.Syntax.AttributeListSyntax)
 
                 ' TOOD: AttributeStatement contains a list of blocks but there is only ever one block in the list.
-                Return Visit((From statement In statements, list In statement.AttributeLists, attribute In list.Attributes Select attribute))
+                Return Visit((From statement In statements, list In statement.AttributeLists, attribute In list.Attributes Select attribute)).Cast(Of CS.Syntax.AttributeListSyntax)()
 
             End Function
 
@@ -439,7 +439,7 @@ Namespace VisualBasicToCSharpConverter
 
             Public Overrides Function VisitAwaitExpression(node As VB.Syntax.AwaitExpressionSyntax) As SyntaxNode
 
-                Return AwaitExpression(Visit(node.Expression))
+                Return AwaitExpression(DirectCast(Visit(node.Expression), CS.Syntax.ExpressionSyntax))
 
             End Function
 
@@ -451,7 +451,7 @@ Namespace VisualBasicToCSharpConverter
 
             Public Overrides Function VisitBinaryConditionalExpression(node As VB.Syntax.BinaryConditionalExpressionSyntax) As SyntaxNode
 
-                Return BinaryExpression(CS.SyntaxKind.CoalesceExpression, Visit(node.FirstExpression), Visit(node.SecondExpression))
+                Return BinaryExpression(CS.SyntaxKind.CoalesceExpression, DirectCast(Visit(node.FirstExpression), CS.Syntax.ExpressionSyntax), DirectCast(Visit(node.SecondExpression), CS.Syntax.ExpressionSyntax))
 
             End Function
 
@@ -487,8 +487,8 @@ Namespace VisualBasicToCSharpConverter
                                        ParseName("global::System.Math.Pow"),
                                        ArgumentList(
                                            SeparatedList({
-                                                CS.SyntaxFactory.Argument(Visit(node.Left)),
-                                                CS.SyntaxFactory.Argument(Visit(node.Right))}
+                                                CS.SyntaxFactory.Argument(DirectCast(Visit(node.Left), CS.Syntax.ExpressionSyntax)),
+                                                CS.SyntaxFactory.Argument(DirectCast(Visit(node.Right), CS.Syntax.ExpressionSyntax))}
                                            )
                                        )
                                    )
@@ -555,39 +555,39 @@ Namespace VisualBasicToCSharpConverter
                         Throw New NotSupportedException(node.Kind.ToString())
                 End Select
 
-                Return BinaryExpression(kind, Visit(node.Left), Visit(node.Right))
+                Return BinaryExpression(kind, DirectCast(Visit(node.Left), CS.Syntax.ExpressionSyntax), DirectCast(Visit(node.Right), CS.Syntax.ExpressionSyntax))
             End Function
 
             Public Overrides Function VisitCallStatement(node As VB.Syntax.CallStatementSyntax) As SyntaxNode
 
-                Return TransferTrivia(node, ExpressionStatement(VisitInvocationExpression(node.Invocation)))
+                Return TransferTrivia(node, ExpressionStatement(DirectCast(VisitInvocationExpression(DirectCast(node.Invocation, VB.Syntax.InvocationExpressionSyntax)), CS.Syntax.ExpressionSyntax)))
 
             End Function
 
             Public Overrides Function VisitExpressionStatement(node As VB.Syntax.ExpressionStatementSyntax) As SyntaxNode
 
-                Return TransferTrivia(node, ExpressionStatement(Visit(node.Expression)))
+                Return TransferTrivia(node, ExpressionStatement(DirectCast(Visit(node.Expression), CS.Syntax.ExpressionSyntax)))
 
             End Function
 
             Public Overrides Function VisitCaseBlock(node As VB.Syntax.CaseBlockSyntax) As SyntaxNode
 
-                Dim statements = Visit(node.Statements)
+                Dim statements = VisitStatements(node.Statements)
                 If Not node.IsKind(VB.SyntaxKind.CaseElseBlock) Then
                     statements = statements.Union({BreakStatement()})
                 End If
 
                 Return TransferTrivia(node, SwitchSection(
-                                                List(Visit(node.CaseStatement.Cases)),
+                                                List(Visit(node.CaseStatement.Cases).Cast(Of CS.Syntax.SwitchLabelSyntax)),
                                                 List(statements)
                                             )
                        )
 
             End Function
 
-            Protected Function VisitCaseBlocks(blocks As IEnumerable(Of VB.Syntax.CaseBlockSyntax)) As IEnumerable(Of SyntaxNode)
+            Protected Function VisitCaseBlocks(blocks As IEnumerable(Of VB.Syntax.CaseBlockSyntax)) As IEnumerable(Of CS.Syntax.SwitchSectionSyntax)
 
-                Return From b In blocks Select VisitCaseBlock(b)
+                Return (From b In blocks Select VisitCaseBlock(b)).Cast(Of CS.Syntax.SwitchSectionSyntax)()
 
             End Function
 
@@ -623,20 +623,20 @@ Namespace VisualBasicToCSharpConverter
 
             Public Overrides Function VisitSimpleCaseClause(node As VB.Syntax.SimpleCaseClauseSyntax) As SyntaxNode
 
-                Return CaseSwitchLabel(Visit(node.Value))
+                Return CaseSwitchLabel(DirectCast(Visit(node.Value), CS.Syntax.ExpressionSyntax))
 
             End Function
 
             Public Overrides Function VisitDirectCastExpression(node As VB.Syntax.DirectCastExpressionSyntax) As SyntaxNode
-                Return ParenthesizedExpression(CastExpression(Visit(node.Type), Visit(node.Expression)))
+                Return ParenthesizedExpression(CastExpression(DirectCast(Visit(node.Type), CS.Syntax.TypeSyntax), DirectCast(Visit(node.Expression), CS.Syntax.ExpressionSyntax)))
             End Function
 
             Public Overrides Function VisitCTypeExpression(node As VB.Syntax.CTypeExpressionSyntax) As SyntaxNode
-                Return ParenthesizedExpression(CastExpression(Visit(node.Type), Visit(node.Expression)))
+                Return ParenthesizedExpression(CastExpression(DirectCast(Visit(node.Type), CS.Syntax.TypeSyntax), DirectCast(Visit(node.Expression), CS.Syntax.ExpressionSyntax)))
             End Function
 
             Public Overrides Function VisitTryCastExpression(node As VB.Syntax.TryCastExpressionSyntax) As SyntaxNode
-                Return ParenthesizedExpression(BinaryExpression(CS.SyntaxKind.AsExpression, Visit(node.Expression), Visit(node.Type)))
+                Return ParenthesizedExpression(BinaryExpression(CS.SyntaxKind.AsExpression, DirectCast(Visit(node.Expression), CS.Syntax.ExpressionSyntax), DirectCast(Visit(node.Type), CS.Syntax.ExpressionSyntax)))
             End Function
 
             Public Overrides Function VisitCatchFilterClause(node As VB.Syntax.CatchFilterClauseSyntax) As SyntaxNode
@@ -650,7 +650,7 @@ Namespace VisualBasicToCSharpConverter
 
             Public Overrides Function VisitCatchBlock(node As VB.Syntax.CatchBlockSyntax) As SyntaxNode
 
-                Return CatchClause().WithDeclaration(VisitCatchStatement(node.CatchStatement)).WithBlock(Block(List(VisitStatements(node.Statements))))
+                Return CatchClause().WithDeclaration(DirectCast(VisitCatchStatement(node.CatchStatement), CatchDeclarationSyntax)).WithBlock(Block(List(VisitStatements(node.Statements))))
 
             End Function
 
@@ -658,7 +658,7 @@ Namespace VisualBasicToCSharpConverter
 
                 If node.IdentifierName Is Nothing Then Return Nothing
 
-                Dim result = CatchDeclaration(VisitSimpleAsClause(node.AsClause)).WithIdentifier(VisitIdentifier(node.IdentifierName.Identifier))
+                Dim result = CatchDeclaration(DirectCast(VisitSimpleAsClause(node.AsClause), CS.Syntax.TypeSyntax)).WithIdentifier(VisitIdentifier(node.IdentifierName.Identifier))
 
                 If node.WhenClause IsNot Nothing Then result = result.WithTrailingTrivia({Comment("/* " & node.WhenClause.ToString() & " */")})
 
@@ -666,9 +666,9 @@ Namespace VisualBasicToCSharpConverter
 
             End Function
 
-            Protected Function VisitCatchBlocks(parts As IEnumerable(Of VB.Syntax.CatchBlockSyntax)) As IEnumerable(Of SyntaxNode)
+            Protected Function VisitCatchBlocks(parts As IEnumerable(Of VB.Syntax.CatchBlockSyntax)) As IEnumerable(Of CS.Syntax.CatchClauseSyntax)
 
-                Return From part In parts Select VisitCatchBlock(part)
+                Return (From part In parts Select VisitCatchBlock(part)).Cast(Of CS.Syntax.CatchClauseSyntax)()
 
             End Function
 
@@ -733,7 +733,7 @@ Namespace VisualBasicToCSharpConverter
 
                 Dim typeName = CType(node.Parent.Parent, VB.Syntax.TypeBlockSyntax).BlockStatement.Identifier
 
-                Dim subNewBlock As VB.Syntax.ConstructorBlockSyntax = node.Parent
+                Dim subNewBlock As VB.Syntax.ConstructorBlockSyntax = DirectCast(node.Parent, ConstructorBlockSyntax)
 
                 Dim initializer As CS.Syntax.ConstructorInitializerSyntax = Nothing
 
@@ -760,9 +760,9 @@ Namespace VisualBasicToCSharpConverter
 
                                 Select Case memberAccess.Expression.Kind
                                     Case VB.SyntaxKind.MeExpression, VB.SyntaxKind.MyClassExpression
-                                        initializer = ConstructorInitializer(CS.SyntaxKind.ThisConstructorInitializer, VisitArgumentList(invocationExpression.ArgumentList))
+                                        initializer = ConstructorInitializer(CS.SyntaxKind.ThisConstructorInitializer, DirectCast(VisitArgumentList(invocationExpression.ArgumentList), CS.Syntax.ArgumentListSyntax))
                                     Case VB.SyntaxKind.MyBaseExpression
-                                        initializer = ConstructorInitializer(CS.SyntaxKind.BaseConstructorInitializer, VisitArgumentList(invocationExpression.ArgumentList))
+                                        initializer = ConstructorInitializer(CS.SyntaxKind.BaseConstructorInitializer, DirectCast(VisitArgumentList(invocationExpression.ArgumentList), CS.Syntax.ArgumentListSyntax))
                                 End Select
                             End If
                         End If
@@ -774,7 +774,7 @@ Namespace VisualBasicToCSharpConverter
                 Return TransferTrivia(node, ConstructorDeclaration(VisitIdentifier(typeName)) _
                                                 .WithAttributeLists(List(VisitAttributeLists(node.AttributeLists))) _
                                                 .WithModifiers(TokenList(VisitModifiers(node.Modifiers))) _
-                                                .WithParameterList(VisitParameterList(node.ParameterList)) _
+                                                .WithParameterList(DirectCast(VisitParameterList(node.ParameterList), CS.Syntax.ParameterListSyntax)) _
                                                 .WithInitializer(initializer) _
                                                 .WithBody(Block(List(VisitStatements(If(initializer Is Nothing, subNewBlock.Statements, subNewBlock.Statements.Skip(1))))))
                                                 )
@@ -850,7 +850,7 @@ Namespace VisualBasicToCSharpConverter
                 Return MethodDeclaration(DeriveType(node.Identifier, node.AsClause, node.SubOrFunctionKeyword), VisitIdentifier(node.Identifier)) _
                             .WithAttributeLists(List(VisitAttributeLists(node.AttributeLists).Union({AttributeList(SingletonSeparatedList(dllImportAttribute))}))) _
                             .WithModifiers(TokenList(VisitModifiers(node.Modifiers).Union({Token(CS.SyntaxKind.ExternKeyword)}))) _
-                            .WithParameterList(VisitParameterList(node.ParameterList))
+                            .WithParameterList(DirectCast(VisitParameterList(node.ParameterList), CS.Syntax.ParameterListSyntax))
 
             End Function
 
@@ -861,8 +861,8 @@ Namespace VisualBasicToCSharpConverter
                            VisitIdentifier(node.Identifier)) _
                        .WithAttributeLists(List(VisitAttributeLists(node.AttributeLists))) _
                        .WithModifiers(TokenList(VisitModifiers(node.Modifiers))) _
-                       .WithTypeParameterList(VisitTypeParameterList(node.TypeParameterList)) _
-                       .WithParameterList(VisitParameterList(node.ParameterList)) _
+                       .WithTypeParameterList(DirectCast(VisitTypeParameterList(node.TypeParameterList), CS.Syntax.TypeParameterListSyntax)) _
+                       .WithParameterList(DirectCast(VisitParameterList(node.ParameterList), CS.Syntax.ParameterListSyntax)) _
                        .WithConstraintClauses(List(VisitTypeParameterConstraintClauses(node.TypeParameterList)))
 
             End Function
@@ -876,11 +876,11 @@ Namespace VisualBasicToCSharpConverter
                 Select Case node.Kind
                     Case VB.SyntaxKind.DoWhileLoopBlock, VB.SyntaxKind.DoUntilLoopBlock
 
-                        Return WhileStatement(VisitWhileOrUntilClause(node.DoStatement.WhileOrUntilClause), Block(List(VisitStatements(node.Statements))))
+                        Return WhileStatement(DirectCast(VisitWhileOrUntilClause(node.DoStatement.WhileOrUntilClause), CS.Syntax.ExpressionSyntax), Block(List(VisitStatements(node.Statements))))
 
                     Case VB.SyntaxKind.DoLoopWhileBlock, VB.SyntaxKind.DoLoopUntilBlock
 
-                        Return DoStatement(Block(List(VisitStatements(node.Statements))), VisitWhileOrUntilClause(node.LoopStatement.WhileOrUntilClause))
+                        Return DoStatement(Block(List(VisitStatements(node.Statements))), DirectCast(VisitWhileOrUntilClause(node.LoopStatement.WhileOrUntilClause), CS.Syntax.ExpressionSyntax))
 
                     Case VB.SyntaxKind.SimpleDoLoopBlock
 
@@ -954,17 +954,17 @@ Namespace VisualBasicToCSharpConverter
 
             Public Overrides Function VisitEnumMemberDeclaration(node As VB.Syntax.EnumMemberDeclarationSyntax) As SyntaxNode
 
-                Return TransferTrivia(node, EnumMemberDeclaration(List(VisitAttributeLists(node.AttributeLists)), VisitIdentifier(node.Identifier), VisitEqualsValue(node.Initializer)))
+                Return TransferTrivia(node, EnumMemberDeclaration(List(VisitAttributeLists(node.AttributeLists)), VisitIdentifier(node.Identifier), DirectCast(VisitEqualsValue(node.Initializer), EqualsValueClauseSyntax)))
 
             End Function
 
             Public Overrides Function VisitEnumStatement(node As VB.Syntax.EnumStatementSyntax) As SyntaxNode
 
-                Dim enumBlock As VB.Syntax.EnumBlockSyntax = node.Parent
+                Dim enumBlock As VB.Syntax.EnumBlockSyntax = DirectCast(node.Parent, EnumBlockSyntax)
 
                 Dim base As CS.Syntax.BaseListSyntax = Nothing
                 If node.UnderlyingType IsNot Nothing Then
-                    base = BaseList(SingletonSeparatedList(Of BaseTypeSyntax)(SimpleBaseType(CType(VisitSimpleAsClause(node.UnderlyingType), CS.Syntax.TypeSyntax))))
+                    base = BaseList(SingletonSeparatedList(Of BaseTypeSyntax)(SimpleBaseType(CType(VisitSimpleAsClause(DirectCast(node.UnderlyingType, SimpleAsClauseSyntax)), CS.Syntax.TypeSyntax))))
                 End If
 
                 Return TransferTrivia(enumBlock, EnumDeclaration(VisitIdentifier(node.Identifier)) _
@@ -980,7 +980,7 @@ Namespace VisualBasicToCSharpConverter
 
                 If node Is Nothing Then Return Nothing
 
-                Return EqualsValueClause(Visit(node.Value))
+                Return EqualsValueClause(DirectCast(Visit(node.Value), CS.Syntax.ExpressionSyntax))
 
             End Function
 
@@ -1020,7 +1020,7 @@ Namespace VisualBasicToCSharpConverter
                         ' TODO: Synthesize an explicit interface implementation if this event's name differs from the name of the method in its Implements clause.
                         Return TransferTrivia(node, EventFieldDeclaration(
                                                         VariableDeclaration(
-                                                            VisitSimpleAsClause(node.AsClause),
+                                                            DirectCast(VisitSimpleAsClause(node.AsClause), CS.Syntax.TypeSyntax),
                                                             SingletonSeparatedList(VariableDeclarator(VisitIdentifier(node.Identifier)))
                                                         )).WithAttributeLists(List(VisitAttributeLists(node.AttributeLists))) _
                                                           .WithModifiers(TokenList(VisitModifiers(node.Modifiers)))
@@ -1030,11 +1030,11 @@ Namespace VisualBasicToCSharpConverter
                         Return NotImplementedMember(node)
 
                         Return TransferTrivia(eventBlock, EventDeclaration(
-                                                              VisitSimpleAsClause(node.AsClause),
+                                                             DirectCast(VisitSimpleAsClause(node.AsClause), CS.Syntax.TypeSyntax),
                                                               VisitIdentifier(node.Identifier)) _
                                                             .WithAttributeLists(List(VisitAttributeLists(node.AttributeLists))) _
                                                             .WithModifiers(TokenList(VisitModifiers(node.Modifiers))) _
-                                                            .WithAccessorList(AccessorList(List(Visit(eventBlock.Accessors))))
+                                                            .WithAccessorList(AccessorList(List(Visit(eventBlock.Accessors).Cast(Of CS.Syntax.AccessorDeclarationSyntax))))
                                                         )
                     End If
                 Else
@@ -1166,7 +1166,7 @@ Namespace VisualBasicToCSharpConverter
 
             Public Overrides Function VisitForEachStatement(node As VB.Syntax.ForEachStatementSyntax) As SyntaxNode
 
-                Dim forBlock As VB.Syntax.ForEachBlockSyntax = node.Parent
+                Dim forBlock As VB.Syntax.ForEachBlockSyntax = DirectCast(node.Parent, ForEachBlockSyntax)
 
                 Dim type As CS.Syntax.TypeSyntax
                 Dim identifier As SyntaxToken
@@ -1179,7 +1179,7 @@ Namespace VisualBasicToCSharpConverter
 
                     Case VB.SyntaxKind.VariableDeclarator
 
-                        Dim declarator As VB.Syntax.VariableDeclaratorSyntax = node.ControlVariable
+                        Dim declarator As VB.Syntax.VariableDeclaratorSyntax = DirectCast(node.ControlVariable, VB.Syntax.VariableDeclaratorSyntax)
 
                         type = DeriveType(declarator.Names(0), declarator.AsClause, declarator.Initializer)
                         identifier = VisitIdentifier(declarator.Names(0).Identifier)
@@ -1194,7 +1194,7 @@ Namespace VisualBasicToCSharpConverter
                 Return TransferTrivia(forBlock, ForEachStatement(
                                                     type,
                                                     identifier,
-                                                    Visit(node.Expression),
+                                                    DirectCast(Visit(node.Expression), CS.Syntax.ExpressionSyntax),
                                                     Block(List(VisitStatements(forBlock.Statements)))
                                                 )
                        )
@@ -1203,7 +1203,7 @@ Namespace VisualBasicToCSharpConverter
 
             Public Overrides Function VisitForStatement(node As VB.Syntax.ForStatementSyntax) As SyntaxNode
 
-                Dim forBlock As VB.Syntax.ForBlockSyntax = node.Parent
+                Dim forBlock As VB.Syntax.ForBlockSyntax = DirectCast(node.Parent, ForBlockSyntax)
 
                 Dim type As CS.Syntax.TypeSyntax
                 Dim identifier As SyntaxToken
@@ -1219,7 +1219,7 @@ Namespace VisualBasicToCSharpConverter
 
                     Case VB.SyntaxKind.VariableDeclarator
 
-                        Dim declarator As VB.Syntax.VariableDeclaratorSyntax = node.ControlVariable
+                        Dim declarator As VB.Syntax.VariableDeclaratorSyntax = DirectCast(node.ControlVariable, VB.Syntax.VariableDeclaratorSyntax)
 
                         type = DeriveType(declarator.Names(0), declarator.AsClause, declarator.Initializer)
                         identifier = VisitIdentifier(declarator.Names(0).Identifier)
@@ -1236,21 +1236,21 @@ Namespace VisualBasicToCSharpConverter
                     toValue = CType(toValue, VB.Syntax.ParenthesizedExpressionSyntax).Expression
                 End If
 
-                Dim declarationOpt = VariableDeclaration(type, SingletonSeparatedList(VariableDeclarator(identifier).WithInitializer(EqualsValueClause(Visit(node.FromValue)))))
+                Dim declarationOpt = VariableDeclaration(type, SingletonSeparatedList(VariableDeclarator(identifier).WithInitializer(EqualsValueClause(DirectCast(Visit(node.FromValue), CS.Syntax.ExpressionSyntax)))))
 
-                Dim conditionOpt As CS.Syntax.ExpressionSyntax = BinaryExpression(CS.SyntaxKind.LessThanOrEqualExpression, IdentifierName(identifier), Visit(toValue))
+                Dim conditionOpt As CS.Syntax.ExpressionSyntax = BinaryExpression(CS.SyntaxKind.LessThanOrEqualExpression, IdentifierName(identifier), DirectCast(Visit(toValue), CS.Syntax.ExpressionSyntax))
 
                 Dim incrementor As CS.Syntax.ExpressionSyntax = PostfixUnaryExpression(CS.SyntaxKind.PostIncrementExpression, IdentifierName(identifier))
 
                 ' Rewrite ... To Count - 1 to < Count.
                 If node.StepClause Is Nothing Then
                     If toValue.IsKind(VB.SyntaxKind.SubtractExpression) Then
-                        Dim subtract As VB.Syntax.BinaryExpressionSyntax = toValue
+                        Dim subtract As VB.Syntax.BinaryExpressionSyntax = DirectCast(toValue, VB.Syntax.BinaryExpressionSyntax)
 
                         If subtract.Right.IsKind(VB.SyntaxKind.NumericLiteralExpression) AndAlso
                            CInt(CType(subtract.Right, VB.Syntax.LiteralExpressionSyntax).Token.Value) = 1 Then
 
-                            conditionOpt = BinaryExpression(CS.SyntaxKind.LessThanExpression, IdentifierName(identifier), Visit(subtract.Left))
+                            conditionOpt = BinaryExpression(CS.SyntaxKind.LessThanExpression, IdentifierName(identifier), DirectCast(Visit(subtract.Left), CS.Syntax.ExpressionSyntax))
 
                         End If
                     End If
@@ -1261,19 +1261,19 @@ Namespace VisualBasicToCSharpConverter
                         stepValue = CType(stepValue, VB.Syntax.ParenthesizedExpressionSyntax).Expression
                     End If
 
-                    incrementor = AssignmentExpression(CS.SyntaxKind.AddAssignmentExpression, IdentifierName(identifier), Visit(stepValue))
+                    incrementor = AssignmentExpression(CS.SyntaxKind.AddAssignmentExpression, IdentifierName(identifier), DirectCast(Visit(stepValue), CS.Syntax.ExpressionSyntax))
 
                     If stepValue.IsKind(VB.SyntaxKind.UnaryMinusExpression) Then
-                        Dim negate As VB.Syntax.UnaryExpressionSyntax = stepValue
+                        Dim negate As VB.Syntax.UnaryExpressionSyntax = DirectCast(stepValue, UnaryExpressionSyntax)
 
-                        conditionOpt = BinaryExpression(CS.SyntaxKind.GreaterThanOrEqualExpression, IdentifierName(identifier), Visit(toValue))
+                        conditionOpt = BinaryExpression(CS.SyntaxKind.GreaterThanOrEqualExpression, IdentifierName(identifier), DirectCast(Visit(toValue), CS.Syntax.ExpressionSyntax))
 
                         If negate.Operand.IsKind(VB.SyntaxKind.NumericLiteralExpression) AndAlso
                            CInt(CType(negate.Operand, VB.Syntax.LiteralExpressionSyntax).Token.Value) = 1 Then
 
                             incrementor = PostfixUnaryExpression(CS.SyntaxKind.PostDecrementExpression, IdentifierName(identifier))
                         Else
-                            incrementor = AssignmentExpression(CS.SyntaxKind.SubtractAssignmentExpression, IdentifierName(identifier), Visit(negate.Operand))
+                            incrementor = AssignmentExpression(CS.SyntaxKind.SubtractAssignmentExpression, IdentifierName(identifier), DirectCast(Visit(negate.Operand), CS.Syntax.ExpressionSyntax))
                         End If
                     End If
                 End If
@@ -1290,13 +1290,13 @@ Namespace VisualBasicToCSharpConverter
 
             Public Overrides Function VisitGenericName(node As VB.Syntax.GenericNameSyntax) As SyntaxNode
 
-                Return GenericName(VisitIdentifier(node.Identifier), VisitTypeArgumentList(node.TypeArgumentList))
+                Return GenericName(VisitIdentifier(node.Identifier), DirectCast(VisitTypeArgumentList(node.TypeArgumentList), CS.Syntax.TypeArgumentListSyntax))
 
             End Function
 
             Public Overrides Function VisitGetTypeExpression(node As VB.Syntax.GetTypeExpressionSyntax) As SyntaxNode
 
-                Return TypeOfExpression(Visit(node.Type))
+                Return TypeOfExpression(DirectCast(Visit(node.Type), CS.Syntax.TypeSyntax))
 
             End Function
 
@@ -1369,7 +1369,7 @@ Namespace VisualBasicToCSharpConverter
 
             Public Overrides Function VisitIfDirectiveTrivia(node As VB.Syntax.IfDirectiveTriviaSyntax) As SyntaxNode
 
-                Return IfDirectiveTrivia(Visit(node.Condition), isActive:=False, branchTaken:=False, conditionValue:=False)
+                Return IfDirectiveTrivia(DirectCast(Visit(node.Condition), CS.Syntax.ExpressionSyntax), isActive:=False, branchTaken:=False, conditionValue:=False)
 
             End Function
 
@@ -1409,9 +1409,9 @@ Namespace VisualBasicToCSharpConverter
 
             End Function
 
-            Protected Function VisitImportsStatements(statements As IEnumerable(Of VB.Syntax.ImportsStatementSyntax)) As IEnumerable(Of SyntaxNode)
+            Protected Function VisitImportsStatements(statements As IEnumerable(Of VB.Syntax.ImportsStatementSyntax)) As IEnumerable(Of CS.Syntax.UsingDirectiveSyntax)
 
-                Return Visit((Aggregate statement In statements Into SelectMany(statement.ImportsClauses)))
+                Return Visit((Aggregate statement In statements Into SelectMany(statement.ImportsClauses))).Cast(Of CS.Syntax.UsingDirectiveSyntax)()
 
             End Function
 
@@ -1469,7 +1469,7 @@ Namespace VisualBasicToCSharpConverter
 
                 ' TODO: Use binding to detect whether this is an invocation or an index, 
                 '       and if an index whether off a property or the result of an implicit method invocation.
-                Return InvocationExpression(Visit(node.Expression), VisitArgumentList(node.ArgumentList))
+                Return InvocationExpression(DirectCast(Visit(node.Expression), CS.Syntax.ExpressionSyntax), DirectCast(VisitArgumentList(node.ArgumentList), CS.Syntax.ArgumentListSyntax))
 
             End Function
 
@@ -1630,7 +1630,7 @@ Namespace VisualBasicToCSharpConverter
 
                     Case VB.SyntaxKind.SimpleMemberAccessExpression
 
-                        Return MemberAccessExpression(CS.SyntaxKind.SimpleMemberAccessExpression, Visit(node.Expression), Visit(node.Name))
+                        Return MemberAccessExpression(CS.SyntaxKind.SimpleMemberAccessExpression, DirectCast(Visit(node.Expression), CS.Syntax.ExpressionSyntax), DirectCast(Visit(node.Name), CS.Syntax.SimpleNameSyntax))
 
                     Case VB.SyntaxKind.DictionaryAccessExpression
 
@@ -1661,9 +1661,9 @@ Namespace VisualBasicToCSharpConverter
                     Dim converted = Visit(statement)
 
                     If TypeOf converted Is CS.Syntax.MemberDeclarationSyntax Then
-                        members.Add(converted)
+                        members.Add(DirectCast(converted, MemberDeclarationSyntax))
                     ElseIf TypeOf converted Is CS.Syntax.StatementSyntax Then
-                        members.Add(GlobalStatement(converted))
+                        members.Add(GlobalStatement(DirectCast(converted, CS.Syntax.StatementSyntax)))
                     Else
                         Throw New NotSupportedException(converted.Kind.ToString())
                     End If
@@ -1703,8 +1703,8 @@ Namespace VisualBasicToCSharpConverter
                                                         VisitIdentifier(node.Identifier)) _
                                                     .WithAttributeLists(List(VisitAttributeLists(node.AttributeLists))) _
                                                     .WithModifiers(TokenList(VisitModifiers(node.Modifiers))) _
-                                                    .WithTypeParameterList(VisitTypeParameterList(node.TypeParameterList)) _
-                                                    .WithParameterList(VisitParameterList(node.ParameterList)) _
+                                                    .WithTypeParameterList(DirectCast(VisitTypeParameterList(node.TypeParameterList), CS.Syntax.TypeParameterListSyntax)) _
+                                                    .WithParameterList(DirectCast(VisitParameterList(node.ParameterList), CS.Syntax.ParameterListSyntax)) _
                                                     .WithConstraintClauses(List(VisitTypeParameterConstraintClauses(node.TypeParameterList))) _
                                                     .WithBody(If(methodBlock Is Nothing, Nothing, Block(List(VisitStatements(methodBlock.Statements))))) _
                                                     .WithSemicolonToken(If(methodBlock Is Nothing, Token(CS.SyntaxKind.SemicolonToken), Nothing))
@@ -1808,14 +1808,14 @@ Namespace VisualBasicToCSharpConverter
                 For i = node.ElseIfBlocks.Count - 1 To 0 Step -1
                     elseOpt = ElseClause(
                                   IfStatement(
-                                      Visit(node.ElseIfBlocks(i).ElseIfStatement.Condition),
+                                      DirectCast(Visit(node.ElseIfBlocks(i).ElseIfStatement.Condition), CS.Syntax.ExpressionSyntax),
                                       Block(List(VisitStatements(node.ElseIfBlocks(i).Statements)))) _
                                     .WithElse(elseOpt)
                                   )
                 Next
 
                 Return TransferTrivia(node, IfStatement(
-                                                Visit(node.IfStatement.Condition),
+                                                DirectCast(Visit(node.IfStatement.Condition), CS.Syntax.ExpressionSyntax),
                                                 Block(List(VisitStatements(node.Statements)))) _
                                                 .WithElse(elseOpt)
                                             )
@@ -1828,7 +1828,7 @@ Namespace VisualBasicToCSharpConverter
                       Token(CS.SyntaxKind.AsyncKeyword),
                       Nothing)
 
-                Dim parameterList = VisitParameterList(node.SubOrFunctionHeader.ParameterList)
+                Dim parameterList = DirectCast(VisitParameterList(node.SubOrFunctionHeader.ParameterList), CS.Syntax.ParameterListSyntax)
 
                 Dim arrowToken = Token(CS.SyntaxKind.EqualsGreaterThanToken)
 
@@ -1841,8 +1841,8 @@ Namespace VisualBasicToCSharpConverter
             Public Overrides Function VisitNamedFieldInitializer(node As VB.Syntax.NamedFieldInitializerSyntax) As SyntaxNode
 
                 Return If(node.Parent.Parent.IsKind(VB.SyntaxKind.AnonymousObjectCreationExpression),
-                          CType(AnonymousObjectMemberDeclarator(NameEquals(VisitIdentifierName(node.Name)), Visit(node.Expression)), SyntaxNode),
-                          AssignmentExpression(CS.SyntaxKind.SimpleAssignmentExpression, VisitIdentifierName(node.Name), Visit(node.Expression)))
+                          CType(AnonymousObjectMemberDeclarator(NameEquals(DirectCast(VisitIdentifierName(node.Name), CS.Syntax.IdentifierNameSyntax)), DirectCast(Visit(node.Expression), CS.Syntax.ExpressionSyntax)), SyntaxNode),
+                          AssignmentExpression(CS.SyntaxKind.SimpleAssignmentExpression, DirectCast(VisitIdentifierName(node.Name), CS.Syntax.ExpressionSyntax), DirectCast(Visit(node.Expression), CS.Syntax.ExpressionSyntax)))
 
             End Function
 
@@ -1854,7 +1854,7 @@ Namespace VisualBasicToCSharpConverter
 
             Public Overrides Function VisitNamespaceStatement(node As VB.Syntax.NamespaceStatementSyntax) As SyntaxNode
 
-                Dim namespaceBlock As VB.Syntax.NamespaceBlockSyntax = node.Parent
+                Dim namespaceBlock As VB.Syntax.NamespaceBlockSyntax = DirectCast(node.Parent, NamespaceBlockSyntax)
 
                 If node.Name.IsKind(VB.SyntaxKind.GlobalName) Then
 
@@ -1873,20 +1873,20 @@ Namespace VisualBasicToCSharpConverter
 
                     ' Strip out the Global name.
                     If baseName.IsKind(VB.SyntaxKind.GlobalName) Then
-                        finalName = Visit(remainingNames.Right)
+                        finalName = DirectCast(Visit(remainingNames.Right), CS.Syntax.NameSyntax)
                         remainingNames = TryCast(remainingNames.Parent, VB.Syntax.QualifiedNameSyntax)
                     ElseIf RootNamespaceName IsNot Nothing Then
-                        finalName = QualifiedName(RootNamespaceName, Visit(baseName))
+                        finalName = QualifiedName(RootNamespaceName, DirectCast(Visit(baseName), CS.Syntax.SimpleNameSyntax))
                     Else
-                        finalName = Visit(baseName)
+                        finalName = DirectCast(Visit(baseName), CS.Syntax.NameSyntax)
                     End If
 
                     Do Until remainingNames Is Nothing
-                        finalName = QualifiedName(finalName, Visit(remainingNames.Right))
+                        finalName = QualifiedName(finalName, DirectCast(Visit(remainingNames.Right), CS.Syntax.SimpleNameSyntax))
                         remainingNames = TryCast(remainingNames.Parent, VB.Syntax.QualifiedNameSyntax)
                     Loop
 
-                    Return TransferTrivia(node, NamespaceDeclaration(finalName).WithMembers(List(Visit(namespaceBlock.Members))))
+                    Return TransferTrivia(node, NamespaceDeclaration(finalName).WithMembers(List(VisitMembers(namespaceBlock.Members))))
 
                 End If
 
@@ -1900,7 +1900,7 @@ Namespace VisualBasicToCSharpConverter
 
             Public Overrides Function VisitNullableType(node As VB.Syntax.NullableTypeSyntax) As SyntaxNode
 
-                Return NullableType(Visit(node.ElementType))
+                Return NullableType(DirectCast(Visit(node.ElementType), CS.Syntax.TypeSyntax))
 
             End Function
 
@@ -1913,9 +1913,9 @@ Namespace VisualBasicToCSharpConverter
 
             Public Overrides Function VisitObjectCreationExpression(node As VB.Syntax.ObjectCreationExpressionSyntax) As SyntaxNode
 
-                Return ObjectCreationExpression(Visit(node.Type)) _
-                            .WithArgumentList(VisitArgumentList(node.ArgumentList)) _
-                            .WithInitializer(Visit(node.Initializer))
+                Return ObjectCreationExpression(DirectCast(Visit(node.Type), CS.Syntax.TypeSyntax)) _
+                            .WithArgumentList(DirectCast(VisitArgumentList(node.ArgumentList), CS.Syntax.ArgumentListSyntax)) _
+                            .WithInitializer(DirectCast(Visit(node.Initializer), InitializerExpressionSyntax))
 
             End Function
 
@@ -1947,7 +1947,7 @@ Namespace VisualBasicToCSharpConverter
 
             Public Overrides Function VisitOperatorStatement(node As VB.Syntax.OperatorStatementSyntax) As SyntaxNode
 
-                Dim operatorBlock As VB.Syntax.OperatorBlockSyntax = node.Parent
+                Dim operatorBlock As VB.Syntax.OperatorBlockSyntax = DirectCast(node.Parent, OperatorBlockSyntax)
 
                 Dim kind As CS.SyntaxKind
                 Select Case node.OperatorToken.Kind
@@ -1970,10 +1970,10 @@ Namespace VisualBasicToCSharpConverter
 
                         Return TransferTrivia(operatorBlock, ConversionOperatorDeclaration(
                                                                 implicitOrExplicitKeyword,
-                                                                VisitSimpleAsClause(node.AsClause)) _
+                                                                DirectCast(VisitSimpleAsClause(node.AsClause), CS.Syntax.TypeSyntax)) _
                                                                 .WithAttributeLists(List(VisitAttributeLists(node.AttributeLists))) _
                                                                 .WithModifiers(TokenList(VisitModifiers(otherModifiers))) _
-                                                                .WithParameterList(VisitParameterList(node.ParameterList)) _
+                                                                .WithParameterList(DirectCast(VisitParameterList(node.ParameterList), CS.Syntax.ParameterListSyntax)) _
                                                                 .WithBody(Block(List(VisitStatements(operatorBlock.Statements))))
                                                              )
 
@@ -2032,7 +2032,7 @@ Namespace VisualBasicToCSharpConverter
                                                          Token(kind)) _
                                                      .WithAttributeLists(List(VisitAttributeLists(node.AttributeLists))) _
                                                      .WithModifiers(TokenList(VisitModifiers(node.Modifiers))) _
-                                                     .WithParameterList(VisitParameterList(node.ParameterList)) _
+                                                     .WithParameterList(DirectCast(VisitParameterList(node.ParameterList), CS.Syntax.ParameterListSyntax)) _
                                                      .WithBody(Block(List(VisitStatements(operatorBlock.Statements))))
                                         )
 
@@ -2083,7 +2083,7 @@ Namespace VisualBasicToCSharpConverter
                            TokenList(VisitModifiers(node.Modifiers)),
                            DeriveType(node.Identifier, node.AsClause, initializer:=Nothing),
                            VisitIdentifier(node.Identifier.Identifier),
-                           VisitEqualsValue(node.Default)
+                           DirectCast(VisitEqualsValue(node.Default), EqualsValueClauseSyntax)
                        )
 
             End Function
@@ -2098,7 +2098,7 @@ Namespace VisualBasicToCSharpConverter
 
             Public Overrides Function VisitParenthesizedExpression(node As VB.Syntax.ParenthesizedExpressionSyntax) As SyntaxNode
 
-                Return ParenthesizedExpression(Visit(node.Expression))
+                Return ParenthesizedExpression(DirectCast(Visit(node.Expression), CS.Syntax.ExpressionSyntax))
 
             End Function
 
@@ -2144,7 +2144,7 @@ Namespace VisualBasicToCSharpConverter
                     Case VB.SyntaxKind.CCharKeyword
                         kind = CS.SyntaxKind.CharKeyword
                     Case VB.SyntaxKind.CDateKeyword
-                        Return ParenthesizedExpression(CastExpression(ParseTypeName("global::System.DateTime"), Visit(node.Expression)))
+                        Return ParenthesizedExpression(CastExpression(ParseTypeName("global::System.DateTime"), DirectCast(Visit(node.Expression), CS.Syntax.ExpressionSyntax)))
                     Case VB.SyntaxKind.CBoolKeyword
                         kind = CS.SyntaxKind.BoolKeyword
                     Case VB.SyntaxKind.CObjKeyword
@@ -2153,7 +2153,7 @@ Namespace VisualBasicToCSharpConverter
                         Throw New NotSupportedException(node.Keyword.Kind.ToString())
                 End Select
 
-                Return ParenthesizedExpression(CastExpression(PredefinedType(Token(kind)), Visit(node.Expression)))
+                Return ParenthesizedExpression(CastExpression(PredefinedType(Token(kind)), DirectCast(Visit(node.Expression), CS.Syntax.ExpressionSyntax)))
 
             End Function
 
@@ -2218,7 +2218,7 @@ Namespace VisualBasicToCSharpConverter
                                                                 VisitIdentifier(node.Identifier)) _
                                                             .WithAttributeLists(List(VisitAttributeLists(node.AttributeLists))) _
                                                             .WithModifiers(TokenList(VisitModifiers(node.Modifiers))) _
-                                                            .WithAccessorList(AccessorList(List(Visit(propertyBlockOpt.Accessors))))
+                                                            .WithAccessorList(AccessorList(List(Visit(propertyBlockOpt.Accessors).Cast(Of CS.Syntax.AccessorDeclarationSyntax))))
                                                     )
                 Else
 
@@ -2253,23 +2253,23 @@ Namespace VisualBasicToCSharpConverter
             Public Overrides Function VisitQualifiedName(node As VB.Syntax.QualifiedNameSyntax) As SyntaxNode
 
                 If TypeOf node.Left Is VB.Syntax.GlobalNameSyntax Then
-                    Return AliasQualifiedName(IdentifierName("global"), Visit(node.Right))
+                    Return AliasQualifiedName(IdentifierName("global"), DirectCast(Visit(node.Right), CS.Syntax.SimpleNameSyntax))
                 Else
-                    Return QualifiedName(Visit(node.Left), Visit(node.Right))
+                    Return QualifiedName(DirectCast(Visit(node.Left), CS.Syntax.NameSyntax), DirectCast(Visit(node.Right), CS.Syntax.SimpleNameSyntax))
                 End If
 
             End Function
 
             Public Overrides Function VisitQueryExpression(node As VB.Syntax.QueryExpressionSyntax) As SyntaxNode
 
-                Return (New QueryClauseConvertingVisitor(parent:=Me)).Visit(node)
+                Return DirectCast((New QueryClauseConvertingVisitor(parent:=Me)).Visit(node), SyntaxNode)
 
             End Function
 
             Public Overrides Function VisitRaiseEventStatement(node As VB.Syntax.RaiseEventStatementSyntax) As SyntaxNode
 
                 ' TODO: Rewrite to a conditional invocation based on a thread-safe null check.
-                Return TransferTrivia(node, ExpressionStatement(InvocationExpression(VisitIdentifierName(node.Name), VisitArgumentList(node.ArgumentList))))
+                Return TransferTrivia(node, ExpressionStatement(InvocationExpression(DirectCast(VisitIdentifierName(node.Name), CS.Syntax.ExpressionSyntax), DirectCast(VisitArgumentList(node.ArgumentList), CS.Syntax.ArgumentListSyntax))))
 
             End Function
 
@@ -2300,14 +2300,14 @@ Namespace VisualBasicToCSharpConverter
 
             Public Overrides Function VisitReturnStatement(node As VB.Syntax.ReturnStatementSyntax) As SyntaxNode
 
-                Return ReturnStatement(Visit(node.Expression))
+                Return ReturnStatement(DirectCast(Visit(node.Expression), CS.Syntax.ExpressionSyntax))
 
             End Function
 
             Public Overrides Function VisitSelectBlock(node As VB.Syntax.SelectBlockSyntax) As SyntaxNode
 
                 ' TODO: Bind to expression to ensure it's of a type C# can switch on.
-                Return TransferTrivia(node, SwitchStatement(Visit(node.SelectStatement.Expression)).WithSections(List(VisitCaseBlocks(node.CaseBlocks))))
+                Return TransferTrivia(node, SwitchStatement(DirectCast(Visit(node.SelectStatement.Expression), CS.Syntax.ExpressionSyntax)).WithSections(List(VisitCaseBlocks(node.CaseBlocks))))
 
             End Function
 
@@ -2325,17 +2325,17 @@ Namespace VisualBasicToCSharpConverter
 
                 If node.IsNamed Then
                     If TypeOf node.Parent.Parent Is VB.Syntax.AttributeSyntax Then
-                        Return AttributeArgument(Visit(node.Expression)).WithNameColon(NameColon(IdentifierName(VisitIdentifier(node.NameColonEquals.Name.Identifier))))
+                        Return AttributeArgument(DirectCast(Visit(node.Expression), CS.Syntax.ExpressionSyntax)).WithNameColon(NameColon(IdentifierName(VisitIdentifier(node.NameColonEquals.Name.Identifier))))
                     Else
                         ' TODO: Bind to discover ByRef arguments.
-                        Return CS.SyntaxFactory.Argument(Visit(node.Expression)).WithNameColon(NameColon(IdentifierName(VisitIdentifier(node.NameColonEquals.Name.Identifier))))
+                        Return CS.SyntaxFactory.Argument(DirectCast(Visit(node.Expression), CS.Syntax.ExpressionSyntax)).WithNameColon(NameColon(IdentifierName(VisitIdentifier(node.NameColonEquals.Name.Identifier))))
                     End If
                 Else
                     If TypeOf node.Parent.Parent Is VB.Syntax.AttributeSyntax Then
-                        Return AttributeArgument(Visit(node.Expression))
+                        Return AttributeArgument(DirectCast(Visit(node.Expression), CS.Syntax.ExpressionSyntax))
                     Else
                         ' TODO: Bind to discover ByRef arguments.
-                        Return CS.SyntaxFactory.Argument(Visit(node.Expression))
+                        Return CS.SyntaxFactory.Argument(DirectCast(Visit(node.Expression), CS.Syntax.ExpressionSyntax))
                     End If
                 End If
 
@@ -2358,7 +2358,7 @@ Namespace VisualBasicToCSharpConverter
                 End If
 
                 Return TransferTrivia(node, IfStatement(
-                                                Visit(node.Condition),
+                                                DirectCast(Visit(node.Condition), CS.Syntax.ExpressionSyntax),
                                                 Block(List(VisitStatements(node.Statements)))) _
                                               .WithElse(elseOpt)
                                         )
@@ -2371,13 +2371,14 @@ Namespace VisualBasicToCSharpConverter
                                       Token(CS.SyntaxKind.AsyncKeyword),
                                       Nothing)
 
-                Dim parameterList = VisitParameterList(node.SubOrFunctionHeader.ParameterList)
+                Dim parameterList = DirectCast(VisitParameterList(node.SubOrFunctionHeader.ParameterList), CS.Syntax.ParameterListSyntax)
 
                 Dim arrowToken = Token(CS.SyntaxKind.EqualsGreaterThanToken)
 
-                Dim body = If(node.IsKind(VB.SyntaxKind.SingleLineFunctionLambdaExpression),
-                              Visit(node.Body),
-                              Block(SingletonList(DirectCast(Visit(node.Body), CS.Syntax.StatementSyntax))))
+                Dim body As CS.CSharpSyntaxNode = If(
+                    node.IsKind(VB.SyntaxKind.SingleLineFunctionLambdaExpression),
+                    DirectCast(Visit(node.Body), CS.Syntax.ExpressionSyntax),
+                    DirectCast(Block(SingletonList(DirectCast(Visit(node.Body), CS.Syntax.StatementSyntax))), CS.CSharpSyntaxNode))
 
                 Return ParenthesizedLambdaExpression(asyncKeyword, parameterList, arrowToken, body)
 
@@ -2420,15 +2421,15 @@ Namespace VisualBasicToCSharpConverter
 
             Public Overrides Function VisitSyncLockStatement(node As VB.Syntax.SyncLockStatementSyntax) As SyntaxNode
 
-                Dim syncLockBlock As VB.Syntax.SyncLockBlockSyntax = node.Parent
+                Dim syncLockBlock As VB.Syntax.SyncLockBlockSyntax = DirectCast(node.Parent, SyncLockBlockSyntax)
 
-                Return LockStatement(Visit(node.Expression), Block(List(VisitStatements(syncLockBlock.Statements))))
+                Return LockStatement(DirectCast(Visit(node.Expression), CS.Syntax.ExpressionSyntax), Block(List(VisitStatements(syncLockBlock.Statements))))
 
             End Function
 
             Public Overrides Function VisitTernaryConditionalExpression(node As VB.Syntax.TernaryConditionalExpressionSyntax) As SyntaxNode
 
-                Return ConditionalExpression(Visit(node.Condition), Visit(node.WhenTrue), Visit(node.WhenFalse))
+                Return ConditionalExpression(DirectCast(Visit(node.Condition), CS.Syntax.ExpressionSyntax), DirectCast(Visit(node.WhenTrue), CS.Syntax.ExpressionSyntax), DirectCast(Visit(node.WhenFalse), CS.Syntax.ExpressionSyntax))
 
             End Function
 
@@ -2437,7 +2438,7 @@ Namespace VisualBasicToCSharpConverter
                 If node.Expression Is Nothing Then
                     Return ThrowStatement()
                 Else
-                    Return ThrowStatement(Visit(node.Expression))
+                    Return ThrowStatement(DirectCast(Visit(node.Expression), CS.Syntax.ExpressionSyntax))
                 End If
 
             End Function
@@ -2467,7 +2468,7 @@ Namespace VisualBasicToCSharpConverter
 
                     Case VB.SyntaxKind.DocumentationCommentTrivia
 
-                        Return CS.SyntaxFactory.Trivia(VisitDocumentationCommentTrivia(trivia.GetStructure()))
+                        Return CS.SyntaxFactory.Trivia(DirectCast(VisitDocumentationCommentTrivia(DirectCast(trivia.GetStructure(), VB.Syntax.DocumentationCommentTriviaSyntax)), CS.Syntax.StructuredTriviaSyntax))
 
                     Case VB.SyntaxKind.WhitespaceTrivia
 
@@ -2490,7 +2491,7 @@ Namespace VisualBasicToCSharpConverter
 
                 Return TransferTrivia(node, TryStatement(List(VisitCatchBlocks(node.CatchBlocks))) _
                                                 .WithBlock(Block(List(VisitStatements(node.Statements)))) _
-                                                .WithFinally(VisitFinallyBlock(node.FinallyBlock))
+                                                .WithFinally(DirectCast(VisitFinallyBlock(node.FinallyBlock), FinallyClauseSyntax))
                                             )
 
             End Function
@@ -2533,13 +2534,13 @@ Namespace VisualBasicToCSharpConverter
 
             Public Overrides Function VisitTypeConstraint(ByVal node As VB.Syntax.TypeConstraintSyntax) As SyntaxNode
 
-                Return TypeConstraint(Visit(node.Type))
+                Return TypeConstraint(DirectCast(Visit(node.Type), CS.Syntax.TypeSyntax))
 
             End Function
 
             Public Overrides Function VisitTypeOfExpression(node As VB.Syntax.TypeOfExpressionSyntax) As SyntaxNode
 
-                Dim isExpression = BinaryExpression(CS.SyntaxKind.IsExpression, Visit(node.Expression), Visit(node.Type))
+                Dim isExpression = BinaryExpression(CS.SyntaxKind.IsExpression, DirectCast(Visit(node.Expression), CS.Syntax.ExpressionSyntax), DirectCast(Visit(node.Type), CS.Syntax.ExpressionSyntax))
 
                 If node.IsKind(VB.SyntaxKind.TypeOfIsNotExpression) Then
                     Return PrefixUnaryExpression(CS.SyntaxKind.LogicalNotExpression,
@@ -2577,11 +2578,11 @@ Namespace VisualBasicToCSharpConverter
 
             End Function
 
-            Protected Function VisitTypeParameterConstraintClauses(typeParameterListOpt As VB.Syntax.TypeParameterListSyntax) As IEnumerable(Of SyntaxNode)
+            Protected Function VisitTypeParameterConstraintClauses(typeParameterListOpt As VB.Syntax.TypeParameterListSyntax) As IEnumerable(Of CS.Syntax.TypeParameterConstraintClauseSyntax)
 
                 If typeParameterListOpt Is Nothing Then Return Nothing
 
-                Return Visit((From parameter In typeParameterListOpt.Parameters Where parameter.TypeParameterConstraintClause IsNot Nothing Select parameter.TypeParameterConstraintClause))
+                Return Visit((From parameter In typeParameterListOpt.Parameters Where parameter.TypeParameterConstraintClause IsNot Nothing Select parameter.TypeParameterConstraintClause)).Cast(Of CS.Syntax.TypeParameterConstraintClauseSyntax)()
 
             End Function
 
@@ -2603,22 +2604,22 @@ Namespace VisualBasicToCSharpConverter
             End Function
 
             Public Overrides Function VisitModuleStatement(ByVal node As VB.Syntax.ModuleStatementSyntax) As SyntaxNode
-                Dim block As VB.Syntax.ModuleBlockSyntax = node.Parent
+                Dim block As VB.Syntax.ModuleBlockSyntax = DirectCast(node.Parent, ModuleBlockSyntax)
 
                 ' TODO: Rewrite all members in a module to be static.
                 Return TransferTrivia(block, ClassDeclaration(VisitIdentifier(node.Identifier)) _
                                                 .WithAttributeLists(List(VisitAttributeLists(node.AttributeLists))) _
                                                 .WithModifiers(TokenList(VisitModifiers(node.Modifiers))) _
-                                                .WithTypeParameterList(VisitTypeParameterList(node.TypeParameterList)) _
+                                                .WithTypeParameterList(DirectCast(VisitTypeParameterList(node.TypeParameterList), CS.Syntax.TypeParameterListSyntax)) _
                                                 .WithConstraintClauses(List(VisitTypeParameterConstraintClauses(node.TypeParameterList))) _
-                                                .WithMembers(List(Visit(block.Members)))
+                                                .WithMembers(List(VisitMembers(block.Members)))
                                              )
 
             End Function
 
             Public Overrides Function VisitClassStatement(ByVal node As VB.Syntax.ClassStatementSyntax) As SyntaxNode
 
-                Dim block As VB.Syntax.ClassBlockSyntax = node.Parent
+                Dim block As VB.Syntax.ClassBlockSyntax = DirectCast(node.Parent, ClassBlockSyntax)
 
                 Dim bases As CS.Syntax.BaseListSyntax = Nothing
                 If block.Inherits.Count > 0 OrElse block.Implements.Count > 0 Then
@@ -2629,17 +2630,17 @@ Namespace VisualBasicToCSharpConverter
                 Return TransferTrivia(block, ClassDeclaration(VisitIdentifier(node.Identifier)) _
                                                 .WithAttributeLists(List(VisitAttributeLists(node.AttributeLists))) _
                                                 .WithModifiers(TokenList(VisitModifiers(node.Modifiers))) _
-                                                .WithTypeParameterList(VisitTypeParameterList(node.TypeParameterList)) _
+                                                .WithTypeParameterList(DirectCast(VisitTypeParameterList(node.TypeParameterList), CS.Syntax.TypeParameterListSyntax)) _
                                                 .WithBaseList(bases) _
                                                 .WithConstraintClauses(List(VisitTypeParameterConstraintClauses(node.TypeParameterList))) _
-                                                .WithMembers(List(Visit(block.Members)))
+                                                .WithMembers(List(VisitMembers(block.Members)))
                                              )
 
             End Function
 
             Public Overrides Function VisitStructureStatement(ByVal node As VB.Syntax.StructureStatementSyntax) As SyntaxNode
 
-                Dim block As VB.Syntax.StructureBlockSyntax = node.Parent
+                Dim block As VB.Syntax.StructureBlockSyntax = DirectCast(node.Parent, StructureBlockSyntax)
 
                 Dim bases As CS.Syntax.BaseListSyntax = Nothing
                 If block.Inherits.Count > 0 OrElse block.Implements.Count > 0 Then
@@ -2650,17 +2651,17 @@ Namespace VisualBasicToCSharpConverter
                 Return TransferTrivia(block, StructDeclaration(VisitIdentifier(node.Identifier)) _
                                                 .WithAttributeLists(List(VisitAttributeLists(node.AttributeLists))) _
                                                 .WithModifiers(TokenList(VisitModifiers(node.Modifiers))) _
-                                                .WithTypeParameterList(VisitTypeParameterList(node.TypeParameterList)) _
+                                                .WithTypeParameterList(DirectCast(VisitTypeParameterList(node.TypeParameterList), CS.Syntax.TypeParameterListSyntax)) _
                                                 .WithBaseList(bases) _
                                                 .WithConstraintClauses(List(VisitTypeParameterConstraintClauses(node.TypeParameterList))) _
-                                                .WithMembers(List(Visit(block.Members)))
+                                                .WithMembers(List(VisitMembers(block.Members)))
                                         )
 
             End Function
 
             Public Overrides Function VisitInterfaceStatement(ByVal node As VB.Syntax.InterfaceStatementSyntax) As SyntaxNode
 
-                Dim block As VB.Syntax.InterfaceBlockSyntax = node.Parent
+                Dim block As VB.Syntax.InterfaceBlockSyntax = DirectCast(node.Parent, InterfaceBlockSyntax)
 
                 Dim bases As CS.Syntax.BaseListSyntax = Nothing
                 If block.Inherits.Count > 0 Then
@@ -2673,10 +2674,10 @@ Namespace VisualBasicToCSharpConverter
                 Return TransferTrivia(block, InterfaceDeclaration(VisitIdentifier(node.Identifier)) _
                                                 .WithAttributeLists(List(VisitAttributeLists(node.AttributeLists))) _
                                                 .WithModifiers(TokenList(VisitModifiers(node.Modifiers))) _
-                                                .WithTypeParameterList(VisitTypeParameterList(node.TypeParameterList)) _
+                                                .WithTypeParameterList(DirectCast(VisitTypeParameterList(node.TypeParameterList), CS.Syntax.TypeParameterListSyntax)) _
                                                 .WithBaseList(bases) _
                                                 .WithConstraintClauses(List(VisitTypeParameterConstraintClauses(node.TypeParameterList))) _
-                                                .WithMembers(List(Visit(block.Members)))
+                                                .WithMembers(List(VisitMembers(block.Members)))
                                              )
             End Function
 
@@ -2685,16 +2686,16 @@ Namespace VisualBasicToCSharpConverter
                 Select Case node.Kind
                     Case VB.SyntaxKind.UnaryMinusExpression
 
-                        Return PrefixUnaryExpression(CS.SyntaxKind.UnaryMinusExpression, Visit(node.Operand))
+                        Return PrefixUnaryExpression(CS.SyntaxKind.UnaryMinusExpression, DirectCast(Visit(node.Operand), CS.Syntax.ExpressionSyntax))
 
                     Case VB.SyntaxKind.UnaryPlusExpression
 
-                        Return PrefixUnaryExpression(CS.SyntaxKind.UnaryPlusExpression, Visit(node.Operand))
+                        Return PrefixUnaryExpression(CS.SyntaxKind.UnaryPlusExpression, DirectCast(Visit(node.Operand), CS.Syntax.ExpressionSyntax))
 
                     Case VB.SyntaxKind.NotExpression
 
                         ' TODO: Bind expression to determine whether this is a logical or bitwise not expression.
-                        Return PrefixUnaryExpression(CS.SyntaxKind.LogicalNotExpression, Visit(node.Operand))
+                        Return PrefixUnaryExpression(CS.SyntaxKind.LogicalNotExpression, DirectCast(Visit(node.Operand), CS.Syntax.ExpressionSyntax))
 
                     Case VB.SyntaxKind.AddressOfExpression
 
@@ -2714,13 +2715,13 @@ Namespace VisualBasicToCSharpConverter
 
             Public Overrides Function VisitUsingStatement(node As VB.Syntax.UsingStatementSyntax) As SyntaxNode
 
-                Dim usingBlock As VB.Syntax.UsingBlockSyntax = node.Parent
+                Dim usingBlock As VB.Syntax.UsingBlockSyntax = DirectCast(node.Parent, UsingBlockSyntax)
 
                 Dim body As CS.Syntax.StatementSyntax = Block(List(VisitStatements(usingBlock.Statements)))
 
                 If node.Expression IsNot Nothing Then
 
-                    Return TransferTrivia(usingBlock, UsingStatement(body).WithExpression(Visit(node.Expression)))
+                    Return TransferTrivia(usingBlock, UsingStatement(body).WithExpression(DirectCast(Visit(node.Expression), CS.Syntax.ExpressionSyntax)))
 
                 Else
 
@@ -2758,7 +2759,7 @@ Namespace VisualBasicToCSharpConverter
                 ' initialization.
                 Select Case declarator.Parent.Kind
                     Case VB.SyntaxKind.FieldDeclaration
-                        Dim field As VB.Syntax.FieldDeclarationSyntax = declarator.Parent
+                        Dim field As VB.Syntax.FieldDeclarationSyntax = DirectCast(declarator.Parent, VB.Syntax.FieldDeclarationSyntax)
 
                         Return From v In declarator.Names Select FieldDeclaration(
                                                                      VariableDeclaration(
@@ -2772,7 +2773,7 @@ Namespace VisualBasicToCSharpConverter
                                                                  ).WithAttributeLists(List(VisitAttributeLists(field.AttributeLists))) _
                                                                   .WithModifiers(TokenList(VisitModifiers(field.Modifiers)))
                     Case VB.SyntaxKind.LocalDeclarationStatement
-                        Dim local As VB.Syntax.LocalDeclarationStatementSyntax = declarator.Parent
+                        Dim local As VB.Syntax.LocalDeclarationStatementSyntax = DirectCast(declarator.Parent, VB.Syntax.LocalDeclarationStatementSyntax)
 
                         Return From v In declarator.Names Select LocalDeclarationStatement(
                                                                      VariableDeclaration(
@@ -2797,7 +2798,7 @@ Namespace VisualBasicToCSharpConverter
 
             Public Overrides Function VisitWhereClause(node As VB.Syntax.WhereClauseSyntax) As SyntaxNode
 
-                Return WhereClause(Visit(node.Condition))
+                Return WhereClause(DirectCast(Visit(node.Condition), CS.Syntax.ExpressionSyntax))
 
             End Function
 
@@ -2809,9 +2810,9 @@ Namespace VisualBasicToCSharpConverter
 
             Public Overrides Function VisitWhileStatement(node As VB.Syntax.WhileStatementSyntax) As SyntaxNode
 
-                Dim whileBlock As VB.Syntax.WhileBlockSyntax = node.Parent
+                Dim whileBlock As VB.Syntax.WhileBlockSyntax = DirectCast(node.Parent, WhileBlockSyntax)
 
-                Return TransferTrivia(node, WhileStatement(Visit(node.Condition), Block(List(VisitStatements(whileBlock.Statements)))))
+                Return TransferTrivia(node, WhileStatement(DirectCast(Visit(node.Condition), CS.Syntax.ExpressionSyntax), Block(List(VisitStatements(whileBlock.Statements)))))
 
             End Function
 
@@ -2823,7 +2824,7 @@ Namespace VisualBasicToCSharpConverter
                     Return Visit(node.Condition)
                 Else
                     ' TODO: Invert conditionals if possible on comparison expressions to avoid wrapping this in a !expression.
-                    Return PrefixUnaryExpression(CS.SyntaxKind.LogicalNotExpression, ParenthesizedExpression(Visit(node.Condition)))
+                    Return PrefixUnaryExpression(CS.SyntaxKind.LogicalNotExpression, ParenthesizedExpression(DirectCast(Visit(node.Condition), CS.Syntax.ExpressionSyntax)))
                 End If
 
             End Function
