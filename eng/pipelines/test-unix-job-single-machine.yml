@@ -95,12 +95,13 @@ jobs:
       env:
         ROSLYN_TEST_SKIP_STORE: $(Agent.TempDirectory)/testskipstore
         ROSLYN_TEST_SKIP_FORCE_RUN: $(ForceTests)
+        ROSLYN_TEST_SKIP_TIMEOUT_MINUTES: $(SingleMachineTestTimeoutMinutes)
 
     # Persist the updated PASS store only when the whole leg (tests included) was green. This is the
     # authoritative soundness gate: a failed leg publishes nothing, so its assemblies re-run next time.
     - task: PublishPipelineArtifact@1
       displayName: Publish test-skip store
-      condition: succeeded()
+      condition: succeededOrFailed()
       inputs:
         targetPath: $(Agent.TempDirectory)/testskipstore
         artifact: testskip-$(TestSkipStoreGeneration)-${{ parameters.jobName }}

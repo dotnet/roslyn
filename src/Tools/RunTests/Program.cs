@@ -173,7 +173,10 @@ namespace RunTests
 
             ConsoleUtil.WriteLine($"Proc dump location: {options.ProcDumpFilePath}");
 
-            var result = await testRunner.RunAllAsync(toRun, cancellationToken).ConfigureAwait(true);
+            var result = await testRunner.RunAllAsync(
+                toRun,
+                cancellationToken,
+                passedAssemblies => TestSkip.RecordPasses(passedAssemblies, fingerprints, options)).ConfigureAwait(true);
             var elapsed = DateTime.Now - start;
 
             ConsoleUtil.WriteLine($"Test execution time: {elapsed}");
@@ -188,7 +191,6 @@ namespace RunTests
                 return ExitFailure;
             }
 
-            TestSkip.RecordPasses(toRun, fingerprints, options);
             ConsoleUtil.WriteLine($"All tests passed");
             return ExitSuccess;
         }

@@ -223,6 +223,13 @@ namespace RunTests
             }
 
             testSkipStore ??= Environment.GetEnvironmentVariable("ROSLYN_TEST_SKIP_STORE");
+            if (int.TryParse(
+                Environment.GetEnvironmentVariable("ROSLYN_TEST_SKIP_TIMEOUT_MINUTES"),
+                out var testSkipTimeoutMinutes) &&
+                testSkipTimeoutMinutes > 0)
+            {
+                timeout = testSkipTimeoutMinutes;
+            }
 
             artifactsPath ??= TryGetArtifactsPath();
             if (artifactsPath is null || !Directory.Exists(artifactsPath))

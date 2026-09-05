@@ -69,7 +69,10 @@ namespace RunTests
             return workItems.ToImmutableArray();
         }
 
-        internal async Task<RunAllResult> RunAllAsync(ImmutableArray<AssemblyInfo> assemblies, CancellationToken cancellationToken)
+        internal async Task<RunAllResult> RunAllAsync(
+            ImmutableArray<AssemblyInfo> assemblies,
+            CancellationToken cancellationToken,
+            Action<ImmutableArray<AssemblyInfo>>? onAssembliesPassed = null)
         {
             // Use 1.5 times the number of processors for unit tests, but only 1 processor for the open integration tests
             // since they perform actual UI operations (such as mouse clicks and sending keystrokes) and we don't want two
@@ -111,6 +114,10 @@ namespace RunTests
                                         }
                                     }
                                 }
+                            }
+                            else
+                            {
+                                onAssembliesPassed?.Invoke(testResult.WorkItemInfo.Filters.Keys.ToImmutableArray());
                             }
 
                             completed.Add(testResult);
