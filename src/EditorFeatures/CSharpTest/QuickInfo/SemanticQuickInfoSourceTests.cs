@@ -10121,9 +10121,9 @@ AnonymousTypes(
                     private string Goo() => s;
                 }
 
-            #nullable enable
                 static void M()
                 {
+            #nullable enable
                     "".$$Goo();
                 }
             }
