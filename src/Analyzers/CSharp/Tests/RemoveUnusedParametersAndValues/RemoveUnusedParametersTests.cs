@@ -1861,7 +1861,7 @@ public sealed class RemoveUnusedParametersTests : AbstractCSharpDiagnosticProvid
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76578")]
-    public Task TestInterpolatedStringHandlerArgumentAttribute()
+    public Task TestInterpolatedStringHandlerArgumentAttribute_SingleArgument()
         => TestDiagnosticMissingAsync("""
             using System.Runtime.CompilerServices;
 
@@ -1879,6 +1879,30 @@ public sealed class RemoveUnusedParametersTests : AbstractCSharpDiagnosticProvid
                 public void M(bool x, [InterpolatedStringHandlerArgument(nameof(x))] MyInterpolatedStringHandler y)
                 {
                     _ = y;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76578")]
+    public Task TestInterpolatedStringHandlerArgumentAttribute_MultipleArguments()
+        => TestDiagnosticMissingAsync("""
+            using System.Runtime.CompilerServices;
+
+            [InterpolatedStringHandler]
+            public struct MyInterpolatedStringHandler
+            {
+                public MyInterpolatedStringHandler(int literalLength, int formattedCount, bool x, bool y)
+                {
+                    _ = x;
+                    _ = y;
+                }
+            }
+
+            public class C
+            {
+                public void M(bool x, bool y, [InterpolatedStringHandlerArgument(nameof(x), nameof(y))] MyInterpolatedStringHandler z)
+                {
+                    _ = z;
                 }
             }
             """);
