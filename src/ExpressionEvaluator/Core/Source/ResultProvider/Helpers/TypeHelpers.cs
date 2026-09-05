@@ -628,7 +628,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// </summary>
         internal static DkmCustomUIVisualizerInfo[] GetDebuggerCustomUIVisualizerInfo(this DkmClrType type)
         {
-            var builder = ArrayBuilder<DkmCustomUIVisualizerInfo>.GetInstance();
+            // NOTE: Using a Dictionary since Hashset is not available in .net 2.0
+            var uniqueVisualizers = new Dictionary<DkmCustomUIVisualizerInfo, object>(DkmCustomUIVisualizerInfoComparer.Instance);
 
             var appDomain = type.AppDomain;
             var underlyingType = type.GetLmrType();
@@ -642,7 +643,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         continue;
                     }
 
-                    builder.Add(DkmCustomUIVisualizerInfo.Create((uint)builder.Count,
+                    DkmCustomUIVisualizerInfo visualizerInfo = DkmCustomUIVisualizerInfo.Create((uint)uniqueVisualizers.Count,
                         visualizerAttribute.VisualizerDescription,
                         visualizerAttribute.VisualizerDescription,
                         // ClrCustomVisualizerVSHost is a registry entry that specifies the CLSID of the
@@ -653,14 +654,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         visualizerAttribute.UISideVisualizerAssemblyLocation,
                         visualizerAttribute.DebuggeeSideVisualizerTypeName,
                         visualizerAttribute.DebuggeeSideVisualizerAssemblyName,
-                        visualizerAttribute.ExtensionPartId));
+                        visualizerAttribute.ExtensionPartId);
+
+                    if (!uniqueVisualizers.ContainsKey(visualizerInfo))
+                    {
+                        uniqueVisualizers.Add(visualizerInfo, null);
+                    }
                 }
 
                 underlyingType = underlyingType.GetBaseTypeOrNull(appDomain, out type);
             }
 
-            var result = (builder.Count > 0) ? builder.ToArray() : null;
-            builder.Free();
+            var result = (uniqueVisualizers.Count > 0) ? uniqueVisualizers.Keys.ToArray() : null;
             return result;
         }
 
