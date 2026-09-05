@@ -1860,6 +1860,29 @@ public sealed class RemoveUnusedParametersTests : AbstractCSharpDiagnosticProvid
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76578")]
+    public Task TestInterpolatedStringHandlerArgument()
+        => TestDiagnosticMissingAsync("""
+            using System.Runtime.CompilerServices;
+
+            [InterpolatedStringHandler]
+            public struct MyInterpolatedStringHandler
+            {
+                public MyInterpolatedStringHandler(int literalLength, int formattedCount, bool x)
+                {
+                    _ = x;
+                }
+            }
+
+            public class C
+            {
+                public void M(bool x, [InterpolatedStringHandlerArgument(nameof(x))] MyInterpolatedStringHandler y)
+                {
+                    _ = y;
+                }
+            }
+            """);
+
     public static IEnumerable<object[]> NonIntTypes()
     {
         yield return ["byte"];
