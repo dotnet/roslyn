@@ -127,7 +127,7 @@ class Outer
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80648")>
-        Public Async Function TestIsAccessibleWithin_PrivateExtensionMemberFromOtherType() As Task
+        Public Async Function TestIsAccessibleWithin_PrivateExtensionMember_FromOtherType() As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true" LanguageVersion="preview">

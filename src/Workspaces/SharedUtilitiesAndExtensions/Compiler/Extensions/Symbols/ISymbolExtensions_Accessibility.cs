@@ -333,10 +333,8 @@ internal static partial class ISymbolExtensions
     // enclosing static type.  Keep in sync with AccessCheck.IsMemberAccessible in the compiler.
     private static INamedTypeSymbol GetDeclaringTypeForAccessibility(INamedTypeSymbol containingType)
 #if !OLDER_ROSLYN
-        => containingType is { IsExtension: true, ContainingType: { } enclosingType } ? enclosingType : containingType;
+        => containingType is { IsExtension: true, ContainingType: { } extensionEnclosingType } ? extensionEnclosingType : containingType;
 #else
-        // Extension blocks cannot be represented in the Roslyn version these projects build against, so there is
-        // never anything to redirect here.
         => containingType;
 #endif
 

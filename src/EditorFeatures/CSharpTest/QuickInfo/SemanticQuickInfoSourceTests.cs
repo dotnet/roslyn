@@ -10106,7 +10106,7 @@ AnonymousTypes(
                 }
             }
             """,
-            MainDescription("string extension<string>(string).Goo()"),
+            MainDescription($"string extension<string>(string).Goo()"),
             NullabilityAnalysis(""));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80648")]
@@ -10128,7 +10128,7 @@ AnonymousTypes(
                 }
             }
             """,
-            MainDescription("string extension(string).Goo()"),
+            MainDescription($"string extension(string).Goo()"),
             NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_nullable_aware, "Goo")));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72780")]
