@@ -267,9 +267,14 @@ internal static partial class ISymbolExtensions
 
         // For the purpose of accessibility checks, extension members are considered to be declared within the
         // enclosing static type.  Keep in sync with AccessCheck.IsMemberAccessible in the compiler.
+#if !OLDER_ROSLYN
         var declaringType = containingType.IsExtension && containingType.ContainingType is { } extensionEnclosingType
             ? extensionEnclosingType
             : containingType;
+#else
+        // Extension blocks cannot be represented in the Roslyn version these projects build against.
+        var declaringType = containingType;
+#endif
 
         var originalContainingType = declaringType.OriginalDefinition;
 
