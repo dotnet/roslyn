@@ -68,8 +68,15 @@ internal sealed partial class CSharpProjectShim : AbstractLegacyProject, ICodeMo
         this.ProjectCodeModel = componentModel.GetService<IProjectCodeModelFactory>().CreateProjectCodeModel(ProjectSystemProject.Id, this);
         this.ProjectSystemProjectOptionsProcessor = new OptionsProcessor(this.ProjectSystemProject, Workspace.Services.SolutionServices);
 
-        // Ensure the default options are set up
-        ResetAllOptions();
+        // Ensure the default options are set up. Each option assignment in ResetAllOptions can
+        // trigger a synchronous apply of the project to the workspace, and each such apply blocks
+        // the calling (UI) thread on the project system's apply lock. Batching them so the whole
+        // set of defaults is applied as a single workspace update avoids those repeated synchronous
+        // applies during project creation.
+        using (ProjectSystemProject.CreateBatchScope())
+        {
+            ResetAllOptions();
+        }
     }
 
     public override void Disconnect()
