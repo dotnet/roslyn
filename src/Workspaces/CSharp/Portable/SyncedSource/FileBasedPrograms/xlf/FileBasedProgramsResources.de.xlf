@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="InvalidDirectiveMetadata">
         <source>Directive metadata must be in the form 'Name=Value'. Invalid metadata: '{0}'.</source>
-        <target state="new">Directive metadata must be in the form 'Name=Value'. Invalid metadata: '{0}'.</target>
+        <target state="translated">Direktivenmetadaten müssen das Format 'Name=Value' aufweisen. Ungültige Metadaten: '{0}'.</target>
         <note>{Locked="'Name=Value'"}{0} is the offending metadata text.</note>
       </trans-unit>
       <trans-unit id="InvalidDirectiveName">
@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="InvalidQuoteInDirective">
         <source>Double quotes (") in a directive must enclose an entire value, for example: 'Name="a b"' or '"a b"'.</source>
-        <target state="new">Double quotes (") in a directive must enclose an entire value, for example: 'Name="a b"' or '"a b"'.</target>
+        <target state="translated">Doppelte Anführungszeichen (") in einer Direktive müssen einen ganzen Wert einschließen, z. B. 'Name="a b"' oder '"a b"'.</target>
         <note>{Locked="Name="a b""}{Locked=""a b""}</note>
       </trans-unit>
       <trans-unit id="InvalidRefDirective">
