@@ -43,8 +43,6 @@ internal sealed class SolutionChecksumUpdater : IDisposable
 
     private const string SynchronizeTextChangesStatusSucceededMetricName = "SucceededCount";
     private const string SynchronizeTextChangesStatusFailedMetricName = "FailedCount";
-    private const string SynchronizeTextChangesStatusSucceededKeyName = nameof(SolutionChecksumUpdater) + "." + SynchronizeTextChangesStatusSucceededMetricName;
-    private const string SynchronizeTextChangesStatusFailedKeyName = nameof(SolutionChecksumUpdater) + "." + SynchronizeTextChangesStatusFailedMetricName;
 
     public SolutionChecksumUpdater(
         Workspace workspace,
@@ -192,14 +190,7 @@ internal sealed class SolutionChecksumUpdater : IDisposable
 
         // Update aggregated telemetry with success status of sending the synchronization data.
         var metricName = wasSynchronized.Value ? SynchronizeTextChangesStatusSucceededMetricName : SynchronizeTextChangesStatusFailedMetricName;
-        var keyName = wasSynchronized.Value ? SynchronizeTextChangesStatusSucceededKeyName : SynchronizeTextChangesStatusFailedKeyName;
-        TelemetryLogging.LogAggregatedCounter(FunctionId.ChecksumUpdater_SynchronizeTextChangesStatus, KeyValueLogMessage.Create(static (m, args) =>
-        {
-            var (keyName, metricName) = args;
-            m[TelemetryLogging.KeyName] = keyName;
-            m[TelemetryLogging.KeyValue] = 1L;
-            m[TelemetryLogging.KeyMetricName] = metricName;
-        }, (keyName, metricName)));
+        RoslynTelemetry.Count(FunctionId.ChecksumUpdater_SynchronizeTextChangesStatus, metricName, 1);
 
         return;
 
