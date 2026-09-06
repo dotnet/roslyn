@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="InvalidDirectiveMetadata">
         <source>Directive metadata must be in the form 'Name=Value'. Invalid metadata: '{0}'.</source>
-        <target state="new">Directive metadata must be in the form 'Name=Value'. Invalid metadata: '{0}'.</target>
+        <target state="translated">ディレクティブ メタデータは 'Name=Value' の形式にする必要があります。無効なメタデータ: '{0}'。</target>
         <note>{Locked="'Name=Value'"}{0} is the offending metadata text.</note>
       </trans-unit>
       <trans-unit id="InvalidDirectiveName">

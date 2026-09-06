@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="DuplicateDirectiveMetadata">
         <source>Directive metadata name '{0}' is specified more than once.</source>
-        <target state="new">Directive metadata name '{0}' is specified more than once.</target>
+        <target state="translated">'{0}' yönerge meta veri adı birden çok kez belirtildi.</target>
         <note>{0} is the duplicate metadata name.</note>
       </trans-unit>
       <trans-unit id="EmptyTempPath">
@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="InvalidDirectiveMetadata">
         <source>Directive metadata must be in the form 'Name=Value'. Invalid metadata: '{0}'.</source>
-        <target state="new">Directive metadata must be in the form 'Name=Value'. Invalid metadata: '{0}'.</target>
+        <target state="translated">Yönerge meta verileri 'Name=Value' biçiminde olmalıdır. Meta veriler geçersiz: '{0}'.</target>
         <note>{Locked="'Name=Value'"}{0} is the offending metadata text.</note>
       </trans-unit>
       <trans-unit id="InvalidDirectiveName">
@@ -144,7 +144,7 @@
       </trans-unit>
       <trans-unit id="UnexpectedDirectiveText">
         <source>The '{0}' directive has unexpected content. To include whitespace in a value, enclose it in double quotes (").</source>
-        <target state="new">The '{0}' directive has unexpected content. To include whitespace in a value, enclose it in double quotes (").</target>
+        <target state="translated">'{0}' yönergesinde beklenmeyen içerik var. Bir değere boşluk eklemek için, değeri çift tırnak (") içine alın.</target>
         <note>{0} is the directive kind like 'property' or 'sdk'.</note>
       </trans-unit>
       <trans-unit id="UnrecognizedDirective">
