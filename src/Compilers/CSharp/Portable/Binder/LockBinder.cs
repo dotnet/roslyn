@@ -43,10 +43,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (exprType is null)
             {
-                if (expr.ConstantValueOpt != ConstantValue.Null || Compilation.FeatureStrictEnabled) // Dev10 allows the null literal.
+                var isNullConstant = expr.ConstantValueOpt == ConstantValue.Null;
+
+                if (!isNullConstant || Compilation.FeatureStrictEnabled) // Dev10 allows the null literal.
                 {
                     Error(diagnostics, ErrorCode.ERR_LockNeedsReference, exprSyntax, expr.Display);
                     hasErrors = true;
+                }
+                else if (isNullConstant)
+                {
+                    // If we are in a legacy mode, also produce a conversion from 'null' to object type
+                    // so that nullability analysis can report that as a null dereference
+                    expr = CreateConversion(expr, Compilation.ObjectType, diagnostics);
                 }
             }
             else if (!exprType.IsReferenceType && (exprType.IsValueType || Compilation.FeatureStrictEnabled))

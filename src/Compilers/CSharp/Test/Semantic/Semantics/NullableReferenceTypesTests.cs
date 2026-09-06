@@ -1095,6 +1095,70 @@ class C
                 );
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76597")]
+        public void LockStatement_Null_LegacyBehavior()
+        {
+            var comp = CreateCompilation("""
+                class C
+                {
+                    void M()
+                    {
+                        lock (null)
+                        {
+                        }
+                    }
+                }
+                """, options: WithNullableEnable());
+            comp.VerifyDiagnostics(
+                // (5,15): warning CS8602: Dereference of a possibly null reference.
+                //         lock (null)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "null").WithLocation(5, 15));
+
+            var tree = comp.SyntaxTrees.Single();
+            var semanticModel = comp.GetSemanticModel(tree);
+
+            var lockNode = tree.GetRoot().DescendantNodes().OfType<LockStatementSyntax>().Single();
+
+            var lockExpressionTypeInfo = semanticModel.GetTypeInfo(lockNode.Expression);
+            Assert.Null(lockExpressionTypeInfo.Type);
+            Assert.Equal("System.Object?", lockExpressionTypeInfo.ConvertedType.ToTestDisplayString());
+
+            var lockExpressionConversion = semanticModel.GetConversion(lockNode.Expression);
+            Assert.Equal(Conversion.ImplicitReference, lockExpressionConversion);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76597")]
+        public void LockStatement_Null_Strict()
+        {
+            var comp = CreateCompilation("""
+                class C
+                {
+                    void M()
+                    {
+                        lock (null)
+                        {
+                        }
+                    }
+                }
+                """, parseOptions: TestOptions.Regular.WithStrictFeature(), options: WithNullableEnable());
+            comp.VerifyDiagnostics(
+                // (5,15): error CS0185: '<null>' is not a reference type as required by the lock statement
+                //         lock (null)
+                Diagnostic(ErrorCode.ERR_LockNeedsReference, "null").WithArguments("<null>").WithLocation(5, 15));
+
+            var tree = comp.SyntaxTrees.Single();
+            var semanticModel = comp.GetSemanticModel(tree);
+
+            var lockNode = tree.GetRoot().DescendantNodes().OfType<LockStatementSyntax>().Single();
+
+            var lockExpressionTypeInfo = semanticModel.GetTypeInfo(lockNode.Expression);
+            Assert.Null(lockExpressionTypeInfo.Type);
+            Assert.Null(lockExpressionTypeInfo.ConvertedType);
+
+            var lockExpressionConversion = semanticModel.GetConversion(lockNode.Expression);
+            Assert.Equal(Conversion.Identity, lockExpressionConversion);
+        }
+
         [Fact, WorkItem(33537, "https://github.com/dotnet/roslyn/issues/33537")]
         public void SuppressOnNullLiteralInAs()
         {
