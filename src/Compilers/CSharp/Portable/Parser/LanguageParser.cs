@@ -1691,37 +1691,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     var modifier = GetModifierExcludingScoped(this.CurrentToken);
 
-                    if (modifier != DeclarationModifiers.None)
+                    // Case 1: No modifier-like token remains, so the current token must start the member itself.
+                    if (modifier == DeclarationModifiers.None)
+                        return isMemberDeclarationStart();
+
+                    // Case 2: A non-contextual modifier token cannot be the name of a member returning
+                    // 'partial', so its presence proves that the initial 'partial' is a modifier.
+                    if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
+                        return true;
+
+                    // Case 3: Another contextual 'partial' needs special handling for partial constructors
+                    // and repeated modifier chains.
+                    if (modifier == DeclarationModifiers.Partial)
                     {
-                        // A non-contextual modifier token cannot be the name of a member returning
-                        // 'partial', so its presence proves that the initial 'partial' is a modifier.
-                        if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
+                        // The current token is a second 'partial' modifier before a constructor name,
+                        // as in 'partial partial C()'.
+                        if (isCurrentTokenPartialModifierBeforeConstructorName())
                             return true;
 
-                        if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
+                        // Process longer modifier chains one token at a time rather than recursively
+                        // scanning each 'partial' as a possible type.
+                        if (this.PeekToken(1).ContextualKind == SyntaxKind.PartialKeyword)
                         {
-                            // In C# 14, prefer the duplicate-modifier constructor interpretation of
-                            // 'partial partial C()' over treating the second 'partial' as a return type.
-                            if (canStartPartialConstructor(peekIndex: 1))
-                                return true;
-
-                            // Process longer modifier chains one token at a time rather than recursively
-                            // scanning each 'partial' as a possible type.
-                            if (this.PeekToken(1).ContextualKind == SyntaxKind.PartialKeyword)
-                            {
-                                this.EatToken();
-                                continue;
-                            }
+                            this.EatToken();
+                            continue;
                         }
                     }
 
-                    // A contextual modifier may instead start the member's return type, such as
-                    // 'async' in 'partial async M()'.
+                    // Case 4: Any contextual modifier may instead be the member's return type, such as 'async'
+                    // in 'partial async M()'.
                     if (isMemberDeclarationStart())
                         return true;
-
-                    if (modifier == DeclarationModifiers.None)
-                        return false;
 
                     this.EatToken();
                 }
@@ -1739,22 +1739,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (this.CurrentToken.Kind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword)
                     return true;
 
-                // Before partial constructors, 'partial C()' is a method returning 'partial'. Only prefer
-                // the constructor interpretation when the feature is enabled.
-                if (canStartPartialConstructor(peekIndex: 0))
+                // The current token is the constructor name after the initial 'partial' modifier,
+                // as in 'partial C()'.
+                if (isCurrentTokenPartialConstructorName())
                     return true;
 
                 // Otherwise, require a return type followed by a member name, as in 'partial int M()'.
                 return this.IsTypeFollowedByMemberName();
             }
 
-            // The surrounding checks establish the preceding 'partial' modifier. This returns true only
-            // when partial constructors are enabled and the following tokens can start the constructor.
-            bool canStartPartialConstructor(int peekIndex)
+            bool isCurrentTokenPartialModifierBeforeConstructorName()
             {
+                Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
+
+                // With partial constructors enabled, the current 'partial' is another modifier before
+                // the constructor name. In earlier versions, it is instead the member's return type.
                 return IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors) &&
-                    this.PeekToken(peekIndex).Kind == SyntaxKind.IdentifierToken &&
-                    this.PeekToken(peekIndex + 1).Kind == SyntaxKind.OpenParenToken;
+                    this.PeekToken(1).Kind == SyntaxKind.IdentifierToken &&
+                    this.PeekToken(2).Kind == SyntaxKind.OpenParenToken;
+            }
+
+            bool isCurrentTokenPartialConstructorName()
+            {
+                // Before partial constructors, the initial 'partial' is the return type and the current
+                // identifier is the member name.
+                return IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors) &&
+                    this.CurrentToken.Kind == SyntaxKind.IdentifierToken &&
+                    this.PeekToken(1).Kind == SyntaxKind.OpenParenToken;
             }
         }
 
