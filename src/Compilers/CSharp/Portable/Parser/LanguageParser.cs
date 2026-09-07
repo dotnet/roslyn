@@ -1710,15 +1710,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         if (isPartialConstructorName(peekIndex: 1))
                             return true;
 
-                        // Do not call isMemberDeclarationStart() for consecutive 'partial' tokens. It
-                        // reaches IsTypeFollowedByMemberName(), which scans the current 'partial' as a
-                        // possible type and reenters IsCurrentTokenDefinitelyPartialModifier(). Consume
-                        // one token here so long modifier chains are processed iteratively.
-                        if (this.PeekToken(1).ContextualKind == SyntaxKind.PartialKeyword)
-                        {
-                            this.EatToken();
-                            continue;
-                        }
                     }
 
                     // Case 4: Any contextual modifier may instead be the member's return type, such as 'async'
