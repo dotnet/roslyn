@@ -219,6 +219,10 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
     protected abstract Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken);
 
+    protected virtual ValueTask OnProjectLoadedAsync(
+        string projectPath, RemoteProjectLoadResult projectLoadResult, CancellationToken cancellationToken)
+        => ValueTask.CompletedTask;
+
     protected virtual async Task<(ImmutableArray<ProjectFileInfo>, ProjectSystemProjectFactory)?> TryLoadProjectFromCacheAsync(string projectPath, CancellationToken cancellationToken)
         => null;
 
@@ -294,6 +298,8 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
                 isMiscellaneousFile: remoteProjectLoadResult.IsMiscellaneousFile,
                 isFileBasedProgram: remoteProjectLoadResult.IsFileBasedProgram,
                 hasFileBasedAppDirectives: remoteProjectLoadResult.HasFileBasedAppDirectives);
+
+            await OnProjectLoadedAsync(projectPath, remoteProjectLoadResult, cancellationToken);
 
             if (diagnosticLogItems.Any())
             {

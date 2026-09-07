@@ -154,6 +154,8 @@ We are adding support for an `#:include` directive to file-based apps, which let
 - `App2.cs`, a file-based app entry point also containing `#:include Util.cs`
 - `MyProject.csproj`, also containing `<Compile Include="Util.cs" />`
 
+The language server loads file-based apps referenced by `#:ref` into the same host-workspace solution as their entry points.
+
 Because all these projects are simply added as projects to the host workspace, it's expected that features like "active project context" and multi-targeting-aware Quick Info "just work" with all of them.
 
 One key assumption we are making is: it is not valid for a file-based app *entry point* to be a member of an ordinary project. For example, you cannot have the following:

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -70,14 +69,15 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
 
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
         var tempDir = CreateTempDirectoryWithGlobalJson();
-        tempDir.CreateFile("Util.cs").WriteAllText("""
+        var utilSourceText = """
             #:property TargetFramework=net10.0
             #:property OutputType=Library
             public static class Util
             {
                 public static string M() => "Util";
             }
-            """);
+            """;
+        var utilFile = tempDir.CreateFile("Util.cs").WriteAllText(utilSourceText);
         var sourceText = """
             #:property TargetFramework=net10.0
             #:property ExperimentalFileBasedProgramEnableRefDirective=true
@@ -86,26 +86,202 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
             """;
         var sourceFile = tempDir.CreateFile("SomeFile.cs").WriteAllText(sourceText);
 
-        // Until we can discover the `#:ref`erenced project, build it so it works as metadata reference.
-        var dotnetCliHelper = testLspServer.GetRequiredLspService<DotnetCliHelper>();
-        using (var process = dotnetCliHelper.Run(["build", sourceFile.Path], workingDirectory: tempDir.Path, shouldLocalizeOutput: true))
-        {
-            var sb = new StringBuilder();
-            process.OutputDataReceived += (sender, args) => sb.AppendLine($"> {args.Data}");
-            process.ErrorDataReceived += (sender, args) => sb.AppendLine($"! {args.Data}");
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-            await process.WaitForExitAsync();
-            Assert.True(process.ExitCode == 0, sb.ToString());
-        }
-
         var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceFile.Path);
         await testLspServer.OpenDocumentAsync(looseFileUri, sourceText).ConfigureAwait(false);
         await WaitForProjectLoad(looseFileUri, testLspServer);
         var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
-        Assert.NotEmpty(document.Project.MetadataReferences);
+        var referencedProject = Assert.Single(workspace.CurrentSolution.Projects, project => project.FilePath == utilFile.Path);
+        var projectReference = Assert.Single(document.Project.ProjectReferences);
+        Assert.Equal(referencedProject.Id, projectReference.ProjectId);
+
+        var root = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
         var model = await document.GetRequiredSemanticModelAsync(CancellationToken.None);
-        model.GetDiagnostics().Verify();
+        var utilName = root.FindToken(sourceText.IndexOf("Util.M()", StringComparison.Ordinal)).Parent;
+        Assert.NotNull(utilName);
+        Assert.Equal("Util", model.GetSymbolInfo(utilName).Symbol?.Name);
+
+        var utilFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(utilFile.Path);
+        await testLspServer.OpenDocumentAsync(utilFileUri, utilSourceText.Replace(" M()", " N()", StringComparison.Ordinal)).ConfigureAwait(false);
+
+        (_, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
+        model = await document.GetRequiredSemanticModelAsync(CancellationToken.None);
+        Assert.Contains(model.GetDiagnostics(), diagnostic => diagnostic.Id == "CS0117");
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestFileBasedProgram_RefDirective_TransitiveSharedGraphAndUnload(bool mutatingLspWorkspace)
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
+        });
+
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+        var tempDir = CreateTempDirectoryWithGlobalJson();
+        var commonFile = tempDir.CreateFile("Common.cs").WriteAllText("""
+            #:property TargetFramework=net10.0
+            #:property OutputType=Library
+            public static class Common
+            {
+                public static string Value => "Common";
+            }
+            """);
+        var leftFile = tempDir.CreateFile("Left.cs").WriteAllText("""
+            #:property TargetFramework=net10.0
+            #:property OutputType=Library
+            #:property ExperimentalFileBasedProgramEnableRefDirective=true
+            #:ref Common.cs
+            public static class Left
+            {
+                public static string M() => Common.Value;
+            }
+            """);
+        var rightFile = tempDir.CreateFile("Right.cs").WriteAllText("""
+            #:property TargetFramework=net10.0
+            #:property OutputType=Library
+            #:property ExperimentalFileBasedProgramEnableRefDirective=true
+            #:ref Common.cs
+            public static class Right
+            {
+                public static string M() => Common.Value;
+            }
+            """);
+        var sourceText = """
+            #:property TargetFramework=net10.0
+            #:property ExperimentalFileBasedProgramEnableRefDirective=true
+            #:ref Left.cs
+            #:ref Right.cs
+            Console.WriteLine($"{Left.M()} {Right.M()}");
+            """;
+        var sourceFile = tempDir.CreateFile("App.cs").WriteAllText(sourceText);
+
+        var sourceFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceFile.Path);
+        await testLspServer.OpenDocumentAsync(sourceFileUri, sourceText).ConfigureAwait(false);
+        await WaitForProjectLoad(sourceFileUri, testLspServer);
+
+        var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(sourceFileUri, testLspServer).ConfigureAwait(false);
+        var projectsByPath = workspace.CurrentSolution.Projects.ToDictionary(project => project.FilePath!, PathUtilities.Comparer);
+        Assert.Equal(4, projectsByPath.Count);
+
+        var leftProject = projectsByPath[leftFile.Path];
+        var rightProject = projectsByPath[rightFile.Path];
+        var commonProject = projectsByPath[commonFile.Path];
+        Assert.Contains(document.Project.ProjectReferences, reference => reference.ProjectId == leftProject.Id);
+        Assert.Contains(document.Project.ProjectReferences, reference => reference.ProjectId == rightProject.Id);
+        Assert.Equal(commonProject.Id, Assert.Single(leftProject.ProjectReferences).ProjectId);
+        Assert.Equal(commonProject.Id, Assert.Single(rightProject.ProjectReferences).ProjectId);
+
+        await testLspServer.CloseDocumentAsync(sourceFileUri);
+        Assert.Empty(workspace.CurrentSolution.Projects);
+    }
+
+    [ConditionalTheory(typeof(WindowsOnly), Reason = "FileSystemWatcher (inotify) does not reliably detect file changes on Linux")]
+    [CombinatorialData]
+    public async Task TestFileBasedProgram_RefDirective_Removed(bool mutatingLspWorkspace)
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
+        });
+
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+        var tempDir = CreateTempDirectoryWithGlobalJson();
+        var utilFile = tempDir.CreateFile("Util.cs").WriteAllText("""
+            #:property TargetFramework=net10.0
+            #:property OutputType=Library
+            public static class Util
+            {
+                public static void M() { }
+            }
+            """);
+        var sourceText = """
+            #:property TargetFramework=net10.0
+            #:property ExperimentalFileBasedProgramEnableRefDirective=true
+            #:ref Util.cs
+            Util.M();
+            """;
+        var sourceFile = tempDir.CreateFile("App.cs").WriteAllText(sourceText);
+
+        var sourceFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceFile.Path);
+        await testLspServer.OpenDocumentAsync(sourceFileUri, sourceText).ConfigureAwait(false);
+        await WaitForProjectLoad(sourceFileUri, testLspServer);
+
+        var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(sourceFileUri, testLspServer).ConfigureAwait(false);
+        var utilProject = Assert.Single(workspace.CurrentSolution.Projects, project => project.FilePath == utilFile.Path);
+        Assert.Contains(document.Project.ProjectReferences, reference => reference.ProjectId == utilProject.Id);
+
+        var fileChangeWatcher = testLspServer.GetRequiredLspService<IFileChangeWatcher>();
+        using var fileChangeContext = fileChangeWatcher.CreateContext([new WatchedDirectory(tempDir.Path, extensionFilters: [])]);
+        var fileChangeTcs = new TaskCompletionSource();
+        fileChangeContext.FileChanged += (_, path) =>
+        {
+            if (path == sourceFile.Path)
+                fileChangeTcs.TrySetResult();
+        };
+
+        var updatedSourceText = """
+            #:property TargetFramework=net10.0
+            #:property ExperimentalFileBasedProgramEnableRefDirective=true
+            Console.WriteLine("Hello");
+            """;
+        await testLspServer.DeleteTextAsync(sourceFileUri, (StartLine: 2, StartColumn: 0, EndLine: 3, EndColumn: 0));
+        sourceFile.WriteAllText(updatedSourceText);
+
+        await fileChangeTcs.Task.WaitAsync(TimeSpan.FromSeconds(30));
+        await WaitForProjectLoad(sourceFileUri, testLspServer);
+
+        (_, document) = await GetRequiredLspWorkspaceAndDocumentAsync(sourceFileUri, testLspServer).ConfigureAwait(false);
+        Assert.Empty(document.Project.ProjectReferences);
+        Assert.DoesNotContain(workspace.CurrentSolution.Projects, project => project.FilePath == utilFile.Path);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestFileBasedProgram_RefDirective_OpenedEntryPointRemainsLoaded(bool mutatingLspWorkspace)
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
+        });
+
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+        var tempDir = CreateTempDirectoryWithGlobalJson();
+        var utilSourceText = """
+            #!/usr/bin/env dotnet
+            #:property TargetFramework=net10.0
+            #:property OutputType=Library
+            public static class Util
+            {
+                public static void M() { }
+            }
+            """;
+        var utilFile = tempDir.CreateFile("Util.cs").WriteAllText(utilSourceText);
+        var sourceText = """
+            #:property TargetFramework=net10.0
+            #:property ExperimentalFileBasedProgramEnableRefDirective=true
+            #:ref Util.cs
+            Util.M();
+            """;
+        var sourceFile = tempDir.CreateFile("App.cs").WriteAllText(sourceText);
+
+        var sourceFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceFile.Path);
+        await testLspServer.OpenDocumentAsync(sourceFileUri, sourceText).ConfigureAwait(false);
+        await WaitForProjectLoad(sourceFileUri, testLspServer);
+
+        var (workspace, _) = await GetRequiredLspWorkspaceAndDocumentAsync(sourceFileUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(2, workspace.CurrentSolution.ProjectIds.Count);
+
+        var utilFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(utilFile.Path);
+        await testLspServer.OpenDocumentAsync(utilFileUri, utilSourceText).ConfigureAwait(false);
+        await testLspServer.CloseDocumentAsync(sourceFileUri);
+
+        var utilProject = Assert.Single(workspace.CurrentSolution.Projects);
+        Assert.Equal(utilFile.Path, utilProject.FilePath);
+
+        await testLspServer.CloseDocumentAsync(utilFileUri);
+        Assert.Empty(workspace.CurrentSolution.Projects);
     }
 
     [Theory, CombinatorialData]

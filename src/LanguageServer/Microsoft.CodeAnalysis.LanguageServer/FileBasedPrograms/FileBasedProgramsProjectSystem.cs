@@ -28,6 +28,32 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     private readonly ILspServices _lspServices;
     private readonly ILogger<FileBasedProgramsProjectSystem> _logger;
     private readonly CanonicalMiscellaneousFilesProjectProvider _canonicalProjectProvider;
+    private readonly IFileBasedProgramService _fileBasedProgramService;
+
+    /// <summary>Protects all file-based project graph state below.</summary>
+    private readonly object _projectGraphGate = new();
+
+    /// <summary>Files currently open in the LSP client.</summary>
+    private readonly HashSet<string> _openDocumentPaths = new(PathUtilities.Comparer);
+
+    /// <summary>
+    /// Entry points
+    /// - discovered by <see cref="FileBasedProgramsEntryPointDiscovery"/>, or
+    /// - explicitly opened and classified as file-based app by <see cref="ClassifyDocumentAsync"/>.
+    /// </summary>
+    private readonly HashSet<string> _rootPaths = new(PathUtilities.Comparer);
+
+    /// <summary>Evaluated #:ref edges keyed by the referencing project path.</summary>
+    private readonly Dictionary<string, ImmutableHashSet<string>> _referencesByProjectPath = new(PathUtilities.Comparer);
+
+    /// <summary>Projects currently reachable from any root.</summary>
+    private readonly HashSet<string> _reachablePaths = new(PathUtilities.Comparer);
+
+    /// <summary>Reachable projects that must bypass entry-point classification.</summary>
+    private readonly HashSet<string> _referencedProjectPaths = new(PathUtilities.Comparer);
+
+    /// <summary>Changes whenever reconciliation may need to recheck the desired load state.</summary>
+    private long _projectGraphVersion;
 
     /// <summary>
     /// Virtual (in-memory) projects don't exist on disk, so MSBuild worker nodes
@@ -55,6 +81,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         _lspServices = lspServices;
         _logger = loggerFactory.CreateLogger<FileBasedProgramsProjectSystem>();
         _canonicalProjectProvider = new CanonicalMiscellaneousFilesProjectProvider(lspServices.GetRequiredService<IHostWorkspaceProvider>(), loggerFactory);
+        _fileBasedProgramService = _workspaceFactory.HostWorkspace.Services.GetRequiredService<IFileBasedProgramService>();
 
         globalOptionService.AddOptionChangedHandler(this, OnGlobalOptionChanged);
     }
@@ -62,6 +89,16 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     public override ValueTask DisposeAsync()
     {
         GlobalOptionService.RemoveOptionChangedHandler(this, OnGlobalOptionChanged);
+
+        lock (_projectGraphGate)
+        {
+            _openDocumentPaths.Clear();
+            _rootPaths.Clear();
+            _referencesByProjectPath.Clear();
+            _reachablePaths.Clear();
+            _referencedProjectPaths.Clear();
+        }
+
         return base.DisposeAsync();
     }
 
@@ -84,6 +121,19 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             try
             {
                 _logger.LogDebug($"Detected enableFileBasedPrograms changed to '{value}'. Unloading loose file projects.");
+
+                if (!value)
+                {
+                    lock (_projectGraphGate)
+                    {
+                        _rootPaths.Clear();
+                        _referencesByProjectPath.Clear();
+                        _reachablePaths.Clear();
+                        _referencedProjectPaths.Clear();
+                        _projectGraphVersion++;
+                    }
+                }
+
                 await UnloadAllProjectsAsync();
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
@@ -118,7 +168,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         return false;
     }
 
-    private async ValueTask<LooseDocumentKind> ClassifyDocumentAsync(string filePath, string languageId, CancellationToken cancellationToken)
+    private async ValueTask<LooseDocumentKind> ClassifyDocumentAsync(
+        string filePath, string languageId, SourceText? sourceText, CancellationToken cancellationToken)
     {
         var languageInfoProvider = _lspServices.GetRequiredService<ILanguageInfoProvider>();
         if (!languageInfoProvider.TryGetLanguageInformation(ProtocolConversions.CreateAbsoluteDocumentUri(filePath), languageId, out var languageInformation))
@@ -141,7 +192,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         if (!PathUtilities.IsAbsolute(filePath))
             return LooseDocumentKind.MiscellaneousFileWithStandardReferences;
 
-        SourceText? sourceText = IOUtilities.PerformIO(() =>
+        sourceText ??= IOUtilities.PerformIO(() =>
         {
             // Note: SourceText.From eagerly reads the entire file
             using var fileStream = File.OpenRead(filePath);
@@ -221,6 +272,19 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         }
     }
 
+    public async ValueTask OpenDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo documentInfo)
+    {
+        var documentFilePath = GetDocumentFilePath(documentUri);
+        lock (_projectGraphGate)
+            _openDocumentPaths.Add(documentFilePath);
+
+        if (!IsReferencedProject(documentFilePath))
+            return;
+
+        if (await ClassifyDocumentAsync(documentFilePath, documentInfo.LanguageId, documentInfo.SourceText, CancellationToken.None) == LooseDocumentKind.FileBasedApp)
+            RegisterRoot(documentFilePath);
+    }
+
     public async ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo? documentInfo)
     {
         if (documentInfo is null && documentUri.ParsedDocumentUri?.IsFile != true)
@@ -271,6 +335,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     public async ValueTask TryBeginLoadingFileBasedAppAsync(string documentFilePath)
     {
         Contract.ThrowIfFalse(PathUtilities.IsAbsolute(documentFilePath));
+        RegisterRoot(documentFilePath);
+
         var sourceTextLoader = new WorkspaceFileTextLoader(_workspaceFactory.HostWorkspace.CurrentSolution.Services, documentFilePath, defaultEncoding: null);
         var languageInfoProvider = _lspServices.GetRequiredService<ILanguageInfoProvider>();
         if (!languageInfoProvider.TryGetLanguageInformation(ProtocolConversions.CreateAbsoluteDocumentUri(documentFilePath), lspLanguageId: "csharp", out var languageInformation))
@@ -317,19 +383,34 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     public async ValueTask CloseDocumentAsync(DocumentUri uri)
     {
         // If automatic discovery is enabled, we don't want to unload a file-based app upon closing a document.
-        var unloadFromProjectFactory = GlobalOptionService.GetOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery)
-            ? _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory
-            : null;
-
         var documentPath = GetDocumentFilePath(uri);
-        await TryUnloadProjectAsync(documentPath, unloadFromProjectFactory);
+        lock (_projectGraphGate)
+            _openDocumentPaths.Remove(documentPath);
+
+        if (GlobalOptionService.GetOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery))
+        {
+            await TryUnloadProjectAsync(documentPath, _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory);
+            return;
+        }
+
+        var graphUpdate = RemoveRoot(documentPath);
+        if (!graphUpdate.WasReachable)
+        {
+            await ReconcileProjectAsync(documentPath);
+            return;
+        }
+
+        await ReconcileProjectsAsync(graphUpdate.ProjectsToReconcile);
     }
 
     protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string documentPath, CancellationToken cancellationToken)
     {
         // Note: we assume that if we made it this far, the document is for the C# language.
-        var documentKind = await ClassifyDocumentAsync(documentPath, languageId: "csharp", cancellationToken);
+        var isReferencedProject = IsReferencedProject(documentPath);
+        var documentKind = isReferencedProject
+            ? LooseDocumentKind.FileBasedApp
+            : await ClassifyDocumentAsync(documentPath, languageId: "csharp", sourceText: null, cancellationToken);
         _logger.LogDebug("Classified '{documentPath}' as '{documentKind}'.", documentPath, documentKind);
 
         if (documentKind == LooseDocumentKind.MiscellaneousFileWithNoReferences)
@@ -371,6 +452,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
         // Fall through to ordinary file-based app handling.
         Contract.ThrowIfFalse(documentKind is LooseDocumentKind.FileBasedApp);
+        if (!isReferencedProject && IsDocumentOpen(documentPath))
+            RegisterRoot(documentPath);
 
         const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
         var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, documentPath, dotnetPath: null, cancellationToken);
@@ -395,4 +478,174 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             ActualBuildHostKind = buildHostKind,
         };
     }
+
+    protected override async ValueTask OnProjectLoadedAsync(
+        string projectPath, RemoteProjectLoadResult projectLoadResult, CancellationToken cancellationToken)
+    {
+        if (!projectLoadResult.IsFileBasedProgram || projectLoadResult.IsMiscellaneousFile)
+        {
+            var graphUpdate = RemoveProjectFromGraph(projectPath);
+            await ReconcileProjectsAsync(graphUpdate.ProjectsToReconcile, projectPath);
+            return;
+        }
+
+        if (!IsReachable(projectPath))
+        {
+            await ReconcileProjectAsync(projectPath);
+            return;
+        }
+
+        var referencedPaths = projectLoadResult.ProjectFileInfos
+            .SelectMany(static projectInfo => projectInfo.ProjectReferences)
+            .Select(static projectReference => projectReference.Path)
+            .Where(path => PathUtilities.IsAbsolute(path) && _fileBasedProgramService.IsValidEntryPointPath(path))
+            .ToImmutableHashSet(PathUtilities.Comparer);
+
+        var update = UpdateProjectReferences(projectPath, referencedPaths);
+        await ReconcileProjectsAsync(update.ProjectsToReconcile);
+    }
+
+    private void RegisterRoot(string projectPath)
+    {
+        lock (_projectGraphGate)
+        {
+            if (_rootPaths.Add(projectPath))
+            {
+                _reachablePaths.Add(projectPath);
+                _projectGraphVersion++;
+            }
+        }
+    }
+
+    private bool IsReferencedProject(string projectPath)
+    {
+        lock (_projectGraphGate)
+            return _referencedProjectPaths.Contains(projectPath);
+    }
+
+    private bool IsDocumentOpen(string projectPath)
+    {
+        lock (_projectGraphGate)
+            return _openDocumentPaths.Contains(projectPath);
+    }
+
+    private bool IsReachable(string projectPath)
+    {
+        lock (_projectGraphGate)
+            return _reachablePaths.Contains(projectPath);
+    }
+
+    private ProjectGraphUpdate UpdateProjectReferences(string projectPath, ImmutableHashSet<string> referencedPaths)
+    {
+        lock (_projectGraphGate)
+        {
+            if (!_reachablePaths.Contains(projectPath))
+                return new(WasReachable: false, ProjectsToReconcile: [projectPath]);
+
+            _referencesByProjectPath[projectPath] = referencedPaths;
+            _projectGraphVersion++;
+            return RecomputeProjectGraph_NoLock();
+        }
+    }
+
+    private ProjectGraphUpdate RemoveRoot(string projectPath)
+    {
+        lock (_projectGraphGate)
+        {
+            var wasReachable = _reachablePaths.Contains(projectPath);
+            _rootPaths.Remove(projectPath);
+            _projectGraphVersion++;
+            return RecomputeProjectGraph_NoLock() with { WasReachable = wasReachable };
+        }
+    }
+
+    private ProjectGraphUpdate RemoveProjectFromGraph(string projectPath)
+    {
+        lock (_projectGraphGate)
+        {
+            _rootPaths.Remove(projectPath);
+            _referencesByProjectPath.Remove(projectPath);
+            _projectGraphVersion++;
+            return RecomputeProjectGraph_NoLock();
+        }
+    }
+
+    private ProjectGraphUpdate RecomputeProjectGraph_NoLock()
+    {
+        var previousReachablePaths = _reachablePaths.ToImmutableHashSet(PathUtilities.Comparer);
+        var reachablePaths = new HashSet<string>(PathUtilities.Comparer);
+        var referencedProjectPaths = new HashSet<string>(PathUtilities.Comparer);
+        var pathsToVisit = new Stack<string>(_rootPaths);
+
+        while (pathsToVisit.TryPop(out var path))
+        {
+            if (!reachablePaths.Add(path) ||
+                !_referencesByProjectPath.TryGetValue(path, out var referencedPaths))
+            {
+                continue;
+            }
+
+            foreach (var referencedPath in referencedPaths)
+            {
+                referencedProjectPaths.Add(referencedPath);
+                pathsToVisit.Push(referencedPath);
+            }
+        }
+
+        var projectsToReconcile = previousReachablePaths.SymmetricExcept(reachablePaths).ToImmutableArray();
+
+        _reachablePaths.Clear();
+        _reachablePaths.UnionWith(reachablePaths);
+
+        _referencedProjectPaths.Clear();
+        _referencedProjectPaths.UnionWith(referencedProjectPaths);
+
+        foreach (var projectToReconcile in projectsToReconcile)
+        {
+            if (!reachablePaths.Contains(projectToReconcile))
+                _referencesByProjectPath.Remove(projectToReconcile);
+        }
+
+        return new(
+            WasReachable: false,
+            ProjectsToReconcile: projectsToReconcile);
+    }
+
+    private async ValueTask ReconcileProjectsAsync(ImmutableArray<string> projectPaths, string? exceptProjectPath = null)
+    {
+        foreach (var projectPath in projectPaths)
+        {
+            if (!PathUtilities.Comparer.Equals(projectPath, exceptProjectPath))
+                await ReconcileProjectAsync(projectPath);
+        }
+    }
+
+    private async ValueTask ReconcileProjectAsync(string projectPath)
+    {
+        while (true)
+        {
+            long version;
+            bool shouldBeLoaded;
+            lock (_projectGraphGate)
+            {
+                version = _projectGraphVersion;
+                shouldBeLoaded = _reachablePaths.Contains(projectPath);
+            }
+
+            if (shouldBeLoaded)
+                await BeginLoadingProjectAsync(projectPath, projectGuid: null);
+            else
+                await TryUnloadProjectAsync(projectPath);
+
+            lock (_projectGraphGate)
+            {
+                if (version == _projectGraphVersion)
+                    return;
+            }
+        }
+    }
+
+    private readonly record struct ProjectGraphUpdate(
+        bool WasReachable,
+        ImmutableArray<string> ProjectsToReconcile);
 }
