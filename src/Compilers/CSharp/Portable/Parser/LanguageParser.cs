@@ -1687,16 +1687,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Otherwise, scanning that same token as a possible type would recurse through IsTrueIdentifier.
                 this.EatToken(); // partial
 
+                // With partial constructors enabled, 'partial Identifier(' starts a constructor.
+                // In earlier versions, 'partial' is the return type and the identifier is the member name.
+                if (IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors) &&
+                    isIdentifierFollowedByOpenParen(peekIndex: 0))
+                {
+                    return true;
+                }
+
                 while (true)
                 {
-                    // A partial constructor name may itself look like a contextual modifier, as in
-                    // 'partial async()', so check for it before classifying the current token.
-                    if (IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors) &&
-                        isIdentifierFollowedByOpenParen(peekIndex: 0))
-                    {
-                        return true;
-                    }
-
                     var modifier = GetModifierExcludingScoped(this.CurrentToken);
 
                     if (modifier == DeclarationModifiers.None)
