@@ -1666,8 +1666,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
 
-                this.EatToken(); // partial
-
                 // Type and namespace declarations are straightforward: skip the modifier list and
                 // require a well-known declaration keyword such as 'class', 'struct', or 'namespace'.
                 while (GetModifierExcludingScoped(this.CurrentToken) != DeclarationModifiers.None)
