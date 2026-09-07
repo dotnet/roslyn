@@ -529,7 +529,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         partialIndex == modifiers.Count - 1 ||
                         (partialIndex == modifiers.Count - 2 && modifiers[partialIndex + 1].ContextualKind() is SyntaxKind.AsyncKeyword);
                     if (!isLegalLocation &&
-                        !MessageID.IDS_FeatureRelaxedModifierOrdering.CheckFeatureAvailability(diagnostics, partialToken))
+                        reportModifierOrderingDiagnostic(
+                            partialToken,
+                            MessageID.IDS_FeatureRelaxedPartialModifierOrdering,
+                            ErrorCode.ERR_PartialModifierOrdering))
                     {
                         return true;
                     }
@@ -553,13 +556,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         refIndex == modifiers.Count - 1 ||
                         (refIndex == modifiers.Count - 2 && modifiers[refIndex + 1].ContextualKind() is SyntaxKind.PartialKeyword);
                     if (!isLegalLocation &&
-                        !MessageID.IDS_FeatureRelaxedModifierOrdering.CheckFeatureAvailability(diagnostics, refToken))
+                        reportModifierOrderingDiagnostic(
+                            refToken,
+                            MessageID.IDS_FeatureRelaxedRefModifierOrdering,
+                            ErrorCode.ERR_RefModifierOrdering))
                     {
                         return true;
                     }
                 }
 
                 return false;
+            }
+
+            bool reportModifierOrderingDiagnostic(SyntaxToken modifierToken, MessageID feature, ErrorCode errorCode)
+            {
+                if (modifierToken.Parent.IsFeatureEnabled(feature))
+                    return false;
+
+                var availableVersion = ((CSharpParseOptions)modifierToken.Parent.SyntaxTree.Options).LanguageVersion;
+                diagnostics.Add(
+                    errorCode,
+                    modifierToken.GetLocation(),
+                    availableVersion.ToDisplayString(),
+                    new CSharpRequiredLanguageVersion(feature.RequiredVersion()));
+                return true;
             }
         }
 

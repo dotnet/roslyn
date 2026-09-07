@@ -1587,6 +1587,16 @@
         <target state="translated">두 부분 멤버 선언은 모두 'safe'로 표시하거나 둘 다 'safe'로 표시하지 않아야 합니다.</target>
         <note>'safe' is a keyword and should not be localized</note>
       </trans-unit>
+      <trans-unit id="ERR_PartialModifierOrdering">
+        <source>In C# {0}, 'partial' must be the last modifier. Move it after the other modifiers, or use language version {1} or later.</source>
+        <target state="new">In C# {0}, 'partial' must be the last modifier. Move it after the other modifiers, or use language version {1} or later.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefModifierOrdering">
+        <source>In C# {0}, 'ref' must be the last modifier. Move it after the other modifiers, or use language version {1} or later.</source>
+        <target state="new">In C# {0}, 'ref' must be the last modifier. Move it after the other modifiers, or use language version {1} or later.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeInSource">
         <source>Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</source>
         <target state="translated">소스에서 'RequiresUnsafeAttribute'를 사용하지 마세요. 대신 'unsafe' 한정자를 사용하세요.</target>
@@ -3222,9 +3232,14 @@
         <target state="translated">비동기 및 반복기 메서드에서 ref 및 unsafe</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureRelaxedModifierOrdering">
-        <source>relaxed modifier ordering</source>
-        <target state="new">relaxed modifier ordering</target>
+      <trans-unit id="IDS_FeatureRelaxedPartialModifierOrdering">
+        <source>relaxed partial modifier ordering</source>
+        <target state="new">relaxed partial modifier ordering</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRelaxedRefModifierOrdering">
+        <source>relaxed ref modifier ordering</source>
+        <target state="new">relaxed ref modifier ordering</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
@@ -7366,7 +7381,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.</source>
+        <source>The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.</source>
         <target state="needs-review-translation">'partial' 한정자는 'class', 'record', 'struct', 'interface', 'event', 인스턴스 생성자 이름 또는 메서드 또는 속성 반환 형식 바로 앞에만 올 수 있습니다.</target>
         <note />
       </trans-unit>

@@ -1252,9 +1252,9 @@ new partial class C { }
             CreateCompilation(source, parseOptions: options).VerifyDiagnostics(
                 languageVersion == LanguageVersion.CSharp14
                 ? [
-                    // (1,5): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // (1,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                     // new partial public class C { }
-                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 5),
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(1, 5),
                     // (1,26): error CS0106: The modifier 'new' is not valid for this item
                     // new partial public class C { }
                     Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("new").WithLocation(1, 26)
@@ -1291,9 +1291,9 @@ new partial class C { }
             CreateCompilation(source, parseOptions: options).VerifyDiagnostics(
                 languageVersion == LanguageVersion.CSharp14
                 ? [
-                    // (1,12): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // (1,12): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                     // new static partial public class C { }
-                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 12),
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(1, 12),
                     // (1,33): error CS0106: The modifier 'new' is not valid for this item
                     // new static partial public class C { }
                     Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("new").WithLocation(1, 33)
@@ -2204,7 +2204,7 @@ partial void Goo(){};
 partial enum @en {};
 ";
             CreateCompilation(test).VerifyDiagnostics(
-                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                // (2,1): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
                 // partial enum @en {};
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1));
         }

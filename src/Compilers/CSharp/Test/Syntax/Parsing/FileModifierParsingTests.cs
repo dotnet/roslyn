@@ -99,7 +99,7 @@ public sealed class FileModifierParsingTests : ParsingTests
             """,
             expectedBindingDiagnostics: new[]
             {
-                // (1,6): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                // (1,6): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
                 // file partial enum C { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 6)
             });
@@ -134,9 +134,9 @@ public sealed class FileModifierParsingTests : ParsingTests
             options: TestOptions.Regular.WithLanguageVersion(languageVersion),
             expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
                 ? [
-                    // (1,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // (1,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                     // partial file class C { }
-                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 1)
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(1, 1)
                 ]
                 : []);
         N(SyntaxKind.CompilationUnit);
@@ -166,9 +166,9 @@ public sealed class FileModifierParsingTests : ParsingTests
             options: TestOptions.Regular.WithLanguageVersion(languageVersion),
             expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
                 ? [
-                    // (1,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // (1,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                     // partial file record C { }
-                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 1)
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(1, 1)
                 ]
                 : []);
         N(SyntaxKind.CompilationUnit);
@@ -221,9 +221,9 @@ public sealed class FileModifierParsingTests : ParsingTests
             options: TestOptions.Regular.WithLanguageVersion(languageVersion),
             expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
                 ? [
-                    // (1,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // (1,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                     // partial file record struct C { }
-                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 1)
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(1, 1)
                 ]
                 : []);
         N(SyntaxKind.CompilationUnit);
@@ -252,9 +252,9 @@ public sealed class FileModifierParsingTests : ParsingTests
             options: TestOptions.Regular10,
             expectedBindingDiagnostics: new[]
             {
-                // (1,6): error CS8936: Feature 'relaxed modifier ordering' is not available in C# 10.0. Please use language version 15.0 or greater.
+                // (1,6): error CS9401: In C# 10.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                 // file partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 6),
+                Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("10.0", "15.0").WithLocation(1, 6),
                 // (1,25): error CS8936: Feature 'file types' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // file partial ref struct C { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "C").WithArguments("file types", "11.0").WithLocation(1, 25)
@@ -287,9 +287,9 @@ public sealed class FileModifierParsingTests : ParsingTests
             options: TestOptions.Regular.WithLanguageVersion(languageVersion),
             expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
                 ? [
-                    // (1,6): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // (1,6): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                     // file partial ref struct C { }
-                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 6)
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(1, 6)
                 ]
                 : []);
 
@@ -321,9 +321,9 @@ public sealed class FileModifierParsingTests : ParsingTests
             options: TestOptions.Regular.WithLanguageVersion(languageVersion),
             expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
                 ? [
-                    // (1,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // (1,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                     // partial file ref struct C { }
-                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 1)
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(1, 1)
                 ]
                 : []);
 

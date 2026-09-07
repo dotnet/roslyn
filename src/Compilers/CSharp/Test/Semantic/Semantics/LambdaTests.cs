@@ -6925,7 +6925,7 @@ class Program
                     }
                 }
                 """).VerifyDiagnostics(
-                // (5,27): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+                // (5,27): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
                 //         System.Action x = partial static () => { };
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 27));
         }

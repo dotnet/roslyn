@@ -36,9 +36,9 @@ public sealed partial class ModifierParserRecoveryTests
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+            // (1,1): error CS9402: In C# 14.0, 'ref' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
             // ref public readonly partial struct S { }
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "ref").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_RefModifierOrdering, "ref").WithArguments("14.0", "15.0").WithLocation(1, 1));
 
         CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics();
     }
@@ -50,7 +50,7 @@ public sealed partial class ModifierParserRecoveryTests
     public void Ref_NonCanonicalStructOrdering(string source)
     {
         CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "ref").WithArguments("relaxed modifier ordering", "15.0"));
+            Diagnostic(ErrorCode.ERR_RefModifierOrdering, "ref").WithArguments("14.0", "15.0"));
 
         CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics();
     }

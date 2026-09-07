@@ -1587,6 +1587,16 @@
         <target state="translated">這兩個部分成員宣告都必須標示為 'safe'，或兩者都不得標示為 'safe'</target>
         <note>'safe' is a keyword and should not be localized</note>
       </trans-unit>
+      <trans-unit id="ERR_PartialModifierOrdering">
+        <source>In C# {0}, 'partial' must be the last modifier. Move it after the other modifiers, or use language version {1} or later.</source>
+        <target state="new">In C# {0}, 'partial' must be the last modifier. Move it after the other modifiers, or use language version {1} or later.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefModifierOrdering">
+        <source>In C# {0}, 'ref' must be the last modifier. Move it after the other modifiers, or use language version {1} or later.</source>
+        <target state="new">In C# {0}, 'ref' must be the last modifier. Move it after the other modifiers, or use language version {1} or later.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeInSource">
         <source>Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</source>
         <target state="translated">請勿在來源中使用 'RequiresUnsafeAttribute': 請改用 'unsafe' 修飾詞。</target>
@@ -3222,9 +3232,14 @@
         <target state="translated">非同步和迭代器方法中的 ref 和 unsafe</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureRelaxedModifierOrdering">
-        <source>relaxed modifier ordering</source>
-        <target state="new">relaxed modifier ordering</target>
+      <trans-unit id="IDS_FeatureRelaxedPartialModifierOrdering">
+        <source>relaxed partial modifier ordering</source>
+        <target state="new">relaxed partial modifier ordering</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRelaxedRefModifierOrdering">
+        <source>relaxed ref modifier ordering</source>
+        <target state="new">relaxed ref modifier ordering</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
@@ -7366,7 +7381,7 @@ strument:TestCoverage      產生檢測要收集
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.</source>
+        <source>The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.</source>
         <target state="needs-review-translation">'partial' 修飾元只能直接出現在 'class'、'record'、'struct'、'interface'、'event'、執行個體建構函式名稱或方法或屬性傳回型別之前。</target>
         <note />
       </trans-unit>

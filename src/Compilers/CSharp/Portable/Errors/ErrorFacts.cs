@@ -837,6 +837,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_PartialWrongConstraints
                 or ErrorCode.ERR_NoImplicitConvCast
                 or ErrorCode.ERR_PartialMisplaced
+                or ErrorCode.ERR_PartialModifierOrdering
+                or ErrorCode.ERR_RefModifierOrdering
                 or ErrorCode.ERR_MisplacedExtension
                 or ErrorCode.ERR_ImportedCircularBase
                 or ErrorCode.ERR_UseDefViolationOut
