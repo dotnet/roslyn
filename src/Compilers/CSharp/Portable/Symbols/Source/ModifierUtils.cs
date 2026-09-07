@@ -544,24 +544,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool reportMisplacedRefModifier()
             {
                 var refIndex = modifiers.IndexOf(SyntaxKind.RefKeyword);
-                if (refIndex < 0)
-                    return false;
-
-                var refToken = modifiers[refIndex];
-                if (refToken.Parent is StructDeclarationSyntax)
+                if (refIndex >= 0)
                 {
-                    // `ref` was historically required to be last, except that it could precede a
-                    // trailing `partial`. Relaxed modifier ordering lifts this restriction.
-                    var isLegalLocation =
-                        refIndex == modifiers.Count - 1 ||
-                        (refIndex == modifiers.Count - 2 && modifiers[refIndex + 1].ContextualKind() is SyntaxKind.PartialKeyword);
-                    if (!isLegalLocation &&
-                        reportModifierOrderingDiagnostic(
-                            refToken,
-                            MessageID.IDS_FeatureRelaxedRefModifierOrdering,
-                            ErrorCode.ERR_RefModifierOrdering))
+                    var refToken = modifiers[refIndex];
+                    if (refToken.Parent is StructDeclarationSyntax)
                     {
-                        return true;
+                        // `ref` was historically required to be last, except that it could precede a
+                        // trailing `partial`. Relaxed modifier ordering lifts this restriction.
+                        var isLegalLocation =
+                            refIndex == modifiers.Count - 1 ||
+                            (refIndex == modifiers.Count - 2 && modifiers[refIndex + 1].ContextualKind() is SyntaxKind.PartialKeyword);
+                        if (!isLegalLocation &&
+                            reportModifierOrderingDiagnostic(
+                                refToken,
+                                MessageID.IDS_FeatureRelaxedRefModifierOrdering,
+                                ErrorCode.ERR_RefModifierOrdering))
+                        {
+                            return true;
+                        }
                     }
                 }
 
