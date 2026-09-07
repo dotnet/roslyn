@@ -1683,9 +1683,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
 
-                // Consume the 'partial' being classified before scanning the declaration head.
-                // Otherwise, scanning that same token as a possible type would recurse through IsTrueIdentifier.
-                this.EatToken(); // partial
+                // Consume the 'partial' and determine if what follows is definitively a member.
+                this.EatToken();
 
                 // With partial constructors enabled, 'partial Identifier(' starts a constructor.
                 // In earlier versions, 'partial' is the return type and the identifier is the member name.
