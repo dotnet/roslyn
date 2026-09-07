@@ -99,13 +99,13 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
         EOF();
 
         CreateCompilation(source).VerifyDiagnostics(
-            // (3,13): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+            // (3,13): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
             //     int P { partial ref get; }
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 13),
             // (3,25): error CS0106: The modifier 'ref' is not valid for this item
             //     int P { partial ref get; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("ref").WithLocation(3, 25),
-            // (4,19): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+            // (4,19): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
             //     int Q { async partial get; }
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 19),
             // (4,27): error CS0106: The modifier 'async' is not valid for this item
@@ -132,19 +132,19 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             """;
 
         CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
-            // (3,13): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+            // (3,13): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
             //     int P { partial ref get; set; }
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 13),
             // (3,25): error CS0106: The modifier 'ref' is not valid for this item
             //     int P { partial ref get; set; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("ref").WithLocation(3, 25),
-            // (4,18): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+            // (4,18): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
             //     int Q { get; partial ref set; }
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 18),
             // (4,30): error CS0106: The modifier 'ref' is not valid for this item
             //     int Q { get; partial ref set; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("ref").WithLocation(4, 30),
-            // (5,18): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+            // (5,18): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
             //     int R { get; partial ref init; }
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 18),
             // (5,30): error CS0106: The modifier 'ref' is not valid for this item
@@ -1271,7 +1271,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             // (3,20): error CS0106: The modifier 'scoped' is not valid for this item
             //     int P { scoped get; set; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("scoped").WithLocation(3, 20),
-            // (4,13): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+            // (4,13): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
             //     int Q { partial get; set; }
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 13),
             // (5,19): error CS0106: The modifier 'async' is not valid for this item
@@ -1280,7 +1280,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             // (6,34): error CS0106: The modifier 'async' is not valid for this item
             //     public int S { private async get; set; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("async").WithLocation(6, 34),
-            // (7,28): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+            // (7,28): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
             //     public int T { private partial get; set; }
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(7, 28));
     }
@@ -2131,7 +2131,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
         EOF();
 
         CreateCompilation(source).VerifyDiagnostics(
-            // (3,13): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+            // (3,13): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
             //     int P { partial init; }
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 13),
             // (3,21): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
