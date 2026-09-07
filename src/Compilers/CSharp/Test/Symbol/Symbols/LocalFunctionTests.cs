@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
@@ -110,7 +109,7 @@ class C
         [InlineData(LanguageVersion.Preview)]
         public void PartialStaticLocalFunction(LanguageVersion languageVersion)
         {
-            var compilation = CreateCompilation("""
+            CreateCompilation("""
                 public class C
                 {
                     public void M()
@@ -118,17 +117,18 @@ class C
                         partial static void local() { }
                     }
                 }
-                """, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            compilation.VerifyDiagnostics(new[]
-            {
+                """, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics([
                 // (4,6): error CS1513: } expected
                 //     {
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 6),
-                // (5,9): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
-                //         partial static void local() { }
-                languageVersion == LanguageVersion.CSharp14
-                    ? Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(5, 9)
-                    : null,
+                .. (languageVersion == LanguageVersion.CSharp14
+                    ? new[]
+                    {
+                        // (5,9): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
+                        //         partial static void local() { }
+                        Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(5, 9)
+                    }
+                    : System.Array.Empty<DiagnosticDescription>()),
                 // (5,29): error CS0759: No defining declaration found for implementing declaration of partial method 'C.local()'
                 //         partial static void local() { }
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "local").WithArguments("C.local()").WithLocation(5, 29),
@@ -138,7 +138,7 @@ class C
                 // (7,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(7, 1)
-            }.WhereNotNull().ToArray());
+            ]);
         }
 
         [Fact]

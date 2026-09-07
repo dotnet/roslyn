@@ -92,14 +92,70 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
         }
     }
 
-    [Theory]
-    [InlineData(LanguageVersion.CSharp14)]
-    [InlineData(LanguageVersion.Preview)]
-    public void Partial_BeforeAccessibilityOnUnion(LanguageVersion languageVersion)
+    [Fact]
+    public void Partial_BeforeAccessibilityOnUnion_CSharp14()
     {
         const string src = "partial public union U(int);";
 
-        // Union declarations themselves require C# 15, so assert their intended tree under Preview.
+        UsingTree(src, TestOptions.Regular14,
+            // (1,27): error CS1001: Identifier expected
+            // partial public union U(int);
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 27));
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.PublicKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "union");
+                }
+                N(SyntaxKind.IdentifierToken, "U");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        CreateCompilation(
+            [src, UnionAttributeSource, IUnionSource],
+            parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            // (1,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
+            // partial public union U(int);
+            Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(1, 1),
+            // (1,16): error CS0246: The type or namespace name 'union' could not be found (are you missing a using directive or an assembly reference?)
+            // partial public union U(int);
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "union").WithArguments("union").WithLocation(1, 16),
+            // (1,22): error CS8795: Partial method '<invalid-global-code>.U(int)' must have an implementation part because it has accessibility modifiers.
+            // partial public union U(int);
+            Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "U").WithArguments("<invalid-global-code>.U(int)").WithLocation(1, 22),
+            // (1,22): error CS0751: A partial member must be declared within a partial type
+            // partial public union U(int);
+            Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "U").WithLocation(1, 22),
+            // (1,27): error CS1001: Identifier expected
+            // partial public union U(int);
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 27));
+    }
+
+    [Fact]
+    public void Partial_BeforeAccessibilityOnUnion_Preview()
+    {
+        const string src = "partial public union U(int);";
+
         UsingTree(src, TestOptions.RegularPreview);
         N(SyntaxKind.CompilationUnit);
         {
@@ -127,32 +183,9 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
         }
         EOF();
 
-        var compilation = CreateCompilation(
+        CreateCompilation(
             [src, UnionAttributeSource, IUnionSource],
-            parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-        if (languageVersion == LanguageVersion.CSharp14)
-        {
-            compilation.VerifyDiagnostics(
-                // (1,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
-                // partial public union U(int);
-                Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(1, 1),
-                // (1,16): error CS0246: The type or namespace name 'union' could not be found (are you missing a using directive or an assembly reference?)
-                // partial public union U(int);
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "union").WithArguments("union").WithLocation(1, 16),
-                // (1,22): error CS8795: Partial method '<invalid-global-code>.U(int)' must have an implementation part because it has accessibility modifiers.
-                // partial public union U(int);
-                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "U").WithArguments("<invalid-global-code>.U(int)").WithLocation(1, 22),
-                // (1,22): error CS0751: A partial member must be declared within a partial type
-                // partial public union U(int);
-                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "U").WithLocation(1, 22),
-                // (1,27): error CS1001: Identifier expected
-                // partial public union U(int);
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 27));
-        }
-        else
-        {
-            compilation.VerifyDiagnostics();
-        }
+            parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
     }
 
     [Fact]

@@ -1188,28 +1188,31 @@ partial record C
 }");
         }
 
-        [Theory]
-        [InlineData(LanguageVersion.CSharp14)]
-        [InlineData(LanguageVersion.Preview)]
-        public void PartialTypes_04_PartialBeforeModifiers(LanguageVersion languageVersion)
+        [Fact]
+        public void PartialTypes_04_PartialBeforeModifiers_CSharp14()
         {
             var src = @"
 partial public record C
 {
 }
 ";
-            var compilation = CreateCompilation(src, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion == LanguageVersion.CSharp14)
-            {
-                compilation.VerifyDiagnostics(
-                    // (2,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
-                    // partial public record C
-                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(2, 1));
-            }
-            else
-            {
-                compilation.VerifyDiagnostics();
-            }
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+                // (2,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
+                // partial public record C
+                Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void PartialTypes_04_PartialBeforeModifiers_Preview()
+        {
+            var src = @"
+partial public record C
+{
+}
+";
+
+            CreateCompilation(src, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [Fact]

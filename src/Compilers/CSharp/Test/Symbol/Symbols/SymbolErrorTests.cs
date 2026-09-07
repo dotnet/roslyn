@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 using Basic.Reference.Assemblies;
 
@@ -22211,7 +22210,7 @@ using System.Runtime.CompilerServices;
         [InlineData(LanguageVersion.Preview)]
         public void PartialConstructor(LanguageVersion languageVersion)
         {
-            var compilation = CreateCompilation(new[]
+            CreateCompilation(new[]
             {
                 """
                 public class PartialCtor
@@ -22231,14 +22230,15 @@ using System.Runtime.CompilerServices;
                     partial public PartialPublicCtor() { }
                 }
                 """
-            }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            compilation.VerifyDiagnostics(new[]
-            {
-                // 2.cs(3,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
-                //     partial public PartialPublicCtor() { }
-                languageVersion == LanguageVersion.CSharp14
-                    ? Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(3, 5)
-                    : null,
+            }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics([
+                .. (languageVersion == LanguageVersion.CSharp14
+                    ? new[]
+                    {
+                        // 2.cs(3,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
+                        //     partial public PartialPublicCtor() { }
+                        Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(3, 5)
+                    }
+                    : System.Array.Empty<DiagnosticDescription>()),
                 // 0.cs(3,13): error CS0751: A partial member must be declared within a partial type
                 //     partial PartialCtor() { }
                 Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "PartialCtor").WithLocation(3, 13),
@@ -22257,7 +22257,7 @@ using System.Runtime.CompilerServices;
                 // 2.cs(3,20): error CS9276: Partial member 'PartialPublicCtor.PartialPublicCtor()' must have a definition part.
                 //     partial public PartialPublicCtor() { }
                 Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "PartialPublicCtor").WithArguments("PartialPublicCtor.PartialPublicCtor()").WithLocation(3, 20)
-            }.WhereNotNull().ToArray());
+            ]);
         }
 
         [Fact]

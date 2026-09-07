@@ -267,10 +267,8 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
         CreateCompilation(source).VerifyDiagnostics();
     }
 
-    [Theory]
-    [InlineData(LanguageVersion.CSharp14)]
-    [InlineData(LanguageVersion.Preview)]
-    public void PartialNotLast(LanguageVersion languageVersion)
+    [Fact]
+    public void PartialNotLast_CSharp14()
     {
         var source = """
             partial class C
@@ -281,27 +279,36 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
                 partial public C() { }
             }
             """;
-        var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-        if (languageVersion == LanguageVersion.CSharp14)
-        {
-            compilation.VerifyDiagnostics(
-                // (3,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
-                //     partial public event System.Action E;
-                Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(3, 5),
-                // (4,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
-                //     partial public event System.Action E { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(4, 5),
-                // (5,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
-                //     partial public C();
-                Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(5, 5),
-                // (6,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
-                //     partial public C() { }
-                Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(6, 5));
-        }
-        else
-        {
-            compilation.VerifyDiagnostics();
-        }
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            // (3,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
+            //     partial public event System.Action E;
+            Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(3, 5),
+            // (4,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
+            //     partial public event System.Action E { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(4, 5),
+            // (5,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
+            //     partial public C();
+            Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(5, 5),
+            // (6,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
+            //     partial public C() { }
+            Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(6, 5));
+    }
+
+    [Fact]
+    public void PartialNotLast_Preview()
+    {
+        var source = """
+            partial class C
+            {
+                partial public event System.Action E;
+                partial public event System.Action E { add { } remove { } }
+                partial public C();
+                partial public C() { }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
     }
 
     [Fact]
