@@ -1400,16 +1400,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         }
 
                     case DeclarationModifiers.File:
-                        if (!parseAsModifier(MessageID.IDS_FeatureFileTypes, out modTok))
-                            return;
-
-                        break;
-
                     case DeclarationModifiers.Closed:
-                        if (!parseAsModifier(MessageID.IDS_FeatureClosedClasses, out modTok))
-                            return;
+                    case DeclarationModifiers.Required:
+                    case DeclarationModifiers.Safe:
+                        {
+                            var requiredFeature = newMod switch
+                            {
+                                DeclarationModifiers.File => MessageID.IDS_FeatureFileTypes,
+                                DeclarationModifiers.Closed => MessageID.IDS_FeatureClosedClasses,
+                                DeclarationModifiers.Required => MessageID.IDS_FeatureRequiredMembers,
+                                DeclarationModifiers.Safe => MessageID.IDS_FeatureUnsafeEvolution,
+                                _ => throw ExceptionUtilities.UnexpectedValue(newMod),
+                            };
 
-                        break;
+                            // When the feature is enabled, the associated contextual keyword is always a keyword
+                            // if not escaped. Otherwise, conservatively determine whether it is intended as a
+                            // modifier so binding can report the language-version diagnostic. Top-level statements
+                            // must always be disambiguated because the keyword may instead be a local name.
+                            if ((!IsFeatureEnabled(requiredFeature) || forTopLevelStatements) &&
+                                !ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: false))
+                            {
+                                return;
+                            }
+
+                            // LangVersion errors for contextual modifiers are given during binding.
+                            modTok = ConvertToKeyword(EatToken());
+                            break;
+                        }
 
                     case DeclarationModifiers.Async:
                         if (!ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: false))
@@ -1418,18 +1435,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         }
 
                         modTok = ConvertToKeyword(this.EatToken());
-                        break;
-
-                    case DeclarationModifiers.Required:
-                        if (!parseAsModifier(MessageID.IDS_FeatureRequiredMembers, out modTok))
-                            return;
-
-                        break;
-
-                    case DeclarationModifiers.Safe:
-                        if (!parseAsModifier(MessageID.IDS_FeatureUnsafeEvolution, out modTok))
-                            return;
-
                         break;
 
                     default:
@@ -1476,23 +1481,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return this.CurrentToken.ContextualKind is
                     SyntaxKind.RecordKeyword or SyntaxKind.UnionKeyword or SyntaxKind.ExtensionKeyword ||
                     this.IsTypeDeclarationStart();
-            }
-
-            bool parseAsModifier(MessageID requiredFeature, [NotNullWhen(true)] out SyntaxToken? modTok)
-            {
-                // When 'requiredFeature' is enabled, the associated contextual keyword is always a keyword if not escaped. Otherwise, we reuse the async detection
-                // machinery to make a conservative guess as to whether the user meant it to be a keyword, so that they get a good langver
-                // diagnostic and all the machinery to upgrade their project kicks in. The only exception to this rule is top level statements,
-                // where the user could conceivably have a local with the same name as the modifier. For these locations, we need to disambiguate as well.
-                if ((!IsFeatureEnabled(requiredFeature) || forTopLevelStatements) && !ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: false))
-                {
-                    modTok = null;
-                    return false;
-                }
-
-                // LangVersion errors for contextual modifiers are given during binding.
-                modTok = ConvertToKeyword(EatToken());
-                return true;
             }
         }
 
@@ -1691,10 +1679,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (isIdentifierFollowedByOpenParen(peekIndex: 0))
                     return IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors);
 
-                while (true)
+                while (GetModifierExcludingScoped(this.CurrentToken) is var modifier)
                 {
-                    var modifier = GetModifierExcludingScoped(this.CurrentToken);
-
                     if (modifier == DeclarationModifiers.None)
                     {
                         // No modifier-like token remains, so the current token must start the member itself.
@@ -1736,6 +1722,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     this.EatToken();
                 }
+
+                throw ExceptionUtilities.Unreachable();
             }
 
             bool isIdentifierFollowedByOpenParen(int peekIndex)
