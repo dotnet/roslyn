@@ -39,25 +39,56 @@ public sealed class BuildHostProcessManagerTests
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/85194")]
     [InlineData("DOTNET_ROOT")]
     [InlineData("DOTNET_ROOT(x86)")]
-    public void ProcessStartInfo_ForNetCore_ExplicitDotNetPathSetsRoot(string variableName)
+    [InlineData("DOTNET_ROOT_X64")]
+    [InlineData("DOTNET_ROOT_X86")]
+    [InlineData("DOTNET_ROOT_ARM64")]
+    [InlineData("dotnet_root_test")]
+    public void ProcessStartInfo_ForNetCore_ExplicitDotNetPathOverridesInheritedRoots(string variableName)
     {
-        var dotnetDirectory = Path.GetFullPath("custom-dotnet");
-        var dotnetPath = Path.Combine(dotnetDirectory, "dotnet");
-        var processStartInfo = BuildHostProcessManager.CreateBuildHostStartInfo(BuildHostProcessKind.NetCore, pipeName: "", dotnetPath);
+        var originalValue = Environment.GetEnvironmentVariable(variableName);
+        try
+        {
+            Environment.SetEnvironmentVariable(variableName, Path.GetFullPath("inherited-dotnet"));
 
-        Assert.Equal(dotnetPath, processStartInfo.FileName);
-        Assert.Equal(dotnetDirectory, processStartInfo.Environment[variableName]);
+            var dotnetDirectory = Path.GetFullPath("custom-dotnet");
+            var dotnetPath = Path.Combine(dotnetDirectory, "dotnet");
+            var processStartInfo = BuildHostProcessManager.CreateBuildHostStartInfo(BuildHostProcessKind.NetCore, pipeName: "", dotnetPath);
+
+            Assert.Equal(dotnetPath, processStartInfo.FileName);
+            Assert.Equal(dotnetDirectory, processStartInfo.Environment["DOTNET_ROOT"]);
+            Assert.Equal(dotnetDirectory, processStartInfo.Environment["DOTNET_ROOT(x86)"]);
+            if (variableName is not ("DOTNET_ROOT" or "DOTNET_ROOT(x86)"))
+                Assert.DoesNotContain(variableName, processStartInfo.Environment.Keys);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(variableName, originalValue);
+        }
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/85194")]
     [InlineData("DOTNET_ROOT")]
     [InlineData("DOTNET_ROOT(x86)")]
+    [InlineData("DOTNET_ROOT_X64")]
+    [InlineData("DOTNET_ROOT_X86")]
+    [InlineData("DOTNET_ROOT_ARM64")]
+    [InlineData("dotnet_root_test")]
     public void ProcessStartInfo_ForNetCore_DefaultDotNetPathPreservesRoot(string variableName)
     {
-        var processStartInfo = BuildHostProcessManager.CreateBuildHostStartInfo(BuildHostProcessKind.NetCore, pipeName: "", dotnetPath: null);
+        var originalValue = Environment.GetEnvironmentVariable(variableName);
+        try
+        {
+            var inheritedRoot = Path.GetFullPath("inherited-dotnet");
+            Environment.SetEnvironmentVariable(variableName, inheritedRoot);
 
-        processStartInfo.Environment.TryGetValue(variableName, out var dotnetRoot);
-        Assert.Equal(Environment.GetEnvironmentVariable(variableName), dotnetRoot);
+            var processStartInfo = BuildHostProcessManager.CreateBuildHostStartInfo(BuildHostProcessKind.NetCore, pipeName: "", dotnetPath: null);
+
+            Assert.Equal(inheritedRoot, processStartInfo.Environment[variableName]);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(variableName, originalValue);
+        }
     }
 
     [Fact]

@@ -255,6 +255,14 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
         if (dotnetPath is not null)
         {
+            // Clear architecture-specific roots so they cannot override the selected installation.
+            foreach (var key in processStartInfo.Environment.Keys
+                .Where(static key => key.StartsWith("DOTNET_ROOT", StringComparison.OrdinalIgnoreCase))
+                .ToArray())
+            {
+                processStartInfo.Environment.Remove(key);
+            }
+
             // MSBuildLocator probes these roots before the process executable.
             // Keep them aligned when relaunching into another installation so an inherited root cannot select the old SDK.
             var dotnetRoot = Path.GetDirectoryName(dotnetPath);
