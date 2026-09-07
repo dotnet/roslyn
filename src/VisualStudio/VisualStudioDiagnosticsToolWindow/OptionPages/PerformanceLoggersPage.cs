@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -18,6 +18,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
+using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Roslyn.Utilities;
 
 namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages;
@@ -28,6 +29,10 @@ internal sealed class PerformanceLoggersPage : AbstractOptionPage
     private IGlobalOptionService _globalOptions;
     private IThreadingContext _threadingContext;
     private SolutionServices _workspaceServices;
+
+    private static IDisposable s_etwRegistration;
+    private static IDisposable s_traceRegistration;
+    private static IDisposable s_outputWindowRegistration;
 
     protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
     {
@@ -54,54 +59,39 @@ internal sealed class PerformanceLoggersPage : AbstractOptionPage
 
     public static void SetLoggers(IGlobalOptionService globalOptions, IThreadingContext threadingContext, SolutionServices workspaceServices)
     {
-        var loggerTypeNames = GetLoggerTypes(globalOptions).ToImmutableArray();
-
-        // update loggers in VS
         var isEnabled = FunctionIdOptions.CreateFunctionIsEnabledPredicate(globalOptions);
 
-        SetRoslynLogger(loggerTypeNames, () => new EtwLogger(isEnabled));
-        SetRoslynLogger(loggerTypeNames, () => new TraceLogger(isEnabled));
-        SetRoslynLogger(loggerTypeNames, () => new OutputWindowLogger(isEnabled));
+        var etwEnabled = globalOptions.GetOption(LoggerOptionsStorage.EtwLoggerKey);
+        var traceEnabled = globalOptions.GetOption(LoggerOptionsStorage.TraceLoggerKey);
+        var outputWindowEnabled = globalOptions.GetOption(LoggerOptionsStorage.OutputWindowLoggerKey);
+
+        // These sinks exist only for this page, so each is registered while enabled and unregistered
+        // when not. isEnabled is a snapshot of the per-FunctionId options, which is why a fresh sink is
+        // built on every apply.
+        Register(ref s_etwRegistration, etwEnabled, () => new EtwEventSink(isEnabled));
+        Register(ref s_traceRegistration, traceEnabled, () => new TraceEventSink(isEnabled));
+        Register(ref s_outputWindowRegistration, outputWindowEnabled, () => new OutputWindowEventSink(isEnabled));
 
         // update loggers in remote process
         var client = threadingContext.JoinableTaskFactory.Run(() => RemoteHostClient.TryGetClientAsync(workspaceServices, CancellationToken.None));
         if (client != null)
         {
+            var loggerTypeNames = ImmutableArray<string>.Empty;
+            if (etwEnabled)
+                loggerTypeNames = loggerTypeNames.Add(nameof(EtwEventSink));
+            if (traceEnabled)
+                loggerTypeNames = loggerTypeNames.Add(nameof(TraceEventSink));
+
             var functionIds = Enum.GetValues<FunctionId>().WhereAsArray(isEnabled);
 
             threadingContext.JoinableTaskFactory.Run(async () => _ = await client.TryInvokeAsync<IRemoteProcessTelemetryService>(
                 (service, cancellationToken) => service.EnableLoggingAsync(loggerTypeNames, functionIds, cancellationToken),
                 CancellationToken.None).ConfigureAwait(false));
         }
-    }
 
-    private static IEnumerable<string> GetLoggerTypes(IGlobalOptionService globalOptions)
-    {
-        if (globalOptions.GetOption(LoggerOptionsStorage.EtwLoggerKey))
+        static void Register(ref IDisposable registration, bool enabled, Func<IEventSink> create)
         {
-            yield return nameof(EtwLogger);
-        }
-
-        if (globalOptions.GetOption(LoggerOptionsStorage.TraceLoggerKey))
-        {
-            yield return nameof(TraceLogger);
-        }
-
-        if (globalOptions.GetOption(LoggerOptionsStorage.OutputWindowLoggerKey))
-        {
-            yield return nameof(OutputWindowLogger);
-        }
-    }
-
-    private static void SetRoslynLogger<T>(ImmutableArray<string> loggerTypeNames, Func<T> creator) where T : ILogger
-    {
-        if (loggerTypeNames.Contains(typeof(T).Name))
-        {
-            Logger.SetLogger(AggregateLogger.AddOrReplace(creator(), Logger.GetLogger(), l => l is T));
-        }
-        else
-        {
-            Logger.SetLogger(AggregateLogger.Remove(Logger.GetLogger(), l => l is T));
+            Interlocked.Exchange(ref registration, enabled ? RoslynTelemetry.AddEventSink(create()) : null)?.Dispose();
         }
     }
 }

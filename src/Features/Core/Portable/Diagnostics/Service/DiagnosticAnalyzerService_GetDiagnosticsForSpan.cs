@@ -91,7 +91,7 @@ internal sealed partial class DiagnosticAnalyzerService
                 using var _2 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var semanticSpanBasedAnalyzers);
                 using var _3 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var semanticDocumentBasedAnalyzers);
 
-                using var _4 = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.RequestDiagnostics_Summary, $"Pri{priority.GetPriorityInt()}");
+                using var _4 = RoslynTelemetry.RecordBlockTime(FunctionId.RequestDiagnostics_Summary, $"Pri{priority.GetPriorityInt()}");
 
                 foreach (var analyzer in analyzers)
                 {

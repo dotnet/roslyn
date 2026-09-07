@@ -51746,6 +51746,22 @@ class C
                 );
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84642")]
+        public void EqualsBoolConstant_DefaultLiteral()
+        {
+            var source = """
+                class C
+                {
+                    static bool M()
+                    {
+                        return default != true;
+                    }
+                }
+                """;
+
+            CreateNullableCompilation(source).VerifyEmitDiagnostics();
+        }
+
         [Fact]
         public void EqualsBoolConstant_UserDefinedOperator_BoolRight()
         {

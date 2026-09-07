@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -29,6 +29,9 @@ internal sealed partial class RemoteProcessTelemetryService(
     }
 
     private PerformanceReporter? _performanceReporter;
+
+    private static IDisposable? s_etwRegistration;
+    private static IDisposable? s_traceRegistration;
 
     public override void Dispose()
     {
@@ -80,21 +83,13 @@ internal sealed partial class RemoteProcessTelemetryService(
             var functionIdsSet = new HashSet<FunctionId>(functionIds);
             bool logChecker(FunctionId id) => functionIdsSet.Contains(id);
 
-            // we only support 2 types of loggers
-            SetRoslynLogger(loggerTypeNames, () => new EtwLogger(logChecker));
-            SetRoslynLogger(loggerTypeNames, () => new TraceLogger(logChecker));
+            Register(ref s_etwRegistration, loggerTypeNames.Contains(nameof(EtwEventSink)), () => new EtwEventSink(logChecker));
+            Register(ref s_traceRegistration, loggerTypeNames.Contains(nameof(TraceEventSink)), () => new TraceEventSink(logChecker));
         }, cancellationToken);
-    }
 
-    private static void SetRoslynLogger<T>(ImmutableArray<string> loggerTypes, Func<T> creator) where T : ILogger
-    {
-        if (loggerTypes.Contains(typeof(T).Name))
-        {
-            RoslynLogger.SetLogger(AggregateLogger.AddOrReplace(creator(), RoslynLogger.GetLogger(), l => l is T));
-        }
-        else
-        {
-            RoslynLogger.SetLogger(AggregateLogger.Remove(RoslynLogger.GetLogger(), l => l is T));
-        }
+        // Its predicate is a snapshot of the per-FunctionId options, so a fresh sink is built on every
+        // apply. Mirrors the Performance Loggers page, which is the only way these get enabled.
+        static void Register(ref IDisposable? registration, bool enabled, Func<IEventSink> create)
+            => Interlocked.Exchange(ref registration, enabled ? RoslynTelemetry.AddEventSink(create()) : null)?.Dispose();
     }
 }
