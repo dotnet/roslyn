@@ -3089,10 +3089,8 @@ public partial record C4 : I<(int b, int a)> { }
                 );
         }
 
-        [Theory]
-        [InlineData(LanguageVersion.CSharp14)]
-        [InlineData(LanguageVersion.Preview)]
-        public void PartialBeforeAccessibility(LanguageVersion languageVersion)
+        [Fact]
+        public void PartialBeforeAccessibility_CSharp14()
         {
             var test = @"
 partial public record struct C
@@ -3100,18 +3098,22 @@ partial public record struct C
 }
 ";
 
-            var compilation = CreateCompilation(test, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion == LanguageVersion.CSharp14)
-            {
-                compilation.VerifyDiagnostics(
-                    // (2,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
-                    // partial public record struct C
-                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(2, 1));
-            }
-            else
-            {
-                compilation.VerifyDiagnostics();
-            }
+            CreateCompilation(test, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+                // (2,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
+                // partial public record struct C
+                Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void PartialBeforeAccessibility_Preview()
+        {
+            var test = @"
+partial public record struct C
+{
+}
+";
+
+            CreateCompilation(test, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [Fact]

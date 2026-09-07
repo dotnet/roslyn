@@ -591,10 +591,8 @@ class Goo
         }
 
         [WorkItem(536668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536668")]
-        [Theory]
-        [InlineData(LanguageVersion.CSharp14)]
-        [InlineData(LanguageVersion.Preview)]
-        public void PartialBeforeAccessibility(LanguageVersion languageVersion)
+        [Fact]
+        public void PartialBeforeAccessibility_CSharp14()
         {
             // Diff error
             var test = @"
@@ -610,18 +608,29 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilation(test, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion == LanguageVersion.CSharp14)
-            {
-                compilation.VerifyDiagnostics(
-                    // (2,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
-                    // partial public class C
-                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(2, 1));
-            }
-            else
-            {
-                compilation.VerifyDiagnostics();
-            }
+            CreateCompilation(test, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+                // (2,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
+                // partial public class C
+                Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void PartialBeforeAccessibility_Preview()
+        {
+            var test = @"
+partial public class C
+{
+}
+public class Test
+{
+    public static int Main ()
+    {
+        return 1;
+    }
+}
+";
+
+            CreateCompilation(test, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [Fact]
