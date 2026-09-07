@@ -36,8 +36,6 @@ jobs:
   - ${{ if and(eq(parameters.runAsPublic, 'false'), ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
     - name: _BuildConfig
       value: ${{ parameters.configuration }}
-    - group: Publish-Build-Assets
-    - group: AzureDevOps-Artifact-Feeds-Pats
     - name: runCodesignValidationInjection
       value: false
 
@@ -54,12 +52,6 @@ jobs:
 
     - ${{ if and(eq(parameters.runAsPublic, 'false'), ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
       - task: NuGetAuthenticate@1
-
-      - task: PowerShell@2 
-        displayName: Enable cross-org NuGet feed authentication 
-        inputs: 
-          filePath: $(Build.SourcesDirectory)/eng/common/enable-cross-org-publishing.ps1 
-          arguments: -token $(dn-bot-all-orgs-artifact-feeds-rw) 
 
     - task: AzureCLI@2
       displayName: Publish Build Assets

@@ -36,7 +36,6 @@ jobs:
   displayName: Run SDL tool
   condition: eq( ${{ parameters.enable }}, 'true')
   variables:
-    - group: DotNet-VSTS-Bot
     - name: AzDOProjectName
       value: ${{ parameters.AzDOProjectName }}
     - name: AzDOPipelineId
