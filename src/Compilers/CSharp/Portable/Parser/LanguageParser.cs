@@ -1399,6 +1399,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             break;
                         }
 
+                    case DeclarationModifiers.Async:
+                        if (!ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: false))
+                        {
+                            return;
+                        }
+
+                        modTok = ConvertToKeyword(this.EatToken());
+                        break;
+
                     case DeclarationModifiers.File:
                     case DeclarationModifiers.Closed:
                     case DeclarationModifiers.Required:
@@ -1413,11 +1422,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 _ => throw ExceptionUtilities.UnexpectedValue(newMod),
                             };
 
-                            // When the feature is enabled, the associated contextual keyword is always a keyword
-                            // if not escaped. Otherwise, conservatively determine whether it is intended as a
-                            // modifier so binding can report the language-version diagnostic. Top-level statements
-                            // must always be disambiguated because the keyword may instead be a local name.
-                            if ((!IsFeatureEnabled(requiredFeature) || forTopLevelStatements) &&
+                            // Outside top-level statements, an enabled contextual modifier is unambiguous.
+                            // Otherwise, it may be an identifier, so use the usual contextual-keyword heuristic.
+                            var needsDisambiguation = !IsFeatureEnabled(requiredFeature) || forTopLevelStatements;
+                            if (needsDisambiguation &&
                                 !ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: false))
                             {
                                 return;
@@ -1427,15 +1435,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             modTok = ConvertToKeyword(EatToken());
                             break;
                         }
-
-                    case DeclarationModifiers.Async:
-                        if (!ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: false))
-                        {
-                            return;
-                        }
-
-                        modTok = ConvertToKeyword(this.EatToken());
-                        break;
 
                     default:
                         modTok = this.EatToken();
