@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="ConflictingDirectiveMetadata">
         <source>Directive metadata '{0}' conflicts with a value already specified by the directive.</source>
-        <target state="new">Directive metadata '{0}' conflicts with a value already specified by the directive.</target>
+        <target state="translated">Los metadatos de directiva "{0}" entran en conflicto con un valor ya especificado por la directiva.</target>
         <note>{0} is the metadata name.</note>
       </trans-unit>
       <trans-unit id="CouldNotFindAnyProjectInDirectory">
@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="DirectiveMetadataInvalidName">
         <source>Invalid directive metadata name '{0}': {1}</source>
-        <target state="new">Invalid directive metadata name '{0}': {1}</target>
+        <target state="translated">Nombre de metadatos de directiva no válido "{0}": {1}</target>
         <note>{0} is the metadata name. {1} is the inner exception message.</note>
       </trans-unit>
       <trans-unit id="DuplicateDirective">
@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="InvalidQuoteInDirective">
         <source>Double quotes (") in a directive must enclose an entire value, for example: 'Name="a b"' or '"a b"'.</source>
-        <target state="new">Double quotes (") in a directive must enclose an entire value, for example: 'Name="a b"' or '"a b"'.</target>
+        <target state="translated">Las comillas dobles (") de una directiva deben incluir un valor completo, por ejemplo: 'Name="a b"' o '"a b"'.</target>
         <note>{Locked="Name="a b""}{Locked=""a b""}</note>
       </trans-unit>
       <trans-unit id="InvalidRefDirective">
@@ -114,7 +114,7 @@
       </trans-unit>
       <trans-unit id="InvalidStringLiteralInDirective">
         <source>Invalid quoted value in directive: {0}</source>
-        <target state="new">Invalid quoted value in directive: {0}</target>
+        <target state="translated">Valor entre comillas no válido en la directiva: {0}</target>
         <note>{0} is the underlying C# string literal error message, for example 'Unrecognized escape sequence.'.</note>
       </trans-unit>
       <trans-unit id="MissingDirectiveName">
@@ -154,7 +154,7 @@
       </trans-unit>
       <trans-unit id="UnterminatedQuoteInDirective">
         <source>Unterminated double quote (") in directive.</source>
-        <target state="new">Unterminated double quote (") in directive.</target>
+        <target state="translated">Comilla doble sin terminar (") en la directiva.</target>
         <note />
       </trans-unit>
     </body>
