@@ -1688,11 +1688,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 // With partial constructors enabled, 'partial Identifier(' starts a constructor.
                 // In earlier versions, 'partial' is the return type and the identifier is the member name.
-                if (IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors) &&
-                    isIdentifierFollowedByOpenParen(peekIndex: 0))
-                {
-                    return true;
-                }
+                if (isIdentifierFollowedByOpenParen(peekIndex: 0))
+                    return IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors);
 
                 while (true)
                 {
