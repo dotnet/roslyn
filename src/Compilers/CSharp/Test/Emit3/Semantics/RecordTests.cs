@@ -26010,11 +26010,11 @@ partial public record C
         [Fact]
         public void PartialBeforeAccessibility_Preview()
         {
-            var test = @"
-partial public record C
-{
-}
-";
+            var test = """
+                partial public record C
+                {
+                }
+                """;
 
             CreateCompilation(test, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
