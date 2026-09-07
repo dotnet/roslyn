@@ -547,6 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (refIndex >= 0)
                 {
                     var refToken = modifiers[refIndex];
+                    // CheckModifiers reports `ref` when it is used on any other declaration kind.
                     if (refToken.Parent is StructDeclarationSyntax)
                     {
                         // `ref` was historically required to be last, except that it could precede a
