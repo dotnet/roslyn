@@ -2693,7 +2693,7 @@ class C
                 // (7,22): error CS0261: Partial declarations of '.' must be all classes, all record classes, all structs, all record structs, or all interfaces
                 //     partial interface;
                 Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "").WithArguments("N..").WithLocation(7, 22),
-                // (8,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                // (8,5): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
                 //     partial enum { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(8, 5),
                 // (8,18): error CS1001: Identifier expected
@@ -2741,7 +2741,7 @@ class C
                 // (20,22): error CS1001: Identifier expected
                 //     partial interface;
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(20, 22),
-                // (21,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                // (21,5): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
                 //     partial enum { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(21, 5),
                 // (21,18): error CS1001: Identifier expected

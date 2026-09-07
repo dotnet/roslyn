@@ -969,7 +969,7 @@ class Test : Itest
 partial delegate E { }
 ";
             CreateCompilation(test).VerifyDiagnostics(
-                    // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                    // (2,1): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
                     // partial delegate E { }
                     Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
                     // (2,18): error CS0246: The type or namespace name 'E' could not be found (are you missing a using directive or an assembly reference?)

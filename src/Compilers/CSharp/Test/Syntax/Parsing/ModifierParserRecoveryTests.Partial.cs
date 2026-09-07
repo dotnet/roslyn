@@ -86,9 +86,9 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
         else
         {
             compilation.VerifyDiagnostics(
-                // (1,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                // (1,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                 // partial public class C { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(1, 1));
         }
     }
 
@@ -133,9 +133,9 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
         if (languageVersion == LanguageVersion.CSharp14)
         {
             compilation.VerifyDiagnostics(
-                // (1,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                // (1,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                 // partial public union U(int);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(1, 1),
                 // (1,16): error CS0246: The type or namespace name 'union' could not be found (are you missing a using directive or an assembly reference?)
                 // partial public union U(int);
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "union").WithArguments("union").WithLocation(1, 16),
@@ -468,10 +468,10 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
             """;
 
         CreateCompilation(source).VerifyDiagnostics(
-            // (3,19): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            // (3,19): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
             //     public static partial implicit operator int(C c) => 0;
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 19),
-            // (4,19): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            // (4,19): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
             //     public static partial explicit operator C(int i) => new();
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 19));
     }
@@ -512,12 +512,12 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
         else
         {
             compilation.VerifyDiagnostics(
-                // (3,5): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                // (3,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                 //     partial public void M();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(3, 5),
-                // (4,5): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(3, 5),
+                // (4,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                 //     partial public void M() { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(4, 5));
+                Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(4, 5));
         }
     }
 
@@ -600,12 +600,12 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
         else
         {
             compilation.VerifyDiagnostics(
-                // (3,5): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                // (3,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                 //     partial public void M();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(3, 5),
-                // (4,5): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(3, 5),
+                // (4,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                 //     partial public async void M() { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(4, 5));
+                Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(4, 5));
         }
     }
 
@@ -631,12 +631,12 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
         else
         {
             compilation.VerifyDiagnostics(
-                // (3,5): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                // (3,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                 //     partial public int P { get; set; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(3, 5),
-                // (4,5): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(3, 5),
+                // (4,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                 //     partial public int P { get => 0; set { } }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(4, 5));
+                Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(4, 5));
         }
     }
 
@@ -1063,7 +1063,7 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
             source,
             expectedBindingDiagnostics:
             [
-                // (5,27): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+                // (5,27): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
                 //         System.Action x = partial static () => { };
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 27),
             ]);
@@ -1181,7 +1181,7 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
             source,
             expectedBindingDiagnostics:
             [
-                // (5,27): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+                // (5,27): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
                 //         System.Action x = partial static async () => { };
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 27),
             ]);
@@ -1213,7 +1213,7 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
             source,
             expectedBindingDiagnostics:
             [
-                // (5,27): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+                // (5,27): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
                 //         System.Action x = partial async static () => { };
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 27),
             ]);
@@ -1454,7 +1454,7 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
                 // (5,33): error CS1002: ; expected
                 //         System.Action x = async partial static () => { };
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(5, 33),
-                // (5,33): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+                // (5,33): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
                 //         System.Action x = async partial static () => { };
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 33),
                 // (5,33): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement

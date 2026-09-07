@@ -158,7 +158,7 @@ public sealed class ClosedModifierParsingTests : ParsingTests
             closed partial enum C { }
             """,
             expectedBindingDiagnostics: [
-                // (1,8): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                // (1,8): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
                 // closed partial enum C { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 8),
                 // (1,21): error CS0106: The modifier 'closed' is not valid for this item
@@ -193,9 +193,9 @@ public sealed class ClosedModifierParsingTests : ParsingTests
             options: TestOptions.Regular.WithLanguageVersion(languageVersion),
             expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
                 ? [
-                    // (1,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // (1,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                     // partial closed class C { }
-                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 1),
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(1, 1),
                     // (1,22): error CS9327: Feature 'closed classes' is not available in C# 14.0. Please use language version 15.0 or greater.
                     // partial closed class C { }
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "C").WithArguments("closed classes", "15.0").WithLocation(1, 22)
@@ -229,9 +229,9 @@ public sealed class ClosedModifierParsingTests : ParsingTests
             options: TestOptions.Regular.WithLanguageVersion(languageVersion),
             expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
                 ? [
-                    // (1,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // (1,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                     // partial closed struct C { }
-                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 1),
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(1, 1),
                     // (1,23): error CS0106: The modifier 'closed' is not valid for this item
                     // partial closed struct C { }
                     Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("closed").WithLocation(1, 23)
@@ -269,9 +269,9 @@ public sealed class ClosedModifierParsingTests : ParsingTests
             options: TestOptions.Regular.WithLanguageVersion(languageVersion),
             expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
                 ? [
-                    // (1,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // (1,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                     // partial closed interface C { }
-                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 1),
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(1, 1),
                     // (1,26): error CS0106: The modifier 'closed' is not valid for this item
                     // partial closed interface C { }
                     Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("closed").WithLocation(1, 26)
@@ -308,9 +308,9 @@ public sealed class ClosedModifierParsingTests : ParsingTests
             options: TestOptions.Regular.WithLanguageVersion(languageVersion),
             expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
                 ? [
-                    // (1,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // (1,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                     // partial closed record C { }
-                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 1),
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(1, 1),
                     // (1,23): error CS9327: Feature 'closed classes' is not available in C# 14.0. Please use language version 15.0 or greater.
                     // partial closed record C { }
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "C").WithArguments("closed classes", "15.0").WithLocation(1, 23)
@@ -366,9 +366,9 @@ public sealed class ClosedModifierParsingTests : ParsingTests
             options: TestOptions.Regular.WithLanguageVersion(languageVersion),
             expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
                 ? [
-                    // (1,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // (1,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                     // partial closed record struct C { }
-                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 1),
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(1, 1),
                     // (1,30): error CS0106: The modifier 'closed' is not valid for this item
                     // partial closed record struct C { }
                     Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("closed").WithLocation(1, 30)
@@ -406,9 +406,9 @@ public sealed class ClosedModifierParsingTests : ParsingTests
             options: TestOptions.Regular.WithLanguageVersion(languageVersion),
             expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
                 ? [
-                    // (1,8): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // (1,8): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                     // closed partial ref struct C { }
-                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 8),
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(1, 8),
                     // (1,27): error CS0106: The modifier 'closed' is not valid for this item
                     // closed partial ref struct C { }
                     Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("closed").WithLocation(1, 27)
@@ -447,9 +447,9 @@ public sealed class ClosedModifierParsingTests : ParsingTests
             options: TestOptions.Regular.WithLanguageVersion(languageVersion),
             expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
                 ? [
-                    // (1,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // (1,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                     // partial closed ref struct C { }
-                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 1),
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(1, 1),
                     // (1,27): error CS0106: The modifier 'closed' is not valid for this item
                     // partial closed ref struct C { }
                     Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("closed").WithLocation(1, 27)
