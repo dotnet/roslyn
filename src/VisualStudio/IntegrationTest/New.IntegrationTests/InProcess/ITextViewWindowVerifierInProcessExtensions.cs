@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -100,7 +101,7 @@ internal static class ITextViewWindowVerifierInProcessExtensions
         if (!RoslynString.IsNullOrEmpty(applyFix))
         {
             var codeActionLogger = new CodeActionLogger();
-            using var loggerRestorer = WithLogger(AggregateLogger.AddOrReplace(codeActionLogger, Logger.GetLogger(), logger => logger is CodeActionLogger));
+            using var loggerRegistration = RoslynTelemetry.AddEventSink(codeActionLogger);
 
             var result = await textViewWindowVerifier.TestServices.Editor.ApplyLightBulbActionAsync(applyFix, fixAllScope, blockUntilComplete, cancellationToken);
 
@@ -154,12 +155,7 @@ internal static class ITextViewWindowVerifierInProcessExtensions
         Assert.NotEqual("text", tokenType);
     }
 
-    private static LoggerRestorer WithLogger(ILogger logger)
-    {
-        return new LoggerRestorer(Logger.SetLogger(logger));
-    }
-
-    private sealed class CodeActionLogger : ILogger
+    private sealed class CodeActionLogger : IEventSink
     {
         public List<string> Messages { get; } = [];
 
@@ -185,21 +181,6 @@ internal static class ITextViewWindowVerifierInProcessExtensions
 
         public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken)
         {
-        }
-    }
-
-    private readonly struct LoggerRestorer : IDisposable
-    {
-        private readonly ILogger? _logger;
-
-        public LoggerRestorer(ILogger? logger)
-        {
-            _logger = logger;
-        }
-
-        public void Dispose()
-        {
-            Logger.SetLogger(_logger);
         }
     }
 }
