@@ -1723,7 +1723,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // Case 5: A contextual modifier followed by 'Identifier(' either starts a method
                     // return type, as in 'partial async C()', or is another modifier on a partial
                     // constructor, as in 'partial partial C()'. Either way, the initial 'partial'
-                    // is a modifier.
+                    // is a modifier. This does not fall through to Case 6 for the latter form in
+                    // C# 14: scanning the second 'partial' as a type reenters this helper and classifies
+                    // it as a modifier, so IsTypeFollowedByMemberName() returns false.
                     if (isIdentifierFollowedByOpenParen(peekIndex: 1))
                         return true;
 
