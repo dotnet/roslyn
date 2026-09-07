@@ -1700,16 +1700,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
                         return true;
 
-                    // Case 3: A contextual modifier may instead be the member's return type, such as
-                    // the second 'partial' in 'partial partial P { get; }', or 'async' in
-                    // 'partial async M()'.
-                    //
-                    // If it is followed by 'Identifier(', then it either starts a method return type,
-                    // as in 'partial async C()', or is another modifier on a partial constructor, as
-                    // in 'partial partial C()'. Either way, the initial 'partial' is a modifier.
+                    // Case 3: A contextual modifier followed by 'Identifier(' either starts a method
+                    // return type, as in 'partial async C()', or is another modifier on a partial
+                    // constructor, as in 'partial partial C()'. Either way, the initial 'partial'
+                    // is a modifier.
                     if (isIdentifierFollowedByOpenParen(peekIndex: 1))
                         return true;
 
+                    // Case 4: A contextual modifier may otherwise be the member's return type, such as
+                    // the second 'partial' in 'partial partial P { get; }'.
                     if (isMemberDeclarationStart())
                         return true;
 
