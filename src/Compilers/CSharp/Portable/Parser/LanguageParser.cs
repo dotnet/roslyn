@@ -1658,7 +1658,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return false;
 
             return isPartialModifierInTypeOrNamespaceDeclaration() ||
-                isPartialModifierInMemberDeclaration();
+                   isPartialModifierInMemberDeclaration();
 
             bool isPartialModifierInTypeOrNamespaceDeclaration()
             {
@@ -1669,9 +1669,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Type and namespace declarations are straightforward: skip the modifier list and
                 // require a well-known declaration keyword such as 'class', 'struct', or 'namespace'.
                 while (GetModifierExcludingScoped(this.CurrentToken) != DeclarationModifiers.None)
-                {
                     this.EatToken();
-                }
 
                 return this.IsTypeOrNamespaceDeclarationStart();
             }
@@ -1688,8 +1686,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Consume the 'partial' being classified before scanning the declaration head.
                 // Otherwise, scanning that same token as a possible type would recurse through IsTrueIdentifier.
                 this.EatToken(); // partial
-
-                var partialConstructorsEnabled = IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors);
 
                 while (true)
                 {
@@ -1729,36 +1725,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     this.EatToken();
                 }
+            }
 
-                bool isMemberDeclarationStart()
-                {
-                    // 'event' cannot begin another member form, so parse 'partial event' as an event in every
-                    // language version. Binding reports the feature diagnostic when necessary.
-                    if (this.CurrentToken.Kind == SyntaxKind.EventKeyword)
-                        return true;
+            bool isMemberDeclarationStart()
+            {
+                // 'event' cannot begin another member form, so parse 'partial event' as an event in every
+                // language version. Binding reports the feature diagnostic when necessary.
+                if (this.CurrentToken.Kind == SyntaxKind.EventKeyword)
+                    return true;
 
-                    // 'implicit' and 'explicit' can only start conversion operators, so 'partial' is a modifier
-                    // even when the operator declaration is incomplete.
-                    if (this.CurrentToken.Kind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword)
-                        return true;
+                // 'implicit' and 'explicit' can only start conversion operators, so 'partial' is a modifier
+                // even when the operator declaration is incomplete.
+                if (this.CurrentToken.Kind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword)
+                    return true;
 
-                    // Before partial constructors, 'partial C()' is a method returning 'partial'. Only prefer
-                    // the constructor interpretation when the feature is enabled.
-                    if (canStartPartialConstructor(peekIndex: 0))
-                        return true;
+                // Before partial constructors, 'partial C()' is a method returning 'partial'. Only prefer
+                // the constructor interpretation when the feature is enabled.
+                if (canStartPartialConstructor(peekIndex: 0))
+                    return true;
 
-                    // Otherwise, require a return type followed by a member name, as in 'partial int M()'.
-                    return this.IsTypeFollowedByMemberName();
-                }
+                // Otherwise, require a return type followed by a member name, as in 'partial int M()'.
+                return this.IsTypeFollowedByMemberName();
+            }
 
-                // The surrounding checks establish the preceding 'partial' modifier. This returns true only
-                // when partial constructors are enabled and the following tokens can start the constructor.
-                bool canStartPartialConstructor(int peekIndex)
-                {
-                    return partialConstructorsEnabled &&
-                        this.PeekToken(peekIndex).Kind == SyntaxKind.IdentifierToken &&
-                        this.PeekToken(peekIndex + 1).Kind == SyntaxKind.OpenParenToken;
-                }
+            // The surrounding checks establish the preceding 'partial' modifier. This returns true only
+            // when partial constructors are enabled and the following tokens can start the constructor.
+            bool canStartPartialConstructor(int peekIndex)
+            {
+                return IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors) &&
+                    this.PeekToken(peekIndex).Kind == SyntaxKind.IdentifierToken &&
+                    this.PeekToken(peekIndex + 1).Kind == SyntaxKind.OpenParenToken;
             }
         }
 
