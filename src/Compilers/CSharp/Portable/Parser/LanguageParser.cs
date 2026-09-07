@@ -1689,11 +1689,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 while (true)
                 {
+                    // A partial constructor name may itself look like a contextual modifier, as in
+                    // 'partial async()', so check for it before classifying the current token.
+                    if (IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors) &&
+                        isIdentifierFollowedByOpenParen(peekIndex: 0))
+                    {
+                        return true;
+                    }
+
                     var modifier = GetModifierExcludingScoped(this.CurrentToken);
 
-                    // Case 1: No modifier-like token remains, so the current token must start the member itself.
                     if (modifier == DeclarationModifiers.None)
-                        return isMemberDeclarationStart();
+                    {
+                        // Case 1: No modifier-like token remains, so the current token must start the
+                        // member itself.
+
+                        // 'event' cannot begin another member form, so parse 'partial event' as an event
+                        // in every language version. Binding reports the feature diagnostic when necessary.
+                        if (this.CurrentToken.Kind == SyntaxKind.EventKeyword)
+                            return true;
+
+                        // 'implicit' and 'explicit' can only start conversion operators, so 'partial'
+                        // is a modifier even when the operator declaration is incomplete.
+                        if (this.CurrentToken.Kind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword)
+                            return true;
+
+                        // Otherwise, require a return type followed by a member name, as in
+                        // 'partial int M()'.
+                        return this.IsTypeFollowedByMemberName();
+                    }
 
                     // Case 2: Before a non-contextual modifier, as in 'partial static', the initial
                     // 'partial' is unambiguously a modifier.
@@ -1709,36 +1733,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     // Case 4: A contextual modifier may otherwise be the member's return type, such as
                     // the second 'partial' in 'partial partial P { get; }'.
-                    if (isMemberDeclarationStart())
+                    if (this.IsTypeFollowedByMemberName())
                         return true;
 
                     this.EatToken();
                 }
-            }
-
-            bool isMemberDeclarationStart()
-            {
-                // 'event' cannot begin another member form, so parse 'partial event' as an event in every
-                // language version. Binding reports the feature diagnostic when necessary.
-                if (this.CurrentToken.Kind == SyntaxKind.EventKeyword)
-                    return true;
-
-                // 'implicit' and 'explicit' can only start conversion operators, so 'partial' is a modifier
-                // even when the operator declaration is incomplete.
-                if (this.CurrentToken.Kind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword)
-                    return true;
-
-                // With partial constructors enabled, the current token is the constructor name after
-                // the initial modifier in 'partial C()'. In earlier versions, 'partial' is the return
-                // type and the current identifier is the member name.
-                if (IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors) &&
-                    isIdentifierFollowedByOpenParen(peekIndex: 0))
-                {
-                    return true;
-                }
-
-                // Otherwise, require a return type followed by a member name, as in 'partial int M()'.
-                return this.IsTypeFollowedByMemberName();
             }
 
             bool isIdentifierFollowedByOpenParen(int peekIndex)
