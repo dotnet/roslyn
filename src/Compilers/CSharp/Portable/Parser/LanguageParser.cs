@@ -1657,23 +1657,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (this.IsUnambiguousAnonymousFunctionModifierListFollowedByOpenParen())
                 return false;
 
-            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+            using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
 
             // Consume the 'partial' being classified before scanning the declaration head.
             // Otherwise, scanning that same token as a possible type would recurse through IsTrueIdentifier.
             this.EatToken(); // partial
 
-            if (onlyForTypeDeclarations)
+            // Type and namespace declarations are straightforward: skip the modifier list and
+            // require a well-known declaration keyword such as 'class', 'struct', or 'namespace'.
+            while (GetModifierExcludingScoped(this.CurrentToken) != DeclarationModifiers.None)
             {
-                // Type and namespace declarations are straightforward: skip the modifier list and
-                // require a well-known declaration keyword such as 'class', 'struct', or 'namespace'.
-                while (GetModifierExcludingScoped(this.CurrentToken) != DeclarationModifiers.None)
-                {
-                    this.EatToken();
-                }
-
-                return this.IsTypeOrNamespaceDeclarationStart();
+                this.EatToken();
             }
+
+            if (this.IsTypeOrNamespaceDeclarationStart())
+                return true;
+
+            if (onlyForTypeDeclarations)
+                return false;
+
+            // Start over for members, where a contextual modifier may instead be the return type.
+            resetPoint.Reset();
+            this.EatToken(); // partial
 
             var partialConstructorsEnabled = IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors);
 
@@ -1681,12 +1686,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var modifier = GetModifierExcludingScoped(this.CurrentToken);
 
-                if (modifier == DeclarationModifiers.None)
-                {
-                    if (this.IsTypeOrNamespaceDeclarationStart())
-                        return true;
-                }
-                else
+                if (modifier != DeclarationModifiers.None)
                 {
                     // A non-contextual modifier token cannot be the name of a member returning
                     // 'partial', so its presence proves that the initial 'partial' is a modifier.
@@ -1710,9 +1710,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                 }
 
-                // With no modifier, this checks the final declaration head. With a contextual modifier,
-                // it checks whether that token instead starts a member return type, such as 'async' in
-                // 'partial async M()'.
+                // A contextual modifier may instead start the member's return type, such as
+                // 'async' in 'partial async M()'.
                 if (isMemberDeclarationStart())
                     return true;
 
