@@ -1697,37 +1697,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     if (modifier == DeclarationModifiers.None)
                     {
-                        // Case 1: No modifier-like token remains, so the current token must start the
-                        // member itself.
+                        // No modifier-like token remains, so the current token must start the member itself.
 
-                        // 'event' cannot begin another member form, so parse 'partial event' as an event
-                        // in every language version. Binding reports the feature diagnostic when necessary.
+                        // Case 1: 'event' cannot begin another member form, so parse 'partial event'
+                        // as an event in every language version. Binding reports the feature diagnostic
+                        // when necessary.
                         if (this.CurrentToken.Kind == SyntaxKind.EventKeyword)
                             return true;
 
-                        // 'implicit' and 'explicit' can only start conversion operators, so 'partial'
-                        // is a modifier even when the operator declaration is incomplete.
+                        // Case 2: 'implicit' and 'explicit' can only start conversion operators, so
+                        // 'partial' is a modifier even when the operator declaration is incomplete.
                         if (this.CurrentToken.Kind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword)
                             return true;
 
-                        // Otherwise, require a return type followed by a member name, as in
+                        // Case 3: Otherwise, require a return type followed by a member name, as in
                         // 'partial int M()'.
                         return this.IsTypeFollowedByMemberName();
                     }
 
-                    // Case 2: Before a non-contextual modifier, as in 'partial static', the initial
+                    // Case 4: Before a non-contextual modifier, as in 'partial static', the initial
                     // 'partial' is unambiguously a modifier.
                     if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
                         return true;
 
-                    // Case 3: A contextual modifier followed by 'Identifier(' either starts a method
+                    // Case 5: A contextual modifier followed by 'Identifier(' either starts a method
                     // return type, as in 'partial async C()', or is another modifier on a partial
                     // constructor, as in 'partial partial C()'. Either way, the initial 'partial'
                     // is a modifier.
                     if (isIdentifierFollowedByOpenParen(peekIndex: 1))
                         return true;
 
-                    // Case 4: A contextual modifier may otherwise be the member's return type, such as
+                    // Case 6: A contextual modifier may otherwise be the member's return type, such as
                     // the second 'partial' in 'partial partial P { get; }'.
                     if (this.IsTypeFollowedByMemberName())
                         return true;
