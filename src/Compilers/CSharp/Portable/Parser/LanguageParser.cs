@@ -1657,13 +1657,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (this.IsUnambiguousAnonymousFunctionModifierListFollowedByOpenParen())
                 return false;
 
-            using var beforePartialResetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
-
             return isPartialModifierInTypeOrNamespaceDeclaration() ||
                 isPartialModifierInMemberDeclaration();
 
             bool isPartialModifierInTypeOrNamespaceDeclaration()
             {
+                using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+
                 Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
 
                 this.EatToken(); // partial
@@ -1683,7 +1683,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (onlyForTypeDeclarations)
                     return false;
 
-                beforePartialResetPoint.Reset();
+                using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
 
                 Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
 
