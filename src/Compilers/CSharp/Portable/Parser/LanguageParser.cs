@@ -1662,10 +1662,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (isPartialModifierInTypeOrNamespaceDeclaration())
                 return true;
 
-            if (onlyForTypeDeclarations)
-                return false;
-
-            beforePartialResetPoint.Reset();
             return isPartialModifierInMemberDeclaration();
 
             bool isPartialModifierInTypeOrNamespaceDeclaration()
@@ -1686,6 +1682,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             bool isPartialModifierInMemberDeclaration()
             {
+                if (onlyForTypeDeclarations)
+                    return false;
+
+                beforePartialResetPoint.Reset();
+
                 Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
 
                 // Consume the 'partial' being classified before scanning the declaration head.
