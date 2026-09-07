@@ -516,18 +516,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (!messageId.CheckFeatureAvailability(diagnostics, partialToken))
                         return true;
 
-                    // `partial` was historically required to be the last modifier. This restriction is lifted by the
-                    // relaxed-modifier-ordering feature. Preserve the historical exception for ordinary methods ending
-                    // in `partial async` on earlier language versions.
-                    var isLegalLocation =
-                        partialIndex == modifiers.Count - 1 ||
-                        (partialIndex == modifiers.Count - 2 && modifiers[partialIndex + 1].ContextualKind() is SyntaxKind.AsyncKeyword);
                     if (!allowsPartialModifier)
                     {
                         diagnostics.Add(ErrorCode.ERR_PartialMisplaced, partialToken.GetLocation());
                         return true;
                     }
 
+                    // `partial` was historically required to be the last modifier. This restriction is lifted by the
+                    // relaxed-modifier-ordering feature. Preserve the historical exception for ordinary methods ending
+                    // in `partial async` on earlier language versions.
+                    var isLegalLocation =
+                        partialIndex == modifiers.Count - 1 ||
+                        (partialIndex == modifiers.Count - 2 && modifiers[partialIndex + 1].ContextualKind() is SyntaxKind.AsyncKeyword);
                     if (!isLegalLocation &&
                         !MessageID.IDS_FeatureRelaxedModifierOrdering.CheckFeatureAvailability(diagnostics, partialToken))
                     {
