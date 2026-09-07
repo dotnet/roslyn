@@ -3107,11 +3107,11 @@ partial public record struct C
         [Fact]
         public void PartialBeforeAccessibility_Preview()
         {
-            var test = @"
-partial public record struct C
-{
-}
-";
+            var test = """
+                partial public record struct C
+                {
+                }
+                """;
 
             CreateCompilation(test, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }

@@ -1206,11 +1206,11 @@ partial public record C
         [Fact]
         public void PartialTypes_04_PartialBeforeModifiers_Preview()
         {
-            var src = @"
-partial public record C
-{
-}
-";
+            var src = """
+                partial public record C
+                {
+                }
+                """;
 
             CreateCompilation(src, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }

@@ -135,7 +135,6 @@ public sealed class FileModifierParsingTests : ParsingTests
             expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
                 ? [
                     // (1,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
-                    // partial file class C { }
                     Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(1, 1)
                 ]
                 : []);

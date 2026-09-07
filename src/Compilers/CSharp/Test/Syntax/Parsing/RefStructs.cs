@@ -2152,21 +2152,17 @@ class Program
             }
             EOF();
 
-            var compilation = CreateCompilation(text, parseOptions: options);
-            if (languageVersion == LanguageVersion.CSharp14)
-            {
-                compilation.VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: options).VerifyDiagnostics(
+                languageVersion == LanguageVersion.CSharp14
+                ? [
                     // (4,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                     //     partial ref struct S {}
                     Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(4, 5),
                     // (5,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                     //     partial ref struct S {}
-                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(5, 5));
-            }
-            else
-            {
-                compilation.VerifyDiagnostics();
-            }
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(5, 5)
+                ]
+                : []);
         }
 
         [Fact]
@@ -2593,21 +2589,17 @@ class C
             }
             EOF();
 
-            var compilation = CreateCompilation(text, parseOptions: options);
-            if (languageVersion == LanguageVersion.CSharp14)
-            {
-                compilation.VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: options).VerifyDiagnostics(
+                languageVersion == LanguageVersion.CSharp14
+                ? [
                     // (4,14): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                     //     readonly partial ref struct S {}
                     Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(4, 14),
                     // (5,14): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                     //     readonly partial ref struct S {}
-                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(5, 14));
-            }
-            else
-            {
-                compilation.VerifyDiagnostics();
-            }
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(5, 14)
+                ]
+                : []);
         }
 
         [Fact]

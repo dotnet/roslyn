@@ -78,18 +78,14 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
         }
         EOF();
 
-        var compilation = CreateCompilation(src, parseOptions: options);
-        if (languageVersion >= LanguageVersion.CSharp15)
-        {
-            compilation.VerifyDiagnostics();
-        }
-        else
-        {
-            compilation.VerifyDiagnostics(
+        CreateCompilation(src, parseOptions: options).VerifyDiagnostics(
+            languageVersion >= LanguageVersion.CSharp15
+            ? []
+            : [
                 // (1,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                 // partial public class C { }
-                Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(1, 1));
-        }
+                Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(1, 1)
+            ]);
     }
 
     [Fact]
@@ -537,21 +533,17 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
             }
             """;
 
-        var compilation = CreateCompilation(src, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-        if (languageVersion >= LanguageVersion.CSharp15)
-        {
-            compilation.VerifyDiagnostics();
-        }
-        else
-        {
-            compilation.VerifyDiagnostics(
+        CreateCompilation(src, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+            languageVersion >= LanguageVersion.CSharp15
+            ? []
+            : [
                 // (3,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                 //     partial public void M();
                 Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(3, 5),
                 // (4,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                 //     partial public void M() { }
-                Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(4, 5));
-        }
+                Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(4, 5)
+            ]);
     }
 
     /// <summary>
@@ -625,21 +617,17 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
             }
             """;
 
-        var compilation = CreateCompilation(src, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-        if (languageVersion >= LanguageVersion.CSharp15)
-        {
-            compilation.VerifyDiagnostics();
-        }
-        else
-        {
-            compilation.VerifyDiagnostics(
+        CreateCompilation(src, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+            languageVersion >= LanguageVersion.CSharp15
+            ? []
+            : [
                 // (3,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                 //     partial public void M();
                 Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(3, 5),
                 // (4,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                 //     partial public async void M() { }
-                Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(4, 5));
-        }
+                Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(4, 5)
+            ]);
     }
 
     [Theory]
@@ -656,21 +644,17 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
             }
             """;
 
-        var compilation = CreateCompilation(src, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-        if (languageVersion >= LanguageVersion.CSharp15)
-        {
-            compilation.VerifyDiagnostics();
-        }
-        else
-        {
-            compilation.VerifyDiagnostics(
+        CreateCompilation(src, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+            languageVersion >= LanguageVersion.CSharp15
+            ? []
+            : [
                 // (3,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                 //     partial public int P { get; set; }
                 Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(3, 5),
                 // (4,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                 //     partial public int P { get => 0; set { } }
-                Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(4, 5));
-        }
+                Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(4, 5)
+            ]);
     }
 
     [Fact]

@@ -617,18 +617,18 @@ public class Test
         [Fact]
         public void PartialBeforeAccessibility_Preview()
         {
-            var test = @"
-partial public class C
-{
-}
-public class Test
-{
-    public static int Main ()
-    {
-        return 1;
-    }
-}
-";
+            var test = """
+                partial public class C
+                {
+                }
+                public class Test
+                {
+                    public static int Main ()
+                    {
+                        return 1;
+                    }
+                }
+                """;
 
             CreateCompilation(test, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }

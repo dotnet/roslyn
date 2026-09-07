@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [InlineData(LanguageVersion.Preview)]
         public void PartialLocationInModifierList(LanguageVersion languageVersion)
         {
-            var source = @"
+            var compilation = CreateCompilation(@"
 class Program
 {
     partial abstract class A {}
@@ -41,9 +41,7 @@ class Program
 
     partial abstract struct S {}
     partial abstract struct S {}
-}";
-
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+}", parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             if (languageVersion == LanguageVersion.CSharp14)
             {
                 compilation.VerifyDiagnostics(
