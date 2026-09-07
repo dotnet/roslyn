@@ -1722,21 +1722,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (this.CurrentToken.Kind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword)
                     return true;
 
+                // In 'partial partial C()', the initial 'partial' is a modifier in every language
+                // version. The current 'partial' is the return type in C# 13 and another modifier
+                // on a partial constructor in C# 14.
+                if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword &&
+                    isIdentifierFollowedByOpenParen(peekIndex: 1))
+                {
+                    return true;
+                }
+
                 // With partial constructors enabled, the current token is the constructor name after
                 // the initial modifier in 'partial C()'. In earlier versions, 'partial' is the return
                 // type and the current identifier is the member name.
-                if (isCurrentTokenPartialConstructorName())
+                if (IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors) &&
+                    isIdentifierFollowedByOpenParen(peekIndex: 0))
+                {
                     return true;
+                }
 
                 // Otherwise, require a return type followed by a member name, as in 'partial int M()'.
                 return this.IsTypeFollowedByMemberName();
             }
 
-            bool isCurrentTokenPartialConstructorName()
+            bool isIdentifierFollowedByOpenParen(int peekIndex)
             {
-                return IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors) &&
-                    this.CurrentToken.Kind == SyntaxKind.IdentifierToken &&
-                    this.PeekToken(1).Kind == SyntaxKind.OpenParenToken;
+                return this.PeekToken(peekIndex).Kind == SyntaxKind.IdentifierToken &&
+                    this.PeekToken(peekIndex + 1).Kind == SyntaxKind.OpenParenToken;
             }
         }
 
