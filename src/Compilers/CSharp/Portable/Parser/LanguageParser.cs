@@ -1700,19 +1700,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
                         return true;
 
-                    // Case 3: Another contextual 'partial' needs special handling for partial constructors
-                    // and repeated modifier chains.
-                    if (modifier == DeclarationModifiers.Partial)
-                    {
-                        // With partial constructors enabled, the current token is a second 'partial'
-                        // modifier before the constructor name in 'partial partial C()'. In earlier
-                        // versions, it is instead the member's return type.
-                        if (isPartialConstructorName(peekIndex: 1))
-                            return true;
-
-                    }
-
-                    // Case 4: Any contextual modifier may instead be the member's return type, such as 'async'
+                    // Case 3: A contextual modifier may instead be the member's return type, such as 'async'
                     // in 'partial async M()'.
                     if (isMemberDeclarationStart())
                         return true;
@@ -1736,18 +1724,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // With partial constructors enabled, the current token is the constructor name after
                 // the initial modifier in 'partial C()'. In earlier versions, 'partial' is the return
                 // type and the current identifier is the member name.
-                if (isPartialConstructorName(peekIndex: 0))
+                if (isCurrentTokenPartialConstructorName())
                     return true;
 
                 // Otherwise, require a return type followed by a member name, as in 'partial int M()'.
                 return this.IsTypeFollowedByMemberName();
             }
 
-            bool isPartialConstructorName(int peekIndex)
+            bool isCurrentTokenPartialConstructorName()
             {
                 return IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors) &&
-                    this.PeekToken(peekIndex).Kind == SyntaxKind.IdentifierToken &&
-                    this.PeekToken(peekIndex + 1).Kind == SyntaxKind.OpenParenToken;
+                    this.CurrentToken.Kind == SyntaxKind.IdentifierToken &&
+                    this.PeekToken(1).Kind == SyntaxKind.OpenParenToken;
             }
         }
 
