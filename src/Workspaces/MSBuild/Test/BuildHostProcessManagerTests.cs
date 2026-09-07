@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.IO;
 using System.Linq;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -32,6 +34,30 @@ public sealed class BuildHostProcessManagerTests
         var processStartInfo = BuildHostProcessManager.CreateBuildHostStartInfo(BuildHostProcessKind.NetCore, pipeName: "", dotnetPath: null);
 
         Assert.StartsWith("dotnet", processStartInfo.FileName);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/85194")]
+    [InlineData("DOTNET_ROOT")]
+    [InlineData("DOTNET_ROOT(x86)")]
+    public void ProcessStartInfo_ForNetCore_ExplicitDotNetPathSetsRoot(string variableName)
+    {
+        var dotnetDirectory = Path.GetFullPath("custom-dotnet");
+        var dotnetPath = Path.Combine(dotnetDirectory, "dotnet");
+        var processStartInfo = BuildHostProcessManager.CreateBuildHostStartInfo(BuildHostProcessKind.NetCore, pipeName: "", dotnetPath);
+
+        Assert.Equal(dotnetPath, processStartInfo.FileName);
+        Assert.Equal(dotnetDirectory, processStartInfo.Environment[variableName]);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/85194")]
+    [InlineData("DOTNET_ROOT")]
+    [InlineData("DOTNET_ROOT(x86)")]
+    public void ProcessStartInfo_ForNetCore_DefaultDotNetPathPreservesRoot(string variableName)
+    {
+        var processStartInfo = BuildHostProcessManager.CreateBuildHostStartInfo(BuildHostProcessKind.NetCore, pipeName: "", dotnetPath: null);
+
+        processStartInfo.Environment.TryGetValue(variableName, out var dotnetRoot);
+        Assert.Equal(Environment.GetEnvironmentVariable(variableName), dotnetRoot);
     }
 
     [Fact]
