@@ -1695,8 +1695,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (modifier == DeclarationModifiers.None)
                         return isMemberDeclarationStart();
 
-                    // Case 2: A non-contextual modifier token cannot be the name of a member returning
-                    // 'partial', so its presence proves that the initial 'partial' is a modifier.
+                    // Case 2: Before a non-contextual modifier, as in 'partial static', the initial
+                    // 'partial' is unambiguously a modifier.
                     if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
                         return true;
 
