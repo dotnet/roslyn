@@ -1700,8 +1700,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
                         return true;
 
-                    // Case 3: A contextual modifier may instead be the member's return type, such as 'async'
-                    // in 'partial async M()'.
+                    // Case 3: A contextual modifier may instead be the member's return type, such as
+                    // the second 'partial' in 'partial partial P { get; }', or 'async' in
+                    // 'partial async M()'.
                     if (isMemberDeclarationStart())
                         return true;
 
