@@ -1671,6 +1671,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 if (modifier == DeclarationModifiers.None)
                 {
+                    // Handle type and namespace declaration heads here. Member declaration heads are
+                    // handled by the shared check below, which also disambiguates contextual modifiers.
                     if (this.IsTypeOrNamespaceDeclarationStart())
                         return true;
                 }
@@ -1706,8 +1708,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                 }
 
-                // The current token is either the final declaration head or a contextual modifier
-                // that may instead start a member return type, such as 'async' in 'partial async M()'.
+                // With no modifier, this checks the final declaration head. With a contextual modifier,
+                // it checks whether that token instead starts a member return type, such as 'async' in
+                // 'partial async M()'.
                 if (includingForMembers && isMemberDeclarationStart())
                     return true;
 
