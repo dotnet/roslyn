@@ -1605,16 +1605,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return true;
                 }
 
-                // "TOKEN TypeName class". In this case, we just have an incomplete member before
-                // an existing type declaration.  Treat this 'TOKEN' as a keyword.
-                if (IsTypeDeclarationStart())
-                {
-                    return true;
-                }
-
-                // "TOKEN TypeName namespace". In this case, we just have an incomplete member before
-                // an existing namespace declaration.  Treat this 'TOKEN' as a keyword.
-                if (currentTokenKind == SyntaxKind.NamespaceKeyword)
+                // "TOKEN TypeName class" or "TOKEN TypeName namespace". In this case, we just have
+                // an incomplete member before an existing declaration. Treat this 'TOKEN' as a keyword.
+                if (this.IsTypeOrNamespaceDeclarationStart())
                 {
                     return true;
                 }
@@ -1627,6 +1620,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             return false;
         }
+
+        private bool IsTypeOrNamespaceDeclarationStart()
+            => this.IsTypeDeclarationStart() || this.CurrentToken.Kind == SyntaxKind.NamespaceKeyword;
 
         private static bool IsNonContextualModifier(SyntaxToken nextToken)
         {
@@ -1669,59 +1665,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var partialConstructorsEnabled = IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors);
 
-            // Look through following modifiers for the declaration head. A contextual modifier may
-            // instead begin the member itself, such as 'ref' in 'partial ref int M()'.
-            while (GetModifierExcludingScoped(this.CurrentToken) != DeclarationModifiers.None)
+            while (true)
             {
-                // For example, 'async' starts the return type in 'partial async M()'.
-                if (shouldStopSkippingModifiers())
+                var modifier = GetModifierExcludingScoped(this.CurrentToken);
+
+                if (modifier == DeclarationModifiers.None)
+                {
+                    if (this.IsTypeOrNamespaceDeclarationStart())
+                        return true;
+                }
+                else
+                {
+                    // Namespace lookahead must skip all modifiers and require a type or namespace
+                    // declaration head. It must not accept a member such as 'partial int M()'.
+                    if (!includingForMembers)
+                    {
+                        this.EatToken();
+                        continue;
+                    }
+
+                    // A non-contextual modifier token cannot be the name of a member returning
+                    // 'partial', so its presence proves that the initial 'partial' is a modifier.
+                    if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
+                        return true;
+
+                    if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
+                    {
+                        // In C# 14, prefer the duplicate-modifier constructor interpretation of
+                        // 'partial partial C()' over treating the second 'partial' as a return type.
+                        if (canStartPartialConstructor(peekIndex: 1))
+                            return true;
+
+                        // Process longer modifier chains one token at a time rather than recursively
+                        // scanning each 'partial' as a possible type.
+                        if (this.PeekToken(1).ContextualKind == SyntaxKind.PartialKeyword)
+                        {
+                            this.EatToken();
+                            continue;
+                        }
+                    }
+                }
+
+                // The current token is either the final declaration head or a contextual modifier
+                // that may instead start a member return type, such as 'async' in 'partial async M()'.
+                if (includingForMembers && isMemberDeclarationStart())
                     return true;
+
+                if (modifier == DeclarationModifiers.None)
+                    return false;
 
                 this.EatToken();
             }
 
-            // 'partial public class C' reaches 'class' here.
-            if (this.IsTypeDeclarationStart())
-                return true;
-
-            // Parse 'partial public namespace N' as a namespace so binding can report the misplaced
-            // modifier instead of producing cascading parser errors.
-            if (this.CurrentToken.Kind == SyntaxKind.NamespaceKeyword)
-                return true;
-
-            return isMemberDeclarationStart();
-
-            bool shouldStopSkippingModifiers()
-            {
-                if (!includingForMembers)
-                    return false;
-
-                // A non-contextual modifier proves that the initial 'partial' belongs to a member.
-                if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
-                    return true;
-
-                // A different contextual modifier may instead start the member's return type,
-                // such as 'async' in 'partial async M()'.
-                if (this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword)
-                    return isMemberDeclarationStart();
-
-                // In C# 14, prefer the duplicate-modifier constructor interpretation of
-                // 'partial partial C()' over treating the second 'partial' as a return type.
-                if (canStartPartialConstructor(peekIndex: 1))
-                    return true;
-
-                // Process longer modifier chains one token at a time rather than recursively
-                // scanning each 'partial' as a possible type.
-                return this.PeekToken(1).ContextualKind != SyntaxKind.PartialKeyword &&
-                    isMemberDeclarationStart();
-            }
-
             bool isMemberDeclarationStart()
             {
-                // Namespace lookahead must not accept member-only forms such as 'partial int M()'.
-                if (!includingForMembers)
-                    return false;
-
                 // 'event' cannot begin another member form, so parse 'partial event' as an event in every
                 // language version. Binding reports the feature diagnostic when necessary.
                 if (this.CurrentToken.Kind == SyntaxKind.EventKeyword)
