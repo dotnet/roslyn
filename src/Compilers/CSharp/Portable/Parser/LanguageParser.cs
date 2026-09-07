@@ -1710,8 +1710,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         if (isPartialConstructorName(peekIndex: 1))
                             return true;
 
-                        // Process longer modifier chains one token at a time rather than recursively
-                        // scanning each 'partial' as a possible type.
+                        // Do not call isMemberDeclarationStart() for consecutive 'partial' tokens. It
+                        // reaches IsTypeFollowedByMemberName(), which scans the current 'partial' as a
+                        // possible type and reenters IsCurrentTokenDefinitelyPartialModifier(). Consume
+                        // one token here so long modifier chains are processed iteratively.
                         if (this.PeekToken(1).ContextualKind == SyntaxKind.PartialKeyword)
                         {
                             this.EatToken();
