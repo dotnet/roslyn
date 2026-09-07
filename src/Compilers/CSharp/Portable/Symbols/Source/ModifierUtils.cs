@@ -522,15 +522,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return true;
                     }
 
-                    // `partial` was historically required to be the last modifier. This restriction is lifted by the
-                    // relaxed-modifier-ordering feature. Preserve the historical exception for ordinary methods ending
-                    // in `partial async` on earlier language versions.
-                    var isLegalLocation =
-                        partialIndex == modifiers.Count - 1 ||
-                        (partialIndex == modifiers.Count - 2 && modifiers[partialIndex + 1].ContextualKind() is SyntaxKind.AsyncKeyword);
-                    if (!isLegalLocation &&
-                        reportModifierOrderingDiagnostic(
-                            partialToken,
+                    if (reportModifierOrderingDiagnostic(
+                            partialIndex,
+                            allowedTrailingModifier: SyntaxKind.AsyncKeyword,
                             MessageID.IDS_FeatureRelaxedPartialModifierOrdering,
                             ErrorCode.ERR_PartialModifierOrdering))
                     {
@@ -550,14 +544,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // CheckModifiers reports `ref` when it is used on any other declaration kind.
                     if (refToken.Parent is StructDeclarationSyntax)
                     {
-                        // `ref` was historically required to be last, except that it could precede a
-                        // trailing `partial`. Relaxed modifier ordering lifts this restriction.
-                        var isLegalLocation =
-                            refIndex == modifiers.Count - 1 ||
-                            (refIndex == modifiers.Count - 2 && modifiers[refIndex + 1].ContextualKind() is SyntaxKind.PartialKeyword);
-                        if (!isLegalLocation &&
-                            reportModifierOrderingDiagnostic(
-                                refToken,
+                        if (reportModifierOrderingDiagnostic(
+                                refIndex,
+                                allowedTrailingModifier: SyntaxKind.PartialKeyword,
                                 MessageID.IDS_FeatureRelaxedRefModifierOrdering,
                                 ErrorCode.ERR_RefModifierOrdering))
                         {
@@ -569,8 +558,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            bool reportModifierOrderingDiagnostic(SyntaxToken modifierToken, MessageID feature, ErrorCode errorCode)
+            bool reportModifierOrderingDiagnostic(
+                int modifierIndex,
+                SyntaxKind allowedTrailingModifier,
+                MessageID feature,
+                ErrorCode errorCode)
             {
+                // Before relaxed modifier ordering, the modifier had to be last unless followed by
+                // its historically permitted trailing modifier.
+                var isLegalLocation =
+                    modifierIndex == modifiers.Count - 1 ||
+                    (modifierIndex == modifiers.Count - 2 && modifiers[modifierIndex + 1].ContextualKind() == allowedTrailingModifier);
+                if (isLegalLocation)
+                    return false;
+
+                var modifierToken = modifiers[modifierIndex];
                 if (modifierToken.Parent.IsFeatureEnabled(feature))
                     return false;
 
