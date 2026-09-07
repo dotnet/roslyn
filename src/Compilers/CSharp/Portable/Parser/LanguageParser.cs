@@ -1703,6 +1703,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // Case 3: A contextual modifier may instead be the member's return type, such as
                     // the second 'partial' in 'partial partial P { get; }', or 'async' in
                     // 'partial async M()'.
+                    //
+                    // If it is followed by 'Identifier(', then it either starts a method return type,
+                    // as in 'partial async C()', or is another modifier on a partial constructor, as
+                    // in 'partial partial C()'. Either way, the initial 'partial' is a modifier.
+                    if (isIdentifierFollowedByOpenParen(peekIndex: 1))
+                        return true;
+
                     if (isMemberDeclarationStart())
                         return true;
 
@@ -1721,15 +1728,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // even when the operator declaration is incomplete.
                 if (this.CurrentToken.Kind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword)
                     return true;
-
-                // In 'partial partial C()', the initial 'partial' is a modifier in every language
-                // version. The current 'partial' is the return type in C# 13 and another modifier
-                // on a partial constructor in C# 14.
-                if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword &&
-                    isIdentifierFollowedByOpenParen(peekIndex: 1))
-                {
-                    return true;
-                }
 
                 // With partial constructors enabled, the current token is the constructor name after
                 // the initial modifier in 'partial C()'. In earlier versions, 'partial' is the return
