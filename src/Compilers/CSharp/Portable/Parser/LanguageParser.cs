@@ -1659,10 +1659,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             using var beforePartialResetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
 
-            if (isPartialModifierInTypeOrNamespaceDeclaration())
-                return true;
-
-            return isPartialModifierInMemberDeclaration();
+            return isPartialModifierInTypeOrNamespaceDeclaration() ||
+                isPartialModifierInMemberDeclaration();
 
             bool isPartialModifierInTypeOrNamespaceDeclaration()
             {
