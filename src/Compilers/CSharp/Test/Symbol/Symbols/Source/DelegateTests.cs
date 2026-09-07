@@ -841,7 +841,7 @@ class C
         public void PartialPublicDelegate()
         {
             CreateCompilation("partial public delegate void M();").VerifyDiagnostics(
-                // (1,1): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial public delegate void M();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
         }
@@ -850,7 +850,7 @@ class C
         public void PublicPartialDelegate()
         {
             CreateCompilation("public partial delegate void M();").VerifyDiagnostics(
-                // (1,8): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+                // (1,8): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 // public partial delegate void M();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 8));
         }
@@ -859,7 +859,7 @@ class C
         public void PartialDelegate()
         {
             CreateCompilation("public partial delegate void M();").VerifyDiagnostics(
-                // (1,8): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+                // (1,8): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 // public partial delegate void M();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 8));
         }

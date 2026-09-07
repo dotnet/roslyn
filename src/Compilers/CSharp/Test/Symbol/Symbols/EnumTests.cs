@@ -404,7 +404,7 @@ public class C
         public void PartialPublicEnum()
         {
             CreateCompilation("partial public enum E { }").VerifyDiagnostics(
-                // (1,1): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial public enum E { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
         }
