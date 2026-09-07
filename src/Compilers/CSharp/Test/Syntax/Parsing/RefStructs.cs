@@ -2205,7 +2205,7 @@ class C
         }
 
         [Fact]
-        public void RefModifierRecovery_ThroughInvalidStructModifier_Unsafe()
+        public void RefStruct_RefBeforeUnsafe()
         {
             const string source = "class C { ref unsafe struct S {} }";
 
@@ -2236,7 +2236,7 @@ class C
         }
 
         [Fact]
-        public void RefModifierRecovery_ThroughInvalidStructModifier_Readonly()
+        public void RefStruct_RefBeforeReadonly()
         {
             const string source = "class C { ref readonly struct S {} }";
 
@@ -2267,7 +2267,7 @@ class C
         }
 
         [Fact]
-        public void RefModifierRecovery_ThroughInvalidStructModifiers_UnsafeReadonly()
+        public void RefStruct_RefBeforeUnsafeReadonly()
         {
             const string source = "class C { ref unsafe readonly struct S {} }";
 
