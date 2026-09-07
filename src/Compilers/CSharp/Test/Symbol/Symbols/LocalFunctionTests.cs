@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
@@ -104,10 +105,12 @@ class C
             Assert.False(staticLocal.RequiresInstanceReceiver);
         }
 
-        [Fact]
-        public void PartialStaticLocalFunction()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp14)]
+        [InlineData(LanguageVersion.Preview)]
+        public void PartialStaticLocalFunction(LanguageVersion languageVersion)
         {
-            CreateCompilation("""
+            var compilation = CreateCompilation("""
                 public class C
                 {
                     public void M()
@@ -115,10 +118,17 @@ class C
                         partial static void local() { }
                     }
                 }
-                """).VerifyDiagnostics(
+                """, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            compilation.VerifyDiagnostics(new[]
+            {
                 // (4,6): error CS1513: } expected
                 //     {
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 6),
+                // (5,9): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                //         partial static void local() { }
+                languageVersion == LanguageVersion.CSharp14
+                    ? Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(5, 9)
+                    : null,
                 // (5,29): error CS0759: No defining declaration found for implementing declaration of partial method 'C.local()'
                 //         partial static void local() { }
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "local").WithArguments("C.local()").WithLocation(5, 29),
@@ -127,7 +137,8 @@ class C
                 Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "local").WithLocation(5, 29),
                 // (7,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(7, 1));
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(7, 1)
+            }.WhereNotNull().ToArray());
         }
 
         [Fact]

@@ -120,14 +120,25 @@ public sealed class FileModifierParsingTests : ParsingTests
     }
 
     [Theory]
-    [InlineData(SyntaxKind.ClassKeyword)]
-    [InlineData(SyntaxKind.StructKeyword)]
-    [InlineData(SyntaxKind.InterfaceKeyword)]
-    public void FileModifier_03(SyntaxKind typeKeyword)
+    [InlineData(SyntaxKind.ClassKeyword, LanguageVersion.CSharp14)]
+    [InlineData(SyntaxKind.ClassKeyword, LanguageVersion.Preview)]
+    [InlineData(SyntaxKind.StructKeyword, LanguageVersion.CSharp14)]
+    [InlineData(SyntaxKind.StructKeyword, LanguageVersion.Preview)]
+    [InlineData(SyntaxKind.InterfaceKeyword, LanguageVersion.CSharp14)]
+    [InlineData(SyntaxKind.InterfaceKeyword, LanguageVersion.Preview)]
+    public void FileModifier_03(SyntaxKind typeKeyword, LanguageVersion languageVersion)
     {
         UsingNode($$"""
             partial file {{SyntaxFacts.GetText(typeKeyword)}} C { }
-            """);
+            """,
+            options: TestOptions.Regular.WithLanguageVersion(languageVersion),
+            expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
+                ? [
+                    // (1,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // partial file class C { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 1)
+                ]
+                : []);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxFacts.GetBaseTypeDeclarationKind(typeKeyword));
@@ -144,12 +155,22 @@ public sealed class FileModifierParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void FileModifier_04()
+    [Theory]
+    [InlineData(LanguageVersion.CSharp14)]
+    [InlineData(LanguageVersion.Preview)]
+    public void FileModifier_04(LanguageVersion languageVersion)
     {
         UsingNode("""
             partial file record C { }
-            """);
+            """,
+            options: TestOptions.Regular.WithLanguageVersion(languageVersion),
+            expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
+                ? [
+                    // (1,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // partial file record C { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 1)
+                ]
+                : []);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.RecordDeclaration);
@@ -189,12 +210,22 @@ public sealed class FileModifierParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void FileModifier_06()
+    [Theory]
+    [InlineData(LanguageVersion.CSharp14)]
+    [InlineData(LanguageVersion.Preview)]
+    public void FileModifier_06(LanguageVersion languageVersion)
     {
         UsingNode($$"""
             partial file record struct C { }
-            """);
+            """,
+            options: TestOptions.Regular.WithLanguageVersion(languageVersion),
+            expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
+                ? [
+                    // (1,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // partial file record struct C { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 1)
+                ]
+                : []);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.RecordStructDeclaration);
@@ -245,12 +276,22 @@ public sealed class FileModifierParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void FileModifier_07()
+    [Theory]
+    [InlineData(LanguageVersion.CSharp14)]
+    [InlineData(LanguageVersion.Preview)]
+    public void FileModifier_07(LanguageVersion languageVersion)
     {
         UsingNode($$"""
             file partial ref struct C { }
-            """);
+            """,
+            options: TestOptions.Regular.WithLanguageVersion(languageVersion),
+            expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
+                ? [
+                    // (1,6): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // file partial ref struct C { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 6)
+                ]
+                : []);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -269,12 +310,22 @@ public sealed class FileModifierParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void FileModifier_08()
+    [Theory]
+    [InlineData(LanguageVersion.CSharp14)]
+    [InlineData(LanguageVersion.Preview)]
+    public void FileModifier_08(LanguageVersion languageVersion)
     {
         UsingNode($$"""
             partial file ref struct C { }
-            """);
+            """,
+            options: TestOptions.Regular.WithLanguageVersion(languageVersion),
+            expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
+                ? [
+                    // (1,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // partial file ref struct C { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 1)
+                ]
+                : []);
 
         N(SyntaxKind.CompilationUnit);
         {

@@ -181,13 +181,26 @@ public sealed class ClosedModifierParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void ClosedModifier_03_Class()
+    [Theory]
+    [InlineData(LanguageVersion.CSharp14)]
+    [InlineData(LanguageVersion.Preview)]
+    public void ClosedModifier_03_Class(LanguageVersion languageVersion)
     {
         const SyntaxKind typeKeyword = SyntaxKind.ClassKeyword;
         UsingNode($$"""
             partial closed {{SyntaxFacts.GetText(typeKeyword)}} C { }
-            """);
+            """,
+            options: TestOptions.Regular.WithLanguageVersion(languageVersion),
+            expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
+                ? [
+                    // (1,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // partial closed class C { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 1),
+                    // (1,22): error CS9327: Feature 'closed classes' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // partial closed class C { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "C").WithArguments("closed classes", "15.0").WithLocation(1, 22)
+                ]
+                : []);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxFacts.GetBaseTypeDeclarationKind(typeKeyword));
@@ -204,18 +217,30 @@ public sealed class ClosedModifierParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void ClosedModifier_03_Struct()
+    [Theory]
+    [InlineData(LanguageVersion.CSharp14)]
+    [InlineData(LanguageVersion.Preview)]
+    public void ClosedModifier_03_Struct(LanguageVersion languageVersion)
     {
         const SyntaxKind typeKeyword = SyntaxKind.StructKeyword;
         UsingNode($$"""
             partial closed {{SyntaxFacts.GetText(typeKeyword)}} C { }
             """,
-            expectedBindingDiagnostics: [
-                // (1,23): error CS0106: The modifier 'closed' is not valid for this item
-                // partial closed struct C { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("closed").WithLocation(1, 23)
-            ]);
+            options: TestOptions.Regular.WithLanguageVersion(languageVersion),
+            expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
+                ? [
+                    // (1,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // partial closed struct C { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 1),
+                    // (1,23): error CS0106: The modifier 'closed' is not valid for this item
+                    // partial closed struct C { }
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("closed").WithLocation(1, 23)
+                ]
+                : [
+                    // (1,23): error CS0106: The modifier 'closed' is not valid for this item
+                    // partial closed struct C { }
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("closed").WithLocation(1, 23)
+                ]);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxFacts.GetBaseTypeDeclarationKind(typeKeyword));
@@ -232,18 +257,30 @@ public sealed class ClosedModifierParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void ClosedModifier_03_Interface()
+    [Theory]
+    [InlineData(LanguageVersion.CSharp14)]
+    [InlineData(LanguageVersion.Preview)]
+    public void ClosedModifier_03_Interface(LanguageVersion languageVersion)
     {
         const SyntaxKind typeKeyword = SyntaxKind.InterfaceKeyword;
         UsingNode($$"""
             partial closed {{SyntaxFacts.GetText(typeKeyword)}} C { }
             """,
-            expectedBindingDiagnostics: [
-                // (1,26): error CS0106: The modifier 'closed' is not valid for this item
-                // partial closed interface C { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("closed").WithLocation(1, 26)
-            ]);
+            options: TestOptions.Regular.WithLanguageVersion(languageVersion),
+            expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
+                ? [
+                    // (1,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // partial closed interface C { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 1),
+                    // (1,26): error CS0106: The modifier 'closed' is not valid for this item
+                    // partial closed interface C { }
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("closed").WithLocation(1, 26)
+                ]
+                : [
+                    // (1,26): error CS0106: The modifier 'closed' is not valid for this item
+                    // partial closed interface C { }
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("closed").WithLocation(1, 26)
+                ]);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxFacts.GetBaseTypeDeclarationKind(typeKeyword));
@@ -260,12 +297,25 @@ public sealed class ClosedModifierParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void ClosedModifier_04()
+    [Theory]
+    [InlineData(LanguageVersion.CSharp14)]
+    [InlineData(LanguageVersion.Preview)]
+    public void ClosedModifier_04(LanguageVersion languageVersion)
     {
         UsingNode("""
             partial closed record C { }
-            """);
+            """,
+            options: TestOptions.Regular.WithLanguageVersion(languageVersion),
+            expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
+                ? [
+                    // (1,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // partial closed record C { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 1),
+                    // (1,23): error CS9327: Feature 'closed classes' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // partial closed record C { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "C").WithArguments("closed classes", "15.0").WithLocation(1, 23)
+                ]
+                : []);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.RecordDeclaration);
@@ -305,17 +355,29 @@ public sealed class ClosedModifierParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void ClosedModifier_06()
+    [Theory]
+    [InlineData(LanguageVersion.CSharp14)]
+    [InlineData(LanguageVersion.Preview)]
+    public void ClosedModifier_06(LanguageVersion languageVersion)
     {
         UsingNode($$"""
             partial closed record struct C { }
             """,
-            expectedBindingDiagnostics: [
-                // (1,30): error CS0106: The modifier 'closed' is not valid for this item
-                // partial closed record struct C { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("closed").WithLocation(1, 30)
-            ]);
+            options: TestOptions.Regular.WithLanguageVersion(languageVersion),
+            expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
+                ? [
+                    // (1,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // partial closed record struct C { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 1),
+                    // (1,30): error CS0106: The modifier 'closed' is not valid for this item
+                    // partial closed record struct C { }
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("closed").WithLocation(1, 30)
+                ]
+                : [
+                    // (1,30): error CS0106: The modifier 'closed' is not valid for this item
+                    // partial closed record struct C { }
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("closed").WithLocation(1, 30)
+                ]);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.RecordStructDeclaration);
@@ -333,49 +395,29 @@ public sealed class ClosedModifierParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void ClosedModifier_07_CSharp14()
+    [Theory]
+    [InlineData(LanguageVersion.CSharp14)]
+    [InlineData(LanguageVersion.Preview)]
+    public void ClosedModifier_07(LanguageVersion languageVersion)
     {
         UsingNode($$"""
             closed partial ref struct C { }
             """,
-            options: TestOptions.Regular14,
-            expectedBindingDiagnostics: [
-                // (1,8): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
-                // closed partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 8),
-                // (1,27): error CS0106: The modifier 'closed' is not valid for this item
-                // closed partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("closed").WithLocation(1, 27)
-            ]);
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.StructDeclaration);
-            {
-                N(SyntaxKind.ClosedKeyword);
-                N(SyntaxKind.PartialKeyword);
-                N(SyntaxKind.RefKeyword);
-                N(SyntaxKind.StructKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void ClosedModifier_07()
-    {
-        UsingNode($$"""
-            closed partial ref struct C { }
-            """,
-            expectedBindingDiagnostics: [
-                // (1,27): error CS0106: The modifier 'closed' is not valid for this item
-                // closed partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("closed").WithLocation(1, 27)
-            ]);
+            options: TestOptions.Regular.WithLanguageVersion(languageVersion),
+            expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
+                ? [
+                    // (1,8): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // closed partial ref struct C { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 8),
+                    // (1,27): error CS0106: The modifier 'closed' is not valid for this item
+                    // closed partial ref struct C { }
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("closed").WithLocation(1, 27)
+                ]
+                : [
+                    // (1,27): error CS0106: The modifier 'closed' is not valid for this item
+                    // closed partial ref struct C { }
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("closed").WithLocation(1, 27)
+                ]);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -394,17 +436,29 @@ public sealed class ClosedModifierParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void ClosedModifier_08()
+    [Theory]
+    [InlineData(LanguageVersion.CSharp14)]
+    [InlineData(LanguageVersion.Preview)]
+    public void ClosedModifier_08(LanguageVersion languageVersion)
     {
         UsingNode($$"""
             partial closed ref struct C { }
             """,
-            expectedBindingDiagnostics: [
-                // (1,27): error CS0106: The modifier 'closed' is not valid for this item
-                // partial closed ref struct C { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("closed").WithLocation(1, 27)
-            ]);
+            options: TestOptions.Regular.WithLanguageVersion(languageVersion),
+            expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
+                ? [
+                    // (1,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // partial closed ref struct C { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 1),
+                    // (1,27): error CS0106: The modifier 'closed' is not valid for this item
+                    // partial closed ref struct C { }
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("closed").WithLocation(1, 27)
+                ]
+                : [
+                    // (1,27): error CS0106: The modifier 'closed' is not valid for this item
+                    // partial closed ref struct C { }
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("closed").WithLocation(1, 27)
+                ]);
 
         N(SyntaxKind.CompilationUnit);
         {
