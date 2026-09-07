@@ -8,6 +8,7 @@ trigger:
     - release/*
     - features/*
     - demos/*
+    - dev/*
     exclude:
     # Since the version of VS on the integration VM images are a moving target,
     # we are unable to reliably run integration tests on servicing branches.

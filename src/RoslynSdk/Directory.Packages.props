@@ -12,7 +12,6 @@
     <PackageVersion Include="Microsoft.VisualStudio.ProjectSystem.Managed" Version="17.3.51-g48943e0519" />
     <PackageVersion Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS" Version="17.3.51-g48943e0519" />
     <PackageVersion Include="Microsoft.VisualStudio.ProjectSystem.SDK.Tools" Version="18.9.102" />
-    <PackageVersion Include="Microsoft.VisualStudio.TemplateWizardInterface" Version="17.0.0-previews-1-31321-016" />
     <PackageVersion Include="NuGet.Common" Version="$(RoslynSdkNuGetApiVersion)" />
     <PackageVersion Include="NuGet.Packaging" Version="$(RoslynSdkNuGetApiVersion)" />
     <PackageVersion Include="NuGet.Protocol" Version="$(RoslynSdkNuGetApiVersion)" />

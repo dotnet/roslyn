@@ -7,6 +7,11 @@
         <target state="translated">Některé direktivy nelze převést. Spuštěním souboru zobrazíte všechny chyby kompilace. Zadejte „--force“, pokud chcete přesto provést převod.</target>
         <note>{Locked="--force"}</note>
       </trans-unit>
+      <trans-unit id="ConflictingDirectiveMetadata">
+        <source>Directive metadata '{0}' conflicts with a value already specified by the directive.</source>
+        <target state="new">Directive metadata '{0}' conflicts with a value already specified by the directive.</target>
+        <note>{0} is the metadata name.</note>
+      </trans-unit>
       <trans-unit id="CouldNotFindAnyProjectInDirectory">
         <source>Could not find any project in `{0}`.</source>
         <target state="translated">V {0} se nenašel žádný projekt.</target>
@@ -27,15 +32,30 @@
         <target state="translated">chyba</target>
         <note>Used when reporting directive errors like "file(location): error: message".</note>
       </trans-unit>
+      <trans-unit id="DirectiveMetadataInvalidName">
+        <source>Invalid directive metadata name '{0}': {1}</source>
+        <target state="new">Invalid directive metadata name '{0}': {1}</target>
+        <note>{0} is the metadata name. {1} is the inner exception message.</note>
+      </trans-unit>
       <trans-unit id="DuplicateDirective">
         <source>Duplicate directives are not supported: {0}</source>
         <target state="translated">Duplicitní direktivy nejsou podporovány: {0}</target>
         <note>{0} is the directive type and name.</note>
       </trans-unit>
+      <trans-unit id="DuplicateDirectiveMetadata">
+        <source>Directive metadata name '{0}' is specified more than once.</source>
+        <target state="new">Directive metadata name '{0}' is specified more than once.</target>
+        <note>{0} is the duplicate metadata name.</note>
+      </trans-unit>
       <trans-unit id="EmptyTempPath">
         <source>Unable to determine a temporary directory path. Consider configuring the TEMP environment variable on Windows or local app data folder on Unix.</source>
         <target state="translated">Nelze určit cestu k dočasnému adresáři. Zvažte konfiguraci proměnné prostředí TEMP v systému Windows nebo místní datové složky aplikace v systému Unix.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ExpectedSimpleStringLiteralInDirective">
+        <source>Expected a simple string literal in the directive value. Raw and verbatim string literals are not supported in directive values. Found: {0}</source>
+        <target state="new">Expected a simple string literal in the directive value. Raw and verbatim string literals are not supported in directive values. Found: {0}</target>
+        <note>{0} is the offending C# token text, for example '"""abc"""'.</note>
       </trans-unit>
       <trans-unit id="ExperimentalFeatureDisabled">
         <source>This is an experimental feature, set MSBuild property '{0}' to 'true' to enable it.</source>
@@ -51,6 +71,11 @@
         <source>File included via #:include directive (or Compile item) not found: {0}</source>
         <target state="translated">Soubor zahrnutý prostřednictvím direktivy #:include (nebo položky Compile) nebyl nalezen: {0}</target>
         <note>{Locked="#:include"}{Locked="Compile"}. {0} is file path.</note>
+      </trans-unit>
+      <trans-unit id="InvalidDirectiveMetadata">
+        <source>Directive metadata must be in the form 'Name=Value'. Invalid metadata: '{0}'.</source>
+        <target state="new">Directive metadata must be in the form 'Name=Value'. Invalid metadata: '{0}'.</target>
+        <note>{Locked="'Name=Value'"}{0} is the offending metadata text.</note>
       </trans-unit>
       <trans-unit id="InvalidDirectiveName">
         <source>The directive should contain a name without special characters and an optional value separated by '{1}' like '#:{0} Name{1}Value'.</source>
@@ -77,10 +102,20 @@
         <target state="translated">Direktiva #:project je neplatná: {0}</target>
         <note>{0} is the inner error message.</note>
       </trans-unit>
+      <trans-unit id="InvalidQuoteInDirective">
+        <source>Double quotes (") in a directive must enclose an entire value, for example: 'Name="a b"' or '"a b"'.</source>
+        <target state="new">Double quotes (") in a directive must enclose an entire value, for example: 'Name="a b"' or '"a b"'.</target>
+        <note>{Locked="Name="a b""}{Locked=""a b""}</note>
+      </trans-unit>
       <trans-unit id="InvalidRefDirective">
         <source>The '#:ref' directive is invalid: {0}</source>
         <target state="translated">Direktiva #:ref je neplatná: {0}.</target>
         <note>{Locked="#:ref"}{0} is the inner error message.</note>
+      </trans-unit>
+      <trans-unit id="InvalidStringLiteralInDirective">
+        <source>Invalid quoted value in directive: {0}</source>
+        <target state="new">Invalid quoted value in directive: {0}</target>
+        <note>{0} is the underlying C# string literal error message, for example 'Unrecognized escape sequence.'.</note>
       </trans-unit>
       <trans-unit id="MissingDirectiveName">
         <source>Missing name of '{0}'.</source>
@@ -102,20 +137,25 @@
         <target state="translated">Direktiva property musí mít dvě části oddělené znakem =, například #:property PropertyName=PropertyValue.</target>
         <note>{Locked="#:property"}</note>
       </trans-unit>
-      <trans-unit id="QuoteInDirective">
-        <source>Directives currently cannot contain double quotes (").</source>
-        <target state="translated">Direktivy v současné době nemůžou obsahovat dvojité uvozovky (").</target>
-        <note />
-      </trans-unit>
       <trans-unit id="StaticGraphRestoreNotSupported">
         <source>Static graph restore is not supported for file-based apps. Remove the '#:property'.</source>
         <target state="translated">Statické obnovení grafu se pro souborové aplikace nepodporuje. Odeberte #:property.</target>
         <note>{Locked="#:property"}</note>
       </trans-unit>
+      <trans-unit id="UnexpectedDirectiveText">
+        <source>The '{0}' directive has unexpected content. To include whitespace in a value, enclose it in double quotes (").</source>
+        <target state="new">The '{0}' directive has unexpected content. To include whitespace in a value, enclose it in double quotes (").</target>
+        <note>{0} is the directive kind like 'property' or 'sdk'.</note>
+      </trans-unit>
       <trans-unit id="UnrecognizedDirective">
         <source>Unrecognized directive '{0}'.</source>
         <target state="translated">Nerozpoznaná direktiva {0}.</target>
         <note>{0} is the directive name like 'package' or 'sdk'.</note>
+      </trans-unit>
+      <trans-unit id="UnterminatedQuoteInDirective">
+        <source>Unterminated double quote (") in directive.</source>
+        <target state="new">Unterminated double quote (") in directive.</target>
+        <note />
       </trans-unit>
     </body>
   </file>

@@ -498,14 +498,16 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     {
         foreach (var (uriInWorkspace, documentsForUri) in documentsInWorkspace)
         {
-            // We're comparing text, so we can take any of the linked documents.
-            var firstDocument = documentsForUri.First();
-            var isTextEquivalent = await AreChecksumsEqualAsync(firstDocument, _trackedDocuments[uriInWorkspace].SourceText, cancellationToken).ConfigureAwait(false);
-
-            if (!isTextEquivalent)
+            var lspText = _trackedDocuments[uriInWorkspace].SourceText;
+            foreach (var document in documentsForUri)
             {
-                _logger.LogWarning($"Text for {uriInWorkspace} did not match document text {firstDocument.Id} in workspace's {firstDocument.Project.Solution.WorkspaceKind} current solution");
-                return false;
+                // Linked documents can temporarily have different text when only part of the linked set has been updated.
+                var isTextEquivalent = await AreChecksumsEqualAsync(document, lspText, cancellationToken).ConfigureAwait(false);
+                if (!isTextEquivalent)
+                {
+                    _logger.LogWarning($"Text for {uriInWorkspace} did not match document text {document.Id} in workspace's {document.Project.Solution.WorkspaceKind} current solution");
+                    return false;
+                }
             }
         }
 

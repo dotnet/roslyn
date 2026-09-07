@@ -733,6 +733,20 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     }
 
     [Fact]
+    public void Constructor_BeforePartial_WithImplementation()
+    {
+        CreateCompilation(
+            """
+            partial class C
+            {
+                public safe partial C();
+                public safe partial C() { }
+            }
+            """,
+            parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+    }
+
+    [Fact]
     public void InvocationExpression()
     {
         UsingTree("""
