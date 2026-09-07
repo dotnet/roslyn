@@ -92,13 +92,15 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
         }
     }
 
-    [Fact]
-    public void Partial_BeforeAccessibilityOnUnion()
+    [Theory]
+    [InlineData(LanguageVersion.CSharp14)]
+    [InlineData(LanguageVersion.Preview)]
+    public void Partial_BeforeAccessibilityOnUnion(LanguageVersion languageVersion)
     {
         const string src = "partial public union U(int);";
-        var options = TestOptions.RegularPreview;
 
-        UsingTree(src, options);
+        // Union declarations themselves require C# 15, so assert their intended tree under Preview.
+        UsingTree(src, TestOptions.RegularPreview);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.UnionDeclaration);
@@ -125,9 +127,32 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
         }
         EOF();
 
-        CreateCompilation(
+        var compilation = CreateCompilation(
             [src, UnionAttributeSource, IUnionSource],
-            parseOptions: options).VerifyDiagnostics();
+            parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+        if (languageVersion == LanguageVersion.CSharp14)
+        {
+            compilation.VerifyDiagnostics(
+                // (1,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                // partial public union U(int);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 1),
+                // (1,16): error CS0246: The type or namespace name 'union' could not be found (are you missing a using directive or an assembly reference?)
+                // partial public union U(int);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "union").WithArguments("union").WithLocation(1, 16),
+                // (1,22): error CS8795: Partial method '<invalid-global-code>.U(int)' must have an implementation part because it has accessibility modifiers.
+                // partial public union U(int);
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "U").WithArguments("<invalid-global-code>.U(int)").WithLocation(1, 22),
+                // (1,22): error CS0751: A partial member must be declared within a partial type
+                // partial public union U(int);
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "U").WithLocation(1, 22),
+                // (1,27): error CS1001: Identifier expected
+                // partial public union U(int);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 27));
+        }
+        else
+        {
+            compilation.VerifyDiagnostics();
+        }
     }
 
     [Fact]

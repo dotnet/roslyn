@@ -3707,11 +3707,14 @@ class C(int X, int Y)
             EOF();
         }
 
-        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
-        public void RecordStructParsing_PartialReadonly()
+        [Theory, CompilerTrait(CompilerFeature.RecordStructs)]
+        [InlineData(LanguageVersion.CSharp14)]
+        [InlineData(LanguageVersion.Preview)]
+        public void RecordStructParsing_PartialReadonly(LanguageVersion languageVersion)
         {
             var text = "partial readonly record struct S;";
-            UsingTree(text, options: TestOptions.RegularPreview);
+            var options = TestOptions.Regular.WithLanguageVersion(languageVersion);
+            UsingTree(text, options);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3728,7 +3731,18 @@ class C(int X, int Y)
             }
             EOF();
 
-            CreateCompilation(text, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            var compilation = CreateCompilation(text, parseOptions: options);
+            if (languageVersion == LanguageVersion.CSharp14)
+            {
+                compilation.VerifyDiagnostics(
+                    // (1,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // partial readonly record struct S;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 1));
+            }
+            else
+            {
+                compilation.VerifyDiagnostics();
+            }
         }
 
         [Fact, CompilerTrait(CompilerFeature.RecordStructs)]

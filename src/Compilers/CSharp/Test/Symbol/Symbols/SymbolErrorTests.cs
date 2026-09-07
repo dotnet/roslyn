@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using Basic.Reference.Assemblies;
 
@@ -22205,10 +22206,12 @@ using System.Runtime.CompilerServices;
                 );
         }
 
-        [Fact]
-        public void PartialConstructor()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp14)]
+        [InlineData(LanguageVersion.Preview)]
+        public void PartialConstructor(LanguageVersion languageVersion)
         {
-            CreateCompilation(new[]
+            var compilation = CreateCompilation(new[]
             {
                 """
                 public class PartialCtor
@@ -22228,7 +22231,14 @@ using System.Runtime.CompilerServices;
                     partial public PartialPublicCtor() { }
                 }
                 """
-            }).VerifyDiagnostics(
+            }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            compilation.VerifyDiagnostics(new[]
+            {
+                // 2.cs(3,5): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                //     partial public PartialPublicCtor() { }
+                languageVersion == LanguageVersion.CSharp14
+                    ? Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(3, 5)
+                    : null,
                 // 0.cs(3,13): error CS0751: A partial member must be declared within a partial type
                 //     partial PartialCtor() { }
                 Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "PartialCtor").WithLocation(3, 13),
@@ -22246,7 +22256,8 @@ using System.Runtime.CompilerServices;
                 Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "PublicPartialCtor").WithArguments("PublicPartialCtor.PublicPartialCtor()").WithLocation(3, 20),
                 // 2.cs(3,20): error CS9276: Partial member 'PartialPublicCtor.PartialPublicCtor()' must have a definition part.
                 //     partial public PartialPublicCtor() { }
-                Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "PartialPublicCtor").WithArguments("PartialPublicCtor.PartialPublicCtor()").WithLocation(3, 20));
+                Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "PartialPublicCtor").WithArguments("PartialPublicCtor.PartialPublicCtor()").WithLocation(3, 20)
+            }.WhereNotNull().ToArray());
         }
 
         [Fact]

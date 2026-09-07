@@ -2291,7 +2291,7 @@ class Test1 : I2, I1<string?>
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular15,
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics();
 
@@ -11717,8 +11717,10 @@ public partial interface I1
                 );
         }
 
-        [Fact]
-        public void MethodModifiers_29()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp14)]
+        [InlineData(LanguageVersion.Preview)]
+        public void MethodModifiers_29(LanguageVersion languageVersion)
         {
             var source1 =
 @"
@@ -11737,16 +11739,32 @@ public partial interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                                                  targetFramework: TargetFramework.NetCoreApp);
 
-            compilation1.VerifyDiagnostics(
-                // (9,27): error CS0762: Cannot create delegate from method 'I1.M1()' because it is a partial method without an implementing declaration
-                //         new System.Action(M1).Invoke();
-                Diagnostic(ErrorCode.ERR_PartialMethodToDelegate, "M1").WithArguments("I1.M1()").WithLocation(9, 27),
-                // (10,27): error CS0762: Cannot create delegate from method 'I1.M2()' because it is a partial method without an implementing declaration
-                //         new System.Action(M2).Invoke();
-                Diagnostic(ErrorCode.ERR_PartialMethodToDelegate, "M2").WithArguments("I1.M2()").WithLocation(10, 27));
+            if (languageVersion == LanguageVersion.CSharp14)
+            {
+                compilation1.VerifyDiagnostics(
+                    // (9,27): error CS0762: Cannot create delegate from method 'I1.M1()' because it is a partial method without an implementing declaration
+                    //         new System.Action(M1).Invoke();
+                    Diagnostic(ErrorCode.ERR_PartialMethodToDelegate, "M1").WithArguments("I1.M1()").WithLocation(9, 27),
+                    // (10,27): error CS0762: Cannot create delegate from method 'I1.M2()' because it is a partial method without an implementing declaration
+                    //         new System.Action(M2).Invoke();
+                    Diagnostic(ErrorCode.ERR_PartialMethodToDelegate, "M2").WithArguments("I1.M2()").WithLocation(10, 27),
+                    // (13,5): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    //     partial static void M4();
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(13, 5));
+            }
+            else
+            {
+                compilation1.VerifyDiagnostics(
+                    // (9,27): error CS0762: Cannot create delegate from method 'I1.M1()' because it is a partial method without an implementing declaration
+                    //         new System.Action(M1).Invoke();
+                    Diagnostic(ErrorCode.ERR_PartialMethodToDelegate, "M1").WithArguments("I1.M1()").WithLocation(9, 27),
+                    // (10,27): error CS0762: Cannot create delegate from method 'I1.M2()' because it is a partial method without an implementing declaration
+                    //         new System.Action(M2).Invoke();
+                    Diagnostic(ErrorCode.ERR_PartialMethodToDelegate, "M2").WithArguments("I1.M2()").WithLocation(10, 27));
+            }
         }
 
         [Fact]

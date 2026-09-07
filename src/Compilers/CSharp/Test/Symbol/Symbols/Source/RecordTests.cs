@@ -1188,20 +1188,28 @@ partial record C
 }");
         }
 
-        [Fact]
-        public void PartialTypes_04_PartialBeforeModifiers()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp14)]
+        [InlineData(LanguageVersion.Preview)]
+        public void PartialTypes_04_PartialBeforeModifiers(LanguageVersion languageVersion)
         {
             var src = @"
 partial public record C
 {
 }
 ";
-            CreateCompilation(src, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-                // (2,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
-                // partial public record C
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(2, 1));
-
-            CreateCompilation(src, parseOptions: TestOptions.Regular15).VerifyDiagnostics();
+            var compilation = CreateCompilation(src, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion == LanguageVersion.CSharp14)
+            {
+                compilation.VerifyDiagnostics(
+                    // (2,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // partial public record C
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(2, 1));
+            }
+            else
+            {
+                compilation.VerifyDiagnostics();
+            }
         }
 
         [Fact]

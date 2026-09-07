@@ -591,12 +591,14 @@ class Goo
         }
 
         [WorkItem(536668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536668")]
-        [Fact]
-        public void CS0267ERR_PartialMisplaced()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp14)]
+        [InlineData(LanguageVersion.Preview)]
+        public void PartialBeforeAccessibility(LanguageVersion languageVersion)
         {
             // Diff error
             var test = @"
-partial public class C  // CS0267
+partial public class C
 {
 }
 public class Test
@@ -608,12 +610,18 @@ public class Test
 }
 ";
 
-            CreateCompilation(test, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-                // (2,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
-                // partial public class C  // CS0267
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(2, 1));
-
-            CreateCompilation(test, parseOptions: TestOptions.Regular15).VerifyDiagnostics();
+            var compilation = CreateCompilation(test, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion == LanguageVersion.CSharp14)
+            {
+                compilation.VerifyDiagnostics(
+                    // (2,1): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // partial public class C
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(2, 1));
+            }
+            else
+            {
+                compilation.VerifyDiagnostics();
+            }
         }
 
         [Fact]

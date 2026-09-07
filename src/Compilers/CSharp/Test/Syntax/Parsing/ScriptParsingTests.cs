@@ -1242,16 +1242,29 @@ new partial class C { }
             }
         }
 
-        [Fact]
-        public void NewModifier_ClassWithMisplacedModifiers1()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp14)]
+        [InlineData(LanguageVersion.Preview)]
+        public void NewModifier_ClassWithMisplacedModifiers1(LanguageVersion languageVersion)
         {
             var source = "new partial public class C { }";
-            CreateCompilation(source).VerifyDiagnostics(
+            var options = TestOptions.Regular.WithLanguageVersion(languageVersion);
+            CreateCompilation(source, parseOptions: options).VerifyDiagnostics(
+                languageVersion == LanguageVersion.CSharp14
+                ? [
+                    // (1,5): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // new partial public class C { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 5),
                     // (1,26): error CS0106: The modifier 'new' is not valid for this item
                     // new partial public class C { }
                     Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("new").WithLocation(1, 26)
-                );
-            var tree = UsingTree(source);
+                ]
+                : [
+                    // (1,26): error CS0106: The modifier 'new' is not valid for this item
+                    // new partial public class C { }
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("new").WithLocation(1, 26)
+                ]);
+            var tree = UsingTree(source, options);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -1268,15 +1281,29 @@ new partial class C { }
             }
         }
 
-        [Fact]
-        public void NewModifier_ClassWithMisplacedModifiers2()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp14)]
+        [InlineData(LanguageVersion.Preview)]
+        public void NewModifier_ClassWithMisplacedModifiers2(LanguageVersion languageVersion)
         {
             var source = "new static partial public class C { }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (1,33): error CS0106: The modifier 'new' is not valid for this item
-                // new static partial public class C { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("new").WithLocation(1, 33));
-            var tree = UsingTree(source);
+            var options = TestOptions.Regular.WithLanguageVersion(languageVersion);
+            CreateCompilation(source, parseOptions: options).VerifyDiagnostics(
+                languageVersion == LanguageVersion.CSharp14
+                ? [
+                    // (1,12): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    // new static partial public class C { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(1, 12),
+                    // (1,33): error CS0106: The modifier 'new' is not valid for this item
+                    // new static partial public class C { }
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("new").WithLocation(1, 33)
+                ]
+                : [
+                    // (1,33): error CS0106: The modifier 'new' is not valid for this item
+                    // new static partial public class C { }
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("new").WithLocation(1, 33)
+                ]);
+            var tree = UsingTree(source, options);
 
             N(SyntaxKind.CompilationUnit);
             {

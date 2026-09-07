@@ -2107,8 +2107,10 @@ class Program
             CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics();
         }
 
-        [Fact]
-        public void PartialRefStruct()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp14)]
+        [InlineData(LanguageVersion.Preview)]
+        public void PartialRefStruct(LanguageVersion languageVersion)
         {
             const string text = @"
 class Program
@@ -2117,7 +2119,8 @@ class Program
     partial ref struct S {}
 }
 ";
-            UsingTree(text);
+            var options = TestOptions.Regular.WithLanguageVersion(languageVersion);
+            UsingTree(text, options);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2149,7 +2152,21 @@ class Program
             }
             EOF();
 
-            CreateCompilation(text).VerifyDiagnostics();
+            var compilation = CreateCompilation(text, parseOptions: options);
+            if (languageVersion == LanguageVersion.CSharp14)
+            {
+                compilation.VerifyDiagnostics(
+                    // (4,5): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    //     partial ref struct S {}
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(4, 5),
+                    // (5,5): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    //     partial ref struct S {}
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(5, 5));
+            }
+            else
+            {
+                compilation.VerifyDiagnostics();
+            }
         }
 
         [Fact]
@@ -2530,8 +2547,10 @@ class C
             CreateCompilation(text).VerifyDiagnostics();
         }
 
-        [Fact]
-        public void ReadonlyPartialRefStruct()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp14)]
+        [InlineData(LanguageVersion.Preview)]
+        public void ReadonlyPartialRefStruct(LanguageVersion languageVersion)
         {
             const string text = @"
 class C
@@ -2539,7 +2558,8 @@ class C
     readonly partial ref struct S {}
     readonly partial ref struct S {}
 }";
-            UsingTree(text);
+            var options = TestOptions.Regular.WithLanguageVersion(languageVersion);
+            UsingTree(text, options);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2573,7 +2593,21 @@ class C
             }
             EOF();
 
-            CreateCompilation(text).VerifyDiagnostics();
+            var compilation = CreateCompilation(text, parseOptions: options);
+            if (languageVersion == LanguageVersion.CSharp14)
+            {
+                compilation.VerifyDiagnostics(
+                    // (4,14): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    //     readonly partial ref struct S {}
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(4, 14),
+                    // (5,14): error CS9327: Feature 'relaxed modifier ordering' is not available in C# 14.0. Please use language version 15.0 or greater.
+                    //     readonly partial ref struct S {}
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "partial").WithArguments("relaxed modifier ordering", "15.0").WithLocation(5, 14));
+            }
+            else
+            {
+                compilation.VerifyDiagnostics();
+            }
         }
 
         [Fact]
