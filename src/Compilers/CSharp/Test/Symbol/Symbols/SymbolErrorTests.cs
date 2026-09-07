@@ -14205,7 +14205,7 @@ partial class C
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (4,5): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.
                 //     partial int f;
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
                 // (5,20): error CS9249: Partial property 'C.P' must have a definition part.
@@ -14749,7 +14749,7 @@ namespace TestNamespace
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (3,23): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+                // (3,23): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     public object P { partial get; set; }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 23),
                 // (4,34): error CS1014: A get, set or init accessor expected
@@ -22314,28 +22314,28 @@ using System.Runtime.CompilerServices;
                 }
                 """,
             }).VerifyDiagnostics(
-                // 6.cs(3,5): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+                // 6.cs(3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial static public PartialStaticPublicCtor() { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-                // 0.cs(3,5): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+                // 0.cs(3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial static PartialStaticCtor() { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-                // 7.cs(3,5): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+                // 7.cs(3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial public static PartialPublicStaticCtor() { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-                // 3.cs(3,12): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+                // 3.cs(3,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     public partial static PublicPartialStaticCtor() { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 12),
-                // 1.cs(3,12): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+                // 1.cs(3,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     static partial StaticPartialCtor() { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 12),
-                // 5.cs(3,12): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+                // 5.cs(3,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     static partial public StaticPartialPublicCtor() { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 12),
-                // 2.cs(3,19): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+                // 2.cs(3,19): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     public static partial PublicStaticPartialCtor() { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 19),
-                // 4.cs(3,19): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+                // 4.cs(3,19): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     static public partial StaticPublicPartialCtor() { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 19),
                 // 3.cs(3,27): error CS0515: 'PublicPartialStaticCtor.PublicPartialStaticCtor()': access modifiers are not allowed on static constructors

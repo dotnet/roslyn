@@ -732,10 +732,10 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (3,12): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+            // (3,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
             //     static partial C();
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 12),
-            // (4,12): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+            // (4,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
             //     static partial C() { }
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 12),
             // (4,20): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
@@ -754,10 +754,10 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (3,5): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+            // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
             //     partial static C();
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-            // (4,5): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+            // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
             //     partial static C() { }
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
             // (4,20): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types

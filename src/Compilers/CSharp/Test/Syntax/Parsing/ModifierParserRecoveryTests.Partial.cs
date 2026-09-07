@@ -468,10 +468,10 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
             """;
 
         CreateCompilation(source).VerifyDiagnostics(
-            // (3,19): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+            // (3,19): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
             //     public static partial implicit operator int(C c) => 0;
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 19),
-            // (4,19): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+            // (4,19): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
             //     public static partial explicit operator C(int i) => new();
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 19));
     }
@@ -1063,7 +1063,7 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
             source,
             expectedBindingDiagnostics:
             [
-                // (5,27): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+                // (5,27): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
                 //         System.Action x = partial static () => { };
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 27),
             ]);
@@ -1181,7 +1181,7 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
             source,
             expectedBindingDiagnostics:
             [
-                // (5,27): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+                // (5,27): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
                 //         System.Action x = partial static async () => { };
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 27),
             ]);
@@ -1213,7 +1213,7 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
             source,
             expectedBindingDiagnostics:
             [
-                // (5,27): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+                // (5,27): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
                 //         System.Action x = partial async static () => { };
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 27),
             ]);
@@ -1454,7 +1454,7 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
                 // (5,33): error CS1002: ; expected
                 //         System.Action x = async partial static () => { };
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(5, 33),
-                // (5,33): error CS0267: The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.
+                // (5,33): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
                 //         System.Action x = async partial static () => { };
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 33),
                 // (5,33): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
