@@ -596,7 +596,7 @@ class Goo
         {
             // Diff error
             var test = @"
-partial public class C
+partial public class C  // CS0267
 {
 }
 public class Test
@@ -610,7 +610,7 @@ public class Test
 
             CreateCompilation(test, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
                 // (2,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
-                // partial public class C
+                // partial public class C  // CS0267
                 Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(2, 1));
         }
 
@@ -618,7 +618,7 @@ public class Test
         public void PartialBeforeAccessibility_Preview()
         {
             var test = """
-                partial public class C
+                partial public class C  // CS0267
                 {
                 }
                 public class Test
