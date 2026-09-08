@@ -39,3 +39,8 @@ public class MyTests
   `LanguageServerTestComposition.GetSharedExportProvider`. A
   `PartNotDiscoverable` scripted service factory is useful for testing project
   loading behavior without invoking MSBuild.
+- For some LanguageServer services created via `ILspServiceFactory` (for example,
+  `WorkspaceProjectDiscoveryService`), `GetRequiredLspService<T>()` in protocol
+  tests may not resolve the concrete service type directly. In these cases,
+  prefer direct unit tests that instantiate the service with lightweight test
+  doubles and validate behavior through test accessors.
