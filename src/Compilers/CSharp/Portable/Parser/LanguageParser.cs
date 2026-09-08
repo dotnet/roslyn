@@ -1678,43 +1678,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (isIdentifierFollowedByOpenParen(peekIndex: 0))
                     return IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors);
 
-                while (GetModifierExcludingScoped(this.CurrentToken) is var modifier)
+                while (GetModifierExcludingScoped(this.CurrentToken) != DeclarationModifiers.None)
                 {
-                    if (modifier == DeclarationModifiers.None)
-                    {
-                        // No modifier-like token remains, so the current token must start the member itself.
-
-                        // Case 1: 'event' cannot begin another member form, so parse 'partial event'
-                        // as an event in every language version. Binding reports the feature diagnostic
-                        // when necessary.
-                        if (this.CurrentToken.Kind == SyntaxKind.EventKeyword)
-                            return true;
-
-                        // Case 2: 'implicit' and 'explicit' can only start conversion operators, so
-                        // 'partial' is a modifier even when the operator declaration is incomplete.
-                        if (this.CurrentToken.Kind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword)
-                            return true;
-
-                        // Case 3: Otherwise, require a return type followed by a member name, as in
-                        // 'partial int M()'.
-                        return this.IsTypeFollowedByMemberName();
-                    }
-
-                    // Case 4: Before a non-contextual modifier, as in 'partial static', the initial
+                    // Before a non-contextual modifier, as in 'partial static', the initial
                     // 'partial' is unambiguously a modifier.
                     if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
                         return true;
 
-                    // Case 5: A contextual modifier followed by 'Identifier(' either starts a method
+                    // A contextual modifier followed by 'Identifier(' either starts a method
                     // return type, as in 'partial async C()', or is another modifier on a partial
-                    // constructor, as in 'partial partial C()'. Either way, the initial 'partial'
-                    // is a modifier. This does not fall through to Case 6 for the latter form in
-                    // C# 14: scanning the second 'partial' as a type reenters this helper and classifies
-                    // it as a modifier, so IsTypeFollowedByMemberName() returns false.
+                    // constructor, as in 'partial partial C()'. Either way, the initial 'partial' is
+                    // a modifier. For the latter form in C# 14, scanning the second 'partial' as a type
+                    // reenters this helper and classifies it as a modifier, so IsTypeFollowedByMemberName()
+                    // returns false.
                     if (isIdentifierFollowedByOpenParen(peekIndex: 1))
                         return true;
 
-                    // Case 6: A contextual modifier may otherwise be the member's return type, such as
+                    // A contextual modifier may otherwise be the member's return type, such as
                     // the second 'partial' in 'partial partial P { get; }'.
                     if (this.IsTypeFollowedByMemberName())
                         return true;
@@ -1722,7 +1702,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     this.EatToken();
                 }
 
-                throw ExceptionUtilities.Unreachable();
+                // No modifier-like token remains, so the current token must start the member itself.
+
+                // 'event' cannot begin another member form, so parse 'partial event' as an event in
+                // every language version. Binding reports the feature diagnostic when necessary.
+                if (this.CurrentToken.Kind == SyntaxKind.EventKeyword)
+                    return true;
+
+                // 'implicit' and 'explicit' can only start conversion operators, so 'partial' is a
+                // modifier even when the operator declaration is incomplete.
+                if (this.CurrentToken.Kind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword)
+                    return true;
+
+                // Otherwise, require a return type followed by a member name, as in 'partial int M()'.
+                return this.IsTypeFollowedByMemberName();
             }
 
             bool isIdentifierFollowedByOpenParen(int peekIndex)
