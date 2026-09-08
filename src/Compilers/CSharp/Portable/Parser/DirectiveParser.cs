@@ -696,7 +696,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private DirectiveTriviaSyntax ParseIgnoredDirective(SyntaxToken hash, SyntaxToken colon, bool isActive, bool isFollowingToken)
         {
-            if (isActive)
+            // Tooling may not know the conditional compilation symbols when reading file-based directives.
+            if (isActive || lexer.Options.FileBasedProgram)
             {
                 if (!lexer.Options.FileBasedProgram)
                 {
