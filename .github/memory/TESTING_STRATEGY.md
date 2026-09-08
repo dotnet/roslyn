@@ -40,6 +40,10 @@ dotnet test <proj> --filter "FullyQualifiedName~MyTestClass"
 ```
 Targeted runs are strongly preferred — the full suite is large and slow. Tests can take a while to build/run; wait for completion unless you're confident a run is hung.
 
+For measured build-and-test slices that reuse warm outputs during iteration, see
+`.github/memory/agent-inner-loop.md`. These slices accelerate development but do
+not replace the affected build and targeted tests required for final validation.
+
 ### Full suite (final validation only)
 ```bash
 ./test.sh        # or Test.cmd on Windows

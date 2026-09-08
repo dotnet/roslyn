@@ -16,6 +16,7 @@ This is the loading map for the agent knowledge base under `.github/memory/`. **
 | **`FILE_MAP.md`** | Top-level `src/` map (one line per area) + layer pointers | When deciding which area/layer to work in |
 | **`API_MAP.md`** | Build/test entry points & PublicAPI tracking | When changing build, tests, or public APIs |
 | **`TESTING_STRATEGY.md`** | Test layout, shared authoring conventions & how to run tests | When writing tests or debugging test failures |
+| **`agent-inner-loop.md`** | Measured fast build/test slices for iterative validation | When selecting or benchmarking an inner-loop command |
 
 ## Layer-specific knowledge
 
