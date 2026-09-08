@@ -442,7 +442,7 @@ internal static class CastSimplifier
         if (IsIdentityFloatingPointCastThatMustBePreserved(castNode, castedExpressionNode, originalSemanticModel, cancellationToken))
             return false;
 
-        // Identity casts will make a copy if the type is a mutable struct or is a type parameter that may be a struct.
+        // Identity casts will make a copy if the type is a struct or is a type parameter that may be a struct.
         // This copy may need to be kept to preserve semantics that only the copy is being manipulated and not the original struct.
         if (IsIdentityCastThatCreatesACopy(castNode, castedExpressionNode, originalSemanticModel, cancellationToken))
             return false;
@@ -713,7 +713,7 @@ internal static class CastSimplifier
     private static bool IsIdentityCastThatCreatesACopy(
         ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
-        // Identity casts will make a copy if the type is a mutable struct or is a type parameter that may be a struct.
+        // Identity casts will make a copy if the type is a struct or is a type parameter that may be a struct.
         // This copy may need to be kept to preserve semantics that only the copy is being manipulated and not the original struct.
         //
         // Note: this is an inaccurate heuristic.  Generally speaking, practically any member accessed off of a
