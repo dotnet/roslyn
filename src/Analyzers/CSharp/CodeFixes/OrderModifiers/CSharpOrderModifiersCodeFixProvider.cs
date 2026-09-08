@@ -19,10 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers;
 internal sealed class CSharpOrderModifiersCodeFixProvider()
     : AbstractOrderModifiersCodeFixProvider(CSharpSyntaxFacts.Instance, CSharpOrderModifiersHelper.Instance)
 {
-    private const string CS9327 = nameof(CS9327); // Feature is not available in C# 14. Please use language version 15.0 or greater.
+    private const string CS9401 = nameof(CS9401); // In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
 
     protected override CodeStyleOption2<string> GetCodeStyleOption(AnalyzerOptionsProvider options)
         => ((CSharpAnalyzerOptionsProvider)options).PreferredModifierOrder;
 
-    protected override ImmutableArray<string> FixableCompilerErrorIds { get; } = [CS9327];
+    protected override ImmutableArray<string> FixableCompilerErrorIds { get; } = [CS9401];
 }
