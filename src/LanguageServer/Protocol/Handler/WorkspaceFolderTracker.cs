@@ -16,7 +16,7 @@ internal sealed class WorkspaceFolderTracker : IWorkspaceFolderTracker
     /// Mutations are serialized by the request queue, but non-mutating requests may read the current folders concurrently.
     /// </summary>
     private readonly object _gate = new();
-    private ImmutableHashSet<string> _workspaceFolderPaths = ImmutableHashSet.Create(PathUtilities.Comparer);
+    private volatile ImmutableHashSet<string> _workspaceFolderPaths = ImmutableHashSet.Create(PathUtilities.Comparer);
 
     public event Action? WorkspaceFoldersChanged;
 
