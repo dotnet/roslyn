@@ -185,13 +185,34 @@
                  Condition="$(_VersionComparisonResult) &lt; 0"/>
   </Target> 
 
-  <Target Name="_CheckLongPathSupport" BeforeTargets="BeforeBuild" Condition="'$(MSBuildRuntimeType)' == 'Full'">
+  <!-- #region Validate developer machine settings -->
+  <!--
+    Validate developer machine settings are correct:
+    - For Windows, LongPathsEnabled is true
+    - For all platforms, file line endings match platform line endings
+  -->
+  <PropertyGroup>
+    <_RoslynDeveloperSettingsValidationCacheFile>$(MSBuildThisFileDirectory)..\..\artifacts\developer-settings-validated.txt</_RoslynDeveloperSettingsValidationCacheFile>
+  </PropertyGroup>
+
+  <Target Name="_ValidateDeveloperSettings" BeforeTargets="Restore" Condition="!Exists('$(_RoslynDeveloperSettingsValidationCacheFile)')">
     <PropertyGroup>
-      <_RoslynLongPathsEnabled>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\FileSystem', 'LongPathsEnabled', null, RegistryView.Registry64, RegistryView.Registry32))</_RoslynLongPathsEnabled>
+      <_RoslynBuildRunsOnWindows>$([MSBuild]::IsOSPlatform('Windows'))</_RoslynBuildRunsOnWindows>
+      <_RoslynSourceHasCarriageReturns>$([System.IO.File]::ReadAllText('$(MSBuildThisFileFullPath)').Contains($([System.Char]::ConvertFromUtf32(13))))</_RoslynSourceHasCarriageReturns>
+      <_RoslynLongPathsEnabled Condition="'$(_RoslynBuildRunsOnWindows)' == 'True'">$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\FileSystem', 'LongPathsEnabled', null, RegistryView.Registry64, RegistryView.Registry32))</_RoslynLongPathsEnabled>
     </PropertyGroup>
-    
-    <Warning Condition="'$(_RoslynLongPathsEnabled)' != '1'" Text="Long paths are required for this project. Please run eng\enable-long-paths.reg" />
-  </Target> 
+
+    <Error Condition="'$(_RoslynSourceHasCarriageReturns)' != '$(_RoslynBuildRunsOnWindows)'"
+           Text="Source file line endings do not match the current platform. Re-clone the repository with the correct Git line-ending settings." />
+    <Error Condition="'$(_RoslynBuildRunsOnWindows)' == 'True' and '$(_RoslynLongPathsEnabled)' != '1'"
+           Text="Long paths are required for this project. Please run eng\enable-long-paths.reg" />
+
+    <MakeDir Directories="$(MSBuildThisFileDirectory)..\..\artifacts" />
+    <WriteLinesToFile File="$(_RoslynDeveloperSettingsValidationCacheFile)"
+                      Lines="Developer settings successfully validated."
+                      Overwrite="true" />
+  </Target>
+  <!-- #endregion Validate developer machine settings -->
 
   <!-- 
     This target is used to copy referenced projects to a sub-directory vs. the direct output 
