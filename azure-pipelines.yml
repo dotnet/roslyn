@@ -6,7 +6,6 @@ trigger:
 - release/*
 - features/*
 - demos/*
-- dev/*
 
 # Branches that trigger builds on PR
 pr:
@@ -18,6 +17,7 @@ pr:
     - release/*
     - features/*
     - demos/*
+    - dev/*
   paths:
     exclude:
       - docs/*
