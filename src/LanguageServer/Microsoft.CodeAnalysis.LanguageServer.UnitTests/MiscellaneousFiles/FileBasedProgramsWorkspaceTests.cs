@@ -109,6 +109,73 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
     }
 
     [Theory, CombinatorialData]
+    public async Task TestFileBasedProgram_PackageRestoreWithExplicitArtifactsPath(bool mutatingLspWorkspace)
+    {
+        var tempDir = TempRoot.CreateDirectory();
+        tempDir.CreateFile("Directory.Build.props").WriteAllText("""
+            <Project>
+              <PropertyGroup>
+                <ArtifactsPath>$(MSBuildThisFileDirectory)</ArtifactsPath>
+              </PropertyGroup>
+            </Project>
+            """);
+
+        var sourceText = """
+            #:package Newtonsoft.Json@13.0.4
+            #:property PublishAot=false
+            Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject("Hello World!"));
+            """;
+        var sourceFile = tempDir.CreateFile("App.cs").WriteAllText(sourceText);
+        var sourceFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceFile.Path);
+
+        await using var testLspServer = await CreateTestLspServerAsync(
+            string.Empty,
+            mutatingLspWorkspace,
+            new InitializationOptions
+            {
+                ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+                ClientCapabilities = new()
+                {
+                    Workspace = new()
+                    {
+                        DidChangeWatchedFiles = new() { DynamicRegistration = true },
+                    },
+                },
+            });
+        await testLspServer.OpenDocumentAsync(sourceFileUri, sourceText).ConfigureAwait(false);
+        await WaitForProjectLoad(sourceFileUri, testLspServer);
+
+        // Simulate VS Code relaying the file change produced by dotnet restore.
+        var projectAssetsFile = Assert.Single(
+            Directory.EnumerateFiles(tempDir.Path, "project.assets.json", SearchOption.AllDirectories));
+        await testLspServer.ExecuteNotificationAsync(
+            Methods.WorkspaceDidChangeWatchedFilesName,
+            new DidChangeWatchedFilesParams
+            {
+                Changes =
+                [
+                    new FileEvent
+                    {
+                        Uri = ProtocolConversions.CreateAbsoluteDocumentUri(projectAssetsFile),
+                        FileChangeType = FileChangeType.Changed,
+                    },
+                ],
+            });
+        await Task.Delay(100);
+        await WaitForProjectLoad(sourceFileUri, testLspServer);
+
+        var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(sourceFileUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        Assert.True(document.Project.State.HasAllInformation);
+        Assert.Contains(
+            document.Project.MetadataReferences,
+            static reference => StringComparer.OrdinalIgnoreCase.Equals(Path.GetFileName(reference.Display), "Newtonsoft.Json.dll"));
+
+        var model = await document.GetRequiredSemanticModelAsync(CancellationToken.None);
+        model.GetDiagnostics().Verify();
+    }
+
+    [Theory, CombinatorialData]
     public async Task TestDirectiveWithoutTopLevelStatements_IsMiscellaneousFile(bool mutatingLspWorkspace)
     {
         // A file with '#:' but no top-level statements is classified as a miscellaneous file, not a file-based app.
