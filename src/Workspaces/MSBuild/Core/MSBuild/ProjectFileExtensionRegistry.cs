@@ -26,9 +26,9 @@ internal sealed class ProjectFileExtensionRegistry
 
         _extensionToLanguageMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            { "csproj", LanguageNames.CSharp },
-            { "vbproj", LanguageNames.VisualBasic },
-            { "fsproj", LanguageNames.FSharp }
+            { ".csproj", LanguageNames.CSharp },
+            { ".vbproj", LanguageNames.VisualBasic },
+            { ".fsproj", LanguageNames.FSharp }
         };
 
         _dataGuard = new NonReentrantLock();
@@ -41,12 +41,12 @@ internal sealed class ProjectFileExtensionRegistry
     {
         using (_dataGuard.DisposableWait())
         {
-            _extensionToLanguageMap[RemoveLeadingDot(fileExtension)] = language;
+            _extensionToLanguageMap[AddLeadingDot(fileExtension)] = language;
         }
     }
 
     /// <summary>
-    /// Gets the registered project file extensions without a leading '.'.
+    /// Gets the registered project file extensions with a leading '.'.
     /// </summary>
     public ImmutableArray<string> GetRegisteredProjectFileExtensions()
     {
@@ -56,16 +56,19 @@ internal sealed class ProjectFileExtensionRegistry
         }
     }
 
+    /// <summary>
+    /// Tries to get the language registered for an extension, with or without a leading '.'.
+    /// </summary>
     public bool TryGetLanguageNameFromExtension(string extension, [NotNullWhen(true)] out string? languageName)
     {
         using (_dataGuard.DisposableWait())
         {
-            return _extensionToLanguageMap.TryGetValue(RemoveLeadingDot(extension), out languageName);
+            return _extensionToLanguageMap.TryGetValue(AddLeadingDot(extension), out languageName);
         }
     }
 
-    private static string RemoveLeadingDot(string extension)
-        => extension is ['.', .. var rest] ? rest : extension;
+    private static string AddLeadingDot(string extension)
+        => extension.Length == 0 || extension[0] == '.' ? extension : "." + extension;
 
     public bool TryGetLanguageNameFromProjectPath(string? projectFilePath, DiagnosticReportingMode mode, [NotNullWhen(true)] out string? languageName)
         => TryGetLanguageNameFromProjectPath(projectFilePath, mode, out languageName, out _);
