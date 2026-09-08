@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -30,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Extensions;
 /// be used as the handler that receives messages for a particular solution.
 /// </para>
 /// </remarks>
+[Experimental("RSEXPERIMENTAL008", UrlFormat = "https://github.com/dotnet/roslyn/pull/85209")]
 public interface IExtensionDocumentMessageHandler<TMessage, TResponse>
 {
     /// <summary>

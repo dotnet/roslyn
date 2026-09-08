@@ -21,7 +21,9 @@ internal sealed class ExtensionMessageHandlerFactory() : IExtensionMessageHandle
         Assembly assembly, string extensionIdentifier, CancellationToken cancellationToken)
         => CreateWorkspaceHandlers(
             assembly,
+#pragma warning disable RSEXPERIMENTAL008 // Internal implementation of experimental API
             typeof(IExtensionDocumentMessageHandler<,>),
+#pragma warning restore RSEXPERIMENTAL008
             (handler, handlerInterface) => new ExtensionDocumentMessageHandlerWrapper(handler, handlerInterface, extensionIdentifier),
             cancellationToken);
 
@@ -29,7 +31,9 @@ internal sealed class ExtensionMessageHandlerFactory() : IExtensionMessageHandle
         Assembly assembly, string extensionIdentifier, CancellationToken cancellationToken)
         => CreateWorkspaceHandlers(
             assembly,
+#pragma warning disable RSEXPERIMENTAL008 // Internal implementation of experimental API
             typeof(IExtensionWorkspaceMessageHandler<,>),
+#pragma warning restore RSEXPERIMENTAL008
             (handler, handlerInterface) => new ExtensionWorkspaceMessageHandlerWrapper(handler, handlerInterface, extensionIdentifier),
             cancellationToken);
 
