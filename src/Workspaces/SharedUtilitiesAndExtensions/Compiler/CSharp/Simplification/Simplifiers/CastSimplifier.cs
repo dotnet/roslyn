@@ -736,8 +736,8 @@ internal static class CastSimplifier
         if (castType.IsSpecialType())
             return false;
 
-        // if it's not a struct, then we're not making a copy and can safely remove the cast.
-        if (!castType.IsStructType())
+        // if it's a reference type, then we're not making a copy and can safely remove the cast.
+        if (castType.IsReferenceType)
             return false;
 
         // if the struct is readonly, then we can safely remove the cast as it's not mutable.
