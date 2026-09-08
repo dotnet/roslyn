@@ -22,12 +22,11 @@ public class RoslynEditorConfigFileGenerator
         try
         {
             var componentModel = (IComponentModel)ServiceProvider.GlobalProvider.GetService(typeof(SComponentModel));
-            var globalOptions = componentModel?.GetService<IGlobalOptionService>();
-            var optionsEnumerator = componentModel?.GetService<EditorConfigOptionsEnumerator>();
+            Assumes.Present(componentModel);
 
-            return globalOptions is null || optionsEnumerator is null
-                ? null
-                : RoslynEditorConfigGenerator.Generate(optionsEnumerator.GetOptions(language), globalOptions, language);
+            var globalOptions = componentModel.GetService<IGlobalOptionService>();
+            var optionsEnumerator = componentModel.GetService<EditorConfigOptionsEnumerator>();
+            return RoslynEditorConfigGenerator.Generate(optionsEnumerator.GetOptions(language), globalOptions, language);
         }
         catch (Exception ex)
         {
