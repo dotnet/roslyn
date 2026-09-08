@@ -31,7 +31,6 @@
     <Asset Type="Microsoft.VisualStudio.ItemTemplate" Path="VBRefactoring"/>
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="Roslyn.SyntaxVisualizer.Extension" Path="|Roslyn.SyntaxVisualizer.Extension;PkgdefProjectOutputGroup|" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;AssemblyRedirectsPkgdefOutputGroup|" />
-    <Asset Type="Microsoft.VisualStudio.VsPackage" Path="Roslyn.SyntaxVisualizer.Extension.Extra.pkgdef" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Roslyn.ComponentDebugger" Path="|Roslyn.ComponentDebugger|" />
   </Assets>
   <Prerequisites>

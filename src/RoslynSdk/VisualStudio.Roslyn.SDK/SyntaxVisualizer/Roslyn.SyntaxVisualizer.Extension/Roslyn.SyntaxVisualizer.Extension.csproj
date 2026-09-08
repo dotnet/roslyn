@@ -20,10 +20,6 @@
     <SetupProductArch>Neutral</SetupProductArch>
   </PropertyGroup>
 
-  <ItemGroup Label="PkgDef">
-    <Content Include="Roslyn.SyntaxVisualizer.Extension.Extra.pkgdef" IncludeInVSIX="true" />
-  </ItemGroup>
-
   <!-- References -->
   <ItemGroup>
     <Reference Include="System.Design" />

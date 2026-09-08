@@ -21,8 +21,6 @@ Imports Task = System.Threading.Tasks.Task
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
-    ' The option page configuration is duplicated in Microsoft.VisualStudio.LanguageServices.VisualBasic.Extra.pkgdef.
-    '
     ' VB option pages tree
     '   Visual Basic
     '     General (from editor)

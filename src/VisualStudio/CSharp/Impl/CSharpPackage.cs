@@ -23,8 +23,6 @@ using Task = System.Threading.Tasks.Task;
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService;
 
 [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
-// The option page configuration is duplicated in Microsoft.VisualStudio.LanguageServices.CSharp.Extra.pkgdef.
-//
 // C# option pages tree:
 //   CSharp
 //     General (from editor)

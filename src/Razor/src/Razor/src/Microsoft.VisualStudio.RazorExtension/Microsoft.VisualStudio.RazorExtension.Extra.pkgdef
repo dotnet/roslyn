@@ -39,8 +39,3 @@
 "IsAsyncQueryable"=dword:00000000
 "IsCacheable"=dword:00000000
 "IsFreeThreaded"=dword:00000000
-
-// [ProvideToolWindow(typeof(SyntaxVisualizerToolWindow))]
-[$RootKey$\ToolWindows\{28080d9c-0842-4155-9e7d-3b9e6d64bb29}]
-"Name"="Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer.SyntaxVisualizerToolWindow"
-@="{13b72f58-279e-49e0-a56d-296be02f0805}"
