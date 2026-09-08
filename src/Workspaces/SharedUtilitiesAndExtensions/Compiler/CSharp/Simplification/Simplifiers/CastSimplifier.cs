@@ -442,9 +442,9 @@ internal static class CastSimplifier
         if (IsIdentityFloatingPointCastThatMustBePreserved(castNode, castedExpressionNode, originalSemanticModel, cancellationToken))
             return false;
 
-        // Identity struct casts will make a copy.  This copy may need to be kept to preserve semantics that only
-        // the copy is being manipulated and not the original struct.
-        if (IsIdentityStructCastThatMustBePreserved(castNode, castedExpressionNode, originalSemanticModel, cancellationToken))
+        // Identity casts will make a copy if the type is a mutable struct or is a type parameter that may be a struct.
+        // This copy may need to be kept to preserve semantics that only the copy is being manipulated and not the original struct.
+        if (IsIdentityCastThatCreatesACopy(castNode, castedExpressionNode, originalSemanticModel, cancellationToken))
             return false;
 
         #endregion blocked cases
@@ -710,17 +710,17 @@ internal static class CastSimplifier
         return true;
     }
 
-    private static bool IsIdentityStructCastThatMustBePreserved(
+    private static bool IsIdentityCastThatCreatesACopy(
         ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
-        // Identity struct casts will make a copy.  This copy may need to be kept to preserve semantics that only
-        // the copy is being manipulated and not the original struct.
+        // Identity casts will make a copy if the type is a mutable struct or is a type parameter that may be a struct.
+        // This copy may need to be kept to preserve semantics that only the copy is being manipulated and not the original struct.
         //
-        // Note: this is an innacurate heuristic.  Generally speaking, practically any member accessed off of a
-        // struct might mutate it (like accessing .Length on an ImmutableArray).  But practically speaking that is
-        // highly unlikely to actually mutate.  To avoid many false negatives from allowing us to simplify pointless
-        // struct casts, we only look for a very narrow case that just rises up to be potentially problematic.
-        // Specifically, the invocation of a non-known method on a non-known struct type where neitehr the struct
+        // Note: this is an inaccurate heuristic.  Generally speaking, practically any member accessed off of a
+        // struct might mutate it (like accessing .Length on an ImmutableArray before the type was marked readonly).
+        // But practically speaking that is highly unlikely to actually mutate.  To avoid many false negatives from allowing us to
+        // simplify pointless struct casts, we only look for a very narrow case that just rises up to be potentially problematic.
+        // Specifically, the invocation of a non-known method on a non-known type that may be a struct where neither the type
         // nor method are readonly.
 
         var conversion = semanticModel.GetConversion(castedExpressionNode, cancellationToken);
