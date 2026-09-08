@@ -33,7 +33,7 @@ internal class FSharpNavigateToSearchService([Import(AllowDefault = true)] IFSha
         Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound,
         CancellationToken cancellationToken)
     {
-        if (_service == null)
+        if (_service is null)
             return;
 
         var results = await _service.SearchDocumentAsync(document, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
@@ -57,7 +57,7 @@ internal class FSharpNavigateToSearchService([Import(AllowDefault = true)] IFSha
 
         foreach (var project in projects)
         {
-            if (_service != null)
+            if (_service is not null)
             {
                 var results = await _service.SearchProjectAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
                 if (results.Length > 0)
