@@ -3,6 +3,7 @@
 <Project>
   <Import Project="VisualStudio.targets" Condition="'$(UsingToolVSSDK)' == 'true'"/>
   <Import Project="XUnit.targets" Condition="'$(IsTestProject)' == 'true'" />
+  <Import Project="DeveloperSettings.targets" />
 
   <!--
     Work around .editorconfig evaluation bugs in command line builds.
@@ -183,9 +184,7 @@
   
     <SingleError Text="The msbuild version $(MSBuildVersion) is below the minimum required version $(MinimumMSBuildVersion)"
                  Condition="$(_VersionComparisonResult) &lt; 0"/>
-  </Target> 
-
-  <Import Project="DeveloperSettings.targets" />
+  </Target>
 
   <!-- 
     This target is used to copy referenced projects to a sub-directory vs. the direct output 
