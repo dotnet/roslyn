@@ -81,22 +81,7 @@ If the PR is a pure or targeted revert of an earlier commit, adjust the review s
 9. **Ensure code suggestions are valid.** Any code you suggest must be syntactically correct and complete. Ensure any suggestion would result in working code.
 10. **Label in-scope vs. follow-up.** Distinguish between issues the PR should fix and out-of-scope improvements. Be explicit when a suggestion is a follow-up rather than a blocker.
 11. **Enforce reviewable scope.** Verify that the PR addresses one coherent concern. Flag unrelated cleanup, behavior changes mixed with broad refactoring, or independently mergeable/revertible work combined into one diff. Judge size by reviewer cognitive load and validation boundaries, not an arbitrary line count; generated files and mechanical updates may legitimately be large.
-12. **Require validation evidence.** Check that the PR reports the applicable formatting, lint/analyzer, affected build, targeted tests, generated/resource/API updates, and documentation freshness work. Treat missing targeted tests for a behavior change or required validation that was skipped without explanation as merge-blocking. Do not demand product builds or tests for documentation-only changes.
-
-### Step 4: Documentation Freshness Check (sub-agent)
-
-Code changes frequently outdate the agent knowledge base, but it's easy to miss during a code-focused review. Delegate this to a dedicated sub-agent so it doesn't dilute the primary review's focus. If the environment cannot launch sub-agents, perform this check inline instead.
-
-Launch a sub-agent (e.g., the `explore` or `task` agent) with the PR diff and list of changed files, and instruct it to verify whether the change should have updated — but didn't — any of the repo's living documentation:
-
-- **Knowledge base** (`.github/memory/`): `FILE_MAP.md` (files added/moved/renamed), `API_MAP.md`, `ARCHITECTURE.md`, `CONVENTIONS.md` (new patterns), `TESTING_STRATEGY.md` (repo-wide test layout), and `INDEX.md` (if memory files were added/removed/renamed).
-- **Per-layer memory files**: `.github/memory/testing/{compiler,ide,razor}.md` (layer-specific test base classes/conventions) for the area the change touches.
-- **Path-scoped instruction files** (`.github/instructions/{Compiler,IDE,Razor}.instructions.md`): layer-specific directory detail, key files/APIs, diagnostic IDs, and coding conventions for the area the change touches.
-- **Entry points**: `.github/copilot-instructions.md` and `AGENTS.md` when build/test/orientation guidance changes.
-
-The sub-agent should cross-check the diff against the `update-agent-docs` skill checklist (`.github/skills/update-agent-docs/SKILL.md`) and report, for each gap, **which doc file** is now stale or incomplete and **what specific update** is needed. Only flag genuine omissions — do not invent busywork. If the PR already updated the relevant docs, confirm that and move on.
-
-Fold the sub-agent's findings into the review output as ⚠️ (or 💡 for minor) **Documentation** findings, and ask the author to make the updates. If a required doc update is missing for a behavior/API change, treat it as merge-blocking per the verdict rules.
+12. **Require validation evidence.** Check that the PR reports the applicable formatting, lint/analyzer, affected build, targeted tests, and generated/resource/API updates. Treat missing targeted tests for a behavior change or required validation that was skipped without explanation as merge-blocking. Do not demand product builds or tests for documentation-only changes.
 
 ## Multi-Model Review
 
@@ -151,7 +136,6 @@ When presenting the final review (whether as a PR comment or as output to the us
   - 💡 for minor suggestions or observations (nice-to-have)
 - **Cross-cutting analysis** should be included when relevant: check whether related code (sibling types, callers, VB compiler) is affected by the same issue or needs a similar fix.
 - **Test quality** should be assessed as its own finding when tests are part of the PR.
-- **Documentation freshness** (from Step 4) should be surfaced as its own finding when the change leaves any knowledge-base or instruction file stale.
 - Keep the review concise but thorough. Every claim should be backed by evidence from the code.
 
 ### Verdict Consistency Rules
@@ -186,7 +170,7 @@ Before reviewing individual lines of code, evaluate the PR as a whole. Consider 
 
 - **Use concrete split signals.** Request a split when changes can be reviewed, validated, merged, or reverted independently; touch unrelated ownership areas; or combine preparatory refactoring with a behavior change. Do not request a split solely because generated or mechanical files make the line count large.
 
-- **Check the Definition of Done evidence.** Confirm the author identifies the relevant format/lint, affected build, targeted tests, generated/resource/API work, and documentation freshness work. Missing evidence must be supplied or explicitly justified before approval.
+- **Check the Definition of Done evidence.** Confirm the author identifies the relevant format/lint, affected build, targeted tests, and generated/resource/API work. Missing evidence must be supplied or explicitly justified before approval.
 
 - **Defer tangential improvements to follow-up PRs.** Police scope creep by asking contributors to separate concerns. Even good ideas should wait if they're not part of the PR's core purpose.
 
