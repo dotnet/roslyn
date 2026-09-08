@@ -263,11 +263,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
                 processStartInfo.Environment.Remove(key);
             }
 
-            // MSBuildLocator probes these roots before the process executable.
-            // Keep them aligned when relaunching into another installation so an inherited root cannot select the old SDK.
-            var dotnetRoot = Path.GetDirectoryName(dotnetPath);
-            processStartInfo.Environment["DOTNET_ROOT"] = dotnetRoot;
-            processStartInfo.Environment["DOTNET_ROOT(x86)"] = dotnetRoot;
+            processStartInfo.Environment["DOTNET_ROOT"] = Path.GetDirectoryName(dotnetPath);
         }
 
         // We need to roll forward to the latest runtime, since the project may be using an SDK (or an SDK required runtime) newer than we ourselves built with.

@@ -56,8 +56,7 @@ public sealed class BuildHostProcessManagerTests
 
             Assert.Equal(dotnetPath, processStartInfo.FileName);
             Assert.Equal(dotnetDirectory, processStartInfo.Environment["DOTNET_ROOT"]);
-            Assert.Equal(dotnetDirectory, processStartInfo.Environment["DOTNET_ROOT(x86)"]);
-            if (variableName is not ("DOTNET_ROOT" or "DOTNET_ROOT(x86)"))
+            if (variableName != "DOTNET_ROOT")
                 Assert.DoesNotContain(variableName, processStartInfo.Environment.Keys);
         }
         finally
