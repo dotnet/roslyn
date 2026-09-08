@@ -40,7 +40,7 @@
       at the appropriate version, in combination with using CentralPackageTransitivePinningEnabled, will
       ensure the correct version is used in all places
     -->
-    <PackageVersion Include="System.Formats.Asn1" Version="10.0.1" />
+    <PackageVersion Include="System.Formats.Asn1" Version="10.0.10" />
     <PackageVersion Include="System.IO.Packaging" Version="10.0.1" />
   </ItemGroup>
 </Project>
