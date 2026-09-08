@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Razor.Telemetry;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TResponse>(
+internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TResponse, THtmlRequest, THtmlResponse>(
     IIncompatibleProjectService incompatibleProjectService,
     IRemoteServiceInvoker remoteServiceInvoker,
     IHtmlRequestInvoker requestInvoker,
@@ -27,6 +27,7 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
     IEditAndContinueSessionTracker encSessionTracker)
     : AbstractCohostDocumentEndpoint<TRequest, TResponse>(incompatibleProjectService)
     where TRequest : notnull
+    where THtmlRequest : notnull
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
@@ -40,14 +41,15 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
     protected override bool RequiresLSPSolution => true;
 
     protected abstract string LspMethodName { get; }
+    protected virtual string HtmlLspMethodName => LspMethodName;
     protected abstract bool SupportsHtmlDiagnostics { get; }
 
-    protected virtual LspDiagnostic[] ExtractHtmlDiagnostics(TResponse result)
+    protected virtual LspDiagnostic[] ExtractHtmlDiagnostics(THtmlResponse result)
     {
         throw new NotSupportedException("If SupportsHtmlDiagnostics is true, you must implement GetHtmlDiagnostics");
     }
 
-    protected virtual TRequest CreateHtmlParams(DocumentUri uri)
+    protected virtual THtmlRequest CreateHtmlParams(DocumentUri uri)
     {
         throw new NotSupportedException("If SupportsHtmlDiagnostics is true, you must implement CreateHtmlParams");
     }
@@ -133,9 +135,9 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
     {
         var diagnosticsParams = CreateHtmlParams(razorDocument.GetURI());
 
-        var result = await _requestInvoker.MakeHtmlLspRequestAsync<TRequest, TResponse>(
+        var result = await _requestInvoker.MakeHtmlLspRequestAsync<THtmlRequest, THtmlResponse>(
             razorDocument,
-            LspMethodName,
+            HtmlLspMethodName,
             diagnosticsParams,
             TelemetryThresholds.DiagnosticsSubLSPTelemetryThreshold,
             correlationId,

@@ -98,6 +98,7 @@ var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 - **Cancellation**: Always thread `CancellationToken` through async operations
 - **Performance**: Avoid LINQ in hot paths, prefer `for` loops or `.AsSpan()`, use `ObjectPool<T>`
 - **LanguageServer request context**: Handlers should use the asynchronous `RequestContext.Get*Async` methods for workspace, solution, and document access. Obsolete synchronous members remain only for compatibility with existing external-access consumers and forward to the asynchronous accessors.
+- **TypeScript pull diagnostics**: The in-proc TypeScript language contract exports both the legacy VS and public LSP document/workspace diagnostic handlers. Keep the legacy capability metadata alongside public static options or dynamic registrations until callers have migrated.
 
 ## Common Gotchas
 

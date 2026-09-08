@@ -58,6 +58,9 @@ their original sub-tree layout
   `TagHelperDescriptor`s whose descriptor-level metadata carries the parsed values. A later
   optimization pass reads the full discovered set via `ITagHelperFeature.GetTagHelpers()` (not the
   document's in-scope tag helpers, which are namespace-scoped) and filters by metadata kind.
+- **Visual Studio cohost diagnostics**: The legacy VS and public LSP endpoints share diagnostic and
+  task-list computation. The public endpoint delegates HTML diagnostics with the legacy VS method,
+  so keep its external `LspMethodName` separate from `HtmlLspMethodName`.
 - **Visual Studio options**: Register Razor Advanced settings in
   `Microsoft.VisualStudio.RazorExtension\UnifiedSettings\razor.registration.json`, localize
   their UI text in `VSPackage.resx`, read them through `OptionsStorage`, and add remotely consumed

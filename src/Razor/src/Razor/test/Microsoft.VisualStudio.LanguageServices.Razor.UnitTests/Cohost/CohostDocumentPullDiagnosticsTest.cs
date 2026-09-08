@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -55,6 +57,75 @@ public partial class CohostDocumentPullDiagnosticsTest
             tags,
             tag => Assert.Equal(VSDiagnosticTags.HiddenInEditor, tag),
             tag => Assert.Equal(DiagnosticTag.Unnecessary, tag));
+    }
+
+    [Fact]
+    public async Task PublicRequest_PreservesVSDiagnosticMetadataAndUsesLegacyHtmlRequest()
+    {
+        var document = CreateProjectAndRazorDocument("""
+            @using System
+            @using System.Text
+
+            <div></div>
+
+            @code
+            {
+                public void BuildsStrings(StringBuilder b)
+                {
+                }
+            }
+            """);
+
+        var invokedLegacyHtmlRequest = false;
+        var requestInvoker = new TestHtmlRequestInvoker(
+            (VSInternalMethods.DocumentPullDiagnosticName, _ =>
+            {
+                invokedLegacyHtmlRequest = true;
+                return null;
+            }
+        ));
+        var endpoint = new PublicCohostDocumentPullDiagnosticsEndpoint(IncompatibleProjectService, RemoteServiceInvoker, requestInvoker, ClientCapabilitiesService, NoOpTelemetryReporter.Instance, LoggerFactory, VoidSessionTracker.Instance);
+        var request = new DocumentDiagnosticParams
+        {
+            TextDocument = new TextDocumentIdentifier { DocumentUri = document.GetURI() },
+            Identifier = PullDiagnosticCategories.DocumentCompilerSyntax,
+        };
+
+        var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
+
+        Assert.True(invokedLegacyHtmlRequest);
+        var diagnostic = Assert.IsType<VSDiagnostic>(Assert.Single(Assert.IsType<FullDocumentDiagnosticReport>(result).Items));
+        Assert.NotNull(diagnostic.Identifier);
+        Assert.NotNull(diagnostic.Projects);
+        Assert.NotNull(Assert.Single(diagnostic.Projects).ProjectIdentifier);
+        Assert.Collection(
+            Assert.IsType<DiagnosticTag[]>(diagnostic.Tags),
+            tag => Assert.Equal(VSDiagnosticTags.HiddenInEditor, tag),
+            tag => Assert.Equal(DiagnosticTag.Unnecessary, tag));
+    }
+
+    [Fact]
+    public async Task PublicRequest_TaskListDiagnostics()
+    {
+        var document = CreateProjectAndRazorDocument("""
+            @code
+            {
+                // TODO: Write some C# code
+            }
+            """);
+
+        ClientSettingsManager.Update(ClientSettingsManager.GetClientSettings().AdvancedSettings with { TaskListDescriptors = ["TODO"] });
+        var endpoint = new PublicCohostDocumentPullDiagnosticsEndpoint(IncompatibleProjectService, RemoteServiceInvoker, new TestHtmlRequestInvoker(), ClientCapabilitiesService, NoOpTelemetryReporter.Instance, LoggerFactory, VoidSessionTracker.Instance);
+        var request = new DocumentDiagnosticParams
+        {
+            TextDocument = new TextDocumentIdentifier { DocumentUri = document.GetURI() },
+            Identifier = PullDiagnosticCategories.Task,
+        };
+
+        var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
+
+        Assert.NotNull(result);
+        Assert.Equal("TODO", Assert.Single(result.Items).Code.AssumeNotNull().Second);
     }
 
     [Fact]
