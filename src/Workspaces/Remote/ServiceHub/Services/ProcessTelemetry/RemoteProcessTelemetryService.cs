@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,9 +26,6 @@ internal sealed partial class RemoteProcessTelemetryService(
     }
 
     private PerformanceReporter? _performanceReporter;
-
-    private static IDisposable? s_etwRegistration;
-    private static IDisposable? s_traceRegistration;
 
     public override void Dispose()
     {
@@ -71,25 +65,5 @@ internal sealed partial class RemoteProcessTelemetryService(
                 _performanceReporter = new PerformanceReporter(telemetrySession, diagnosticAnalyzerPerformanceTracker);
             }
         }, cancellationToken);
-    }
-
-    /// <summary>
-    /// Remote API.
-    /// </summary>
-    public ValueTask EnableLoggingAsync(ImmutableArray<string> loggerTypeNames, ImmutableArray<FunctionId> functionIds, CancellationToken cancellationToken)
-    {
-        return RunServiceAsync(async cancellationToken =>
-        {
-            var functionIdsSet = new HashSet<FunctionId>(functionIds);
-            bool logChecker(FunctionId id) => functionIdsSet.Contains(id);
-
-            Register(ref s_etwRegistration, loggerTypeNames.Contains(nameof(EtwEventSink)), () => new EtwEventSink(logChecker));
-            Register(ref s_traceRegistration, loggerTypeNames.Contains(nameof(TraceEventSink)), () => new TraceEventSink(logChecker));
-        }, cancellationToken);
-
-        // Its predicate is a snapshot of the per-FunctionId options, so a fresh sink is built on every
-        // apply. Mirrors the Performance Loggers page, which is the only way these get enabled.
-        static void Register(ref IDisposable? registration, bool enabled, Func<IEventSink> create)
-            => Interlocked.Exchange(ref registration, enabled ? RoslynTelemetry.AddEventSink(create()) : null)?.Dispose();
     }
 }
