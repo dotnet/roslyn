@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
 using System.Composition;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -40,6 +41,24 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         typeof(TestFSharpOnlyDocumentHandler),
         typeof(TestFSharpOnlyNotificationHandler),
         typeof(TestConfigurableDocumentHandler));
+
+    [Fact]
+    public void WorkspaceFolderTrackerPreservesSetForEquivalentUpdate()
+    {
+        var tracker = new WorkspaceFolderTracker();
+        var workspaceFolder = new WorkspaceFolder { DocumentUri = new("file:///Workspace"), Name = "Workspace" };
+        var equivalentWorkspaceFolder = new WorkspaceFolder { DocumentUri = new("file:///Workspace/"), Name = "Workspace" };
+        var eventCount = 0;
+        tracker.WorkspaceFoldersChanged += _ => eventCount++;
+
+        tracker.Update([workspaceFolder], removedFolders: null);
+        var workspaceFolders = tracker.GetRequiredWorkspaceFolderPaths();
+        tracker.Update([equivalentWorkspaceFolder], [workspaceFolder]);
+
+        Assert.Equal(1, eventCount);
+        Assert.Same(workspaceFolders, tracker.GetRequiredWorkspaceFolderPaths());
+        Assert.Equal(Path.GetFullPath(workspaceFolder.DocumentUri.GetDocumentFilePathFromUri()), Assert.Single(workspaceFolders));
+    }
 
     [Theory, CombinatorialData]
     public async Task CanExecuteRequestHandler(bool mutatingLspWorkspace)
