@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo;
 [ExportLanguageService(typeof(INavigateToSearchService), LanguageNames.FSharp)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class FSharpNavigateToSearchService([Import(AllowDefault = true)] IFSharpNavigateToSearchService? service) : INavigateToSearchService
+internal class FSharpNavigateToSearchService([Import(AllowDefault = true)] IFSharpNavigateToSearchService? service) : IAdvancedNavigateToSearchService
 {
     private readonly IFSharpNavigateToSearchService? _service = service;
 
@@ -66,5 +66,52 @@ internal class FSharpNavigateToSearchService([Import(AllowDefault = true)] IFSha
 
             await onProjectCompleted().ConfigureAwait(false);
         }
+    }
+
+    public async Task SearchCachedDocumentsAsync(
+        Solution solution,
+        ImmutableArray<Project> projects,
+        ImmutableArray<Document> priorityDocuments,
+        string searchPattern,
+        IImmutableSet<string> kinds,
+        Document? activeDocument,
+        Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound,
+        Func<Task> onProjectCompleted,
+        CancellationToken cancellationToken)
+    {
+        Contract.ThrowIfTrue(projects.IsEmpty);
+        Contract.ThrowIfTrue(projects.Select(p => p.Language).Distinct().Count() != 1);
+
+        // if the service doesn't support searching cached docs, immediately transition the projects to the
+        // completed state.
+        if (_service is not IFSharpAdvancedNavigateToSearchService advancedService)
+        {
+            foreach (var project in projects)
+                await onProjectCompleted().ConfigureAwait(false);
+        }
+        else
+        {
+            await advancedService.SearchCachedDocumentsAsync(
+                solution, projects, priorityDocuments, searchPattern, kinds, activeDocument,
+                results => onResultsFound(results.SelectAsArray(result => (INavigateToSearchResult)new InternalFSharpNavigateToSearchResult(result))),
+                onProjectCompleted, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    public async Task SearchGeneratedDocumentsAsync(
+        Solution solution,
+        ImmutableArray<Project> projects,
+        string searchPattern,
+        IImmutableSet<string> kinds,
+        Document? activeDocument,
+        Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound,
+        Func<Task> onProjectCompleted,
+        CancellationToken cancellationToken)
+    {
+        // Nothing to search: F# has no Roslyn source generators, and type providers give types during checking
+        // rather than documents. The projects still have to be reported for the progress the searcher added for
+        // them to complete.
+        foreach (var project in projects)
+            await onProjectCompleted().ConfigureAwait(false);
     }
 }
