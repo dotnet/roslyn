@@ -239,8 +239,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
                 // - Loading VB projects
                 // - Reloading file-based app projects, where edits were performed to e.g. delete all `#:` directives,
                 //   making the file no longer a file-based app entry point.
-                _logger.LogDebug("Reload of '{projectPath}' was canceled.", projectPath);
-                loadedProject.CompleteInitialLoad();
+                _logger.LogDebug("Reload of '{ProjectPath}' was canceled.", projectPath);
                 return null;
             }
 
@@ -254,7 +253,6 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
             {
                 await LogDiagnosticsAsync(diagnosticLogItems);
                 // We have total failures in evaluation, no point in continuing.
-                loadedProject.CompleteInitialLoad();
                 return null;
             }
 
@@ -264,10 +262,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
             // language in-process.
             var projectLanguage = loadedProjectInfos.FirstOrDefault()?.Language;
             if (projectLanguage != null && projectFactory.Workspace.Services.GetLanguageService<ICommandLineParserService>(projectLanguage) == null)
-            {
-                loadedProject.CompleteInitialLoad();
                 return null;
-            }
 
             var applied = await loadedProject.TryApplyLoadedProjectInfosAsync(
                 loadedProjectInfos,
@@ -282,8 +277,6 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
             // We might have unloaded in the mean time, just skip
             if (!applied)
                 return null;
-
-            loadedProject.CompleteInitialLoad();
 
             await loadedProject.ReportTelemetryIfNotPreviouslyReportedAsync(
                 _projectLoadTelemetryReporter,
@@ -311,9 +304,11 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
             var diagnosticLogItem = new DiagnosticLogItem(DiagnosticLogItemKind.Error, message, projectPath);
             await LogDiagnosticsAsync([diagnosticLogItem]);
 
-            loadedProject.CompleteInitialLoad();
-
             return null;
+        }
+        finally
+        {
+            loadedProject.CompleteInitialLoad();
         }
 
         async Task LogDiagnosticsAsync(ImmutableArray<DiagnosticLogItem> diagnosticLogItems)
@@ -348,11 +343,8 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
 
             if (_loadedProjects.TryGetValue(projectPath, out var existingLoadedProject))
             {
-                if (doDesignTimeBuild && await existingLoadedProject.TryBeginLoadAsync())
-                {
-                    _projectsToReload.AddWork(projectPath);
-                    existingLoadedProject.NeedsReload += LoadedProject_NeedsReload;
-                }
+                if (doDesignTimeBuild)
+                    await StartInitialLoadIfNeededAsync(existingLoadedProject);
 
                 return await existingLoadedProject.GetExistingProjectsAsync();
             }
@@ -365,9 +357,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
 
             if (doDesignTimeBuild)
             {
-                Contract.ThrowIfFalse(await newLoadedProject.TryBeginLoadAsync());
-                _projectsToReload.AddWork(projectPath);
-                newLoadedProject.NeedsReload += LoadedProject_NeedsReload;
+                await StartInitialLoadIfNeededAsync(newLoadedProject);
             }
             else
             {
@@ -395,14 +385,12 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
             {
                 loadedProject = new LoadedProject(projectPath, _fileChangeWatcher);
                 _loadedProjects.Add(projectPath, loadedProject);
-                loadedProject.NeedsReload += LoadedProject_NeedsReload;
             }
 
             if (projectGuid is not null)
                 await loadedProject.SetProjectGuidForTelemetryAsync(Guid.Parse(projectGuid));
 
-            if (await loadedProject.TryBeginLoadAsync())
-                _projectsToReload.AddWork(projectPath);
+            await StartInitialLoadIfNeededAsync(loadedProject);
         }
 
         // Try to load the contents from the project cache if we have one; we'll do this outside the lock
@@ -433,6 +421,15 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
         return loadedProject;
     }
 
+    private async ValueTask StartInitialLoadIfNeededAsync(LoadedProject loadedProject)
+    {
+        if (!await loadedProject.TryBeginInitialLoadAsync())
+            return;
+
+        loadedProject.NeedsReload += LoadedProject_NeedsReload;
+        _projectsToReload.AddWork(loadedProject.ProjectFilePath);
+    }
+
     protected void LoadedProject_NeedsReload(object? sender, string triggeringFilePath)
     {
         var loadedProject = (LoadedProject)sender!;
@@ -452,16 +449,16 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
         {
             try
             {
-                await loadedProject.WaitForLoadAsync(cancellationToken).ConfigureAwait(false);
+                await loadedProject.WaitForLoadAsync(cancellationToken);
             }
             finally
             {
                 progressTracker?.OnItemProcessed();
             }
-        })).ConfigureAwait(false);
+        }));
     }
 
-    internal async Task WaitForActiveProjectLoadsAsync(CancellationToken cancellationToken)
+    internal async Task WaitForAllProjectLoadsAsync(CancellationToken cancellationToken)
     {
         ImmutableArray<LoadedProject> loadedProjects;
         using (await _gate.DisposableWaitAsync(cancellationToken))
@@ -469,7 +466,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
             loadedProjects = [.. _loadedProjects.Values];
         }
 
-        await WaitForProjectLoadsAsync(loadedProjects, cancellationToken: cancellationToken).ConfigureAwait(false);
+        await WaitForProjectLoadsAsync(loadedProjects, cancellationToken: cancellationToken);
     }
 
     /// <summary>Unloads all projects associated with this project loader.</summary>

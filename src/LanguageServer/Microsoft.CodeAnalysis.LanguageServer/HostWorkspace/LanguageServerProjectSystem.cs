@@ -188,7 +188,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
             loadedProjects.Add(loadedProject);
         }
 
-        await WaitForProjectLoadsAsync(loadedProjects.MoveToImmutable(), progressTracker, CancellationToken.None).ConfigureAwait(false);
+        await WaitForProjectLoadsAsync(loadedProjects.MoveToImmutable(), progressTracker, CancellationToken.None);
         await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync(_clientLanguageServerManager);
     }
 

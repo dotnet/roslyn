@@ -50,7 +50,7 @@ internal sealed partial class LoadedProject : IAsyncDisposable
     private readonly List<Target> _targets = [];
     private (ProjectSystemProjectFactory ProjectFactory, ProjectId Id)? _primordialProjectInfo;
     private readonly TaskCompletionSource _initialLoadCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
-    private bool _designTimeBuildStarted;
+    private bool _initialLoadStarted;
 
     private bool _reportedTelemetry = false;
     private Guid? _projectGuidForTelemetry = null;
@@ -80,26 +80,35 @@ internal sealed partial class LoadedProject : IAsyncDisposable
     /// </summary>
     public event EventHandler<string>? NeedsReload;
 
-    public async ValueTask<bool> TryBeginLoadAsync()
+    /// <summary>
+    /// Attempts to begin the initial design-time build for this project.
+    /// </summary>
+    /// <returns>
+    /// <see langword="true"/> if the caller should queue the initial build; otherwise, <see langword="false"/> if the
+    /// project was disposed or the initial build was already started. File-change reloads do not use this one-shot guard.
+    /// </returns>
+    public async ValueTask<bool> TryBeginInitialLoadAsync()
     {
         using (await _gate.DisposableWaitAsync())
         {
-            if (_disposed)
+            if (_disposed || _initialLoadStarted)
                 return false;
 
-            if (_designTimeBuildStarted)
-            {
-                return false;
-            }
-
-            _designTimeBuildStarted = true;
+            _initialLoadStarted = true;
             return true;
         }
     }
 
+    /// <summary>
+    /// Waits for the initial project load to settle.
+    /// </summary>
+    /// <returns>
+    /// <see langword="true"/> if the project remains loaded and contains a primordial project or at least one evaluated
+    /// target; otherwise, <see langword="false"/>.
+    /// </returns>
     public async ValueTask<bool> WaitForLoadAsync(CancellationToken cancellationToken)
     {
-        await _initialLoadCompletionSource.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+        await _initialLoadCompletionSource.Task.WaitAsync(cancellationToken);
 
         using (await _gate.DisposableWaitAsync(cancellationToken))
         {
