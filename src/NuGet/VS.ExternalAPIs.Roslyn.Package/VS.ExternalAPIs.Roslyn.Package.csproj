@@ -57,7 +57,6 @@
     <ProjectReference Include="..\..\VisualStudio\CSharp\Impl\Microsoft.VisualStudio.LanguageServices.CSharp.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\VisualStudio\ExternalAccess\Core\Microsoft.VisualStudio.LanguageServices.ExternalAccess.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\VisualStudio\ExternalAccess\Apex\Microsoft.CodeAnalysis.ExternalAccess.Apex.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\..\VisualStudio\ExternalAccess\EditorConfigGenerator\Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\VisualStudio\ExternalAccess\FSharp\Microsoft.CodeAnalysis.ExternalAccess.FSharp.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\VisualStudio\LiveShare\Impl\Microsoft.VisualStudio.LanguageServices.LiveShare.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\VisualStudio\Setup\Roslyn.VisualStudio.Setup.csproj" PrivateAssets="all" />
@@ -90,7 +89,6 @@
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.Apex\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.Apex.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.AspNetCore\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.Debugger\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.Debugger.dll" TargetDir="" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.EditorFeatures.ExternalAccess\$(Configuration)\net472\Microsoft.CodeAnalysis.EditorFeatures.ExternalAccess.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.Extensions\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.ExternalAccess.Extensions.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Features.ExternalAccess\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Features.ExternalAccess.dll" TargetDir="" />
