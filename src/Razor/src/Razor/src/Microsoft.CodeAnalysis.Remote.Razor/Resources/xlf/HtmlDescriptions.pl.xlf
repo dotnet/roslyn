@@ -43,8 +43,8 @@ W poprzednich wersjach HTML różne kodowania znaków można było rozdzielać s
 
 **Uwaga dotycząca użycia**
 
-* **Nie używaj tego atrybutu**, ponieważ jest przestarzały. Element [`&lt;table&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table "Element HTML &lt;table&gt; reprezentuje dane tabelaryczne, czyli informacje przedstawione w dwuwymiarowej tabeli złożonej z wierszy i kolumn komórek zawierających dane.") powinien mieć styl nadany za pomocą [CSS](https://developer.mozilla.org/en-US/docs/CSS). Ustaw [`margin-left`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-left "Właściwość CSS margin-left ustawia obszar marginesu po lewej stronie elementu. Wartość dodatnia przesuwa go dalej od sąsiadów, a wartość ujemna przybliża.") i [`margin-right`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-right "Właściwość CSS margin-right ustawia obszar marginesu po prawej stronie elementu. Wartość dodatnia przesuwa go dalej od sąsiadów, a wartość ujemna przybliża.") na `auto` albo [`margin`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin "Właściwość CSS margin ustawia obszar marginesu ze wszystkich czterech stron elementu. Jest to skrót od margin-top, margin-right, margin-bottom i margin-left.") na `0 auto`, aby uzyskać efekt podobny do atrybutu align.
-* Przed przeglądarką Firefox 4, przeglądarka Firefox obsługiwała też wartości `middle`, `absmiddle` i `abscenter` jako synonimy `center`, ale tylko w trybie zgodności ze starymi witrynami.</target>
+* **Nie używaj tego atrybutu**, ponieważ jest przestarzały. Element [`&lt;table&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table „Element HTML &lt;table&gt; reprezentuje dane tabelaryczne, czyli informacje przedstawione w dwuwymiarowej tabeli złożonej z wierszy i kolumn komórek zawierających dane.”) powinien mieć styl nadany za pomocą [CSS](https://developer.mozilla.org/en-US/docs/CSS). Ustaw [`margin-left`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-left „Właściwość CSS margin-left ustawia obszar marginesu po lewej stronie elementu. Wartość dodatnia przesuwa go dalej od sąsiadów, a wartość ujemna przybliża.”) i [`margin-right`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-right „Właściwość CSS margin-right ustawia obszar marginesu po prawej stronie elementu. Wartość dodatnia przesuwa go dalej od sąsiadów, a wartość ujemna przybliża.”) na `auto` albo [`margin`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin „Właściwość CSS margin ustawia obszar marginesu ze wszystkich czterech stron elementu. Jest to skrót od margin-top, margin-right, margin-bottom i margin-left.") na `0 auto`, aby uzyskać efekt podobny do atrybutu align.
+* Przed przeglądarką Firefox 4, przeglądarka Firefox obsługiwała też wartości `middle`, `absmiddle`, i `abscenter` jako synonimy `center`, ale tylko w trybie zgodności ze starymi witrynami.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_allow">
@@ -93,7 +93,7 @@ Tego atrybutu nie wolno używać, jeśli atrybut `src` jest nieobecny (czyli w p
 
 Przeglądarki zwykle zakładają najgorszy scenariusz i podczas analizowania języka HTML ładują skrypty synchronicznie, czyli `async="false"`.
 
-Skrypty wstawiane dynamicznie (za pomocą polecenia [`document.createElement()`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement "W dokumencie HTML metoda document.createElement() tworzy element języka HTML określony przez tagName lub HTMLUnknownElement, jeśli tagName nie zostanie rozpoznany.")) domyślnie ładują się asynchronicznie, więc aby włączyć ładowanie synchroniczne, czyli ładowanie skryptów w kolejności ich wstawienia, ustaw polecenie `async="false"`.
+Skrypty wstawiane dynamicznie (za pomocą polecenia [`document.createElement()`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement „W dokumencie HTML metoda document.createElement() tworzy element języka HTML określony przez tagName lub HTMLUnknownElement, jeśli tagName nie zostanie rozpoznany.”)) domyślnie ładują się asynchronicznie, więc aby włączyć ładowanie synchroniczne, czyli ładowanie skryptów w kolejności ich wstawienia, ustaw polecenie `async="false"`.
 
 Zobacz sekcję [Browser compatibility](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/script#Browser_compatibility), aby sprawdzić uwagi dotyczące obsługi w przeglądarkach. Zobacz też [Async scripts for asm.js](https://developer.mozilla.org/en-US/docs/Games/Techniques/Async_scripts).</target>
         <note />
@@ -127,7 +127,7 @@ For most modern browsers (including Firefox 38+, Google Chrome 34+, IE 11+) sett
 * `on`: przeglądarka może automatycznie uzupełniać wartości na podstawie danych, które użytkownik wcześniej wpisał w formularzu.
 
 W przypadku większości nowoczesnych przeglądarek (w tym Firefox 38+, Google Chrome 34+, IE 11+) ustawienie atrybutu autouzupełniania nie zapobiegnie pytaniu przez menedżera haseł przeglądarki o to, czy użytkownik chce zapisać pola logowania (nazwę użytkownika i hasło). Jeśli użytkownik wyrazi zgodę na zapisanie, przeglądarka automatycznie wypełni pola logowania przy następnej wizycie użytkownika na stronie. Zobacz [Atrybut autouzupełniania i pola logowania](https://developer.mozilla.org/en-US/docs/Web/Security/Securing_your_site/Turning_off_form_autocompletion#The_autocomplete_attribute_and_login_fields).
-**Uwaga:** Jeśli w formularzu ustawisz `autocomplete` na `off`, ponieważ dokument zapewnia własne autouzupełnianie, ustaw też `autocomplete` na `off` dla każdego elementu `input` tego formularza, który dokument może automatycznie uzupełniać. Aby uzyskać szczegółowe informacje, zapoznaj się z notatką dotyczącą przeglądarki Google Chrome w [tabeli zgodności przeglądarek](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/form#compatChart).</target>
+**Uwaga:** Jeśli w formularzu ustawisz `autocomplete` na wartość `off`, ponieważ dokument zapewnia własne autouzupełnianie, ustaw też `autocomplete` na wartość `off` dla każdego elementu `input` tego formularza, który dokument może automatycznie uzupełniać. Aby uzyskać szczegółowe informacje, zapoznaj się z notatką dotyczącą przeglądarki Google Chrome w [tabeli zgodności przeglądarek](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/form#compatChart).</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_autocorrect">
@@ -388,7 +388,7 @@ This value can be overridden by a [`formenctype`](https://developer.mozilla.org/
         <target state="translated">Gdy atrybut `method` ma wartość `post`, enctype określa [typ MIME](https://en.wikipedia.org/wiki/Mime_type) zawartości używanej do wysłania formularza do serwera. Możliwe wartości to:
 
 * `application/x-www-form-urlencoded`: wartość domyślna, jeśli atrybut nie został określony.
-* `multipart/form-data`: Wartość używana dla elementu [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input „Element HTML &lt;input&gt; służy do tworzenia interaktywnych kontrolek dla formularzy internetowych w celu akceptowania danych od użytkownika. Dostępnych jest wiele różnych typów danych wejściowych i widżetów kontrolek, w zależności od urządzenia i agenta użytkownika.”) z atrybutem `type` ustawionym na „file”.
+* `multipart/form-data`: Wartość używana dla elementu [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input „Element HTML &lt;input&gt; służy do tworzenia interaktywnych kontrolek dla formularzy internetowych w celu akceptowania danych od użytkownika. Dostępnych jest wiele różnych typów danych wejściowych i widżetów kontrolek, w zależności od urządzenia i agenta użytkownika.”) z atrybutem `type` ustawionym na wartość „file”.
 * `text/plain`: (HTML5)
 
 Tę wartość można zastąpić atrybutem [`formenctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formenctype) w elemencie [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button „Element HTML &lt;button&gt; reprezentuje klikalny przycisk, który można używać w formularzach lub w dowolnym miejscu dokumentu, w którym wymagana jest prosta, standardowa funkcjonalność przycisku.”) lub [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input „Element HTML &lt;input&gt; służy do tworzenia interaktywnych kontrolek dla formularzy internetowych w celu akceptowania danych od użytkownika; dostępna jest szeroka gama typów danych wejściowych i widżetów sterujących, w zależności od urządzenia i agenta użytkownika.”).</target>
@@ -439,7 +439,7 @@ If this attribute is specified, it overrides the [`enctype`](https://developer.m
         <target state="translated">Jeśli przycisk jest przyciskiem przesyłania, ten atrybut określa typ zawartości używany do wysłania formularza na serwer. Możliwe wartości to:
 
 * `application/x-www-form-urlencoded`: wartość domyślna, jeśli atrybut nie został określony.
-* `multipart/form-data`: Użyj tej wartości, jeśli używasz elementu [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input „Element HTML &lt;input&gt; służy do tworzenia interaktywnych kontrolek dla formularzy internetowych w celu akceptowania danych od użytkownika. Dostępnych jest wiele różnych typów danych wejściowych i widżetów kontrolek, w zależności od urządzenia i przeglądarki użytkownika.”) z atrybutem [`type`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-type) ustawionym na `file`.
+* `multipart/form-data`: Użyj tej wartości, jeśli używasz elementu [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input „Element HTML &lt;input&gt; służy do tworzenia interaktywnych kontrolek dla formularzy internetowych w celu akceptowania danych od użytkownika. Dostępnych jest wiele różnych typów danych wejściowych i widżetów kontrolek, w zależności od urządzenia i przeglądarki użytkownika.”) z atrybutem [`type`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-type) ustawionym na wartość `file`.
 * `text/plain`
 
 Jeżeli ten atrybut jest określony, zastępuje on atrybut [`enctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-enctype) właściciela formularza przycisku.</target>
@@ -647,7 +647,7 @@ Definiuje [plik cookie](https://developer.mozilla.org/en-US/docs/cookie) dla str
 * `chapters`
 * Tytuły rozdziałów są przeznaczone do użycia, gdy użytkownik nawiguję po zasobie multimedialnym.
 * `metadata`
-* Ścieżki używane przez skrypty. Niewidoczne dla użytkownika.</target>
+* Ścieżki używane przez skrypty. Niewidoczny dla użytkownika.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_label">
@@ -696,7 +696,7 @@ Definiuje [plik cookie](https://developer.mozilla.org/en-US/docs/cookie) dla str
 
 **Notatki:**
 
-* W HTML 4 może to być tylko prosta, rozdzielona białymi znakami lista literałów opisujących nośniki, czyli [media types and groups](https://developer.mozilla.org/en-US/docs/Web/CSS/@media), tam, gdzie są zdefiniowane i dozwolone jako wartości tego atrybutu, na przykład `print`, `screen`, `aural`, `braille`. HTML5 rozszerzył to na dowolne [media queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries), które są nadzbiorem dozwolonych wartości HTML 4.
+* W HTML 4 może to być tylko prosta, rozdzielona białymi znakami lista literałów opisujących nośniki, czyli [typy i grupy nośników](https://developer.mozilla.org/en-US/docs/Web/CSS/@media), tam, gdzie są zdefiniowane i dozwolone jako wartości tego atrybutu, na przykład `print`, `screen`, `aural`, `braille`. HTML5 rozszerzył to na dowolne [media queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries), które są nadzbiorem dozwolonych wartości HTML 4.
 * Przeglądarki, które nie obsługują [CSS3 Media Queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries), nie muszą rozpoznawać odpowiedniego odwołania; nie zapomnij ustawić odwołań zapasowych, czyli ograniczonego zestawu zapytań o media zdefiniowanego w HTML 4.</target>
         <note />
       </trans-unit>
@@ -1004,7 +1004,7 @@ Ten atrybut może też przyjmować wartość z rozszerzonej listy zdefiniowanej 
 * `creator`, który definiuje nazwę twórcy dokumentu, na przykład organizacji lub instytucji. Jeśli jest ich więcej niż jedna, należy użyć kilku elementów [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "Element HTML &lt;meta&gt; reprezentuje metadane, których nie można przedstawić za pomocą innych elementów HTML związanych z metadanymi, takich jak &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; lub &lt;title&gt;.").
 * `googlebot`, synonim `robots`, jest przestrzegany tylko przez Googlebot (robota indeksującego Google).
 * `publisher`, który definiuje nazwę wydawcy dokumentu.
-* `robots`, który definiuje zachowanie, jakie współpracujące roboty indeksujące, czyli „roboty”, powinny stosować wobec strony. To lista wartości oddzielonych przecinkami:
+* `robots`, który definiuje zachowanie, jakie współpracujące roboty indeksujące, czyli "robots", powinny stosować wobec strony. To lista wartości oddzielonych przecinkami:
 
 Wartości zawartości elementu `&lt;meta name="robots"&gt;`
 
@@ -1142,7 +1142,7 @@ Wersja robocza
 
 Opisuje element META elementu viewport w sposób nienormatywny
 
-Zobacz też: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewport "Reguła CSS @viewport pozwala skonfigurować element viewport, przez który dokument jest wyświetlany. Jest używana głównie na urządzeniach mobilnych, ale też przez przeglądarki na komputerach, które obsługują funkcje takie jak "snap to edge" (na przykład Microsoft Edge).")
+Zobacz też: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewport "Reguła CSS @viewport pozwala skonfigurować element viewport, przez który dokument jest wyświetlany. Jest używana głównie na urządzeniach mobilnych, ale też przez przeglądarki na komputerach, które obsługują funkcje takie jak „snap to edge” (na przykład Microsoft Edge).")
 
 **Notatki:**
 
@@ -1635,7 +1635,7 @@ Zobacz też: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@vie
 **Note:** According to the HTML5 specification, the default value for size should be 1; however, in practice, this has been found to break some web sites, and no other browser currently does that, so Mozilla has opted to continue to return 0 for the time being with Firefox.</source>
         <target state="translated">Jeśli kontrolka jest prezentowana jako przewijane pole listy (na przykład gdy określono `multiple`), ten atrybut określa liczbę wierszy na liście, które powinny być widoczne jednocześnie. Przeglądarki nie muszą prezentować elementu select jako przewijanej listy. Wartość domyślna to 0.
 
-**Uwaga:** zgodnie ze specyfikacją HTML5 wartość domyślna dla size powinna wynosić 1; w praktyce jednak powodowało to problemy w niektórych witrynach, a żaden inny browser obecnie tak nie robi, więc Mozilla zdecydowała się na razie nadal zwracać 0 w przeglądarce Firefox.</target>
+**Uwaga:** zgodnie ze specyfikacją HTML5 wartość domyślna dla „size” powinna wynosić 1; w praktyce jednak powodowało to problemy w niektórych witrynach, a żaden inny browser obecnie tak nie robi, więc Mozilla zdecydowała się na razie nadal zwracać 0 w przeglądarce Firefox.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_sizes">
@@ -1710,7 +1710,7 @@ The user agent selects any one of the available sources at its discretion. This 
 
 Jeśli nie określono deskryptora, źródłu przypisywany jest domyślny deskryptor: `1x`.
 
-Nie można mieszać deskryptorów szerokości i deskryptorów gęstości pikseli w tym samym atrybucie `srcset`. Zduplikowane deskryptory, na przykład dwa źródła w tym samym elemencie `srcset`, które są opisane jako '`2x`', też są nieprawidłowe.
+Nie można mieszać deskryptorów szerokości i deskryptorów gęstości pikseli w tym samym atrybucie `srcset`. Zduplikowane deskryptory, na przykład dwa źródła w tym samym elemencie `srcset`, które są opisane jako `2x`, też są nieprawidłowe.
 
 Agent użytkownika wybiera dowolne elementy z dostępnych źródeł według własnego uznania. Daje mu to dużą swobodę w dostosowaniu wyboru do takich czynników jak preferencje użytkownika czy warunki przepustowości. Zobacz nasz samouczek [Responsive images](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images), aby zobaczyć przykład.</target>
         <note />
@@ -1773,7 +1773,7 @@ Jeśli ten atrybut jest określony, ten element musi wystąpić przed wszystkimi
 * `no`, which indicates that the element will not be translated.</source>
         <target state="translated">Atrybut wyliczeniowy służący do określenia, czy wartości atrybutów elementu i wartości jego [`Text`](https://developer.mozilla.org/docs/Web/API/Text „Interfejs Text reprezentuje zawartość tekstową elementu lub atrybutu. Jeśli element nie ma w swojej zawartości żadnego znacznika, to ma pojedynczy element podrzędny wdrażający element Text, który zawiera tekst elementu. Jeśli jednak element zawiera znaczniki, są one przetwarzane na elementy informacyjne i węzły tekstowe, które tworzą jego elementy podrzędne.") Węzły podrzędne mają zostać przetłumaczone podczas lokalizacji strony lub czy mają pozostać niezmienione. Może przyjmować następujące wartości:
 
-* pusty ciąg i `yes`, co oznacza, że element zostanie przetłumaczony.
+* pusty ciąg i wartość `yes`, co oznacza, że element zostanie przetłumaczony.
 * `no`, co oznacza, że element nie zostanie przetłumaczony.</target>
         <note />
       </trans-unit>
@@ -1839,7 +1839,7 @@ If this attribute is not specified, `soft` is its default value.</source>
 
 * `hard`: przeglądarka automatycznie wstawia podziały wierszy (CR+LF), tak aby każdy wiersz nie był szerszy niż kontrolka; aby to działało, trzeba też określić atrybut `cols`.
 * `soft`: przeglądarka zapewnia, że wszystkie podziały wierszy w wartości składają się z pary CR+LF, ale nie wstawia dodatkowych podziałów wierszy.
-* `off`: jak `soft`, ale zmienia wygląd na `white-space: pre`, więc segmenty linii przekraczające `cols` nie są zawijane, a `&lt;textarea&gt;` staje się przewijalna w poziomie.
+* `off`: jak `soft`, ale zmienia wygląd na `white-space: pre`, więc segmenty linii przekraczające `cols` nie są zawijane, a wartość `&lt;textarea&gt;` staje się przewijalna w poziomie.
 
 Jeśli ten atrybut nie zostanie określony, jego domyślną wartością jest `soft`.</target>
         <note />

@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="ConflictingDirectiveMetadata">
         <source>Directive metadata '{0}' conflicts with a value already specified by the directive.</source>
-        <target state="new">Directive metadata '{0}' conflicts with a value already specified by the directive.</target>
+        <target state="translated">Les métadonnées de la directive '{0}' en conflit avec une valeur déjà spécifiée par la directive.</target>
         <note>{0} is the metadata name.</note>
       </trans-unit>
       <trans-unit id="CouldNotFindAnyProjectInDirectory">
@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="DuplicateDirectiveMetadata">
         <source>Directive metadata name '{0}' is specified more than once.</source>
-        <target state="new">Directive metadata name '{0}' is specified more than once.</target>
+        <target state="translated">Le nom de métadonnées de directive '{0}' est spécifié plusieurs fois.</target>
         <note>{0} is the duplicate metadata name.</note>
       </trans-unit>
       <trans-unit id="EmptyTempPath">
@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="ExpectedSimpleStringLiteralInDirective">
         <source>Expected a simple string literal in the directive value. Raw and verbatim string literals are not supported in directive values. Found: {0}</source>
-        <target state="new">Expected a simple string literal in the directive value. Raw and verbatim string literals are not supported in directive values. Found: {0}</target>
+        <target state="translated">Littéral de chaîne simple attendu dans la valeur de la directive. Les littéraux de chaîne brute et verbatim ne sont pas pris en charge dans les valeurs de directive. Trouvé : {0}</target>
         <note>{0} is the offending C# token text, for example '"""abc"""'.</note>
       </trans-unit>
       <trans-unit id="ExperimentalFeatureDisabled">
@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="InvalidDirectiveMetadata">
         <source>Directive metadata must be in the form 'Name=Value'. Invalid metadata: '{0}'.</source>
-        <target state="new">Directive metadata must be in the form 'Name=Value'. Invalid metadata: '{0}'.</target>
+        <target state="translated">Les métadonnées de directive doivent être sous la forme 'Name=Value'. Métadonnées non valides : '{0}'.</target>
         <note>{Locked="'Name=Value'"}{0} is the offending metadata text.</note>
       </trans-unit>
       <trans-unit id="InvalidDirectiveName">
@@ -144,7 +144,7 @@
       </trans-unit>
       <trans-unit id="UnexpectedDirectiveText">
         <source>The '{0}' directive has unexpected content. To include whitespace in a value, enclose it in double quotes (").</source>
-        <target state="new">The '{0}' directive has unexpected content. To include whitespace in a value, enclose it in double quotes (").</target>
+        <target state="translated">La directive '{0}' a un contenu inattendu. Pour inclure un espace blanc dans une valeur, placez-le entre guillemets doubles (").</target>
         <note>{0} is the directive kind like 'property' or 'sdk'.</note>
       </trans-unit>
       <trans-unit id="UnrecognizedDirective">
