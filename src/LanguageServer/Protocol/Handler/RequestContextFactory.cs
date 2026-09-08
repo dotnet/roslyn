@@ -74,11 +74,11 @@ internal sealed class RequestContextFactory : AbstractRequestContextFactory<Requ
             ? ImmutableHashSet<string>.Empty
             : _lspServices.GetRequiredService<IWorkspaceFolderTracker>().GetRequiredWorkspaceFolderPaths();
         var onDemandProjectLoader = _lspServices.GetService<IOnDemandProjectLoader>();
-        var loadOperation = textDocumentIdentifier is not null
-            ? onDemandProjectLoader?.StartLoading(textDocumentIdentifier.DocumentUri, workspaceFolders) ?? OnDemandProjectLoadOperation.Completed
+        var loadTask = textDocumentIdentifier is not null
+            ? onDemandProjectLoader?.StartLoadingAsync(textDocumentIdentifier.DocumentUri, workspaceFolders) ?? Task.CompletedTask
             : requiresLSPSolution && !methodHandler.MutatesSolutionState
-                ? onDemandProjectLoader?.GetWorkspaceLoadOperation() ?? OnDemandProjectLoadOperation.Completed
-                : OnDemandProjectLoadOperation.Completed;
+                ? onDemandProjectLoader?.WaitForWorkspaceLoadsAsync() ?? Task.CompletedTask
+                : Task.CompletedTask;
         var trackedDocuments = _lspServices.GetRequiredService<LspWorkspaceManager>().GetTrackedLspText();
 
         var requestContext = await RequestContext.CreateAsync(
@@ -91,7 +91,7 @@ internal sealed class RequestContextFactory : AbstractRequestContextFactory<Requ
             _lspServices,
             logger,
             queueItem.MethodName,
-            loadOperation,
+            loadTask,
             trackedDocuments,
             cancellationToken).ConfigureAwait(false);
 

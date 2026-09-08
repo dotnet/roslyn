@@ -86,6 +86,9 @@ internal sealed partial class LoadedProject
 
         public ProjectId ProjectId => _projectSystemProject.Id;
 
+        public IEnumerable<ProjectFileReference> GetProjectReferences()
+            => _mostRecentFileInfo?.ProjectReferences ?? [];
+
         /// <summary>
         /// Unloads the target and removes it from the workspace.
         /// </summary>

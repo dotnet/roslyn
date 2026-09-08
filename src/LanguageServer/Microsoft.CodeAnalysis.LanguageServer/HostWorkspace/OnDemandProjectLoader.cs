@@ -24,141 +24,83 @@ internal sealed class OnDemandProjectLoaderFactory(
     IAsynchronousOperationListenerProvider listenerProvider) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-    {
-        var hostWorkspace = lspServices.GetRequiredService<LanguageServerWorkspaceFactory>().HostWorkspace;
-        return new OnDemandProjectLoader(
+        => new OnDemandProjectLoader(
             lspServices.GetRequiredService<WorkspaceProjectDiscoveryService>(),
             lspServices.GetRequiredService<LanguageServerProjectSystem>(),
-            filePath => !hostWorkspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath).IsEmpty,
+            lspServices.GetRequiredService<LanguageServerWorkspaceFactory>(),
             globalOptionService,
             listenerProvider.GetListener(FeatureAttribute.Workspace),
             lspServices.GetRequiredService<ILoggerFactory>());
-    }
 }
 
 internal sealed class OnDemandProjectLoader : IOnDemandProjectLoader, IDisposable
 {
     private readonly WorkspaceProjectDiscoveryService _discoveryService;
-    private readonly Func<string, Task<LoadedProject>> _beginLoadingProjectAsync;
-    private readonly Func<LoadedProject, CancellationToken, Task<bool>> _waitForLoadAsync;
-    private readonly Func<LoadedProject, Task<ImmutableArray<string>>> _getProjectReferencesAsync;
-    private readonly Func<CancellationToken, Task> _waitForActiveProjectLoadsAsync;
-    private readonly Func<string, bool> _isDocumentInHostWorkspace;
-    private readonly Func<bool> _isEnabled;
-    private readonly Func<bool> _isUsingDevKit;
+    private readonly LanguageServerProjectSystem _projectSystem;
+    private readonly LanguageServerWorkspaceFactory _workspaceFactory;
+    private readonly IGlobalOptionService _globalOptionService;
     private readonly IAsynchronousOperationListener _listener;
     private readonly ILogger _logger;
     private readonly CancellationTokenSource _shutdownSource = new();
-    private readonly object _gate = new();
-    private readonly Dictionary<string, OnDemandProjectLoadOperation> _operations = new(PathUtilities.Comparer);
 
     public OnDemandProjectLoader(
         WorkspaceProjectDiscoveryService discoveryService,
         LanguageServerProjectSystem projectSystem,
-        Func<string, bool> isDocumentInHostWorkspace,
+        LanguageServerWorkspaceFactory workspaceFactory,
         IGlobalOptionService globalOptionService,
-        IAsynchronousOperationListener listener,
-        ILoggerFactory loggerFactory)
-        : this(
-            discoveryService,
-            projectSystem.BeginLoadingProjectAsync,
-            static (project, cancellationToken) => project.WaitForLoadAsync(cancellationToken).AsTask(),
-            projectSystem.GetProjectReferencesAsync,
-            projectSystem.WaitForAllProjectLoadsAsync,
-            isDocumentInHostWorkspace,
-            () => globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.LoadProjectsOnDemand),
-            () => globalOptionService.GetOption(LspOptionsStorage.LspUsingDevkitFeatures),
-            listener,
-            loggerFactory)
-    {
-    }
-
-    internal OnDemandProjectLoader(
-        WorkspaceProjectDiscoveryService discoveryService,
-        Func<string, Task<LoadedProject>> beginLoadingProjectAsync,
-        Func<LoadedProject, CancellationToken, Task<bool>> waitForLoadAsync,
-        Func<LoadedProject, Task<ImmutableArray<string>>> getProjectReferencesAsync,
-        Func<CancellationToken, Task> waitForActiveProjectLoadsAsync,
-        Func<string, bool> isDocumentInHostWorkspace,
-        Func<bool> isEnabled,
-        Func<bool> isUsingDevKit,
         IAsynchronousOperationListener listener,
         ILoggerFactory loggerFactory)
     {
         _discoveryService = discoveryService;
-        _beginLoadingProjectAsync = beginLoadingProjectAsync;
-        _waitForLoadAsync = waitForLoadAsync;
-        _getProjectReferencesAsync = getProjectReferencesAsync;
-        _waitForActiveProjectLoadsAsync = waitForActiveProjectLoadsAsync;
-        _isDocumentInHostWorkspace = isDocumentInHostWorkspace;
-        _isEnabled = isEnabled;
-        _isUsingDevKit = isUsingDevKit;
+        _projectSystem = projectSystem;
+        _workspaceFactory = workspaceFactory;
+        _globalOptionService = globalOptionService;
         _listener = listener;
         _logger = loggerFactory.CreateLogger<OnDemandProjectLoader>();
     }
 
-    public OnDemandProjectLoadOperation StartLoading(DocumentUri uri, ImmutableHashSet<string> workspaceFolders)
+    public Task StartLoadingAsync(DocumentUri uri, ImmutableHashSet<string> workspaceFolders)
     {
-        if (!_isEnabled() ||
-            _isUsingDevKit() ||
+        if (!_globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.LoadProjectsOnDemand) ||
+            _globalOptionService.GetOption(LspOptionsStorage.LspUsingDevkitFeatures) ||
             uri.ParsedDocumentUri?.IsFile != true)
         {
-            return OnDemandProjectLoadOperation.Completed;
+            return Task.CompletedTask;
         }
 
         var filePath = uri.GetDocumentFilePathFromUri();
-        if (_isDocumentInHostWorkspace(filePath))
-            return OnDemandProjectLoadOperation.Completed;
+        if (!_workspaceFactory.HostWorkspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath).IsEmpty)
+            return Task.CompletedTask;
 
-        var discoveryTask = Task.Run(() => DiscoverProjects(filePath, workspaceFolders), CancellationToken.None);
-        return new OnDemandProjectLoadOperation(LoadDiscoveredProjectsAsync(discoveryTask));
+        var discoveryTask = Task.Run(() => DiscoverProjects(filePath, workspaceFolders), _shutdownSource.Token);
+        return LoadDiscoveredProjectsAsync(discoveryTask);
     }
 
     private async Task LoadDiscoveredProjectsAsync(Task<ImmutableArray<string>> discoveryTask)
     {
-        var candidateProjects = await discoveryTask.ConfigureAwait(false);
-        if (candidateProjects.IsEmpty)
-            return;
-
-        var operations = candidateProjects.SelectAsArray(GetOrCreateLoadOperation);
-        await Task.WhenAll(operations.SelectAsArray(
-            operation => operation.WaitAsync(_shutdownSource.Token))).ConfigureAwait(false);
-    }
-
-    private OnDemandProjectLoadOperation GetOrCreateLoadOperation(string projectPath)
-    {
-        projectPath = Path.GetFullPath(projectPath);
-        lock (_gate)
+        using var token = _listener.BeginAsyncOperation(nameof(LoadDiscoveredProjectsAsync));
+        try
         {
-            if (_operations.TryGetValue(projectPath, out var operation))
-                return operation;
+            var candidateProjects = await discoveryTask.ConfigureAwait(false);
+            if (candidateProjects.IsEmpty)
+                return;
 
-            var projectCompletion = LoadProjectsAsync(projectPath);
-            operation = new(projectCompletion);
-            _operations.Add(projectPath, operation);
-            _ = projectCompletion.ContinueWith(
-                _ => RemoveOperation(projectPath, operation),
-                CancellationToken.None,
-                TaskContinuationOptions.ExecuteSynchronously,
-                TaskScheduler.Default);
-            return operation;
+            foreach (var projectPath in candidateProjects)
+                _logger.LogInformation("Loading project on demand for '{ProjectPath}'.", projectPath);
+
+            await LoadProjectClosureAsync(candidateProjects, _shutdownSource.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (_shutdownSource.IsCancellationRequested)
+        {
+        }
+        catch (Exception exception) when (FatalError.ReportAndCatch(exception))
+        {
+            _logger.LogError(exception, "Failed to load projects on demand.");
         }
     }
 
-    public OnDemandProjectLoadOperation GetWorkspaceLoadOperation()
-    {
-        var completion = _waitForActiveProjectLoadsAsync(_shutdownSource.Token);
-        return new OnDemandProjectLoadOperation(completion);
-    }
-
-    private void RemoveOperation(string projectPath, OnDemandProjectLoadOperation operation)
-    {
-        lock (_gate)
-        {
-            if (_operations.TryGetValue(projectPath, out var currentOperation) && ReferenceEquals(currentOperation, operation))
-                _operations.Remove(projectPath);
-        }
-    }
+    public Task WaitForWorkspaceLoadsAsync()
+        => _projectSystem.WaitForAllProjectLoadsAsync(_shutdownSource.Token);
 
     private ImmutableArray<string> DiscoverProjects(string filePath, ImmutableHashSet<string> workspaceFolders)
     {
@@ -170,23 +112,6 @@ internal sealed class OnDemandProjectLoader : IOnDemandProjectLoader, IDisposabl
             filePath,
             stopwatch.ElapsedMilliseconds);
         return result;
-    }
-
-    private async Task LoadProjectsAsync(string projectPath)
-    {
-        using var token = _listener.BeginAsyncOperation(nameof(LoadProjectsAsync));
-        try
-        {
-            _logger.LogInformation("Loading project on demand for '{ProjectPath}'.", projectPath);
-            await LoadProjectClosureAsync([projectPath], _shutdownSource.Token).ConfigureAwait(false);
-        }
-        catch (OperationCanceledException) when (_shutdownSource.IsCancellationRequested)
-        {
-        }
-        catch (Exception exception) when (FatalError.ReportAndCatch(exception))
-        {
-            _logger.LogError(exception, "Failed to load projects on demand for '{ProjectPath}'.", projectPath);
-        }
     }
 
     private async Task LoadProjectClosureAsync(
@@ -209,7 +134,7 @@ internal sealed class OnDemandProjectLoader : IOnDemandProjectLoader, IDisposabl
             var (project, loadedSuccessfully) = await completedTask.ConfigureAwait(false);
             if (loadedSuccessfully)
             {
-                foreach (var reference in await _getProjectReferencesAsync(project).ConfigureAwait(false))
+                foreach (var reference in await _projectSystem.GetProjectReferencesAsync(project).ConfigureAwait(false))
                     QueueProject(reference);
             }
         }
@@ -223,8 +148,8 @@ internal sealed class OnDemandProjectLoader : IOnDemandProjectLoader, IDisposabl
 
         async Task<(LoadedProject project, bool loadedSuccessfully)> LoadProjectAsync(string projectFilePath)
         {
-            var project = await _beginLoadingProjectAsync(projectFilePath).ConfigureAwait(false);
-            var loadedSuccessfully = await _waitForLoadAsync(project, cancellationToken).ConfigureAwait(false);
+            var project = await _projectSystem.BeginLoadingProjectAsync(projectFilePath).ConfigureAwait(false);
+            var loadedSuccessfully = await project.WaitForLoadAsync(cancellationToken).ConfigureAwait(false);
             return (project, loadedSuccessfully);
         }
     }

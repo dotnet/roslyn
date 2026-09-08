@@ -14,10 +14,10 @@ public sealed class LanguageServerProjectSystemTests(ITestOutputHelper testOutpu
     public async Task RegisteredProjectPathExcludesFileBasedApps()
     {
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
-        var accessor = server.GetRequiredLspService<LanguageServerProjectSystem>().GetTestAccessor();
+        var projectSystem = server.GetRequiredLspService<LanguageServerProjectSystem>();
         var directory = TempRoot.CreateDirectory();
 
-        Assert.Equal(LanguageNames.CSharp, accessor.GetLanguageNameForRegisteredProjectPath(Path.Combine(directory.Path, "Project.csproj")));
-        Assert.Null(accessor.GetLanguageNameForRegisteredProjectPath(Path.Combine(directory.Path, "Program.cs")));
+        Assert.Equal(LanguageNames.CSharp, projectSystem.GetLanguageNameForRegisteredProjectPath(Path.Combine(directory.Path, "Project.csproj")));
+        Assert.Null(projectSystem.GetLanguageNameForRegisteredProjectPath(Path.Combine(directory.Path, "Program.cs")));
     }
 }

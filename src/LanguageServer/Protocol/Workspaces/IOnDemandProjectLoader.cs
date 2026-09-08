@@ -3,13 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal interface IOnDemandProjectLoader : ILspService
 {
-    OnDemandProjectLoadOperation StartLoading(DocumentUri uri, ImmutableHashSet<string> workspaceFolders);
+    Task StartLoadingAsync(DocumentUri uri, ImmutableHashSet<string> workspaceFolders);
 
-    OnDemandProjectLoadOperation GetWorkspaceLoadOperation();
+    Task WaitForWorkspaceLoadsAsync();
 }

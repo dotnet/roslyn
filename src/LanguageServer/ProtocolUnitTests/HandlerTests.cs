@@ -398,15 +398,15 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         public int StartCount => Volatile.Read(ref _startCount);
         public bool IsCompleted => _completion.Task.IsCompleted;
 
-        public OnDemandProjectLoadOperation StartLoading(DocumentUri uri, ImmutableHashSet<string> workspaceFolders)
+        public Task StartLoadingAsync(DocumentUri uri, ImmutableHashSet<string> workspaceFolders)
         {
             Interlocked.Increment(ref _startCount);
             _started.TrySetResult(true);
-            return new(_completion.Task);
+            return _completion.Task;
         }
 
-        public OnDemandProjectLoadOperation GetWorkspaceLoadOperation()
-            => OnDemandProjectLoadOperation.Completed;
+        public Task WaitForWorkspaceLoadsAsync()
+            => Task.CompletedTask;
 
         public void Complete()
             => _completion.TrySetResult(true);

@@ -2,355 +2,119 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Concurrent;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
-using Microsoft.CodeAnalysis.ProjectSystem;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.LanguageServer.Test.Utilities;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
-public sealed class OnDemandProjectLoaderTests : IDisposable
+public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelper)
+    : AbstractLanguageServerMefHost(testOutputHelper)
 {
-    private readonly TempRoot _tempRoot = new();
-
-    public void Dispose()
-        => _tempRoot.Dispose();
-
     [Fact]
-    public async Task RepeatedTriggersShareOnlyInFlightProjectLoading()
+    public async Task LoadsProjectContainingRequestedDocument()
     {
-        var workspace = _tempRoot.CreateDirectory();
-        var project = workspace.CreateFile("App.csproj");
-        var document = workspace.CreateFile("Program.cs");
-        var loadStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var loadCompletion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var loadCount = 0;
-        using var loader = CreateLoader(
-            directory => [project.Path],
-            async (projectPath, cancellationToken) =>
-            {
-                Assert.Equal(project.Path, projectPath);
-                Interlocked.Increment(ref loadCount);
-                loadStarted.TrySetResult();
-                await loadCompletion.Task.WaitAsync(cancellationToken);
-            });
+        var workspace = MaterializedLspWorkspace.Create(
+            TempRoot,
+            LspTestWorkspaces.CreateConsoleApplication("App"),
+            CancellationToken.None);
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var documentPath = workspace.GetFullPath("Program.cs");
 
-        var uri = ProtocolConversions.CreateAbsoluteDocumentUri(document.Path);
-        var firstOperation = loader.StartLoading(uri, [workspace.Path]);
-        var secondOperation = loader.StartLoading(ProtocolConversions.CreateAbsoluteDocumentUri(document.Path.ToUpperInvariant()), [workspace.Path]);
-        await loadStarted.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        await LoadDocumentAsync(server, workspace.RootPath, documentPath);
 
-        using var requestCancellationSource = new CancellationTokenSource();
-        var canceledWait = firstOperation.WaitAsync(requestCancellationSource.Token);
-        requestCancellationSource.Cancel();
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => canceledWait);
-
-        loadCompletion.SetResult();
-        await secondOperation.WaitAsync(CancellationToken.None).WaitAsync(TestHelpers.HangMitigatingTimeout);
-        Assert.Equal(1, Volatile.Read(ref loadCount));
-
-        await loader.StartLoading(uri, [workspace.Path]).WaitAsync(CancellationToken.None).WaitAsync(TestHelpers.HangMitigatingTimeout);
-        Assert.Equal(2, Volatile.Read(ref loadCount));
-    }
-
-    [Theory]
-    [InlineData(false, false)]
-    [InlineData(true, true)]
-    public async Task DisabledOrDevKitDoesNotDiscover(bool isEnabled, bool isUsingDevKit)
-    {
-        var workspace = _tempRoot.CreateDirectory();
-        var document = workspace.CreateFile("Program.cs");
-        var enumerationCount = 0;
-        using var loader = CreateLoader(
-            directory =>
-            {
-                Interlocked.Increment(ref enumerationCount);
-                return [];
-            },
-            (projectPath, cancellationToken) => throw new InvalidOperationException(),
-            isEnabled,
-            isUsingDevKit);
-
-        var operation = loader.StartLoading(ProtocolConversions.CreateAbsoluteDocumentUri(document.Path), [workspace.Path]);
-        await operation.WaitAsync(CancellationToken.None);
-
-        Assert.Equal(0, Volatile.Read(ref enumerationCount));
+        var solution = server.GetRequiredLspService<LanguageServerWorkspaceFactory>().HostWorkspace.CurrentSolution;
+        Assert.Equal("App", Assert.Single(solution.Projects).AssemblyName);
+        Assert.NotEmpty(solution.GetDocumentIdsWithFilePath(documentPath));
     }
 
     [Fact]
-    public async Task DocumentInHostWorkspaceDoesNotDiscover()
+    public async Task LoadsTransitiveProjectReferencesFromEvaluationData()
     {
-        var workspace = _tempRoot.CreateDirectory();
-        var document = workspace.CreateFile("Program.cs");
-        var enumerationCount = 0;
-        using var loader = CreateLoader(
-            directory =>
-            {
-                Interlocked.Increment(ref enumerationCount);
-                return [];
-            },
-            (projectPath, cancellationToken) => throw new InvalidOperationException(),
-            isDocumentInHostWorkspace: filePath => StringComparer.OrdinalIgnoreCase.Equals(filePath, document.Path));
+        var workspace = MaterializedLspWorkspace.Create(
+            TempRoot,
+            LspWorkspaceContent.Empty
+                .WithFile("App/App.csproj", """
+                    <Project Sdk="Microsoft.NET.Sdk">
+                      <PropertyGroup>
+                        <OutputType>Exe</OutputType>
+                        <TargetFramework>net10.0</TargetFramework>
+                      </PropertyGroup>
+                      <ItemGroup>
+                        <ProjectReference Include="../Dependency/Dependency.csproj" />
+                      </ItemGroup>
+                    </Project>
+                    """)
+                .WithFile("App/Program.cs", """Console.WriteLine("Hello");""")
+                .WithFile("Dependency/Dependency.csproj", """
+                    <Project Sdk="Microsoft.NET.Sdk">
+                      <PropertyGroup>
+                        <TargetFramework>net10.0</TargetFramework>
+                      </PropertyGroup>
+                    </Project>
+                    """)
+                .WithFile("Dependency/Dependency.cs", "public static class Dependency;")
+                .WithRestore(),
+            CancellationToken.None);
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
 
-        var operation = loader.StartLoading(ProtocolConversions.CreateAbsoluteDocumentUri(document.Path), [workspace.Path]);
-        await operation.WaitAsync(CancellationToken.None);
+        await LoadDocumentAsync(server, workspace.RootPath, workspace.GetFullPath("App/Program.cs"));
 
-        Assert.Equal(0, Volatile.Read(ref enumerationCount));
+        var solution = server.GetRequiredLspService<LanguageServerWorkspaceFactory>().HostWorkspace.CurrentSolution;
+        AssertEx.SetEqual(["App", "Dependency"], solution.Projects.Select(project => project.AssemblyName));
     }
 
     [Fact]
-    public async Task LoadsEveryNearestCandidate()
+    public async Task DisabledDoesNotLoadProject()
     {
-        var workspace = _tempRoot.CreateDirectory();
-        var firstProject = workspace.CreateFile("First.csproj");
-        var secondProject = workspace.CreateFile("Second.csproj");
-        var document = workspace.CreateFile("Program.cs");
-        var loadedProjects = new ConcurrentSet<string>(StringComparer.OrdinalIgnoreCase);
-        using var loader = CreateLoader(
-            directory => [secondProject.Path, firstProject.Path],
-            (projectPath, cancellationToken) =>
-            {
-                loadedProjects.Add(projectPath);
-                return Task.CompletedTask;
-            });
+        var workspace = MaterializedLspWorkspace.Create(
+            TempRoot,
+            CreateUnrestoredConsoleApplication(),
+            CancellationToken.None);
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var globalOptions = server.ExportProvider.GetExportedValue<IGlobalOptionService>();
+        globalOptions.SetGlobalOption(LanguageServerProjectSystemOptionsStorage.LoadProjectsOnDemand, false);
 
-        var operation = loader.StartLoading(ProtocolConversions.CreateAbsoluteDocumentUri(document.Path), [workspace.Path]);
-        await operation.WaitAsync(CancellationToken.None).WaitAsync(TestHelpers.HangMitigatingTimeout);
+        await LoadDocumentAsync(server, workspace.RootPath, workspace.GetFullPath("Program.cs"));
 
-        AssertEx.SetEqual([firstProject.Path, secondProject.Path], loadedProjects);
+        Assert.Empty(server.GetRequiredLspService<LanguageServerWorkspaceFactory>().HostWorkspace.CurrentSolution.Projects);
     }
 
     [Fact]
-    public async Task EmptyDiscoveryIsRetriedOnLaterDemand()
+    public async Task DevKitDoesNotLoadProject()
     {
-        var workspace = _tempRoot.CreateDirectory();
-        var document = workspace.CreateFile("Program.cs");
-        var enumerationCount = 0;
-        using var loader = CreateLoader(
-            directory =>
-            {
-                Interlocked.Increment(ref enumerationCount);
-                return [];
-            },
-            (projectPath, cancellationToken) => throw new InvalidOperationException());
-        var uri = ProtocolConversions.CreateAbsoluteDocumentUri(document.Path);
+        var workspace = MaterializedLspWorkspace.Create(
+            TempRoot,
+            CreateUnrestoredConsoleApplication(),
+            CancellationToken.None);
+        await using var server = await CreateLanguageServerAsync();
 
-        await loader.StartLoading(uri, [workspace.Path]).WaitAsync(CancellationToken.None);
-        await loader.StartLoading(uri, [workspace.Path]).WaitAsync(CancellationToken.None);
+        await LoadDocumentAsync(server, workspace.RootPath, workspace.GetFullPath("Program.cs"));
 
-        Assert.Equal(2, Volatile.Read(ref enumerationCount));
+        Assert.Empty(server.GetRequiredLspService<LanguageServerWorkspaceFactory>().HostWorkspace.CurrentSolution.Projects);
     }
 
-    [Fact]
-    public async Task DependencyClosureIsLoadedAndShared()
+    private static LspWorkspaceContent CreateUnrestoredConsoleApplication()
+        => LspWorkspaceContent.Empty
+            .WithFile("App.csproj", """
+                <Project Sdk="Microsoft.NET.Sdk">
+                  <PropertyGroup>
+                    <OutputType>Exe</OutputType>
+                    <TargetFramework>net10.0</TargetFramework>
+                  </PropertyGroup>
+                </Project>
+                """)
+            .WithFile("Program.cs", """Console.WriteLine("Hello");""");
+
+    private static async Task LoadDocumentAsync(TestLspServer server, string workspaceRoot, string documentPath)
     {
-        var workspace = _tempRoot.CreateDirectory();
-        var project = workspace.CreateFile("App.csproj");
-        var dependency = workspace.CreateFile("Dependency.csproj");
-        var document = workspace.CreateFile("Program.cs");
-        var dependencyLoadCount = 0;
-        using var loader = CreateLoader(
-            directory => [project.Path],
-            projectPath =>
-            {
-                if (StringComparer.OrdinalIgnoreCase.Equals(projectPath, dependency.Path))
-                    Interlocked.Increment(ref dependencyLoadCount);
-
-                return true;
-            },
-            projectPath => StringComparer.OrdinalIgnoreCase.Equals(projectPath, project.Path) ? [dependency.Path] : []);
-
-        var operation = loader.StartLoading(ProtocolConversions.CreateAbsoluteDocumentUri(document.Path), [workspace.Path]);
-        await Task.WhenAll(
-            operation.WaitAsync(CancellationToken.None),
-            operation.WaitAsync(CancellationToken.None));
-        Assert.Equal(1, Volatile.Read(ref dependencyLoadCount));
+        var loader = server.GetRequiredLspService<IOnDemandProjectLoader>();
+        var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(documentPath);
+        await loader.StartLoadingAsync(documentUri, [workspaceRoot]).WaitAsync(TestHelpers.HangMitigatingTimeout);
     }
-
-    [Fact]
-    public async Task FailedRootIsNotRetriedWithinOperation()
-    {
-        var workspace = _tempRoot.CreateDirectory();
-        var project = workspace.CreateFile("App.csproj");
-        var document = workspace.CreateFile("Program.cs");
-        var loadCount = 0;
-        using var loader = CreateLoader(
-            directory => [project.Path],
-            projectPath =>
-            {
-                Assert.Equal(project.Path, projectPath);
-                Interlocked.Increment(ref loadCount);
-                return false;
-            },
-            getProjectReferences: _ => []);
-
-        var operation = loader.StartLoading(ProtocolConversions.CreateAbsoluteDocumentUri(document.Path), [workspace.Path]);
-        await operation.WaitAsync(CancellationToken.None);
-        await operation.WaitAsync(CancellationToken.None);
-
-        Assert.Equal(1, Volatile.Read(ref loadCount));
-    }
-
-    [Fact]
-    public async Task DependencyClosureHandlesTransitiveCyclesOverlapAndPartialFailure()
-    {
-        var workspace = _tempRoot.CreateDirectory();
-        var firstProject = workspace.CreateFile("First.csproj");
-        var secondProject = workspace.CreateFile("Second.csproj");
-        var sharedDependency = workspace.CreateFile("Shared.csproj");
-        var failedDependency = workspace.CreateFile("Failed.csproj");
-        var document = workspace.CreateDirectory("src").CreateDirectory("nested").CreateFile("Program.cs");
-        var references = ImmutableDictionary.Create<string, ImmutableArray<string>>(PathUtilities.Comparer)
-            .Add(firstProject.Path, [sharedDependency.Path])
-            .Add(secondProject.Path, [sharedDependency.Path, failedDependency.Path])
-            .Add(sharedDependency.Path, [firstProject.Path]);
-        var loadCounts = new ConcurrentDictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        using var loader = CreateLoader(
-            directory => [firstProject.Path, secondProject.Path],
-            projectPath =>
-            {
-                loadCounts.AddOrUpdate(projectPath, 1, static (_, count) => count + 1);
-                return !StringComparer.OrdinalIgnoreCase.Equals(projectPath, failedDependency.Path);
-            },
-            projectPath => references.GetValueOrDefault(projectPath, []));
-
-        var operation = loader.StartLoading(ProtocolConversions.CreateAbsoluteDocumentUri(document.Path), [workspace.Path]);
-        await operation.WaitAsync(CancellationToken.None);
-
-        Assert.Equal(4, loadCounts.Count);
-        Assert.Equal(1, loadCounts[firstProject.Path]);
-        Assert.Equal(1, loadCounts[secondProject.Path]);
-        Assert.Equal(1, loadCounts[sharedDependency.Path]);
-        Assert.Equal(1, loadCounts[failedDependency.Path]);
-    }
-
-    [Fact]
-    public async Task WorkspaceLoadWaitsForAllExplicitProjectLoads()
-    {
-        var workspace = _tempRoot.CreateDirectory();
-        var firstCompletion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var secondCompletion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        using var loader = CreateLoader(
-            directory => [],
-            projectPath => throw new InvalidOperationException(),
-            getProjectReferences: _ => [],
-            waitForActiveProjectLoadsAsync: cancellationToken => Task.WhenAll([
-                firstCompletion.Task.WaitAsync(cancellationToken),
-                secondCompletion.Task.WaitAsync(cancellationToken)]));
-
-        var completion = loader.GetWorkspaceLoadOperation().WaitAsync(CancellationToken.None);
-        firstCompletion.SetResult();
-        Assert.False(completion.IsCompleted);
-
-        secondCompletion.SetResult();
-        await completion.WaitAsync(TestHelpers.HangMitigatingTimeout);
-    }
-
-    private static OnDemandProjectLoader CreateLoader(
-        Func<string, ImmutableArray<string>> enumerateFiles,
-        Func<string, CancellationToken, Task> loadProjectAsync,
-        bool isEnabled = true,
-        bool isUsingDevKit = false,
-        Func<string, bool>? isDocumentInHostWorkspace = null)
-    {
-        var discoveryService = new WorkspaceProjectDiscoveryService(
-            NullLoggerFactory.Instance,
-            supportedProjectFileExtensions: ["csproj"],
-            enumerateFiles: enumerateFiles);
-        return new OnDemandProjectLoader(
-            discoveryService,
-            projectPath => BeginLoadAsync(projectPath, loadProjectAsync),
-            static async (project, cancellationToken) =>
-            {
-                await project.WaitForLoadAsync(cancellationToken);
-                return true;
-            },
-            static _ => Task.FromResult(ImmutableArray<string>.Empty),
-            static _ => Task.CompletedTask,
-            isDocumentInHostWorkspace ?? (static _ => false),
-            () => isEnabled,
-            () => isUsingDevKit,
-            AsynchronousOperationListenerProvider.NullListener,
-            NullLoggerFactory.Instance);
-    }
-
-    private static OnDemandProjectLoader CreateLoader(
-        Func<string, ImmutableArray<string>> enumerateFiles,
-        Func<string, bool> loadProject,
-        Func<string, ImmutableArray<string>> getProjectReferences,
-        Func<CancellationToken, Task>? waitForActiveProjectLoadsAsync = null)
-    {
-        var loadedProjects = new ConcurrentDictionary<string, Task<LoadedProject>>(PathUtilities.Comparer);
-        var loadResults = new ConcurrentDictionary<string, bool>(PathUtilities.Comparer);
-        var discoveryService = new WorkspaceProjectDiscoveryService(
-            NullLoggerFactory.Instance,
-            supportedProjectFileExtensions: ["csproj"],
-            enumerateFiles: enumerateFiles);
-        return new OnDemandProjectLoader(
-            discoveryService,
-            projectPath => loadedProjects.GetOrAdd(projectPath, path =>
-            {
-                loadResults[path] = loadProject(path);
-                return BeginLoadAsync(path, static (_, _) => Task.CompletedTask);
-            }),
-            async (project, cancellationToken) =>
-            {
-                await project.WaitForLoadAsync(cancellationToken);
-                return loadResults[project.ProjectFilePath];
-            },
-            project => Task.FromResult(getProjectReferences(project.ProjectFilePath)),
-            waitForActiveProjectLoadsAsync ?? (static _ => Task.CompletedTask),
-            static _ => false,
-            () => true,
-            () => false,
-            AsynchronousOperationListenerProvider.NullListener,
-            NullLoggerFactory.Instance);
-    }
-
-    private static async Task<LoadedProject> BeginLoadAsync(
-        string projectPath,
-        Func<string, CancellationToken, Task> loadProjectAsync)
-    {
-        var loadedProject = new LoadedProject(projectPath, NoOpFileChangeWatcher.Instance);
-        Assert.True(await loadedProject.TryBeginInitialLoadAsync());
-        _ = CompleteAsync();
-        return loadedProject;
-
-        async Task CompleteAsync()
-        {
-            await loadProjectAsync(projectPath, CancellationToken.None);
-            loadedProject.CompleteInitialLoad();
-        }
-    }
-
-    private sealed class NoOpFileChangeWatcher : IFileChangeWatcher
-    {
-        public static readonly NoOpFileChangeWatcher Instance = new();
-
-        public IFileChangeContext CreateContext(ImmutableArray<WatchedDirectory> watchedDirectories)
-            => new NoOpFileChangeContext();
-    }
-
-    private sealed class NoOpFileChangeContext : IFileChangeContext
-    {
-        public event EventHandler<FileChangedEventArgs> FileChanged
-        {
-            add { }
-            remove { }
-        }
-
-        public IWatchedFile EnqueueWatchingFile(string filePath)
-            => NoOpWatchedFile.Instance;
-
-        public void Dispose()
-        {
-        }
-    }
-
 }

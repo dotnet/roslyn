@@ -197,37 +197,21 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
 
     internal async Task<ImmutableArray<string>> GetProjectReferencesAsync(LoadedProject loadedProject)
     {
-        var references = ImmutableArray.CreateBuilder<string>();
-        var solution = _hostProjectFactory.Workspace.CurrentSolution;
-        foreach (var loadedProjectTarget in await loadedProject.GetExistingProjectsAsync())
-        {
-            var project = solution.GetProject(loadedProjectTarget.Id);
-            if (project is null)
-                continue;
-
-            foreach (var projectReference in project.ProjectReferences)
-            {
-                var referencedProjectPath = solution.GetProject(projectReference.ProjectId)?.FilePath;
-                if (referencedProjectPath is not null &&
-                    PathUtilities.IsAbsolute(referencedProjectPath) &&
-                    GetLanguageNameForRegisteredProjectPath(referencedProjectPath) is not null)
-                {
-                    references.Add(Path.GetFullPath(referencedProjectPath));
-                }
-            }
-        }
-
-        return references.Distinct(PathUtilities.Comparer).ToImmutableArray();
+        var references = await loadedProject.GetProjectReferencePathsAsync();
+        return references.WhereAsArray(
+            static (path, projectSystem) => projectSystem.GetLanguageNameForRegisteredProjectPath(path) is not null,
+            this);
     }
 
     internal ImmutableArray<string> GetSupportedProjectFileExtensions()
     {
         var supportedLanguages = _hostProjectFactory.Workspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>();
-        return _projectFileExtensionRegistry.GetRegisteredProjectFileExtensions().WhereAsArray(
-            extension => _projectFileExtensionRegistry.TryGetLanguageNameFromExtension(extension, out var languageName) && supportedLanguages.Contains(languageName));
+        return _projectFileExtensionRegistry.GetRegisteredProjectFileExtensions()
+            .WhereAsArray(extension => _projectFileExtensionRegistry.TryGetLanguageNameFromExtension(extension, out var languageName) && supportedLanguages.Contains(languageName))
+            .SelectAsArray(static extension => extension.StartsWith('.') ? extension : "." + extension);
     }
 
-    private string? GetLanguageNameForRegisteredProjectPath(string projectPath)
+    internal string? GetLanguageNameForRegisteredProjectPath(string projectPath)
     {
         var extension = Path.GetExtension(projectPath);
         if (extension is ['.', .. var extensionWithoutDot])
@@ -237,9 +221,6 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
             ? languageName
             : null;
     }
-
-    internal TestAccessor GetTestAccessor()
-        => new(this);
 
     protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken)
@@ -329,9 +310,4 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
     internal static bool GetReferenceOutputAssembly(ProjectDataItem item)
         => !string.Equals(item.Metadata["ReferenceOutputAssembly"], bool.FalseString, StringComparison.OrdinalIgnoreCase);
 
-    internal readonly struct TestAccessor(LanguageServerProjectSystem projectSystem)
-    {
-        internal string? GetLanguageNameForRegisteredProjectPath(string projectPath)
-            => projectSystem.GetLanguageNameForRegisteredProjectPath(projectPath);
-    }
 }

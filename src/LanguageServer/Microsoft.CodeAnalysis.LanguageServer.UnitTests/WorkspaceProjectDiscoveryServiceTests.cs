@@ -56,36 +56,10 @@ public sealed class WorkspaceProjectDiscoveryServiceTests : IDisposable
     {
         var workspace = _tempRoot.CreateDirectory();
         var codeFile = _tempRoot.CreateDirectory().CreateFile("Program.cs");
-        var enumerationCount = 0;
-        var service = CreateDiscoveryService(
-            enumerateFiles: directory =>
-            {
-                Interlocked.Increment(ref enumerationCount);
-                return EnumerateFiles(directory);
-            });
+        var service = CreateDiscoveryService();
         var candidates = service.DiscoverProjects(codeFile.Path, [workspace.Path], CancellationToken.None);
 
         Assert.Empty(candidates);
-        Assert.Equal(0, enumerationCount);
-    }
-
-    [Fact]
-    public void FileAtWorkspaceRootEnumeratesTheRootDirectory()
-    {
-        var root = Path.GetPathRoot(_tempRoot.CreateDirectory().Path);
-        Assert.NotNull(root);
-        string? enumeratedDirectory = null;
-        var service = CreateDiscoveryService(
-            enumerateFiles: directory =>
-            {
-                enumeratedDirectory = directory;
-                return [];
-            });
-
-        var candidates = service.DiscoverProjects(Path.Combine(root, "Program.cs"), [root], CancellationToken.None);
-
-        Assert.Empty(candidates);
-        Assert.Equal(root, enumeratedDirectory);
     }
 
     [Fact]
@@ -113,47 +87,16 @@ public sealed class WorkspaceProjectDiscoveryServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task ConcurrentLookupsEnumerateIndependently()
-    {
-        var workspace = _tempRoot.CreateDirectory();
-        var project = workspace.CreateFile("Project.csproj");
-        var codeFile = workspace.CreateFile("Program.cs");
-        using var bothEnumerationsStarted = new CountdownEvent(2);
-        using var releaseEnumerations = new ManualResetEventSlim();
-        var service = CreateDiscoveryService(
-            enumerateFiles: directory =>
-            {
-                bothEnumerationsStarted.Signal();
-                Assert.True(releaseEnumerations.Wait(TestHelpers.HangMitigatingTimeout));
-                return EnumerateFiles(directory);
-            });
-        var firstLookup = Task.Run(() => service.DiscoverProjects(codeFile.Path, [workspace.Path], CancellationToken.None));
-        var secondLookup = Task.Run(() => service.DiscoverProjects(codeFile.Path, [workspace.Path], CancellationToken.None));
-        Assert.True(bothEnumerationsStarted.Wait(TestHelpers.HangMitigatingTimeout));
-        releaseEnumerations.Set();
-
-        var results = await Task.WhenAll(firstLookup, secondLookup).WaitAsync(TestHelpers.HangMitigatingTimeout);
-        Assert.All(results, candidates => AssertEx.Equal([project.Path], candidates));
-    }
-
-    [Fact]
     public async Task CancellationBeforeLookupStopsEnumeration()
     {
         var workspace = _tempRoot.CreateDirectory();
         var codeFile = workspace.CreateFile("Program.cs");
-        var enumerationCount = 0;
-        var service = CreateDiscoveryService(
-            enumerateFiles: _ =>
-            {
-                Interlocked.Increment(ref enumerationCount);
-                return [];
-            });
+        var service = CreateDiscoveryService();
         using var cancellationSource = new CancellationTokenSource();
         cancellationSource.Cancel();
 
         Assert.ThrowsAny<OperationCanceledException>(
             () => service.DiscoverProjects(codeFile.Path, [workspace.Path], cancellationSource.Token));
-        Assert.Equal(0, enumerationCount);
     }
 
     [Fact]
@@ -161,30 +104,15 @@ public sealed class WorkspaceProjectDiscoveryServiceTests : IDisposable
     {
         var workspace = _tempRoot.CreateDirectory();
         var project = workspace.CreateFile("Project.csproj");
-        var childDirectory = workspace.CreateDirectory("src");
-        var codeFile = childDirectory.CreateFile("Program.cs");
-        var service = CreateDiscoveryService(
-            enumerateFiles: directory =>
-            {
-                if (StringComparer.OrdinalIgnoreCase.Equals(directory, childDirectory.Path))
-                    throw new IOException("Expected test failure");
-
-                return EnumerateFiles(directory);
-            });
-        var candidates = service.DiscoverProjects(codeFile.Path, [workspace.Path], CancellationToken.None);
+        var missingCodeFilePath = Path.Combine(workspace.Path, "missing", "Program.cs");
+        var service = CreateDiscoveryService();
+        var candidates = service.DiscoverProjects(missingCodeFilePath, [workspace.Path], CancellationToken.None);
 
         AssertEx.Equal([project.Path], candidates);
     }
 
-    private static WorkspaceProjectDiscoveryService CreateDiscoveryService(
-        Func<string, ImmutableArray<string>>? enumerateFiles = null)
-    {
-        return new(
+    private static WorkspaceProjectDiscoveryService CreateDiscoveryService()
+        => new(
             NullLoggerFactory.Instance,
-            supportedProjectFileExtensions: ["csproj"],
-            enumerateFiles);
-    }
-
-    private static ImmutableArray<string> EnumerateFiles(string directory)
-        => [.. Directory.EnumerateFiles(directory, searchPattern: "*", SearchOption.TopDirectoryOnly)];
+            supportedProjectFileExtensions: [".csproj"]);
 }

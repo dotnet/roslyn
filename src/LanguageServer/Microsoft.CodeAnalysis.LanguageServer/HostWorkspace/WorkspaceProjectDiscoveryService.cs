@@ -33,16 +33,13 @@ internal sealed class WorkspaceProjectDiscoveryService : ILspService
 
     private readonly ILogger _logger;
     private readonly ImmutableArray<string> _supportedProjectFileExtensions;
-    private readonly Func<string, ImmutableArray<string>> _enumerateFiles;
 
     internal WorkspaceProjectDiscoveryService(
         ILoggerFactory loggerFactory,
-        ImmutableArray<string> supportedProjectFileExtensions,
-        Func<string, ImmutableArray<string>>? enumerateFiles = null)
+        ImmutableArray<string> supportedProjectFileExtensions)
     {
         _logger = loggerFactory.CreateLogger<WorkspaceProjectDiscoveryService>();
         _supportedProjectFileExtensions = supportedProjectFileExtensions;
-        _enumerateFiles = enumerateFiles ?? EnumerateFiles;
     }
 
     internal ImmutableArray<string> DiscoverProjects(
@@ -92,8 +89,7 @@ internal sealed class WorkspaceProjectDiscoveryService : ILspService
     {
         try
         {
-            return [.. _enumerateFiles(directory)
-                .Where(IsExistingSupportedProject)
+            return [.. EnumerateFiles(directory)
                 .Order(StringComparer.Ordinal)];
         }
         catch (Exception ex) when (IOUtilities.IsNormalIOException(ex))
@@ -104,24 +100,6 @@ internal sealed class WorkspaceProjectDiscoveryService : ILspService
                 ex.Message);
             return [];
         }
-    }
-
-    private bool IsExistingSupportedProject(string projectPath)
-        => File.Exists(projectPath) && IsSupportedProjectExtension(projectPath);
-
-    private bool IsSupportedProjectExtension(string path)
-    {
-        var extension = PathUtilities.GetExtension(path);
-        if (extension is not ['.', .. var extensionWithoutDot])
-            return false;
-
-        foreach (var supported in _supportedProjectFileExtensions)
-        {
-            if (extensionWithoutDot.AsSpan().Equals(supported, StringComparison.OrdinalIgnoreCase))
-                return true;
-        }
-
-        return false;
     }
 
     private ImmutableArray<string> EnumerateFiles(string directory)
@@ -149,12 +127,9 @@ internal sealed class WorkspaceProjectDiscoveryService : ILspService
 
         private bool IsSupportedExtension(ReadOnlySpan<char> extension)
         {
-            if (extension is not ['.', .. var extensionWithoutDot])
-                return false;
-
             foreach (var supported in supportedExtensions)
             {
-                if (extensionWithoutDot.Equals(supported, StringComparison.OrdinalIgnoreCase))
+                if (extension.Equals(supported, StringComparison.OrdinalIgnoreCase))
                     return true;
             }
 

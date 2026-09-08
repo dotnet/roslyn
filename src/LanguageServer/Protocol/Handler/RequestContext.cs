@@ -28,7 +28,7 @@ internal readonly struct RequestContext
         private readonly LspWorkspaceManager _lspWorkspaceManager;
         private readonly TextDocumentIdentifier? _textDocumentIdentifier;
         private readonly ImmutableDictionary<DocumentUri, TrackedDocumentInfo> _trackedDocuments;
-        private readonly OnDemandProjectLoadOperation _loadOperation;
+        private readonly Task _loadTask;
         private readonly ILspLogger _logger;
         private readonly string _method;
         private readonly bool _mutatesSolutionState;
@@ -44,7 +44,7 @@ internal readonly struct RequestContext
             LspWorkspaceManager lspWorkspaceManager,
             TextDocumentIdentifier? textDocumentIdentifier,
             ImmutableDictionary<DocumentUri, TrackedDocumentInfo> trackedDocuments,
-            OnDemandProjectLoadOperation loadOperation,
+            Task loadTask,
             ILspLogger logger,
             string method,
             bool mutatesSolutionState)
@@ -53,7 +53,7 @@ internal readonly struct RequestContext
             _lspWorkspaceManager = lspWorkspaceManager;
             _textDocumentIdentifier = textDocumentIdentifier;
             _trackedDocuments = trackedDocuments;
-            _loadOperation = loadOperation;
+            _loadTask = loadTask;
             _logger = logger;
             _method = method;
             _mutatesSolutionState = mutatesSolutionState;
@@ -105,7 +105,7 @@ internal readonly struct RequestContext
                 {
                     try
                     {
-                        await _loadOperation.WaitAsync(CancellationToken.None).ConfigureAwait(false);
+                        await _loadTask.ConfigureAwait(false);
                     }
                     catch (OperationCanceledException)
                     {
@@ -221,7 +221,7 @@ internal readonly struct RequestContext
         ILspServices lspServices,
         LspWorkspaceManager lspWorkspaceManager,
         TextDocumentIdentifier? textDocumentIdentifier,
-        OnDemandProjectLoadOperation loadOperation,
+        Task loadTask,
         bool mutatesSolutionState,
         CancellationToken queueCancellationToken)
     {
@@ -235,7 +235,7 @@ internal readonly struct RequestContext
                 lspWorkspaceManager,
                 textDocumentIdentifier,
                 trackedDocuments,
-                loadOperation,
+                loadTask,
                 logger,
                 method,
                 mutatesSolutionState);
@@ -326,7 +326,7 @@ internal readonly struct RequestContext
         ILspServices lspServices,
         ILspLogger logger,
         string method,
-        OnDemandProjectLoadOperation loadOperation,
+        Task loadTask,
         ImmutableDictionary<DocumentUri, TrackedDocumentInfo>? trackedDocuments,
         CancellationToken cancellationToken)
     {
@@ -347,7 +347,7 @@ internal readonly struct RequestContext
             context = new RequestContext(
                 workspace: null, solution: null, logger: logger, method: method, clientCapabilities: clientCapabilities, serverKind: serverKind, document: null,
                 documentChangeTracker: documentChangeTracker, trackedDocuments: trackedDocuments, supportedLanguages: supportedLanguages, lspServices: lspServices,
-                lspWorkspaceManager: lspWorkspaceManager, textDocumentIdentifier: textDocument, loadOperation: loadOperation, mutatesSolutionState: mutatesSolutionState,
+                lspWorkspaceManager: lspWorkspaceManager, textDocumentIdentifier: textDocument, loadTask: loadTask, mutatesSolutionState: mutatesSolutionState,
                 queueCancellationToken: cancellationToken);
         }
         else
@@ -390,7 +390,7 @@ internal readonly struct RequestContext
                 lspServices,
                 lspWorkspaceManager,
                 textDocument,
-                loadOperation,
+                loadTask,
                 mutatesSolutionState,
                 cancellationToken);
         }

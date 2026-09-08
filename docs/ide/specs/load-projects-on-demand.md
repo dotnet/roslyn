@@ -9,7 +9,7 @@ The standalone Roslyn LSP server can defer project loading until a file is opene
 - project discovery is demand-driven and walks only the requested file's ancestors,
 - every demand observes the current filesystem instead of retaining discovery results or file watchers,
 - `RequestContext` starts loading without blocking request ordering and waits only when a handler accesses document or solution state, and
-- explicit, eager, and on-demand callers share canonical project loads, while on-demand callers additionally share active root-and-dependency closure operations.
+- explicit, eager, and on-demand callers share canonical project loads.
 
 The feature is enabled by default through `dotnet_load_on_demand`. It is disabled when Dev Kit owns the project system.
 
@@ -95,33 +95,31 @@ Directory enumeration is synchronous. `OnDemandProjectLoader` schedules each com
 
 Normal enumeration failures are logged and treated as an empty directory. Discovery continues with the parent directory.
 
-## Active Root-Closure Operations
+## Dependency Closure Loading
 
-After fresh discovery identifies candidate root projects, `OnDemandProjectLoader` creates or joins one active operation for each normalized root project path. Workspace folders bound discovery but do not affect closure loading once a project is found.
+After fresh discovery identifies candidate root projects, `OnDemandProjectLoader` traverses each root's dependency closure. Workspace folders bound discovery but do not affect closure loading once a project is found.
 
-An operation:
+The traversal:
 
 1. Begins or joins the canonical load handle for its root project.
 2. Waits until evaluated target projects are committed to the workspace.
-3. Reads supported absolute project-reference paths from the completed project state.
+3. Reads supported absolute project-reference paths from the project's latest MSBuild evaluation data.
 4. Begins or joins canonical handles for unseen references.
 5. Repeats until the transitive dependency closure settles.
 
-A visited set makes cycles safe. Canonical project handles deduplicate overlapping roots and dependencies across on-demand, automatic, explicit project, and explicit solution loading.
+A per-traversal visited set makes cycles safe. Concurrent demands can traverse the same graph independently, while canonical project handles deduplicate the expensive project evaluations across on-demand, automatic, explicit project, and explicit solution loading.
 
 All roots found in the nearest project-bearing directory and all their dependency closures settle before the document operation completes. Expected project failures settle through existing logging, telemetry, and toast policy. One failed project does not strand unrelated handles or fault the LSP request.
-
-The root-closure entry exists only while work is active and is removed when it settles. A later demand performs a new filesystem walk and creates a new closure operation. Canonical project-loader state remains responsible for loaded projects and may complete the new operation immediately.
 
 Request cancellation cancels only that request's wait. Discovery and project loading use server-lifetime cancellation because their work may be shared with later requests. Server shutdown cancels outstanding operations.
 
 ## Document Messages
 
-`RequestContextFactory` requests an on-demand operation for every eligible local file message, including `didOpen`, even when the handler does not require a Roslyn solution. `OnDemandProjectLoader` first checks the host workspace's current solution and returns a completed operation when the document path is already represented there. Otherwise it schedules ancestor discovery without performing filesystem I/O on the serialized request queue.
+`RequestContextFactory` requests an on-demand load task for every eligible local file message, including `didOpen`, even when the handler does not require a Roslyn solution. `OnDemandProjectLoader` first checks the host workspace's current solution and returns a completed task when the document path is already represented there. Otherwise it schedules ancestor discovery without performing filesystem I/O on the serialized request queue.
 
 `RequestContext.StartTrackingAsync` remains responsible only for recording client text. Loading is initiated centrally during context creation rather than by individual handlers.
 
-Messages for documents already in the host workspace, non-file URIs, files outside workspace folders, disabled on-demand loading, and Dev Kit sessions receive a completed no-op operation.
+Messages for documents already in the host workspace, non-file URIs, files outside workspace folders, disabled on-demand loading, and Dev Kit sessions receive a completed no-op task.
 
 ## Async Request Context
 
@@ -253,8 +251,8 @@ Handler preferences and requested or achieved completeness are not part of the d
 
 ### Project Loading
 
-- Concurrent demands share active root-closure operations by normalized root project path.
-- Settled closure entries are evicted and later demands walk again.
+- Concurrent demands share canonical project evaluations by normalized project path.
+- Every later demand performs fresh discovery and a new lightweight closure traversal.
 - On-demand, project-open, and solution-open callers share canonical handles.
 - Already loaded projects return completed handles.
 - Multiple roots, transitive references, cycles, and overlapping closures settle correctly.
@@ -274,11 +272,11 @@ Handler preferences and requested or achieved completeness are not part of the d
 
 ### Integration Validation
 
-Deterministic synthetic tests cover the service boundaries:
+Focused tests cover the service boundaries:
 
-- `WorkspaceProjectDiscoveryServiceTests` covers fresh filesystem behavior, nested roots, multiple candidates, unsupported extensions, concurrency, and workspace-folder changes.
-- `OnDemandProjectLoaderTests` covers active operation sharing and eviction, transitive and cyclic references, overlapping graphs, partial failure, cancellation, and workspace snapshots.
-- `LanguageServerProjectLoaderTests` covers canonical handles, unrelated blocked loads, and unsupported or failing evaluations.
+- `WorkspaceProjectDiscoveryServiceTests` uses temporary directories to cover fresh filesystem behavior, nested roots, multiple candidates, unsupported extensions, cancellation, and recoverable enumeration failures.
+- `OnDemandProjectLoaderTests` uses the production MEF composition and real MSBuild evaluation to cover nearest-project loading, transitive project references, the disabled option, and Dev Kit.
+- `LanguageServerProjectLoaderTests` uses scripted evaluations to cover canonical handles, unrelated blocked loads, all-load snapshots, and unsupported or failing evaluations.
 - `HandlerTests.AsyncContextDoesNotBlockLaterRequestsAndUsesRequestTimeText` gates loading, applies a later document change, and proves later mutating and non-mutating requests run before context access completes.
 - Handler tests separately cover accessor cancellation isolation and mutating no-wait behavior.
 
