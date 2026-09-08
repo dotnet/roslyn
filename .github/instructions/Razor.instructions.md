@@ -72,7 +72,7 @@ When adding a new `IRemote*Service` and `Remote*Service`:
 3. Register in
    `src\Razor\src\Razor\src\Microsoft.CodeAnalysis.Razor.Workspaces\Remote\RazorServices.cs`
    (add to `MessagePackServices` or `JsonServices`).
-4. **Add an entry to `eng\targets\RazorServices.props`** (at the Roslyn repo root, not under
+4. **Add an entry to the repo-root `eng\targets\RazorServices.props` file** (not under
    `src\Razor`):
    `Include="Microsoft.VisualStudio.Razor.{ShortName}"` with
    `ClassName="{FullTypeName}+Factory"`. The `ShortName` is your interface name with
