@@ -39,6 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup;
 [ProvideToolWindow(typeof(ValueTracking.ValueTrackingToolWindow))]
 [ProvideToolWindow(typeof(StackTraceExplorerToolWindow))]
 [ProvideService(typeof(RoslynPackageLoadService), IsAsyncQueryable = true, IsCacheable = true, IsFreeThreaded = true)]
+[ProvideSettingsManifest(PackageRelativeManifestFile = @"UnifiedSettings\roslynSettings.registration.json")]
 internal sealed class RoslynPackage : AbstractPackage
 {
     private static RoslynPackage? s_lazyInstance;

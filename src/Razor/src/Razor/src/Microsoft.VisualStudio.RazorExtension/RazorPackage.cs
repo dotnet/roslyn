@@ -29,6 +29,7 @@ using Task = System.Threading.Tasks.Task;
 namespace Microsoft.VisualStudio.RazorExtension;
 
 [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
+[ProvideSettingsManifest(PackageRelativeManifestFile = @"UnifiedSettings\razor.registration.json")]
 #pragma warning disable VSSDK003 // Tool windows should support async construction
 [ProvideToolWindow(typeof(SyntaxVisualizerToolWindow))]
 #pragma warning restore VSSDK003 // Tool windows should support async construction
