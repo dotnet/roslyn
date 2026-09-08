@@ -52,17 +52,17 @@ internal class FSharpNavigateToSearchService([Import(AllowDefault = true)] IFSha
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
-        if (_service == null)
-            return;
-
         Contract.ThrowIfTrue(projects.IsEmpty);
         Contract.ThrowIfTrue(projects.Select(p => p.Language).Distinct().Count() != 1);
 
         foreach (var project in projects)
         {
-            var results = await _service.SearchProjectAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
-            if (results.Length > 0)
-                await onResultsFound(results.SelectAsArray(result => (INavigateToSearchResult)new InternalFSharpNavigateToSearchResult(result))).ConfigureAwait(false);
+            if (_service != null)
+            {
+                var results = await _service.SearchProjectAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
+                if (results.Length > 0)
+                    await onResultsFound(results.SelectAsArray(result => (INavigateToSearchResult)new InternalFSharpNavigateToSearchResult(result))).ConfigureAwait(false);
+            }
 
             await onProjectCompleted().ConfigureAwait(false);
         }
