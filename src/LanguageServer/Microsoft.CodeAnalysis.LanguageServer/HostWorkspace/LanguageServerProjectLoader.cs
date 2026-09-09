@@ -342,12 +342,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
             Contract.ThrowIfTrue(_isDisposed, "Project loader is already disposed");
 
             if (_loadedProjects.TryGetValue(projectPath, out var existingLoadedProject))
-            {
-                if (doDesignTimeBuild)
-                    await StartInitialLoadIfNeededAsync(existingLoadedProject);
-
                 return await existingLoadedProject.GetExistingProjectsAsync();
-            }
 
             var primordialProjectInfo = createPrimordialProjectInfo(primordialProjectFactory, projectPath);
 
@@ -357,7 +352,8 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
 
             if (doDesignTimeBuild)
             {
-                await StartInitialLoadIfNeededAsync(newLoadedProject);
+                newLoadedProject.NeedsReload += LoadedProject_NeedsReload;
+                _projectsToReload.AddWork(newLoadedProject.ProjectFilePath);
             }
             else
             {
@@ -371,7 +367,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
     /// <summary>
     /// Begins loading a project. If the project has already begun loading, returns without doing any additional work.
     /// </summary>
-    protected async Task<LoadedProject> BeginLoadingProjectAsync(string projectPath, string? projectGuid)
+    internal async Task<LoadedProject> BeginLoadingProjectAsync(string projectPath)
     {
         projectPath = NormalizeProjectPath(projectPath);
         LoadedProject? loadedProject;
@@ -385,12 +381,10 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
             {
                 loadedProject = new LoadedProject(projectPath, _fileChangeWatcher);
                 _loadedProjects.Add(projectPath, loadedProject);
+
+                loadedProject.NeedsReload += LoadedProject_NeedsReload;
+                _projectsToReload.AddWork(loadedProject.ProjectFilePath);
             }
-
-            if (projectGuid is not null)
-                await loadedProject.SetProjectGuidForTelemetryAsync(Guid.Parse(projectGuid));
-
-            await StartInitialLoadIfNeededAsync(loadedProject);
         }
 
         // Try to load the contents from the project cache if we have one; we'll do this outside the lock
@@ -419,15 +413,6 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
         }
 
         return loadedProject;
-    }
-
-    private async ValueTask StartInitialLoadIfNeededAsync(LoadedProject loadedProject)
-    {
-        if (!await loadedProject.TryBeginInitialLoadAsync())
-            return;
-
-        loadedProject.NeedsReload += LoadedProject_NeedsReload;
-        _projectsToReload.AddWork(loadedProject.ProjectFilePath);
     }
 
     protected void LoadedProject_NeedsReload(object? sender, string triggeringFilePath)

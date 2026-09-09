@@ -36,6 +36,6 @@ public class MyTests
 - Keep tests focused — avoid unnecessary intermediary assertions; use `.Single()`
   rather than asserting a count then indexing.
 - Language Server orchestration tests can pass additional MEF parts to
-  `LanguageServerTestComposition.GetSharedExportProvider`. A
-  `PartNotDiscoverable` scripted service factory is useful for testing project
-  loading behavior without invoking MSBuild.
+  `LanguageServerTestComposition.GetSharedExportProvider`. A controllable
+  `PartNotDiscoverable` project loader can provide deterministic design-time
+  build timing and results without invoking MSBuild.

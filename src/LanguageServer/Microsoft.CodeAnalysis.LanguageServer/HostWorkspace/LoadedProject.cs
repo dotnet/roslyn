@@ -50,7 +50,6 @@ internal sealed partial class LoadedProject : IAsyncDisposable
     private readonly List<Target> _targets = [];
     private (ProjectSystemProjectFactory ProjectFactory, ProjectId Id)? _primordialProjectInfo;
     private readonly TaskCompletionSource _initialLoadCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
-    private bool _initialLoadStarted;
 
     private bool _reportedTelemetry = false;
     private Guid? _projectGuidForTelemetry = null;
@@ -79,25 +78,6 @@ internal sealed partial class LoadedProject : IAsyncDisposable
     /// Raised any time this project (or any of its targets) needs a reload. The parameter includes the file path that triggered a reload.
     /// </summary>
     public event EventHandler<string>? NeedsReload;
-
-    /// <summary>
-    /// Attempts to begin the initial design-time build for this project.
-    /// </summary>
-    /// <returns>
-    /// <see langword="true"/> if the caller should queue the initial build; otherwise, <see langword="false"/> if the
-    /// project was disposed or the initial build was already started. File-change reloads do not use this one-shot guard.
-    /// </returns>
-    public async ValueTask<bool> TryBeginInitialLoadAsync()
-    {
-        using (await _gate.DisposableWaitAsync())
-        {
-            if (_disposed || _initialLoadStarted)
-                return false;
-
-            _initialLoadStarted = true;
-            return true;
-        }
-    }
 
     /// <summary>
     /// Waits for the initial project load to settle.
