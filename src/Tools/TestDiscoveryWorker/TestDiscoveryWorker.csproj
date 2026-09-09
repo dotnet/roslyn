@@ -8,12 +8,20 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="xunit.abstractions" />
-    <PackageReference Include="xunit.runner.utility" />
-    <PackageReference Include="xunit.extensibility.execution" />
+    <PackageReference Include="xunit.v3.runner.utility" />
     <PackageReference Include="Mono.Options" />
   </ItemGroup>
     
+  <PropertyGroup Condition="'$(TargetFramework)'=='net472'">
+    <!--
+      Most of the repo's net472 test assemblies are built x86-only (PlatformTarget=x86), since
+      xUnit v3's in-process test launcher loads the target assembly via Assembly.LoadFrom in this
+      process, this worker must run with a matching bitness or that load fails with a
+      BadImageFormatException.
+    -->
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+
   <ItemGroup Condition="'$(TargetFramework)'=='net472'">
     <PackageReference Include="System.Threading.Channels" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
