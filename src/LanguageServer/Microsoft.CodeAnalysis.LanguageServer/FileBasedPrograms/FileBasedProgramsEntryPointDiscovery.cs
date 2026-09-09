@@ -77,7 +77,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         return Task.CompletedTask;
     }
 
-    private void OnWorkspaceFoldersChanged(ImmutableHashSet<string> _)
+    private void OnWorkspaceFoldersChanged()
         => _discoveryQueue.AddWork();
 
     public void Dispose()
