@@ -45,6 +45,8 @@ internal sealed partial class RoslynTelemetry
         return new Registration(() => s_current.Value = previous);
     }
 
+    public static bool IsDefault(RoslynTelemetry instance) => instance == s_default;
+
     /// <summary>
     /// Registers <paramref name="sink"/> to receive events. A sink instance may have only one active
     /// registration. Dispose the result to unregister it; a host that keeps its sinks for the life of

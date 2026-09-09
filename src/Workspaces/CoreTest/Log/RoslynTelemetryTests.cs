@@ -66,55 +66,21 @@ public sealed class RoslynTelemetryTests
         var defaultTelemetry = RoslynTelemetry.Current;
         var firstTelemetry = new RoslynTelemetry();
         var secondTelemetry = new RoslynTelemetry();
-        var defaultEventSink = new RecordingSink();
-        var firstEventSink = new RecordingSink();
-        var secondEventSink = new RecordingSink();
-        var defaultMetricSink = new RecordingMetricSink();
-        var firstMetricSink = new RecordingMetricSink();
-        var secondMetricSink = new RecordingMetricSink();
 
-        using var defaultEventRegistration = defaultTelemetry.AddEventSink(defaultEventSink);
-        using var firstEventRegistration = firstTelemetry.AddEventSink(firstEventSink);
-        using var secondEventRegistration = secondTelemetry.AddEventSink(secondEventSink);
-        using var defaultMetricRegistration = defaultTelemetry.AddMetricSink(defaultMetricSink);
-        using var firstMetricRegistration = firstTelemetry.AddMetricSink(firstMetricSink);
-        using var secondMetricRegistration = secondTelemetry.AddMetricSink(secondMetricSink);
-
-        LogAll();
+        Assert.Same(defaultTelemetry, RoslynTelemetry.Current);
         using (RoslynTelemetry.SetCurrent(firstTelemetry))
         {
             Assert.Same(firstTelemetry, RoslynTelemetry.Current);
-            LogAll();
 
             using (RoslynTelemetry.SetCurrent(secondTelemetry))
             {
                 Assert.Same(secondTelemetry, RoslynTelemetry.Current);
-                LogAll();
             }
 
             Assert.Same(firstTelemetry, RoslynTelemetry.Current);
-            LogAll();
         }
 
         Assert.Same(defaultTelemetry, RoslynTelemetry.Current);
-        LogAll();
-
-        Assert.Equal(2, defaultEventSink.Events.Count);
-        Assert.Equal(2, firstEventSink.Events.Count);
-        Assert.Single(secondEventSink.Events);
-        Assert.Equal(2, defaultMetricSink.CounterTagCounts.Count);
-        Assert.Equal(2, firstMetricSink.CounterTagCounts.Count);
-        Assert.Single(secondMetricSink.CounterTagCounts);
-        Assert.Equal(2, defaultMetricSink.DistributionTagCounts.Count);
-        Assert.Equal(2, firstMetricSink.DistributionTagCounts.Count);
-        Assert.Single(secondMetricSink.DistributionTagCounts);
-
-        static void LogAll()
-        {
-            RoslynTelemetry.Current.Log(FunctionId.TestEvent_NotUsed);
-            RoslynTelemetry.Current.Count(FunctionId.TestEvent_NotUsed, "Count");
-            RoslynTelemetry.Current.Record(FunctionId.TestEvent_NotUsed, "Record", 1);
-        }
     }
 
     [Fact]

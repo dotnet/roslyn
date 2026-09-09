@@ -36,6 +36,8 @@ public sealed class LanguageServerRequestTelemetryTests(ITestOutputHelper testOu
     {
         var poster = new RecordingPoster();
         using var sink = VSMetricSink.TestAccessor.CreateSink(poster);
+
+        using var telemetry = RoslynTelemetry.SetCurrent(new RoslynTelemetry());
         using var registration = RoslynTelemetry.Current.AddMetricSink(sink);
 
         var server = await CreateLanguageServerAsync();
