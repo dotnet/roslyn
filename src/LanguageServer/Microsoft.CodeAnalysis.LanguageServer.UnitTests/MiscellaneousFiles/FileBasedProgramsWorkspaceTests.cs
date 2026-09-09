@@ -148,6 +148,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         // Simulate VS Code relaying the file change produced by dotnet restore.
         var projectAssetsFile = Assert.Single(
             Directory.EnumerateFiles(tempDir.Path, "project.assets.json", SearchOption.AllDirectories));
+        var fileChangeTask = WaitForFileChangeAsync(projectAssetsFile, testLspServer);
         await testLspServer.ExecuteNotificationAsync(
             Methods.WorkspaceDidChangeWatchedFilesName,
             new DidChangeWatchedFilesParams
@@ -161,7 +162,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
                     },
                 ],
             });
-        await Task.Delay(100);
+        await fileChangeTask;
         await WaitForProjectLoad(sourceFileUri, testLspServer);
 
         var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(sourceFileUri, testLspServer).ConfigureAwait(false);
@@ -506,10 +507,11 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
 
         // Adding a top-level statement to a misc file causes it to report semantic errors.
         var textToInsert = $"""Console.WriteLine("Hello World!");{Environment.NewLine}""";
+        var fileChangeTask = WaitForFileChangeAsync(sourceFile.Path, testLspServer);
         // Write updated content to disk so the project system can pick up the change.
         sourceFile.WriteAllText($"{textToInsert}{initialText}");
         await testLspServer.InsertTextAsync(looseFileUriOne, (Line: 0, Column: 0, Text: textToInsert));
-        await Task.Delay(100);
+        await fileChangeTask;
         await WaitForProjectLoad(looseFileUriOne, testLspServer);
         var (workspace, canonicalDocumentTwo) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
         Assert.Equal("""
@@ -676,6 +678,23 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
     {
         _ = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+    }
+
+    /// <summary>
+    /// Call before triggering the change, then await the result before waiting for the project reload.
+    /// </summary>
+    private static async Task WaitForFileChangeAsync(string filePath, TestLspServer testLspServer)
+    {
+        var fileChangeWatcher = testLspServer.GetRequiredLspService<IFileChangeWatcher>();
+        using var fileChangeContext = fileChangeWatcher.CreateContext([new WatchedDirectory(Path.GetDirectoryName(filePath)!, extensionFilters: [])]);
+        var fileChangeTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        fileChangeContext.FileChanged += (_, e) =>
+        {
+            if (PathUtilities.Comparer.Equals(e.FilePath, filePath))
+                fileChangeTcs.TrySetResult();
+        };
+
+        await fileChangeTcs.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
     }
 
     [Theory, CombinatorialData]
@@ -935,22 +954,12 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(appCsUri, testLspServer).ConfigureAwait(false);
         Assert.Equal(newAppCsText, (await document.GetTextAsync()).ToString());
 
-        // Set up a listener for file change events before writing to disk, so we can wait for
-        // the FileSystemWatcher to deliver the event (which triggers the project reload enqueue).
-        var fileChangeWatcher = testLspServer.GetRequiredLspService<IFileChangeWatcher>();
-        using var fileChangeContext = fileChangeWatcher.CreateContext([new WatchedDirectory(Path.GetDirectoryName(appCsFile.Path)!, extensionFilters: [])]);
-        var fileChangeTcs = new TaskCompletionSource();
-        fileChangeContext.FileChanged += (_, e) =>
-        {
-            if (e.FilePath.Equals(appCsFile.Path, StringComparison.OrdinalIgnoreCase))
-                fileChangeTcs.TrySetResult();
-        };
-
+        var fileChangeTask = WaitForFileChangeAsync(appCsFile.Path, testLspServer);
         // Flush the document change to disk to trigger a reload of the FBA project.
         appCsFile.WriteAllText(newAppCsText);
 
         // Wait for the file change event to be delivered, ensuring the reload is enqueued.
-        await fileChangeTcs.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        await fileChangeTask;
         await WaitForProjectLoad(appCsUri, testLspServer);
 
         // Now the document is a miscellaneous file
@@ -1268,23 +1277,13 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         );
 
         // Trivial edit+save of the App.cs file will trigger a reload though.
-        // Subscribe before writing to disk so the workspace waiter cannot finish before
-        // the FileSystemWatcher has delivered the event that enqueues the reload.
-        var fileChangeWatcher = testLspServer.GetRequiredLspService<IFileChangeWatcher>();
-        using var fileChangeContext = fileChangeWatcher.CreateContext([new WatchedDirectory(Path.GetDirectoryName(appCsFile.Path)!, extensionFilters: [])]);
-        var fileChangeTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        fileChangeContext.FileChanged += (_, e) =>
-        {
-            if (PathUtilities.Comparer.Equals(e.FilePath, appCsFile.Path))
-                fileChangeTcs.TrySetResult();
-        };
-
+        var fileChangeTask = WaitForFileChangeAsync(appCsFile.Path, testLspServer);
         appCsFile.WriteAllText(appCsText + Environment.NewLine);
         var appCsSourceText = SourceText.From(appCsText);
         var appCsEndPosition = appCsSourceText.Lines.GetLinePosition(appCsSourceText.Length);
         await testLspServer.InsertTextAsync(appCsUri, (Line: appCsEndPosition.Line, Column: appCsEndPosition.Character, Text: Environment.NewLine));
 
-        await fileChangeTcs.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        await fileChangeTask;
         await WaitForProjectLoad(appCsUri, testLspServer);
 
         // Get the Util.cs document again
