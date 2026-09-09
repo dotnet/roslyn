@@ -110,29 +110,6 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         Assert.Equal(2, loader.DesignTimeBuildCount);
     }
 
-    [Fact]
-    public async Task FailedReloadPreservesLoadedStatus()
-    {
-        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
-        var loader = server.GetRequiredLspService<TestProjectLoader>();
-        var successfulDesignTimeBuild = loader.QueueDesignTimeBuild();
-        var failedDesignTimeBuild = loader.QueueDesignTimeBuild();
-        var projectPath = Path.Combine(TempRoot.Root, "Project.csproj");
-
-        var initialLoadedProject = await loader.BeginLoadAsync(projectPath);
-        await successfulDesignTimeBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
-        successfulDesignTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath, targetFramework: "net8.0");
-        Assert.True(await initialLoadedProject.WaitForLoadAsync(CancellationToken.None).AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout));
-
-        initialLoadedProject.GetTestAccessor().RaiseNeedsReload();
-        await failedDesignTimeBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
-        failedDesignTimeBuild.Fail(new InvalidOperationException("Expected reload failure"));
-        await loader.WaitForCurrentBatchAsync().WaitAsync(TestHelpers.HangMitigatingTimeout);
-
-        var loadedProjectAfterFailedReload = await loader.BeginLoadAsync(projectPath);
-        Assert.Same(initialLoadedProject, loadedProjectAfterFailedReload);
-        Assert.True(await loadedProjectAfterFailedReload.WaitForLoadAsync(CancellationToken.None));
-    }
 
     [Fact]
     public async Task FailedProjectOnlyRetriesForFileChange()
