@@ -334,7 +334,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
         }
     }
 
-    protected async ValueTask<ImmutableArray<Project>> GetOrLoadProjectAsync(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, Func<ProjectSystemProjectFactory, ProjectInfo> createPrimordialProjectInfo, bool doDesignTimeBuild)
+    protected async ValueTask<ImmutableArray<Project>> GetOrLoadProjectAsync(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, Func<ProjectSystemProjectFactory, string, ProjectInfo> createPrimordialProjectInfo, bool doDesignTimeBuild)
     {
         projectPath = NormalizeProjectPath(projectPath);
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
@@ -349,7 +349,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
                 return await existingLoadedProject.GetExistingProjectsAsync();
             }
 
-            var primordialProjectInfo = createPrimordialProjectInfo(primordialProjectFactory);
+            var primordialProjectInfo = createPrimordialProjectInfo(primordialProjectFactory, projectPath);
 
             var newLoadedProject = new LoadedProject(projectPath, _fileChangeWatcher);
             _loadedProjects.Add(projectPath, newLoadedProject);
@@ -521,6 +521,6 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
         }
     }
 
-    private static string NormalizeProjectPath(string projectPath)
+    protected static string NormalizeProjectPath(string projectPath)
         => PathUtilities.IsAbsolute(projectPath) ? IOUtilities.PerformIO(() => Path.GetFullPath(projectPath), projectPath) : projectPath;
 }

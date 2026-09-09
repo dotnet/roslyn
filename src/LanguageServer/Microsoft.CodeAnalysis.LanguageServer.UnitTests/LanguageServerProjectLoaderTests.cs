@@ -446,6 +446,21 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         Assert.Equal(1, loader.EvaluationCount);
     }
 
+    [Fact]
+    public async Task PrimordialProjectUsesNormalizedPath()
+    {
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var loader = server.GetRequiredLspService<TestProjectLoader>();
+        var projectPath = Path.Combine(TempRoot.Root, "Project.csproj");
+        var nonCanonicalProjectPath = Path.Combine(TempRoot.Root, "directory", "..", "Project.csproj");
+
+        var project = await loader.CreatePrimordialProjectAsync(nonCanonicalProjectPath, doDesignTimeBuild: false);
+        var projectFromCanonicalPath = await loader.CreatePrimordialProjectAsync(projectPath, doDesignTimeBuild: false);
+
+        Assert.Equal(projectPath, project.FilePath);
+        Assert.Equal(project.Id, projectFromCanonicalPath.Id);
+    }
+
     [ExportCSharpVisualBasicLspServiceFactory(typeof(TestProjectLoader)), PartNotDiscoverable, Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -513,13 +528,13 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
             return (await GetOrLoadProjectAsync(
                 projectPath,
                 projectFactory,
-                _ => ProjectInfo.Create(
+                (_, normalizedProjectPath) => ProjectInfo.Create(
                     ProjectId.CreateNewId(),
                     VersionStamp.Default,
                     name: "Primordial",
                     assemblyName: "Primordial",
                     LanguageNames.CSharp,
-                    filePath: projectPath),
+                    filePath: normalizedProjectPath),
                 doDesignTimeBuild)).Single();
         }
 
