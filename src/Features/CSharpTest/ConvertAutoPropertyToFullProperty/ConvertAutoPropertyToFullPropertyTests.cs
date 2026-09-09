@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1037,7 +1037,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
             }
             """);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159"), WorkItem("https://github.com/dotnet/roslyn/issues/22146")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22146")]
     public async Task PartialClassInSeparateFiles1()
     {
         var file1 = """
@@ -1082,7 +1082,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
             parameters: null);
     }
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159"), WorkItem("https://github.com/dotnet/roslyn/issues/22146")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22146")]
     public async Task PartialClassInSeparateFiles2()
     {
         var file1 = """

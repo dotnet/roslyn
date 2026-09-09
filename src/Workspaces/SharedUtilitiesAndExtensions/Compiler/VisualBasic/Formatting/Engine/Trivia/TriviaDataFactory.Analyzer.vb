@@ -79,8 +79,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     result.HasTabAfterSpace = False
                     result.Space = 0
                     result.Tab = 0
-                    result.TreatAsElastic = result.TreatAsElastic Or trivia.IsElastic()
                 End If
+
+                result.TreatAsElastic = result.TreatAsElastic Or trivia.IsElastic()
 
                 ' reset space and tab information
                 result.LineBreaks += 1
