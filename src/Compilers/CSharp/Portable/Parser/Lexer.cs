@@ -2343,11 +2343,11 @@ top:
             var branching = directive as BranchingDirectiveTriviaSyntax;
             if (branching != null && !branching.BranchTaken)
             {
-                this.LexExcludedDirectivesAndTrivia(true, ref triviaList);
+                this.LexExcludedDirectivesAndTrivia(true, isFollowingToken, ref triviaList);
             }
         }
 
-        private void LexExcludedDirectivesAndTrivia(bool endIsActive, ref SyntaxListBuilder triviaList)
+        private void LexExcludedDirectivesAndTrivia(bool endIsActive, bool isFollowingToken, ref SyntaxListBuilder triviaList)
         {
             while (true)
             {
@@ -2363,7 +2363,7 @@ top:
                     break;
                 }
 
-                var directive = this.LexSingleDirective(false, endIsActive, false, ref triviaList);
+                var directive = this.LexSingleDirective(false, endIsActive, isFollowingToken, ref triviaList);
                 var branching = directive as BranchingDirectiveTriviaSyntax;
                 if (directive.Kind == SyntaxKind.EndIfDirectiveTrivia || (branching != null && branching.BranchTaken))
                 {
@@ -2371,7 +2371,7 @@ top:
                 }
                 else if (directive.Kind == SyntaxKind.IfDirectiveTrivia)
                 {
-                    this.LexExcludedDirectivesAndTrivia(false, ref triviaList);
+                    this.LexExcludedDirectivesAndTrivia(false, isFollowingToken, ref triviaList);
                 }
             }
         }

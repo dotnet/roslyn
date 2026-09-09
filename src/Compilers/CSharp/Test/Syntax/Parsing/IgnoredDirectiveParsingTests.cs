@@ -440,12 +440,14 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/85203")]
-    public void InDisabledRegion(bool script, bool fileBasedProgram, bool afterToken)
+    public void InDisabledRegion(bool script, bool fileBasedProgram, bool afterToken, bool nested)
     {
         var source = $$"""
             {{(afterToken ? "class C { }" : "")}}
             #if false
+            {{(nested ? "#if true" : "")}}
             #:package System.Threading.RateLimiting@10.0.11
+            {{(nested ? "#endif" : "")}}
             #endif
             """;
         var options = script ? TestOptions.Script : TestOptions.Regular;
@@ -458,16 +460,16 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
         var directive = tree.GetRoot().GetDirectives().OfType<IgnoredDirectiveTriviaSyntax>().Single();
         Assert.False(directive.IsActive);
 
-        if (!fileBasedProgram)
+        if (afterToken)
         {
             tree.GetDiagnostics().Verify();
         }
         else
         {
             tree.GetDiagnostics().Verify(
-                // (3,2): error CS9299: '#:' directives cannot be after '#if' directive
+                // (4,2): error CS9299: '#:' directives cannot be after '#if' directive
                 // #:package System.Threading.RateLimiting@10.0.11
-                Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(3, 2));
+                Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(4, 2));
         }
     }
 
@@ -544,7 +546,7 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78157")]
-    public void InDisabledRawString(bool script, bool fileBasedProgram)
+    public void InDisabledRawString_01(bool script, bool fileBasedProgram)
     {
         var source = """"
             #if false
@@ -559,19 +561,36 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
             options = options.WithFeature(FeatureName);
         }
 
-        var tree = SyntaxFactory.ParseSyntaxTree(source, options);
+        SyntaxFactory.ParseSyntaxTree(source, options).GetDiagnostics().Verify(
+            // (3,6): error CS9299: '#:' directives cannot be after '#if' directive
+            //     #:sdk test
+            Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(3, 6));
+    }
 
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78157")]
+    public void InDisabledRawString_02(bool script, bool fileBasedProgram)
+    {
+        var source = """"
+            class C
+            {
+                #if false
+                void M()
+                {
+                    System.Console.WriteLine("""
+                        #:sdk test
+                        """);
+                }
+                #endif
+            }
+            """";
+        var options = script ? TestOptions.Script : TestOptions.Regular;
         if (fileBasedProgram)
         {
-            tree.GetDiagnostics().Verify(
-                // (3,6): error CS9299: '#:' directives cannot be after '#if' directive
-                //     #:sdk test
-                Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(3, 6));
+            options = options.WithFeature(FeatureName);
         }
-        else
-        {
-            tree.GetDiagnostics().Verify();
-        }
+
+        SyntaxFactory.ParseSyntaxTree(source, options).GetDiagnostics().Verify();
     }
 
     [Fact]

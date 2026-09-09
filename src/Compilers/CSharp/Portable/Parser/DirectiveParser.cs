@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private DirectiveTriviaSyntax ParseDefineOrUndefDirective(SyntaxToken hash, SyntaxToken keyword, bool isActive, bool isFollowingToken)
         {
-            if (isFollowingToken)
+            if (isFollowingToken && isActive)
             {
                 keyword = this.AddError(keyword, ErrorCode.ERR_PPDefFollowsToken);
             }
@@ -696,23 +696,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private DirectiveTriviaSyntax ParseIgnoredDirective(SyntaxToken hash, SyntaxToken colon, bool isActive, bool isFollowingToken)
         {
-            // Tooling may not know the conditional compilation symbols when reading file-based directives.
-            if (isActive || lexer.Options.FileBasedProgram)
+            if (!lexer.Options.FileBasedProgram && isActive)
             {
-                if (!lexer.Options.FileBasedProgram)
-                {
-                    colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram);
-                }
+                colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram);
+            }
 
-                if (isFollowingToken)
-                {
-                    colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredFollowsToken);
-                }
+            if (isFollowingToken && isActive)
+            {
+                colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredFollowsToken);
+            }
 
-                if (_context.SeenAnyIfDirectives)
-                {
-                    colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredFollowsIf);
-                }
+            if (_context.SeenAnyIfDirectives && !isFollowingToken)
+            {
+                colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredFollowsIf);
             }
 
             SyntaxToken endOfDirective = this.lexer.LexEndOfDirectiveWithOptionalContent(out SyntaxToken content);
