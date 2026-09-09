@@ -473,7 +473,33 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/85203")]
-    public void InConditionalBranches(bool script, bool defineX)
+    public void InConditionalBranches_01(bool script, bool defineX)
+    {
+        var source = """
+            #if X
+            #:a
+            #else
+            #:c
+            #endif
+            """;
+        var options = (script ? TestOptions.Script : TestOptions.Regular).WithFeature(FeatureName);
+        if (defineX)
+        {
+            options = options.WithPreprocessorSymbols("X");
+        }
+
+        SyntaxFactory.ParseSyntaxTree(source, options).GetDiagnostics().Verify(
+            // (2,2): error CS9299: '#:' directives cannot be after '#if' directive
+            // #:a
+            Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(2, 2),
+            // (4,2): error CS9299: '#:' directives cannot be after '#if' directive
+            // #:c
+            Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(4, 2));
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85203")]
+    public void InConditionalBranches_02(bool script, bool defineX)
     {
         var source = """
             #if X
