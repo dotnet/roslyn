@@ -21,6 +21,7 @@ the one for your area):
 | Integration tests | VS integration tests (`azure-pipelines-integration*.yml`); runnable locally on **Windows** hosts with a VS install, also run in CI. |
 
 Frameworks: xUnit v3 with Roslyn test utilities. Tests continue to run through the existing VSTest-based setup.
+Test projects that reference `xunit.v3` build as executables; when Roslyn's optimized test runner requires the output artifact to remain `*.UnitTests.dll`, set both `<OutputType>Exe</OutputType>` and `<TargetExt>.dll</TargetExt>`.
 
 ## Repo-wide Authoring Conventions
 

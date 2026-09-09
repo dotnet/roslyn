@@ -131,7 +131,7 @@ End Module
 
         End Sub
 
-        <ConditionalFact(GetType(WindowsDesktopOnly), GetType(HasValidFonts), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
+        <ConditionalFact({GetType(WindowsDesktopOnly), GetType(HasValidFonts)}, Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub MyWinformApp()
             Dim sources = <compilation>
                               <file name="c.vb"><![CDATA[
