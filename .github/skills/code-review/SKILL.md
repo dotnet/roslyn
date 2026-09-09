@@ -23,7 +23,7 @@ Use this skill when:
 
 1. Print your plan before beginning
 2. After each step of your plan, print a quick result and your next step
-3. Print something at least every 5 minutes so humans can audit activity
+3. Print something at least every few minutes so humans can audit activity
 
 ### Step 0: Gather Code Context (No PR Narrative Yet)
 
