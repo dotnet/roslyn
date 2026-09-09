@@ -473,7 +473,7 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/85203")]
-    public void InConditionalBranches_01(bool script, bool defineX)
+    public void InConditionalBranches_01(bool script, bool defineX, bool fileBasedProgram)
     {
         var source = """
             #if X
@@ -487,6 +487,10 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
         {
             options = options.WithPreprocessorSymbols("X");
         }
+        if (fileBasedProgram)
+        {
+            options = options.WithFeature(FeatureName);
+        }
 
         SyntaxFactory.ParseSyntaxTree(source, options).GetDiagnostics().Verify(
             // (2,2): error CS9299: '#:' directives cannot be after '#if' directive
@@ -499,7 +503,7 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/85203")]
-    public void InConditionalBranches_02(bool script, bool defineX)
+    public void InConditionalBranches_02(bool script, bool defineX, bool fileBasedProgram)
     {
         var source = """
             #if X
@@ -517,6 +521,10 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
         if (defineX)
         {
             options = options.WithPreprocessorSymbols("X");
+        }
+        if (fileBasedProgram)
+        {
+            options = options.WithFeature(FeatureName);
         }
 
         SyntaxFactory.ParseSyntaxTree(source, options).GetDiagnostics().Verify(
@@ -536,7 +544,7 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78157")]
-    public void InDisabledRawString(bool script)
+    public void InDisabledRawString(bool script, bool fileBasedProgram)
     {
         var source = """"
             #if false
@@ -546,7 +554,24 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
             #endif
             """";
         var options = script ? TestOptions.Script : TestOptions.Regular;
-        SyntaxFactory.ParseSyntaxTree(source, options).GetDiagnostics().Verify();
+        if (fileBasedProgram)
+        {
+            options = options.WithFeature(FeatureName);
+        }
+
+        var tree = SyntaxFactory.ParseSyntaxTree(source, options);
+
+        if (fileBasedProgram)
+        {
+            tree.GetDiagnostics().Verify(
+                // (3,6): error CS9299: '#:' directives cannot be after '#if' directive
+                //     #:sdk test
+                Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(3, 6));
+        }
+        else
+        {
+            tree.GetDiagnostics().Verify();
+        }
     }
 
     [Fact]
