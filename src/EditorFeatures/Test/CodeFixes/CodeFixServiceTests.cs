@@ -956,6 +956,49 @@ public sealed class CodeFixServiceTests
     }
 #pragma warning restore RS0034 // Exported parts should be marked with 'ImportingConstructorAttribute'
 
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3058983")]
+    public async Task TestDeprioritizationComputationCompletesAfterRequestCancellationAsync()
+    {
+        const string code = "class C { }";
+        var analyzer = new BlockingDeprioritizationAnalyzer();
+        var analyzerReference = new MockAnalyzerReference(fixer: null, [analyzer]);
+
+        using var workspace = ServiceSetup(new MockFixer(), code: code).workspace;
+        var sourceDocument = workspace.CurrentSolution.Projects.Single()
+            .AddAnalyzerReference(analyzerReference)
+            .Documents.Single();
+        var analyzerService = (DiagnosticAnalyzerService)workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+
+        using var cancellationTokenSource = new CancellationTokenSource();
+        try
+        {
+            var firstRequest = analyzerService.IsAnyDeprioritizedDiagnosticIdInProcessAsync(
+                sourceDocument.Project, [BlockingDeprioritizationAnalyzer.Descriptor.Id], cancellationTokenSource.Token);
+
+            var compilationStartEntered = analyzer.CompilationStartEntered;
+            Assert.Same(compilationStartEntered, await Task.WhenAny(compilationStartEntered, firstRequest));
+            cancellationTokenSource.Cancel();
+
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+            {
+                await firstRequest;
+            });
+
+            var updatedDocument = sourceDocument.WithText(SourceText.From(code + Environment.NewLine));
+            analyzer.ReleaseCompilationStart();
+
+            var isDeprioritized = await analyzerService.IsAnyDeprioritizedDiagnosticIdInProcessAsync(
+                updatedDocument.Project, [BlockingDeprioritizationAnalyzer.Descriptor.Id], CancellationToken.None);
+
+            Assert.True(isDeprioritized);
+            Assert.Equal(1, analyzer.CompilationStartCount);
+        }
+        finally
+        {
+            analyzer.ReleaseCompilationStart();
+        }
+    }
+
     [Theory, CombinatorialData]
     public async Task TestGetFixesWithDeprioritizedAnalyzerAsync(
         DeprioritizedAnalyzer.ActionKind actionKind,
@@ -1135,6 +1178,36 @@ public sealed class CodeFixServiceTests
                 Assert.Equal(testSpan, diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text));
             }
         }
+    }
+
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    private sealed class BlockingDeprioritizationAnalyzer : DiagnosticAnalyzer
+    {
+        public static readonly DiagnosticDescriptor Descriptor = new(
+            "ID0002", "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+        private readonly TaskCompletionSource<bool> _compilationStartEntered = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly ManualResetEventSlim _continueCompilationStart = new();
+        private int _compilationStartCount;
+
+        public Task CompilationStartEntered => _compilationStartEntered.Task;
+        public int CompilationStartCount => Volatile.Read(ref _compilationStartCount);
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Descriptor];
+
+        public override void Initialize(AnalysisContext context)
+        {
+            context.RegisterCompilationStartAction(context =>
+            {
+                Interlocked.Increment(ref _compilationStartCount);
+                _compilationStartEntered.TrySetResult(true);
+                _continueCompilationStart.Wait(context.CancellationToken);
+                context.RegisterSemanticModelAction(_ => { });
+            });
+        }
+
+        public void ReleaseCompilationStart()
+            => _continueCompilationStart.Set();
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
