@@ -3330,9 +3330,7 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Namespace("System"),
-            Delegate("Func"),
-            Keyword("_"),
-            Keyword("_"));
+            Delegate("Func"));
 
     [Theory, CombinatorialData]
     public Task DiscardsInLambdaWithInferredType(TestHost testHost)
@@ -3347,9 +3345,7 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Namespace("System"),
-            Delegate("Func"),
-            Keyword("_"),
-            Keyword("_"));
+            Delegate("Func"));
 
     [Theory, CombinatorialData]
     public Task NativeInteger(TestHost testHost)
