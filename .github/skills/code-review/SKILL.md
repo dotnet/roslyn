@@ -21,13 +21,9 @@ Use this skill when:
 
 ### Review Progress Updates
 
-Reviews can involve large diffs, full-file reads, history searches, documentation checks, and multiple review agents. Keep humans informed while that work is in progress:
-
-1. Print a brief status update when the review starts, naming the current phase.
-2. Print another brief update when moving between the major phases below: code context, independent assessment, PR narrative, detailed analysis, documentation freshness, and synthesis.
-3. If any phase or delegated work runs longer than five minutes, print a concise progress update at least every five minutes. Say what is complete, what is still running, and whether the review is blocked or proceeding.
-4. Before waiting on delegated agents or long-running commands, say what is being awaited and why. When they finish, report the result before continuing.
-5. Keep progress updates separate from the final review and do not repeat the full findings in them. End with the prescribed review output format once synthesis is complete.
+1. Print your plan before beginning
+2. After each step of your plan, print a quick result and your next step
+3. Print something at least every 5 minutes so humans can audit activity
 
 ### Step 0: Gather Code Context (No PR Narrative Yet)
 
