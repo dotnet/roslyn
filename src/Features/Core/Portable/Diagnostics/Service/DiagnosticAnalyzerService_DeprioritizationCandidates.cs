@@ -8,7 +8,9 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
@@ -23,17 +25,14 @@ internal sealed partial class DiagnosticAnalyzerService
     /// We accept that this cache may be inaccurate in such scenarios as they are likely rare, and this only
     /// serves as a simple heuristic to order analyzer execution.  If wrong, it's not a major deal.
     /// </summary>
-    private static readonly ConditionalWeakTable<DiagnosticAnalyzer, ImmutableHashSet<string>?> s_analyzerToDeprioritizedDiagnosticIds = new();
+    private static readonly ConditionalWeakTable<DiagnosticAnalyzer, AsyncLazy<ImmutableHashSet<string>?>> s_analyzerToDeprioritizedDiagnosticIds = new();
 
     private async Task<bool> IsDeprioritizedAnalyzerAsync(
         Project project, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
     {
         await PopulateDeprioritizedDiagnosticIdMapAsync(project, cancellationToken).ConfigureAwait(false);
 
-        // this can't fail as the above call populates the CWT entries for all analyzers within that project if missing.
-        Contract.ThrowIfFalse(s_analyzerToDeprioritizedDiagnosticIds.TryGetValue(analyzer, out var set));
-
-        return set != null;
+        return GetCachedDeprioritizedDiagnosticIds(analyzer) != null;
     }
 
     private async ValueTask PopulateDeprioritizedDiagnosticIdMapAsync(Project project, CancellationToken cancellationToken)
@@ -49,7 +48,7 @@ internal sealed partial class DiagnosticAnalyzerService
         var analyzers = GetProjectAnalyzers_OnlyCallInProcess(project);
         foreach (var analyzer in analyzers)
         {
-            if (!s_analyzerToDeprioritizedDiagnosticIds.TryGetValue(analyzer, out var deprioritizedIds))
+            if (!s_analyzerToDeprioritizedDiagnosticIds.TryGetValue(analyzer, out var lazyDeprioritizedIds))
             {
                 if (compilationWithAnalyzers is null)
                 {
@@ -57,20 +56,33 @@ internal sealed partial class DiagnosticAnalyzerService
                         project, analyzers, GetOrCreateHostAnalyzerInfo_OnlyCallInProcess(project), this.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
                 }
 
-                deprioritizedIds = await ComputeDeprioritizedDiagnosticIdsAsync(analyzer).ConfigureAwait(false);
+                var createdLazy = AsyncLazy.Create(
+                    cancellationToken => ComputeDeprioritizedDiagnosticIdsAsync(analyzer, cancellationToken));
+                lazyDeprioritizedIds = s_analyzerToDeprioritizedDiagnosticIds.GetValue(analyzer, _ => createdLazy);
 
-#if NET
-                s_analyzerToDeprioritizedDiagnosticIds.TryAdd(analyzer, deprioritizedIds);
-#else
-                lock (s_analyzerToDeprioritizedDiagnosticIds)
+                if (ReferenceEquals(lazyDeprioritizedIds, createdLazy))
                 {
-                    if (!s_analyzerToDeprioritizedDiagnosticIds.TryGetValue(analyzer, out var existing))
-                        s_analyzerToDeprioritizedDiagnosticIds.Add(analyzer, deprioritizedIds);
+                    // Follow the pattern in SolutionCompilationState.GeneratorDriverInitializationCache: AsyncLazy
+                    // cancels its computation when all requesters cancel, so keep one non-cancelable requester alive
+                    // to prevent repeated edits from repeatedly starting and canceling this initialization.
+                    var keepAliveTask = Task.Run(() => createdLazy.GetValueAsync(CancellationToken.None));
+                    _ = keepAliveTask.ReportNonFatalErrorAsync();
+                    _ = keepAliveTask.ContinueWith(
+                        _ =>
+                        {
+                            if (s_analyzerToDeprioritizedDiagnosticIds.TryGetValue(analyzer, out var currentLazy) &&
+                                ReferenceEquals(currentLazy, createdLazy))
+                            {
+                                s_analyzerToDeprioritizedDiagnosticIds.Remove(analyzer);
+                            }
+                        },
+                        CancellationToken.None,
+                        TaskContinuationOptions.NotOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
+                        TaskScheduler.Default);
                 }
-#endif
-
             }
 
+            var deprioritizedIds = await lazyDeprioritizedIds.GetValueAsync(cancellationToken).ConfigureAwait(false);
             if (deprioritizedIds != null)
             {
                 foreach (var id in diagnosticIds)
@@ -83,7 +95,8 @@ internal sealed partial class DiagnosticAnalyzerService
 
         return false;
 
-        async ValueTask<ImmutableHashSet<string>?> ComputeDeprioritizedDiagnosticIdsAsync(DiagnosticAnalyzer analyzer)
+        async Task<ImmutableHashSet<string>?> ComputeDeprioritizedDiagnosticIdsAsync(
+            DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
         {
             // We deprioritize SymbolStart/End and SemanticModel analyzers from 'Normal' to 'Low' priority bucket,
             // as these are computationally more expensive.
@@ -104,5 +117,12 @@ internal sealed partial class DiagnosticAnalyzerService
 
             return [.. analyzer.SupportedDiagnostics.Select(d => d.Id)];
         }
+    }
+
+    private static ImmutableHashSet<string>? GetCachedDeprioritizedDiagnosticIds(DiagnosticAnalyzer analyzer)
+    {
+        Contract.ThrowIfFalse(s_analyzerToDeprioritizedDiagnosticIds.TryGetValue(analyzer, out var lazy));
+        Contract.ThrowIfFalse(lazy.TryGetValue(out var deprioritizedIds));
+        return deprioritizedIds;
     }
 }

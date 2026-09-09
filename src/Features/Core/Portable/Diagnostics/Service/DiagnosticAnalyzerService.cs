@@ -149,7 +149,7 @@ internal sealed partial class DiagnosticAnalyzerService
 
             foreach (var analyzer in service.GetProjectAnalyzers_OnlyCallInProcess(project))
             {
-                Contract.ThrowIfFalse(DiagnosticAnalyzerService.s_analyzerToDeprioritizedDiagnosticIds.TryGetValue(analyzer, out var set));
+                var set = GetCachedDeprioritizedDiagnosticIds(analyzer);
                 if (set != null)
                     builder.UnionWith(set);
             }
