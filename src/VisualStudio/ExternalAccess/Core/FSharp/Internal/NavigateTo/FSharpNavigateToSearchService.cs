@@ -86,7 +86,7 @@ internal class FSharpNavigateToSearchService([Import(AllowDefault = true)] IFSha
         // completed state.
         if (_service is not IFSharpAdvancedNavigateToSearchService advancedService)
         {
-            foreach (var project in projects)
+            foreach (var _ in projects)
                 await onProjectCompleted().ConfigureAwait(false);
         }
         else
@@ -111,7 +111,7 @@ internal class FSharpNavigateToSearchService([Import(AllowDefault = true)] IFSha
         // Nothing to search: F# has no Roslyn source generators, and type providers give types during checking
         // rather than documents. The projects still have to be reported for the progress the searcher added for
         // them to complete.
-        foreach (var project in projects)
+        foreach (var _ in projects)
             await onProjectCompleted().ConfigureAwait(false);
     }
 }
