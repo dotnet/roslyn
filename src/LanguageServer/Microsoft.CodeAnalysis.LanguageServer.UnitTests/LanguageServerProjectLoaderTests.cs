@@ -54,7 +54,7 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         var secondLoadedProject = await loader.BeginLoadAsync(equivalentPath);
 
         Assert.Same(firstLoadedProject, secondLoadedProject);
-        Assert.False(firstLoadedProject.WaitForLoadAsync(CancellationToken.None).IsCompleted);
+        Assert.False(firstLoadedProject.WaitForLoadAsync(CancellationToken.None).AsTask().IsCompleted);
         await designTimeBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
         Assert.Equal(1, loader.DesignTimeBuildCount);
 
@@ -109,7 +109,6 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
 
         Assert.Equal(2, loader.DesignTimeBuildCount);
     }
-
 
     [Fact]
     public async Task FailedProjectOnlyRetriesForFileChange()
@@ -184,7 +183,7 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
 
         requestedDesignTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, requestedPath);
         await explicitLoad.WaitAsync(TestHelpers.HangMitigatingTimeout);
-        Assert.False(unrelatedProject.WaitForLoadAsync(CancellationToken.None).IsCompleted);
+        Assert.False(unrelatedProject.WaitForLoadAsync(CancellationToken.None).AsTask().IsCompleted);
 
         unrelatedDesignTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, unrelatedPath);
         await unrelatedProject.WaitForLoadAsync(CancellationToken.None).AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout);
@@ -327,7 +326,7 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         Assert.False(allLoads.IsCompleted);
         firstDesignTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, firstProjectPath);
         await allLoads.WaitAsync(TestHelpers.HangMitigatingTimeout);
-        Assert.False(secondLoadedProject.WaitForLoadAsync(CancellationToken.None).IsCompleted);
+        Assert.False(secondLoadedProject.WaitForLoadAsync(CancellationToken.None).AsTask().IsCompleted);
 
         await secondDesignTimeBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
         secondDesignTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, secondProjectPath);
