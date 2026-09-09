@@ -460,6 +460,9 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
         var directive = tree.GetRoot().GetDirectives().OfType<IgnoredDirectiveTriviaSyntax>().Single();
         Assert.False(directive.IsActive);
 
+        // Not reporting this error after the first token is useful to make scenarios like the one in test InDisabledRawString_02 work.
+        // File-based app tooling only processes directives before the first token,
+        // so it is acceptable for this error to not be reported after the first token.
         if (afterToken)
         {
             tree.GetDiagnostics().Verify();
