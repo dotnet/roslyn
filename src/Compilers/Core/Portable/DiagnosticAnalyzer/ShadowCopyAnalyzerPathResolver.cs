@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>Get number of hard links to a file.</summary>
-        private static ByHandleFileInformation? TryGetWindowsFileInformation(string path)
+        private static FileUtilities.WindowsFileInformation? TryGetWindowsFileInformation(string path)
         {
             // https://learn.microsoft.com/en-us/windows/win32/fileio/file-access-rights-constants
             const uint FILE_READ_ATTRIBUTES = 0x0080;
@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis
                 dwFlagsAndAttributes: 0,
                 hTemplateFile: IntPtr.Zero);
 
-            if (!GetFileInformationByHandle(handle, out var fileInformation))
+            if (!FileUtilities.TryGetFileInformationByHandle(handle, out var fileInformation))
                 return null;
 
             return fileInformation;
@@ -543,24 +543,6 @@ namespace Microsoft.CodeAnalysis
                 uint dwFlagsAndAttributes,
                 IntPtr hTemplateFile);
 
-            // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfileinformationbyhandle
-            [DllImport("Kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-            static extern bool GetFileInformationByHandle(SafeFileHandle handle, out ByHandleFileInformation fileInformation);
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct ByHandleFileInformation
-        {
-            public uint FileAttributes;
-            public System.Runtime.InteropServices.ComTypes.FILETIME CreationTime;
-            public System.Runtime.InteropServices.ComTypes.FILETIME LastAccessTime;
-            public System.Runtime.InteropServices.ComTypes.FILETIME LastWriteTime;
-            public uint VolumeSerialNumber;
-            public uint FileSizeHigh;
-            public uint FileSizeLow;
-            public uint NumberOfLinks;
-            public uint FileIndexHigh;
-            public uint FileIndexLow;
         }
     }
 }

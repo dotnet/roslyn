@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -107,6 +108,38 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(@"C:\x/y\./goo", PathUtilities.CombineAbsoluteAndRelativePaths(@"C:\x/y", @"./goo"));
             Assert.Equal(@"C:\x/y\..\goo", PathUtilities.CombineAbsoluteAndRelativePaths(@"C:\x/y", @"..\goo"));
             Assert.Equal(@"C:\x/y\../goo", PathUtilities.CombineAbsoluteAndRelativePaths(@"C:\x/y", @"../goo"));
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void GetFileLengthAndTimeStampFromOpenFile()
+        {
+            using var root = new TempRoot();
+            var file = root.CreateFile().WriteAllText("hello");
+            using var stream = new FileStream(file.Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+
+            FileUtilities.GetFileLengthAndTimeStamp(stream.SafeFileHandle, out var fileLength, out var timeStamp);
+
+            Assert.Equal(stream.Length, fileLength);
+            Assert.Equal(File.GetLastWriteTimeUtc(file.Path), timeStamp);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void GetFileLengthAndTimeStampFromOpenFileUsesHandle()
+        {
+            using var root = new TempRoot();
+            var file = root.CreateFile().WriteAllText("original");
+            var originalTimeStamp = new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            File.SetLastWriteTimeUtc(file.Path, originalTimeStamp);
+
+            using var stream = new FileStream(file.Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+            File.Move(file.Path, file.Path + ".moved");
+            File.WriteAllText(file.Path, "replacement");
+            File.SetLastWriteTimeUtc(file.Path, originalTimeStamp.AddDays(1));
+
+            FileUtilities.GetFileLengthAndTimeStamp(stream.SafeFileHandle, out var fileLength, out var timeStamp);
+
+            Assert.Equal("original".Length, fileLength);
+            Assert.Equal(originalTimeStamp, timeStamp);
         }
 
         [ConditionalFact(typeof(WindowsOnly))]

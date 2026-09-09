@@ -454,5 +454,50 @@ namespace Roslyn.Utilities
                 throw new IOException(e.Message, e);
             }
         }
+
+        /// <exception cref="IOException"/>
+        internal static void GetFileLengthAndTimeStamp(SafeFileHandle handle, out long fileLength, out DateTime timeStamp)
+        {
+            Debug.Assert(PlatformInformation.IsWindows);
+            try
+            {
+                if (!TryGetFileInformationByHandle(handle, out var fileInformation))
+                    Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+
+                fileLength = ((long)fileInformation.FileSizeHigh << 32) | fileInformation.FileSizeLow;
+                var lastWriteTime = ((long)(uint)fileInformation.LastWriteTime.dwHighDateTime << 32) |
+                    (uint)fileInformation.LastWriteTime.dwLowDateTime;
+                timeStamp = DateTime.FromFileTimeUtc(lastWriteTime);
+            }
+            catch (IOException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                throw new IOException(e.Message, e);
+            }
+        }
+
+        internal static bool TryGetFileInformationByHandle(SafeFileHandle handle, out WindowsFileInformation fileInformation)
+            => GetFileInformationByHandle(handle, out fileInformation);
+
+        [DllImport("Kernel32.dll", SetLastError = true)]
+        private static extern bool GetFileInformationByHandle(SafeFileHandle handle, out WindowsFileInformation fileInformation);
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct WindowsFileInformation
+        {
+            public uint FileAttributes;
+            public System.Runtime.InteropServices.ComTypes.FILETIME CreationTime;
+            public System.Runtime.InteropServices.ComTypes.FILETIME LastAccessTime;
+            public System.Runtime.InteropServices.ComTypes.FILETIME LastWriteTime;
+            public uint VolumeSerialNumber;
+            public uint FileSizeHigh;
+            public uint FileSizeLow;
+            public uint NumberOfLinks;
+            public uint FileIndexHigh;
+            public uint FileIndexLow;
+        }
     }
 }
