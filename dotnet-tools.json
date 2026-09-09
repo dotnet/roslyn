@@ -9,7 +9,7 @@
       "rollForward": false
     },
     "microsoft.dotnet.helix.jobmonitor": {
-      "version": "11.0.0-beta.26457.9",
+      "version": "11.0.0-beta.26458.13",
       "commands": [
         "dotnet-helix-job-monitor"
       ]
