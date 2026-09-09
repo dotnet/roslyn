@@ -1,16 +1,16 @@
 | Folder              | Projects |
 |---------------------|---------:|
-| CodeStyle           |        1 |
-| Compilers           |       16 |
-| EditorFeatures      |        3 |
-| ExpressionEvaluator |        3 |
-| Features            |        4 |
+| CodeStyle           |        2 |
+| Compilers           |       22 |
+| EditorFeatures      |        5 |
+| ExpressionEvaluator |        5 |
+| Features            |        5 |
 | Interactive         |        1 |
 | LanguageServer      |        4 |
 | Razor               |       15 |
 | RoslynAnalyzers     |        9 |
-| RoslynSdk           |       15 |
-| Scripting           |        4 |
+| RoslynSdk           |       23 |
+| Scripting           |        6 |
 | Tools               |        3 |
-| VisualStudio        |        7 |
-| Workspaces          |        4 |
+| VisualStudio        |        8 |
+| Workspaces          |        5 |

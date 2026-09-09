@@ -2,15 +2,15 @@
 #region Find all csproj files
 # Finds all test project files in the `src` folder of the repo.
 # Edits each line to be of the form `[]($1)` where $1 is the original line.
-# This allows each line to be clicked as a link to the relevant csproj file in VS Code
+# This allows each line to be clicked as a link to the relevant project file in VS Code
 # Results are stored in a file named out.md for later reference.
 # Test projects are defined as ones ending in `.UnitTests` or `.IntegrationTests`
 # or ones that include <IsTestProject>true</IsTestProject>.
 # Test project definition comes from BuildBoss:
 # src/Tools/BuildBoss/ProjectData.cs.
 {
-	find ../src -type f \( -iname '*.UnitTests.csproj' -o -iname '*.IntegrationTests.csproj' \)
-	find ../src -type f -iname '*.csproj' -exec grep -IlE '<IsTestProject>[[:space:]]*true[[:space:]]*</IsTestProject>' {} +
+	find ../src -type f \( -iname '*.UnitTests.csproj' -o -iname '*.IntegrationTests.csproj' -o -iname '*.UnitTests.vbproj' -o -iname '*.IntegrationTests.vbproj' \)
+	find ../src -type f \( -iname '*.csproj' -o -iname '*.vbproj' \) -exec grep -IlE '<IsTestProject>[[:space:]]*true[[:space:]]*</IsTestProject>' {} +
 } | sort -u | sed 's|^\(.*\)$|[](\1)|' > out.md
 #endregion Find all csproj files
 
