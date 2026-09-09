@@ -35,6 +35,13 @@ using Task = System.Threading.Tasks.Task;
 namespace Microsoft.VisualStudio.LanguageServices.Setup;
 
 [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
+[ProvideMenuResource("Menus.ctmenu", 22)]
+[ProvideUIContextRule(
+    EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString,
+    name: "Managed Edit and Continue capability",
+    expression: "CS | VB",
+    termNames: ["CS", "VB"],
+    termValues: [Guids.CSharpProjectExistsInWorkspaceUIContextString, Guids.VisualBasicProjectExistsInWorkspaceUIContextString])]
 [Guid(Guids.RoslynPackageIdString)]
 [ProvideToolWindow(typeof(ValueTracking.ValueTrackingToolWindow))]
 [ProvideToolWindow(typeof(StackTraceExplorerToolWindow))]

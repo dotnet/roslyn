@@ -29,6 +29,22 @@ using Task = System.Threading.Tasks.Task;
 namespace Microsoft.VisualStudio.RazorExtension;
 
 [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
+[ProvideAutoLoad(GuidRazorFileContextString, PackageAutoLoadFlags.BackgroundLoad)]
+[ProvideMenuResource("Menus.ctmenu", 1)]
+[ProvideUIContextRule(
+    contextGuid: "6d5b86dc-6b8a-483b-ae30-098a3c7d6774",
+    name: "Razor Cohosting Activation",
+    expression: "RazorContentType",
+    termNames: ["RazorContentType"],
+    termValues: ["ActiveEditorContentType:" + RazorConstants.RazorLSPContentTypeName])]
+[ProvideUIContextRule(
+    contextGuid: GuidRazorFileContextString,
+    name: "Razor File Selected",
+    expression: "DotNetCoreRazorProject & (RazorFile | CshtmlFile | RazorNestedFile | CshtmlNestedFile)",
+    termNames: ["DotNetCoreRazorProject", "RazorFile", "CshtmlFile", "RazorNestedFile", "CshtmlNestedFile"],
+    termValues: ["ActiveProjectCapability:DotNetCoreRazor", @"HierSingleSelectionName:\.razor$", @"HierSingleSelectionName:\.cshtml$", @"HierSingleSelectionName:\.razor\.", @"HierSingleSelectionName:\.cshtml\."])]
+[ProvideService(typeof(RazorLanguageService), ServiceName = nameof(RazorLanguageService), IsAsyncQueryable = false, IsCacheable = false, IsFreeThreaded = false)]
+[ProvideLanguageService(typeof(RazorLanguageService), RazorConstants.RazorLSPContentTypeName, 110, ShowCompletion = true, ShowSmartIndent = true)]
 [ProvideSettingsManifest(PackageRelativeManifestFile = @"UnifiedSettings\razor.registration.json")]
 #pragma warning disable VSSDK003 // Tool windows should support async construction
 [ProvideToolWindow(typeof(SyntaxVisualizerToolWindow))]

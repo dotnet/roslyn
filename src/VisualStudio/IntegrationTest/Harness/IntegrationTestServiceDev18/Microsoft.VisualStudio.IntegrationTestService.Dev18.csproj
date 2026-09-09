@@ -28,10 +28,6 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
-  <ItemGroup Label="PkgDef">
-    <Content Include="Microsoft.VisualStudio.IntegrationTestService.Dev18.Extra.pkgdef" IncludeInVSIX="true" />
-  </ItemGroup>
-
   <ItemGroup>
     <Reference Include="System.Runtime.Remoting" />
   </ItemGroup>

@@ -1,38 +1,7 @@
-﻿// [ProvideInteractiveWindow("{ca8cc5c7-0231-406a-95cd-aa5ed6ac0190}", Orientation = ToolWindowOrientation.Bottom, Style = VsDockStyle.Tabbed, Window = CommonVsUtils.OutputWindowId)]
-[$RootKey$\ToolWindows\{ca8cc5c7-0231-406a-95cd-aa5ed6ac0190}]
-@="{c5edd1ee-c43b-4360-9ce4-6b993ca12897}"
-"Orientation"="Bottom"
-"Style"="Tabbed"
-"Window"="34e76e81-ee4a-11d0-ae2e-00a0c90fffc3"
-
-[$RootKey$\Languages\File Extensions\.csx]
-@="{694dd9b6-b865-4c5b-ad85-86356e9c88dc}"
-
-[$RootKey$\Languages\File Extensions\.cs]
-@="{694dd9b6-b865-4c5b-ad85-86356e9c88dc}"
-
-[$RootKey$\Menus]
-"{c5edd1ee-c43b-4360-9ce4-6b993ca12897}"=", Menus.ctmenu, 17"
-
-[$RootKey$\Languages\Language Services\CSharp]
-@="{694dd9b6-b865-4c5b-ad85-86356e9c88dc}"
-"Package"="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
-"LangResID"=dword:00000065
-
-"DefaultToInsertSpaces"=dword:00000001
-"EnableAdvancedMembersOption"=dword:00000001
-"RequestStockColors"=dword:00000001
+﻿[$RootKey$\Languages\Language Services\CSharp]
 "ShowBraceCompletion"=dword:00000001
-"ShowCompletion"=dword:00000001
-"ShowDropdownBarOption"=dword:00000001
-"ShowSmartIndent"=dword:00000001
 "SupportsImageCaching"=dword:00000001
 // DesignerLoader is still set in the VS Repo since it contains a VS version number
-
-[$RootKey$\Services\{694dd9b6-b865-4c5b-ad85-86356e9c88dc}]
-@="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
-"Name"="C# Language Service"
-"IsAsyncQueryable"=dword:00000001
 
 [$RootKey$\AutomationProperties\TextEditor\CSharp-Specific]
 @="#104"
@@ -51,50 +20,15 @@
 "ProfileSave"=dword:00000001
 "VSSettingsMigration"=dword:00000001
 
-[$RootKey$\Editors]
-
 [$RootKey$\Editors\{08467b34-b90f-4d91-bdca-eb8c8cf3033a}]
-"DeferUntilIntellisenseIsReady"=dword:00000000
-"CommonPhysicalViewAttributes"=dword:00000003
-"DisplayName"="#2359"
-"EditorTrustLevel"=dword:00000002
 "ExcludeDefTextEditor"=dword:00000001
 "LinkedEditorGuid"="{A6C744A8-0E4A-4FC6-886A-064283054674}"
-"Package"="{13C3BBB4-F18F-4111-9F54-A0FB010D9194}"
-@="C# Editor with Encoding"
-
-[$RootKey$\Editors\{08467b34-b90f-4d91-bdca-eb8c8cf3033a}\Extensions]
-"cs"=dword:00000027
-
-[$RootKey$\Editors\{08467b34-b90f-4d91-bdca-eb8c8cf3033a}\LogicalViews]
-"{7651a700-06e5-11d1-8ebd-00a0c90f26ea}"=""
-"{7651a701-06e5-11d1-8ebd-00a0c90f26ea}"=""
-"{7651a702-06e5-11d1-8ebd-00a0c90f26ea}"="Form"
-"{7651a703-06e5-11d1-8ebd-00a0c90f26ea}"=""
 
 [$RootKey$\Editors\{08467b34-b90f-4d91-bdca-eb8c8cf3033a}\UntrustedLogicalViews]
 "{7651a702-06e5-11d1-8ebd-00a0c90f26ea}"="Form"
 
 [$RootKey$\Editors\{A6C744A8-0E4A-4FC6-886A-064283054674}]
-"DeferUntilIntellisenseIsReady"=dword:00000000
-"CommonPhysicalViewAttributes"=dword:00000002
-"DisplayName"="#2358"
-"EditorTrustLevel"=dword:00000002
 "ExcludeDefTextEditor"=dword:00000001
-"Package"="{13C3BBB4-F18F-4111-9F54-A0FB010D9194}"
-@="C# Editor"
-
-[$RootKey$\Editors\{A6C744A8-0E4A-4FC6-886A-064283054674}\Extensions]
-"cs"=dword:00000028
-
-[$RootKey$\Editors\{A6C744A8-0E4A-4FC6-886A-064283054674}\LogicalViews]
-"{7651a700-06e5-11d1-8ebd-00a0c90f26ea}"=""
-"{7651a701-06e5-11d1-8ebd-00a0c90f26ea}"=""
-"{7651a702-06e5-11d1-8ebd-00a0c90f26ea}"="Form"
-"{7651a703-06e5-11d1-8ebd-00a0c90f26ea}"=""
-
-[$RootKey$\Editors\{A6C744A8-0E4A-4FC6-886A-064283054674}\PhysicalViewAttributes]
-"Form"=dword:00000003
 
 [$RootKey$\Editors\{A6C744A8-0E4A-4FC6-886A-064283054674}\UntrustedLogicalViews]
 "{7651a702-06e5-11d1-8ebd-00a0c90f26ea}"="Form"

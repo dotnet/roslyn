@@ -47,7 +47,6 @@
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="CSharpVisualStudio" Path="|CSharpVisualStudio;PkgdefProjectOutputGroup|" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;AssemblyRedirectsPkgdefOutputGroup|" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="ServicesVisualStudio" Path="|ServicesVisualStudio;BrokeredServicesPkgdefOutputGroup|" />
-    <Asset Type="Microsoft.VisualStudio.VsPackage" Path="Roslyn.VisualStudio.Setup.Extra.pkgdef" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" Path="Microsoft.VisualStudio.LanguageServices.Extra.pkgdef" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" Path="Microsoft.VisualStudio.LanguageServices.CSharp.Extra.pkgdef" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" Path="Microsoft.VisualStudio.LanguageServices.VisualBasic.Extra.pkgdef" />

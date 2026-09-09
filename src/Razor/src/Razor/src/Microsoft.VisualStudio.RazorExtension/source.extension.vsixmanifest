@@ -27,7 +27,6 @@
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;AssemblyRedirectsPkgdefOutputGroup|" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;BrokeredServicesPkgdefOutputGroup|" />
-    <Asset Type="Microsoft.VisualStudio.VsPackage" Path="Microsoft.VisualStudio.RazorExtension.Extra.pkgdef" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" Path="Microsoft.VisualStudio.RazorExtension.Custom.pkgdef" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Microsoft.CodeAnalysis.Razor.Compiler" Path="|Microsoft.CodeAnalysis.Razor.Compiler|" />

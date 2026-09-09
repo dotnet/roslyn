@@ -19,7 +19,6 @@
   </PropertyGroup>
   <ItemGroup Label="PkgDef">
     <PkgDefBindingRedirect Include="$(TargetPath)" />
-    <Content Include="Roslyn.Compilers.Extension.Extra.pkgdef" IncludeInVSIX="true" />
   </ItemGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">

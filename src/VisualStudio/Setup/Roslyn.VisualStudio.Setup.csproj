@@ -20,9 +20,6 @@
     <!-- VS Insertion -->
     <VisualStudioInsertionComponent>Microsoft.CodeAnalysis.LanguageServices</VisualStudioInsertionComponent>
   </PropertyGroup>
-  <ItemGroup Label="PkgDef">
-    <Content Include="Roslyn.VisualStudio.Setup.Extra.pkgdef" IncludeInVSIX="true" />
-  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj">
       <Name>CodeAnalysis</Name>

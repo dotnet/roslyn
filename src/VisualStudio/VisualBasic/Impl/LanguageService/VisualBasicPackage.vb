@@ -32,6 +32,53 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     '       Naming
 #Disable Warning BC40000 ' Preserve the installed-product registration.
     <PackageRegistration(UseManagedResourcesOnly:=True, AllowsBackgroundLoading:=False)>
+    <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".bas")>
+    <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".cls")>
+    <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".ctl")>
+    <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".dob")>
+    <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".dsr")>
+    <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".frm")>
+    <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".pag")>
+    <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".vb")>
+    <ProvideLanguageService(GetType(VisualBasicLanguageService), "Basic", 101,
+        DefaultToInsertSpaces:=True,
+        EnableAdvancedMembersOption:=True,
+        HideAdvancedMembersByDefault:=True,
+        RequestStockColors:=True,
+        ShowCompletion:=True,
+        ShowDropDownOptions:=True,
+        ShowSmartIndent:=True,
+        SingleCodeWindowOnly:=False)>
+    <ProvideService(GetType(VisualBasicLanguageService), ServiceName:="Visual Basic Language Service", IsAsyncQueryable:=True, IsCacheable:=False, IsFreeThreaded:=False)>
+    <ProvideService(GetType(IVbCompilerService), ServiceName:="Visual Basic Project System Shim", IsAsyncQueryable:=True, IsCacheable:=False, IsFreeThreaded:=False)>
+    <ProvideEditorFactory(GetType(VisualBasicEditorFactory), 1013, False,
+        CommonPhysicalViewAttributes:=2,
+        TrustLevel:=__VSEDITORTRUSTLEVEL.ETL_HasUntrustedLogicalViews)>
+    <ProvideEditorFactory(GetType(VisualBasicCodePageEditorFactory), 1012, False,
+        CommonPhysicalViewAttributes:=3,
+        TrustLevel:=__VSEDITORTRUSTLEVEL.ETL_HasUntrustedLogicalViews)>
+    <ProvideEditorExtension(GetType(VisualBasicEditorFactory), ".vb", 40, RegisterFactory:=False)>
+    <ProvideEditorExtension(GetType(VisualBasicEditorFactory), ".bas", 40, RegisterFactory:=False)>
+    <ProvideEditorExtension(GetType(VisualBasicEditorFactory), ".cls", 40, RegisterFactory:=False)>
+    <ProvideEditorExtension(GetType(VisualBasicEditorFactory), ".ctl", 40, RegisterFactory:=False)>
+    <ProvideEditorExtension(GetType(VisualBasicEditorFactory), ".dob", 40, RegisterFactory:=False)>
+    <ProvideEditorExtension(GetType(VisualBasicEditorFactory), ".dsr", 40, RegisterFactory:=False)>
+    <ProvideEditorExtension(GetType(VisualBasicEditorFactory), ".frm", 40, RegisterFactory:=False)>
+    <ProvideEditorExtension(GetType(VisualBasicEditorFactory), ".pag", 40, RegisterFactory:=False)>
+    <ProvideEditorExtension(GetType(VisualBasicCodePageEditorFactory), ".vb", 39, RegisterFactory:=False)>
+    <ProvideEditorExtension(GetType(VisualBasicCodePageEditorFactory), ".bas", 39, RegisterFactory:=False)>
+    <ProvideEditorExtension(GetType(VisualBasicCodePageEditorFactory), ".cls", 39, RegisterFactory:=False)>
+    <ProvideEditorExtension(GetType(VisualBasicCodePageEditorFactory), ".ctl", 39, RegisterFactory:=False)>
+    <ProvideEditorExtension(GetType(VisualBasicCodePageEditorFactory), ".dob", 39, RegisterFactory:=False)>
+    <ProvideEditorExtension(GetType(VisualBasicCodePageEditorFactory), ".dsr", 39, RegisterFactory:=False)>
+    <ProvideEditorExtension(GetType(VisualBasicCodePageEditorFactory), ".frm", 39, RegisterFactory:=False)>
+    <ProvideEditorExtension(GetType(VisualBasicCodePageEditorFactory), ".pag", 39, RegisterFactory:=False)>
+    <ProvideEditorLogicalView(GetType(VisualBasicEditorFactory), VSConstants.LOGVIEWID.Debugging_string)>
+    <ProvideEditorLogicalView(GetType(VisualBasicEditorFactory), VSConstants.LOGVIEWID.Code_string)>
+    <ProvideEditorLogicalView(GetType(VisualBasicEditorFactory), VSConstants.LOGVIEWID.TextView_string)>
+    <ProvideEditorLogicalView(GetType(VisualBasicCodePageEditorFactory), VSConstants.LOGVIEWID.Debugging_string)>
+    <ProvideEditorLogicalView(GetType(VisualBasicCodePageEditorFactory), VSConstants.LOGVIEWID.Code_string)>
+    <ProvideEditorLogicalView(GetType(VisualBasicCodePageEditorFactory), VSConstants.LOGVIEWID.TextView_string)>
     <ProvideLanguageEditorOptionPage(GetType(AdvancedOptionPage), "Basic", Nothing, "Advanced", "#102", 10160)>
     <ProvideLanguageEditorToolsOptionCategory("Basic", "Code Style", "#109")>
     <ProvideLanguageEditorOptionPage(GetType(CodeStylePage), "Basic", "Code Style", "General", "#111", 10161)>

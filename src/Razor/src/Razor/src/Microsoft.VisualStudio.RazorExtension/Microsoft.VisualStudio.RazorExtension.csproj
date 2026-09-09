@@ -38,7 +38,6 @@
 
   <ItemGroup Label="PkgDef">
     <PkgDefBindingRedirect Include="$(TargetPath)" />
-    <Content Include="Microsoft.VisualStudio.RazorExtension.Extra.pkgdef" IncludeInVSIX="true" />
   </ItemGroup>
 
   <!-- Import the list of service hub services we proffer, to generate various files to include in the VSIX -->

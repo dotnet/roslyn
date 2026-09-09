@@ -23,6 +23,32 @@ using Task = System.Threading.Tasks.Task;
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService;
 
 [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
+[ProvideLanguageExtension(typeof(CSharpLanguageService), ".cs")]
+[ProvideLanguageExtension(typeof(CSharpLanguageService), ".csx")]
+[ProvideLanguageService(typeof(CSharpLanguageService), "CSharp", 101,
+    DefaultToInsertSpaces = true,
+    EnableAdvancedMembersOption = true,
+    RequestStockColors = true,
+    ShowCompletion = true,
+    ShowDropDownOptions = true,
+    ShowSmartIndent = true)]
+[ProvideService(typeof(CSharpLanguageService), ServiceName = "C# Language Service", IsAsyncQueryable = true, IsCacheable = false, IsFreeThreaded = false)]
+[ProvideEditorFactory(typeof(CSharpEditorFactory), 2358, deferUntilIntellisenseIsReady: false,
+    CommonPhysicalViewAttributes = 2,
+    TrustLevel = __VSEDITORTRUSTLEVEL.ETL_HasUntrustedLogicalViews)]
+[ProvideEditorFactory(typeof(CSharpCodePageEditorFactory), 2359, deferUntilIntellisenseIsReady: false,
+    CommonPhysicalViewAttributes = 3,
+    TrustLevel = __VSEDITORTRUSTLEVEL.ETL_HasUntrustedLogicalViews)]
+[ProvideEditorExtension(typeof(CSharpEditorFactory), ".cs", 40, RegisterFactory = false)]
+[ProvideEditorExtension(typeof(CSharpEditorFactory), ".csx", 40, RegisterFactory = false)]
+[ProvideEditorExtension(typeof(CSharpCodePageEditorFactory), ".cs", 39, RegisterFactory = false)]
+[ProvideEditorExtension(typeof(CSharpCodePageEditorFactory), ".csx", 39, RegisterFactory = false)]
+[ProvideEditorLogicalView(typeof(CSharpEditorFactory), VSConstants.LOGVIEWID.Debugging_string)]
+[ProvideEditorLogicalView(typeof(CSharpEditorFactory), VSConstants.LOGVIEWID.Code_string)]
+[ProvideEditorLogicalView(typeof(CSharpEditorFactory), VSConstants.LOGVIEWID.TextView_string)]
+[ProvideEditorLogicalView(typeof(CSharpCodePageEditorFactory), VSConstants.LOGVIEWID.Debugging_string)]
+[ProvideEditorLogicalView(typeof(CSharpCodePageEditorFactory), VSConstants.LOGVIEWID.Code_string)]
+[ProvideEditorLogicalView(typeof(CSharpCodePageEditorFactory), VSConstants.LOGVIEWID.TextView_string)]
 // C# option pages tree:
 //   CSharp
 //     General (from editor)
