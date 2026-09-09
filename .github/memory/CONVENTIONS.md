@@ -50,7 +50,8 @@ var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
 ### CodeAnalysis testing-library dependencies
 
 - Compatible internal repository build and test projects reference the testing-library projects under `src/RoslynSdk/Microsoft.CodeAnalysis.Testing` so source changes are exercised directly.
-- Roslyn SDK samples and Visual Studio SDK project templates retain NuGet package references because they model standalone consumers outside the repository source graph. The net472 Visual Studio extensibility source-generator tests also retain a package reference because a project reference produces duplicate dependency writes in the test output.
+- The testing-library projects do not copy NuGet runtime dependencies into their .NET Framework output directories. Final test projects resolve and copy the unified dependency graph.
+- Roslyn SDK samples and Visual Studio SDK project templates retain NuGet package references because they model standalone consumers outside the repository source graph.
 
 ## Patterns Explicitly Avoided
 
