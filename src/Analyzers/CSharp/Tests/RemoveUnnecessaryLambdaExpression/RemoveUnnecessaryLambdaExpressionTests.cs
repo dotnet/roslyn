@@ -897,10 +897,11 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 {
                     C x = new C();
                     int y = 1;
-                    Bar([|() => { return |]Console.ReadLine(); } < x, y > (1 + 2));
+                    Bar([|() => { return |]C.ReadLine(); } < x, y > (1 + 2));
                 }
 
                 static void Bar(object a, object b) { }
+                static string ReadLine() => null;
                 public static bool operator <(Func<string> y, C x) { return true; }
                 public static bool operator >(Func<string> y, C x) { return true; }
             }
@@ -912,10 +913,11 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 {
                     C x = new C();
                     int y = 1;
-                    Bar((Console.ReadLine) < x, y > (1 + 2));
+                    Bar((C.ReadLine) < x, y > (1 + 2));
                 }
 
                 static void Bar(object a, object b) { }
+                static string ReadLine() => null;
                 public static bool operator <(Func<string> y, C x) { return true; }
                 public static bool operator >(Func<string> y, C x) { return true; }
             }

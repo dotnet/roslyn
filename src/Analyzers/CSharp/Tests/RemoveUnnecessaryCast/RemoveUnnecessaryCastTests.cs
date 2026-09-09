@@ -9151,7 +9151,8 @@ public sealed class RemoveUnnecessaryCastTests
                 public nuint N(IntPtr x) => (nuint)(nint)x;
             }
             """,
-            LanguageVersion = LanguageVersion.CSharp9
+            LanguageVersion = LanguageVersion.CSharp9,
+            ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
         };
 
         await test.RunAsync();
@@ -9194,7 +9195,8 @@ public sealed class RemoveUnnecessaryCastTests
                 public int N(IntPtr x) => (int)(nint)x;
             }
             """,
-            LanguageVersion = LanguageVersion.CSharp9
+            LanguageVersion = LanguageVersion.CSharp9,
+            ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
         };
 
         await test.RunAsync();
@@ -9212,7 +9214,8 @@ public sealed class RemoveUnnecessaryCastTests
                 public nint N(UIntPtr x) => (nint)(nuint)x;
             }
             """,
-            LanguageVersion = LanguageVersion.CSharp9
+            LanguageVersion = LanguageVersion.CSharp9,
+            ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
         };
 
         await test.RunAsync();
@@ -9632,8 +9635,14 @@ public sealed class RemoveUnnecessaryCastTests
     [Fact]
     public async Task DoNotRemoveCastIfOverriddenMethodHasDifferentReturnType()
     {
+#if NET
+        const string diagnosticId = "CS8400";
+#else
+        const string diagnosticId = "CS8830";
+#endif
+
         var source =
-            """
+            $$"""
             using System;
 
             abstract class Y
@@ -9648,7 +9657,7 @@ public sealed class RemoveUnnecessaryCastTests
                     var v = ((Y)new X()).Goo();
                 }
 
-                public override string {|CS8830:Goo|}()
+                public override string {|{{diagnosticId}}:Goo|}()
                 {
                     return null;
                 }
@@ -13668,4 +13677,34 @@ public sealed class RemoveUnnecessaryCastTests
             LanguageVersion = LanguageVersion.CSharp14,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
+
+#if NET
+    [Fact]
+    public Task RemoveNativeIntegerCastsWithDefaultReferences()
+        => new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.Default,
+            TestCode = """
+                using System;
+
+                public class C
+                {
+                    public nuint FromIntPtr(IntPtr x) => (nuint)[|(nint)|]x;
+                    public int ToInt(IntPtr x) => (int)[|(nint)|]x;
+                    public nint FromUIntPtr(UIntPtr x) => (nint)[|(nuint)|]x;
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                public class C
+                {
+                    public nuint FromIntPtr(IntPtr x) => (nuint)x;
+                    public int ToInt(IntPtr x) => (int)x;
+                    public nint FromUIntPtr(UIntPtr x) => (nint)x;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+        }.RunAsync();
+#endif
 }
