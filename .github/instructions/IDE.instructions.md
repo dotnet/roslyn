@@ -104,5 +104,4 @@ var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 - **ImportingConstructor must be marked `[Obsolete]`** with `MefConstruction.ImportingConstructorMessage`
 - **Language services must be exported with a specific language name** — don't use generic exports for both C#/VB
 - **Workspace changes must use immutable updates** — `Workspace.SetCurrentSolution()`
-- **MSBuild project extensions are stored with a leading `.`.** `ProjectFileExtensionRegistry` accepts registration and lookup values with or without the dot, but its enumeration API returns the canonical dot-prefixed form.
 - **LanguageServer project loading is canonicalized by normalized project path.** `LanguageServerProjectLoader` owns the path map and queue, while each `LoadedProject` owns a one-shot signal indicating that its initial load settled. Explicit callers wait on the relevant `LoadedProject` instances rather than a shared queue batch; later file-change reloads reuse the same instance without replacing or resetting the initial-load signal.
