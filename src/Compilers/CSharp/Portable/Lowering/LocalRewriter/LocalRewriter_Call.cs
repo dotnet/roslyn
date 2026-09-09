@@ -1326,22 +1326,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal static bool IsComReceiver(Symbol methodOrIndexer, bool invokedAsExtensionMethod)
-            => GetReceiverNamedType(methodOrIndexer, invokedAsExtensionMethod) is { IsComImport: true };
-
-        private static NamedTypeSymbol? GetReceiverNamedType(Symbol methodOrIndexer, bool invokedAsExtensionMethod)
         {
-            if (invokedAsExtensionMethod)
-            {
-                return ((MethodSymbol)methodOrIndexer).Parameters[0].Type as NamedTypeSymbol;
-            }
+            return tryGetReceiverNamedType(methodOrIndexer, invokedAsExtensionMethod) is { IsComImport: true };
 
-            if (methodOrIndexer.IsExtensionBlockMember())
+            static NamedTypeSymbol? tryGetReceiverNamedType(Symbol methodOrIndexer, bool invokedAsExtensionMethod)
             {
-                Debug.Assert(methodOrIndexer.ContainingType.ExtensionParameter is not null);
-                return methodOrIndexer.ContainingType.ExtensionParameter.Type as NamedTypeSymbol;
-            }
+                if (invokedAsExtensionMethod)
+                {
+                    return ((MethodSymbol)methodOrIndexer).Parameters[0].Type as NamedTypeSymbol;
+                }
 
-            return (NamedTypeSymbol?)methodOrIndexer.ContainingType;
+                if (methodOrIndexer.IsExtensionBlockMember())
+                {
+                    Debug.Assert(methodOrIndexer.ContainingType.ExtensionParameter is not null);
+                    return methodOrIndexer.ContainingType.ExtensionParameter.Type as NamedTypeSymbol;
+                }
+
+                return (NamedTypeSymbol?)methodOrIndexer.ContainingType;
+            }
         }
 
         private static ImmutableArray<RefKind> GetRefKindsOrNull(ArrayBuilder<RefKind> refKinds)
