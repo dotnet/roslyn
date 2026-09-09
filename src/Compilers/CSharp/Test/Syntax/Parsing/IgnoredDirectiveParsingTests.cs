@@ -487,7 +487,7 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
             #:c
             #endif
             """;
-        var options = (script ? TestOptions.Script : TestOptions.Regular).WithFeature(FeatureName);
+        var options = script ? TestOptions.Script : TestOptions.Regular;
         if (defineX)
         {
             options = options.WithPreprocessorSymbols("X");
@@ -497,13 +497,32 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
             options = options.WithFeature(FeatureName);
         }
 
-        SyntaxFactory.ParseSyntaxTree(source, options).GetDiagnostics().Verify(
+        var commonDiagnostics = new[]
+        {
             // (2,2): error CS9299: '#:' directives cannot be after '#if' directive
             // #:a
             Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(2, 2),
             // (4,2): error CS9299: '#:' directives cannot be after '#if' directive
             // #:c
-            Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(4, 2));
+            Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(4, 2),
+        };
+
+        var tree = SyntaxFactory.ParseSyntaxTree(source, options);
+
+        if (fileBasedProgram)
+        {
+            tree.GetDiagnostics().Verify(commonDiagnostics);
+        }
+        else
+        {
+            tree.GetDiagnostics().Verify(
+            [
+                .. commonDiagnostics,
+                // error CS9298: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')
+                // #:b
+                Diagnostic(ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram, ":"),
+            ]);
+        }
     }
 
     [Theory, CombinatorialData]
@@ -522,7 +541,7 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
             #endif
             #endif
             """;
-        var options = (script ? TestOptions.Script : TestOptions.Regular).WithFeature(FeatureName);
+        var options = script ? TestOptions.Script : TestOptions.Regular;
         if (defineX)
         {
             options = options.WithPreprocessorSymbols("X");
@@ -532,7 +551,8 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
             options = options.WithFeature(FeatureName);
         }
 
-        SyntaxFactory.ParseSyntaxTree(source, options).GetDiagnostics().Verify(
+        var commonDiagnostics = new[]
+        {
             // (2,2): error CS9299: '#:' directives cannot be after '#if' directive
             // #:a
             Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(2, 2),
@@ -544,7 +564,25 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
             Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(6, 2),
             // (8,2): error CS9299: '#:' directives cannot be after '#if' directive
             // #:d
-            Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(8, 2));
+            Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(8, 2),
+        };
+
+        var tree = SyntaxFactory.ParseSyntaxTree(source, options);
+
+        if (fileBasedProgram)
+        {
+            tree.GetDiagnostics().Verify(commonDiagnostics);
+        }
+        else
+        {
+            tree.GetDiagnostics().Verify(
+            [
+                .. commonDiagnostics,
+                // error CS9298: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')
+                // #:a
+                Diagnostic(ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram, ":"),
+            ]);
+        }
     }
 
     [Theory, CombinatorialData]
