@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         internal abstract InteractiveHostPlatform DefaultPlatform { get; }
         internal abstract bool UseDefaultInitializationFile { get; }
 
-        public async Task InitializeAsync()
+        public async ValueTask InitializeAsync()
         {
             var initializationFileName = UseDefaultInitializationFile ? "CSharpInteractive.rsp" : null;
 
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             ClearOutput();
         }
 
-        public async Task DisposeAsync()
+        public async ValueTask DisposeAsync()
         {
             var service = await Host.TryGetServiceAsync();
             Assert.NotNull(service);
