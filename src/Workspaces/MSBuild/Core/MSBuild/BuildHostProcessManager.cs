@@ -264,6 +264,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             }
 
             processStartInfo.Environment["DOTNET_ROOT"] = Path.GetDirectoryName(dotnetPath);
+            processStartInfo.Environment["DOTNET_HOST_PATH"] = dotnetPath;
         }
 
         // We need to roll forward to the latest runtime, since the project may be using an SDK (or an SDK required runtime) newer than we ourselves built with.
