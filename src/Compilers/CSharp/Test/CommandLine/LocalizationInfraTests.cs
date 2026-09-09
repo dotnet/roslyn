@@ -39,11 +39,12 @@ public sealed class LocalizationInfraTests : CSharpTestBase
         var uiCulture = CultureInfo.CurrentUICulture.Name == CultureInfo.CurrentCulture.Name
             ? CultureInfo.CurrentUICulture
             : CultureInfo.CurrentCulture;
+        // https://github.com/dotnet/roslyn/issues/85043: decimal representation changed in .NET 11
         var expectedOutput = $"""
             {CultureInfo.CurrentCulture}
             {CultureInfo.CurrentCulture}
             {((double)2.1).ToString(CultureInfo.CurrentCulture)}
-            {((decimal)2.1).ToString(CultureInfo.CurrentCulture)}
+            {(Environment.Version.Major >= 11 ? 2.1000000000000000888178419700m : 2.1m).ToString(CultureInfo.CurrentCulture)}
             """;
         _ = CompileAndVerify(source, expectedOutput: expectedOutput);
     }

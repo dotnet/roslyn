@@ -8389,7 +8389,8 @@ public class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            // https://github.com/dotnet/roslyn/issues/85043: decimal representation changed in .NET 11
+            var compilation = CompileAndVerify(source, expectedOutput: $@"
 0
 1
 8
@@ -8402,11 +8403,61 @@ public class Program
 -9223372036854775808
 18446744073709551615
 -79228162514264337593543950335
-12345.68
+{(Environment.Version.Major >= 11 ? "12345.6787109375" : "12345.68")}
 ");
 
-            compilation.VerifyIL("Program.Main",
-@"
+            compilation.VerifyIL("Program.Main", Environment.Version.Major >= 11 ? """
+{
+  // Code size      184 (0xb8)
+  .maxstack  5
+  IL_0000:  ldsfld     "decimal decimal.Zero"
+  IL_0005:  call       "void Program.Print(decimal)"
+  IL_000a:  ldsfld     "decimal decimal.One"
+  IL_000f:  call       "void Program.Print(decimal)"
+  IL_0014:  ldc.i4.8
+  IL_0015:  newobj     "decimal..ctor(int)"
+  IL_001a:  call       "void Program.Print(decimal)"
+  IL_001f:  ldsfld     "decimal decimal.MinusOne"
+  IL_0024:  call       "void Program.Print(decimal)"
+  IL_0029:  ldc.i4.s   -128
+  IL_002b:  newobj     "decimal..ctor(int)"
+  IL_0030:  call       "void Program.Print(decimal)"
+  IL_0035:  ldc.i4     0x7fffffff
+  IL_003a:  newobj     "decimal..ctor(int)"
+  IL_003f:  call       "void Program.Print(decimal)"
+  IL_0044:  ldc.i4     0x80000000
+  IL_0049:  newobj     "decimal..ctor(int)"
+  IL_004e:  call       "void Program.Print(decimal)"
+  IL_0053:  ldc.i4.m1
+  IL_0054:  newobj     "decimal..ctor(uint)"
+  IL_0059:  call       "void Program.Print(decimal)"
+  IL_005e:  ldc.i8     0x7fffffffffffffff
+  IL_0067:  newobj     "decimal..ctor(long)"
+  IL_006c:  call       "void Program.Print(decimal)"
+  IL_0071:  ldc.i8     0x8000000000000000
+  IL_007a:  newobj     "decimal..ctor(long)"
+  IL_007f:  call       "void Program.Print(decimal)"
+  IL_0084:  ldc.i4.m1
+  IL_0085:  conv.i8
+  IL_0086:  newobj     "decimal..ctor(ulong)"
+  IL_008b:  call       "void Program.Print(decimal)"
+  IL_0090:  ldc.i4.m1
+  IL_0091:  ldc.i4.m1
+  IL_0092:  ldc.i4.m1
+  IL_0093:  ldc.i4.1
+  IL_0094:  ldc.i4.0
+  IL_0095:  newobj     "decimal..ctor(int, int, int, bool, byte)"
+  IL_009a:  call       "void Program.Print(decimal)"
+  IL_009f:  ldc.i4     0x85f0d5ff
+  IL_00a4:  ldc.i4     0x7048
+  IL_00a9:  ldc.i4.0
+  IL_00aa:  ldc.i4.0
+  IL_00ab:  ldc.i4.s   10
+  IL_00ad:  newobj     "decimal..ctor(int, int, int, bool, byte)"
+  IL_00b2:  call       "void Program.Print(decimal)"
+  IL_00b7:  ret
+}
+""" : @"
 {
   // Code size      179 (0xb3)
   .maxstack  5
@@ -11152,7 +11203,8 @@ class C
         System.Console.Write(myMoney.ToString(CultureInfo.InvariantCulture));
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "99.9");
+            // https://github.com/dotnet/roslyn/issues/85043: decimal representation changed in .NET 11
+            var compilation = CompileAndVerify(source, expectedOutput: Environment.Version.Major >= 11 ? "99.90000000000000568434188608" : "99.9");
             compilation.VerifyIL("C.Main", """
 {
   // Code size       47 (0x2f)
@@ -11486,7 +11538,43 @@ class C
             M(new decimal(123.456), new decimal(123456000, 0, 0, false, 6));
         }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            // https://github.com/dotnet/roslyn/issues/85043: decimal representation changed in .NET 11
+            var compilation = CompileAndVerify(source, expectedOutput: Environment.Version.Major >= 11 ? """
+True
+False
+True
+False
+True
+False
+
+False
+True
+False
+False
+True
+True
+
+False
+True
+True
+True
+False
+False
+
+False
+True
+True
+True
+False
+False
+
+False
+True
+True
+True
+False
+False
+""" : @"
 True
 False
 True
@@ -12848,8 +12936,16 @@ public class C
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput:
-@"1.712
+            // https://github.com/dotnet/roslyn/issues/85043: decimal representation changed in .NET 11
+            CompileAndVerify(source, expectedOutput: Environment.Version.Major >= 11 ? """
+1.712
+1.71200001239776611328125
+1.7119999999999999662492200514
+1.71200001239776611328125
+False
+False
+False
+""" : @"1.712
 1.712
 1.712
 1.71200001239777
@@ -12887,8 +12983,23 @@ class C
 
     static void WriteLine(decimal d) => Console.WriteLine(d.ToString(CultureInfo.InvariantCulture));
 }";
-            CompileAndVerify(source, expectedOutput:
-@"2147484000
+            // https://github.com/dotnet/roslyn/issues/85043: decimal representation changed in .NET 11
+            CompileAndVerify(source, expectedOutput: Environment.Version.Major >= 11 ? """
+2147483648
+2147483648
+9223372036854775808
+9223372036854779904
+39614081257132168796771975168
+39614081257132203981144064000
+39614081257132168796771975168
+39614081266355496853161639936
+0.21474836766719818115234375
+0.2147483648000000078237547996
+-0.092233717441558837890625
+-0.0922337203685477946546455996
+-3.961408138275146484375
+-3.9614081257132198743420303799
+""" : @"2147484000
 2147483648
 9223372000000000000
 9223372036854780000

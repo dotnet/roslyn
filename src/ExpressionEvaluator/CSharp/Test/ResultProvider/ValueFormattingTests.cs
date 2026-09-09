@@ -70,9 +70,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         public void Decimal()
         {
             Assert.Equal("-79228162514264337593543950335", FormatValue(decimal.MinValue));
-            Assert.Equal("-1.1", FormatValue((decimal)-1.1));
+            Assert.Equal("-1.1000000000000000888178419700", FormatValue((decimal)-1.1));
             Assert.Equal("0", FormatValue((decimal)0));
-            Assert.Equal("1.1", FormatValue((decimal)1.1));
+            Assert.Equal("1.1000000000000000888178419700", FormatValue((decimal)1.1));
             Assert.Equal("79228162514264337593543950335", FormatValue(decimal.MaxValue));
         }
 
