@@ -82,14 +82,14 @@ internal class RequestTelemetryLogger : IDisposable, ILspService
         CancellationToken cancellationToken)
     {
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-        var line = default(TextLine);
         var token = default(SyntaxToken);
-        var positionKind = GetInvalidPositionKind(text, position);
+        var positionKind = GetInvalidPositionKind(text, position, out var optionalLine);
+        var isValidLine = optionalLine.HasValue;
         var isValidPosition = positionKind is null;
+        var line = optionalLine.GetValueOrDefault();
 
         if (isValidPosition)
         {
-            line = text.Lines[position.Line];
             var absolutePosition = line.Start + position.Character;
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             token = root.FindToken(absolutePosition, findInsideTrivia: true);
@@ -102,20 +102,20 @@ internal class RequestTelemetryLogger : IDisposable, ILspService
             properties["method"] = args.method;
             properties["line"] = args.position.Line;
             properties["character"] = args.position.Character;
-            properties["isFirstLine"] = args.position.Line == 0;
-            properties["isLastLine"] = args.position.Line == args.text.Lines.Count - 1;
-            properties["isAtLineStart"] = args.position.Character == 0;
-            properties["isAtLineEnd"] = args.isValidPosition && args.position.Character == args.line.Span.Length;
+            properties["lineCount"] = args.text.Lines.Count;
             properties["language"] = args.document.Project.Language;
             properties["workspaceKind"] = args.document.Project.Solution.WorkspaceKind;
             properties["positionKind"] = args.positionKind;
+
+            if (args.isValidLine)
+                properties["lineLength"] = args.line.Span.Length;
 
             if (args.isValidPosition)
             {
                 properties["tokenRawKind"] = args.token.RawKind;
                 properties["parentNodeRawKind"] = args.token.Parent?.RawKind ?? 0;
             }
-        }, (serverTypeName, method, document, position, text, line, positionKind, isValidPosition, token), logLevel: LogLevel.Information);
+        }, (serverTypeName, method, document, position, text, line, positionKind, isValidLine, isValidPosition, token), logLevel: LogLevel.Information);
 
         try
         {
@@ -179,12 +179,16 @@ internal class RequestTelemetryLogger : IDisposable, ILspService
         TelemetryLogging.Flush();
     }
 
-    private static string? GetInvalidPositionKind(SourceText text, LSP.Position position)
+    private static string? GetInvalidPositionKind(SourceText text, LSP.Position position, out TextLine? line)
     {
         if (position.Line < 0 || position.Line >= text.Lines.Count)
+        {
+            line = null;
             return "LineOutOfRange";
+        }
 
-        if (position.Character < 0 || position.Character > text.Lines[position.Line].Span.Length)
+        line = text.Lines[position.Line];
+        if (position.Character < 0 || position.Character > line.Value.Span.Length)
             return "CharacterOutOfRange";
 
         return null;

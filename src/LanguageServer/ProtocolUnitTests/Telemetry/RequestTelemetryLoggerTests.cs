@@ -50,12 +50,10 @@ public sealed class RequestTelemetryLoggerTests
         var absolutePosition = text.Lines[2].Start;
 
         Assert.Equal(0, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.character"]);
-        Assert.Equal(true, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.isatlineend"]);
-        Assert.Equal(true, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.isatlinestart"]);
-        Assert.Equal(false, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.isfirstline"]);
-        Assert.Equal(false, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.islastline"]);
         Assert.Equal(LanguageNames.CSharp, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.language"]);
         Assert.Equal(2, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.line"]);
+        Assert.Equal(text.Lines.Count, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.linecount"]);
+        Assert.Equal(0, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.linelength"]);
         Assert.Equal(Methods.TextDocumentDefinitionName, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.method"]);
         Assert.Equal(root!.FindToken(absolutePosition, findInsideTrivia: true).Parent!.RawKind, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.parentnoderawkind"]);
         Assert.Equal("EndOfLine", properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.positionkind"]);
@@ -93,8 +91,8 @@ public sealed class RequestTelemetryLoggerTests
         var root = await document.GetSyntaxRootAsync();
         var token = root!.FindToken(text.Lines.GetPosition(new LinePosition(position.Line, position.Character)), findInsideTrivia: true);
 
-        Assert.Equal(false, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.isatlineend"]);
-        Assert.Equal(false, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.isatlinestart"]);
+        Assert.Equal(text.Lines.Count, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.linecount"]);
+        Assert.Equal(text.Lines[position.Line].Span.Length, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.linelength"]);
         Assert.Equal("Token", properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.positionkind"]);
         Assert.Equal(token.RawKind, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.tokenrawkind"]);
         Assert.Equal(token.Parent!.RawKind, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.parentnoderawkind"]);
@@ -121,6 +119,7 @@ public sealed class RequestTelemetryLoggerTests
         var properties = Assert.Single(logger.PostedEvents).Properties;
         Assert.Equal(line, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.line"]);
         Assert.Equal(character, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.character"]);
+        Assert.Equal(1, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.linecount"]);
         Assert.Equal(expectedPositionKind, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.positionkind"]);
     }
 }
