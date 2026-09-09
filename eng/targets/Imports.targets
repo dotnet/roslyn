@@ -4,6 +4,39 @@
   <Import Project="VisualStudio.targets" Condition="'$(UsingToolVSSDK)' == 'true'"/>
   <Import Project="XUnit.targets" Condition="'$(IsTestProject)' == 'true'" />
 
+  <!-- Registration attribute arguments must be constants, even when building without VSSDK tooling. -->
+  <Target Name="GeneratePkgDefProductVersion"
+          BeforeTargets="BeforeCompile;CoreCompile"
+          DependsOnTargets="GetAssemblyVersion;AddSourceRevisionToInformationalVersion"
+          Condition="'$(GeneratePkgDefProductVersion)' == 'true'">
+    <PropertyGroup>
+      <_PkgDefProductVersionFile>$(IntermediateOutputPath)PkgDefProductVersion.g$(DefaultLanguageSourceExtension)</_PkgDefProductVersionFile>
+      <_PkgDefProductVersionSource Condition="'$(Language)' == 'C#'"><![CDATA[
+internal static class PkgDefProductVersion
+{
+    internal const string InformationalVersion = "$(InformationalVersion)"%3B
+}
+]]></_PkgDefProductVersionSource>
+      <_PkgDefProductVersionSource Condition="'$(Language)' == 'VB'"><![CDATA[
+Namespace Global
+    Friend Module PkgDefProductVersion
+        Friend Const InformationalVersion As String = "$(InformationalVersion)"
+    End Module
+End Namespace
+]]></_PkgDefProductVersionSource>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(_PkgDefProductVersionFile)"
+                      Lines="$(_PkgDefProductVersionSource)"
+                      Overwrite="true"
+                      Encoding="UTF-8"
+                      WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <Compile Remove="$(_PkgDefProductVersionFile)" />
+      <Compile Include="$(_PkgDefProductVersionFile)" />
+      <FileWrites Include="$(_PkgDefProductVersionFile)" />
+    </ItemGroup>
+  </Target>
+
   <!--
     Work around .editorconfig evaluation bugs in command line builds.
     https://github.com/dotnet/roslyn/issues/43371
