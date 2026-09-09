@@ -19,7 +19,7 @@ namespace BuildBoss
         {
             try
             {
-                return MainCore(args) ? 0 : 1;
+                return  MainCore(args) ? 0 : 1;
             }
             catch (Exception ex)
             {
