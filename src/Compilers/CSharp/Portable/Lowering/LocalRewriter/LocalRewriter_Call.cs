@@ -1317,29 +1317,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!ignoreComReceiver)
             {
-                NamedTypeSymbol? receiverNamedType = tryGetReceiverNamedType(methodOrIndexer, invokedAsExtensionMethod);
-                isComReceiver = receiverNamedType is { IsComImport: true };
+                isComReceiver = IsComReceiver(methodOrIndexer, invokedAsExtensionMethod);
             }
 
             return rewrittenArguments.Length == methodOrIndexer.GetParameterCount() &&
                 argsToParamsOpt.IsDefault &&
                 !isComReceiver;
+        }
 
-            static NamedTypeSymbol? tryGetReceiverNamedType(Symbol methodOrIndexer, bool invokedAsExtensionMethod)
+        internal static bool IsComReceiver(Symbol methodOrIndexer, bool invokedAsExtensionMethod)
+            => GetReceiverNamedType(methodOrIndexer, invokedAsExtensionMethod) is { IsComImport: true };
+
+        private static NamedTypeSymbol? GetReceiverNamedType(Symbol methodOrIndexer, bool invokedAsExtensionMethod)
+        {
+            if (invokedAsExtensionMethod)
             {
-                if (invokedAsExtensionMethod)
-                {
-                    return ((MethodSymbol)methodOrIndexer).Parameters[0].Type as NamedTypeSymbol;
-                }
-
-                if (methodOrIndexer.IsExtensionBlockMember())
-                {
-                    Debug.Assert(methodOrIndexer.ContainingType.ExtensionParameter is not null);
-                    return methodOrIndexer.ContainingType.ExtensionParameter.Type as NamedTypeSymbol;
-                }
-
-                return (NamedTypeSymbol?)methodOrIndexer.ContainingType;
+                return ((MethodSymbol)methodOrIndexer).Parameters[0].Type as NamedTypeSymbol;
             }
+
+            if (methodOrIndexer.IsExtensionBlockMember())
+            {
+                Debug.Assert(methodOrIndexer.ContainingType.ExtensionParameter is not null);
+                return methodOrIndexer.ContainingType.ExtensionParameter.Type as NamedTypeSymbol;
+            }
+
+            return (NamedTypeSymbol?)methodOrIndexer.ContainingType;
         }
 
         private static ImmutableArray<RefKind> GetRefKindsOrNull(ArrayBuilder<RefKind> refKinds)

@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Lowering;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -16038,6 +16039,36 @@ static class E
             // (18,24): error CS8337: The first parameter of a 'ref' extension method 'M2' must be a value type or a generic type constrained to struct.
             //     public static void M2(this ref C c) { }
             Diagnostic(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, "M2").WithArguments("M2").WithLocation(18, 24));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84735")]
+    public void RefOmittedComCall_CompoundAssignment()
+    {
+        var source = """
+using System;
+using System.Runtime.InteropServices;
+
+C c = default;
+c[0] += 1;
+
+[ComImport, Guid("1234C65D-1234-447A-B786-64682CBEF136")]
+class C { }
+
+static class E
+{
+    extension(C c)
+    {
+        public int this[int i] { get => 0; set { } }
+    }
+}
+""";
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+        compilation.VerifyEmitDiagnostics();
+
+        var tree = compilation.SyntaxTrees.Single();
+        var indexerAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "c[0]");
+        var indexer = (PropertySymbol)compilation.GetSemanticModel(tree).GetSymbolInfo(indexerAccess).Symbol!;
+        Assert.True(LocalRewriter.IsComReceiver(indexer, invokedAsExtensionMethod: false));
     }
 
     [Fact]
