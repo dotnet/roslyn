@@ -36,6 +36,9 @@ their original sub-tree layout
   fields through the constructor. When adding a new field, thread it through every existing
   `With*` method. Prefer computing derived data via extension methods (e.g.,
   `GetUnusedDirectives()`) rather than storing computed results as fields.
+- **Razor engine concurrency**: Hosts can process multiple documents concurrently through one
+  `RazorProjectEngine`. Phase and pass instances are shared, so keep per-document state in locals
+  or an execution context rather than mutable instance fields.
 - **Razor documents in Roslyn**: Stored as additional documents. Resolve via
   `solution.GetDocumentIdsWithFilePath(filePath)` then `solution.GetAdditionalDocument(documentId)`.
 - **Razor documents with virtual URIs**: Remote Razor document classification preserves the full
