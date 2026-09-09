@@ -164,7 +164,10 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
         var loadedProjects = ImmutableArray.CreateBuilder<LoadedProject>(projects.Length);
         foreach (var (path, guid) in projects)
         {
-            var loadedProject = await BeginLoadingProjectAsync(path, guid);
+            var loadedProject = await BeginLoadingProjectAsync(path);
+            if (guid is not null)
+                await loadedProject.SetProjectGuidForTelemetryAsync(Guid.Parse(guid));
+
             loadedProjects.Add(loadedProject);
         }
 
@@ -184,16 +187,13 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
         var loadedProjects = ImmutableArray.CreateBuilder<LoadedProject>(projectFilePaths.Length);
         foreach (var path in projectFilePaths)
         {
-            var loadedProject = await BeginLoadingProjectAsync(NormalizeDriveLetter(path), projectGuid: null);
+            var loadedProject = await BeginLoadingProjectAsync(NormalizeDriveLetter(path));
             loadedProjects.Add(loadedProject);
         }
 
         await WaitForProjectLoadsAsync(loadedProjects.MoveToImmutable(), progressTracker, CancellationToken.None);
         await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync(_clientLanguageServerManager);
     }
-
-    internal Task<LoadedProject> BeginLoadingProjectAsync(string projectFilePath)
-        => BeginLoadingProjectAsync(projectFilePath, projectGuid: null);
 
     internal async Task<ImmutableArray<string>> GetProjectReferencesAsync(LoadedProject loadedProject)
     {
