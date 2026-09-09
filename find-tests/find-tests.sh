@@ -9,15 +9,15 @@
 # Test project definition comes from BuildBoss:
 # src/Tools/BuildBoss/ProjectData.cs.
 {
-	find src -type f \( -iname '*.UnitTests.csproj' -o -iname '*.IntegrationTests.csproj' \)
-	find src -type f -iname '*.csproj' -exec grep -IlE '<IsTestProject>[[:space:]]*true[[:space:]]*</IsTestProject>' {} +
+	find ../src -type f \( -iname '*.UnitTests.csproj' -o -iname '*.IntegrationTests.csproj' \)
+	find ../src -type f -iname '*.csproj' -exec grep -IlE '<IsTestProject>[[:space:]]*true[[:space:]]*</IsTestProject>' {} +
 } | sort -u | sed 's|^\(.*\)$|[](\1)|' > out.md
 #endregion Find all csproj files
 
 #region Summarize test project count
 # Summarizes test project count by top-level folder
 # Prints into Markdown table and formats table
-sed -n 's|^\[\](src/\([^/]*\)/.*)$|\1|p' out.md |
+sed -n 's|^\[\](../src/\([^/]*\)/.*)$|\1|p' out.md |
 	awk '{ projects[$0]++ } END { for (folder in projects) printf "%s\t%d\n", folder, projects[folder] }' |
 	sort |
 	awk -F '\t' '
