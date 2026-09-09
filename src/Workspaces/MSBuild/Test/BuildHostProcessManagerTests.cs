@@ -42,7 +42,6 @@ public sealed class BuildHostProcessManagerTests
     [InlineData("DOTNET_ROOT_X64")]
     [InlineData("DOTNET_ROOT_X86")]
     [InlineData("DOTNET_ROOT_ARM64")]
-    [InlineData("dotnet_root_test")]
     public void ProcessStartInfo_ForNetCore_ExplicitDotNetPathOverridesInheritedRoots(string variableName)
     {
         var originalValue = Environment.GetEnvironmentVariable(variableName);
@@ -71,7 +70,6 @@ public sealed class BuildHostProcessManagerTests
     [InlineData("DOTNET_ROOT_X64")]
     [InlineData("DOTNET_ROOT_X86")]
     [InlineData("DOTNET_ROOT_ARM64")]
-    [InlineData("dotnet_root_test")]
     public void ProcessStartInfo_ForNetCore_DefaultDotNetPathPreservesRoot(string variableName)
     {
         var originalValue = Environment.GetEnvironmentVariable(variableName);

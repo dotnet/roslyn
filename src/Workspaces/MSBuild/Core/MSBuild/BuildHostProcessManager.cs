@@ -257,7 +257,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         {
             // Clear architecture-specific roots so they cannot override the selected installation.
             foreach (var key in processStartInfo.Environment.Keys
-                .Where(static key => key.StartsWith("DOTNET_ROOT", StringComparison.OrdinalIgnoreCase))
+                .Where(static key => key.StartsWith("DOTNET_ROOT", Environment.EnvironmentVariableComparison))
                 .ToArray())
             {
                 processStartInfo.Environment.Remove(key);
