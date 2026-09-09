@@ -63,7 +63,7 @@ Several core data structures are generated from XML definitions — **never edit
 
 # Build specific components  
 dotnet build Compilers.slnf                    # Compiler-only build
-dotnet build src/Compilers/CSharp/csc/AnyCpu/csc.csproj  # C# compiler
+dotnet build src/Compilers/CSharp/csc/AnyCpu/  # C# compiler
 
 # Generate compiler code after changes
 dotnet run --file eng/generate-compiler-code.cs
