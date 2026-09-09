@@ -4,7 +4,6 @@
 #nullable disable
 
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Lowering;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -16058,17 +16057,16 @@ static class E
 {
     extension(C c)
     {
-        public int this[int i] { get => 0; set { } }
+        public int this[int i]
+        {
+            get { Console.Write($"get({i}) "); return 0; }
+            set { Console.Write($"set({i}, {value}) "); }
+        }
     }
 }
 """;
         var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net100);
-        compilation.VerifyEmitDiagnostics();
-
-        var tree = compilation.SyntaxTrees.Single();
-        var indexerAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "c[0]");
-        var indexer = (PropertySymbol)compilation.GetSemanticModel(tree).GetSymbolInfo(indexerAccess).Symbol!;
-        Assert.True(LocalRewriter.IsComReceiver(indexer, invokedAsExtensionMethod: false));
+        CompileAndVerify(compilation, expectedOutput: ExpectedOutput("get(0) set(0, 1) ")).VerifyDiagnostics();
     }
 
     [Fact]
