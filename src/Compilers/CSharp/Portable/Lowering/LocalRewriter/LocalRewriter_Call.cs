@@ -1317,7 +1317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!ignoreComReceiver)
             {
-                isComReceiver = IsComReceiver(methodOrIndexer, invokedAsExtensionMethod);
+                isComReceiver = HasComReceiver(methodOrIndexer, invokedAsExtensionMethod);
             }
 
             return rewrittenArguments.Length == methodOrIndexer.GetParameterCount() &&
@@ -1325,7 +1325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !isComReceiver;
         }
 
-        internal static bool IsComReceiver(Symbol methodOrIndexer, bool invokedAsExtensionMethod)
+        internal static bool HasComReceiver(Symbol methodOrIndexer, bool invokedAsExtensionMethod)
         {
             return tryGetReceiverNamedType(methodOrIndexer, invokedAsExtensionMethod) is { IsComImport: true };
 
