@@ -238,11 +238,11 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
             await designTimeBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
             designTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
             await Task.WhenAll(firstLoad, secondLoad).WaitAsync(TestHelpers.HangMitigatingTimeout);
-
-            Assert.Contains(firstReporter.Reports, report => report is LSP.WorkDoneProgressReport { Percentage: 99 });
-            Assert.Contains(secondReporter.Reports, report => report is LSP.WorkDoneProgressReport { Percentage: 99 });
         }
 
+        // Disposing the trackers ensures their asynchronous progress queues have finished reporting.
+        Assert.Contains(firstReporter.Reports, report => report is LSP.WorkDoneProgressReport { Percentage: 99 });
+        Assert.Contains(secondReporter.Reports, report => report is LSP.WorkDoneProgressReport { Percentage: 99 });
         Assert.Equal(1, loader.DesignTimeBuildCount);
     }
 
