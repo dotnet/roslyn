@@ -529,6 +529,7 @@ internal enum FunctionId
     InheritanceMargin_GetInheritanceMemberItems = 493,
 
     LSP_FindDocumentInWorkspace = 494,
+    LSP_SymbolRequest_EmptyResult = 495,
 
     SuggestedActions_GetSuggestedActionsAsync = 500,
 
