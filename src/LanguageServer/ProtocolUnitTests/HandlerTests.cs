@@ -49,7 +49,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         var workspaceFolder = new WorkspaceFolder { DocumentUri = new("file:///Workspace"), Name = "Workspace" };
         var equivalentWorkspaceFolder = new WorkspaceFolder { DocumentUri = new("file:///Workspace/"), Name = "Workspace" };
         var eventCount = 0;
-        tracker.WorkspaceFoldersChanged += () => eventCount++;
+        tracker.WorkspaceFoldersChanged += (_, _) => eventCount++;
 
         tracker.Update([workspaceFolder], removedFolders: null);
         var workspaceFolders = tracker.GetRequiredWorkspaceFolderPaths();
