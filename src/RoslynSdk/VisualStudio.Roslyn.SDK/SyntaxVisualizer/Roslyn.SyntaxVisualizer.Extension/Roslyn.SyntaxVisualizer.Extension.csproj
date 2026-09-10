@@ -8,6 +8,7 @@
     <IsProductComponent>false</IsProductComponent>
     <UseWpf>true</UseWpf>
     <GenerateResourceUsePreserializedResources Condition="'$(MSBuildRuntimeType)' == 'Core'">true</GenerateResourceUsePreserializedResources>
+    <PublishWindowsPdb>true</PublishWindowsPdb>
 
     <!-- VSIX -->
     <CreateVsixContainer>false</CreateVsixContainer>

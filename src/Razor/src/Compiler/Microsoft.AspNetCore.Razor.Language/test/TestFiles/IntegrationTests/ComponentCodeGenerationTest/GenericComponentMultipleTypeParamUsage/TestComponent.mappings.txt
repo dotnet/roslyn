@@ -23,20 +23,3 @@ Source Location: (190:10,23 [3] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (1255:46,0 [3] )
 |int|
 
-Source Location: (44:2,7 [118] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    [Parameter]
-    public TItem MyItem { get; set; }
-
-    [Parameter]
-    public TItem2 MyItem2 { get; set; }
-|
-Generated Location: (1500:57,0 [118] )
-|
-    [Parameter]
-    public TItem MyItem { get; set; }
-
-    [Parameter]
-    public TItem2 MyItem2 { get; set; }
-|
-

@@ -282,11 +282,11 @@ public struct StructWithValue
 
         private static IEnumerable<object[]> GetTestParameters()
         {
-            foreach (var compilationOptions in GetCompilationOptions())
+            foreach (var parseOptions in GetCSharpParseOptions())
             {
-                foreach (var emitOptions in DeterministicBuildCompilationTestHelpers.GetEmitOptions())
+                foreach (var compilationOptions in GetCompilationOptions(parseOptions))
                 {
-                    foreach (var parseOptions in GetCSharpParseOptions())
+                    foreach (var emitOptions in DeterministicBuildCompilationTestHelpers.GetEmitOptions())
                     {
                         yield return new object[] { compilationOptions, emitOptions, parseOptions };
                     }
@@ -294,7 +294,7 @@ public struct StructWithValue
             }
         }
 
-        private static IEnumerable<CSharpCompilationOptions> GetCompilationOptions()
+        private static IEnumerable<CSharpCompilationOptions> GetCompilationOptions(CSharpParseOptions parseOptions)
         {
             // Provide non default options for to test that they are being serialized
             // to the pdb correctly. It needs to produce a compilation to be emitted, but otherwise
@@ -335,7 +335,8 @@ public struct StructWithValue
                 referencesSupersedeLowerVersions: false,
                 publicSign: false,
                 topLevelBinderFlags: BinderFlags.None,
-                nullableContextOptions: NullableContextOptions.Enable);
+                nullableContextOptions: NullableContextOptions.Enable,
+                memorySafetyRulesVersion: parseOptions.LanguageVersion >= MessageID.IDS_FeatureUnsafeEvolution.RequiredVersion() ? MemorySafetyRulesVersion.Version2 : MemorySafetyRulesVersion.Version1);
 
             yield return defaultOptions;
             yield return defaultOptions.WithNullableContextOptions(NullableContextOptions.Disable);

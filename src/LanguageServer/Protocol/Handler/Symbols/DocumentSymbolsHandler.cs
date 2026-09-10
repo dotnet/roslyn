@@ -74,12 +74,13 @@ internal sealed class DocumentSymbolsHandler() : ILspServiceDocumentRequestHandl
                 return Array.Empty<DocumentSymbol>();
 
             using var _ = ArrayBuilder<SymbolInformation>.GetInstance(out var symbols);
+            var documentUri = document.GetURI();
             foreach (var item in navBarItems)
             {
-                symbols.AddIfNotNull(GetSymbolInformation(item, document, text, containerName: null, supportsVSExtensions));
+                symbols.AddIfNotNull(GetSymbolInformation(item, documentUri, text, containerName: null, supportsVSExtensions));
 
                 foreach (var childItem in item.ChildItems)
-                    symbols.AddIfNotNull(GetSymbolInformation(childItem, document, text, item.Text, supportsVSExtensions));
+                    symbols.AddIfNotNull(GetSymbolInformation(childItem, documentUri, text, item.Text, supportsVSExtensions));
             }
 
             return symbols.ToArray();
@@ -163,7 +164,7 @@ internal sealed class DocumentSymbolsHandler() : ILspServiceDocumentRequestHandl
     /// Get a symbol information from a specified nav bar item.
     /// </summary>
     private static SymbolInformation? GetSymbolInformation(
-        RoslynNavigationBarItem item, Document document, SourceText text, string? containerName, bool supportsVSExtensions)
+        RoslynNavigationBarItem item, DocumentUri documentUri, SourceText text, string? containerName, bool supportsVSExtensions)
     {
         if (item is not RoslynNavigationBarItem.SymbolItem symbolItem || symbolItem.Location.InDocumentInfo == null)
             return null;
@@ -172,7 +173,7 @@ internal sealed class DocumentSymbolsHandler() : ILspServiceDocumentRequestHandl
         var kind = ProtocolConversions.GlyphToSymbolKind(item.Glyph);
         var location = new LSP.Location()
         {
-            DocumentUri = document.GetURI(),
+            DocumentUri = documentUri,
             Range = ProtocolConversions.TextSpanToRange(symbolItem.Location.InDocumentInfo.Value.navigationSpan, text),
         };
 

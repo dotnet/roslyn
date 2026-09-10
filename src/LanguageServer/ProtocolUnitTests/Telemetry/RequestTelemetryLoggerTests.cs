@@ -23,6 +23,9 @@ public sealed class RequestTelemetryLoggerTests
     [Fact]
     public async Task ReportsEmptyResultPosition()
     {
+        using var telemetry = RoslynTelemetry.SetCurrent(new RoslynTelemetry());
+        var sink = new TestTelemetryEventSink();
+        using var registration = RoslynTelemetry.Current.AddEventSink(sink);
         using var workspace = TestWorkspace.CreateCSharp(
             """
             class C
@@ -31,18 +34,16 @@ public sealed class RequestTelemetryLoggerTests
             }
             """);
         var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
-        var logger = new TestTelemetryLogger();
         var position = new Position(line: 2, character: 0);
+        var logger = new RequestTelemetryLogger(WellKnownLspServerKinds.CSharpVisualBasicLspServer.ToTelemetryString());
 
-        await RequestTelemetryLogger.ReportEmptySymbolResultAsync(
-            logger,
-            WellKnownLspServerKinds.CSharpVisualBasicLspServer.ToTelemetryString(),
+        await logger.ReportEmptySymbolResultAsync(
             Methods.TextDocumentDefinitionName,
             document,
             position,
             CancellationToken.None);
 
-        var telemetryEvent = Assert.Single(logger.PostedEvents);
+        var telemetryEvent = Assert.Single(sink.PostedEvents);
         Assert.Equal("vs/ide/vbcs/lsp/symbolrequest/emptyresult", telemetryEvent.Name);
         var properties = telemetryEvent.Properties;
         var text = await document.GetTextAsync();
@@ -65,6 +66,9 @@ public sealed class RequestTelemetryLoggerTests
     [Fact]
     public async Task ReportsEmptyResultTokenContext()
     {
+        using var telemetry = RoslynTelemetry.SetCurrent(new RoslynTelemetry());
+        var sink = new TestTelemetryEventSink();
+        using var registration = RoslynTelemetry.Current.AddEventSink(sink);
         using var workspace = TestWorkspace.CreateCSharp(
             """
             class C
@@ -76,17 +80,15 @@ public sealed class RequestTelemetryLoggerTests
             }
             """);
         var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
-        var logger = new TestTelemetryLogger();
         var position = new Position(line: 4, character: 8);
-        await RequestTelemetryLogger.ReportEmptySymbolResultAsync(
-            logger,
-            WellKnownLspServerKinds.CSharpVisualBasicLspServer.ToTelemetryString(),
+        var logger = new RequestTelemetryLogger(WellKnownLspServerKinds.CSharpVisualBasicLspServer.ToTelemetryString());
+        await logger.ReportEmptySymbolResultAsync(
             Methods.TextDocumentDefinitionName,
             document,
             position,
             CancellationToken.None);
 
-        var properties = Assert.Single(logger.PostedEvents).Properties;
+        var properties = Assert.Single(sink.PostedEvents).Properties;
         var text = await document.GetTextAsync();
         var root = await document.GetSyntaxRootAsync();
         var token = root!.FindToken(text.Lines.GetPosition(new LinePosition(position.Line, position.Character)), findInsideTrivia: true);
@@ -105,18 +107,19 @@ public sealed class RequestTelemetryLoggerTests
     [InlineData(0, 8, "CharacterOutOfRange")]
     public async Task ReportsInvalidPosition(int line, int character, string expectedPositionKind)
     {
+        using var telemetry = RoslynTelemetry.SetCurrent(new RoslynTelemetry());
+        var sink = new TestTelemetryEventSink();
+        using var registration = RoslynTelemetry.Current.AddEventSink(sink);
         using var workspace = TestWorkspace.CreateCSharp("class C");
         var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
-        var logger = new TestTelemetryLogger();
-        await RequestTelemetryLogger.ReportEmptySymbolResultAsync(
-            logger,
-            WellKnownLspServerKinds.CSharpVisualBasicLspServer.ToTelemetryString(),
+        var logger = new RequestTelemetryLogger(WellKnownLspServerKinds.CSharpVisualBasicLspServer.ToTelemetryString());
+        await logger.ReportEmptySymbolResultAsync(
             Methods.TextDocumentDefinitionName,
             document,
             new Position(line, character),
             CancellationToken.None);
 
-        var properties = Assert.Single(logger.PostedEvents).Properties;
+        var properties = Assert.Single(sink.PostedEvents).Properties;
         Assert.Equal(line, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.line"]);
         Assert.Equal(character, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.character"]);
         Assert.Equal(1, properties["vs.ide.vbcs.lsp.symbolrequest.emptyresult.linecount"]);
@@ -146,24 +149,18 @@ public sealed class RequestTelemetryHandlerTests(ITestOutputHelper testOutputHel
             """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
         using var progress = BufferedProgress.Create<object>(null);
-        var logger = new TestTelemetryLogger();
-        var previousLogger = Logger.SetLogger(logger);
+        using var telemetry = RoslynTelemetry.SetCurrent(new RoslynTelemetry());
+        var sink = new TestTelemetryEventSink();
+        using var registration = RoslynTelemetry.Current.AddEventSink(sink);
 
-        try
-        {
-            var results = await References.FindAllReferencesHandlerTests.RunFindAllReferencesAsync(
-                testLspServer,
-                testLspServer.GetLocations("caret").Single(),
-                progress);
+        var results = await References.FindAllReferencesHandlerTests.RunFindAllReferencesAsync(
+            testLspServer,
+            testLspServer.GetLocations("caret").Single(),
+            progress);
 
-            Assert.NotEmpty(results);
-            Assert.DoesNotContain(
-                logger.PostedEvents,
-                telemetryEvent => telemetryEvent.Name == "vs/ide/vbcs/lsp/symbolrequest/emptyresult");
-        }
-        finally
-        {
-            Logger.SetLogger(previousLogger);
-        }
+        Assert.NotEmpty(results);
+        Assert.DoesNotContain(
+            sink.PostedEvents,
+            telemetryEvent => telemetryEvent.Name == "vs/ide/vbcs/lsp/symbolrequest/emptyresult");
     }
 }

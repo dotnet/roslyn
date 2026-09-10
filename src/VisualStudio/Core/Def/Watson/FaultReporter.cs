@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 
 namespace Microsoft.CodeAnalysis.ErrorReporting;
@@ -156,7 +155,7 @@ internal static class FaultReporter
 
             var description = GetDescription(exception);
             var faultEvent = new FaultEvent(
-                eventName: TelemetryLogger.GetEventName(FunctionId.NonFatalWatson),
+                eventName: TelemetryNaming.GetEventName(FunctionId.NonFatalWatson),
                 description: description,
                 severity,
                 exceptionObject: exception,

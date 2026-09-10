@@ -37,27 +37,17 @@ internal class RequestTelemetryLogger : IDisposable, ILspService
 
     protected virtual void IncreaseFindDocumentCount(string workspaceCounterMetricName)
     {
-        TelemetryLogging.LogAggregatedCounter(FunctionId.LSP_FindDocumentInWorkspace, KeyValueLogMessage.Create(m =>
-        {
-            m[TelemetryLogging.KeyName] = ServerTypeName + "." + workspaceCounterMetricName;
-            m[TelemetryLogging.KeyValue] = 1L;
-            m[TelemetryLogging.KeyMetricName] = workspaceCounterMetricName;
-            m["server"] = ServerTypeName;
-            m["workspace"] = workspaceCounterMetricName;
-        }));
+        RoslynTelemetry.Current.Count(FunctionId.LSP_FindDocumentInWorkspace, workspaceCounterMetricName, 1,
+            new("server", ServerTypeName),
+            new("workspace", workspaceCounterMetricName));
     }
 
     public void UpdateUsedForkedSolutionCounter(bool usedForkedSolution)
     {
         var metricName = usedForkedSolution ? "ForkedCount" : "NonForkedCount";
-        TelemetryLogging.LogAggregatedCounter(FunctionId.LSP_UsedForkedSolution, KeyValueLogMessage.Create(m =>
-        {
-            m[TelemetryLogging.KeyName] = ServerTypeName + "." + metricName;
-            m[TelemetryLogging.KeyValue] = 1L;
-            m[TelemetryLogging.KeyMetricName] = metricName;
-            m["server"] = ServerTypeName;
-            m["usedForkedSolution"] = usedForkedSolution;
-        }));
+        RoslynTelemetry.Current.Count(FunctionId.LSP_UsedForkedSolution, metricName, 1,
+            new("server", ServerTypeName),
+            new("usedForkedSolution", usedForkedSolution));
     }
 
     public async Task ReportEmptySymbolResultAsync(
@@ -66,21 +56,10 @@ internal class RequestTelemetryLogger : IDisposable, ILspService
         LSP.Position position,
         CancellationToken cancellationToken)
     {
-        var logger = Logger.GetLogger();
-        if (logger?.IsEnabled(FunctionId.LSP_SymbolRequest_EmptyResult) != true)
+        var telemetry = RoslynTelemetry.Current;
+        if (!telemetry.IsEnabled(FunctionId.LSP_SymbolRequest_EmptyResult))
             return;
 
-        await ReportEmptySymbolResultAsync(logger, ServerTypeName, method, document, position, cancellationToken).ConfigureAwait(false);
-    }
-
-    internal static async Task ReportEmptySymbolResultAsync(
-        ILogger logger,
-        string serverTypeName,
-        string method,
-        Document document,
-        LSP.Position position,
-        CancellationToken cancellationToken)
-    {
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var token = default(SyntaxToken);
         var positionKind = GetInvalidPositionKind(text, position, out var optionalLine);
@@ -115,16 +94,9 @@ internal class RequestTelemetryLogger : IDisposable, ILspService
                 properties["tokenRawKind"] = args.token.RawKind;
                 properties["parentNodeRawKind"] = args.token.Parent?.RawKind ?? 0;
             }
-        }, (serverTypeName, method, document, position, text, line, positionKind, isValidLine, isValidPosition, token), logLevel: LogLevel.Information);
+        }, (serverTypeName: ServerTypeName, method, document, position, text, line, positionKind, isValidLine, isValidPosition, token), logLevel: LogLevel.Information);
 
-        try
-        {
-            logger.Log(FunctionId.LSP_SymbolRequest_EmptyResult, logMessage);
-        }
-        finally
-        {
-            logMessage.Free();
-        }
+        telemetry.Log(FunctionId.LSP_SymbolRequest_EmptyResult, logMessage);
     }
 
     public void UpdateTelemetryData(
@@ -135,23 +107,13 @@ internal class RequestTelemetryLogger : IDisposable, ILspService
         Result result)
     {
         // Store the request time metrics per LSP method.
-        TelemetryLogging.LogAggregatedHistogram(FunctionId.LSP_TimeInQueue, KeyValueLogMessage.Create(m =>
-        {
-            m[TelemetryLogging.KeyName] = ServerTypeName;
-            m[TelemetryLogging.KeyValue] = (long)queuedDuration.TotalMilliseconds;
-            m[TelemetryLogging.KeyMetricName] = "TimeInQueue";
-            m["server"] = ServerTypeName;
-        }));
+        RoslynTelemetry.Current.Record(FunctionId.LSP_TimeInQueue, "TimeInQueue", (long)queuedDuration.TotalMilliseconds,
+            new("server", ServerTypeName));
 
-        TelemetryLogging.LogAggregatedHistogram(FunctionId.LSP_RequestDuration, KeyValueLogMessage.Create(m =>
-        {
-            m[TelemetryLogging.KeyName] = ServerTypeName + "." + methodName + "." + language;
-            m[TelemetryLogging.KeyValue] = (long)requestDuration.TotalMilliseconds;
-            m[TelemetryLogging.KeyMetricName] = "RequestDuration";
-            m["server"] = ServerTypeName;
-            m["method"] = methodName;
-            m["language"] = language;
-        }));
+        RoslynTelemetry.Current.Record(FunctionId.LSP_RequestDuration, "RequestDuration", (long)requestDuration.TotalMilliseconds,
+            new("server", ServerTypeName),
+            new("method", methodName),
+            new("language", language));
 
         var metricName = result switch
         {
@@ -161,22 +123,17 @@ internal class RequestTelemetryLogger : IDisposable, ILspService
             _ => throw ExceptionUtilities.UnexpectedValue(result)
         };
 
-        TelemetryLogging.LogAggregatedCounter(FunctionId.LSP_RequestCounter, KeyValueLogMessage.Create(m =>
-        {
-            m[TelemetryLogging.KeyName] = ServerTypeName + "." + methodName + "." + language + "." + metricName;
-            m[TelemetryLogging.KeyValue] = 1L;
-            m[TelemetryLogging.KeyMetricName] = metricName;
-            m["server"] = ServerTypeName;
-            m["method"] = methodName;
-            m["language"] = language;
-        }));
+        RoslynTelemetry.Current.Count(FunctionId.LSP_RequestCounter, metricName, 1,
+            new("server", ServerTypeName),
+            new("method", methodName),
+            new("language", language));
     }
 
     public void Dispose()
     {
         // Ensure that telemetry logged for this server instance is flushed before potentially creating a new instance.
         // This is also called on disposal of the telemetry session, but will no-op if already flushed.
-        TelemetryLogging.Flush();
+        RoslynTelemetry.Current.Flush();
     }
 
     private static string? GetInvalidPositionKind(SourceText text, LSP.Position position, out TextLine? line)

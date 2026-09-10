@@ -6166,6 +6166,9 @@ namespace AnotherTest
         CompileToAssembly(generated, [
                 // (1,31): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
                 //     public partial class TestComponent : BaseComponent<string?>
+                // The component splits into decl and impl partials, each of which repeats the annotated base
+                // type, so the warning is reported once per partial (both mapped to the same Razor location).
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(1, 31),
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(1, 31)
             ]);
     }
@@ -13314,6 +13317,41 @@ namespace Test
                 public class Image : ComponentBase
                 {
                     [Parameter, AssetPath] public string Source { get; set; }
+                }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <Image Source="~/images/logo.png" />
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void TildePath_ComponentParam_InheritedAssetPath()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(AssetPathStubs));
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                public abstract class ImageBase : ComponentBase
+                {
+                    [Parameter, AssetPath]
+                    public virtual string Source { get; set; }
+                }
+
+                public class Image : ImageBase
+                {
+                    [Parameter]
+                    public override string Source { get; set; }
                 }
             }
             """));

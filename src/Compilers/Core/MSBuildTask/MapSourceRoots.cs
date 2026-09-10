@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using Microsoft.CodeAnalysis.CommandLine;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -22,8 +23,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// The <c>MappedPath</c> is either the path (ItemSpec) itself, when <see cref="Deterministic"/> is false, 
     /// or a calculated deterministic source path (starting with prefix '/_/', '/_1/', etc.), otherwise.
     /// </remarks>
-    public sealed class MapSourceRoots : Task
+    [MSBuildMultiThreadableTask]
+    public sealed class MapSourceRoots : Task, IMultiThreadableTask
     {
+        public TaskEnvironment TaskEnvironment { get; set; } = TaskEnvironment.Fallback;
+
         public MapSourceRoots()
         {
             TaskResources = ErrorString.ResourceManager;
@@ -73,26 +77,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         [return: NotNullIfNotNull(nameof(path))]
-        private static string? NormalizePath(string? path)
+        private string? NormalizePath(string? path)
         {
-            // Delete this and call TaskEnvironment.GetFullPathNoThrow.
-            return string.IsNullOrEmpty(path) ? path : EnsureEndsWithSlash(GetFullPathNoThrow(path));
-        }
-
-        /// <summary>
-        /// This will be removed in PR https://github.com/dotnet/roslyn/pull/84421 once these changes are
-        /// merged into the main branch. The TaskEnvironment.GetFullPathNoThrow method should be used instead.
-        /// </summary>
-        internal static string GetFullPathNoThrow(string path)
-        {
-            try
-            {
-#pragma warning disable RS0030 // Do not used banned APIs
-                path = Path.GetFullPath(path);
-#pragma warning restore RS0030 // Do not used banned APIs
-            }
-            catch (Exception e) when (Utilities.IsIoRelatedException(e)) { }
-            return path;
+            return string.IsNullOrEmpty(path) ? path : EnsureEndsWithSlash(TaskEnvironment.GetFullPathNoThrow(path));
         }
 
         private static string EnsureEndsWithSlash(string path)
@@ -203,7 +190,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                             // Normalize nested root.
                             if (Utilities.TryCombine(containingRoot, nestedRoot, out var combinedPath))
                             {
-                                var fullOriginalPath = GetFullPathNoThrow(combinedPath);
+                                var fullOriginalPath = TaskEnvironment.GetFullPathNoThrow(combinedPath);
                                 if (fullOriginalPath.StartsWith(containingRoot, StringComparison.OrdinalIgnoreCase))
                                 {
                                     nestedRoot = fullOriginalPath.Substring(containingRoot.Length);

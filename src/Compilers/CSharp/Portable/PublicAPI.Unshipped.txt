@@ -72,6 +72,8 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.UnionDeclaration(Microsoft.Co
 
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ClosedKeyword = 8453 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.MemorySafetyRulesVersion.get -> Microsoft.CodeAnalysis.MemorySafetyRulesVersion
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithMemorySafetyRulesVersion(Microsoft.CodeAnalysis.MemorySafetyRulesVersion version) -> Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions!
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.SyntaxKind.SafeKeyword = 8454 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax
@@ -92,3 +94,4 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.ClosedKeyword = 8453 -> Microsoft.CodeA
 [RSEXPERIMENTAL006]static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.UnsafeExpression(Microsoft.CodeAnalysis.SyntaxToken keyword, Microsoft.CodeAnalysis.SyntaxToken openParenToken, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! expression, Microsoft.CodeAnalysis.SyntaxToken closeParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax!
 [RSEXPERIMENTAL006]virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitUnsafeExpression(Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax! node) -> void
 [RSEXPERIMENTAL006]virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitUnsafeExpression(Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax! node) -> TResult?
+static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetValueConversion(this Microsoft.CodeAnalysis.Operations.ICoalesceOperation! coalesceExpression) -> Microsoft.CodeAnalysis.CSharp.Conversion

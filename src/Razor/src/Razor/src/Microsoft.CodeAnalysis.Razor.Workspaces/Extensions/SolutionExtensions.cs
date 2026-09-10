@@ -77,7 +77,7 @@ internal static class SolutionExtensions
         identity = default;
 
         // Generated document Uris are computed by Roslyn so should always be parsable
-        if (generatedDocumentUri.ParsedUri is not { } parsedUri)
+        if (generatedDocumentUri.ParsedDocumentUri is not { } parsedUri)
         {
             return false;
         }

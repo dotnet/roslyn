@@ -4336,6 +4336,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadCompilationOptionValue" xml:space="preserve">
     <value>Invalid '{0}' value: '{1}'.</value>
   </data>
+  <data name="ERR_BadCompilationOptionValueAccepted" xml:space="preserve">
+    <value>Invalid '{0}' value: '{1}'. Accepted values are: {2}</value>
+    <comment>{2} is a comma-separated list.</comment>
+  </data>
   <data name="ERR_BadAppConfigPath" xml:space="preserve">
     <value>AppConfigPath must be absolute.</value>
   </data>
@@ -5892,6 +5896,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ISpreadOperationIsNotCSharpSpread" xml:space="preserve">
     <value>{0} is not a valid C# spread operation</value>
+  </data>
+  <data name="ICoalesceOperationIsNotCSharpCoalesceOperation" xml:space="preserve">
+    <value>{0} is not a valid C# coalesce operation</value>
   </data>
   <data name="WRN_FilterIsConstantFalse" xml:space="preserve">
     <value>Filter expression is a constant 'false', consider removing the catch clause</value>

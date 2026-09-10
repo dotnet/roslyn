@@ -58,7 +58,6 @@ try {
   " --exclude net472\Microsoft.VisualStudio.LanguageServices.Implementation.dll" +
   " --exclude net472\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll" +
   " --exclude net472\Roslyn.Hosting.Diagnostics.dll" +
-  " --exclude net472\Roslyn.VisualStudio.DiagnosticsWindow.dll" +
   # Match Roslyn's existing WindowsDesktop VS package exclusions, which still rebuild with output differences.
   " --exclude net472\Microsoft.VisualStudio.RazorExtension.dll" +
   # BuildValidator cannot reliably replay Roslyn SDK WindowsDesktop VS extension builds because

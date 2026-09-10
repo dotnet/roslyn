@@ -3,12 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.IO;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-
-// https://github.com/dotnet/roslyn/issues/84893
-#pragma warning disable RS0030
+using Microsoft.CodeAnalysis.CommandLine;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -16,8 +13,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// By default, this task copies the source over to the destination. 
     /// But if we're able to check that they are identical, the destination is left untouched.
     /// </summary>
-    public sealed class CopyRefAssembly : Task
+    [MSBuildMultiThreadableTask]
+    public sealed class CopyRefAssembly : Task, IMultiThreadableTask
     {
+        public TaskEnvironment TaskEnvironment { get; set; } = TaskEnvironment.Fallback;
+
         [Required]
         public string SourcePath { get; set; }
 
@@ -36,18 +36,21 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         public override bool Execute()
         {
-            if (!File.Exists(SourcePath))
+            AbsolutePath fullSourcePath = string.IsNullOrEmpty(SourcePath) ? default : TaskEnvironment.GetAbsolutePath(SourcePath);
+            AbsolutePath fullDestinationPath = string.IsNullOrEmpty(DestinationPath) ? default : TaskEnvironment.GetAbsolutePath(DestinationPath);
+
+            if (!TaskEnvironment.FileExists(fullSourcePath))
             {
                 Log.LogErrorWithCodeFromResources("General_ExpectedFileMissing", SourcePath);
                 return false;
             }
 
-            if (File.Exists(DestinationPath))
+            if (TaskEnvironment.FileExists(fullDestinationPath))
             {
                 var source = Guid.Empty;
                 try
                 {
-                    source = ExtractMvid(SourcePath);
+                    source = ExtractMvid(fullSourcePath);
                 }
                 catch (Exception e)
                 {
@@ -62,7 +65,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 {
                     try
                     {
-                        Guid destination = ExtractMvid(DestinationPath);
+                        Guid destination = ExtractMvid(fullDestinationPath);
 
                         if (!source.Equals(Guid.Empty) && source.Equals(destination))
                         {
@@ -70,7 +73,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                             return true;
                         }
 
-                        Log.LogMessageFromResources(MessageImportance.Low, "CopyRefAssembly_Changed", SourcePath, File.GetLastWriteTimeUtc(SourcePath).ToString("O"), source, DestinationPath, File.GetLastWriteTimeUtc(DestinationPath).ToString("O"), destination);
+                        Log.LogMessageFromResources(MessageImportance.Low, "CopyRefAssembly_Changed", SourcePath, TaskEnvironment.GetLastWriteTimeUtc(fullSourcePath).ToString("O"), source, DestinationPath, TaskEnvironment.GetLastWriteTimeUtc(fullDestinationPath).ToString("O"), destination);
                     }
                     catch (Exception)
                     {
@@ -79,15 +82,18 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
             }
 
-            return Copy();
+            return Copy(fullSourcePath, fullDestinationPath);
         }
 
-        private bool Copy()
+        private bool Copy(AbsolutePath fullSourcePath, AbsolutePath fullDestinationPath)
         {
             try
             {
                 Log.LogMessageFromResources(MessageImportance.Normal, "CopyRefAssembly_Copying", SourcePath, DestinationPath);
-                File.Copy(SourcePath, DestinationPath, overwrite: true);
+                TaskEnvironment.FileCopy(
+                    fullSourcePath,
+                    fullDestinationPath,
+                    overwrite: true);
             }
             catch (Exception e)
             {
@@ -99,9 +105,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return true;
         }
 
-        private Guid ExtractMvid(string path)
+        private Guid ExtractMvid(AbsolutePath path)
         {
-            using (FileStream source = File.OpenRead(path))
+            using (var source = TaskEnvironment.FileOpenRead(path))
             {
                 return MvidReader.ReadAssemblyMvidOrEmpty(source);
             }
