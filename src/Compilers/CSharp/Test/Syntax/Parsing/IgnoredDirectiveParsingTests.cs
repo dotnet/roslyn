@@ -440,11 +440,11 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/85203")]
-    public void InDisabledRegion(bool script, bool fileBasedProgram, bool afterToken, bool nested)
+    public void InConditionalRegion(bool script, bool condition, bool fileBasedProgram, bool afterToken, bool nested)
     {
         var source = $$"""
             {{(afterToken ? "class C { }" : "")}}
-            #if false
+            #if {{(condition ? "true" : "false")}}
             {{(nested ? "#if true" : "")}}
             #:package System.Threading.RateLimiting@10.0.11
             {{(nested ? "#endif" : "")}}
@@ -458,11 +458,21 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
 
         var tree = SyntaxFactory.ParseSyntaxTree(source, options);
         var directive = tree.GetRoot().GetDirectives().OfType<IgnoredDirectiveTriviaSyntax>().Single();
-        Assert.False(directive.IsActive);
+        Assert.Equal(condition, directive.IsActive);
 
         if (afterToken)
         {
-            tree.GetDiagnostics().Verify();
+            if (condition)
+            {
+                tree.GetDiagnostics().Verify(
+                    // (4,2): error CS9297: '#:' directives cannot be after first token in file
+                    // #:package System.Threading.RateLimiting@10.0.11
+                    Diagnostic(ErrorCode.ERR_PPIgnoredFollowsToken, ":").WithLocation(4, 2));
+            }
+            else
+            {
+                tree.GetDiagnostics().Verify();
+            }
         }
         else
         {
@@ -494,32 +504,13 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
             options = options.WithFeature(FeatureName);
         }
 
-        var commonDiagnostics = new[]
-        {
+        SyntaxFactory.ParseSyntaxTree(source, options).GetDiagnostics().Verify(
             // (2,2): error CS9299: '#:' directives cannot be after '#if' directive
             // #:a
             Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(2, 2),
             // (4,2): error CS9299: '#:' directives cannot be after '#if' directive
             // #:c
-            Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(4, 2),
-        };
-
-        var tree = SyntaxFactory.ParseSyntaxTree(source, options);
-
-        if (fileBasedProgram)
-        {
-            tree.GetDiagnostics().Verify(commonDiagnostics);
-        }
-        else
-        {
-            tree.GetDiagnostics().Verify(
-            [
-                .. commonDiagnostics,
-                // error CS9298: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')
-                // #:b
-                Diagnostic(ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram, ":"),
-            ]);
-        }
+            Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(4, 2));
     }
 
     [Theory, CombinatorialData]
@@ -548,8 +539,7 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
             options = options.WithFeature(FeatureName);
         }
 
-        var commonDiagnostics = new[]
-        {
+        SyntaxFactory.ParseSyntaxTree(source, options).GetDiagnostics().Verify(
             // (2,2): error CS9299: '#:' directives cannot be after '#if' directive
             // #:a
             Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(2, 2),
@@ -561,25 +551,7 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
             Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(6, 2),
             // (8,2): error CS9299: '#:' directives cannot be after '#if' directive
             // #:d
-            Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(8, 2),
-        };
-
-        var tree = SyntaxFactory.ParseSyntaxTree(source, options);
-
-        if (fileBasedProgram)
-        {
-            tree.GetDiagnostics().Verify(commonDiagnostics);
-        }
-        else
-        {
-            tree.GetDiagnostics().Verify(
-            [
-                .. commonDiagnostics,
-                // error CS9298: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')
-                // #:a
-                Diagnostic(ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram, ":"),
-            ]);
-        }
+            Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(8, 2));
     }
 
     [Theory, CombinatorialData]
