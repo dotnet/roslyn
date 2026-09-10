@@ -109,11 +109,11 @@ jobs:
         ROSLYN_TEST_SKIP_DIAGNOSTIC_TEST_METHOD: ${{ parameters.diagnosticTestMethod }}
         ROSLYN_TEST_SKIP_ILASM_DIAGNOSTIC: ${{ parameters.ilasmDiagnostic }}
 
-    # Persist the updated PASS store only when the whole leg (tests included) was green. This is the
-    # authoritative soundness gate: a failed leg publishes nothing, so its assemblies re-run next time.
+    # RunTests adds PASS records only after every Helix work item succeeds. Publishing after a test
+    # failure preserves earlier verified records without adding a PASS for the failed closure.
     - task: PublishPipelineArtifact@1
       displayName: Publish test-skip store
-      condition: succeeded()
+      condition: succeededOrFailed()
       inputs:
         targetPath: $(Agent.TempDirectory)/testskipstore
         artifact: testskip-$(TestSkipStoreGeneration)-${{ parameters.jobName }}
