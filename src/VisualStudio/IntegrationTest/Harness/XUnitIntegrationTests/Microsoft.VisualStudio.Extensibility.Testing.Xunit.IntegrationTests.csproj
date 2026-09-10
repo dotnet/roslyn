@@ -3,6 +3,7 @@
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
+    <OutputType>Exe</OutputType>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
