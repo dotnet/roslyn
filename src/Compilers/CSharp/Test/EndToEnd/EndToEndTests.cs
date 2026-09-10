@@ -25,7 +25,6 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
 {
-    [TestCaseOrderer("XUnit.Project.Orderers.AlphabeticalOrderer", "XUnit.Project")]
     public class EndToEndTests : EmitMetadataTestBase
     {
         /// <summary>
