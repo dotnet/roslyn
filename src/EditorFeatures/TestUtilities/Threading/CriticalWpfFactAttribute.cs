@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Roslyn.Test.Utilities;
 
@@ -13,6 +14,13 @@ namespace Roslyn.Test.Utilities;
 /// </summary>
 public class CriticalWpfFactAttribute : WpfFactAttribute
 {
+    public CriticalWpfFactAttribute(
+        [CallerFilePath] string sourceFilePath = null,
+        [CallerLineNumber] int sourceLineNumber = -1)
+        : base(sourceFilePath, sourceLineNumber)
+    {
+    }
+
     [Obsolete("Critical tests cannot be skipped.", error: true)]
     public new string Skip
     {
