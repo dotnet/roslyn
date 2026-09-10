@@ -73,6 +73,7 @@ static void FinalizeRoot(
     }
 
     var pairs = new List<(string Pe, string Pdb)>();
+    var unpairedPdbs = new List<string>();
     foreach (var pdbPath in Directory.EnumerateFiles(root, "*.pdb", SearchOption.AllDirectories))
     {
         if (!PortablePdbContainsMarker(pdbPath, marker))
@@ -87,6 +88,13 @@ static void FinalizeRoot(
         }.Where(File.Exists)
             .Where(candidate => PeReferencesPortablePdb(candidate, pdbPath))
             .ToArray();
+        if (candidates.Length == 0 && !failOnEmbedded)
+        {
+            var relativePath = Path.GetRelativePath(root, pdbPath);
+            unpairedPdbs.Add(relativePath);
+            Console.Error.WriteLine($"Marker-bearing PDB has no matching PE: {relativePath}");
+            continue;
+        }
         if (candidates.Length != 1)
         {
             throw new InvalidOperationException(
@@ -131,6 +139,7 @@ static void FinalizeRoot(
 
     Console.WriteLine($"Finalized files: {pairs.Count}");
     Console.WriteLine($"Embedded files reported: {embeddedPaths.Count}");
+    Console.WriteLine($"Unpaired PDBs reported: {unpairedPdbs.Count}");
     Console.WriteLine($"Output root: {outputRoot}");
 }
 
