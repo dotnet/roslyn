@@ -77,12 +77,13 @@ Identify the three named branches (`main`, `release/insiders`, `release/stable`)
 > **Do not use this list alone to populate the email's SDK columns.** A source channel selects builds for subscriptions; it does not identify every SDK destination consuming those builds. One source channel can feed multiple VMR branches and therefore multiple SDK versions. Determine actual SDK destinations from subscriptions in step 1.3.
 
 **Step B — Read versions and configs** from all three branches:
-- Fetch `eng/Versions.props` from each branch to get the current version.
-  - For roslyn: VS version = `Major + 13`.`Minor` (e.g., Roslyn 5.6 → VS 18.6).
-- Razor versions are also in `eng/Versions.props` (same file as Roslyn's version), using `Razor`-prefixed property names. Razor has **two independent versions**:
-  - **Razor VSIX/Addin version**: use `<RazorVsixVersionPrefix>` directly (e.g., `18.8.1`). Tracks the Visual Studio version like the rest of the snap cascade. `<RazorAddinMajorVersion>` tracks the major.minor (e.g., `18.8`).
+- Fetch `eng/Versions.props` from each branch to get the current Roslyn package version and VS component train version.
+  - For roslyn: Roslyn packages use `<MajorVersion>.<MinorVersion>.<PatchVersion>` (e.g., `5.6.0`), while VS-train components use the independent `<VsMajorVersion>.<VsMinorVersion>` pair (e.g., `18.6`).
+- VS component and Razor SDK versions are also in `eng/Versions.props` (same file as Roslyn's version):
+  - **VS component train version**: read `<VsMajorVersion>` and `<VsMinorVersion>` (e.g., `18` and `8`). These shared properties drive VS-train components for Razor tooling and EditorConfig. During a normal VS-train minor bump, update only these shared properties; keep `<RazorVsixPatchVersion>` (`1`) and `<EditorConfigPatchVersion>` (`0`) unchanged.
+  - **Derived VS component values**: do **not** directly edit `<RazorVsixVersionPrefix>`, `<RazorAddinMajorVersion>`, `<EditorConfigVersionPrefix>`, or `<EditorConfigAssemblyVersion>` during a snap. They derive from `<VsMajorVersion>`/`<VsMinorVersion>` plus their patch constants (for example, `RazorVsixVersionPrefix` = `VsMajorVersion.VsMinorVersion.RazorVsixPatchVersion`, `EditorConfigVersionPrefix` = `VsMajorVersion.VsMinorVersion.EditorConfigPatchVersion`, and `EditorConfigAssemblyVersion` = `VsMajorVersion.VsMinorVersion.0.0`).
   - **Razor SDK version**: read `<RazorMajorVersion>` and `<RazorMinorVersion>` (e.g., `10.4`). Tracks the **.NET SDK band** Razor ships into, **not** the VS version. The mapping is `.NET <Major>.0.<Band>xx SDK` <-> Razor `<Major>.<Band>` (e.g., `.NET 10.0.4xx SDK` <-> Razor `10.4`, `.NET 11.0.1xx SDK` <-> Razor `11.1`).
-  - Note: `src/Razor/Directory.Build.props` maps these `Razor`-prefixed properties to the standard MSBuild properties (`MajorVersion`, `MinorVersion`, etc.) for Razor projects. During a snap, only edit `eng/Versions.props` — the Razor props file should not need changes.
+  - Note: `src/Razor/Directory.Build.props` maps these `Razor`-prefixed properties to the standard MSBuild properties (`MajorVersion`, `MinorVersion`, etc.) for Razor projects, while `src/VisualStudio/EditorConfig/Directory.Build.props` maps the derived EditorConfig properties for EditorConfig projects. During a snap, only edit `eng/Versions.props` — the scoped props files should not need changes.
 - Fetch `eng/config/PublishData.json` from each branch to get insertion config (`vsBranch`, `insertionCreateDraftPR`, `insertionTitlePrefix`).
   - The JSON key is `branchInfo` (roslyn).
 
@@ -260,9 +261,9 @@ After gathering, present **all** planned actions in a numbered list for the user
 
 4. **Update `Versions.props` on `main`**: Bump the minor version (e.g., 5.6.0 → 5.7.0) and reset `PreReleaseVersionLabel` to `1`.
 
-5. **Update Razor versions in `eng/Versions.props`** (roslyn only) -- Razor has two independent versions, both stored as `Razor`-prefixed properties in `eng/Versions.props`:
+5. **Update VS component and Razor SDK versions in `eng/Versions.props`** (roslyn only) -- VS-train components share `<VsMajorVersion>`/`<VsMinorVersion>`, while the Razor SDK band stays independent through `Razor`-prefixed properties:
 
-   **5a. Razor VSIX/Addin version**: bump `<RazorVsixVersionPrefix>` and `<RazorAddinMajorVersion>` minor to track the new VS version (e.g., `18.7.1` -> `18.8.1`, `18.7` -> `18.8`). Always done as part of the snap.
+   **5a. VS component train version**: bump `<VsMajorVersion>` and `<VsMinorVersion>` to track the new VS version (e.g., `18` + `7` -> `18` + `8`). Always done as part of the snap. Keep `<RazorVsixPatchVersion>` and `<EditorConfigPatchVersion>` unchanged during normal VS-train minor bumps. Do **not** directly edit the derived `<RazorVsixVersionPrefix>`, `<RazorAddinMajorVersion>`, `<EditorConfigVersionPrefix>`, or `<EditorConfigAssemblyVersion>` values.
 
    **5b. Razor SDK version**: only update if the branch's SDK default-channel doesn't match the current `<RazorMajorVersion>.<RazorMinorVersion>`. Use the discovery from Phase 1 / Step B.1:
      - If `main` flows to `.NET <Major>.0.<Band>xx SDK` and `<Major>.<Band>` differs from the current `<RazorMajorVersion>.<RazorMinorVersion>` in `eng/Versions.props`, set `<RazorMajorVersion>` and `<RazorMinorVersion>` to match (e.g., `.NET 10.0.4xx SDK` -> `<RazorMajorVersion>10</RazorMajorVersion>`, `<RazorMinorVersion>4</RazorMinorVersion>`). Leave `<RazorPatchVersion>` as `0`.
@@ -517,11 +518,14 @@ Find them with `git ls-files 'src/RoslynAnalyzers/**/*.sarif'` or search via the
 
 These SARIF files are generated and intentionally have no final newline. Perform a byte-preserving replacement: keep the existing encoding, BOM, line endings, and EOF state exactly. Do not deserialize/reserialize the JSON or append a newline. The correctness build regenerates these files and fails if any non-version bytes differ.
 
-**Razor versions in `eng/Versions.props`**: Two independent sets of edits in the Razor PropertyGroups. Read the current file, perform both replacements in memory, then PUT the new content back via the GitHub API.
+**VS component and Razor SDK versions in `eng/Versions.props`**: Read the current file, update the shared VS train properties and any confirmed Razor SDK-band properties in memory, then PUT the new content back via the GitHub API.
 
-- **5a. VSIX/Addin version** -- bump the VS version (always done):
-  - `<RazorVsixVersionPrefix>{oldMajor.Minor}.1</RazorVsixVersionPrefix>` -> `<RazorVsixVersionPrefix>{newMajor.Minor}.1</RazorVsixVersionPrefix>` (e.g., `18.7.1` -> `18.8.1`)
-  - `<RazorAddinMajorVersion>{oldMajor.Minor}</RazorAddinMajorVersion>` -> `<RazorAddinMajorVersion>{newMajor.Minor}</RazorAddinMajorVersion>` (e.g., `18.7` -> `18.8`)
+- **5a. VS component train version** -- bump the shared VS version (always done):
+  - `<VsMajorVersion>{oldMajor}</VsMajorVersion>` -> `<VsMajorVersion>{newMajor}</VsMajorVersion>` when crossing a VS major train; otherwise leave it unchanged (e.g., `18`).
+  - `<VsMinorVersion>{oldMinor}</VsMinorVersion>` -> `<VsMinorVersion>{newMinor}</VsMinorVersion>` (e.g., `7` -> `8`).
+  - Leave `<RazorVsixPatchVersion>1</RazorVsixPatchVersion>` unchanged for normal VS-train minor bumps.
+  - Leave `<EditorConfigPatchVersion>0</EditorConfigPatchVersion>` unchanged for normal VS-train minor bumps.
+  - Do **not** directly edit `<RazorVsixVersionPrefix>`, `<RazorAddinMajorVersion>`, `<EditorConfigVersionPrefix>`, or `<EditorConfigAssemblyVersion>`; they are derived from the shared VS train properties. For example, `VsMajorVersion=18` and `VsMinorVersion=8` derive Razor VSIX `18.8.1`, Razor addin `18.8`, EditorConfig package `18.8.0`, and EditorConfig assembly `18.8.0.0`.
 - **5b. SDK RazorMajorVersion/RazorMinorVersion** -- only if the matching SDK channel exists on `main` and differs from the current value (see Phase 1 / Step B.1):
   - `<RazorMajorVersion>{old}</RazorMajorVersion>` -> `<RazorMajorVersion>{newSdkMajor}</RazorMajorVersion>` (only changes when crossing .NET majors, e.g., 10 -> 11)
   - `<RazorMinorVersion>{old}</RazorMinorVersion>` -> `<RazorMinorVersion>{newSdkBand}</RazorMinorVersion>` (e.g., `0` -> `4` when `main` flows to `.NET 10.0.4xx SDK`)
@@ -743,8 +747,9 @@ After completing the snap, review whether any steps needed to be done differentl
 | Concept | Pattern | Example |
 |---------|---------|---------|
 | Roslyn version | `Major.Minor.Patch` | `5.6.0` |
-| VS version (from roslyn) | `(Major+13).(Minor)` | `18.6` |
-| VS version (from razor RazorVsixVersionPrefix) | Same as RazorVsixVersionPrefix major.minor | `18.6` |
+| VS component train version | `<VsMajorVersion>.<VsMinorVersion>` from `eng/Versions.props`; Razor and EditorConfig derived versions use this shared train | `18.6` |
+| Razor VSIX version | Derived `<RazorVsixVersionPrefix>` = `VsMajorVersion.VsMinorVersion.RazorVsixPatchVersion`; do not edit directly during snaps | `18.6.1` |
+| EditorConfig package/assembly versions | Derived `<EditorConfigVersionPrefix>` = `VsMajorVersion.VsMinorVersion.EditorConfigPatchVersion`; `<EditorConfigAssemblyVersion>` = `VsMajorVersion.VsMinorVersion.0.0`; do not edit directly during snaps | `18.6.0` / `18.6.0.0` |
 | Razor SDK version | `<RazorMajorVersion>.<RazorMinorVersion>` from `eng/Versions.props` | `10.4` |
 | Razor SDK <-> .NET SDK channel | `Razor X.Y` <-> `.NET X.0.Yxx SDK` | `Razor 10.4` <-> `.NET 10.0.4xx SDK` |
 | Named branches | `main` → `release/insiders` → `release/stable` | cascade order |
