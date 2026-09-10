@@ -14,7 +14,6 @@
     <Compile Include="..\..\..\Features\CSharpTest\Diagnostics\AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor.cs" Link="AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" />
     <PackageReference Include="Basic.Reference.Assemblies.Net60" />
     <PackageReference Include="Basic.Reference.Assemblies.Net80" />
     <PackageReference Include="Basic.Reference.Assemblies.Net90" />
@@ -24,6 +23,7 @@
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
+    <ProjectReference Include="..\..\..\RoslynSdk\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.CSharp.CodeFix.Testing\Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />

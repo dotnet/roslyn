@@ -22,6 +22,7 @@ internal sealed class InitializeHandler() : ILspServiceRequestHandler<Initialize
         var clientCapabilitiesManager = context.GetRequiredLspService<IInitializeManager>();
         var clientCapabilities = request.Capabilities;
         clientCapabilitiesManager.SetInitializeParams(request);
+        context.GetRequiredLspService<IWorkspaceFolderTracker>().Update(request.WorkspaceFolders, removedFolders: null);
 
         var lspServices = context.GetRequiredService<ILspServices>();
         var capabilitiesProvider = context.GetRequiredLspService<ICapabilitiesProvider>();

@@ -475,13 +475,14 @@ public class MarkupSplitterTest
     }
 
     [Fact]
-    public void Split_ClassBodyWithInject_FallsBack()
+    public void Split_ClassBodyWithInject_RoutesInjectToDecl()
     {
-        // A component whose @code mixes markup with an @inject cannot be split: the inject is surface the
-        // splitter cannot route, so classification falls back rather than moving it to impl.
+        // A component whose @code mixes markup with an @inject splits: the markup method lifts to impl,
+        // and the @inject (a markup-free surface declaration) routes to the decl half.
         var renderMethod = CreateRenderMethod();
+        var inject = new Components.ComponentInjectIntermediateNode("Foo", "Bar", typeSpan: null, memberSpan: null);
         var primaryClass = CreatePrimaryClass(
-            new Components.ComponentInjectIntermediateNode("Foo", "Bar", typeSpan: null, memberSpan: null),
+            inject,
             CreateCSharpCode("void M(RenderTreeBuilder __builder) { "),
             new MarkupElementIntermediateNode { TagName = "ul" },
             CreateCSharpCode(" }"),
@@ -489,8 +490,16 @@ public class MarkupSplitterTest
 
         var decision = MarkupSplitter.Split(primaryClass, renderMethod, ParserOptions(LanguageVersion.CSharp13));
 
-        var fallback = Assert.IsType<SplitDecision.SplitFallback>(decision);
-        Assert.Equal(FallbackReason.UnsupportedClassBodyNode, fallback.Reason);
+        var plan = Assert.IsType<SplitDecision.SplitPlan>(decision);
+        Assert.Equal(2, plan.Members.Length);
+
+        // The markup method lifts wholly to impl.
+        Assert.Empty(plan.Members[0].DeclPieces);
+        Assert.NotEmpty(plan.Members[0].ImplPieces);
+
+        // The @inject routes to the decl half, carried by reference.
+        Assert.Empty(plan.Members[1].ImplPieces);
+        Assert.Same(inject, Assert.Single(plan.Members[1].DeclPieces));
     }
 
     [Fact]

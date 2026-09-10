@@ -1,0 +1,10 @@
+﻿Source Location: (1:0,1 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Image|
+Generated Location: (703:19,49 [5] )
+|Image|
+
+Source Location: (7:0,7 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|Source|
+Generated Location: (871:23,0 [6] )
+|Source|
+

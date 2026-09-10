@@ -2,6 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
+    <PublishWindowsPdb>true</PublishWindowsPdb>
 
     <!-- VSIX -->
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>

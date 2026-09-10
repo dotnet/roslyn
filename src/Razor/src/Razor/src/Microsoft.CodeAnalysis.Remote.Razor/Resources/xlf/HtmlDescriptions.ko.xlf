@@ -10,8 +10,8 @@
       <trans-unit id="HtmlAttribute_accept-charset">
         <source>A space- or comma-delimited list of character encodings that the server accepts. The browser uses them in the order in which they are listed. The default value, the reserved string `"UNKNOWN"`, indicates the same encoding as that of the document containing the form element. 
 In previous versions of HTML, the different character encodings could be delimited by spaces or commas. In HTML5, only spaces are allowed as delimiters.</source>
-        <target state="translated">서버에서 허용하는 문자 인코딩의 공백 또는 쉼표로 구분된 목록입니다. 브라우저는 나열된 순서대로 사용합니다. 기본값인 예약된 문자열 `"UNKNOWN"`은 양식 요소가 포함된 문서와 같은 인코딩을 나타냅니다. 
-HTML의 이전 버전에서는 서로 다른 문자 인코딩을 공백이나 쉼표로 구분할 수 있었습니다. HTML5에서는 구분 기호로 공백만 허용됩니다.</target>
+        <target state="translated">서버에서 허용하는 문자 인코딩의 공백 또는 쉼표로 구분된 목록입니다. 브라우저는 나열된 순서대로 사용합니다. 기본값인 예약 문자열 `"UNKNOWN"`은 양식 요소를 포함한 문서의 인코딩과 같은 인코딩을 나타냅니다. 
+이전 버전의 HTML에서는 서로 다른 문자 인코딩을 공백이나 쉼표로 구분할 수 있었습니다. HTML5에서는 구분 기호로 공백만 허용됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_accesskey">
@@ -35,7 +35,7 @@ HTML의 이전 버전에서는 서로 다른 문자 인코딩을 공백이나 �
 
 * **Do not use this attribute**, as it has been deprecated. The [`&lt;table&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table "The HTML &lt;table&gt; element represents tabular data — that is, information presented in a two-dimensional table comprised of rows and columns of cells containing data.") element should be styled using [CSS](https://developer.mozilla.org/en-US/docs/CSS). Set [`margin-left`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-left "The margin-left CSS property sets the margin area on the left side of an element. A positive value places it farther from its neighbors, while a negative value places it closer.") and [`margin-right`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-right "The margin-right CSS property sets the margin area on the right side of an element. A positive value places it farther from its neighbors, while a negative value places it closer.") to `auto` or [`margin`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin "The margin CSS property sets the margin area on all four sides of an element. It is a shorthand for margin-top, margin-right, margin-bottom, and margin-left.") to `0 auto` to achieve an effect that is similar to the align attribute.
 * Prior to Firefox 4, Firefox also supported the `middle`, `absmiddle`, and `abscenter` values as synonyms of `center`, in quirks mode only.</source>
-        <target state="translated">이 열거형 특성은 포함하는 문서 안에서 표를 어떻게 정렬할지 나타냅니다. 다음 값을 사용할 수 있습니다.
+        <target state="translated">이 열거형 특성은 포함하는 문서 내에서 표를 정렬하는 방법을 나타냅니다. 다음 값을 사용할 수 있습니다.
 
 * left: 표를 문서의 왼쪽에 표시합니다.
 * center: 표를 문서의 가운데에 표시합니다.
@@ -43,7 +43,7 @@ HTML의 이전 버전에서는 서로 다른 문자 인코딩을 공백이나 �
 
 **사용 참고**
 
-* **이 특성은 사용하지 마세요**. 더 이상 사용되지 않습니다. [`&lt;table&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table "The HTML &lt;table&gt; element represents tabular data — that is, information presented in a two-dimensional table comprised of rows and columns of cells containing data.") 요소는 [CSS](https://developer.mozilla.org/en-US/docs/CSS)를 사용해 스타일을 지정해야 합니다. [`margin-left`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-left "The margin-left CSS property sets the margin area on the left side of an element. A positive value places it farther from its neighbors, while a negative value places it closer.")와 [`margin-right`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-right "The margin-right CSS property sets the margin area on the right side of an element. A positive value places it farther from its neighbors, while a negative value places it closer.")를 `auto`로 설정하거나, [`margin`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin "The margin CSS property sets the margin area on all four sides of an element. It is a shorthand for margin-top, margin-right, margin-bottom, and margin-left.")를 `0 auto`로 설정하면 align 특성과 비슷한 효과를 얻을 수 있습니다.
+* **이 특성은 사용하지 마세요**, 더 이상 사용되지 않습니다. [`&lt;table&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table "HTML &lt;table&gt; 요소는 표 형식 데이터를 나타냅니다. 즉, 데이터가 들어 있는 셀의 행과 열로 이루어진 2차원 표에 표시되는 정보입니다.") 요소는 [CSS](https://developer.mozilla.org/en-US/docs/CSS)를 사용해 스타일을 지정해야 합니다. [`margin-left`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-left "margin-left CSS 속성은 요소의 왼쪽에 여백 영역을 설정합니다. 양수 값은 이웃 요소와 더 멀리 떨어뜨리고, 음수 값은 더 가깝게 둡니다.")와 [`margin-right`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-right "margin-right CSS 속성은 요소의 오른쪽에 여백 영역을 설정합니다. 양수 값은 이웃 요소와 더 멀리 떨어뜨리고, 음수 값은 더 가깝게 둡니다.")를 `auto`로 설정하거나, [`margin`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin "margin CSS 속성은 요소의 네 면 모두에 여백 영역을 설정합니다. It is a shorthand for margin-top, margin-right, margin-bottom, and margin-left.")를 `0 auto`로 설정하면 align 특성과 비슷한 효과를 얻을 수 있습니다.
 * Firefox 4 이전에는 Firefox도 쿼크 모드에서만 `middle`, `absmiddle`, `abscenter` 값을 `center`의 동의어로 지원했습니다.</target>
         <note />
       </trans-unit>
@@ -67,9 +67,9 @@ This attribute is considered a legacy attribute and redefined as `allow="fullscr
 **Note:** Omitting this attribute altogether indicates that the image is a key part of the content, and no textual equivalent is available. Setting this attribute to an empty string (`alt=""`) indicates that this image is _not_ a key part of the content (decorative), and that non-visual browsers may omit it from rendering.</source>
         <target state="translated">이 특성은 이미지에 대한 대체 텍스트 설명을 정의합니다.
 
-**참고:** 브라우저가 항상 요소가 참조하는 이미지를 표시하는 것은 아닙니다. 그래픽을 표시하지 않는 브라우저, 사용자가 이미지 표시를 끈 경우, 또는 이미지가 올바르지 않거나 [지원되지 않는 형식](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/img#Supported_image_formats)인 경우가 그렇습니다. 이런 경우 브라우저는 이 요소의 `alt` 특성에 정의된 텍스트로 이미지를 대체할 수 있습니다. 이런 이유와 다른 이유들 때문에 가능한 한 `alt`에 유용한 값을 제공해야 합니다.
+**참고:** 브라우저가 항상 요소가 참조하는 이미지를 표시하는 것은 아닙니다. 그래픽을 표시하지 않는 브라우저, 사용자가 이미지 표시를 끈 경우, 또는 이미지가 올바르지 않거나 [지원되지 않는 형식](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/img#Supported_image_formats)인 경우가 그렇습니다. 이런 경우 브라우저는 이 요소의 `alt` 특성에 정의된 텍스트로 이미지를 대신할 수 있습니다. 이런 이유와 다른 이유들 때문에 가능한 한 `alt`에 유용한 값을 제공해야 합니다.
 
-**참고:** 이 특성을 아예 생략하면 이미지가 콘텐츠의 핵심 부분이고, 이에 해당하는 텍스트가 없음을 나타냅니다. 이 특성을 빈 문자열(`alt=""`)로 설정하면 이 이미지가 콘텐츠의 핵심 부분이 _아니며_ 장식용이고, 비시각적 브라우저는 렌더링에서 이를 생략할 수 있음을 나타냅니다.</target>
+**참고:** 이 특성을 아예 생략하면 이미지가 콘텐츠의 핵심 부분이고, 이에 해당하는 텍스트가 없음을 나타냅니다. 이 특성에 빈 문자열(`alt=""`)을 설정하면 이 이미지가 콘텐츠의 핵심 부분이 _아니며_(장식용), 비시각적 브라우저가 렌더링에서 이를 생략할 수 있음을 뜻합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_as">
@@ -89,13 +89,13 @@ Dynamically inserted scripts (using [`document.createElement()`](https://develop
 See [Browser compatibility](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/script#Browser_compatibility) for notes on browser support. See also [Async scripts for asm.js](https://developer.mozilla.org/en-US/docs/Games/Techniques/Async_scripts).</source>
         <target state="translated">이 부울 특성은 가능하면 브라우저가 스크립트를 비동기적으로 로드해야 함을 나타냅니다.
 
-이 특성은 `src` 특성이 없는 경우, 즉 인라인 스크립트에는 사용하면 안 됩니다. 이 경우에는 포함해도 효과가 없습니다.
+`src` 특성이 없는 경우(즉, 인라인 스크립트의 경우) 이 특성을 사용하면 안 됩니다. 이 경우에는 포함해도 효과가 없습니다.
 
 브라우저는 일반적으로 최악의 경우를 가정하고 HTML 구문 분석 중에 스크립트를 동기적으로 로드합니다. 즉, `async="false"`입니다.
 
 동적으로 삽입된 스크립트([`document.createElement()`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement "HTML 문서에서 document.createElement() 메서드는 tagName으로 지정한 HTML 요소를 만들거나, tagName을 인식하지 못하면 HTMLUnknownElement를 만듭니다.") 사용)는 기본적으로 비동기적으로 로드됩니다. 따라서 동기식 로드를 사용하려면, 즉 스크립트가 삽입된 순서대로 로드되게 하려면 `async="false"`로 설정하세요.
 
-브라우저 지원에 대한 참고 사항은 [Browser compatibility](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/script#Browser_compatibility)를 참조하세요. 또한 [Async scripts for asm.js](https://developer.mozilla.org/en-US/docs/Games/Techniques/Async_scripts)도 참조하세요.</target>
+브라우저 지원에 대한 참고 사항은 [브라우저 호환성](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/script#Browser_compatibility)을 참조하세요. [asm.js에 대한 비동기 스크립트](https://developer.mozilla.org/en-US/docs/Games/Techniques/Async_scripts)도 참조하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_autocapitalize">
@@ -105,10 +105,9 @@ See [Browser compatibility](https://developer.mozilla.org/docs/Web/HTML/Referenc
 * `on` or `sentences`, the first letter of each sentence defaults to a capital letter; all other letters default to lowercase
 * `words`, the first letter of each word defaults to a capital letter; all other letters default to lowercase
 * `characters`, all letters should default to uppercase</source>
-        <target state="translated">사용자가 텍스트를 입력하거나 편집할 때 텍스트가 자동으로 대문자로 바뀔지, 그리고 어떻게 바뀔지 제어합니다.
+        <target state="translated">사용자가 텍스트를 입력하거나 편집할 때 텍스트가 자동으로 대문자로 바뀔지, 그리고 어떻게 바뀔지 제어합니다. 다음 값을 사용할 수 있습니다.
 
-사용할 수 있는 값은 다음과 같습니다.
-* `off` 또는 `none`: 자동 대문자 표시를 적용하지 않습니다. 모든 문자는 기본적으로 소문자입니다.
+* `off` 또는 `none`, 자동 캡슐화가 적용되지 않음(모든 문자 기본값은 소문자로)
 * `on` 또는 `sentences`: 각 문장의 첫 글자는 기본적으로 대문자이며, 나머지 문자는 기본적으로 소문자입니다.
 * `words`: 각 단어의 첫 글자는 기본적으로 대문자이며, 나머지 문자는 기본적으로 소문자입니다.
 * `characters`: 모든 문자는 기본적으로 대문자입니다.</target>
@@ -122,13 +121,13 @@ See [Browser compatibility](https://developer.mozilla.org/docs/Web/HTML/Referenc
 
 For most modern browsers (including Firefox 38+, Google Chrome 34+, IE 11+) setting the autocomplete attribute will not prevent a browser's password manager from asking the user if they want to store login fields (username and password), if the user permits the storage the browser will autofill the login the next time the user visits the page. See [The autocomplete attribute and login fields](https://developer.mozilla.org/en-US/docs/Web/Security/Securing_your_site/Turning_off_form_autocompletion#The_autocomplete_attribute_and_login_fields).
 **Note:** If you set `autocomplete` to `off` in a form because the document provides its own auto-completion, then you should also set `autocomplete` to `off` for each of the form's `input` elements that the document can auto-complete. For details, see the note regarding Google Chrome in the [Browser Compatibility chart](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/form#compatChart).</source>
-        <target state="translated">입력 요소의 값이 브라우저에서 기본적으로 자동 완성될 수 있는지 나타냅니다. 이 설정은 양식에 속한 요소의 `autocomplete` 특성으로 재정의할 수 있습니다. 가능한 값은 다음과 같습니다.
+        <target state="translated">입력 요소의 값이 기본적으로 브라우저에서 자동 완성될 수 있는지 여부를 나타냅니다. 이 설정은 양식에 속한 요소의 `autocomplete` 특성으로 재정의할 수 있습니다. 사용할 수 있는 값은 다음과 같습니다.
 
 * `off`: 사용자는 매번 각 필드에 값을 직접 입력해야 합니다. 또는 문서가 자체적인 자동 완성 방법을 제공합니다. 브라우저는 항목을 자동으로 완성하지 않습니다.
 * `on`: 브라우저는 사용자가 양식에 이전에 입력한 값을 기준으로 값을 자동으로 완성할 수 있습니다.
 
-대부분의 최신 브라우저(Firefox 38+, Google Chrome 34+, IE 11+ 포함)에서는 autocomplete 특성을 설정해도 브라우저의 암호 관리자가 사용자에게 로그인 필드(사용자 이름 및 암호)를 저장할지 묻는 것을 막지 않습니다. 사용자가 저장을 허용하면 다음에 해당 페이지를 방문할 때 브라우저가 로그인 정보를 자동으로 채웁니다. 자세한 내용은 [The autocomplete attribute and login fields](https://developer.mozilla.org/en-US/docs/Web/Security/Securing_your_site/Turning_off_form_autocompletion#The_autocomplete_attribute_and_login_fields)를 참조하세요.
-**참고:** 문서가 자체 자동 완성 기능을 제공하므로 양식에서 `autocomplete`를 `off`로 설정한 경우, 문서가 자동 완성할 수 있는 양식의 각 `input` 요소에도 `autocomplete`를 `off`로 설정해야 합니다. 자세한 내용은 [Browser Compatibility chart](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/form#compatChart)에서 Google Chrome 관련 참고 사항을 확인하세요.</target>
+대부분의 최신 브라우저(Firefox 38+, Google Chrome 34+, IE 11+ 포함)에서는 autocomplete 특성을 설정해도 브라우저의 암호 관리자가 로그인 필드(사용자 이름 및 암호)를 저장할지 묻는 동작을 막지 않습니다. 사용자가 저장을 허용하면, 다음에 사용자가 페이지를 방문할 때 브라우저가 로그인 정보를 자동으로 채웁니다. 자세한 내용은 [The autocomplete attribute and login fields](https://developer.mozilla.org/en-US/docs/Web/Security/Securing_your_site/Turning_off_form_autocompletion#The_autocomplete_attribute_and_login_fields)를 참조하세요.
+**참고:** 문서가 자체 자동 완성 기능을 제공하므로 양식에서 `autocomplete`를 `off`로 설정한 경우, 문서가 자동 완성할 수 있는 양식의 각 `input` 요소에도 `autocomplete`를 `off`로 설정해야 합니다. 자세한 내용은 [브라우저 호환성 차트](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/form#compatChart)에서 Google Chrome에 대한 메모를 참조하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_autocorrect">
@@ -145,7 +144,7 @@ For most modern browsers (including Firefox 38+, Google Chrome 34+, IE 11+) sett
         <source>This attribute contains a list of space-separated strings. Each string is the `id` of a group of cells that this header applies to.
 
 **Note:** Do not use this attribute as it is obsolete in the latest standard: use the [`scope`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/th#attr-scope) attribute instead.</source>
-        <target state="translated">이 특성은 공백으로 구분된 문자열 목록을 포함합니다. 각 문자열은 이 header가 적용되는 셀 그룹의 `id`입니다.
+        <target state="translated">공백으로 구분된 문자열 목록을 포함합니다. 각 문자열은 이 header가 적용되는 셀 그룹의 `id`입니다.
 
 **참고:** 최신 표준에서는 더 이상 사용되지 않으므로 이 특성을 사용하지 마세요. 대신 [`scope`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/th#attr-scope) 특성을 사용하세요.</target>
         <note />
@@ -168,23 +167,23 @@ For most modern browsers (including Firefox 38+, Google Chrome 34+, IE 11+) sett
 * This [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") element is only one part of the [algorithm to determine a page's character set](https://www.whatwg.org/specs/web-apps/current-work/multipage/parsing.html#encoding-sniffing-algorithm "Algorithm charset page"). The [`Content-Type` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type) and any [Byte-Order Marks](https://developer.mozilla.org/en-US/docs/Glossary/Byte-Order_Mark "The definition of that term (Byte-Order Marks) has not been written yet; please consider contributing it!") override this element.
 * It is strongly recommended to define the character encoding. If a page's encoding is undefined, cross-scripting techniques are possible, such as the [`UTF-7` fallback cross-scripting technique](https://code.google.com/p/doctype-mirror/wiki/ArticleUtf7).
 * The [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") element with a `charset` attribute is a synonym for the pre-HTML5 `&lt;meta http-equiv="Content-Type" content="text/html; charset=_IANAcharset_"&gt;`, where _`IANAcharset`_ contains the value of the equivalent [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) attribute. This syntax is still allowed, although no longer recommended.</source>
-        <target state="translated">이 특성은 페이지의 문자 인코딩을 선언합니다. [문자 인코딩에 대한 표준 IANA MIME 이름](https://www.iana.org/assignments/character-sets)이 들어 있어야 합니다. 표준은 특정 인코딩을 요구하지는 않지만, 다음을 권장합니다.
+        <target state="translated">이 특성은 페이지의 문자 인코딩을 선언합니다. [문자 인코딩에 대한 표준 IANA MIME 이름](https://www.iana.org/assignments/character-sets)을 포함해야 합니다. 표준은 특정 인코딩을 요구하지는 않지만, 다음을 권장합니다.
 
 * 작성자는 [`UTF-8`](https://developer.mozilla.org/en-US/docs/Glossary/UTF-8)을 사용하는 것이 좋습니다.
 * 작성자는 보안 위험을 피하기 위해 ASCII와 호환되지 않는 인코딩은 사용하면 안 됩니다. 이를 지원하지 않는 브라우저는 악성 콘텐츠를 HTML로 해석할 수 있습니다. 이런 문제는 `JIS_C6226-1983`, `JIS_X0212-1990`, `HZ-GB-2312`, `JOHAB`, ISO-2022 계열, EBCDIC 계열에서 발생합니다.
 
-**참고:** ASCII와 호환되지 않는 인코딩은 8비트 코드 포인트 `0x20`~`0x7E`를 Unicode 코드 포인트 `0x0020`~`0x007E`에 매핑하지 않는 인코딩입니다)
+**참고:** ASCII와 호환되지 않는 인코딩은 8비트 코드 포인트 `0x20`부터 `0x7E`까지를 유니코드 코드 포인트 `0x0020`부터 `0x007E`까지에 매핑하지 않는 인코딩입니다)
 
-* 작성자는 `CESU-8`, `UTF-7`, `BOCU-1` 및/또는 `SCSU`를 사용하면 안 됩니다. 이 인코딩들을 이용한 [교차 사이트 스크립팅](https://developer.mozilla.org/en-US/docs/Glossary/Cross-site_scripting) 공격이 입증되었기 때문입니다.
-* 작성자는 `UTF-32`를 사용하면 안 됩니다. 모든 HTML5 인코딩 알고리즘이 이를 `UTF-16`과 구별할 수 있는 것은 아니기 때문입니다.
+* 작성자는 `CESU-8`, `UTF-7`, `BOCU-1` 및/또는 `SCSU` 인코딩들을 이용한 [교차 사이트 스크립팅](https://developer.mozilla.org/en-US/docs/Glossary/Cross-site_scripting) 공격이 입증되었으므로 이 인코딩을 사용하면 안 됩니다.
+* 모든 HTML5 인코딩 알고리즘이 이를 `UTF-16`과 구별할 수 있는 것은 아니므로 작성자는 `UTF-32`를 사용하면 안 됩니다.
 
 **참고:**
 
-* 선언한 문자 인코딩은 페이지를 저장한 인코딩과 일치해야 합니다. 이렇게 하면 문자가 깨지거나 보안 취약점이 생기는 일을 막을 수 있습니다.
-* 인코딩을 선언하는 [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTML &lt;meta&gt; 요소는 다른 HTML 메타 관련 요소로는 표현할 수 없는 메타데이터를 나타냅니다. 예를 들어 &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; 또는 &lt;title&gt;가 있습니다.") 요소는 [`&lt;head&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/head "The HTML &lt;head&gt; element provides general information (metadata) about the document, including its title and links to its scripts and style sheets.") 요소 안에 있어야 하며, **HTML의 처음 1024바이트 안에** 있어야 합니다. 일부 브라우저는 인코딩을 선택하기 전에 해당 바이트만 보기 때문입니다.
-* 이 [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") 요소는 [페이지의 문자 집합을 결정하는 알고리즘](https://www.whatwg.org/specs/web-apps/current-work/multipage/parsing.html#encoding-sniffing-algorithm "Algorithm charset page")의 한 부분일 뿐입니다. [`Content-Type` 헤더](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type)와 모든 [바이트 순서 표시](https://developer.mozilla.org/en-US/docs/Glossary/Byte-Order_Mark "The definition of that term (Byte-Order Marks) has not been written yet; please consider contributing it!")는 이 요소보다 우선합니다.
-* 문자 인코딩은 반드시 정의하는 것이 좋습니다. 페이지의 인코딩이 정의되지 않으면 [`UTF-7` 대체 크로스 스크립팅 기법](https://code.google.com/p/doctype-mirror/wiki/ArticleUtf7) 같은 크로스 스크립팅 기법이 가능해집니다.
-* `charset` 특성이 있는 [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") 요소는 HTML5 이전의 `&lt;meta http-equiv="Content-Type" content="text/html; charset=_IANAcharset_"&gt;`와 같은 의미입니다. 여기서 _`IANAcharset`_은 해당 [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) 특성의 값입니다. 이 구문은 여전히 허용되지만 더 이상 권장되지는 않습니다.</target>
+* 문자가 깨지거나 보안 취약점이 생기는 경우를 방지하기 위해 선언한 문자 인코딩은 페이지를 저장한 인코딩과 일치해야 합니다.
+* 인코딩을 선언하는 [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") 요소는 [`&lt;head&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/head "The HTML &lt;head&gt; element provides general information (metadata) about the document, including its title and links to its scripts and style sheets.") 요소 안에 있어야 하며, **HTML의 처음 1024바이트 안에** 있어야 합니다. 일부 브라우저는 인코딩을 선택하기 전에 해당 바이트만 보기 때문입니다.
+* 이 [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") 요소는 [페이지의 문자 집합을 결정하는 알고리즘](https://www.whatwg.org/specs/web-apps/current-work/multipage/parsing.html#encoding-sniffing-algorithm "Algorithm charset page")의 한 부분일 뿐입니다. [`Content-Type` 헤더](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type) 및 [바이트 순서 표시](https://developer.mozilla.org/en-US/docs/Glossary/Byte-Order_Mark "해당 용어(바이트 순서 표시)의 정의가 아직 작성되지 않았습니다. 기여해 보세요!")가 이 요소를 재정의합니다.
+* 문자 인코딩은 반드시 정의하는 것이 좋습니다. 페이지의 인코딩이 정의되지 않으면 [`UTF-7` 대체 크로스 스크립팅 기법](https://code.google.com/p/doctype-mirror/wiki/ArticleUtf7) 같은 교차 스크립팅 기법이 가능해집니다.
+* `charset` 특성이 있는 [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTML &lt;meta&gt; 요소는 &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; 또는 &lt;title&gt; 같은 다른 HTML 메타 관련 요소로 나타낼 수 없는 메타데이터를 나타냅니다.”) 요소는 HTML5 이전의 `&lt;meta http-equiv="Content-Type" content="text/html; charset=_IANAcharset_"&gt;`과 동의어입니다. 여기서 _`IANAcharset`_에는 해당 [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) 특성의 값이 포함되어 있습니다. 이 구문은 더 이상 권장되지는 않지만 여전히 사용할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_cite">
@@ -217,7 +216,7 @@ For most modern browsers (including Firefox 38+, Google Chrome 34+, IE 11+) sett
 
 * `true` or the _empty string_, which indicates that the element must be editable;
 * `false`, which indicates that the element must not be editable.</source>
-        <target state="translated">요소를 사용자가 편집할 수 있는지 여부를 나타내는 열거형 특성입니다. 편집할 수 있다면 브라우저가 위젯을 수정해 편집을 허용합니다. 이 특성은 다음 값 중 하나를 사용해야 합니다.
+        <target state="translated">사용자가 요소를 편집할 수 있어야 하는지 여부를 나타내는 열거형 특성입니다. 이 경우 브라우저는 편집을 허용하도록 위젯을 수정합니다. 이 특성은 다음 값 중 하나를 사용해야 합니다.
 
 * `true` 또는 _빈 문자열_: 요소를 편집할 수 있어야 함을 나타냅니다.
 * `false`: 요소를 편집할 수 없음을 나타냅니다.</target>
@@ -240,17 +239,17 @@ A cross-origin request (i.e. with an [`Origin`](https://developer.mozilla.org/en
 A cross-origin request (i.e. with an `Origin` HTTP header) is performed along with a credential sent (i.e. a cookie, certificate, and/or HTTP Basic authentication is performed). If the server does not give credentials to the origin site (through [`Access-Control-Allow-Credentials`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials "The Access-Control-Allow-Credentials response header tells browsers whether to expose the response to frontend JavaScript code when the request's credentials mode (Request.credentials) is "include".") HTTP header), the resource will be _tainted_ and its usage restricted.
 
 If the attribute is not present, the resource is fetched without a [CORS](https://developer.mozilla.org/en-US/docs/Glossary/CORS "CORS: CORS (Cross-Origin Resource Sharing) is a system, consisting of transmitting HTTP headers, that determines whether browsers block frontend JavaScript code from accessing responses for cross-origin requests.") request (i.e. without sending the `Origin` HTTP header), preventing its non-tainted usage. If invalid, it is handled as if the enumerated keyword **anonymous** was used. See [CORS settings attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_settings_attributes) for additional information.</source>
-        <target state="translated">이 열거형 특성은 리소스를 가져올 때 [CORS](https://developer.mozilla.org/en-US/docs/Glossary/CORS "CORS: CORS (Cross-Origin Resource Sharing) is a system, consisting of transmitting HTTP headers, that determines whether browsers block frontend JavaScript code from accessing responses for cross-origin requests.")를 사용해야 하는지 여부를 나타냅니다. [CORS 지원 이미지](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_Enabled_Image)는 [⁠`&lt;canvas&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas "Use the HTML &lt;canvas&gt; element with either the canvas scripting API or the WebGL API to draw graphics and animations.") 요소에서 _오염이 되지 않은 상태_로 다시 사용할 수 있습니다. 허용되는 값은 다음과 같습니다.
+        <target state="translated">이 열거형 특성은 리소스를 가져올 때 [CORS](https://developer.mozilla.org/en-US/docs/Glossary/CORS "CORS: CORS(Cross-Origin Resource Sharing)는 HTTP 헤더를 전송하는 시스템으로, 브라우저가 교차 출처 요청에 대한 응답에 프런트엔드 JavaScript 코드가 액세스하는 것을 차단해야 하는지 여부를 결정합니다.")를 사용해야 하는지 나타냅니다. [CORS가 활성화된 이미지](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_Enabled_Image)는 _오염되지 않은 상태_로 [`&lt;canvas&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas "HTML &lt;canvas&gt; 요소는 캔버스 스크립팅 API 또는 WebGL API를 사용해 그래픽과 애니메이션을 그릴 때 사용합니다.") 요소에서 다시 사용할 수 있습니다. 허용되는 값은 다음과 같습니다.
 
 `anonymous`
 
-교차 출처 요청(즉, [`Origin`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin "The Origin request header indicates where a fetch originates from. It doesn't include any path information, but only the server name. It is sent with CORS requests, as well as with POST requests. It is similar to the Referer header, but, unlike this header, it doesn't disclose the whole path.") HTTP 헤더 포함)이 수행되지만 자격 증명은 전송되지 않습니다(즉, 쿠키, X.509 인증서, HTTP Basic 인증 없음). 서버가 [`Access-Control-Allow-Origin`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin "The Access-Control-Allow-Origin response header indicates whether the response can be shared with requesting code from the given origin.") HTTP 헤더를 설정하지 않아 원본 사이트에 자격 증명을 제공하지 않으면 이미지가 오염되고 사용이 제한됩니다.
+교차 출처 요청(즉, [`Origin`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin "The Origin request header indicates where a fetch originates from. 여기에는 경로 정보가 포함되지 않고 서버 이름만 포함됩니다. CORS 요청 및 POST 요청과 함께 전송됩니다. Referer 헤더와 비슷하지만, 이 헤더와 달리 전체 경로를 공개하지 않습니다.") HTTP 헤더 사용)이 수행되지만 자격 증명은 전송되지 않습니다(즉, 쿠키, X.509 인증서 또는 HTTP Basic 인증 없음). 서버가 [`Access-Control-Allow-Origin`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin "The Access-Control-Allow-Origin response header indicates whether the response can be shared with requesting code from the given origin.") HTTP 헤더를 설정하지 않아 원본 사이트에 자격 증명을 제공하지 않으면 이미지가 오염되고 사용이 제한됩니다.
 
 `use-credentials`
 
 교차 출처 요청(즉, `Origin` HTTP 헤더 포함)과 함께 자격 증명이 전송됩니다(즉, 쿠키, 인증서 및/또는 HTTP Basic 인증이 사용됨). 서버가 [`Access-Control-Allow-Credentials`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials "The Access-Control-Allow-Credentials response header tells browsers whether to expose the response to frontend JavaScript code when the request's credentials mode (Request.credentials) is "include".") HTTP 헤더를 통해 원본 사이트에 자격 증명을 제공하지 않으면 리소스가 _오염_되고 사용이 제한됩니다.
 
-특성이 없으면 리소스는 [CORS](https://developer.mozilla.org/en-US/docs/Glossary/CORS "CORS: CORS (Cross-Origin Resource Sharing) is a system, consisting of transmitting HTTP headers, that determines whether browsers block frontend JavaScript code from accessing responses for cross-origin requests.") 요청 없이(즉, `Origin` HTTP 헤더를 보내지 않고) 가져오므로 오염되지 않은 상태로 사용할 수 없습니다. 값이 잘못되면 열거형 키워드 **anonymous**를 사용한 것처럼 처리됩니다. 자세한 내용은 [CORS settings attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_settings_attributes)를 참조하세요.</target>
+특성이 없으면 리소스는 [CORS](https://developer.mozilla.org/en-US/docs/Glossary/CORS "CORS: CORS(Cross-Origin Resource Sharing)는 HTTP 헤더를 전송하는 시스템으로, 브라우저가 교차 출처 요청에 대한 응답에 프런트엔드 JavaScript 코드가 액세스하는 것을 차단해야 하는지 여부를 결정합니다.") 요청 없이 가져오며(즉, `Origin` HTTP 헤더를 보내지 않음), 오염되지 않은 상태로는 사용할 수 없습니다. 잘못된 값이면 열거형 키워드 **anonymous**를 사용한 것처럼 처리됩니다. 자세한 내용은 [CORS 설정 특성](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_settings_attributes)을 참조하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_csp">
@@ -281,7 +280,7 @@ Decode the image asynchronously to reduce delay in presenting other content.
 `auto`
 
 Default mode, which indicates no preference for the decoding mode. The browser decides what is best for the user.</source>
-        <target state="translated">허용되는 값은 다음과 같습니다.
+        <target state="translated">브라우저에 이미지 디코딩 힌트를 제공합니다. 허용되는 값은 다음과 같습니다.
 `sync`
 
 다른 콘텐츠와 함께 원자적으로 표시되도록 이미지를 동기적으로 디코딩합니다.
@@ -292,7 +291,7 @@ Default mode, which indicates no preference for the decoding mode. The browser d
 
 `auto`
 
-디코딩 모드에 대한 기본 설정이 없음을 나타내는 기본 모드입니다.</target>
+기본 모드이며 디코딩 모드에 대한 기본 설정이 없습니다. 브라우저는 사용자에게 가장 적합한 항목을 결정합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_default">
@@ -312,9 +311,9 @@ To achieve a similar effect for dynamically inserted scripts use `async="false"`
 
 `defer` 특성이 있는 스크립트는 스크립트가 로드되고 평가를 마칠 때까지 `DOMContentLoaded` 이벤트가 발생하지 않도록 합니다.
 
-이 특성은 `src` 특성이 없는 경우, 즉 인라인 스크립트에는 사용하면 안 됩니다. 이 경우에는 효과가 없습니다.
+이 특성은 `src` 특성이 없는 경우, 즉 인라인 스크립트에는 사용하면 안 됩니다.
 
-동적으로 삽입된 스크립트에서 비슷한 효과를 얻으려면 대신 `async="false"`를 사용하세요. `defer` 특성이 있는 스크립트는 문서에 나타나는 순서대로 실행됩니다.</target>
+동적으로 삽입된 스크립트에 비슷한 효과를 내려면 대신 `async="false"`를 사용하세요. `defer` 특성이 있는 스크립트는 문서에 표시되는 순서대로 실행됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_dir">
@@ -323,7 +322,7 @@ To achieve a similar effect for dynamically inserted scripts use `async="false"`
 * `ltr`, which means _left to right_ and is to be used for languages that are written from the left to the right (like English);
 * `rtl`, which means _right to left_ and is to be used for languages that are written from the right to the left (like Arabic);
 * `auto`, which lets the user agent decide. It uses a basic algorithm as it parses the characters inside the element until it finds a character with a strong directionality, then it applies that directionality to the whole element.</source>
-        <target state="translated">요소 텍스트의 방향성을 나타내는 열거형 특성입니다. 다음 값을 가질 수 있습니다.
+        <target state="translated">요소 텍스트의 방향성을 나타내는 열거형 특성입니다. 다음 값을 사용할 수 있습니다.
 
 * `ltr`: _왼쪽에서 오른쪽_을 뜻합니다. 영어처럼 왼쪽에서 오른쪽으로 쓰는 언어에 사용합니다.
 * `rtl`: _오른쪽에서 왼쪽_을 뜻합니다. 아랍어처럼 오른쪽에서 왼쪽으로 쓰는 언어에 사용합니다.
@@ -344,7 +343,7 @@ To achieve a similar effect for dynamically inserted scripts use `async="false"`
 * Although HTTP(s) URLs need to be in the same-origin, [`blob:` URLs](https://developer.mozilla.org/en-US/docs/Web/API/URL.createObjectURL) and [`data:` URLs](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs) are allowed so that content generated by JavaScript, such as pictures created in an image-editor Web app, can be downloaded.
 * If the HTTP header [`Content-Disposition:`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition) gives a different filename than this attribute, the HTTP header takes priority over this attribute.
 * If `Content-Disposition:` is set to `inline`, Firefox prioritizes `Content-Disposition`, like the filename case, while Chrome prioritizes the `download` attribute.</source>
-        <target state="translated">이 특성은 브라우저에 URL로 이동하지 말고 다운로드하라고 지시합니다. 따라서 사용자는 이를 로컬 파일로 저장하라는 메시지를 받게 됩니다. 특성에 값이 있으면 저장 프롬프트에 미리 입력된 파일 이름으로 사용됩니다. 사용자는 원하면 파일 이름을 바꿀 수 있습니다. 허용되는 값에는 제한이 없지만 `/` 및 `\`는 밑줄로 바뀝니다. 대부분의 파일 시스템은 파일 이름에서 일부 문장 부호를 제한하므로, 브라우저는 제안된 이름을 그에 맞게 조정합니다.
+        <target state="translated">이 특성은 브라우저에 URL로 이동하는 대신 해당 URL을 다운로드하도록 지시하므로, 사용자는 이를 로컬 파일로 저장하라는 메시지를 받게 됩니다. 특성에 값이 있으면 저장 프롬프트에서 미리 채워진 파일 이름으로 사용됩니다. 사용자는 원하면 파일 이름을 변경할 수 있습니다. 허용되는 값에는 제한이 없지만, `/`와 `\`는 밑줄로 변환됩니다. 대부분의 파일 시스템은 파일 이름에서 일부 문장 부호를 제한하므로, 브라우저는 제안된 이름을 그에 맞게 조정합니다.
 
 **참고:**
 
@@ -371,7 +370,7 @@ To achieve a similar effect for dynamically inserted scripts use `async="false"`
 * `copy`, which indicates that dropping will create a copy of the element that was dragged
 * `move`, which indicates that the element that was dragged will be moved to this new location.
 * `link`, will create a link to the dragged data.</source>
-        <target state="translated">[끌어서 놓기 API](https://developer.mozilla.org/docs/DragDrop/Drag_and_Drop)를 사용해 요소에 놓을 수 있는 콘텐츠 형식을 나타내는 열거형 특성입니다. 다음 값을 사용할 수 있습니다.
+        <target state="translated">[끌어서 놓기 API](https://developer.mozilla.org/docs/DragDrop/Drag_and_Drop)를 사용하여 요소에서 삭제할 수 있는 콘텐츠 형식을 나타내는 열거형 특성입니다. 다음 값을 사용할 수 있습니다.
 
 * `copy`: 놓으면 끌어온 요소의 복사본이 만들어집니다.
 * `move`: 끌어온 요소가 이 새 위치로 이동합니다.
@@ -386,13 +385,13 @@ To achieve a similar effect for dynamically inserted scripts use `async="false"`
 * `text/plain`: (HTML5)
 
 This value can be overridden by a [`formenctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formenctype) attribute on a [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") or [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") element.</source>
-        <target state="translated">`method` 특성의 값이 `post`인 경우 enctype은 양식을 서버에 제출하는 데 사용되는 콘텐츠의 [MIME 형식](https://en.wikipedia.org/wiki/Mime_type)입니다. 가능한 값은 다음과 같습니다.
+        <target state="translated">`method` 특성의 값이 `post`인 경우 enctype은 양식을 서버에 제출하는 데 사용되는 콘텐츠의 [MIME 형식](https://en.wikipedia.org/wiki/Mime_type)입니다. 사용할 수 있는 값은 다음과 같습니다.
 
-* `application/x-www-form-urlencoded`: 특성을 지정하지 않은 경우의 기본값입니다.
-* `multipart/form-data`: `type` 특성이 "file"로 설정된 [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML &lt;input&gt; 요소는 사용자로부터 데이터를 받기 위해 웹 기반 양식에 대한 대화형 컨트롤을 만드는 데 사용됩니다. 디바이스 및 사용자 에이전트에 따라 다양한 입력 데이터 유형과 컨트롤 위젯을 사용할 수 있습니다.") 요소에 사용되는 값입니다.
+* `application/x-www-form-urlencoded`: 특성을 지정하지 않으면 기본값입니다.
+* `multipart/form-data`: `type` 특성이 'file'로 설정된 [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML &lt;input&gt; 요소를 사용하여 사용자의 데이터를 허용하기 위해 웹 기반 양식에 대한 대화형 컨트롤을 만드는 경우 이 값을 사용합니다. 디바이스 및 사용자 에이전트에 따라 다양한 유형의 입력 데이터 및 컨트롤 위젯을 사용할 수 있습니다.") 요소를 사용하는 경우 이 값을 사용합니다.
 * `text/plain`: (HTML5)
 
-이 값은 [`formenctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formenctype) 특성이 있는 [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") 또는 [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") 요소에서 재정의할 수 있습니다.</target>
+이 값은 [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "HTML &lt;button&gt; 요소는 클릭할 수 있는 단추를 나타내며, 양식에서 또는 간단한 표준 단추 기능이 필요한 문서의 어디에서나 사용할 수 있습니다.") 또는 [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML &lt;input&gt; 요소는 사용자로부터 데이터를 받기 위해 웹 기반 양식에 대한 대화형 컨트롤을 만드는 데 사용됩니다. 디바이스 및 사용자 에이전트에 따라 다양한 입력 데이터 유형과 컨트롤 위젯을 사용할 수 있습니다.") 요소의 [`formenctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formenctype) 특성으로 재정의할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_enterkeyhint">
@@ -414,7 +413,7 @@ This value can be overridden by a [`formenctype`](https://developer.mozilla.org/
         <source>The [`id`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-id) of a [labelable](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Content_categories#Form_labelable) form-related element in the same document as the `&lt;label&gt;` element. The first element in the document with an `id` matching the value of the `for` attribute is the _labeled control_ for this label element, if it is a labelable element. If it is not labelable then the `for` attribute has no effect. If there are other elements which also match the `id` value, later in the document, they are not considered.
 
 **Note**: A `&lt;label&gt;` element can have both a `for` attribute and a contained control element, as long as the `for` attribute points to the contained control element.</source>
-        <target state="translated">`&lt;label&gt;` 요소와 동일한 문서에 있는 [labelable](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Content_categories#Form_labelable) 양식 관련 요소의 [`id`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-id)입니다. `for` 특성의 값과 일치하는 `id`가 있는 문서의 첫 번째 요소는 labelable 요소인 경우 이 레이블 요소에 대한 _레이블이 지정된 컨트롤_입니다. labelable 요소가 아니면 `for` 특성은 아무 효과가 없습니다. 뒤에 같은 `id` 값을 가진 다른 요소가 있어도 고려되지 않습니다.
+        <target state="translated">`&lt;label&gt;` 요소와 동일한 문서에 있는 [labelable](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Content_categories#Form_labelable) 양식 관련 요소의 [`id`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-id)입니다. `for` 특성의 값과 일치하는 `id`가 있는 문서의 첫 번째 요소는 labelable 요소인 경우 이 레이블 요소에 대한 _레이블이 지정된 컨트롤_입니다. labelable 요소가 아니면 `for` 특성은 아무런 효과가 없습니다. 뒤에 같은 `id` 값을 가진 다른 요소가 있어도 고려되지 않습니다.
 
 **참고**: `&lt;label&gt;` 요소에는 `for` 특성과 포함된 control 요소를 둘 다 둘 수 있습니다. 단, `for` 특성이 포함된 control 요소를 가리켜야 합니다.</target>
         <note />
@@ -437,7 +436,7 @@ This value can be overridden by a [`formenctype`](https://developer.mozilla.org/
 * `text/plain`
 
 If this attribute is specified, it overrides the [`enctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-enctype) attribute of the button's form owner.</source>
-        <target state="translated">단추가 제출 단추인 경우, 이 특성은 양식을 서버로 제출할 때 사용할 콘텐츠 형식을 지정합니다. 가능한 값은 다음과 같습니다.
+        <target state="translated">단추가 제출 단추인 경우, 이 특성은 양식을 서버로 제출할 때 사용할 콘텐츠 형식을 지정합니다. 사용할 수 있는 값은 다음과 같습니다.
 
 * `application/x-www-form-urlencoded`: 특성을 지정하지 않으면 기본값입니다.
 * `multipart/form-data`: [`type`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-type) 특성이 `file`로 설정된 [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML &lt;input&gt; 요소를 사용하여 사용자의 데이터를 허용하기 위해 웹 기반 양식에 대한 대화형 컨트롤을 만드는 경우 이 값을 사용합니다. 디바이스 및 사용자 에이전트에 따라 다양한 유형의 입력 데이터 및 컨트롤 위젯을 사용할 수 있습니다.") 요소를 사용하는 경우 이 값을 사용합니다.
@@ -453,12 +452,12 @@ If this attribute is specified, it overrides the [`enctype`](https://developer.m
 * `get`: The data from the form are appended to the **form** attribute URI, with a '?' as a separator, and the resulting URI is sent to the server. Use this method when the form has no side-effects and contains only ASCII characters.
 
 If specified, this attribute overrides the [`method`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-method) attribute of the button's form owner.</source>
-        <target state="translated">단추가 제출 단추인 경우, 이 특성은 브라우저가 양식을 제출할 때 사용하는 HTTP 메서드를 지정합니다. 가능한 값은 다음과 같습니다.
+        <target state="translated">단추가 제출 단추인 경우, 이 특성은 브라우저가 양식을 제출할 때 사용하는 HTTP 메서드를 지정합니다. 사용할 수 있는 값은 다음과 같습니다.
 
 * `post`: 양식 데이터를 양식 본문에 넣어 서버로 보냅니다.
 * `get`: 양식 데이터를 구분 기호 '?'와 함께 **form** 특성 URI에 추가한 뒤, 결과 URI를 서버로 보냅니다. 양식에 부작용이 없고 ASCII 문자만 포함된 경우 이 메서드를 사용하세요.
 
-이 특성을 지정하면 단추 양식 소유자의 [`method`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-method) 특성을 덮어씁니다.</target>
+지정된 경우 이 특성은 단추의 양식 소유자의 [`method`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-method) 특성을 재정의합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_formnovalidate">
@@ -473,12 +472,12 @@ If specified, this attribute overrides the [`method`](https://developer.mozilla.
 * `_blank`: Load the response into a new unnamed browsing context.
 * `_parent`: Load the response into the parent browsing context of the current one. If there is no parent, this option behaves the same way as `_self`.
 * `_top`: Load the response into the top-level browsing context (that is, the browsing context that is an ancestor of the current one, and has no parent). If there is no parent, this option behaves the same way as `_self`.</source>
-        <target state="translated">버튼이 제출 버튼인 경우, 이 특성은 양식을 제출한 후 받은 응답을 어디에 표시할지 나타내는 이름 또는 키워드입니다. _browsing context_의 이름이나 키워드입니다. 예를 들어 탭, 창, 인라인 프레임입니다. 이 특성을 지정하면 버튼의 form owner에 있는 [`target`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-target) 특성을 재정의합니다. 다음 키워드에는 특별한 의미가 있습니다.
+        <target state="translated">단추가 제출 단추인 경우, 이 특성은 양식을 제출한 후 받은 응답을 표시할 위치를 나타내는 이름 또는 키워드입니다. _브라우징 컨텍스트_의 이름 또는 키워드입니다(예: 탭, 창 또는 인라인 프레임). 이 특성을 지정하면 단추의 양식 소유자에 대한 [`target`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-target) 특성을 재정의합니다. 다음 키워드에는 특별한 의미가 있습니다.
 
 * `_self`: 현재 browsing context와 같은 browsing context에 응답을 로드합니다. 이 값은 특성을 지정하지 않은 경우의 기본값입니다.
 * `_blank`: 이름이 지정되지 않은 새 browsing context에 응답을 로드합니다.
 * `_parent`: 현재 browsing context의 부모 browsing context에 응답을 로드합니다. 부모가 없으면 이 옵션은 `_self`와 같은 방식으로 동작합니다.
-* `_top`: 최상위 browsing context, 즉 현재 browsing context의 조상이며 부모가 없는 browsing context에 응답을 로드합니다. 부모가 없으면 이 옵션은 `_self`와 같은 방식으로 동작합니다.</target>
+* `_top`: 최상위 browsing context, 즉 현재 browsing context의 조상이며 부모가 없는 browsing context에 응답을 로드합니다. 부모가 없는 경우 이 옵션은 `_self`와 동일한 방식으로 동작합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_height">
@@ -531,19 +530,19 @@ This instruction specifies:
 Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page. Its content must follow the syntax defined in the [IETF HTTP Cookie Specification](https://tools.ietf.org/html/draft-ietf-httpstate-cookie-14).
 
 **Warning:** Do not use this instruction, as it is obsolete. Use the HTTP header [`Set-Cookie`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie) instead.</source>
-        <target state="translated">프라그마 지시문을 정의합니다. 허용되는 값이 모두 특정 HTTP 헤더의 이름이므로 특성 이름이 `**http-equiv**(alent)`입니다.
+        <target state="translated">pragma 지시문을 정의합니다. 허용되는 값이 모두 특정 HTTP 헤더의 이름이므로 특성 이름이 `**http-equiv**(alent)`입니다.
 
 * `"content-language"` 
 페이지의 기본 언어를 정의합니다. 이 값은 어떤 요소에서든 [lang](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/lang) 특성으로 재정의할 수 있습니다.
 
-**경고:** 이 값은 더 이상 사용되지 않으므로 사용하지 마세요. [`&lt;html&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/html "The HTML &lt;html&gt; element represents the root (top-level element) of an HTML document, so it is also referred to as the root element. All other elements must be descendants of this element.") 요소의 `lang` 특성을 사용하세요.
+**경고:** 이 값은 사용되지 않으므로 사용하지 마세요. [`&lt;html&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/html "HTML &lt;html&gt; 요소는 HTML 문서의 루트(최상위 요소)를 나타내므로 루트 요소라고도 합니다. All other elements must be descendants of this element.") 요소의 `lang` 특성을 사용하세요.
 
 * `"content-security-policy"` 
 페이지 작성자가 현재 페이지에 대한 [content policy](https://developer.mozilla.org/en-US/docs/Web/Security/CSP/CSP_policy_directives)를 정의할 수 있게 합니다. 콘텐츠 정책은 주로 허용되는 서버 원본과 스크립트 엔드포인트를 지정하며, 이는 교차 사이트 스크립팅 공격을 막는 데 도움이 됩니다.
 * `"content-type"` 
-문서의 [MIME type](https://developer.mozilla.org/en-US/docs/Glossary/MIME_type)과 문자 인코딩을 정의합니다. HTTP `content-type` 엔티티 헤더 필드와 같은 구문을 따르지만, HTML 페이지 안에 있으므로 `text/html` 외의 대부분 값은 사용할 수 없습니다. 따라서 `content`의 올바른 구문은 문자열 `text/html` 뒤에 `; charset=_IANAcharset_` 형식의 문자 집합이 오는 형태입니다. 여기서 `IANAcharset`은 [IANA에서 정의한](https://www.iana.org/assignments/character-sets) 문자 집합의 _기본 MIME 이름_입니다.
+문서의 [MIME type](https://developer.mozilla.org/en-US/docs/Glossary/MIME_type)과 문자 인코딩을 정의합니다. HTTP `content-type` 엔터티 헤더 필드와 동일한 구문을 따르지만 HTML 페이지 내에 있으므로 `text/html` 이외의 대부분의 값은 불가능합니다. 따라서 `content`의 올바른 구문은 문자열 `text/html` 뒤에 `; charset=_IANAcharset_` 형식의 문자 집합이 오는 형태입니다. 여기서 `IANAcharset`은 [IANA에서 정의한](https://www.iana.org/assignments/character-sets) 문자 집합의 _기본 MIME 이름_입니다.
 
-**경고:** 이 값은 더 이상 사용되지 않으므로 사용하지 마세요. [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) 특성을 [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") 요소에 사용하세요.
+**경고:** 이 값은 사용되지 않으므로 사용하지 마세요. [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) 특성을 [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") 요소에 사용하세요.
 
 **참고:** [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.")는 XHTML이나 HTML5의 XHTML 직렬화에서 문서 형식을 바꿀 수 없으므로, `&lt;meta&gt;`를 사용해 MIME type을 XHTML MIME type으로 설정하지 마세요.
 
@@ -586,7 +585,7 @@ Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page
         <source>This Boolean attribute indicates that the image is part of a server-side map. If so, the precise coordinates of a click are sent to the server.
 
 **Note:** This attribute is allowed only if the `&lt;img&gt;` element is a descendant of an [`&lt;a&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a "The HTML &lt;a&gt; element (or anchor element) creates a hyperlink to other web pages, files, locations within the same page, email addresses, or any other URL.") element with a valid [`href`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-href) attribute.</source>
-        <target state="translated">이 부울 특성은 이미지가 서버 쪽 맵의 일부임을 나타냅니다.이 경우 클릭의 정확한 좌표가 서버로 전송됩니다.
+        <target state="translated">이 부울 특성은 이미지가 서버 쪽 맵의 일부임을 나타냅니다. 이 경우 클릭의 정확한 좌표가 서버로 전송됩니다.
 
 **참고:** 이 특성은 `&lt;img&gt;` 요소가 유효한 [`href`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-href) 특성이 있는 [`&lt;a&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a "HTML &lt;a&gt; 요소(또는 앵커 요소)는 다른 웹 페이지, 파일, 위치, 같은 페이지 내의 위치, 이메일 주소 또는 다른 URL에 대한 하이퍼링크를 만듭니다.")의 하위 요소인 경우에만 허용됩니다.</target>
         <note />
@@ -633,7 +632,7 @@ Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page
 * Chapter titles are intended to be used when the user is navigating the media resource.
 * `metadata`
 * Tracks used by scripts. Not visible to the user.</source>
-        <target state="translated">텍스트 트랙을 어떻게 사용할지 나타냅니다. 생략하면 기본 종류는 `subtitles`입니다. 특성이 없으면 `subtitles`를 사용합니다. 특성에 잘못된 값이 있으면 `metadata`를 사용합니다. (Chrome 52 이전 버전에서는 잘못된 값을 `subtitles`로 처리했습니다.) 다음 키워드를 사용할 수 있습니다.
+        <target state="translated">텍스트 트랙을 어떻게 사용할지 지정합니다. 생략하면 기본 종류는 `subtitles`입니다. 특성이 없으면 `subtitles`를 사용합니다. 특성에 잘못된 값이 포함되면 `metadata`를 사용합니다. (Chrome 52 이전 버전에서는 잘못된 값을 `subtitles`로 처리했습니다.) 다음 키워드를 사용할 수 있습니다.
 
 * `subtitles`
 * 자막은 시청자가 이해할 수 없는 콘텐츠를 번역합니다. 예를 들어 영어 영화에서 영어가 아닌 대사나 텍스트가 여기에 해당합니다.
@@ -648,7 +647,7 @@ Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page
 * `chapters`
 * 챕터 제목은 사용자가 미디어 리소스를 탐색할 때 사용하도록 만든 것입니다.
 * `metadata`
-* 스크립트가 사용하는 트랙입니다. 사용자에게는 표시되지 않습니다.</target>
+* 스크립트가 사용하는 트랙입니다. 사용자에게 표시되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_label">
@@ -693,7 +692,7 @@ Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page
 
 * In HTML 4, this can only be a simple white-space-separated list of media description literals, i.e., [media types and groups](https://developer.mozilla.org/en-US/docs/Web/CSS/@media), where defined and allowed as values for this attribute, such as `print`, `screen`, `aural`, `braille`. HTML5 extended this to any kind of [media queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries), which are a superset of the allowed values of HTML 4.
 * Browsers not supporting [CSS3 Media Queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries) won't necessarily recognize the adequate link; do not forget to set fallback links, the restricted set of media queries defined in HTML 4.</source>
-        <target state="translated">이 특성은 연결된 리소스가 적용되는 미디어를 지정합니다. 값은 미디어 유형 / [media query](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries)여야 합니다. 이 특성은 주로 외부 스타일시트에 연결할 때 유용하며, 사용자 에이전트가 실행되는 장치에 가장 잘 맞는 스타일시트를 선택할 수 있게 해 줍니다.
+        <target state="translated">이 특성은 연결된 리소스가 적용되는 미디어를 지정합니다. 해당 값은 미디어 형식/[미디어 쿼리](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries)이어야 합니다. 이 특성은 주로 외부 스타일시트에 연결할 때 유용하며, 사용자 에이전트가 실행되는 장치에 가장 잘 맞는 스타일시트를 선택할 수 있게 해 줍니다.
 
 **참고:**
 
@@ -709,13 +708,13 @@ Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page
 * `dialog`: Use when the form is inside a [`&lt;dialog&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog "The HTML &lt;dialog&gt; element represents a dialog box or other interactive component, such as an inspector or window.") element to close the dialog when submitted.
 
 This value can be overridden by a [`formmethod`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formmethod) attribute on a [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") or [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") element.</source>
-        <target state="translated">브라우저가 양식을 제출하는 데 사용하는 [HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP) 메서드입니다. 가능한 값은 다음과 같습니다.
+        <target state="translated">브라우저가 양식을 제출할 때 사용하는 [HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP) 메서드입니다. 사용할 수 있는 값은 다음과 같습니다.
 
 * `post`: HTTP [POST method](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.5)에 해당합니다. 양식 데이터는 양식 본문에 포함되어 서버로 전송됩니다.
 * `get`: HTTP [GET method](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.3)에 해당합니다. 양식 데이터는 `action` 특성 URI에 '?'를 구분 기호로 붙여 추가되며, 결과 URI가 서버로 전송됩니다. 양식에 부작용이 없고 ASCII 문자만 포함된 경우 이 메서드를 사용하세요.
 * `dialog`: 양식이 [`&lt;dialog&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog "HTML &lt;dialog&gt; 요소는 대화 상자나 검사기, 창 같은 대화형 구성 요소를 나타냅니다.") 요소 안에 있을 때 사용합니다. 제출하면 대화 상자가 닫힙니다.
 
-이 값은 [`formmethod`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formmethod) 특성이 있는 [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "HTML &lt;button&gt; 요소는 클릭 가능한 단추를 나타냅니다. 양식에서 사용하거나, 문서의 어느 위치에서든 간단하고 표준적인 단추 기능이 필요할 때 사용할 수 있습니다.") 또는 [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML &lt;input&gt; 요소는 웹 기반 양식에서 사용자의 데이터를 입력받기 위한 대화형 컨트롤을 만드는 데 사용됩니다. 장치와 사용자 에이전트에 따라 다양한 유형의 입력 데이터와 컨트롤 위젯을 사용할 수 있습니다.") 요소의 formmethod 특성으로 재정의할 수 있습니다.</target>
+이 값은 [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "HTML &lt;button&gt; 요소는 클릭할 수 있는 단추를 나타내며, 양식에서 또는 간단한 표준 단추 기능이 필요한 문서의 어디에서나 사용할 수 있습니다.") 또는 [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML &lt;input&gt; 요소는 사용자로부터 데이터를 받기 위해 웹 기반 양식에 대한 대화형 컨트롤을 만드는 데 사용됩니다. 디바이스 및 사용자 에이전트에 따라 다양한 입력 데이터 유형과 컨트롤 위젯을 사용할 수 있습니다.") 요소의 [`formmethod`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formmethod) 특성으로 재정의할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_min">
@@ -942,24 +941,24 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 * Though unstandardized, this declaration is respected by most mobile browsers due to de-facto dominance.
 * The default values may vary between devices and browsers.
 * To learn about this declaration in Firefox for Mobile, see [this article](https://developer.mozilla.org/en-US/docs/Mobile/Viewport_meta_tag "Mobile/Viewport meta tag").</source>
-        <target state="translated">This attribute defines the name of a piece of document-level metadata. It should not be set if one of the attributes [`itemprop`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-itemprop), [`http-equiv`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-http-equiv) or [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) is also set.
+        <target state="translated">이 특성은 문서 수준 메타데이터의 이름을 정의합니다. [`itemprop`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-itemprop), [`http-equiv`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-http-equiv) or [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) 특성 중 하나가 함께 설정되어 있다면 설정해서는 안 됩니다.
 
-This metadata name is associated with the value contained by the [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) attribute. The possible values for the name attribute are:
+이 메타데이터 이름은 [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) 특성에 포함된 값과 연결됩니다. 이름 특성에 사용할 수 있는 값은 다음과 같습니다.
 
-* `application-name` which defines the name of the application running in the web page.
+* `application-name`: 웹 페이지에서 실행되는 애플리케이션의 이름을 정의합니다.
 
-**Note:**
+**참고:**
 
-* Browsers may use this to identify the application. It is different from the [`&lt;title&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/title "The HTML Title element (&lt;title&gt;) defines the document's title that is shown in a browser's title bar or a page's tab.") element, which usually contain the application name, but may also contain information like the document name or a status.
-* Simple web pages shouldn't define an application-name.
+* 브라우저는 이를 사용하여 애플리케이션을 식별할 수 있습니다. 일반적으로 애플리케이션 이름을 포함하지만 문서 이름 또는 상태와 같은 정보를 포함할 수도 있는 [`&lt;title&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/title "HTML Title 요소(&lt;title&gt;)는 브라우저의 제목 표시줄 또는 페이지 탭에 표시되는 문서 제목을 정의합니다.") 요소와 다릅니다.
+* 단순 웹 페이지는 애플리케이션 이름을 정의하면 안 됩니다.
 
-* `author` which defines the name of the document's author.
-* `description` which contains a short and accurate summary of the content of the page. Several browsers, like Firefox and Opera, use this as the default description of bookmarked pages.
-* `generator` which contains the identifier of the software that generated the page.
-* `keywords` which contains words relevant to the page's content separated by commas.
-* `referrer` which controls the [`Referer` HTTP header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer) attached to requests sent from the document:
+* `author`: 문서 작성자의 이름을 정의합니다.
+* `description`: 페이지의 내용에 대한 짧고 정확한 요약을 포함합니다. Firefox 및 Opera와 같은 여러 브라우저에서는 이를 책갈피가 지정된 페이지의 기본 설명으로 사용합니다.
+* `generator`: 페이지를 생성한 소프트웨어의 식별자를 포함합니다.
+* `keywords`: 페이지 콘텐츠와 관련된 단어를 쉼표로 구분하여 포함합니다.
+* `referrer`: 문서에서 보낸 요청에 첨부된 [`Referer` HTTP 헤더](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer)를 제어합니다.
 
-Values for the `content` attribute of `&lt;meta name="referrer"&gt;`
+`&lt;meta name="referrer"&gt;`의 `content` 특성 값이
 
 `no-referrer`
 
@@ -967,45 +966,45 @@ Do not send a HTTP `Referrer` header.
 
 `origin`
 
-Send the [origin](https://developer.mozilla.org/en-US/docs/Glossary/Origin) of the document.
+문서의 [origin](https://developer.mozilla.org/en-US/docs/Glossary/Origin)을 보냅니다.
 
 `no-referrer-when-downgrade`
 
-Send the [origin](https://developer.mozilla.org/en-US/docs/Glossary/Origin) as a referrer to URLs as secure as the current page, (https→https), but does not send a referrer to less secure URLs (https→http). This is the default behaviour.
+[origin](https://developer.mozilla.org/en-US/docs/Glossary/Origin)을 현재 페이지(https https→)와 같은 안전한 URL에 referrer로 보내지만 덜 안전한 URL(https→http)에는 referrer를 보내지 않습니다. 이는 기본 동작입니다.
 
 `origin-when-cross-origin`
 
-Send the full URL (stripped of parameters) for same-origin requests, but only send the [origin](https://developer.mozilla.org/en-US/docs/Glossary/Origin) for other cases.
+같은 origin 요청에는 전체 URL에서 매개 변수를 제거한 값을 보내고, 다른 경우에는 [origin](https://developer.mozilla.org/en-US/docs/Glossary/Origin)만 보냅니다.
 
 `same-origin`
 
-A referrer will be sent for [same-site origins](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy), but cross-origin requests will contain no referrer information.
+[same-site origins](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy)에 대해서는 referrer를 보내지만, cross-origin 요청에는 referrer 정보가 포함되지 않습니다.
 
 `strict-origin`
 
-Only send the origin of the document as the referrer to a-priori as-much-secure destination (HTTPS-&gt;HTTPS), but don't send it to a less secure destination (HTTPS-&gt;HTTP).
+문서의 origin만 a-priori as-much-secure 대상(HTTPS-&gt;HTTPS)으로 referrer로 보내고, 덜 안전한 대상(HTTPS-&gt;HTTP)에는 보내지 않습니다.
 
 `strict-origin-when-cross-origin`
 
-Send a full URL when performing a same-origin request, only send the origin of the document to a-priori as-much-secure destination (HTTPS-&gt;HTTPS), and send no header to a less secure destination (HTTPS-&gt;HTTP).
+같은 origin 요청을 수행할 때는 전체 URL을 보내고, 문서의 origin은 a-priori as-much-secure 대상(HTTPS-&gt;HTTPS)으로만 보냅니다.
 
 `unsafe-URL`
 
-Send the full URL (stripped of parameters) for same-origin or cross-origin requests.
+동일 원본 또는 원본 간 요청에 대한 전체 URL(매개 변수 제거)을 보냅니다.
 
-**Notes:**
+**참고:**
 
-* Some browsers support the deprecated values of `always`, `default`, and `never` for referrer.
-* Dynamically inserting `&lt;meta name="referrer"&gt;` (with [`document.write`](https://developer.mozilla.org/en-US/docs/Web/API/Document/write) or [`appendChild`](https://developer.mozilla.org/en-US/docs/Web/API/Node/appendChild)) makes the referrer behaviour unpredictable.
-* When several conflicting policies are defined, the no-referrer policy is applied.
+* 일부 브라우저는 referrer에 대해 더 이상 사용되지 않는 `always`, `default`, `never` 값을 지원합니다.
+* `&lt;meta name="referrer"&gt;`을 문서에 동적으로 삽입하면([`document.write`](https://developer.mozilla.org/en-US/docs/Web/API/Document/write) 또는 [`appendChild`](https://developer.mozilla.org/en-US/docs/Web/API/Node/appendChild) 사용) referrer 동작이 예측할 수 없게 됩니다.
+* 충돌하는 여러 정책이 정의되면 no-referrer 정책이 적용됩니다.
 
 
-This attribute may also have a value taken from the extended list defined on [WHATWG Wiki MetaExtensions page](https://wiki.whatwg.org/wiki/MetaExtensions). Although none have been formally accepted yet, a few commonly used names are:
+이 특성에는 [WHATWG Wiki MetaExtensions 페이지](https://wiki.whatwg.org/wiki/MetaExtensions)에 정의된 확장 목록에서 가져온 값이 있을 수도 있습니다. 아직 공식적으로 수락된 이름은 없지만 일반적으로 사용되는 몇 가지 이름은 다음과 같습니다.
 
-* `creator` which defines the name of the creator of the document, such as an organization or institution. If there are more than one, several [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") elements should be used.
-* `googlebot`, a synonym of `robots`, is only followed by Googlebot (the indexing crawler for Google).
-* `publisher` which defines the name of the document's publisher.
-* `robots` which defines the behaviour that cooperative crawlers, or "robots", should use with the page. It is a comma-separated list of the values below:
+* `creator`: 조직 또는 기관과 같은 문서 작성자의 이름을 정의합니다. 작성자가 둘 이상이면 여러 개의 [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") 요소를 사용해야 합니다.
+* `googlebot`: `robots`의 동의어이며, Googlebot(Google의 인덱싱 크롤러)만 따릅니다.
+* `publisher`: 문서 게시자의 이름을 정의합니다.
+* `robots`: 협력적인 크롤러, 즉 로봇이 페이지에서 사용할 동작을 정의합니다. 이는 아래 값의 쉼표로 구분된 목록입니다.
 
 Values for the content of `&lt;meta name="robots"&gt;`
 
@@ -1047,109 +1046,109 @@ Equivalent to `noindex, nofollow`
 
 `noodp`
 
-Prevents using the [Open Directory Project](https://www.dmoz.org/) description, if any, as the page description in search engine results.
+검색 엔진 결과의 페이지 설명으로 [Open Directory Project](https://www.dmoz.org/) 설명을 사용할 수 없습니다(있는 경우).
 
 [Google](https://support.google.com/webmasters/answer/35624#nodmoz), [Yahoo](https://help.yahoo.com/kb/search-for-desktop/meta-tags-robotstxt-yahoo-search-sln2213.html#cont5), [Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240)
 
 `noarchive`
 
-Requests the search engine not to cache the page content.
+검색 엔진에 페이지 콘텐츠를 캐시하지 않도록 요청합니다.
 
 [Google](https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag#valid-indexing--serving-directives), [Yahoo](https://help.yahoo.com/kb/search-for-desktop/SLN2213.html), [Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240)
 
 `nosnippet`
 
-Prevents displaying any description of the page in search engine results.
+검색 엔진 결과에 페이지에 대한 설명을 표시하지 않습니다.
 
 [Google](https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag#valid-indexing--serving-directives), [Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240)
 
 `noimageindex`
 
-Requests this page not to appear as the referring page of an indexed image.
+이 페이지를 인덱싱된 이미지의 참조 페이지로 표시하지 않도록 요청합니다.
 
 [Google](https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag#valid-indexing--serving-directives)
 
 `nocache`
 
-Synonym of `noarchive`.
+`noarchive`의 동의어입니다.
 
 [Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240)
 
-**Notes:**
+**참고:**
 
-* Only cooperative robots follow these rules. Do not expect to prevent e-mail harvesters with them.
-* The robot still needs to access the page in order to read these rules. To prevent bandwidth consumption, use a _[robots.txt](https://developer.mozilla.org/en-US/docs/Glossary/robots.txt "robots.txt: Robots.txt is a file which is usually placed in the root of any website. It decides whether crawlers are permitted or forbidden access to the web site.")_ file.
-* If you want to remove a page, `noindex` will work, but only after the robot visits the page again. Ensure that the `robots.txt` file is not preventing revisits.
-* Some values are mutually exclusive, like `index` and `noindex`, or `follow` and `nofollow`. In these cases the robot's behaviour is undefined and may vary between them.
-* Some crawler robots, like Google, Yahoo and Bing, support the same values for the HTTP header `X-Robots-Tag`; this allows non-HTML documents like images to use these rules.
+* 협력적인 로봇만 이 규칙을 따릅니다. 이 규칙으로 이메일 수집기를 막을 수는 없습니다.
+* 로봇이 이 규칙을 읽으려면 페이지에 먼저 접근해야 합니다. 대역폭 사용을 방지하려면 _[robots.txt](https://developer.mozilla.org/en-US/docs/Glossary/robots.txt "robots.txt: Robots.txt is a file which is usually placed in the root of any website. It decides whether crawlers are permitted or forbidden access to the web site.")_ 파일을 사용하세요.
+* 페이지를 제거하려면 `noindex`를 사용할 수 있지만, robot이 페이지를 다시 방문한 뒤에만 적용됩니다. `robots.txt` 파일이 재방문을 막고 있지 않은지 확인하세요.
+* `index`와 `noindex`, `follow`와 `nofollow`처럼 서로 배타적인 값도 있습니다. 이런 경우 robot의 동작은 정의되지 않으며 서로 달라질 수 있습니다.
+* Google, Yahoo 및 Bing과 같은 일부 크롤러 로봇은 HTTP 헤더 `X-Robots-Tag`에 대해 동일한 값을 지원합니다. 이를 통해 이미지 같은 비HTML 문서에도 이 규칙을 사용할 수 있습니다.
 
-* `slurp`, is a synonym of `robots`, but only for Slurp - the crawler for Yahoo Search.
-* `viewport`, which gives hints about the size of the initial size of the [viewport](https://developer.mozilla.org/en-US/docs/Glossary/viewport "viewport: A viewport represents a polygonal (normally rectangular) area in computer graphics that is currently being viewed. In web browser terms, it refers to the part of the document you're viewing which is currently visible in its window (or the screen, if the document is being viewed in full screen mode). Content outside the viewport is not visible onscreen until scrolled into view."). Used by mobile devices only.
+* `slurp`는 `robots`의 동의어이지만, Yahoo Search의 크롤러인 Slurp에만 적용됩니다.
+* `viewport`는 현재 보고 있는 컴퓨터 그래픽의 초기 [viewport](https://developer.mozilla.org/en-US/docs/Glossary/viewport "viewport: A viewport represents a polygonal (normally rectangular) 영역의 초기 크기에 대한 정보를 제공합니다. 웹 브라우저 용어로는 현재 창 안에서 보이는 문서의 부분(또는 문서를 전체 화면 모드로 보고 있다면 화면)을 가리킵니다. Content outside the viewport is not visible onscreen until scrolled into view."). 모바일 디바이스에서만 사용됩니다.
 
-Values for the content of `&lt;meta name="viewport"&gt;`
+`&lt;meta name="viewport"&gt;` 콘텐츠 값
 
-Value
+값
 
-Possible subvalues
+가능한 하위값
 
-Description
+설명
 
 `width`
 
-A positive integer number, or the text `device-width`
+양의 정수 또는 텍스트 `device-width`
 
-Defines the pixel width of the viewport that you want the web site to be rendered at.
+웹 사이트를 렌더링할 뷰포트의 픽셀 너비를 정의합니다.
 
 `height`
 
-A positive integer, or the text `device-height`
+양의 정수 또는 텍스트 `device-height`
 
-Defines the height of the viewport. Not used by any browser.
+뷰포트의 높이를 정의합니다. 브라우저에서 사용되지 않습니다.
 
 `initial-scale`
 
-A positive number between `0.0` and `10.0`
+`0.0`에서 `10.0` 사이의 양수
 
-Defines the ratio between the device width (`device-width` in portrait mode or `device-height` in landscape mode) and the viewport size.
+디바이스 너비(세로 모드에서는 `device-width`, 가로 모드에서는 `device-height`)와 viewport 크기 사이의 비율을 정의합니다.
 
 `maximum-scale`
 
-A positive number between `0.0` and `10.0`
+`0.0`에서 `10.0` 사이의 양수
 
-Defines the maximum amount to zoom in. It must be greater or equal to the `minimum-scale` or the behaviour is undefined. Browser settings can ignore this rule and iOS10+ ignores it by default.
+최대 확대/축소 수준을 정의합니다. `minimum-scale`이상이어야 합니다. 그렇지 않으면 동작이 정의되지 않습니다. 브라우저 설정은 이 규칙을 무시할 수 있으며, iOS10+는 기본적으로 이를 무시합니다.
 
 `minimum-scale`
 
-A positive number between `0.0` and `10.0`
+`0.0`에서 `10.0` 사이의 양수
 
-Defines the minimum zoom level. It must be smaller or equal to the `maximum-scale` or the behaviour is undefined. Browser settings can ignore this rule and iOS10+ ignores it by default.
+최소 확대/축소 수준을 정의합니다. `maximum-scale` 이하여야 합니다. 그렇지 않으면 동작이 정의되지 않습니다. 브라우저 설정은 이 규칙을 무시할 수 있으며 iOS10 이상은 기본적으로 이를 무시합니다.
 
 `user-scalable`
 
-`yes` or `no`
+`yes` 또는 `no`
 
-If set to `no`, the user is not able to zoom in the webpage. The default is `yes`. Browser settings can ignore this rule, and iOS10+ ignores it by default.
+`no`로 설정하면 사용자가 웹페이지를 확대할 수 없습니다. 기본값은 `yes`입니다. 브라우저 설정은 이 규칙을 무시할 수 있으며 iOS10 이상은 기본적으로 이를 무시합니다.
 
-Specification
+사양
 
-Status
+상태
 
-Comment
+메모
 
 [CSS Device Adaptation 
 The definition of '&lt;meta name="viewport"&gt;' in that specification.](https://drafts.csswg.org/css-device-adapt/#viewport-meta)
 
-Working Draft
+작성 중 초안
 
-Non-normatively describes the Viewport META element
+Viewport META 요소를 비규범적으로 설명합니다.
 
-See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewport "The @viewport CSS at-rule lets you configure the viewport through which the document is viewed. It's primarily used for mobile devices, but is also used by desktop browsers that support features like "snap to edge" (such as Microsoft Edge).")
+참고 항목: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewport "The @viewport CSS at-rule lets you configure the viewport through which the document is viewed. It's primarily used for mobile devices, but is also used by desktop browsers that support features like "snap to edge" (such as Microsoft Edge).")
 
-**Notes:**
+**참고:**
 
-* Though unstandardized, this declaration is respected by most mobile browsers due to de-facto dominance.
-* The default values may vary between devices and browsers.
-* To learn about this declaration in Firefox for Mobile, see [this article](https://developer.mozilla.org/en-US/docs/Mobile/Viewport_meta_tag "Mobile/Viewport meta tag").</target>
+* 표준은 아니지만, 사실상 널리 사용되기 때문에 대부분의 모바일 브라우저에서 이 선언을 지원합니다.
+* 기본값은 디바이스와 브라우저에 따라 다를 수 있습니다.
+* Firefox for Mobile에서 이 선언에 대해 알아보려면 [이 문서](https://developer.mozilla.org/en-US/docs/Mobile/Viewport_meta_tag "Mobile/Viewport meta tag")를 참조하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_nomodule">
@@ -1518,7 +1517,7 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 **Note:** Placeholders should only be used to show an example of the type of data that should be entered into a form; they are _not_ a substitute for a proper [`&lt;label&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label "The HTML &lt;label&gt; element represents a caption for an item in a user interface.") element tied to the input. See [Labels and placeholders](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Labels_and_placeholders "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") in [&lt;input&gt;: The Input (Form Input) element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") for a full explanation.</source>
         <target state="translated">컨트롤에 입력할 수 있는 내용에 대한 힌트입니다. 자리 표시자 텍스트 안에 있는 캐리지 리턴이나 줄 바꿈 문자는 힌트를 표시할 때 줄 바꿈으로 처리해야 합니다.
 
-**참고:** 자리 표시자는 양식에 입력해야 하는 데이터 형식의 예를 보여 주는 용도로만 사용해야 합니다. 입력과 연결된 적절한 [`&lt;label&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label "The HTML &lt;label&gt; element represents a caption for an item in a user interface.") 요소를 대신할 수는 없습니다. 자세한 내용은 [&lt;input&gt;: Input(Form Input) 요소](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML &lt;input&gt; 요소는 사용자로부터 데이터를 받기 위해 웹 기반 양식에 대한 대화형 컨트롤을 만드는 데 사용됩니다. 디바이스 및 사용자 에이전트에 따라 다양한 입력 데이터 유형과 컨트롤 위젯을 사용할 수 있습니다.") 요소의 [레이블 및 자리 표시자](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Labels_and_placeholders "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.")를 참조하세요.</target>
+**참고:** 자리 표시자는 양식에 입력해야 하는 데이터 형식의 예를 보여 주는 용도로만 사용해야 합니다. 입력과 연결된 적절한 [`&lt;label&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label "The HTML &lt;label&gt; element represents a caption for an item in a user interface.") 요소를 대신할 수는 없습니다. 자세한 내용은 [&lt;input&gt;: Input(Form Input) 요소](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML &lt;input&gt; 요소는 사용자로부터 데이터를 받기 위해 웹 기반 양식에 대한 대화형 컨트롤을 만드는 데 사용됩니다. 디바이스 및 사용자 에이전트에 따라 다양한 입력 데이터 유형과 컨트롤 위젯을 사용할 수 있습니다.") 요소의 [레이블 및 자리 표시자](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Labels_and_placeholders "HTML &lt;input&gt; 요소는 사용자로부터 데이터를 받기 위해 웹 기반 양식에 대한 대화형 컨트롤을 만드는 데 사용됩니다. 디바이스 및 사용자 에이전트에 따라 다양한 입력 데이터 유형과 컨트롤 위젯을 사용할 수 있습니다.")를 참조하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_popover">
@@ -1546,11 +1545,11 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 * `unsafe-url` means that the referrer will include the origin and the path (but not the fragment, password, or username). This case is unsafe because it can leak origins and paths from TLS-protected resources to insecure origins.</source>
         <target state="translated">리소스를 가져올 때 사용할 리퍼러를 나타내는 문자열입니다.
 
-* `no-referrer`는 TLS(HTTPS)가 없는 출처로 이동할 때 [`Referer`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer "The Referer request header contains the address of the previous web page from which a link to the currently requested page was followed. The Referer header allows servers to identify where people are visiting them from and may use that data for analytics, logging, or optimized caching, for example.") 헤더가 전송되지 않음을 의미합니다.
-* `no-referrer-when-downgrade`는 TLS(HTTPS)가 없는 출처로 이동할 때 [`Referer`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer "The Referer request header contains the address of the previous web page from which a link to the currently requested page was followed. The Referer header allows servers to identify where people are visiting them from and may use that data for analytics, logging, or optimized caching, for example.") 헤더가 전송되지 않음을 의미합니다. 정책이 따로 지정되지 않은 경우 사용자 에이전트의 기본 동작입니다.
+* `no-referrer`는 [`Referer`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer "The Referer request header contains the address of the previous web page from which a link to the currently requested page was followed. The Referer header allows servers to identify where people are visiting them from and may use that data for analytics, logging, or optimized caching, for example.") 헤더가 전송되지 않습니다.
+* `no-referrer-when-downgrade`는 [`Referer`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer "The Referer request header contains the address of the previous web page from which a link to the currently requested page was followed. The Referer header allows servers to identify where people are visiting them from and may use that data for analytics, logging, or optimized caching, for example.") 헤더가 TLS(HTTPS)가 없는 출처로 이동할 때 전송됨을 의미합니다. 정책이 따로 지정되지 않은 경우 사용자 에이전트의 기본 동작입니다.
 * `origin`은 참조 페이지가 페이지의 출처가 됨을 의미합니다. 출처는 대체로 스키마, 호스트, 포트입니다.
 * `origin-when-cross-origin`은 다른 출처로 이동할 때는 스키마, 호스트, 포트만 포함하고, 같은 출처로 이동할 때는 참조 페이지의 경로도 포함함을 의미합니다.
-* `unsafe-url`은 참조 페이지에 출처와 경로가 포함됨을 의미합니다. 단, fragment, password, username은 포함되지 않습니다. 이 경우는 TLS로 보호되는 리소스의 출처와 경로가 안전하지 않은 출처로 유출될 수 있으므로 안전하지 않습니다.</target>
+* `unsafe-url`은 참조 페이지에 출처와 경로가 포함됨을 의미합니다. 단, fragment, password, username은 포함되지 않습니다. 이 경우는 TLS로 보호된 리소스의 출처와 경로가 안전하지 않은 출처로 유출될 수 있으므로 안전하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_rel">
@@ -1620,7 +1619,7 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
         <source>This attribute defines the scheme in which metadata is described. A scheme is a context leading to the correct interpretations of the [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) value, like a format.
 
 **Warning:** Do not use this value, as it is obsolete. There is no replacement as there was no real usage for it.</source>
-        <target state="translated">이 특성은 메타데이터를 설명하는 체계를 정의합니다. 체계는 형식과 같이 [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) 값을 올바르게 해석하는 컨텍스트입니다.
+        <target state="translated">이 특성은 메타데이터가 설명되는 체계를 정의합니다. 체계는 형식과 같이 [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) 값을 올바르게 해석하는 컨텍스트입니다.
 
 **경고:** 이 값은 사용되지 않으므로 사용하지 마세요. 실제 사용량이 없으므로 대체 항목이 없습니다.</target>
         <note />
@@ -1636,7 +1635,7 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 **Note:** According to the HTML5 specification, the default value for size should be 1; however, in practice, this has been found to break some web sites, and no other browser currently does that, so Mozilla has opted to continue to return 0 for the time being with Firefox.</source>
         <target state="translated">컨트롤이 스크롤 목록 상자로 표시되는 경우, 예를 들어 `multiple`이 지정된 경우 이 특성은 한 번에 표시해야 하는 목록의 행 수를 나타냅니다. 브라우저가 select 요소를 스크롤 목록 상자로 표시할 필요는 없습니다. 기본값은 0입니다.
 
-**참고:** HTML5 사양에 따르면 size의 기본값은 1이어야 합니다. 하지만 실제로는 일부 웹 사이트를 깨뜨리는 것으로 확인됐고, 현재 다른 브라우저도 그렇게 하지 않기 때문에 Mozilla는 Firefox에서 당분간 0을 계속 반환하기로 했습니다.</target>
+**참고:** HTML5 사양에 따르면 size의 기본값은 1이어야 하지만, 실제로는 일부 웹 사이트를 깨뜨리는 것으로 확인됐고 현재 다른 브라우저도 그렇게 하지 않기 때문에 Mozilla는 Firefox에서 당분간 0을 계속 반환하기로 했습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_sizes">
@@ -1646,12 +1645,12 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 * a white-space separated list of sizes, each in the format `_&lt;width in pixels&gt;_x_&lt;height in pixels&gt;_` or `_&lt;width in pixels&gt;_X_&lt;height in pixels&gt;_`. Each of these sizes must be contained in the resource.
 
 **Note:** Most icon formats are only able to store one single icon; therefore most of the time the [`sizes`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-sizes) contains only one entry. MS's ICO format does, as well as Apple's ICNS. ICO is more ubiquitous; you should definitely use it.</source>
-        <target state="translated">이 특성은 리소스에 포함된 시각적 미디어의 아이콘 크기를 정의합니다. [`rel`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link#attr-rel)에 `icon` 값이나 Apple의 `apple-touch-icon` 같은 비표준 형식이 포함된 경우에만 사용할 수 있습니다. 다음 값을 사용할 수 있습니다.
+        <target state="translated">이 특성은 리소스에 포함된 시각적 미디어 아이콘의 크기를 정의합니다. [`rel`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link#attr-rel)에 `icon` 값이나 Apple의 `apple-touch-icon` 같은 비표준 형식이 포함된 경우에만 존재해야 합니다. 다음 값을 사용할 수 있습니다.
 
 * `any`: 아이콘이 `image/svg+xml` 같은 벡터 형식일 때, 원하는 크기로 조정할 수 있음을 의미합니다.
-* 공백으로 구분된 크기 목록입니다. 각 값은 `_&lt;width in pixels&gt;_x_&lt;height in pixels&gt;_` 또는 `_&lt;width in pixels&gt;_X_&lt;height in pixels&gt;_` 형식입니다. 각 크기는 리소스에 포함되어 있어야 합니다.
+* 공백으로 구분된 크기 목록이며, 각 값은 `_&lt;width in pixels&gt;_x_&lt;height in pixels&gt;_` 또는 `_&lt;width in pixels&gt;_X_&lt;height in pixels&gt;_` 형식입니다. 각 크기는 리소스에 포함되어 있어야 합니다.
 
-**참고:** 대부분의 아이콘 형식은 아이콘 하나만 저장할 수 있습니다. 따라서 대부분의 경우 [`sizes`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-sizes)에는 항목이 하나만 있습니다. MS의 ICO 형식과 Apple의 ICNS도 마찬가지입니다. ICO가 더 널리 쓰입니다. 꼭 사용하세요.</target>
+**참고:** 대부분의 아이콘 형식은 아이콘 하나만 저장할 수 있습니다. 따라서 대부분의 경우 [`sizes`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-sizes)에는 항목이 하나만 있습니다. MS의 ICO 형식은 물론 Apple의 ICNS도 마찬가지입니다. ICO는 더 널리 사용되므로 꼭 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_slot">
@@ -1664,7 +1663,7 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 
 * `true`, which indicates that the element should be, if possible, checked for spelling errors;
 * `false`, which indicates that the element should not be checked for spelling errors.</source>
-        <target state="translated">요소에 맞춤법 오류 검사를 적용할 수 있는지 여부를 나타내는 열거형 특성입니다. 가능한 값은 다음과 같습니다.
+        <target state="translated">열거형 특성은 요소에서 맞춤법 검사를 할 수 있는지 여부를 정의합니다. 다음 값을 사용할 수 있습니다.
 
 * `true`: 가능한 경우 요소에서 맞춤법 검사를 수행해야 함을 나타냅니다.
 * `false`: 요소에서 맞춤법 검사를 수행하지 않아야 함을 나타냅니다.</target>
@@ -1676,7 +1675,7 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 If a `script` element has a `src` attribute specified, it should not have a script embedded inside its tags.</source>
         <target state="translated">이 특성은 외부 스크립트의 URI를 지정합니다. 문서에 스크립트를 직접 포함하는 대신 사용할 수 있습니다.
 
-`script` 요소에 `src` 특성이 지정된 경우, 태그 안에 스크립트를 포함해서는 안 됩니다.</target>
+`script` 요소에 `src` 특성이 지정된 경우 해당 태그 안에 스크립트를 포함해서는 안 됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_srcdoc">
@@ -1702,25 +1701,25 @@ If no descriptor is specified, the source is assigned the default descriptor: `1
 It is incorrect to mix width descriptors and pixel density descriptors in the same `srcset` attribute. Duplicate descriptors (for instance, two sources in the same `srcset` which are both described with '`2x`') are also invalid.
 
 The user agent selects any one of the available sources at its discretion. This provides them with significant leeway to tailor their selection based on things like user preferences or bandwidth conditions. See our [Responsive images](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images) tutorial for an example.</source>
-        <target state="translated">쉼표로 구분된 하나 이상의 문자열 목록입니다. 사용자 에이전트가 사용할 수 있는 이미지 소스 집합을 나타냅니다. 각 문자열은 다음으로 구성됩니다.
+        <target state="translated">사용자 에이전트에서 사용할 수 있는 이미지 소스 집합을 나타내는 쉼표로 구분된 하나 이상의 문자열 목록입니다. 사용자 에이전트가 사용할 수 있는 이미지 소스 집합을 나타냅니다.
 
 1. 이미지 URL,
 2. 필요에 따라 공백 뒤에 다음 중 하나가 옵니다.
-* 너비 설명자입니다. 또는 바로 뒤에 '`w`'가 오는 양의 정수입니다. 너비 설명자는 `sizes` 특성에 지정된 소스 크기로 나누어 실제 픽셀 밀도를 계산합니다.
+* 너비 설명자입니다. 또는 바로 뒤에 '`w`'가 오는 양의 정수입니다. 너비 설명자는 `sizes` 특성에 지정된 소스 크기로 나누어 유효 픽셀 밀도를 계산합니다.
 * 픽셀 밀도 설명자입니다. 또는 바로 뒤에 '`x`'가 오는 양의 부동 소수점 숫자입니다.
 
-설명자를 지정하지 않으면 소스에는 기본 설명자인 `1x`가 할당됩니다.
+설명자를 지정하지 않으면 소스에 기본 설명자인 `1x`가 할당됩니다.
 
-같은 `srcset` 특성에서 너비 설명자와 픽셀 밀도 설명자를 함께 사용하는 것은 올바르지 않습니다. 중복된 설명자도 유효하지 않습니다. 예를 들어 같은 `srcset`에서 두 소스가 모두 '`2x`'로 설명되는 경우가 있습니다.
+같은 `srcset` 특성에서 너비 설명자와 픽셀 밀도 설명자를 함께 사용하는 것은 올바르지 않습니다. 중복 설명자(예: '`2x`'로 설명된 동일한 `srcset`의 두 소스)도 잘못되었습니다.
 
-사용자 에이전트는 사용 가능한 소스 중 하나를 임의로 선택합니다. 따라서 사용자 환경 설정이나 대역폭 조건에 따라 선택을 조정할 수 있는 여지가 큽니다. 예제는 [반응형 이미지](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images) 자습서를 참조하세요.</target>
+사용자 에이전트는 사용 가능한 소스 중 하나를 임의로 선택합니다. 이렇게 하면 사용자 기본 설정 또는 대역폭 조건과 같은 항목에 따라 선택을 조정할 수 있는 상당한 유연함을 제공합니다. 예제는 [반응형 이미지](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images) 자습서를 참조하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_start">
         <source>This integer attribute specifies the start value for numbering the individual list items. Although the ordering type of list elements might be Roman numerals, such as XXXI, or letters, the value of start is always represented as a number. To start numbering elements from the letter "C", use `&lt;ol start="3"&gt;`.
 
 **Note**: This attribute was deprecated in HTML4, but reintroduced in HTML5.</source>
-        <target state="translated">이 정수 특성은 개별 목록 항목의 번호를 매기기 위한 시작 값을 지정합니다. 목록 요소의 순서 유형이 XXXI 같은 로마 숫자나 문자일 수 있지만, 시작 값은 항상 숫자로 표시됩니다. 문자 "C"에서 번호 매기를 시작하려면 `&lt;ol start="3"&gt;`를 사용하세요.
+        <target state="translated">이 정수 특성은 개별 목록 항목의 번호 매기기 시작 값을 지정합니다. 목록 요소의 순서 유형이 XXXI 같은 로마 숫자나 문자일 수 있지만, 시작 값은 항상 숫자로 표시됩니다. 문자 "C"에서 번호 매기를 시작하려면 `&lt;ol start="3"&gt;`를 사용하세요.
 
 **참고**: 이 특성은 HTML4에서 더 이상 사용되지 않았지만 HTML5에서 다시 도입되었습니다.</target>
         <note />
@@ -1736,7 +1735,7 @@ The user agent selects any one of the available sources at its discretion. This 
 * a _negative value_ means that the element should be focusable, but should not be reachable via sequential keyboard navigation;
 * `0` means that the element should be focusable and reachable via sequential keyboard navigation, but its relative order is defined by the platform convention;
 * a _positive value_ means that the element should be focusable and reachable via sequential keyboard navigation; the order in which the elements are focused is the increasing value of the [**tabindex**](https://developer.mozilla.org/docs/Web/HTML/Reference/Global_attributes/tabindex#attr-tabindex). If several elements share the same tabindex, their relative order follows their relative positions in the document.</source>
-        <target state="translated">요소가 입력 포커스를 가질 수 있는지(_포커스 가능_), 순차적 키보드 탐색에 참여하는지, 참여한다면 어느 위치인지 나타내는 정수 특성입니다. 사용할 수 있는 값은 다음과 같습니다.
+        <target state="translated">요소가 입력 포커스를 받을 수 있는지(_focusable_), 순차 키보드 탐색에 참여해야 하는지, 아니면 어떤 위치에 있는지를 나타내는 정수 특성입니다. 사용할 수 있는 값은 다음과 같습니다.
 
 * _음수_: 요소는 포커스를 받을 수 있지만 순차적 키보드 탐색으로는 도달할 수 없음을 의미합니다.
 * `0`: 요소는 포커스를 받을 수 있고 순차적 키보드 탐색으로 도달할 수 있지만, 상대적 순서는 플랫폼 규칙에 따라 정해짐을 의미합니다.
@@ -1752,7 +1751,7 @@ The user agent selects any one of the available sources at its discretion. This 
 * `_top`: Load the result into the top-level browsing context (that is, the browsing context that is an ancestor of the current one, and has no parent). If there is no parent, this option behaves the same way as `_self`.
 
 If this attribute is specified, this element must come before any other elements with attributes whose values are URLs.</source>
-        <target state="translated">하이퍼링크나 양식으로 인해 탐색이 발생할 때, 명시적인 대상 참조가 없는 요소에 대해 결과를 표시할 기본 위치를 나타내는 이름 또는 키워드입니다. _browsing context_의 이름이나 키워드입니다. 예를 들어 탭, 창, 인라인 프레임이 있습니다. 다음 키워드에는 특별한 의미가 있습니다.
+        <target state="translated">명시적 대상 참조가 없는 요소에 대해 하이퍼링크 또는 양식으로 인해 탐색이 발생할 때 결과를 표시할 기본 위치를 나타내는 이름 또는 키워드입니다. _브라우징 컨텍스트_의 이름 또는 키워드입니다(예: 탭, 창 또는 인라인 프레임). 다음 키워드에는 특별한 의미가 있습니다.
 
 * `_self`: 현재 browsing context와 같은 browsing context에 응답을 로드합니다. 이 값은 특성을 지정하지 않은 경우의 기본값입니다.
 * `_blank`: 이름이 지정되지 않은 새 browsing context에 응답을 로드합니다.
@@ -1772,7 +1771,7 @@ If this attribute is specified, this element must come before any other elements
 
 * empty string and `yes`, which indicates that the element will be translated.
 * `no`, which indicates that the element will not be translated.</source>
-        <target state="translated">페이지를 지역화할 때 요소의 특성 값과 해당 [`Text`](https://developer.mozilla.org/docs/Web/API/Text "The Text interface represents the textual content of Element or Attr. If an element has no markup within its content, it has a single child implementing Text that contains the element's text. However, if the element contains markup, it is parsed into information items and Text nodes that form its children.") 노드 자식 값을 번역할지, 아니면 그대로 둘지를 지정하는 열거형 특성입니다. 다음 값을 사용할 수 있습니다.
+        <target state="translated">요소의 특성 값과 해당 [`Text`](https://developer.mozilla.org/docs/Web/API/Text "텍스트 인터페이스는 요소 또는 Attr의 텍스트 콘텐츠를 나타냅니다. 요소의 콘텐츠 내에 마크업이 없는 경우 요소의 텍스트를 포함하는 Text를 구현하는 단일 자식이 있습니다. 그러나 요소에 마크업가 포함되어 있으면 해당 자식을 구성하는 정보 항목 및 텍스트 노드로 구문 분석됩니다.") 노드 자식이 페이지가 지역화될 때 변역될지 아니면 변경되지 않은 상태로 둘지를 지정하는 데 사용되는 열거형 속성입니다. 다음 값을 사용할 수 있습니다.
 
 * 빈 문자열과 `yes`: 요소를 번역함을 나타냅니다.
 * `no`: 요소를 번역하지 않음을 나타냅니다.</target>
@@ -1798,7 +1797,7 @@ If this attribute is specified, this element must come before any other elements
 **Note**: This attribute was deprecated in HTML4, but reintroduced in HTML5.
 
 **Note:** Prior to Gecko 9.0, negative values were incorrectly converted to 0. Starting in Gecko 9.0 all integer values are correctly parsed.</source>
-        <target state="translated">이 정수 특성은 [`&lt;ol&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ol "HTML &lt;ol&gt; 요소는 정렬된 항목 목록을 나타내며 일반적으로 번호 매기기 목록으로 렌더링됩니다.") 요소에 정의된 대로 목록 항목의 현재 서수 값을 나타냅니다. 이 특성에서 허용되는 값은 숫자뿐입니다. 목록이 로마 숫자나 글자로 표시되더라도 마찬가지입니다. 이 항목 뒤에 오는 목록 항목은 설정된 값부터 번호를 이어갑니다. **value** 특성은 순서 없는 목록([`&lt;ul&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ul "The HTML &lt;ul&gt; element represents an unordered list of items, typically rendered as a bulleted list."))이나 메뉴([`&lt;menu&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/menu "The HTML &lt;menu&gt; element represents a group of commands that a user can perform or activate. This includes both list menus, which might appear across the top of a screen, as well as context menus, such as those that might appear underneath a button after it has been clicked."))에는 의미가 없습니다.
+        <target state="translated">이 정수 특성은 [`&lt;ol&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ol "HTML &lt;ol&gt; 요소는 정렬된 항목 목록을 나타내며 일반적으로 번호 매기기 목록으로 렌더링됩니다.") 요소에 정의된 대로 목록 항목의 현재 서수 값을 나타냅니다. 이 특성에서 허용되는 값은 숫자뿐입니다. 목록이 로마 숫자나 글자로 표시되더라도 마찬가지입니다. 이 항목 뒤에 오는 목록 항목은 설정된 값부터 번호를 이어받습니다. **value** 특성은 순서가 지정되지 않은 목록([`&lt;ul&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ul "HTML &lt;ul&gt; 요소는 정렬되지 않은 항목 목록을 나타내며, 일반적으로 글머리 기호 목록으로 렌더링됩니다.")) 또는 메뉴([`&lt;menu&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/menu "HTML &lt;menu&gt; 요소는 사용자가 수행하거나 활성화할 수 있는 명령 그룹을 나타냅니다. This includes both list menus, which might appear across the top of a screen, as well as context menus, such as those that might appear underneath a button after it has been clicked."))에는 의미가 없습니다.
 
 **참고**: 이 특성은 HTML4에서 더 이상 사용되지 않았지만 HTML5에서 다시 도입되었습니다.
 
@@ -1836,13 +1835,13 @@ If this attribute is specified, this element must come before any other elements
 * `off` : Like `soft` but changes appearance to `white-space: pre` so line segments exceeding `cols` are not wrapped and the `&lt;textarea&gt;` becomes horizontally scrollable.
 
 If this attribute is not specified, `soft` is its default value.</source>
-        <target state="translated">컨트롤에서 텍스트를 줄 바꿈하는 방식을 나타냅니다. 가능한 값은 다음과 같습니다.
+        <target state="translated">컨트롤이 텍스트를 래핑하는 방법을 나타냅니다. 사용할 수 있는 값은 다음과 같습니다.
 
 * `hard`: 각 줄이 컨트롤의 너비를 넘지 않도록 브라우저가 자동으로 줄 바꿈(CR+LF)을 삽입합니다. `cols` 특성도 지정해야 이 기능이 적용됩니다.
 * `soft`: 브라우저는 값의 모든 줄 바꿈이 CR+LF 쌍이 되도록 보장하지만, 추가 줄 바꿈은 삽입하지 않습니다.
 * `off`: `soft`와 비슷하지만 표시 방식이 `white-space: pre`로 바뀌므로 `cols`를 초과하는 줄은 줄 바꿈이 되지 않고 `&lt;textarea&gt;`가 가로 스크롤이 가능해집니다.
 
-이 특성을 지정하지 않으면 기본값은 `soft`입니다.</target>
+이 특성을 지정하지 않으면 `soft`가 기본값입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_a">

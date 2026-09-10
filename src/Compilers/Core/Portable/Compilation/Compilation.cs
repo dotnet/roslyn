@@ -2887,12 +2887,6 @@ namespace Microsoft.CodeAnalysis
                 options = options.WithIncludePrivateMembers(true);
             }
 
-            if (options?.DebugInformationFormat == DebugInformationFormat.Embedded &&
-                options?.EmitMetadataOnly == true)
-            {
-                throw new ArgumentException(CodeAnalysisResources.EmbeddingPdbUnexpectedWhenEmittingMetadata, nameof(metadataPEStream));
-            }
-
             if (this.Options.OutputKind == OutputKind.NetModule)
             {
                 if (metadataPEStream != null)
@@ -2964,6 +2958,7 @@ namespace Microsoft.CodeAnalysis
             options = options ?? EmitOptions.Default.WithIncludePrivateMembers(metadataPEStream == null);
 
             bool embedPdb = options.DebugInformationFormat == DebugInformationFormat.Embedded;
+            bool emitPdb = !options.EmitMetadataOnly && (pdbStream != null || embedPdb);
             Debug.Assert(!embedPdb || pdbStream == null);
             Debug.Assert(metadataPEStream == null || !options.IncludePrivateMembers); // you may not use a secondary stream and include private members together
 
@@ -2989,7 +2984,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         success = CompileMethods(
                             moduleBeingBuilt,
-                            emittingPdb: pdbStream != null || embedPdb,
+                            emittingPdb: emitPdb,
                             diagnostics: diagnostics,
                             filterOpt: null,
                             cancellationToken: cancellationToken);
@@ -3038,7 +3033,7 @@ namespace Microsoft.CodeAnalysis
                             moduleBeingBuilt,
                             new SimpleEmitStreamProvider(peStream),
                             (metadataPEStream != null) ? new SimpleEmitStreamProvider(metadataPEStream) : null,
-                            (pdbStream != null) ? new SimpleEmitStreamProvider(pdbStream) : null,
+                            (emitPdb && pdbStream != null) ? new SimpleEmitStreamProvider(pdbStream) : null,
                             rebuildData,
                             testData?.SymWriterFactory,
                             diagnostics,
@@ -3271,10 +3266,16 @@ namespace Microsoft.CodeAnalysis
 
             // PDB Stream provider should not be given if PDB is to be embedded into the PE file:
             Debug.Assert(moduleBeingBuilt.DebugInformationFormat != DebugInformationFormat.Embedded || pdbStreamProvider == null);
+            Debug.Assert(!emitOptions.EmitMetadataOnly || pdbStreamProvider == null);
 
             string? pePdbFilePath = emitOptions.PdbFilePath;
 
-            if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Embedded || pdbStreamProvider != null)
+            if (emitOptions.EmitMetadataOnly)
+            {
+                // Metadata-only output has no associated PDB. Clear the path so the PE writer doesn't emit a CodeView entry.
+                pePdbFilePath = null;
+            }
+            else if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Embedded || pdbStreamProvider != null)
             {
                 pePdbFilePath = pePdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb");
             }

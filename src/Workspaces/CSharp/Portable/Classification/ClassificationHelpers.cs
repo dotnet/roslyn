@@ -256,6 +256,17 @@ internal static class ClassificationHelpers
         }
         else if (token.Parent is ParameterSyntax parameterSyntax && parameterSyntax.Identifier == token)
         {
+            if (token.Text == "_" && parameterSyntax.Parent is ParameterListSyntax { Parent: AnonymousFunctionExpressionSyntax } parameterList)
+            {
+                foreach (var otherParameter in parameterList.Parameters)
+                {
+                    if (otherParameter != parameterSyntax && otherParameter.Identifier.Text == "_")
+                    {
+                        return ClassificationTypeNames.Keyword;
+                    }
+                }
+            }
+
             return ClassificationTypeNames.ParameterName;
         }
         else if (token.Parent is ForEachStatementSyntax forEachStatementSyntax && forEachStatementSyntax.Identifier == token)
