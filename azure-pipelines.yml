@@ -445,12 +445,26 @@ stages:
               filePath: eng/prepare-tests.ps1
               arguments: -configuration Debug
 
-          - task: UseDotNet@2
+          - task: PowerShell@2
             displayName: Install binlog reader SDK
             inputs:
-              packageType: sdk
-              version: 11.0.100-rc.1.26420.103
-              installationPath: $(Agent.TempDirectory)\binlog-sdk
+              targetType: inline
+              pwsh: true
+              script: |
+                $ErrorActionPreference = 'Stop'
+                $installDirectory = "$(Agent.TempDirectory)\binlog-sdk"
+                $dotnet = Join-Path $installDirectory 'dotnet.exe'
+                if (-not (Test-Path $dotnet)) {
+                  $installer = "$(Agent.TempDirectory)\dotnet-install.ps1"
+                  Invoke-WebRequest 'https://builds.dotnet.microsoft.com/dotnet/scripts/v1/dotnet-install.ps1' `
+                    -OutFile $installer
+                  $env:DOTNET_INSTALL_SKIP_TAR = '1'
+                  & $installer -Version 11.0.100-rc.1.26420.103 `
+                    -InstallDir $installDirectory -NoPath
+                  if ($LASTEXITCODE -ne 0 -or -not (Test-Path $dotnet)) {
+                    throw "Failed to install the format-27 binlog reader SDK ($LASTEXITCODE)."
+                  }
+                }
 
           - task: PowerShell@2
             displayName: Write build metrics
