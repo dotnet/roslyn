@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 internal interface IWorkspaceFolderTracker : ILspService
 {
-    event Action<ImmutableHashSet<string>>? WorkspaceFoldersChanged;
+    event Action? WorkspaceFoldersChanged;
 
     ImmutableHashSet<string> GetRequiredWorkspaceFolderPaths();
 

@@ -98,18 +98,6 @@ __builder.AddContent(2, ChildContent(item2)
             __builder.AddMarkupContent(4, "<p>Item3</p>");
         }
         #pragma warning restore 1998
-#nullable restore
-#line (16,8)-(21,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    [Parameter] public TItem1 Item1 { get; set; }
-    [Parameter] public List<TItem2> Items2 { get; set; }
-    [Parameter] public TItem3 Item3 { get; set; }
-    [Parameter] public RenderFragment<TItem2> ChildContent { get; set; }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

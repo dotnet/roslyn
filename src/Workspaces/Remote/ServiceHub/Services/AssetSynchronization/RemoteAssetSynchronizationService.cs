@@ -62,7 +62,7 @@ internal sealed class RemoteAssetSynchronizationService(in BrokeredServiceBase.S
             var wasSynchronized = await SynchronizeTextChangesHelperAsync().ConfigureAwait(false);
 
             var metricName = wasSynchronized ? SynchronizeTextChangesAsyncSucceededMetricName : SynchronizeTextChangesAsyncFailedMetricName;
-            RoslynTelemetry.Count(FunctionId.RemoteHostService_SynchronizeTextAsyncStatus, metricName, 1);
+            RoslynTelemetry.Current.Count(FunctionId.RemoteHostService_SynchronizeTextAsyncStatus, metricName, 1);
 
             return;
 
