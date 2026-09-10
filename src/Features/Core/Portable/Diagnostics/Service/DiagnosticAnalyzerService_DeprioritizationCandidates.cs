@@ -65,20 +65,23 @@ internal sealed partial class DiagnosticAnalyzerService
                     // Follow the pattern in SolutionCompilationState.GeneratorDriverInitializationCache: AsyncLazy
                     // cancels its computation when all requesters cancel, so keep one non-cancelable requester alive
                     // to prevent repeated edits from repeatedly starting and canceling this initialization.
-                    var keepAliveTask = Task.Run(() => createdLazy.GetValueAsync(CancellationToken.None));
-                    _ = keepAliveTask.ReportNonFatalErrorAsync();
-                    _ = keepAliveTask.ContinueWith(
-                        _ =>
+                    _ = Task.Run(async () =>
+                    {
+                        try
                         {
+                            await createdLazy.GetValueAsync(CancellationToken.None).ConfigureAwait(false);
+                        }
+                        catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+                        {
+                            // Removing the failed lazy allows a later lookup to retry. Callers that already requested
+                            // its value will still observe this exception.
                             if (s_analyzerToDeprioritizedDiagnosticIds.TryGetValue(analyzer, out var currentLazy) &&
                                 ReferenceEquals(currentLazy, createdLazy))
                             {
                                 s_analyzerToDeprioritizedDiagnosticIds.Remove(analyzer);
                             }
-                        },
-                        CancellationToken.None,
-                        TaskContinuationOptions.NotOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
-                        TaskScheduler.Default);
+                        }
+                    }, CancellationToken.None);
                 }
             }
 
