@@ -33,6 +33,12 @@ parameters:
 - name: ForceCold
   type: boolean
   default: false
+- name: SourceLinkMode
+  type: string
+  default: marker
+  values:
+  - marker
+  - real
 
 variables:
   - name: CacheStore
@@ -53,6 +59,8 @@ variables:
     value: 0
   - name: CaptureSeconds
     value: 0
+  - name: SourceLinkMarker
+    value: b1b9107cdb8df6bfb36f1cc075a798afd7b28a82
   - name: Codeql.Enabled
     value: false
   - name: Codeql.SkipTaskAutoInjection
@@ -80,7 +88,7 @@ extends:
           outputs:
           - output: pipelineArtifact
             displayName: Publish warmcache (for next run)
-            condition: succeeded()
+            condition: and(succeeded(), eq('${{ parameters.SourceLinkMode }}', 'marker'))
             targetPath: $(CacheStore)
             artifactName: warmcache
           - output: pipelineArtifact
@@ -216,10 +224,21 @@ extends:
               $gp = & $dotnet nuget locals global-packages --list 2>$null
               if ("$gp" -match 'global-packages:\s*(.+?)\s*$') { $env:NUGET_PACKAGES = $matches[1].Trim() }
               Write-Host "using NUGET_PACKAGES=$env:NUGET_PACKAGES"
+              $finalizerOutput = "$(Agent.TempDirectory)\sourcelink-finalizer"
+              & $dotnet build "$(Scripts)\SourceLinkFinalizer\SourceLinkFinalizer.csproj" `
+                -c Release -o $finalizerOutput /p:EnableSourceLink=false
+              if ($LASTEXITCODE -ne 0) { throw "SourceLink finalizer build failed ($LASTEXITCODE)" }
+              $sourceLinkArgs = @(
+                '/p:EnableSourceLink=true',
+                "/p:CustomAfterMicrosoftCommonTargets=$(Scripts)\SourceLinkMarker.targets"
+              )
+              if ('${{ parameters.SourceLinkMode }}' -eq 'marker') {
+                $sourceLinkArgs += '/p:BigBuildSourceLinkRevisionMarker=$(SourceLinkMarker)'
+              }
               $sw = [Diagnostics.Stopwatch]::StartNew()
               & "$(Build.SourcesDirectory)/eng/build.ps1" -ci -build -configuration Debug `
                 -solution ${{ parameters.slnf }} -msbuildEngine vs -binaryLogName Build.WarmCache.binlog `
-                /p:DeterministicSourcePaths=true /p:EnableSourceLink=false
+                /p:DeterministicSourcePaths=true @sourceLinkArgs
               if ($LASTEXITCODE -ne 0) { throw "build failed ($LASTEXITCODE)" }
               $sw.Stop()
               $seconds = [math]::Round($sw.Elapsed.TotalSeconds, 1)
@@ -228,6 +247,7 @@ extends:
 
         - task: PowerShell@2
           displayName: Capture fresh baseline
+          condition: and(succeeded(), eq('${{ parameters.SourceLinkMode }}', 'marker'))
           inputs:
             targetType: inline
             pwsh: true
@@ -254,6 +274,41 @@ extends:
               $seconds = [math]::Round($sw.Elapsed.TotalSeconds, 1)
               Write-Host "##vso[task.setvariable variable=CaptureSeconds]$seconds"
               Write-Host "==> captured baseline -> $baselineDir"
+
+        - task: PowerShell@2
+          displayName: Finalize and inventory SourceLink outputs
+          inputs:
+            targetType: inline
+            pwsh: true
+            workingDirectory: $(Build.SourcesDirectory)
+            script: |
+              $ErrorActionPreference = 'Stop'
+              $binRoot = "$(Build.SourcesDirectory)\artifacts\bin"
+              if ('${{ parameters.SourceLinkMode }}' -eq 'marker') {
+                $patchRoot = "$(Agent.TempDirectory)\sourcelink-finalized"
+                if (Test-Path $patchRoot) { Remove-Item $patchRoot -Recurse -Force }
+                $dotnet = "$(Build.SourcesDirectory)\.dotnet\dotnet.exe"
+                $tool = "$(Agent.TempDirectory)\sourcelink-finalizer\SourceLinkFinalizer.dll"
+                $realRevision = (git rev-parse HEAD).Trim()
+                & $dotnet $tool --root $binRoot --output-root $patchRoot `
+                  --marker "$(SourceLinkMarker)" --value $realRevision
+                if ($LASTEXITCODE -ne 0) { throw "SourceLink finalization failed ($LASTEXITCODE)" }
+
+                Get-ChildItem $patchRoot -Recurse -File | ForEach-Object {
+                  $relative = [IO.Path]::GetRelativePath($patchRoot, $_.FullName)
+                  $destination = Join-Path $binRoot $relative
+                  if (-not (Test-Path -LiteralPath $destination -PathType Leaf)) {
+                    throw "Finalized output has no marker-space destination: $relative"
+                  }
+                  $temporary = "$destination.sourcelink-$([Guid]::NewGuid().ToString('N')).tmp"
+                  [IO.File]::Copy($_.FullName, $temporary)
+                  [IO.File]::Move($temporary, $destination, $true)
+                }
+              }
+
+              & "$(Scripts)\Snap-Tree.ps1" -Roots @($binRoot) `
+                -Out "$(ReplayMetricsDir)\final-bin.clixml"
+              if ($LASTEXITCODE -ne 0) { throw "final bin inventory failed ($LASTEXITCODE)" }
 
         - task: PowerShell@2
           displayName: Write replay metrics
