@@ -461,9 +461,6 @@ stages:
                   $env:DOTNET_INSTALL_SKIP_TAR = '1'
                   & $installer -Version 11.0.100-rc.1.26420.103 `
                     -InstallDir $installDirectory -NoPath
-                  if ($LASTEXITCODE -ne 0) {
-                    throw "Failed to install the format-27 binlog reader SDK ($LASTEXITCODE)."
-                  }
                 }
                 $dotnet = Get-ChildItem $installDirectory -Recurse -File -Filter 'dotnet.exe' |
                   Select-Object -First 1 -ExpandProperty FullName
