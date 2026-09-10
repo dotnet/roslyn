@@ -236,4 +236,3 @@ file class Sink : IMessageSink
         return result;
     }
 }
-

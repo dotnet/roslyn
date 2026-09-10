@@ -9,6 +9,7 @@
   
   <ItemGroup>
     <PackageReference Include="xunit.v3.runner.utility" />
+    <PackageReference Include="xunit.v3.extensibility.core" />
     <PackageReference Include="Mono.Options" />
   </ItemGroup>
     
