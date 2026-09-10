@@ -29,9 +29,6 @@ internal sealed class CallHierarchyIncomingCallsParams : IWorkDoneProgressParams
     public IProgress<WorkDoneProgress>? WorkDoneToken { get; set; }
 
     /// <inheritdoc/>
-    /// <remarks>
-    /// <see cref="LocationLink"/> may only be used if the client opts in via <see cref="DefinitionClientCapabilities.LinkSupport"/>
-    /// </remarks>
     [JsonPropertyName(Methods.PartialResultTokenName)]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IProgress<CallHierarchyIncomingCall[]>? PartialResultToken { get; set; }
