@@ -84,7 +84,9 @@ static void FinalizeRoot(
         {
             Path.ChangeExtension(pdbPath, ".dll"),
             Path.ChangeExtension(pdbPath, ".exe"),
-        }.Where(File.Exists).ToArray();
+        }.Where(File.Exists)
+            .Where(candidate => PeReferencesPortablePdb(candidate, pdbPath))
+            .ToArray();
         if (candidates.Length != 1)
         {
             throw new InvalidOperationException(
@@ -159,6 +161,46 @@ static void FinalizePair(
     Console.WriteLine($"MVID: {ReadMvid(pe):D}");
     Console.WriteLine($"PDB: {outputPdbPath}");
     Console.WriteLine($"PE: {outputPePath}");
+}
+
+static bool PeReferencesPortablePdb(string pePath, string pdbPath)
+{
+    try
+    {
+        var pdbContent = File.ReadAllBytes(pdbPath);
+        using var pdbProvider = MetadataReaderProvider.FromPortablePdbStream(
+            new MemoryStream(pdbContent, writable: false));
+        var id = pdbProvider.GetMetadataReader().DebugMetadataHeader?.Id.ToArray()
+            ?? throw new InvalidOperationException($"Portable PDB '{pdbPath}' has no content ID.");
+        var idOffset = FindUnique(pdbContent, id, "Portable PDB ID");
+        pdbContent.AsSpan(idOffset, id.Length).Clear();
+        var hash = SHA256.HashData(pdbContent);
+        var contentId = ReadContentId(id);
+
+        using var peReader = new PEReader(File.OpenRead(pePath));
+        var entries = peReader.ReadDebugDirectory();
+        var codeViewEntries = entries
+            .Where(entry => entry.Type == DebugDirectoryEntryType.CodeView)
+            .ToArray();
+        var checksumEntries = entries
+            .Where(entry => entry.Type == DebugDirectoryEntryType.PdbChecksum)
+            .ToArray();
+        if (codeViewEntries.Length != 1 || checksumEntries.Length != 1)
+        {
+            return false;
+        }
+
+        var codeView = peReader.ReadCodeViewDebugDirectoryData(codeViewEntries[0]);
+        var checksum = peReader.ReadPdbChecksumDebugDirectoryData(checksumEntries[0]);
+        return codeView.Guid == contentId.Guid
+            && codeViewEntries[0].Stamp == contentId.Stamp
+            && checksum.AlgorithmName == "SHA256"
+            && checksum.Checksum.AsSpan().SequenceEqual(hash);
+    }
+    catch (BadImageFormatException)
+    {
+        return false;
+    }
 }
 
 static bool PortablePdbContainsMarker(string path, string marker)
