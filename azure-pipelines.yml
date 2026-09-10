@@ -461,10 +461,16 @@ stages:
                   $env:DOTNET_INSTALL_SKIP_TAR = '1'
                   & $installer -Version 11.0.100-rc.1.26420.103 `
                     -InstallDir $installDirectory -NoPath
-                  if ($LASTEXITCODE -ne 0 -or -not (Test-Path $dotnet)) {
+                  if ($LASTEXITCODE -ne 0) {
                     throw "Failed to install the format-27 binlog reader SDK ($LASTEXITCODE)."
                   }
                 }
+                $dotnet = Get-ChildItem $installDirectory -Recurse -File -Filter 'dotnet.exe' |
+                  Select-Object -First 1 -ExpandProperty FullName
+                if (-not $dotnet) {
+                  throw "The format-27 binlog reader SDK did not contain dotnet.exe under $installDirectory."
+                }
+                Write-Host "##vso[task.setvariable variable=BinlogDotNetPath]$dotnet"
 
           - task: PowerShell@2
             displayName: Write build metrics
@@ -478,7 +484,7 @@ stages:
                 $binlog = Get-ChildItem "$(Build.SourcesDirectory)\artifacts\log" -Recurse `
                   -Filter Build.WarmCache.binlog -ErrorAction SilentlyContinue |
                   Select-Object -First 1 -ExpandProperty FullName
-                $dotnet = "$(Agent.TempDirectory)\binlog-sdk\dotnet.exe"
+                $dotnet = "$(BinlogDotNetPath)"
                 if ($binlog -and (Test-Path $binlog)) {
                   & "$(Scripts)\Analyze-CoreCompileBinlog.ps1" `
                     -Binlog $binlog `
