@@ -5,25 +5,25 @@
 namespace Xunit.Harness
 {
     using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Reflection;
-    using Xunit.Abstractions;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Xunit.Sdk;
+    using Xunit.v3;
 
     public class IdeTestFrameworkExecutor : XunitTestFrameworkExecutor
     {
-        public IdeTestFrameworkExecutor(AssemblyName assemblyName, ISourceInformationProvider sourceInformationProvider, IMessageSink diagnosticMessageSink)
-            : base(assemblyName, sourceInformationProvider, diagnosticMessageSink)
+        public IdeTestFrameworkExecutor(IXunitTestAssembly testAssembly)
+            : base(testAssembly)
         {
         }
 
-        [SuppressMessage("Usage", "VSTHRD100:Avoid async void methods", Justification = "Follows pattern expected by Xunit framework.")]
-        protected override async void RunTestCases(IEnumerable<IXunitTestCase> testCases, IMessageSink executionMessageSink, ITestFrameworkExecutionOptions executionOptions)
+        public override async ValueTask RunTestCases(
+            IReadOnlyCollection<IXunitTestCase> testCases,
+            IMessageSink executionMessageSink,
+            ITestFrameworkExecutionOptions executionOptions,
+            CancellationToken cancellationToken)
         {
-            using (var assemblyRunner = new IdeTestAssemblyRunner(TestAssembly, testCases, DiagnosticMessageSink, executionMessageSink, executionOptions))
-            {
-                await assemblyRunner.RunAsync().ConfigureAwait(true);
-            }
+            await IdeTestAssemblyRunner.Instance.Run(TestAssembly, testCases, executionMessageSink, executionOptions, cancellationToken);
         }
     }
 }

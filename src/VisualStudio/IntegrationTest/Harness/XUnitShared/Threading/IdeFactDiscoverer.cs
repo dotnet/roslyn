@@ -12,9 +12,12 @@ namespace Xunit.Threading
     using Xunit.Sdk;
     using Xunit.v3;
 
-    public class IdeFactDiscoverer : FactDiscoverer
+    public class IdeFactDiscoverer : IXunitTestCaseDiscoverer
     {
-        public override ValueTask<IReadOnlyCollection<IXunitTestCase>> Discover(ITestFrameworkDiscoveryOptions discoveryOptions, IXunitTestMethod testMethod, IFactAttribute factAttribute)
+        public ValueTask<IReadOnlyCollection<IXunitTestCase>> Discover(
+            ITestFrameworkDiscoveryOptions discoveryOptions,
+            IXunitTestMethod testMethod,
+            IFactAttribute factAttribute)
         {
             if (discoveryOptions is null)
                 throw new ArgumentNullException(nameof(discoveryOptions));
@@ -23,43 +26,37 @@ namespace Xunit.Threading
             if (factAttribute is null)
                 throw new ArgumentNullException(nameof(factAttribute));
 
-            if (testMethod.Parameters.Count != 0 || testMethod.IsGenericMethodDefinition)
-                return base.Discover(discoveryOptions, testMethod, factAttribute);
-
-            var details = TestIntrospectionHelper.GetTestCaseDetails(discoveryOptions, testMethod, factAttribute);
             var testCases = new List<IXunitTestCase>();
-            foreach (var supportedInstance in GetSupportedInstances(testMethod, factAttribute))
+
+            if (testMethod.Parameters.Count != 0)
             {
-                testCases.Add(new IdeTestCase(
-                    details.ResolvedTestMethod,
-                    details.TestCaseDisplayName,
-                    details.UniqueID,
-                    details.Explicit,
-                    details.SkipExceptions,
-                    details.SkipReason,
-                    details.SkipType,
-                    details.SkipUnless,
-                    details.SkipWhen,
-                    TestIntrospectionHelper.GetTraits(testMethod, dataRow: null),
-                    testMethodArguments: null,
-                    details.SourceFilePath,
-                    details.SourceLineNumber,
-                    details.Timeout,
-                    supportedInstance));
-                if (IdeInstanceTestCase.TryCreateNewInstanceForFramework(discoveryOptions, supportedInstance) is { } instanceTestCase)
-                    testCases.Add(instanceTestCase);
+                testCases.Add(CreateErrorTestCase(discoveryOptions, testMethod, factAttribute, "[IdeFact] methods are not allowed to have parameters. Did you mean to use [IdeTheory]?"));
+            }
+            else if (testMethod.IsGenericMethodDefinition)
+            {
+                testCases.Add(CreateErrorTestCase(discoveryOptions, testMethod, factAttribute, "[IdeFact] methods are not allowed to be generic."));
+            }
+            else
+            {
+                var details = TestIntrospectionHelper.GetTestCaseDetails(discoveryOptions, testMethod, factAttribute);
+                var traits = TestIntrospectionHelper.GetTraits(testMethod, dataRow: null);
+                foreach (var supportedInstance in GetSupportedInstances(testMethod, factAttribute))
+                {
+                    testCases.Add(CreateTestCase(details, supportedInstance, traits));
+                    AddInstanceTestCase(discoveryOptions, supportedInstance, testCases);
+                }
             }
 
-            return new(testCases);
+            return new ValueTask<IReadOnlyCollection<IXunitTestCase>>(testCases);
         }
 
         internal static IXunitTestMethod CreateVisualStudioTestMethod()
         {
             var testAssembly = new XunitTestAssembly(typeof(Instances).Assembly, configFilePath: null);
-            var testCollection = new XunitTestCollection(testAssembly, collectionDefinition: null, disableParallelization: false, nameof(Instances));
+            var testCollection = new XunitTestCollection(testAssembly, collectionDefinition: null, disableParallelization: true, nameof(Instances));
             var testClass = new XunitTestClass(typeof(Instances), testCollection);
-            var testMethod = testClass.Methods.Single(method => method.Name == nameof(Instances.VisualStudio));
-            return new XunitTestMethod(testClass, testMethod, Array.Empty<object?>());
+            var testMethod = typeof(Instances).GetMethod(nameof(Instances.VisualStudio))!;
+            return new XunitTestMethod(testClass, testMethod, testMethodArguments: Array.Empty<object?>());
         }
 
         internal static IEnumerable<VisualStudioInstanceKey> GetSupportedInstances(IXunitTestMethod testMethod, IFactAttribute factAttribute)
@@ -71,6 +68,51 @@ namespace Xunit.Threading
             var environmentVariables = GetEnvironmentVariables(settingsAttribute, settingsAttributes);
             return GetSupportedVersions(settingsAttribute, settingsAttributes)
                 .Select(version => new VisualStudioInstanceKey(version, rootSuffix, maxAttempts, environmentVariables));
+        }
+
+        internal static void AddInstanceTestCase(
+            ITestFrameworkDiscoveryOptions discoveryOptions,
+            VisualStudioInstanceKey supportedInstance,
+            List<IXunitTestCase> testCases)
+        {
+            if (IdeInstanceTestCase.TryCreateNewInstanceForFramework(discoveryOptions, supportedInstance) is { } instanceTestCase)
+            {
+                testCases.Add(instanceTestCase);
+            }
+        }
+
+        internal static IdeTestCase CreateTestCase(
+            (string TestCaseDisplayName, bool Explicit, Type[]? SkipExceptions, string? SkipReason, Type? SkipType, string? SkipUnless, string? SkipWhen, string? SourceFilePath, int? SourceLineNumber, int Timeout, string UniqueID, IXunitTestMethod ResolvedTestMethod) details,
+            VisualStudioInstanceKey supportedInstance,
+            Dictionary<string, HashSet<string>>? traits = null,
+            object?[]? testMethodArguments = null)
+        {
+            return new IdeTestCase(
+                details.ResolvedTestMethod,
+                details.TestCaseDisplayName,
+                details.UniqueID,
+                details.Explicit,
+                details.SkipExceptions,
+                details.SkipReason,
+                details.SkipType,
+                details.SkipUnless,
+                details.SkipWhen,
+                traits,
+                testMethodArguments,
+                details.SourceFilePath,
+                details.SourceLineNumber,
+                details.Timeout,
+                supportedInstance);
+        }
+
+        private static ExecutionErrorTestCase CreateErrorTestCase(
+            ITestFrameworkDiscoveryOptions discoveryOptions,
+            IXunitTestMethod testMethod,
+            IFactAttribute factAttribute,
+            string message)
+        {
+            var details = TestIntrospectionHelper.GetTestCaseDetails(discoveryOptions, testMethod, factAttribute);
+            return new ExecutionErrorTestCase(details.ResolvedTestMethod, details.TestCaseDisplayName, details.UniqueID, details.SourceFilePath, details.SourceLineNumber, message);
         }
 
         private static IIdeSettingsAttribute GetSettingsAttribute(IFactAttribute factAttribute)
@@ -197,9 +239,9 @@ namespace Xunit.Threading
             return defaultValue;
         }
 
-        private class KeyOnlyComparerIgnoreCase : IEqualityComparer<string?>
+        private sealed class KeyOnlyComparerIgnoreCase : IEqualityComparer<string?>
         {
-            public static readonly KeyOnlyComparerIgnoreCase Instance = new KeyOnlyComparerIgnoreCase();
+            public static readonly KeyOnlyComparerIgnoreCase Instance = new();
 
             private KeyOnlyComparerIgnoreCase()
             {

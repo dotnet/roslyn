@@ -12,13 +12,16 @@ namespace Xunit.Threading
     using Xunit.Sdk;
     using Xunit.v3;
 
-    public abstract class IdeTestCaseBase : XunitTestCase
+    internal interface IIdeTestCase
+    {
+        VisualStudioInstanceKey VisualStudioInstanceKey { get; }
+    }
+
+    public abstract class IdeTestCaseBase : XunitTestCase, IIdeTestCase
     {
         [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("Called by the deserializer; should only be called by deriving classes for deserialization purposes", error: true)]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        [Obsolete("Called by the deserializer; should only be called by deriving classes for deserialization purposes")]
         protected IdeTestCaseBase()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
         }
 
@@ -32,7 +35,7 @@ namespace Xunit.Threading
             Type? skipType,
             string? skipUnless,
             string? skipWhen,
-            Dictionary<string, HashSet<string>> traits,
+            Dictionary<string, HashSet<string>>? traits,
             object?[]? testMethodArguments,
             string? sourceFilePath,
             int? sourceLineNumber,
@@ -60,7 +63,6 @@ namespace Xunit.Threading
                 sourceLineNumber,
                 timeout)
         {
-            SharedData = WpfTestSharedData.Instance;
             VisualStudioInstanceKey = visualStudioInstanceKey;
 
             if (!IsInstalled(visualStudioInstanceKey.Version))
@@ -69,47 +71,30 @@ namespace Xunit.Threading
             }
         }
 
-        public VisualStudioInstanceKey VisualStudioInstanceKey
-        {
-            get;
-            private set;
-        }
+        public VisualStudioInstanceKey VisualStudioInstanceKey { get; private set; } = VisualStudioInstanceKey.Unspecified;
 
-        public WpfTestSharedData SharedData
-        {
-            get;
-            private set;
-        }
-
-        private static string GetDisplayName(string displayName, VisualStudioInstanceKey visualStudioInstanceKey, bool includeRootSuffix)
+        internal static string GetDisplayName(string displayName, VisualStudioInstanceKey visualStudioInstanceKey, bool includeRootSuffix)
         {
             if (!includeRootSuffix || string.IsNullOrEmpty(visualStudioInstanceKey.RootSuffix))
             {
                 return $"{displayName} ({visualStudioInstanceKey.Version})";
             }
-            else
-            {
-                return $"{displayName} ({visualStudioInstanceKey.Version}, {visualStudioInstanceKey.RootSuffix})";
-            }
+
+            return $"{displayName} ({visualStudioInstanceKey.Version}, {visualStudioInstanceKey.RootSuffix})";
         }
 
-        private static string GetUniqueID(string uniqueID, VisualStudioInstanceKey visualStudioInstanceKey, bool includeRootSuffix)
+        internal static string GetUniqueID(string uniqueID, VisualStudioInstanceKey visualStudioInstanceKey, bool includeRootSuffix = true)
         {
             if (!includeRootSuffix || string.IsNullOrEmpty(visualStudioInstanceKey.RootSuffix))
             {
                 return $"{uniqueID}_{visualStudioInstanceKey.Version}";
             }
-            else
-            {
-                return $"{uniqueID}_{visualStudioInstanceKey.RootSuffix}_{visualStudioInstanceKey.Version}";
-            }
+
+            return $"{uniqueID}_{visualStudioInstanceKey.RootSuffix}_{visualStudioInstanceKey.Version}";
         }
 
         protected override void Serialize(IXunitSerializationInfo data)
         {
-            if (data is null)
-                throw new ArgumentNullException(nameof(data));
-
             base.Serialize(data);
             data.AddValue(nameof(VisualStudioInstanceKey), VisualStudioInstanceKey.SerializeToString());
             data.AddValue(nameof(SkipReason), SkipReason);
@@ -117,13 +102,9 @@ namespace Xunit.Threading
 
         protected override void Deserialize(IXunitSerializationInfo data)
         {
-            if (data is null)
-                throw new ArgumentNullException(nameof(data));
-
-            base.Deserialize(data);
             VisualStudioInstanceKey = VisualStudioInstanceKey.DeserializeFromString(data.GetValue<string>(nameof(VisualStudioInstanceKey))!);
+            base.Deserialize(data);
             SkipReason = data.GetValue<string>(nameof(SkipReason));
-            SharedData = WpfTestSharedData.Instance;
         }
 
         internal static bool IsInstalled(VisualStudioVersion visualStudioVersion)

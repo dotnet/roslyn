@@ -5,19 +5,14 @@
 namespace Xunit.Harness
 {
     using System.Reflection;
-    using Xunit.Abstractions;
     using Xunit.Sdk;
+    using Xunit.v3;
 
     public class IdeTestFramework : XunitTestFramework
     {
-        public IdeTestFramework(IMessageSink diagnosticMessageSink)
-            : base(diagnosticMessageSink)
+        protected override ITestFrameworkExecutor CreateExecutor(Assembly assembly)
         {
-        }
-
-        protected override ITestFrameworkExecutor CreateExecutor(AssemblyName assemblyName)
-        {
-            return new IdeTestFrameworkExecutor(assemblyName, SourceInformationProvider, DiagnosticMessageSink);
+            return new IdeTestFrameworkExecutor(new XunitTestAssembly(assembly, configFilePath: null));
         }
     }
 }

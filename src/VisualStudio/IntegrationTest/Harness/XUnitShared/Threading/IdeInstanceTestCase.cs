@@ -5,13 +5,11 @@
 namespace Xunit.Threading
 {
     using System;
-    using System.Collections.Immutable;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.ComponentModel;
     using System.Linq;
     using System.Runtime.CompilerServices;
-    using System.Threading;
-    using System.Threading.Tasks;
     using Xunit.Harness;
     using Xunit.Sdk;
     using Xunit.v3;
@@ -27,10 +25,8 @@ namespace Xunit.Threading
         private static readonly ConditionalWeakTable<ITestFrameworkDiscoveryOptions, StrongBox<ImmutableDictionary<VisualStudioInstanceKey, IdeInstanceTestCase>>> _instances = new();
 
         [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("Called by the deserializer; should only be called by deriving classes for deserialization purposes", error: true)]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        [Obsolete("Called by the deserializer; should only be called by deriving classes for deserialization purposes")]
         public IdeInstanceTestCase()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
         }
 
@@ -44,7 +40,7 @@ namespace Xunit.Threading
             Type? skipType,
             string? skipUnless,
             string? skipWhen,
-            Dictionary<string, HashSet<string>> traits,
+            Dictionary<string, HashSet<string>>? traits,
             object?[]? testMethodArguments,
             string? sourceFilePath,
             int? sourceLineNumber,
@@ -84,22 +80,6 @@ namespace Xunit.Threading
             }
 
             return candidateTestCase;
-        }
-
-        public override Task<RunSummary> RunAsync(IMessageSink diagnosticMessageSink, IMessageBus messageBus, object[] constructorArguments, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
-        {
-            TestCaseRunner<IXunitTestCase> runner;
-            if (!string.IsNullOrEmpty(SkipReason))
-            {
-                // Use XunitTestCaseRunner so the skip gets reported without trying to open VS
-                runner = new XunitTestCaseRunner(this, DisplayName, SkipReason, constructorArguments, TestMethodArguments, messageBus, aggregator, cancellationTokenSource);
-            }
-            else
-            {
-                runner = new IdeTestCaseRunner(SharedData, VisualStudioInstanceKey, this, DisplayName, SkipReason, constructorArguments, TestMethodArguments, messageBus, aggregator, cancellationTokenSource);
-            }
-
-            return runner.RunAsync();
         }
     }
 }
