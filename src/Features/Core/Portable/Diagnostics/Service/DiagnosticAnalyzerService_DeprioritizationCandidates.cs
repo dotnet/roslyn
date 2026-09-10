@@ -32,7 +32,7 @@ internal sealed partial class DiagnosticAnalyzerService
     {
         await PopulateDeprioritizedDiagnosticIdMapAsync(project, cancellationToken).ConfigureAwait(false);
 
-        return GetCachedDeprioritizedDiagnosticIds(analyzer) != null;
+        return await GetCachedDeprioritizedDiagnosticIdsAsync(analyzer, cancellationToken).ConfigureAwait(false) != null;
     }
 
     private async ValueTask PopulateDeprioritizedDiagnosticIdMapAsync(Project project, CancellationToken cancellationToken)
@@ -122,10 +122,14 @@ internal sealed partial class DiagnosticAnalyzerService
         }
     }
 
-    private static ImmutableHashSet<string>? GetCachedDeprioritizedDiagnosticIds(DiagnosticAnalyzer analyzer)
+    private static async Task<ImmutableHashSet<string>?> GetCachedDeprioritizedDiagnosticIdsAsync(
+        DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
     {
         Contract.ThrowIfFalse(s_analyzerToDeprioritizedDiagnosticIds.TryGetValue(analyzer, out var lazy));
-        Contract.ThrowIfFalse(lazy.TryGetValue(out var deprioritizedIds));
-        return deprioritizedIds;
+
+        // A caller that joins before this computation faults will observe the same exception. AsyncLazy does not
+        // cache failures, so a caller arriving after the fault but before the cache entry is removed can retry
+        // the computation through this same lazy.
+        return await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
     }
 }
