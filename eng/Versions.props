@@ -30,8 +30,8 @@
 
   <!-- Visual Studio train version (used to version VS components that ship out-of-band from Roslyn/Razor) -->
   <PropertyGroup>
-    <VsMajorVersion>18</VsMajorVersion>
-    <VsMinorVersion>12</VsMinorVersion>
+    <VsMajorVersion>$([MSBuild]::Add($(MajorVersion), 13))</VsMajorVersion>
+    <VsMinorVersion>$(MinorVersion)</VsMinorVersion>
   </PropertyGroup>
 
   <!-- Razor tooling version -->
