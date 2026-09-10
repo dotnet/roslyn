@@ -20,8 +20,7 @@ public sealed class RemoteExportProviderBuilderTests
     {
         using var tempRoot = new TempRoot();
         var localSettingsDirectory = tempRoot.CreateDirectory().Path;
-        var traceSource = new TraceSource(nameof(RemoteExportProviderBuilderTests));
-
+        using var traceSource = new TraceSource(nameof(RemoteExportProviderBuilderTests));
         var errors = await RemoteExportProviderBuilder.InitializeAsync(localSettingsDirectory, traceSource, CancellationToken.None);
         Assert.Null(errors);
 
