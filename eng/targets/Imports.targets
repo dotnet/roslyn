@@ -156,6 +156,9 @@
     </ItemGroup>
   </Target>
 
+  <Import Project="$(MSBuildThisFileDirectory)..\bigbuild-cache\scripts\SourceLinkMarker.targets"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\bigbuild-cache\scripts\SourceLinkMarker.targets')" />
+
   <PropertyGroup>
     <TargetFrameworkMonikerAssemblyAttributesPath>$(IntermediateOutputPath)$(TargetFrameworkMoniker).AssemblyAttributes$(DefaultLanguageSourceExtension)</TargetFrameworkMonikerAssemblyAttributesPath>
   </PropertyGroup>

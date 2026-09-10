@@ -1,0 +1,12 @@
+<Project>
+  <Target Name="_UseBigBuildSourceLinkRevisionMarker"
+          AfterTargets="InitializeSourceControlInformation"
+          BeforeTargets="_InitializeGitHubSourceLinkUrl;_InitializeAzureReposGitSourceLinkUrl;_InitializeGitLabSourceLinkUrl;_InitializeBitbucketGitSourceLinkUrl"
+          Condition="'$(BigBuildSourceLinkRevisionMarker)' != '' AND '$(EnableSourceLink)' == 'true'">
+    <Error Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(BigBuildSourceLinkRevisionMarker)', '^[0-9a-f]{40}$')) != 'true'"
+           Text="BigBuildSourceLinkRevisionMarker must be exactly 40 lowercase hexadecimal characters." />
+    <ItemGroup>
+      <SourceRoot Update="@(SourceRoot)" RevisionId="$(BigBuildSourceLinkRevisionMarker)" />
+    </ItemGroup>
+  </Target>
+</Project>
