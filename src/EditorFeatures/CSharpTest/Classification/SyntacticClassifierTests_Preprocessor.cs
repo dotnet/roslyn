@@ -1102,7 +1102,7 @@ expected: Classifications(Identifier("x"), Operators.Equals, Punctuation.OpenPar
         => TestInMethodAsync(
             code: @"x = (_, _) => 1;",
             testHost: testHost,
-expected: Classifications(Identifier("x"), Operators.Equals, Punctuation.OpenParen, Parameter("_"), Punctuation.Comma, Parameter("_"), Punctuation.CloseParen,
+expected: Classifications(Identifier("x"), Operators.Equals, Punctuation.OpenParen, Keyword("_"), Punctuation.Comma, Keyword("_"), Punctuation.CloseParen,
                 Operators.EqualsGreaterThan, Number("1"), Punctuation.Semicolon));
 
     [Theory, CombinatorialData]

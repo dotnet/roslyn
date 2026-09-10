@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <AssemblyName>Templates.Editorconfig.Wizard</AssemblyName>
+    <PublishWindowsPdb>true</PublishWindowsPdb>
     <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
     <Nullable>enable</Nullable>
   </PropertyGroup>
