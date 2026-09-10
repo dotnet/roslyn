@@ -111,7 +111,7 @@ namespace Xunit.Harness
                     testCases,
                     executionMessageSink,
                     executionOptions,
-                    CancellationToken.None);
+                    CancellationToken.None).ConfigureAwait(false);
                 return new TestExecutionResult(summary);
             }
             finally
@@ -133,6 +133,7 @@ namespace Xunit.Harness
             {
                 if (message is ITestStarting testStarting)
                 {
+                    VisualStudio_InProc.Create().ActivateMainWindow();
                     DataCollectionService.CurrentTestName = testStarting.TestDisplayName;
                 }
 
