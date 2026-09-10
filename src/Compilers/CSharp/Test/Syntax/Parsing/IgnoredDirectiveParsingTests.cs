@@ -460,9 +460,6 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
         var directive = tree.GetRoot().GetDirectives().OfType<IgnoredDirectiveTriviaSyntax>().Single();
         Assert.False(directive.IsActive);
 
-        // Not reporting this error after the first token is useful to make scenarios like the one in test InDisabledRawString_02 work.
-        // File-based app tooling only processes directives before the first token,
-        // so it is acceptable for this error to not be reported after the first token.
         if (afterToken)
         {
             tree.GetDiagnostics().Verify();
@@ -587,10 +584,28 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78157")]
-    public void InDisabledRawString_01(bool script, bool fileBasedProgram)
+    public void InRawString_01(bool script, bool fileBasedProgram)
     {
         var source = """"
-            #if false
+            System.Console.WriteLine("""
+                #:sdk test
+                """);
+            """";
+        var options = script ? TestOptions.Script : TestOptions.Regular;
+        if (fileBasedProgram)
+        {
+            options = options.WithFeature(FeatureName);
+        }
+
+        SyntaxFactory.ParseSyntaxTree(source, options).GetDiagnostics().Verify();
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78157")]
+    public void InRawString_01_Condition(bool script, bool fileBasedProgram, bool condition)
+    {
+        var source = $""""
+            #if {(condition ? "true" : "false")}
             System.Console.WriteLine("""
                 #:sdk test
                 """);
@@ -602,20 +617,53 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
             options = options.WithFeature(FeatureName);
         }
 
-        SyntaxFactory.ParseSyntaxTree(source, options).GetDiagnostics().Verify(
-            // (3,6): error CS9299: '#:' directives cannot be after '#if' directive
-            //     #:sdk test
-            Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(3, 6));
+        var tree = SyntaxFactory.ParseSyntaxTree(source, options);
+
+        if (condition)
+        {
+            tree.GetDiagnostics().Verify();
+        }
+        else
+        {
+            tree.GetDiagnostics().Verify(
+                // (3,6): error CS9299: '#:' directives cannot be after '#if' directive
+                //     #:sdk test
+                Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(3, 6));
+        }
     }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78157")]
-    public void InDisabledRawString_02(bool script, bool fileBasedProgram)
+    public void InRawString_02(bool script, bool fileBasedProgram)
     {
         var source = """"
             class C
             {
-                #if false
+                void M()
+                {
+                    System.Console.WriteLine("""
+                        #:sdk test
+                        """);
+                }
+            }
+            """";
+        var options = script ? TestOptions.Script : TestOptions.Regular;
+        if (fileBasedProgram)
+        {
+            options = options.WithFeature(FeatureName);
+        }
+
+        SyntaxFactory.ParseSyntaxTree(source, options).GetDiagnostics().Verify();
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78157")]
+    public void InRawString_02_Condition(bool script, bool fileBasedProgram, bool condition)
+    {
+        var source = $$""""
+            class C
+            {
+                #if {{(condition ? "true" : "false")}}
                 void M()
                 {
                     System.Console.WriteLine("""
