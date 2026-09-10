@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Navigation;
 
@@ -21,5 +22,15 @@ internal interface ICrossLanguageSymbolNavigationService
     /// <param name="assemblyName">The name of the assembly the symbol was defined in. Can be used by the
     /// receiver to quickly filter down to the project/compilation search for the symbol.</param>
     Task<INavigableLocation?> TryGetNavigableLocationAsync(
+        string assemblyName, string documentationCommentId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Attempts to get the file and position of the source definition of a particular symbol id, for a feature
+    /// that shows that source in place rather than navigating to it, such as Peek Definition.  Should return <see
+    /// langword="null"/> if the 3rd party language cannot provide a file for this particular symbol.
+    /// </summary>
+    /// <param name="assemblyName">The name of the assembly the symbol was defined in. Can be used by the
+    /// receiver to quickly filter down to the project/compilation search for the symbol.</param>
+    Task<(string filePath, LinePosition linePosition)?> TryGetNavigableFileLocationAsync(
         string assemblyName, string documentationCommentId, CancellationToken cancellationToken);
 }

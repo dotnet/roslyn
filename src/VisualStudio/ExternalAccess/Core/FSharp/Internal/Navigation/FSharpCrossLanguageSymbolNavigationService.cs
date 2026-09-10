@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Navigation;
 
@@ -44,5 +45,16 @@ internal sealed class FSharpCrossLanguageSymbolNavigationService : ICrossLanguag
 
         return new NavigableLocation((options, cancellationToken) =>
             location.NavigateToAsync(new FSharpNavigationOptions2(options.PreferProvisionalTab, options.ActivateTab), cancellationToken));
+    }
+
+    public async Task<(string filePath, LinePosition linePosition)?> TryGetNavigableFileLocationAsync(
+        string assemblyName, string documentationCommentId, CancellationToken cancellationToken)
+    {
+        // Only defer to an F# service that can name a file; one that can only navigate has nothing to show in place.
+        if (_underlyingService is not IFSharpCrossLanguageSymbolNavigationService2 fileLocationService)
+            return null;
+
+        return await fileLocationService.TryGetNavigableFileLocationAsync(
+            assemblyName, documentationCommentId, cancellationToken).ConfigureAwait(false);
     }
 }
