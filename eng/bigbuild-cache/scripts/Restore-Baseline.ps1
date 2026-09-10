@@ -46,7 +46,9 @@ foreach ($r in @($meta.OutputRoots)) {
     robocopy $src $dst $mode /COPY:DAT /MT:$Throttle /NFL /NDL /NJH /NJS /NP | Out-Null
     # robocopy exit codes 0-7 are success (8+ is failure).
     if ($LASTEXITCODE -ge 8) { throw "robocopy failed ($LASTEXITCODE) restoring $r" }
+    $global:LASTEXITCODE = 0
     $restored++
     Write-Host "[restore] $r -> $dst"
 }
 Write-Host "[restore] seeded $restored output root(s) from $BaselineDir (sha=$($meta.Sha))"
+exit 0

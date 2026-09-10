@@ -510,7 +510,7 @@ stages:
 
           - task: PowerShell@2
             displayName: Write build metrics
-            condition: and(succeededOrFailed(), not(canceled()))
+            condition: succeeded()
             inputs:
               targetType: inline
               pwsh: true
