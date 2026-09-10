@@ -28,11 +28,12 @@ $script:skipList = @(
   # Added to work around https://github.com/dotnet/roslyn/issues/48417
   "Microsoft.CodeAnalysis.EditorFeatures2.UnitTests.dll",
 
-  # Work around XLF issues https://github.com/dotnet/roslyn/issues/58840
-  "Roslyn.VisualStudio.DiagnosticsWindow.dll.key",
-
   # Work around the same XLF ResXFileRef determinism issue in Razor's VSIX package resources.
   "Microsoft.VisualStudio.RazorExtension.dll.key",
+
+  # The Syntax Visualizer VSPackage.resx uses ResXFileRef, making its debug-determinism
+  # diagnostic key path-dependent even though the DLL is deterministic.
+  "Roslyn.SyntaxVisualizer.Extension.dll.key",
 
   # Work around resx issues https://github.com/dotnet/roslyn/issues/77544
   "Text.Analyzers.dll.key",
@@ -315,4 +316,3 @@ catch {
 finally {
   Pop-Location
 }
-

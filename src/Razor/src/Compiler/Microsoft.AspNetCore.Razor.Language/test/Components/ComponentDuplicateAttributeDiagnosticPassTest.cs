@@ -169,7 +169,7 @@ public class ComponentDuplicateAttributeDiagnosticPassTest
     {
         foreach (var phase in Engine.Phases)
         {
-            if (phase is IRazorCSharpLoweringPhase)
+            if (phase is DefaultRazorCSharpLoweringPhase)
             {
                 break;
             }

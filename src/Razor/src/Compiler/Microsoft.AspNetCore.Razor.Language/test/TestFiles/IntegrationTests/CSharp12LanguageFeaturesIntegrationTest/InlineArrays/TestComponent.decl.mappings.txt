@@ -1,0 +1,17 @@
+﻿Source Location: (7:0,7 [128] x:\dir\subdir\Test\TestComponent.razor)
+|
+    [System.Runtime.CompilerServices.InlineArray(4)]
+    public struct Buffer
+    {
+        private int _element0;
+    }
+|
+Generated Location: (556:18,0 [128] )
+|
+    [System.Runtime.CompilerServices.InlineArray(4)]
+    public struct Buffer
+    {
+        private int _element0;
+    }
+|
+

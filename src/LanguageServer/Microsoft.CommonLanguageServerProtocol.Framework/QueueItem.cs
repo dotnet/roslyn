@@ -265,6 +265,9 @@ internal sealed class QueueItem<TRequestContext>
     }
 
     public void FailRequest(string message)
+        => FailRequest(message, RoslynLspErrorCodes.NonFatalRequestFailure);
+
+    public void FailRequest(string message, int errorCode)
     {
         // This is not valid to call after StartRequestAsync starts as they both access the same state.
         // StartRequestAsync handles any failures internally once it runs.
@@ -272,7 +275,8 @@ internal sealed class QueueItem<TRequestContext>
         {
             throw new InvalidOperationException("Cannot manually fail queue item after it has started");
         }
-        var exception = new LocalRpcException(message) { ErrorCode = RoslynLspErrorCodes.NonFatalRequestFailure };
+
+        var exception = new LocalRpcException(message) { ErrorCode = errorCode };
         _requestTelemetryScope?.RecordException(exception);
         _logger.LogException(exception);
 

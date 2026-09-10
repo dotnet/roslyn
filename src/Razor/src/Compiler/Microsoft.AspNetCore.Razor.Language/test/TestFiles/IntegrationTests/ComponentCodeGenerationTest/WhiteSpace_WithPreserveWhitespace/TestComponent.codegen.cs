@@ -33,16 +33,6 @@ Foo
             __builder.AddMarkupContent(4, "\r\n\r\n\r\n");
         }
         #pragma warning restore 1998
-#nullable restore
-#line (7,12)-(9,5) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-        int Foo = 18;
-    
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

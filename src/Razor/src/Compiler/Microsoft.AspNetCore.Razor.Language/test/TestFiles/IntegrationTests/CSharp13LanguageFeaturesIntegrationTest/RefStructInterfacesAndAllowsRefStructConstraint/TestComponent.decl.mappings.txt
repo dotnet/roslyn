@@ -1,0 +1,15 @@
+﻿Source Location: (7:0,7 [108] x:\dir\subdir\Test\TestComponent.razor)
+|
+    public interface IValue<TSelf>
+        where TSelf : IValue<TSelf>, allows ref struct
+    {
+    }
+|
+Generated Location: (556:18,0 [108] )
+|
+    public interface IValue<TSelf>
+        where TSelf : IValue<TSelf>, allows ref struct
+    {
+    }
+|
+

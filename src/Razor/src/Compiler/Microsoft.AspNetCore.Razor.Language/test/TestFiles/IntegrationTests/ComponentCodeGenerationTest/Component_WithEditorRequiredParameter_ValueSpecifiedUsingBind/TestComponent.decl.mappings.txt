@@ -1,0 +1,9 @@
+﻿Source Location: (78:2,7 [46] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    private string myField = "Some Value";
+|
+Generated Location: (557:18,0 [46] )
+|
+    private string myField = "Some Value";
+|
+

@@ -1,0 +1,4 @@
+﻿[0004] OpenElement("div")
+[0005] AddContent(context.ToLower())
+[0007] AddContent(System.Math.Max(0, item.Item))
+[0008] AddMarkupContent(";\r\n")

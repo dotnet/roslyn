@@ -38,10 +38,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CohostOnTypeFormattingEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CohostRangeFormattingEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OnAutoInsert\CohostOnAutoInsertEndpoint.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)OnAutoInsert\CohostOnAutoInsertTriggerCharacterProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorAnalyzerAssemblyRedirector.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorConfigurationChangedServiceFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorMiscellaneousProjectInfoService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorSourceGeneratedDocumentAnalyzerConfigOptionsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorSourceGeneratedDocumentExcerptService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorSourceGeneratedDocumentExcerptServiceWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorSourceGeneratedDocumentSpanMappingService.cs" />

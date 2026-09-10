@@ -158,7 +158,19 @@ Run Compilation for {request.RequestId}
 Return code: {returnCode}
 Output:
 {outputString}");
-                return new CompletedBuildResponse(returnCode, utf8output, outputString);
+
+                IReadOnlyList<BuildTelemetryEvent>? telemetryEvents;
+                try
+                {
+                    telemetryEvents = (compiler as ICompilerServerTelemetryProvider)?.GetTelemetryEvents();
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogException(ex, $"Failed to get telemetry events for {request.RequestId}");
+                    telemetryEvents = null;
+                }
+
+                return new CompletedBuildResponse(returnCode, utf8output, outputString, telemetryEvents);
             }
             catch (Exception ex)
             {

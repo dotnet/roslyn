@@ -23,6 +23,18 @@ public sealed class DirectiveIntermediateNode : IntermediateNode
         visitor.VisitDirective(this);
     }
 
+    protected override IntermediateNode CloneNode()
+    {
+        var clone = new DirectiveIntermediateNode
+        {
+            DirectiveName = DirectiveName,
+            Directive = Directive,
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
+
+        return clone;
+    }
+
     public override void FormatNode(IntermediateNodeFormatter formatter)
     {
         formatter.WriteContent(DirectiveName);

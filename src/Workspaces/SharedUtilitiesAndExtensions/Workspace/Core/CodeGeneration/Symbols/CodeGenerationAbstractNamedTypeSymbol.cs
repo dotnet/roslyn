@@ -128,6 +128,7 @@ internal abstract class CodeGenerationAbstractNamedTypeSymbol : CodeGenerationTy
     public bool IsExtension => false;
     public string ExtensionGroupingName => null;
     public string ExtensionMarkerName => null;
+    public TypeLayout TypeLayout => throw new NotSupportedException("TypeLayout property is not supported on this symbol.");
     public IParameterSymbol ExtensionParameter => null;
 
     public override bool IsClosed => Modifiers.IsClosed;

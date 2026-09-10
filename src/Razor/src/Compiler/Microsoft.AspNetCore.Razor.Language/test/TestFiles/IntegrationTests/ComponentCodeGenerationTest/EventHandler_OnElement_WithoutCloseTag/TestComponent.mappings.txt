@@ -8,14 +8,3 @@ Source Location: (70:2,19 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (1168:30,0 [7] )
 |OnClick|
 
-Source Location: (96:4,7 [31] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    void OnClick() {
-    }
-|
-Generated Location: (1451:42,0 [31] )
-|
-    void OnClick() {
-    }
-|
-

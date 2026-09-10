@@ -38,7 +38,7 @@ internal sealed class CodeActionFixAllResolveHandler(
 
     public async Task<RoslynFixAllCodeAction> HandleRequestAsync(RoslynFixAllCodeAction request, RequestContext context, CancellationToken cancellationToken)
     {
-        var document = context.GetRequiredDocument();
+        var document = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
         Contract.ThrowIfNull(request.Data);
         var data = GetCodeActionResolveData(request);
         Assumes.Present(data);

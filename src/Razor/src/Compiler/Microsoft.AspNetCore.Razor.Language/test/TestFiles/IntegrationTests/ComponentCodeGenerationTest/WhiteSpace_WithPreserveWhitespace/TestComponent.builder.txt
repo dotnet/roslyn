@@ -1,0 +1,5 @@
+﻿[0000] AddMarkupContent("\r\n ")
+[0001] OpenElement("elem")
+[0002] AddAttribute("attr", Foo)
+[0003] AddMarkupContent("\r\n <child></child>\r\n ")
+[0004] AddMarkupContent("\r\n\r\n\r\n")

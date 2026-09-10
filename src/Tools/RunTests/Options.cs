@@ -114,8 +114,6 @@ namespace RunTests
 
         public string? PipelineDefinitionId { get; set; }
 
-        public string? PhaseName { get; set; }
-
         public string? TargetBranchName { get; set; }
 
         public Options(
@@ -158,7 +156,6 @@ namespace RunTests
             string? accessToken = null;
             string? projectUri = null;
             string? pipelineDefinitionId = null;
-            string? phaseName = null;
             string? targetBranchName = null;
             var optionSet = new OptionSet()
             {
@@ -184,7 +181,6 @@ namespace RunTests
                 { "accessToken=", "Pipeline access token with permissions to view test history", s => accessToken = s },
                 { "projectUri=", "ADO project containing the pipeline", s => projectUri = s },
                 { "pipelineDefinitionId=", "Pipeline definition id", s => pipelineDefinitionId = s },
-                { "phaseName=", "Pipeline phase name associated with this test run", s => phaseName = s },
                 { "targetBranchName=", "Target branch of this pipeline run", s => targetBranchName = s },
             };
 
@@ -254,7 +250,6 @@ namespace RunTests
                 AccessToken = accessToken,
                 ProjectUri = projectUri,
                 PipelineDefinitionId = pipelineDefinitionId,
-                PhaseName = phaseName,
                 TargetBranchName = targetBranchName,
             };
 

@@ -1,0 +1,17 @@
+﻿Source Location: (49:6,7 [92] x:\dir\subdir\Test\TestComponent.razor)
+|
+    public int Value
+    {
+        get => field;
+        set => field = value;
+    }
+|
+Generated Location: (557:18,0 [92] )
+|
+    public int Value
+    {
+        get => field;
+        set => field = value;
+    }
+|
+

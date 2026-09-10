@@ -19,21 +19,6 @@ namespace Test
         {
         }
         #pragma warning restore 1998
-#nullable restore
-#line (1,8)-(9,1) "x:\dir\subdir\Test\TestComponent.razor"
-
-    public static async System.Threading.Tasks.Task<int> ReadAsync(int[] values)
-    {
-        ref var first = ref values[0];
-        var copy = first;
-        await System.Threading.Tasks.Task.Yield();
-        return copy;
-    }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

@@ -14,11 +14,13 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Resources;
+using Microsoft.CodeAnalysis.Remote.Razor.Completion;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Text.Adornments;
@@ -26,7 +28,6 @@ using Xunit;
 using Xunit.Abstractions;
 using WorkItemAttribute = Roslyn.Test.Utilities.WorkItemAttribute;
 using RoslynConditionalFact = Roslyn.Test.Utilities.ConditionalFactAttribute;
-using Microsoft.CodeAnalysis.LanguageServer;
 
 #if !VSCODE
 using Microsoft.VisualStudio.ProjectSystem;
@@ -268,6 +269,73 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
     }
 
     [Fact]
+    public async Task CSharpClassMembersInExplicitStatement()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                @{
+                    DateTime.$$
+                }
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = ".",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["DaysInMonth", "IsLeapYear", "Now"],
+            itemToResolve: "Now",
+            expectedResolvedItemDescription: "DateTime DateTime.Now { get; }",
+            expected: """
+                This is a Razor document.
+            
+                @{
+                    DateTime.Now
+                }
+            
+                The end.
+                """);
+    }
+
+    [Fact]
+    public async Task CSharpClassMembersInExplicitStatement_Legacy()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                @page
+
+                @{
+                    DateTime.$$
+                }
+
+                <div></div>
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = ".",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["DaysInMonth", "IsLeapYear", "Now"],
+            itemToResolve: "Now",
+            expectedResolvedItemDescription: "DateTime DateTime.Now { get; }",
+            expected: """
+                @page
+            
+                @{
+                    DateTime.Now
+                }
+            
+                <div></div>
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/8442")]
     public async Task CSharpClassMembersInComponentParameterWithoutLeadingAt()
     {
@@ -285,7 +353,16 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerCharacter = ".",
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
             },
-            expectedItemLabels: ["DaysInMonth", "IsLeapYear", "Now"]);
+            expectedItemLabels: ["DaysInMonth", "IsLeapYear", "Now"],
+            itemToResolve: "Now",
+            expectedResolvedItemDescription: "DateTime DateTime.Now { get; }",
+            expected: """
+                This is a Razor document.
+            
+                <EditForm Model="DateTime.Now"></EditForm>
+            
+                The end.
+                """);
     }
 
     [Fact]
@@ -306,7 +383,16 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerCharacter = ".",
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
             },
-            expectedItemLabels: ["DaysInMonth", "IsLeapYear", "Now"]);
+            expectedItemLabels: ["DaysInMonth", "IsLeapYear", "Now"],
+            itemToResolve: "Now",
+            expectedResolvedItemDescription: "DateTime DateTime.Now { get; }",
+            expected: """
+                This is a Razor document.
+            
+                <EditForm Model="@DateTime.Now"></EditForm>
+            
+                The end.
+                """);
     }
 
     [Fact]
@@ -418,6 +504,155 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             expectedItemLabels: ["Equals(object? obj)", "GetHashCode()", "SetParametersAsync(ParameterView parameters)", "ToString()"],
             itemToResolve: "SetParametersAsync(ParameterView parameters)",
             expectedResolvedItemDescription: "(awaitable) Task ComponentBase.SetParametersAsync(ParameterView parameters)");
+    }
+
+    [RoslynConditionalFact(typeof(IsEnglishLocal))]
+    public async Task CSharpOverrideMethods_UsesCSharpFormattingOptions()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <div></div>
+
+                @code {
+                    public override $$
+                }
+
+                The end.
+                """,
+            expected: """
+                @using System.Threading.Tasks
+                This is a Razor document.
+
+                <div></div>
+
+                @code {
+                    public override Task SetParametersAsync(ParameterView parameters)
+                    {
+                    return base.SetParametersAsync(parameters);
+                    }
+                }
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["Equals(object? obj)", "GetHashCode()", "SetParametersAsync(ParameterView parameters)", "ToString()"],
+            itemToResolve: "SetParametersAsync(ParameterView parameters)",
+            expectedResolvedItemDescription: "(awaitable) Task ComponentBase.SetParametersAsync(ParameterView parameters)",
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_indent_block_contents = false
+                    """)
+            ]);
+    }
+
+    [RoslynConditionalFact(typeof(IsEnglishLocal))]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
+    public async Task CSharpOverrideMethods_UsesEditorConfig_Razor()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                @inherits TestBase
+                @code {
+                    public override $$
+                }
+                """,
+            expected: """
+                @inherits TestBase
+                @code {
+                    public override void M()
+                    {
+                    base.M();
+                    }
+                }
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["M()"],
+            itemToResolve: "M()",
+            expectedResolvedItemDescription: "void TestBase.M()",
+            additionalFiles:
+            [
+                ("TestBase.cs", """
+                    using Microsoft.AspNetCore.Components;
+
+                    public abstract class TestBase : ComponentBase
+                    {
+                        public virtual void M()
+                        {
+                        }
+                    }
+                    """),
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_indent_block_contents = false
+                    """)
+            ]);
+    }
+
+    [RoslynConditionalFact(typeof(IsEnglishLocal))]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
+    public async Task CSharpOverrideMethods_UsesEditorConfig_Cshtml()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                @inherits TestBase
+                @functions {
+                    public override $$
+                }
+                """,
+            expected: """
+                @inherits TestBase
+                @functions {
+                    public override void M()
+                    {
+                    base.M();
+                    }
+                }
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["M()"],
+            itemToResolve: "M()",
+            expectedResolvedItemDescription: "void TestBase.M()",
+            fileKind: RazorFileKind.Legacy,
+            additionalFiles:
+            [
+                ("TestBase.cs", """
+                    public abstract class TestBase : Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
+                    {
+                        public virtual void M()
+                        {
+                        }
+                    }
+                    """),
+                (".editorconfig", """
+                    root = true
+
+                    [*.cshtml]
+                    csharp_indent_block_contents = false
+                    """)
+            ]);
     }
 
     // Tests MarkupTransitionCompletionItemProvider
@@ -1881,7 +2116,10 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
         TimeSpan? retryTimeout = null,
         (string fileName, string contents)[]? additionalFiles = null)
     {
-        var document = CreateProjectAndRazorDocument(input.Text, fileKind, additionalFiles: additionalFiles);
+        var document = CreateProjectAndRazorDocument(
+            input.Text,
+            fileKind,
+            additionalFiles: additionalFiles);
         var sourceText = await document.GetTextAsync(DisposalToken);
 
         ClientSettingsManager.Update(ClientAdvancedSettings.Default with { AutoInsertAttributeQuotes = autoInsertAttributeQuotes, CommitElementsWithSpace = commitElementsWithSpace });
@@ -2059,7 +2297,13 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
         }
     }
 
-    private async Task VerifyCompletionResolveAsync(CodeAnalysis.TextDocument document, CompletionListCache completionListCache, VSInternalCompletionItem item, string? expected, string expectedResolvedItemDescription, Position position)
+    private async Task VerifyCompletionResolveAsync(
+        CodeAnalysis.TextDocument document,
+        CompletionListCache completionListCache,
+        VSInternalCompletionItem item,
+        string? expected,
+        string expectedResolvedItemDescription,
+        Position position)
     {
         // We expect data to be a JsonElement, so for tests we have to _not_ strongly type
         item.Data = JsonSerializer.SerializeToElement(item.Data, JsonHelpers.JsonSerializerOptions);
@@ -2068,6 +2312,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             IncompatibleProjectService,
             completionListCache,
             RemoteServiceInvoker,
+            ClientSettingsManager,
             new TestHtmlRequestInvoker(),
             ClientCapabilitiesService,
             new ThrowingSnippetResolveProvider(),

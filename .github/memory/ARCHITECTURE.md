@@ -25,7 +25,7 @@ Layered bottom-up (lower layers must not depend on higher layers — see `docs/L
 | **Scripting / Interactive** | `src/Scripting/`, `src/Interactive/` | C#/VB scripting and REPL. |
 | **RoslynAnalyzers** | `src/RoslynAnalyzers/` | The `Microsoft.CodeAnalysis.*` analyzer packages (formerly dotnet/roslyn-analyzers). |
 
-For per-layer directory detail, key files, and coding conventions, read the matching path-scoped instruction file (`.github/instructions/{Compiler,IDE,Razor}.instructions.md`). That layer's known issues and test conventions live in `.github/memory/known-issues/<area>.md` and `.github/memory/testing/<area>.md` — load on demand (see `INDEX.md`).
+For per-layer directory detail, key files, and coding conventions, read the matching path-scoped instruction file (`.github/instructions/{Compiler,IDE,Razor}.instructions.md`). That layer's test conventions live in `.github/memory/testing/<area>.md` — load on demand (see `INDEX.md`).
 
 ## Key Abstractions
 

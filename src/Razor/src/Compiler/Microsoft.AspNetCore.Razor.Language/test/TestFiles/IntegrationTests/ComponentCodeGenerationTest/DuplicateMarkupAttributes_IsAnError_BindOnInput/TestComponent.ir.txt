@@ -30,5 +30,3 @@
                                 IntermediateToken -  - CSharp - , 
                                 IntermediateToken -  - CSharp - text
                                 IntermediateToken -  - CSharp - )
-            CSharpCode - (170:4,12 [35] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (170:4,12 [35] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private string text = "hi";\n

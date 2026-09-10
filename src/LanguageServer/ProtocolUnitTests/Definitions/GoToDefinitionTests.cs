@@ -47,7 +47,7 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
 
         var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
         // Verify that as originally serialized, the URI had a file scheme.
-        Assert.True(results.Single().DocumentUri.GetRequiredParsedUri().OriginalString.StartsWith("file"));
+        Assert.True(results.Single().DocumentUri.GetRequiredParsedUri().ToString().StartsWith("file"));
         AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
     }
 

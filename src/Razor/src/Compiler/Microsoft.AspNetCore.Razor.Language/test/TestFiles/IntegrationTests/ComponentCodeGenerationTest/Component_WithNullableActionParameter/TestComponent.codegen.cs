@@ -38,16 +38,6 @@ NullableAction
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (2,8)-(5,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-	[Parameter]
-	public Action NullableAction { get; set; }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

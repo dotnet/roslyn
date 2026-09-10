@@ -1,0 +1,22 @@
+﻿<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <RootNamespace>ImplementNotifyPropertyChanged.VisualBasic.Vsix</RootNamespace>
+    <AssemblyName>ImplementNotifyPropertyChanged.VisualBasic.Vsix</AssemblyName>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+    <IsProductComponent>false</IsProductComponent>
+    <GeneratePkgDefFile>false</GeneratePkgDefFile>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="source.extension.vsixmanifest">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ImplementNotifyPropertyChanged\ImplementNotifyPropertyChanged.VisualBasic.vbproj" />
+  </ItemGroup>
+</Project>

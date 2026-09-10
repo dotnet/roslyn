@@ -224,7 +224,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadAwaitInFixed">
         <source>Cannot await in context of a 'fixed' statement</source>
-        <target state="new">Cannot await in context of a 'fixed' statement</target>
+        <target state="translated">Impossible d’utiliser await dans le contexte d’une instruction « fixed »</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
@@ -246,6 +246,11 @@
         <source>No overload for method '{0}' takes {1} 'with(...)' element arguments</source>
         <target state="translated">Aucune surcharge de la méthode « {0} » n’accepte les arguments d’élément « with(...) » {1}</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadCompilationOptionValueAccepted">
+        <source>Invalid '{0}' value: '{1}'. Accepted values are: {2}</source>
+        <target state="translated">Valeur '{0}' non valide : '{1}'. Les valeurs acceptées sont : {2}</target>
+        <note>{2} is a comma-separated list.</note>
       </trans-unit>
       <trans-unit id="ERR_BadCompoundAssignmentOpArgs">
         <source>Overloaded compound assignment operator '{0}' takes one parameter</source>
@@ -728,8 +733,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
-        <source>A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.</source>
-        <target state="translated">Une variable ne peut pas être déclarée dans un modèle « not » ou « or », ni dans une correspondance d’union impliquant une correspondance avec l’instance ou sa valeur sous-jacente.</target>
+        <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
+        <target state="translated">Une variable ne peut pas être déclarée dans un modèle 'not' ou 'or'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
@@ -1039,7 +1044,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion15">
         <source>Feature '{0}' is not available in C# 15.0. Please use language version {1} or greater.</source>
-        <target state="new">Feature '{0}' is not available in C# 15.0. Please use language version {1} or greater.</target>
+        <target state="translated">La fonctionnalité « {0} » n’est pas disponible dans C# 15.0. Veuillez utiliser la version de la langue {1} ou supérieure.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -2970,6 +2975,11 @@
       <trans-unit id="HDN_RedundantPatternStackGuard_Title">
         <source>The pattern is too complex to analyze for redundancy.</source>
         <target state="translated">Le modèle est trop complexe pour être analysé en vue de détecter des redondances.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ICoalesceOperationIsNotCSharpCoalesceOperation">
+        <source>{0} is not a valid C# coalesce operation</source>
+        <target state="translated">{0} n’est pas une opération valide de coalescence C#</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">

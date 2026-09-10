@@ -4,7 +4,6 @@
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -24,16 +23,16 @@ internal sealed class WorkspaceWillRenameEndpoint(
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<WorkspaceWillRenameEndpoint>();
 
-    public Task<WorkspaceEdit?> HandleWillRenameAsync(RenameFilesParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> HandleWillRenameAsync(RenameFilesParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var solution = context.Solution;
+        var solution = await context.GetSolutionAsync(cancellationToken).ConfigureAwait(false);
         if (solution is null)
         {
             _logger.LogWarning($"Got a didRenameFiles notification but didn't get a solution to work with.");
-            return SpecializedTasks.Null<WorkspaceEdit>();
+            return null;
         }
 
-        return HandleRequestAsync(request, solution, cancellationToken);
+        return await HandleRequestAsync(request, solution, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<WorkspaceEdit?> HandleRequestAsync(RenameFilesParams request, Solution solution, CancellationToken cancellationToken)

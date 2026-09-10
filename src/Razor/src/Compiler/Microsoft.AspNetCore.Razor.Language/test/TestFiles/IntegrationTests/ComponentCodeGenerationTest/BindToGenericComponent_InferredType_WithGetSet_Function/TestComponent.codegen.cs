@@ -36,17 +36,6 @@ UpdateValue
             , ParentValue)));
         }
         #pragma warning restore 1998
-#nullable restore
-#line (2,8)-(6,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    public CustomValue ParentValue { get; set; } = new CustomValue();
-
-    public Task UpdateValue(CustomValue value) { ParentValue = value; return Task.CompletedTask; }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 namespace __Blazor.Test.TestComponent

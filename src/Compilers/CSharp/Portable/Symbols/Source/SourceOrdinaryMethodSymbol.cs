@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static DeclarationModifiers MakeDeclarationModifiers(MethodDeclarationSyntax syntax, NamedTypeSymbol containingType, Location location, DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
         {
-            return ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: true, isForInterfaceMember: containingType.IsInterface,
+            return ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isForInterfaceMember: containingType.IsInterface,
                                                                     syntax.Modifiers, defaultAccess: DeclarationModifiers.None, allowedModifiers, location, diagnostics, out _, out _);
         }
 

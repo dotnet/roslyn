@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
 using System.Composition;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -15,6 +16,8 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
+using StreamJsonRpc;
+using StreamJsonRpc.Protocol;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -35,7 +38,27 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         typeof(TestNotificationWithoutParamsHandlerFactory),
         typeof(TestLanguageSpecificHandler),
         typeof(TestLanguageSpecificHandlerWithDifferentParams),
+        typeof(TestFSharpOnlyDocumentHandler),
+        typeof(TestFSharpOnlyNotificationHandler),
         typeof(TestConfigurableDocumentHandler));
+
+    [Fact]
+    public void WorkspaceFolderTrackerPreservesSetForEquivalentUpdate()
+    {
+        var tracker = new WorkspaceFolderTracker();
+        var workspaceFolder = new WorkspaceFolder { DocumentUri = new("file:///Workspace"), Name = "Workspace" };
+        var equivalentWorkspaceFolder = new WorkspaceFolder { DocumentUri = new("file:///Workspace/"), Name = "Workspace" };
+        var eventCount = 0;
+        tracker.WorkspaceFoldersChanged += () => eventCount++;
+
+        tracker.Update([workspaceFolder], removedFolders: null);
+        var workspaceFolders = tracker.GetRequiredWorkspaceFolderPaths();
+        tracker.Update([equivalentWorkspaceFolder], [workspaceFolder]);
+
+        Assert.Equal(1, eventCount);
+        Assert.Same(workspaceFolders, tracker.GetRequiredWorkspaceFolderPaths());
+        Assert.Equal(Path.GetFullPath(workspaceFolder.DocumentUri.GetDocumentFilePathFromUri()), Assert.Single(workspaceFolders));
+    }
 
     [Theory, CombinatorialData]
     public async Task CanExecuteRequestHandler(bool mutatingLspWorkspace)
@@ -311,6 +334,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     }
 
     [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84890")]
     public async Task DoesNotCrashOnRequestForMissingHandler(bool mutatingLspWorkspace)
     {
         await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
@@ -320,8 +344,73 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
             DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
         });
 
-        await Assert.ThrowsAnyAsync<Exception>(async ()
+        var exception = await Assert.ThrowsAsync<RemoteMethodNotFoundException>(async ()
             => await server.ExecuteRequestAsync<TestRequestTypeOne, string>("nonExistentMethod", request, CancellationToken.None));
+        Assert.Equal(JsonRpcErrorCode.MethodNotFound, (JsonRpcErrorCode)exception.ErrorCode);
+        Assert.Equal("nonExistentMethod", exception.TargetMethod);
+        Assert.False(server.GetServerAccessor().HasShutdownStarted());
+        Assert.False(server.GetQueueAccessor()!.Value.IsComplete());
+
+        var response = await server.ExecuteRequestAsync<TestRequestTypeOne, string>(TestDocumentHandler.MethodName, request, CancellationToken.None);
+        Assert.Equal(typeof(TestDocumentHandler).Name, response);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84890")]
+    public async Task DoesNotCrashOnNotificationForMissingHandler(bool mutatingLspWorkspace)
+    {
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+
+        var request = new TestRequestTypeOne(new TextDocumentIdentifier
+        {
+            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
+        });
+
+        await server.ExecuteNotificationAsync("nonExistentMethod", request);
+
+        var response = await server.ExecuteRequestAsync<TestRequestTypeOne, string>(TestDocumentHandler.MethodName, request, CancellationToken.None);
+        Assert.Equal(typeof(TestDocumentHandler).Name, response);
+        Assert.False(server.GetServerAccessor().HasShutdownStarted());
+        Assert.False(server.GetQueueAccessor()!.Value.IsComplete());
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84890")]
+    public async Task DoesNotCrashOnRegisteredRequestForUnsupportedLanguage(bool mutatingLspWorkspace)
+    {
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+
+        var request = new TestRequestTypeOne(new TextDocumentIdentifier
+        {
+            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
+        });
+
+        var exception = await Assert.ThrowsAsync<RemoteMethodNotFoundException>(async ()
+            => await server.ExecuteRequestAsync<TestRequestTypeOne, string>(TestFSharpOnlyDocumentHandler.MethodName, request, CancellationToken.None));
+        Assert.Equal(JsonRpcErrorCode.MethodNotFound, (JsonRpcErrorCode)exception.ErrorCode);
+        Assert.Equal(TestFSharpOnlyDocumentHandler.MethodName, exception.TargetMethod);
+        Assert.False(server.GetServerAccessor().HasShutdownStarted());
+        Assert.False(server.GetQueueAccessor()!.Value.IsComplete());
+
+        var response = await server.ExecuteRequestAsync<TestRequestTypeOne, string>(TestDocumentHandler.MethodName, request, CancellationToken.None);
+        Assert.Equal(typeof(TestDocumentHandler).Name, response);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84890")]
+    public async Task DoesNotCrashOnRegisteredNotificationForUnsupportedLanguage(bool mutatingLspWorkspace)
+    {
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+
+        var request = new TestRequestTypeOne(new TextDocumentIdentifier
+        {
+            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
+        });
+
+        await server.ExecuteNotificationAsync(TestFSharpOnlyNotificationHandler.MethodName, request);
+
+        var response = await server.ExecuteRequestAsync<TestRequestTypeOne, string>(TestDocumentHandler.MethodName, request, CancellationToken.None);
+        Assert.Equal(typeof(TestDocumentHandler).Name, response);
         Assert.False(server.GetServerAccessor().HasShutdownStarted());
         Assert.False(server.GetQueueAccessor()!.Value.IsComplete());
     }
@@ -495,6 +584,45 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         public async Task<string> HandleRequestAsync(TestRequestTypeTwo request, RequestContext context, CancellationToken cancellationToken)
         {
             return this.GetType().Name;
+        }
+    }
+
+    [ExportCSharpVisualBasicStatelessLspService(typeof(TestFSharpOnlyDocumentHandler)), PartNotDiscoverable, Shared]
+    [LanguageServerEndpoint(MethodName, LanguageNames.FSharp)]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class TestFSharpOnlyDocumentHandler() : ILspServiceDocumentRequestHandler<TestRequestTypeOne, string>
+    {
+        public const string MethodName = nameof(TestFSharpOnlyDocumentHandler);
+
+        public bool MutatesSolutionState => true;
+        public bool RequiresLSPSolution => true;
+
+        public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequestTypeOne request)
+        {
+            return request.TextDocumentIdentifier;
+        }
+
+        public Task<string> HandleRequestAsync(TestRequestTypeOne request, RequestContext context, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(this.GetType().Name);
+        }
+    }
+
+    [ExportCSharpVisualBasicStatelessLspService(typeof(TestFSharpOnlyNotificationHandler)), PartNotDiscoverable, Shared]
+    [LanguageServerEndpoint(MethodName, LanguageNames.FSharp)]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class TestFSharpOnlyNotificationHandler() : ILspServiceNotificationHandler<TestRequestTypeOne>
+    {
+        public const string MethodName = nameof(TestFSharpOnlyNotificationHandler);
+
+        public bool MutatesSolutionState => true;
+        public bool RequiresLSPSolution => true;
+
+        public Task HandleNotificationAsync(TestRequestTypeOne request, RequestContext context, CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
         }
     }
 

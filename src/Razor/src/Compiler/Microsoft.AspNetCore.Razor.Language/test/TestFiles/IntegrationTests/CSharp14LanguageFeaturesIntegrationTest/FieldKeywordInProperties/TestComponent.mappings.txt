@@ -12,20 +12,3 @@ Source Location: (29:4,4 [5] x:\dir\subdir\Test\TestComponent.razor)
 Generated Location: (954:31,24 [5] )
 |Value|
 
-Source Location: (49:6,7 [92] x:\dir\subdir\Test\TestComponent.razor)
-|
-    public int Value
-    {
-        get => field;
-        set => field = value;
-    }
-|
-Generated Location: (1195:42,0 [92] )
-|
-    public int Value
-    {
-        get => field;
-        set => field = value;
-    }
-|
-

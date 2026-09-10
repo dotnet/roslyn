@@ -12,5 +12,3 @@
                     Template - (15:0,15 [13] x:\dir\subdir\Test\TestComponent.cshtml)
                         MarkupBlock -  - <div>HI</div>
                     LazyIntermediateToken - (28:0,28 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - )
-            CSharpCode - (38:1,7 [54] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (38:1,7 [54] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    object RenderPerson(RenderFragment p) => null;\n

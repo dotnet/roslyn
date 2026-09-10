@@ -8,12 +8,3 @@ Source Location: (13:0,13 [4] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (884:23,0 [4] )
 |Item|
 
-Source Location: (64:2,7 [39] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    public void MyEventHandler() {}
-|
-Generated Location: (1214:35,0 [39] )
-|
-    public void MyEventHandler() {}
-|
-

@@ -1,0 +1,20 @@
+﻿[0000] OpenComponent<global::Test.Grid<
+#nullable restore
+#line (1,14)-(1,22) "x:\dir\subdir\Test\TestComponent.cshtml"
+DateTime
+
+#line default
+#line hidden
+#nullable disable
+            >>()
+[0001] AddComponentParameter(nameof(global::Test.Grid<DateTime>. Items ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Collections.Generic.IEnumerable<DateTime>>( Array.Empty<DateTime>() ))
+[0002] AddAttribute("ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => { __builder2.OpenComponent<global::Test.Column< System.TimeZoneInfo >>(3); __builder2.CloseComponent(); } ))
+[0003] OpenComponent<global::Test.Column<
+#nullable restore
+#line (1,74)-(1,93) "x:\dir\subdir\Test\TestComponent.cshtml"
+System.TimeZoneInfo
+
+#line default
+#line hidden
+#nullable disable
+                >>()

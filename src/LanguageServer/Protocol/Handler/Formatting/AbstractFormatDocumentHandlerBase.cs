@@ -28,7 +28,7 @@ internal abstract class AbstractFormatDocumentHandlerBase<RequestType, ResponseT
         CancellationToken cancellationToken,
         LSP.Range? range = null)
     {
-        if (context.Document is not { } document)
+        if (await context.GetDocumentAsync(cancellationToken).ConfigureAwait(false) is not { } document)
             return null;
 
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
@@ -55,7 +55,7 @@ internal abstract class AbstractFormatDocumentHandlerBase<RequestType, ResponseT
         var organizeImportsOptions = await formattedDocument.GetOrganizeImportsOptionsAsync(cancellationToken).ConfigureAwait(false);
         var organizedDocument = await organizeImports.OrganizeImportsAsync(formattedDocument, organizeImportsOptions, cancellationToken).ConfigureAwait(false);
 
-        var textChanges = await organizedDocument.GetTextChangesAsync(context.Document).ConfigureAwait(false);
+        var textChanges = await organizedDocument.GetTextChangesAsync(document).ConfigureAwait(false);
         return [.. textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, text))];
     }
 

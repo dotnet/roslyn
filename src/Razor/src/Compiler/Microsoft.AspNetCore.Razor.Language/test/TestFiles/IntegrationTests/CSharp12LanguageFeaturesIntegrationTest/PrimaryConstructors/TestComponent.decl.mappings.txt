@@ -1,0 +1,15 @@
+﻿Source Location: (7:0,7 [91] x:\dir\subdir\Test\TestComponent.razor)
+|
+    public class Person(string name)
+    {
+        public string Name => name;
+    }
+|
+Generated Location: (556:18,0 [91] )
+|
+    public class Person(string name)
+    {
+        public string Name => name;
+    }
+|
+

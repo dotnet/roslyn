@@ -19,18 +19,6 @@ namespace Test
         {
         }
         #pragma warning restore 1998
-#nullable restore
-#line (1,8)-(6,1) "x:\dir\subdir\Test\TestComponent.razor"
-
-    [System.Diagnostics.CodeAnalysis.Experimental("RAZOR0001")]
-    public class ExperimentalType
-    {
-    }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

@@ -185,7 +185,25 @@ namespace Microsoft.CodeAnalysis.Text
             SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1,
             bool throwIfBinaryDetected = false,
             bool canBeEmbedded = false)
+            => From(stream, encoding, checksumAlgorithm, throwIfBinaryDetected, canBeEmbedded, embeddedTextBlob: default);
+
+        internal static SourceText From(
+            Stream stream,
+            Encoding encoding,
+            SourceHashAlgorithm checksumAlgorithm,
+            ImmutableArray<byte> embeddedTextBlob)
+            => From(stream, encoding, checksumAlgorithm, throwIfBinaryDetected: false, canBeEmbedded: true, embeddedTextBlob);
+
+        private static SourceText From(
+            Stream stream,
+            Encoding? encoding,
+            SourceHashAlgorithm checksumAlgorithm,
+            bool throwIfBinaryDetected,
+            bool canBeEmbedded,
+            ImmutableArray<byte> embeddedTextBlob)
         {
+            Debug.Assert(embeddedTextBlob.IsDefault || canBeEmbedded);
+
             if (stream == null)
             {
                 throw new ArgumentNullException(nameof(stream));
@@ -205,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Text
                 // If the resulting string would end up on the large object heap, then use LargeEncodedText.
                 if (GetMaxCharCountOrThrowIfHuge(encoding, stream) >= LargeObjectHeapLimitInChars)
                 {
-                    return LargeText.Decode(stream, encoding, checksumAlgorithm, throwIfBinaryDetected, canBeEmbedded);
+                    return LargeText.Decode(stream, encoding, checksumAlgorithm, throwIfBinaryDetected, canBeEmbedded, embeddedTextBlob);
                 }
             }
 
@@ -218,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Text
             // We must compute the checksum and embedded text blob now while we still have the original bytes in hand.
             // We cannot re-encode to obtain checksum and blob as the encoding is not guaranteed to round-trip.
             var checksum = CalculateChecksum(stream, checksumAlgorithm);
-            var embeddedTextBlob = canBeEmbedded ? EmbeddedText.CreateBlob(stream) : default(ImmutableArray<byte>);
+            embeddedTextBlob = embeddedTextBlob.IsDefault && canBeEmbedded ? EmbeddedText.CreateBlob(stream) : embeddedTextBlob;
             return new StringText(text, encoding, checksum, checksumAlgorithm, embeddedTextBlob);
         }
 

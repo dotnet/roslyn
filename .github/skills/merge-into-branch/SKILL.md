@@ -98,11 +98,42 @@ dotnet run --file eng/generate-compiler-code.cs
 
 Review and stage any generated changes before finishing the merge.
 
-#### 3d. Other conflicts
+#### 3d. Razor compiler baselines and tests
+
+If the merge changes files under `src/Razor/src/Compiler`, identify and run every affected test project before presenting the merge as ready.
+
+If baseline-backed Razor compiler tests or their `TestFiles` change:
+
+1. Identify the affected fully qualified test names from the changed test methods and baseline directories.
+2. Regenerate those baselines on one CoreCLR target framework to avoid concurrent writers:
+
+   ```bash
+   dotnet test <test-project> --framework <coreclr-tfm> --filter "<affected-tests>" -p:GenerateBaselines=true
+   ```
+
+   Always use a targeted filter when generating baselines because the unfiltered suite includes `GenerateBaselinesMustBeFalse`, which intentionally fails while generation is enabled.
+3. Review all generated changes. Two-phase Razor tests may add or update `.decl.codegen.cs` and `.decl.mappings.txt` alongside `.codegen.cs`, `.mappings.txt`, `.ir.txt`, `.diagnostics.txt`, and component `.builder.txt` files.
+4. Rerun the affected tests normally, without `GenerateBaselines=true`.
+5. Run the complete affected test project normally so newly added or auto-merged tests are not missed:
+
+   ```bash
+   dotnet test <test-project>
+   ```
+
+Common Razor compiler test projects include:
+
+- `src/Razor/src/Compiler/Microsoft.AspNetCore.Razor.Language/test/Microsoft.AspNetCore.Razor.Language.UnitTests.csproj`
+- `src/Razor/src/Compiler/Microsoft.AspNetCore.Mvc.Razor.Extensions/test/Microsoft.AspNetCore.Mvc.Razor.Extensions.UnitTests.csproj`
+- `src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor/test/Microsoft.CodeAnalysis.Razor.UnitTests.csproj`
+- `src/Razor/src/Compiler/test/Microsoft.NET.Sdk.Razor.SourceGenerators.UnitTests/Microsoft.NET.Sdk.Razor.SourceGenerators.UnitTests.csproj`
+
+An analyzer build is not a substitute for these tests. Do not sign off on the merge until baseline generation has been reviewed and all affected test projects pass.
+
+#### 3e. Other conflicts
 
 Resolve any remaining conflicts carefully using the repo's existing code patterns. Avoid unrelated cleanup or opportunistic edits during the merge.
 
-#### 3e. Validate the merge after conflict resolution
+#### 3f. Validate the merge after conflict resolution
 
 Before presenting the summary or creating the merge commit, run a validating build with analyzers enabled to make sure the merge did not introduce new issues:
 
@@ -128,9 +159,11 @@ Once all conflicts are resolved and staged, present a concise but specific summa
    - `.xlf` → accepted ours and updated XLFs
    - `.resx` → manually merged to preserve all strings and updated XLFs
    - `src/Compilers` → reran compiler code generation
+   - Razor compiler tests → regenerated and reviewed affected baselines, reran targeted tests, and ran the complete affected test projects
    - other files → briefly describe the manual resolution
-4. The result of the post-merge validation build/analyzer run.
-5. A diff summary using commands such as:
+4. The exact post-merge test commands and results, including affected test-project totals.
+5. The result of the post-merge validation build/analyzer run.
+6. A diff summary using commands such as:
 
 ```bash
 git status --short

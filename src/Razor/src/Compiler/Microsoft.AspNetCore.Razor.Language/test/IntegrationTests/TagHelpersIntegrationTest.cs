@@ -375,7 +375,7 @@ public class TagHelpersIntegrationTest() : IntegrationTestBase(layer: TestProjec
         Assert.Empty(tagHelperNodes[5].FindDescendantNodes<TagHelperIntermediateNode>()); // beta at top level
 
         // The real HTML elements must survive as literal markup, never bound as tag helpers.
-        var generatedCode = codeDocument.GetRequiredCSharpDocument().Text.ToString();
+        var generatedCode = codeDocument.GetRequiredCSharpDocument(declarationDocument: false).Text.ToString();
         Assert.Contains("<section>", generatedCode);
         Assert.Contains("<div>", generatedCode);
         Assert.Contains("plain html", generatedCode);

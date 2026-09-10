@@ -46,6 +46,29 @@ public class OrganizeUsingsCommandTest(ITestOutputHelper testOutputHelper) : Coh
                 """);
 
     [Fact]
+    public Task SortOnly_NoUnused_NoCodeBlock()
+       => VerifyRemoveAndSortUsingsAsync(
+           input: """
+                @using System.Text
+                @using System
+                @using Microsoft.AspNetCore.Components.Forms
+
+                <div></div>
+
+                @nameof(StringBuilder)
+                @nameof(Console)
+                """,
+           expected: """
+                @using System
+                @using System.Text
+
+                <div></div>
+
+                @nameof(StringBuilder)
+                @nameof(Console)
+                """);
+
+    [Fact]
     public Task RemoveOnly_AlreadySorted()
         => VerifyRemoveAndSortUsingsAsync(
             input: """
@@ -93,8 +116,8 @@ public class OrganizeUsingsCommandTest(ITestOutputHelper testOutputHelper) : Coh
 
     [Fact]
     public Task RemoveAndSort_Combined2()
-    => VerifyRemoveAndSortUsingsAsync(
-        input: """
+        => VerifyRemoveAndSortUsingsAsync(
+            input: """
                 @using System.Text
                 @using System.Buffers
                 @using System
@@ -109,7 +132,7 @@ public class OrganizeUsingsCommandTest(ITestOutputHelper testOutputHelper) : Coh
                     }
                 }
                 """,
-        expected: """
+            expected: """
                 @using System
                 @using System.Text
 

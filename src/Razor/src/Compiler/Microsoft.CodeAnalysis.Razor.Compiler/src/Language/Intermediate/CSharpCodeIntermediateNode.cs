@@ -21,6 +21,16 @@ public sealed class CSharpCodeIntermediateNode : IntermediateNode
         visitor.VisitCSharpCode(this);
     }
 
+    protected override IntermediateNode CloneNode()
+    {
+        var clone = new CSharpCodeIntermediateNode
+        {
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
+
+        return clone;
+    }
+
     public override void FormatNode(IntermediateNodeFormatter formatter)
     {
         formatter.WriteChildren(Children);

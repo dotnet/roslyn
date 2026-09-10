@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Basic.Reference.Assemblies;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
@@ -885,6 +886,159 @@ Goo();
             Assert.Equal("Y", structS.TypeParameters[1].Name);
             Assert.Equal("Z", structS.TypeParameters[2].Name);
             Assert.Equal(3, structS.TypeArguments().Length);
+        }
+
+        [Fact]
+        public void TypeLayouts()
+        {
+            var text =
+@"#pragma warning disable CS0169 // Field is never used
+
+using System.Runtime.InteropServices;
+
+struct Struct
+{
+    int x;
+}
+
+struct StructNoFields
+{
+}
+
+[StructLayout(LayoutKind.Sequential)]
+struct StructSequential
+{
+    int x;
+}
+
+[StructLayout(LayoutKind.Auto)]
+struct StructAuto
+{
+    int x;
+}
+
+[StructLayout(LayoutKind.Explicit)]
+struct StructExplicit
+{
+    [FieldOffset(0)] int x;
+}
+
+[StructLayout(LayoutKind.Sequential, Size = 5)]
+struct StructWithSize
+{
+    int x;
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 4)]
+struct StructWithPack
+{
+    int x;
+}
+
+[StructLayout(LayoutKind.Explicit, Size = 5, Pack = 4)]
+struct StructWithSizeAndPack
+{
+    [FieldOffset(0)] int x;
+}
+
+[ExtendedLayout(ExtendedLayoutKind.CStruct)]
+struct StructWithExtendedLayout
+{
+    int x;
+}
+
+class Class
+{
+    int x;
+}
+
+class ClassNoFields
+{
+}
+
+[StructLayout(LayoutKind.Sequential)]
+class ClassSequential
+{
+    int x;
+}
+
+[StructLayout(LayoutKind.Auto)]
+class ClassAuto
+{
+    int x;
+}
+
+[StructLayout(LayoutKind.Explicit)]
+class ClassExplicit
+{
+    [FieldOffset(0)] int x;
+}
+
+[StructLayout(LayoutKind.Explicit, Size = 5)]
+class ClassWithSize
+{
+    [FieldOffset(0)] int x;
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 4)]
+class ClassWithPack
+{
+    int x;
+}
+
+[StructLayout(LayoutKind.Sequential, Size = 5, Pack = 4)]
+class ClassWithSizeAndPack
+{
+    int x;
+}";
+
+            var verifier = CompileAndVerify(text, sourceSymbolValidator: verify, symbolValidator: verify, targetFramework: TargetFramework.Net110, verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
+
+            static void verify(ModuleSymbol module)
+            {
+                IModuleSymbol m = module.GetPublicSymbol();
+
+                var structType = m.GlobalNamespace.GetMembers("Struct").OfType<INamedTypeSymbol>().Single();
+                var structNoFieldsType = m.GlobalNamespace.GetMembers("StructNoFields").OfType<INamedTypeSymbol>().Single();
+                var structSequentialType = m.GlobalNamespace.GetMembers("StructSequential").OfType<INamedTypeSymbol>().Single();
+                var structAutoType = m.GlobalNamespace.GetMembers("StructAuto").OfType<INamedTypeSymbol>().Single();
+                var structExplicitType = m.GlobalNamespace.GetMembers("StructExplicit").OfType<INamedTypeSymbol>().Single();
+                var structWithSizeType = m.GlobalNamespace.GetMembers("StructWithSize").OfType<INamedTypeSymbol>().Single();
+                var structWithPackType = m.GlobalNamespace.GetMembers("StructWithPack").OfType<INamedTypeSymbol>().Single();
+                var structWithSizeAndPackType = m.GlobalNamespace.GetMembers("StructWithSizeAndPack").OfType<INamedTypeSymbol>().Single();
+                var structWithExtendedLayoutType = m.GlobalNamespace.GetMembers("StructWithExtendedLayout").OfType<INamedTypeSymbol>().Single();
+                var classType = m.GlobalNamespace.GetMembers("Class").OfType<INamedTypeSymbol>().Single();
+                var classNoFieldsType = m.GlobalNamespace.GetMembers("ClassNoFields").OfType<INamedTypeSymbol>().Single();
+                var classSequentialType = m.GlobalNamespace.GetMembers("ClassSequential").OfType<INamedTypeSymbol>().Single();
+                var classAutoType = m.GlobalNamespace.GetMembers("ClassAuto").OfType<INamedTypeSymbol>().Single();
+                var classExplicitType = m.GlobalNamespace.GetMembers("ClassExplicit").OfType<INamedTypeSymbol>().Single();
+                var classWithSizeType = m.GlobalNamespace.GetMembers("ClassWithSize").OfType<INamedTypeSymbol>().Single();
+                var classWithPackType = m.GlobalNamespace.GetMembers("ClassWithPack").OfType<INamedTypeSymbol>().Single();
+                var classWithSizeAndPackType = m.GlobalNamespace.GetMembers("ClassWithSizeAndPack").OfType<INamedTypeSymbol>().Single();
+
+                Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 0), structType.TypeLayout);
+                Assert.Equal(new TypeLayout(LayoutKind.Sequential, 1, 0), structNoFieldsType.TypeLayout);
+                Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 0), structSequentialType.TypeLayout);
+                Assert.Equal(new TypeLayout(LayoutKind.Auto, 0, 0), structAutoType.TypeLayout);
+                Assert.Equal(new TypeLayout(LayoutKind.Explicit, 0, 0), structExplicitType.TypeLayout);
+                Assert.Equal(new TypeLayout(LayoutKind.Sequential, 5, 0), structWithSizeType.TypeLayout);
+                Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 4), structWithPackType.TypeLayout);
+                Assert.Equal(new TypeLayout(LayoutKind.Explicit, 5, 4), structWithSizeAndPackType.TypeLayout);
+                Assert.Equal(new TypeLayout(LayoutKind.Extended, 0, 0), structWithExtendedLayoutType.TypeLayout);
+                Assert.Equal(new TypeLayout(LayoutKind.Auto, 0, 0), classType.TypeLayout);
+                Assert.Equal(new TypeLayout(LayoutKind.Auto, 0, 0), classNoFieldsType.TypeLayout);
+                Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 0), classSequentialType.TypeLayout);
+                Assert.Equal(new TypeLayout(LayoutKind.Auto, 0, 0), classAutoType.TypeLayout);
+                Assert.Equal(new TypeLayout(LayoutKind.Explicit, 0, 0), classExplicitType.TypeLayout);
+                Assert.Equal(new TypeLayout(LayoutKind.Explicit, 5, 0), classWithSizeType.TypeLayout);
+                Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 4), classWithPackType.TypeLayout);
+                Assert.Equal(new TypeLayout(LayoutKind.Sequential, 5, 4), classWithSizeAndPackType.TypeLayout);
+
+                Assert.Equal(LayoutKind.Sequential, classWithSizeAndPackType.TypeLayout.Kind);
+                Assert.Equal(5, classWithSizeAndPackType.TypeLayout.Size);
+                Assert.Equal(4, classWithSizeAndPackType.TypeLayout.PackingSize);
+            }
         }
 
         [WorkItem(537199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537199")]
@@ -2539,12 +2693,12 @@ class C
                 // (7,22): error CS0261: Partial declarations of '.' must be all classes, all record classes, all structs, all record structs, or all interfaces
                 //     partial interface;
                 Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "").WithArguments("N..").WithLocation(7, 22),
+                // (8,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                //     partial enum { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(8, 5),
                 // (8,18): error CS1001: Identifier expected
                 //     partial enum { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(8, 18),
-                // (8,18): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                //     partial enum { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "").WithLocation(8, 18),
                 // (8,18): error CS0542: '': member names cannot be the same as their enclosing type
                 //     partial enum { }
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "").WithArguments("").WithLocation(8, 18),
@@ -2587,12 +2741,12 @@ class C
                 // (20,22): error CS1001: Identifier expected
                 //     partial interface;
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(20, 22),
+                // (21,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                //     partial enum { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(21, 5),
                 // (21,18): error CS1001: Identifier expected
                 //     partial enum { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(21, 18),
-                // (21,18): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                //     partial enum { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "").WithLocation(21, 18),
                 // (21,18): error CS0542: '': member names cannot be the same as their enclosing type
                 //     partial enum { }
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "").WithArguments("").WithLocation(21, 18),

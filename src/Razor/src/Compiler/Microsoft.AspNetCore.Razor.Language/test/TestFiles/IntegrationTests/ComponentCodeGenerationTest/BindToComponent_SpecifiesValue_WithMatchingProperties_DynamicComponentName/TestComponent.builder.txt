@@ -1,0 +1,3 @@
+﻿[0000] OpenComponent<global::Test.dynamic>()
+[0001] AddComponentParameter(nameof(global::Test.dynamic. Value ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Int32>( ParentValue ))
+[0002] AddComponentParameter(nameof(global::Test.dynamic.ValueChanged), (global::System.Action<global::System.Int32>)(__value => ParentValue = __value))

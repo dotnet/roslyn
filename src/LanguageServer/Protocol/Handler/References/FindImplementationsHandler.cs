@@ -34,14 +34,14 @@ internal sealed class FindImplementationsHandler : ILspServiceDocumentRequestHan
 
     public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
 
-    public Task<LSP.Location[]> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<LSP.Location[]> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var document = context.GetRequiredDocument();
+        var document = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
         var supportsVisualStudioExtensions = context.GetRequiredClientCapabilities().HasVisualStudioLspCapability();
         var linePosition = ProtocolConversions.PositionToLinePosition(request.Position);
         var classificationOptions = _globalOptions.GetClassificationOptionsProvider();
 
-        return FindImplementationsAsync(document, linePosition, classificationOptions, supportsVisualStudioExtensions, cancellationToken);
+        return await FindImplementationsAsync(document, linePosition, classificationOptions, supportsVisualStudioExtensions, cancellationToken).ConfigureAwait(false);
     }
 
     internal static async Task<LSP.Location[]> FindImplementationsAsync(Document document, LinePosition linePosition, OptionsProvider<ClassificationOptions> classificationOptions, bool supportsVisualStudioExtensions, CancellationToken cancellationToken)

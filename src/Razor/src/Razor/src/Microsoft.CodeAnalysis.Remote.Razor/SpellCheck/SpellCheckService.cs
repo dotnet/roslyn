@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.SpellCheck;
@@ -23,19 +23,18 @@ internal sealed class SpellCheckService(
     private readonly ICSharpSpellCheckRangeProvider _csharpSpellCheckService = csharpSpellCheckService;
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
 
-    public async Task<int[]> GetSpellCheckRangeTriplesAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken)
+    public async Task<int[]> GetSpellCheckRangeTriplesAsync(RemoteDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
         using var builder = new PooledArrayBuilder<SpellCheckRange>();
 
-        var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxTree = codeDocument.GetRequiredTagHelperRewrittenSyntaxTree();
 
         AddRazorSpellCheckRanges(ref builder.AsRef(), syntaxTree);
 
-        var csharpRanges = await _csharpSpellCheckService.GetCSharpSpellCheckRangesAsync(documentContext, cancellationToken).ConfigureAwait(false);
-
+        var csharpRanges = await _csharpSpellCheckService.GetCSharpSpellCheckRangesAsync(documentSnapshot, cancellationToken).ConfigureAwait(false);
         if (csharpRanges.Length > 0)
         {
-            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
             AddCSharpSpellCheckRanges(ref builder.AsRef(), csharpRanges, codeDocument);
         }
 
@@ -57,7 +56,7 @@ internal sealed class SpellCheckService(
         {
             if (node is RazorCommentBlockSyntax commentBlockSyntax)
             {
-                ranges.Add(new((int)VSInternalSpellCheckableRangeKind.Comment, commentBlockSyntax.Comment.SpanStart, commentBlockSyntax.Comment.Span.Length));
+                ranges.Add(new((int)VSInternalSpellCheckableRangeKind.Comment, commentBlockSyntax.Comment.SpanStart, commentBlockSyntax.Comment.Span.Length, InDeclDocument: false));
             }
             else if (node is MarkupTextLiteralSyntax textLiteralSyntax)
             {
@@ -80,17 +79,16 @@ internal sealed class SpellCheckService(
                     continue;
                 }
 
-                ranges.Add(new((int)VSInternalSpellCheckableRangeKind.String, textLiteralSyntax.SpanStart, textLiteralSyntax.Span.Length));
+                ranges.Add(new((int)VSInternalSpellCheckableRangeKind.String, textLiteralSyntax.SpanStart, textLiteralSyntax.Span.Length, InDeclDocument: false));
             }
         }
     }
 
     private void AddCSharpSpellCheckRanges(ref PooledArrayBuilder<SpellCheckRange> ranges, ImmutableArray<SpellCheckRange> csharpRanges, RazorCodeDocument codeDocument)
     {
-        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
-
         foreach (var range in csharpRanges)
         {
+            var csharpDocument = codeDocument.GetRequiredCSharpDocument(range.InDeclDocument);
             var absoluteCSharpStartIndex = range.AbsoluteStartIndex;
             var length = range.Length;
 

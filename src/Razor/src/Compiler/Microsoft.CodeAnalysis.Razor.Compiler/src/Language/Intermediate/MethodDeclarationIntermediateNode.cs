@@ -23,6 +23,21 @@ public sealed class MethodDeclarationIntermediateNode : MemberDeclarationInterme
     public override void Accept(IntermediateNodeVisitor visitor)
         => visitor.VisitMethodDeclaration(this);
 
+    protected override IntermediateNode CloneNode()
+    {
+        var clone = new MethodDeclarationIntermediateNode
+        {
+            Name = Name,
+            ReturnType = ReturnType,
+            Modifiers = Modifiers,
+            Parameters = Parameters,
+            IsPrimaryMethod = IsPrimaryMethod,
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
+
+        return clone;
+    }
+
     public override void FormatNode(IntermediateNodeFormatter formatter)
     {
         formatter.WriteContent(Name);

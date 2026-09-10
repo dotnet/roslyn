@@ -1,0 +1,3 @@
+﻿[0000] OpenComponent<global::Test.Counter>()
+[0001] AddComponentParameter("v", y)
+[0002] AddComponentParameter("vChanged", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => y = __value, y))

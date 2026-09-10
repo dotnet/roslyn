@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
-            using var innerLogger = new CompilerServerLogger($"MSBuild {Process.GetCurrentProcess().Id}");
+            using var innerLogger = new CompilerServerLogger($"MSBuild {Process.GetCurrentProcess().Id}", TaskEnvironment.BuildEnvironment);
             var logger = new TaskCompilerServerLogger(Log, innerLogger);
             return ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger);
         }
@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 var requestId = getRequestId();
                 logger.Log($"Compilation request {requestId}, PathToTool={pathToTool}");
 
-                string? tempDirectory = Path.GetTempPath();
+                string? tempDirectory = TaskEnvironment.GetTempPath();
 
                 if (!UseSharedCompilation ||
                     !UsingBuiltinTool ||
@@ -553,12 +553,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 // commandLineCommands (the parameter) may have been mucked with
                 // (to support using the dotnet cli)
                 var buildRequestArguments = GenerateCommandLineArgsList(responseFileCommands);
-                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(buildRequestArguments, logger.Log);
+                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(
+                    buildRequestArguments,
+                    TaskEnvironment.GetEnvironmentVariable,
+                    logger.Log);
                 var buildRequest = BuildServerConnection.CreateBuildRequest(
                     requestId,
                     Language,
                     buildRequestArguments,
-                    workingDirectory: CurrentDirectoryToUse(),
+                    workingDirectory: TaskEnvironment.ProjectDirectory,
                     tempDirectory: tempDirectory,
                     keepAlive: null,
                     libDirectory: LibDirectoryToUse());
@@ -571,8 +574,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     buildRequest,
                     pipeName,
                     clientDirectory,
-                    logger: logger,
-                    cancellationToken: _sharedCompileCts.Token);
+                    TaskEnvironment.BuildEnvironment,
+                    logger,
+                    _sharedCompileCts.Token);
 
                 responseTask.Wait(_sharedCompileCts.Token);
 
@@ -624,27 +628,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         /// <summary>
-        /// Get the current directory that the compiler should run in.
-        /// </summary>
-        private string CurrentDirectoryToUse()
-        {
-            // ToolTask has a method for this. But it may return null. Use the process directory
-            // if ToolTask didn't override. MSBuild uses the process directory.
-            string workingDirectory = GetWorkingDirectory();
-            if (string.IsNullOrEmpty(workingDirectory))
-            {
-                workingDirectory = Directory.GetCurrentDirectory();
-            }
-            return workingDirectory;
-        }
-
-        /// <summary>
         /// Get the "LIB" environment variable, or NULL if none.
         /// </summary>
         private string? LibDirectoryToUse()
         {
-            // First check the real environment.
-            string? libDirectory = Environment.GetEnvironmentVariable("LIB");
+            // First check the task environment.
+            string? libDirectory = TaskEnvironment.GetEnvironmentVariable("LIB");
 
             // Now go through additional environment variables.
             string[] additionalVariables = EnvironmentVariables;
@@ -694,6 +683,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     var completedResponse = (CompletedBuildResponse)response;
                     LogCompilerOutput(completedResponse.Output, StandardOutputImportanceToUse);
                     LogCompilationMessage(logger, requestId, CompilationKind.Server, "server processed compilation");
+                    ReportTelemetry(completedResponse.TelemetryEvents, logger);
                     return completedResponse.ReturnCode;
 
                 case BuildResponse.ResponseType.MismatchedVersion:
@@ -722,6 +712,32 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 default:
                     LogCompilationMessage(logger, requestId, CompilationKind.ToolFallback, $"server gave an unrecognized response");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+            }
+        }
+
+        /// <summary>
+        /// Forwards telemetry events produced by the compiler server to the host via
+        /// <see cref="IBuildEngine5.LogTelemetry"/>. This is a generic passthrough: the task does not
+        /// interpret individual events. When the host does not support <see cref="IBuildEngine5"/> (or
+        /// registered no telemetry logger) this is a no-op.
+        /// </summary>
+        internal void ReportTelemetry(IReadOnlyList<BuildTelemetryEvent> telemetryEvents, ICompilerServerLogger logger)
+        {
+            if (telemetryEvents.Count == 0 || BuildEngine is not IBuildEngine5 buildEngine5)
+            {
+                return;
+            }
+
+            foreach (var telemetryEvent in telemetryEvents)
+            {
+                try
+                {
+                    buildEngine5.LogTelemetry(telemetryEvent.EventName, telemetryEvent.Properties);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogException(ex, $"Failed to log telemetry event '{telemetryEvent.EventName}'");
+                }
             }
         }
 
@@ -1098,7 +1114,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             foreach (var item in taskItems)
             {
-                item.ItemSpec = Utilities.GetFullPathNoThrow(item.ItemSpec);
+                item.ItemSpec = TaskEnvironment.GetFullPathNoThrow(item.ItemSpec);
             }
         }
 
@@ -1219,10 +1235,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             foreach (ITaskItem reference in References)
             {
-                if (!File.Exists(reference.ItemSpec))
+                var itemSpec = reference.ItemSpec;
+
+                if (string.IsNullOrEmpty(itemSpec) || !TaskEnvironment.FileExists(itemSpec))
                 {
                     success = false;
-                    Log.LogErrorWithCodeFromResources("General_ReferenceDoesNotExist", reference.ItemSpec);
+                    Log.LogErrorWithCodeFromResources("General_ReferenceDoesNotExist", itemSpec);
                 }
             }
 

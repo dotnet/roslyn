@@ -34,5 +34,3 @@
                     FormName - (163:2,53 [2] x:\dir\subdir\Test\TestComponent.cshtml)
                         CSharpExpression - (164:2,54 [1] x:\dir\subdir\Test\TestComponent.cshtml)
                             LazyIntermediateToken - (164:2,54 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - y
-            CSharpCode - (183:3,7 [44] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (183:3,7 [44] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    string x = "a";\n    string y = "b";\n

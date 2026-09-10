@@ -1,0 +1,2 @@
+﻿[0000] OpenElement("elem")
+[0001] AddAttribute("attr", Foo)

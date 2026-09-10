@@ -1,0 +1,13 @@
+<Project>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)AssemblyInfo.cs" Condition=" '$(Language)'=='C#' " />
+    <Compile Include="$(MSBuildThisFileDirectory)AssemblyInfo.vb" Condition=" '$(Language)'=='VB' " />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" Condition="!Exists('BannedSymbols.txt')" />
+    <AdditionalFiles Include="BannedSymbols.txt" Condition="Exists('BannedSymbols.txt')" />
+  </ItemGroup>
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove($(MSBuildThisFile), $(MSBuildThisFileDirectory)..))" />
+</Project>

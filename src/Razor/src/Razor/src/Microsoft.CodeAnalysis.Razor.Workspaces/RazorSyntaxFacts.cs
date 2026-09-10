@@ -69,21 +69,6 @@ internal static class RazorSyntaxFacts
         return false;
     }
 
-    /// <summary>
-    /// Gets the span of the entire "name" part of an attribute, if the <paramref name="absoluteIndex"/> is anywhere within it,
-    /// including any prefix or suffix
-    /// For example given "&lt;Goo @bi$$nd-Value:after="val" /&gt;" with the cursor at $$, it would return the span from "@" to "r".
-    /// </summary>
-    public static bool TryGetFullAttributeNameSpan(RazorCodeDocument codeDocument, int absoluteIndex, out TextSpan attributeNameSpan)
-    {
-        var root = codeDocument.GetRequiredSyntaxRoot();
-        var owner = root.FindInnermostNode(absoluteIndex);
-
-        attributeNameSpan = GetFullAttributeNameSpan(owner?.Parent);
-
-        return attributeNameSpan != default;
-    }
-
     public static TextSpan GetFullAttributeNameSpan(RazorSyntaxNode? node)
     {
         return node switch
@@ -155,25 +140,6 @@ internal static class RazorSyntaxFacts
 
         return true;
     }
-
-    public static CSharpCodeBlockSyntax? TryGetCSharpCodeFromCodeBlock(RazorSyntaxNode node)
-    {
-        if (node is CSharpCodeBlockSyntax block &&
-            block.Children.FirstOrDefault(n => n is RazorDirectiveSyntax) is RazorDirectiveSyntax directive &&
-            directive.DirectiveBody is { } body &&
-            body.Keyword.GetContent() == "code")
-        {
-            return body.CSharpCode;
-        }
-
-        return null;
-    }
-
-    public static bool IsAnyStartTag(RazorSyntaxNode n)
-        => n.Kind is SyntaxKind.MarkupStartTag or SyntaxKind.MarkupTagHelperStartTag;
-
-    public static bool IsAnyEndTag(RazorSyntaxNode n)
-        => n.Kind is SyntaxKind.MarkupEndTag or SyntaxKind.MarkupTagHelperEndTag;
 
     public static bool IsInCodeBlock(RazorSyntaxNode n)
         => n.FirstAncestorOrSelf<RazorSyntaxNode>(static n => n is RazorDirectiveSyntax { DirectiveDescriptor.Directive: "code" }) is not null;

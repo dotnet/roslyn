@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Remote.Razor.Logging;
@@ -46,7 +45,6 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
     private IClientSettingsManager? _clientSettingsManager;
 
     private protected abstract IRemoteServiceInvoker RemoteServiceInvoker { get; }
-    private protected abstract IFilePathService FilePathService { get; }
     private protected abstract TestComposition LocalComposition { get; }
 
     private protected TestIncompatibleProjectService IncompatibleProjectService => _incompatibleProjectService.AssumeNotNull();
@@ -182,7 +180,14 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
             ? TestProjectData.SomeProjectComponentFile1.FilePath
             : TestProjectData.SomeProjectFile1.FilePath;
 
-        var projectId = ProjectId.CreateNewId(debugName: TestProjectData.SomeProject.DisplayName);
+        // Keep the project ID stable so source-generated document IDs are stable across test runs.
+        // The generated document IDs include the project ID, and Roslyn currently adds source-generated
+        // documents to the compilation in DocumentId order. Some features, such as implement interface,
+        // can then report diagnostics against either the generated impl or decl document depending on
+        // which partial declaration appears first in the compilation. A random project ID can therefore
+        // make the tests nondeterministically exercise different generated documents. This causes failures
+        // not because of product bugs, but because we expect exactly matching output.
+        var projectId = ProjectId.CreateFromSerialized(new Guid("5ff8e3ed-cee4-44d7-912f-614517f7afcc"), debugName: TestProjectData.SomeProject.DisplayName);
         var documentId = DocumentId.CreateNewId(projectId, debugName: documentFilePath);
 
         return CreateProjectAndRazorDocument(remoteWorkspace, projectId, miscellaneousFile, documentId, documentFilePath, contents, additionalFiles, inGlobalNamespace, addDefaultImports, projectConfigure);
@@ -251,7 +256,14 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
             {
                 foreach (var file in additionalFiles)
                 {
-                    if (Path.GetExtension(file.fileName) == ".cs")
+                    if (IsEditorConfig(file.fileName))
+                    {
+                        var filePath = Path.IsPathRooted(file.fileName)
+                            ? file.fileName
+                            : FilePath(file.fileName);
+                        builder.AddAnalyzerConfigDocument(filePath, SourceText.From(file.contents));
+                    }
+                    else if (Path.GetExtension(file.fileName) == ".cs")
                     {
                         builder.AddDocument(filePath: file.fileName, text: SourceText.From(file.contents));
                     }
@@ -271,6 +283,9 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
 
     protected static string FilePath(string projectRelativeFileName)
         => Path.GetFullPath(Path.Combine(TestProjectData.SomeProjectPath, projectRelativeFileName));
+
+    private static bool IsEditorConfig(string fileName)
+        => Path.GetFileName(fileName).Equals(".editorconfig", StringComparison.OrdinalIgnoreCase);
 
     private static ImmutableArray<PortableExecutableReference> CreateMetadataReferences(bool net461)
     {

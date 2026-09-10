@@ -9,5 +9,3 @@
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 Component - (0:0,0 [36] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
                     ReferenceCapture - (21:0,21 [11] x:\dir\subdir\Test\TestComponent.cshtml) - myComponent
-            CSharpCode - (47:2,7 [111] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (47:2,7 [111] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private TestComponent myComponent = null!;\n    public void Use() { System.GC.KeepAlive(myComponent); }\n

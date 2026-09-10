@@ -32,17 +32,17 @@ internal sealed partial class RemoteSemanticTokensService(in ServiceArgs args) :
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            context => GetSemanticTokensDataAsync(context, span, correlationId, cancellationToken),
+            snapshot => GetSemanticTokensDataAsync(snapshot, span, correlationId, cancellationToken),
             cancellationToken);
 
     private async ValueTask<int[]?> GetSemanticTokensDataAsync(
-        RemoteDocumentContext context,
+        RemoteDocumentSnapshot snapshot,
         LinePositionSpan span,
         Guid correlationId,
         CancellationToken cancellationToken)
     {
         return await _semanticTokensInfoService
-            .GetSemanticTokensAsync(context, span, _clientSettingsManager.GetClientSettings().AdvancedSettings.ColorBackground, correlationId, cancellationToken)
+            .GetSemanticTokensAsync(snapshot, span, _clientSettingsManager.GetClientSettings().AdvancedSettings.ColorBackground, correlationId, cancellationToken)
             .ConfigureAwait(false);
     }
 }

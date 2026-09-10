@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 using CompletionResponse = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.Completion.CompletionResult>;
 
@@ -32,5 +33,6 @@ internal interface IRemoteCompletionService : IRemoteJsonService
         JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId id,
         VSInternalCompletionItem request,
+        RazorFormattingOptions formattingOptions,
         CancellationToken cancellationToken);
 }

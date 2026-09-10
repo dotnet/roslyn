@@ -18,18 +18,3 @@ Source Location: (67:1,23 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (1526:37,0 [9] )
 |Increment|
 
-Source Location: (90:3,7 [103] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    private int counter;
-    private void Increment(MouseEventArgs e) {
-        counter++;
-    }
-|
-Generated Location: (1775:48,0 [103] )
-|
-    private int counter;
-    private void Increment(MouseEventArgs e) {
-        counter++;
-    }
-|
-

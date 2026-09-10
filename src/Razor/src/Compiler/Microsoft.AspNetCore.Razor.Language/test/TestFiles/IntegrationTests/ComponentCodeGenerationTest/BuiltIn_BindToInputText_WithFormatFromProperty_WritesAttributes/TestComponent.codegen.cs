@@ -40,17 +40,6 @@ Format
             __builder.CloseElement();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (2,8)-(6,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    public DateTime CurrentDate { get; set; } = new DateTime(2018, 1, 1);
-
-    public string Format { get; set; } = "MM/dd/yyyy";
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

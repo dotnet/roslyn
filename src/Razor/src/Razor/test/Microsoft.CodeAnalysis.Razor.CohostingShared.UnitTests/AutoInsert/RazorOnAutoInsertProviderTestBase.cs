@@ -3,7 +3,7 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.AutoInsert;
+using Microsoft.CodeAnalysis.Remote.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;

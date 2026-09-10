@@ -9,10 +9,11 @@
     Requirements:
       - NetVSShared must include both NetVS and NetVSCode
       - NetRoslynSourceBuild must include NetRoslyn
-      - NetRoslynAll must include all .NET Core TFMs in any property below (OS-specific TFMs like
-        NetRoslynWindowsTests are excluded as they are not cross-platform).
-        Exception: NetRoslynBuildHostNetCoreVersion is excluded because the BuildHost is an isolated
-        executable that does not share test utilities or broadly-consumed library layers.
+      - NetRoslynAll must include all .NET Core TFMs in any property below
+        Exceptions:
+          - OS-specific TFMs like NetRoslynWindowsTests are excluded as they are not cross-platform.
+          - NetRoslynBuildHostNetCoreVersion because the BuildHost is an isolated executable that
+            does not share test utilities or broadly-consumed library layers.
   -->
   <PropertyGroup>
     <NetRoslyn>net10.0</NetRoslyn>

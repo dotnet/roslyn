@@ -22,9 +22,7 @@ internal sealed class ActivateExtensionHandler()
 
     public async Task<ActivateExtensionResponse> HandleRequestAsync(ActivateExtensionParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(context.Solution);
-
-        var solution = context.Solution;
+        var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
         var service = solution.Services.GetRequiredService<IExtensionMessageHandlerService>();
 
         await service.RegisterExtensionAsync(request.AssemblyFilePath, cancellationToken).ConfigureAwait(false);

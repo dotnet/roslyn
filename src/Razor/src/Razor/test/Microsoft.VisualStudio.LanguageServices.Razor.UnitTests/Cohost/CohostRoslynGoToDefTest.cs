@@ -69,7 +69,17 @@ public class CohostRoslynGoToDefTest(ITestOutputHelper testOutputHelper) : Cohos
         var definition = await RemoteGoToDefinitionService.TestAccessor.GetDefinitionsAsync(LocalWorkspace, csharpDocument, typeOnly: false, csharpPosition, DisposalToken);
         Assert.NotNull(definition);
 
-        var def = Assert.Single(definition);
-        Assert.Equal(razorDocument.GetURI(), def.DocumentUri);
+        // This calls Roslyn's Go To Definition handler directly to verify that Roslyn can call Razor's span mapping service.
+        // A real Go To Definition request from a C# file doesn't go through Razor's remote service. Since both the impl and
+        // decl generated documents contain the component symbol, Roslyn maps both results back to the same Razor location here.
+        // TODO: Check if we need to de-dupe on the Roslyn side, after span mapping, or if Roslyn/VS/VS Code takes care of it already.
+        Assert.Equal(2, definition.Length);
+        var expectedUri = razorDocument.GetURI();
+        var expectedRange = definition[0].Range.ToLinePositionSpan();
+        Assert.All(definition, def =>
+        {
+            Assert.Equal(expectedUri, def.DocumentUri);
+            Assert.Equal(expectedRange, def.Range.ToLinePositionSpan());
+        });
     }
 }

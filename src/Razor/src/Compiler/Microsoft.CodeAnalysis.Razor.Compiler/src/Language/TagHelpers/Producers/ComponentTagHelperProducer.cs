@@ -311,6 +311,20 @@ internal sealed partial class ComponentTagHelperProducer : TagHelperProducer
                 builder.AcceptsStringLiteral = true;
             }
 
+            // [AssetPath] enables ~/ expansion only for string parameters. On any other type the
+            // rewritten Assets[...] value wouldn't be assignable, so ignore the opt-in and warn.
+            if (HasAssetPathAttribute(property))
+            {
+                if (property.Type.SpecialType == SpecialType.System_String)
+                {
+                    builder.AcceptsAssetPath = true;
+                }
+                else
+                {
+                    pb.Diagnostics.Add(ComponentDiagnosticFactory.CreateAssetPath_NonStringParameter(source: null, property.Name));
+                }
+            }
+
             pb.SetMetadata(builder.Build());
 
             var xml = property.GetDocumentationCommentXml();
@@ -319,6 +333,19 @@ internal sealed partial class ComponentTagHelperProducer : TagHelperProducer
                 pb.SetDocumentation(xml);
             }
         });
+
+        static bool HasAssetPathAttribute(IPropertySymbol property)
+        {
+            for (IPropertySymbol? current = property; current is not null; current = current.OverriddenProperty)
+            {
+                if (current.GetAttributes().Any(static a => a.HasFullName(ComponentsApi.AssetPathAttribute.MetadataName)))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         static bool HasTypeParameter(ITypeSymbol type)
         {

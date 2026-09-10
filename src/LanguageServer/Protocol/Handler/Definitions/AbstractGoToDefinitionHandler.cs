@@ -37,8 +37,8 @@ internal abstract class AbstractGoToDefinitionHandler : ILspServiceDocumentReque
 
     protected async Task<LSP.Location[]?> GetDefinitionAsync(LSP.TextDocumentPositionParams request, bool forSymbolType, RequestContext context, CancellationToken cancellationToken)
     {
-        var workspace = context.Workspace;
-        var document = context.Document;
+        var workspace = await context.GetWorkspaceAsync(cancellationToken).ConfigureAwait(false);
+        var document = await context.GetDocumentAsync(cancellationToken).ConfigureAwait(false);
         if (workspace is null || document is null)
             return null;
 

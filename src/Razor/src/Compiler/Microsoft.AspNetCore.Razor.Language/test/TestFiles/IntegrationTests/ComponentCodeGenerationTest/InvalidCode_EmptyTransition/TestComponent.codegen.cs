@@ -31,15 +31,6 @@ __builder.AddContent(3,
             );
         }
         #pragma warning restore 1998
-#nullable restore
-#line (5,8)-(7,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    [Parameter] public int Param { get; set; }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

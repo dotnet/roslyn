@@ -23,14 +23,3 @@ Source Location: (164:2,54 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (2279:62,0 [1] )
 |y|
 
-Source Location: (183:3,7 [44] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    string x = "a";
-    string y = "b";
-|
-Generated Location: (2581:74,0 [44] )
-|
-    string x = "a";
-    string y = "b";
-|
-

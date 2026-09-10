@@ -1,0 +1,11 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        UsingDirective - (1:0,1 [10] x:\dir\subdir\Test\UseTestComponent.cshtml) - Test
+        ClassDeclaration -  - public partial - UseTestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            CSharpCode - (118:5,7 [268] x:\dir\subdir\Test\UseTestComponent.cshtml)
+                LazyIntermediateToken - (118:5,7 [268] x:\dir\subdir\Test\UseTestComponent.cshtml) - CSharp - \n    Image item1 = new Image() { id = 1, url="https://example.com"};\n    static Tag tag1 = new Tag() { description = "A description."};\n    static Tag tag2 = new Tag() { description = "Another description."};\n    List<Tag> items = new List<Tag>() { tag1, tag2 };\n

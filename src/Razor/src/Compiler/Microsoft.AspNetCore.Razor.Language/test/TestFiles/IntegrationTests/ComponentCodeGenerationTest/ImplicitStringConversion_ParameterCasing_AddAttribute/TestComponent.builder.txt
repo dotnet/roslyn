@@ -1,0 +1,2 @@
+﻿[0000] OpenComponent<global::Test.MyComponent>()
+[0001] AddAttribute(nameof(global::Test.MyComponent. Placeholder ), (object)(global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.String>( new MyClass() )))

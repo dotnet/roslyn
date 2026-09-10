@@ -15,5 +15,3 @@
                 MarkupBlock -  - <h1>Multiline block statement</h1>\n\n
                 CSharpExpression - (96:6,1 [59] x:\dir\subdir\Test\TestComponent.cshtml)
                     LazyIntermediateToken - (96:6,1 [59] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - JsonToHtml(@"{\n  'key1': 'value1'\n  'key2': 'value2'\n}")
-            CSharpCode - (166:11,7 [79] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (166:11,7 [79] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public string JsonToHtml(string foo)\n    {\n        return foo;\n    }\n

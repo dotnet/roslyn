@@ -1,0 +1,4 @@
+﻿[0000] OpenElement("elem")
+[0001] AddAttribute("normal-attr", "val")
+[0002] AddAttribute("minimized-attr")
+[0003] AddAttribute("empty-string-atttr")

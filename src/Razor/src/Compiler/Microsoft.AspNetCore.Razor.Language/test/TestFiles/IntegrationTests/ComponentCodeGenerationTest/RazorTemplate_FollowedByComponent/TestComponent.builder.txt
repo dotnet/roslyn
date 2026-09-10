@@ -1,0 +1,6 @@
+﻿[0000] OpenElement("div")
+[0001] OpenComponent<global::Test.MyComponent>()
+[0002] AddComponentParameter(nameof(global::Test.MyComponent. Name ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.String>( person.Name ))
+[0003] OpenComponent<global::Test.MyComponent>()
+[0004] AddAttribute("ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => { __builder2.AddContent(5, "hello, world!" ); } ))
+[0005] AddContent("hello, world!")

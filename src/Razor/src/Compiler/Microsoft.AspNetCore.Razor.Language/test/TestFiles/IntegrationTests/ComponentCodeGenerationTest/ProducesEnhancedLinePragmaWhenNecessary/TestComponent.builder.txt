@@ -1,0 +1,5 @@
+﻿[0000] AddMarkupContent("<h1>Single line statement</h1>\r\n\r\nTime: ")
+[0001] AddContent(DateTime.Now)
+[0002] AddMarkupContent("\r\n\r\n")
+[0003] AddMarkupContent("<h1>Multiline block statement</h1>\r\n\r\n")
+[0004] AddContent(JsonToHtml(@"{ 'key1': 'value1' 'key2': 'value2' }"))

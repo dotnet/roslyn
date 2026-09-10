@@ -32,15 +32,6 @@ ParentValue
             __builder.CloseElement();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (4,8)-(6,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    public string ParentValue { get; set; } = "hi";
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

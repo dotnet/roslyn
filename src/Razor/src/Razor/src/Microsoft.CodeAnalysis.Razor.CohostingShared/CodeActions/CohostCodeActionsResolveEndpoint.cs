@@ -1,32 +1,27 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Cohost;
+using Microsoft.CodeAnalysis.Razor.CohostingShared;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 #pragma warning disable RS0030 // Do not use banned APIs
-#if !VSCODE
-// Visual Studio requires us to register for every method name, VS Code correctly realises that if you
-// register for code actions, and say you have resolve support, then registering for resolve is unnecessary.
-// In fact it's an error.
-[Export(typeof(IDynamicRegistrationProvider))]
-#endif
 [Shared]
 [CohostEndpoint(Methods.CodeActionResolveName)]
 [ExportRazorStatelessLspService(typeof(CohostCodeActionsResolveEndpoint))]
@@ -36,30 +31,18 @@ internal sealed class CohostCodeActionsResolveEndpoint(
     IIncompatibleProjectService incompatibleProjectService,
     IRemoteServiceInvoker remoteServiceInvoker,
     IClientCapabilitiesService clientCapabilitiesService,
+    IClientSettingsManager clientSettingsManager,
     IHtmlRequestInvoker requestInvoker)
-    : AbstractCohostDocumentEndpoint<CodeAction, CodeAction?>(incompatibleProjectService), IDynamicRegistrationProvider
+    : AbstractCohostDocumentEndpoint<CodeAction, CodeAction?>(incompatibleProjectService)
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
+    private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
 
     protected override bool MutatesSolutionState => false;
 
     protected override bool RequiresLSPSolution => true;
-
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
-    {
-        if (clientCapabilities.TextDocument?.CodeAction?.DynamicRegistration == true)
-        {
-            return [new Registration
-            {
-                Method = Methods.CodeActionResolveName,
-                RegisterOptions = new CodeActionRegistrationOptions().EnableCodeActions()
-            }];
-        }
-
-        return [];
-    }
 
     protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(CodeAction request)
     {
@@ -67,7 +50,17 @@ internal sealed class CohostCodeActionsResolveEndpoint(
         return resolveParams.TextDocument;
     }
 
-    protected override async Task<CodeAction?> HandleRequestAsync(CodeAction request, TextDocument razorDocument, CancellationToken cancellationToken)
+    protected override Task<CodeAction?> HandleRequestAsync(CodeAction request, TextDocument razorDocument, CancellationToken cancellationToken)
+    {
+        var csharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument, cancellationToken);
+        return HandleRequestAsync(request, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
+    }
+
+    private async Task<CodeAction?> HandleRequestAsync(
+        CodeAction request,
+        TextDocument razorDocument,
+        CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions,
+        CancellationToken cancellationToken)
     {
         var resolveParams = RazorCodeActionResolutionParams.Unwrap(request);
 
@@ -78,9 +71,14 @@ internal sealed class CohostCodeActionsResolveEndpoint(
             _ => null
         };
 
+        var formattingOptions = _clientSettingsManager.GetClientSettings().ToRazorFormattingOptions() with
+        {
+            CSharpSyntaxFormattingOptions = csharpSyntaxFormattingOptions,
+        };
+
         return await _remoteServiceInvoker.TryInvokeAsync<IRemoteCodeActionsService, CodeAction>(
             razorDocument.Project.Solution,
-            (service, solutionInfo, cancellationToken) => service.ResolveCodeActionAsync(solutionInfo, razorDocument.Id, request, resolvedDelegatedCodeAction, cancellationToken),
+            (service, solutionInfo, cancellationToken) => service.ResolveCodeActionAsync(solutionInfo, razorDocument.Id, request, resolvedDelegatedCodeAction, formattingOptions, cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
 

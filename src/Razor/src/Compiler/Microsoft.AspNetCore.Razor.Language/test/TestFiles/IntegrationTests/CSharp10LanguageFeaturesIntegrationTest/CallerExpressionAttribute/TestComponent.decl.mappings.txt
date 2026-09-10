@@ -1,0 +1,15 @@
+﻿Source Location: (7:0,7 [216] x:\dir\subdir\Test\TestComponent.razor)
+|
+    public static string Capture(
+        bool condition,
+        [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(condition))] string? expression = null)
+        => expression ?? string.Empty;
+|
+Generated Location: (556:18,0 [216] )
+|
+    public static string Capture(
+        bool condition,
+        [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(condition))] string? expression = null)
+        => expression ?? string.Empty;
+|
+

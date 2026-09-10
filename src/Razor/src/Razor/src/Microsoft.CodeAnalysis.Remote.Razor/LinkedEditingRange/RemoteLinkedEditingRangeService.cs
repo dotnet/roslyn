@@ -30,11 +30,11 @@ internal sealed class RemoteLinkedEditingRangeService(in ServiceArgs args) : Raz
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            context => GetRangesAsync(context, linePosition, cancellationToken),
+            snapshot => GetRangesAsync(snapshot, linePosition, cancellationToken),
             cancellationToken);
 
     public async ValueTask<LinePositionSpan[]?> GetRangesAsync(
-        RemoteDocumentContext context,
+        RemoteDocumentSnapshot snapshot,
         LinePosition linePosition,
         CancellationToken cancellationToken)
     {
@@ -43,7 +43,7 @@ internal sealed class RemoteLinkedEditingRangeService(in ServiceArgs args) : Raz
             return null;
         }
 
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         if (!codeDocument.Source.Text.TryGetSourceLocation(linePosition, out var validLocation))
         {
             return null;

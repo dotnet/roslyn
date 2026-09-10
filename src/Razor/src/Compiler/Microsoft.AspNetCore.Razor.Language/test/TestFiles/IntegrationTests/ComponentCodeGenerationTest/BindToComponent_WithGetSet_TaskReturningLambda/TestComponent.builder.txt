@@ -1,0 +1,3 @@
+﻿[0000] OpenComponent<global::Test.MyComponent>()
+[0001] AddComponentParameter(nameof(global::Test.MyComponent. Value ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Int32>( ParentValue ))
+[0002] AddComponentParameter(nameof(global::Test.MyComponent.ValueChanged), (global::System.Func<global::System.Int32, global::System.Threading.Tasks.Task>)( value => { ParentValue = value; return Task.CompletedTask; } ))

@@ -130,6 +130,67 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
     }
 
     [Fact]
+    public async Task InvertIf_UsesCSharpFormattingOptions()
+    {
+        var input = """
+            @(booleanValue ?@<br /> : @<br />)
+
+            @{
+                [||]if (true)
+                {
+                    // true
+                }
+                else
+                {
+                    // false
+                }
+            }
+
+            @code
+            {
+                private bool booleanValue = true;
+            }
+            """;
+
+        var expected = """
+            @(booleanValue ?@<br /> : @<br />)
+
+            @{
+                if (false)
+                    {
+                    // false
+                    }
+                else
+                    {
+                    // true
+                    }
+            }
+
+            @code
+            {
+                private bool booleanValue = true;
+            }
+            """;
+
+        var advancedSettings = ClientSettingsManager.GetClientSettings().AdvancedSettings;
+        ClientSettingsManager.Update(advancedSettings with { ShowAllCSharpCodeActions = true });
+
+        await VerifyCodeActionAsync(
+            input,
+            expected,
+            PredefinedCodeRefactoringProviderNames.InvertIf,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_indent_braces = true
+                    """)
+            ]);
+    }
+
+    [Fact]
     public async Task UseExpressionBodiedMember()
     {
         var input = """

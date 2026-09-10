@@ -24,9 +24,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\CompilerServerLogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\ConsoleUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\ExitingTraceListener.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\IBuildEnvironment.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\NamedPipeUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\NativeMethods.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\RuntimeHostInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\StandardBuildEnvironment.cs" />
 
     <Compile Include="$(MSBuildThisFileDirectory)AnalyzerConsistencyChecker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Assembly.cs" />
@@ -36,6 +38,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CompilationCache.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CompilationCacheUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CompilerRequestHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CompilerServerTelemetry.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CompletionData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CSharpCompilerServer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticListener.cs" />

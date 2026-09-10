@@ -23,6 +23,17 @@ public sealed class CSharpExpressionAttributeValueIntermediateNode : Intermediat
         visitor.VisitCSharpExpressionAttributeValue(this);
     }
 
+    protected override IntermediateNode CloneNode()
+    {
+        var clone = new CSharpExpressionAttributeValueIntermediateNode
+        {
+            Prefix = Prefix,
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
+
+        return clone;
+    }
+
     public override void FormatNode(IntermediateNodeFormatter formatter)
     {
         formatter.WriteChildren(Children);

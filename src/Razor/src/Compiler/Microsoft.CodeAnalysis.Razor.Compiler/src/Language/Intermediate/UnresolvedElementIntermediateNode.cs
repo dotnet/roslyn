@@ -73,6 +73,32 @@ internal sealed class UnresolvedElementIntermediateNode : IntermediateNode
         visitor.VisitDefault(this);
     }
 
+    protected override IntermediateNode CloneNode()
+    {
+        var clone = new UnresolvedElementIntermediateNode
+        {
+            TagName = TagName,
+            IsComponent = IsComponent,
+            IsEscaped = IsEscaped,
+            IsSelfClosing = IsSelfClosing,
+            HasEndTag = HasEndTag,
+            EndTagName = EndTagName,
+            EndTagSpan = EndTagSpan,
+            IsVoidElement = IsVoidElement,
+            StartTagNameSpan = StartTagNameSpan,
+            StartTagSpan = StartTagSpan,
+            AttributeData = AttributeData,
+            HasMissingCloseAngle = HasMissingCloseAngle,
+            HasDynamicExpressionChild = HasDynamicExpressionChild,
+            HasMissingEndCloseAngle = HasMissingEndCloseAngle,
+            StartTagEndIndex = StartTagEndIndex,
+            BodyEndIndex = BodyEndIndex,
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
+
+        return clone;
+    }
+
     public override void FormatNode(IntermediateNodeFormatter formatter)
     {
         formatter.WriteContent(TagName);

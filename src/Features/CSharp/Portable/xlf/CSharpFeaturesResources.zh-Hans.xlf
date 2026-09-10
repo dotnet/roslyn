@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Adds_a_file_based_app_reference">
         <source>References another file-based app as a library.</source>
-        <target state="new">References another file-based app as a library.</target>
+        <target state="translated">引用另一个基于文件的应用作为库。</target>
         <note />
       </trans-unit>
       <trans-unit id="Adds_a_file_reference">
@@ -289,7 +289,7 @@
       </trans-unit>
       <trans-unit id="Ref_directive_file_path">
         <source>path</source>
-        <target state="new">path</target>
+        <target state="translated">路径</target>
         <note>'path' is a placeholder for a file path in a directive like '#:ref path'.</note>
       </trans-unit>
       <trans-unit id="Reverse_for_statement">

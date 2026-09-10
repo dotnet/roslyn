@@ -1,0 +1,27 @@
+﻿Source Location: (7:0,7 [214] x:\dir\subdir\Test\TestComponent.razor)
+|
+    public partial class Greeter
+    {
+        public partial string GetValue();
+    }
+    
+    public partial class Greeter
+    {
+        public partial string GetValue()
+            => "Razor";
+    }
+|
+Generated Location: (557:18,0 [214] )
+|
+    public partial class Greeter
+    {
+        public partial string GetValue();
+    }
+    
+    public partial class Greeter
+    {
+        public partial string GetValue()
+            => "Razor";
+    }
+|
+

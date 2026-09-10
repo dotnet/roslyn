@@ -25,7 +25,7 @@ public sealed class ManagedCompilerGlobalCacheTests : TestBase
         var sourceFileName = visualBasic ? "test.vb" : "test.cs";
         var arguments = new List<string> { sourceFileName };
 
-        CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(arguments);
+        CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(arguments, Environment.GetEnvironmentVariable);
 
         Assert.Single(arguments);
         Assert.Equal(sourceFileName, arguments[0]);
@@ -40,13 +40,11 @@ public sealed class ManagedCompilerGlobalCacheTests : TestBase
         var sourceFileName = visualBasic ? "test.vb" : "test.cs";
         var arguments = new List<string> { sourceFileName };
 
-        ApplyEnvironmentVariables(
-            [new KeyValuePair<string, string?>(CompilerOptionParseUtilities.CachePathEnvironmentVariable, expectedPath)],
-            () =>
-            {
-                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(arguments);
-                return true;
-            });
+        var environment = new Dictionary<string, string>
+        {
+            [CompilerOptionParseUtilities.CachePathEnvironmentVariable] = expectedPath,
+        };
+        CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(arguments, name => environment.TryGetValue(name, out var value) ? value : null);
 
         Assert.Equal($"/features:use-global-cache=\"{expectedPath}\"", arguments[0]);
         Assert.Equal(sourceFileName, arguments[1]);
@@ -61,13 +59,11 @@ public sealed class ManagedCompilerGlobalCacheTests : TestBase
         var arguments = new List<string> { visualBasic ? "test.vb" : "test.cs" };
         string? message = null;
 
-        ApplyEnvironmentVariables(
-            [new KeyValuePair<string, string?>(CompilerOptionParseUtilities.CachePathEnvironmentVariable, expectedPath)],
-            () =>
-            {
-                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(arguments, text => message = text);
-                return true;
-            });
+        var environment = new Dictionary<string, string>
+        {
+            [CompilerOptionParseUtilities.CachePathEnvironmentVariable] = expectedPath,
+        };
+        CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(arguments, name => environment.TryGetValue(name, out var value) ? value : null, text => message = text);
 
         Assert.Equal(
             $"Normalizing {CompilerOptionParseUtilities.CachePathEnvironmentVariable} to /features:{CompilerOptionParseUtilities.UseGlobalCacheFeatureFlag}=\"{expectedPath}\"",
@@ -85,13 +81,11 @@ public sealed class ManagedCompilerGlobalCacheTests : TestBase
         var arguments = new List<string> { visualBasic ? "test.vb" : "test.cs" };
         string? message = null;
 
-        ApplyEnvironmentVariables(
-            [new KeyValuePair<string, string?>(CompilerOptionParseUtilities.CachePathEnvironmentVariable, quotedPath)],
-            () =>
-            {
-                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(arguments, text => message = text);
-                return true;
-            });
+        var environment = new Dictionary<string, string>
+        {
+            [CompilerOptionParseUtilities.CachePathEnvironmentVariable] = quotedPath,
+        };
+        CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(arguments, name => environment.TryGetValue(name, out var value) ? value : null, text => message = text);
 
         Assert.Equal(
             $"Normalizing {CompilerOptionParseUtilities.CachePathEnvironmentVariable} to /features:{CompilerOptionParseUtilities.UseGlobalCacheFeatureFlag}={quotedPath}",
@@ -176,15 +170,13 @@ public sealed class ManagedCompilerGlobalCacheTests : TestBase
             visualBasic ? "test.vb" : "test.cs",
         };
 
-        ApplyEnvironmentVariables(
-            environmentCachePath is null
-                ? []
-                : [new KeyValuePair<string, string?>(CompilerOptionParseUtilities.CachePathEnvironmentVariable, environmentCachePath)],
-            () =>
-            {
-                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(arguments);
-                return true;
-            });
+        var environment = new Dictionary<string, string>();
+        if (environmentCachePath is not null)
+        {
+            environment[CompilerOptionParseUtilities.CachePathEnvironmentVariable] = environmentCachePath;
+        }
+
+        CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(arguments, name => environment.TryGetValue(name, out var value) ? value : null);
 
         return visualBasic
             ? VisualBasicCommandLineParser.Default.Parse(arguments, Directory.GetCurrentDirectory(), sdkDirectory: null, additionalReferenceDirectories: null).ParseOptions.Features

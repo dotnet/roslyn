@@ -36,34 +36,45 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal static bool ShouldDisableTieredCompilation => !IsCoreClrRuntime;
 
+        internal static string DotNetHostExecutableName => $"dotnet{PlatformInformation.ExeExtension}";
         internal const string DotNetRootEnvironmentName = "DOTNET_ROOT";
         internal const string DotNetHostPathEnvironmentName = "DOTNET_HOST_PATH";
         internal const string DotNetExperimentalHostPathEnvironmentName = "DOTNET_EXPERIMENTAL_HOST_PATH";
         internal const string DotNetTieredCompilationEnvironmentName = "DOTNET_TieredCompilation";
 
         /// <summary>
-        /// The <c>DOTNET_ROOT</c> that should be used when launching executable tools.
+        /// The <c>DOTNET_ROOT</c> that should be used when launching executable tools. If the return
+        /// is non-null then it will be a fully qualified path.
         /// </summary>
-        internal static string? GetToolDotNetRoot(Action<string, object[]>? logger)
+        internal static string? GetToolDotNetRoot(IBuildEnvironment buildEnvironment, Action<string, object[]>? logger)
+            => GetToolDotNetRoot(GetDotNetHostPath(buildEnvironment), logger);
+
+        internal static string? GetToolDotNetRoot(string dotNetHostPath, Action<string, object[]>? logger)
         {
-            var dotNetPath = GetDotNetPathOrDefault();
+            if (!Path.IsPathFullyQualified(dotNetHostPath))
+            {
+                logger?.Invoke("Cannot resolve root as the dotnet path is not fully qualified: {0}", [dotNetHostPath]);
+                return null;
+            }
 
             // Resolve symlinks to dotnet
             try
             {
-                var resolvedPath = File.ResolveLinkTarget(dotNetPath, returnFinalTarget: true);
+#pragma warning disable RS0030 // Validated as fully qualified above.
+                var resolvedPath = File.ResolveLinkTarget(dotNetHostPath, returnFinalTarget: true);
+#pragma warning restore RS0030
                 if (resolvedPath != null)
                 {
-                    dotNetPath = resolvedPath.FullName;
+                    dotNetHostPath = resolvedPath.FullName;
                 }
             }
             catch (Exception ex)
             {
-                logger?.Invoke("Failed to resolve symbolic link for dotnet path '{0}': {1}", [dotNetPath, ex]);
+                logger?.Invoke("Failed to resolve symbolic link for dotnet path '{0}': {1}", [dotNetHostPath, ex]);
                 return null;
             }
 
-            var directoryName = Path.GetDirectoryName(dotNetPath);
+            var directoryName = Path.GetDirectoryName(dotNetHostPath);
             if (string.IsNullOrEmpty(directoryName))
             {
                 return null;
@@ -73,44 +84,21 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Get the path to the dotnet executable. In the case the .NET SDK did not provide this information
-        /// in the environment this tries to find "dotnet" on the PATH. In the case it is not found,
-        /// this will return simply "dotnet".
+        /// Get the path to the dotnet host executable. The path returned is not guaranteed to be fully qualified.
         /// </summary>
-        internal static string GetDotNetPathOrDefault()
+        internal static string GetDotNetHostPath(IBuildEnvironment buildEnvironment)
         {
-            if (Environment.GetEnvironmentVariable(DotNetHostPathEnvironmentName) is { Length: > 0 } pathToDotNet)
+            if (buildEnvironment.GetEnvironmentVariable(DotNetHostPathEnvironmentName) is { Length: > 0 } pathToDotNet)
             {
                 return pathToDotNet;
             }
 
-            if (Environment.GetEnvironmentVariable(DotNetExperimentalHostPathEnvironmentName) is { Length: > 0 } pathToDotNetExperimental)
+            if (buildEnvironment.GetEnvironmentVariable(DotNetExperimentalHostPathEnvironmentName) is { Length: > 0 } pathToDotNetExperimental)
             {
                 return pathToDotNetExperimental;
             }
 
-            var (fileName, sep) = PlatformInformation.IsWindows
-                ? ("dotnet.exe", new char[] { ';' })
-                : ("dotnet", new char[] { ':' });
-
-            var path = Environment.GetEnvironmentVariable("PATH") ?? "";
-            foreach (var item in path.Split(sep, StringSplitOptions.RemoveEmptyEntries))
-            {
-                try
-                {
-                    var filePath = Path.Combine(item, fileName);
-                    if (File.Exists(filePath))
-                    {
-                        return filePath;
-                    }
-                }
-                catch
-                {
-                    // If we can't read a directory for any reason just skip it
-                }
-            }
-
-            return fileName;
+            return DotNetHostExecutableName;
         }
 
         internal static string GetDotNetExecCommandLine(string toolFilePath, string commandLineArguments) =>

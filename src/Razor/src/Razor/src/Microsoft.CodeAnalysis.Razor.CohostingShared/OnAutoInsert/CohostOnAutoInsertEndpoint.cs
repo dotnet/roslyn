@@ -1,17 +1,14 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -34,9 +31,6 @@ internal sealed class CohostOnAutoInsertEndpoint(
     IIncompatibleProjectService incompatibleProjectService,
     IRemoteServiceInvoker remoteServiceInvoker,
     IClientSettingsManager clientSettingsManager,
-#pragma warning disable RS0030 // Do not use banned APIs
-    [ImportMany] IEnumerable<IOnAutoInsertTriggerCharacterProvider> onAutoInsertTriggerCharacterProviders,
-#pragma warning restore RS0030 // Do not use banned APIs
     IHtmlRequestInvoker requestInvoker,
     ILoggerFactory loggerFactory)
     : AbstractCohostDocumentEndpoint<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>(incompatibleProjectService), IDynamicRegistrationProvider
@@ -46,22 +40,18 @@ internal sealed class CohostOnAutoInsertEndpoint(
     private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostOnAutoInsertEndpoint>();
 
-    private readonly string[] _triggerCharacters = CalculateTriggerChars(onAutoInsertTriggerCharacterProviders);
+    private static readonly string[] s_razorOnAutoInsertTriggerCharacters = [">"];
+    private static readonly string[] s_htmlAllowedAutoInsertTriggerCharacters = ["="];
+    private static readonly string[] s_csharpAllowedAutoInsertTriggerCharacters = ["'", "/", "\n", "\""];
 
-    private static string[] CalculateTriggerChars(IEnumerable<IOnAutoInsertTriggerCharacterProvider> onAutoInsertTriggerCharacterProviders)
-    {
-        var providerTriggerCharacters = onAutoInsertTriggerCharacterProviders.Select((provider) => provider.TriggerCharacter);
-
-        HashSet<string> triggerCharacters = [
-            .. providerTriggerCharacters,
+    private static readonly string[] s_triggerCharacters = [
+        .. s_razorOnAutoInsertTriggerCharacters,
 #if !VSCODE
-            // VS Code's auto insert functionality is poly-filled by Roslyn. The Html server has no support for it.
-            .. AutoInsertService.HtmlAllowedAutoInsertTriggerCharacters,
+        // VS Code's auto insert functionality is poly-filled by Roslyn. The Html server has no support for it.
+        .. s_htmlAllowedAutoInsertTriggerCharacters,
 #endif
-            .. AutoInsertService.CSharpAllowedAutoInsertTriggerCharacters ];
-
-        return [.. triggerCharacters];
-    }
+        .. s_csharpAllowedAutoInsertTriggerCharacters
+        ];
 
     protected override bool MutatesSolutionState => false;
 
@@ -76,7 +66,7 @@ internal sealed class CohostOnAutoInsertEndpoint(
                 Method = VSInternalMethods.OnAutoInsertName,
                 RegisterOptions = new VSInternalDocumentOnAutoInsertRegistrationOptions()
                 {
-                    TriggerCharacters = _triggerCharacters
+                    TriggerCharacters = s_triggerCharacters
                 }
             }];
         }
@@ -89,7 +79,7 @@ internal sealed class CohostOnAutoInsertEndpoint(
 
     protected override Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(VSInternalDocumentOnAutoInsertParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        var csharpSyntaxFormattingOptions = CSharpFormatter.GetCSharpSyntaxFormattingOptions(razorDocument.Project.Solution.Services, csharpSyntaxFormattingOptions: null);
+        var csharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument, cancellationToken);
         return HandleRequestAsync(request, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
     }
 
@@ -107,9 +97,7 @@ internal sealed class CohostOnAutoInsertEndpoint(
             codeBlockBraceOnNextLine: clientSettings.AdvancedSettings.CodeBlockBraceOnNextLine,
             attributeIndentStyle: clientSettings.AdvancedSettings.AttributeIndentStyle,
             csharpSyntaxFormattingOptions);
-        var resolvedCSharpSyntaxFormattingOptions = CSharpFormatter.GetResolvedCSharpSyntaxFormattingOptions(
-            razorDocument.Project.Solution.Services,
-            razorFormattingOptions);
+        var resolvedCSharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetResolvedCSharpSyntaxFormattingOptions(razorFormattingOptions);
         razorFormattingOptions = razorFormattingOptions with
         {
             CSharpSyntaxFormattingOptions = resolvedCSharpSyntaxFormattingOptions
@@ -185,8 +173,13 @@ internal sealed class CohostOnAutoInsertEndpoint(
         public Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(
             VSInternalDocumentOnAutoInsertParams request,
             TextDocument razorDocument,
-            CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions,
             CancellationToken cancellationToken)
-                => instance.HandleRequestAsync(request, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
+                => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
+
+        public static string[] GetRazorOnAutoInsertTriggerCharacters() => s_razorOnAutoInsertTriggerCharacters;
+
+        public static string[] GetHtmlAllowedAutoInsertTriggerCharacters() => s_htmlAllowedAutoInsertTriggerCharacters;
+
+        public static string[] GetCSharpAllowedAutoInsertTriggerCharacters() => s_csharpAllowedAutoInsertTriggerCharacters;
     }
 }

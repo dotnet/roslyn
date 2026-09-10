@@ -1,0 +1,3 @@
+﻿[0000] OpenElement("div")
+[0001] AddAttribute("myvalue", global::Microsoft.AspNetCore.Components.BindConverter.FormatValue( ParentValue ))
+[0002] AddAttribute(x, global::Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, __value => ParentValue = __value, ParentValue))

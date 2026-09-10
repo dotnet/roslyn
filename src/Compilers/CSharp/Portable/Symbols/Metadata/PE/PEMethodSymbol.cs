@@ -1544,14 +1544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         "11");
                 }
 
-                if (diagnosticInfo == null &&
-                    _containingType.ContainingPEModule.MemorySafetyRulesVersion == PEModuleSymbol.MemorySafetyRulesAttributeVersion.UnrecognizedAttribute)
-                {
-                    diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_UnrecognizedAttributeVersion,
-                        this,
-                        WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_MemorySafetyRulesAttribute),
-                        CSharpCompilationOptions.UpdatedMemorySafetyRulesVersion.ToString(CultureInfo.InvariantCulture));
-                }
+                diagnosticInfo ??= PEUtilities.DeriveUnrecognizedMemorySafetyRulesAttributeDiagnostic(this);
 
                 if (diagnosticInfo == null && GetUnmanagedCallersOnlyAttributeData(forceComplete: true) is UnmanagedCallersOnlyAttributeData data)
                 {

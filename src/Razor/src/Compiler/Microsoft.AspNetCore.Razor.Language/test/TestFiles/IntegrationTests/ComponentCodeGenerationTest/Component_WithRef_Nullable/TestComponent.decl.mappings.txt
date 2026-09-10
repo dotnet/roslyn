@@ -1,0 +1,11 @@
+﻿Source Location: (47:2,7 [111] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    private TestComponent myComponent = null!;
+    public void Use() { System.GC.KeepAlive(myComponent); }
+|
+Generated Location: (557:18,0 [111] )
+|
+    private TestComponent myComponent = null!;
+    public void Use() { System.GC.KeepAlive(myComponent); }
+|
+

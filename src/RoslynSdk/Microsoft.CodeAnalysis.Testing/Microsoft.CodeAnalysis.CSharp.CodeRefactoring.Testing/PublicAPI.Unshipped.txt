@@ -1,0 +1,10 @@
+Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeRefactoringTest<TCodeRefactoring, TVerifier>
+Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeRefactoringTest<TCodeRefactoring, TVerifier>.CSharpCodeRefactoringTest() -> void
+Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeRefactoringVerifier<TCodeRefactoring, TVerifier>
+Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeRefactoringVerifier<TCodeRefactoring, TVerifier>.CSharpCodeRefactoringVerifier() -> void
+override Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeRefactoringTest<TCodeRefactoring, TVerifier>.CreateCompilationOptions() -> Microsoft.CodeAnalysis.CompilationOptions
+override Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeRefactoringTest<TCodeRefactoring, TVerifier>.CreateParseOptions() -> Microsoft.CodeAnalysis.ParseOptions
+override Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeRefactoringTest<TCodeRefactoring, TVerifier>.DefaultFileExt.get -> string
+override Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeRefactoringTest<TCodeRefactoring, TVerifier>.GetCodeRefactoringProviders() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringProvider>
+override Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeRefactoringTest<TCodeRefactoring, TVerifier>.Language.get -> string
+override Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeRefactoringTest<TCodeRefactoring, TVerifier>.SyntaxKindType.get -> System.Type

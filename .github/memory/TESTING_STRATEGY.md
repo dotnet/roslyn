@@ -47,7 +47,9 @@ Targeted runs are strongly preferred — the full suite is large and slow. Tests
 
 ### Test types to be aware of
 - VS integration tests (`azure-pipelines-integration*.yml`) require a VS install, so they run only on **Windows** hosts (not CI-only — they can be run locally on Windows). Prefer unit tests for the inner development loop; reach for integration tests when validating end-to-end VS behavior.
-- A handful of tests fail only for environmental reasons — see `KNOWN_ISSUES.md`.
+- A handful of tests fail only for environmental reasons:
+  - `RuntimeHostInfoTests.DotNetInPath_Symlinked` requires symlink-creation privilege (run elevated).
+  - `Workspaces.MSBuild` `NewlyCreatedProjectsFromDotNetNew.Validate*TemplateProjects` fail without mobile (ios/tvos/macos/maccatalyst) dotnet workloads installed.
 
 ## CI
 

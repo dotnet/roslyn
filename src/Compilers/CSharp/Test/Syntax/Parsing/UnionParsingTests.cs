@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -384,40 +385,35 @@ ref union U1(E1);
 ref partial union U1(E1);
 """;
         UsingTree(src, TestOptions.Regular14,
-            // (1,5): error CS1031: Type expected
+            // (1,24): error CS1001: Identifier expected
             // ref partial union U1(E1);
-            Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(1, 5),
-            // (1,5): error CS1525: Invalid expression term 'partial'
-            // ref partial union U1(E1);
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 5),
-            // (1,5): error CS1003: Syntax error, ',' expected
-            // ref partial union U1(E1);
-            Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(1, 5)
-            );
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 24));
 
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.GlobalStatement);
+            N(SyntaxKind.MethodDeclaration);
             {
-                N(SyntaxKind.LocalDeclarationStatement);
+                N(SyntaxKind.RefKeyword);
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.IdentifierName);
                 {
-                    N(SyntaxKind.VariableDeclaration);
-                    {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                        M(SyntaxKind.VariableDeclarator);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                    N(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.IdentifierToken, "union");
                 }
+                N(SyntaxKind.IdentifierToken, "U1");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "E1");
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.SemicolonToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
@@ -450,6 +446,13 @@ ref partial union U1(E1);
             N(SyntaxKind.EndOfFileToken);
         }
         EOF();
+
+        CreateCompilation(
+            [src, "struct E1;", UnionAttributeSource, IUnionSource],
+            parseOptions: useCSharp15 ? TestOptions.Regular15 : TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,19): error CS0106: The modifier 'ref' is not valid for this item
+                // ref partial union U1(E1);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "U1").WithArguments("ref").WithLocation(1, 19));
     }
 
     [Fact]

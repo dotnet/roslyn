@@ -27,16 +27,6 @@ __builder.AddContent(0, $"{Name} Tests"
             );
         }
         #pragma warning restore 1998
-#nullable restore
-#line (1,8)-(4,1) "x:\dir\subdir\Test\TestComponent.razor"
-
-    private const string Name = "Razor";
-    private const string Value = $"{Name} Tests";
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591
