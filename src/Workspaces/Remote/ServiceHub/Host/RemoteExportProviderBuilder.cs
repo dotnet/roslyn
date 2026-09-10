@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Composition;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -31,6 +32,8 @@ internal sealed class RemoteExportProviderBuilder : ExportProviderBuilder
             .Add("Microsoft.VisualStudio.Copilot.Roslyn.SemanticSearch");
 
     private static ExportProvider? s_instance;
+    private static Task? s_cacheWriteTask_forTestingPurposesOnly;
+
     internal static ExportProvider ExportProvider
         => s_instance ?? throw new InvalidOperationException($"Default export provider not initialized. Call {nameof(InitializeAsync)} first.");
 
@@ -92,11 +95,29 @@ internal sealed class RemoteExportProviderBuilder : ExportProviderBuilder
         _traceLogger.TraceEvent(TraceEventType.Information, 0, message);
     }
 
+    protected override Task<ExportProvider> CreateExportProviderAsync(CancellationToken cancellationToken)
+    {
+        s_cacheWriteTask_forTestingPurposesOnly = null;
+        return base.CreateExportProviderAsync(cancellationToken);
+    }
+
+    protected override Task WriteCompositionCacheAsync(string compositionCacheFile, CompositionConfiguration config, CancellationToken cancellationToken)
+    {
+        s_cacheWriteTask_forTestingPurposesOnly = base.WriteCompositionCacheAsync(compositionCacheFile, config, cancellationToken);
+        return s_cacheWriteTask_forTestingPurposesOnly;
+    }
+
     protected override bool ContainsUnexpectedErrors(IEnumerable<string> erroredParts)
     {
         // Verify that we have exactly the MEF errors that we expect.  If we have less or more this needs to be updated to assert the expected behavior.
         var expectedErrorPartsSet = new HashSet<string>(["PythiaSignatureHelpProvider", "VSTypeScriptAnalyzerService", "CodeFixService", "CSharpMapCodeService", "CopilotSemanticSearchQueryExecutor"]);
         return erroredParts.Any(part => !expectedErrorPartsSet.Contains(part));
+    }
+
+    internal static class TestAccessor
+    {
+        public static Task WaitForCacheWriteAsync(CancellationToken cancellationToken)
+            => (s_cacheWriteTask_forTestingPurposesOnly ?? throw new InvalidOperationException("No cache write was scheduled.")).WithCancellation(cancellationToken);
     }
 
     private sealed class SimpleAssemblyLoader : IAssemblyLoader
