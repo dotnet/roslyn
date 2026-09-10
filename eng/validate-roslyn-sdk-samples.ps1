@@ -62,7 +62,7 @@ $buildArgs = @(
   "-c", $configuration
   "--no-incremental"
   "--warnaserror"
-  "/p:RoslynEnforceCodeStyle=true"
+  "/p:RunAnalyzersDuringBuild=true"
 )
 
 if ($ci) {

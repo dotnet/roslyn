@@ -101,7 +101,7 @@ internal static class ITextViewWindowVerifierInProcessExtensions
         if (!RoslynString.IsNullOrEmpty(applyFix))
         {
             var codeActionLogger = new CodeActionLogger();
-            using var loggerRegistration = RoslynTelemetry.AddEventSink(codeActionLogger);
+            using var loggerRegistration = RoslynTelemetry.Current.AddEventSink(codeActionLogger);
 
             var result = await textViewWindowVerifier.TestServices.Editor.ApplyLightBulbActionAsync(applyFix, fixAllScope, blockUntilComplete, cancellationToken);
 

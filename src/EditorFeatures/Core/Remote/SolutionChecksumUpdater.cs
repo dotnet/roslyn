@@ -190,7 +190,7 @@ internal sealed class SolutionChecksumUpdater : IDisposable
 
         // Update aggregated telemetry with success status of sending the synchronization data.
         var metricName = wasSynchronized.Value ? SynchronizeTextChangesStatusSucceededMetricName : SynchronizeTextChangesStatusFailedMetricName;
-        RoslynTelemetry.Count(FunctionId.ChecksumUpdater_SynchronizeTextChangesStatus, metricName, 1);
+        RoslynTelemetry.Current.Count(FunctionId.ChecksumUpdater_SynchronizeTextChangesStatus, metricName, 1);
 
         return;
 

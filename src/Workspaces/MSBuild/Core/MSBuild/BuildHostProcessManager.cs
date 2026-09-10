@@ -253,6 +253,20 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             FileName = dotnetPath ?? DotnetExecutable,
         };
 
+        if (dotnetPath is not null)
+        {
+            // Clear architecture-specific roots so they cannot override the selected installation.
+            foreach (var key in processStartInfo.Environment.Keys
+                .Where(static key => key.StartsWith("DOTNET_ROOT", Environment.EnvironmentVariableComparison))
+                .ToArray())
+            {
+                processStartInfo.Environment.Remove(key);
+            }
+
+            processStartInfo.Environment["DOTNET_ROOT"] = Path.GetDirectoryName(dotnetPath);
+            processStartInfo.Environment["DOTNET_HOST_PATH"] = dotnetPath;
+        }
+
         // We need to roll forward to the latest runtime, since the project may be using an SDK (or an SDK required runtime) newer than we ourselves built with.
         // We set the environment variable since --roll-forward LatestMajor doesn't roll forward to prerelease SDKs otherwise.
         processStartInfo.Environment["DOTNET_ROLL_FORWARD_TO_PRERELEASE"] = "1";

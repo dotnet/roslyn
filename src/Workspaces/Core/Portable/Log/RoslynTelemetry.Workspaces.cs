@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -21,7 +21,7 @@ internal static class TelemetryKeys
 /// The parts of <see cref="RoslynTelemetry"/> that need <see cref="KeyValueLogMessage"/>, which lives in
 /// the Workspaces layer and so is not available in the shared layer.
 /// </summary>
-internal static partial class RoslynTelemetry
+internal sealed partial class RoslynTelemetry
 {
     /// <summary>
     /// Posts a discrete event carrying the wall-clock duration of the returned scope, but only if it
@@ -29,16 +29,16 @@ internal static partial class RoslynTelemetry
     /// <see cref="RecordBlockTime(FunctionId, string)"/> this is not aggregated - each occurrence is
     /// its own event.
     /// </summary>
-    public static IDisposable? LogBlockTime(FunctionId functionId, KeyValueLogMessage logMessage, int minThresholdMs = -1)
+    public IDisposable? LogBlockTime(FunctionId functionId, KeyValueLogMessage logMessage, int minThresholdMs = -1)
     {
         if (TryGetEnabledSinks(functionId, out _))
-            return new TimedEventBlock(functionId, logMessage, minThresholdMs);
+            return new TimedEventBlock(this, functionId, logMessage, minThresholdMs);
 
         logMessage.Free();
         return null;
     }
 
-    private sealed class TimedEventBlock(FunctionId functionId, KeyValueLogMessage logMessage, int minThresholdMs) : IDisposable
+    private sealed class TimedEventBlock(RoslynTelemetry telemetry, FunctionId functionId, KeyValueLogMessage logMessage, int minThresholdMs) : IDisposable
     {
         private readonly SharedStopwatch _stopwatch = SharedStopwatch.StartNew();
 
@@ -59,7 +59,7 @@ internal static partial class RoslynTelemetry
                 if (IsDebugging)
                     message.Free();
                 else
-                    Log(functionId, message);
+                    telemetry.Log(functionId, message);
             }
 
             logMessage.Free();

@@ -27,9 +27,11 @@ namespace Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 internal sealed class Utf8SupportMap : IEquatable<Utf8SupportMap>
 {
     /// <summary>
-    /// Information about an <c>@inherits</c> directive extracted from a parsed document.
+    /// Information about an <c>@inherits</c> directive extracted from a parsed document. A reference type so
+    /// the incremental-generator driver's instantiations over it share canonical code rather than JITting a
+    /// dedicated value-type instantiation.
     /// </summary>
-    internal readonly record struct InheritsInfo(string FilePath, string BaseTypeName, ImmutableArray<string> Usings);
+    internal sealed record InheritsInfo(string FilePath, string BaseTypeName, ImmutableArray<string> Usings);
 
     public static readonly Utf8SupportMap Empty = new(
         ImmutableSortedDictionary<string, string>.Empty,
