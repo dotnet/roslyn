@@ -23,7 +23,7 @@ This file is a **top-level map only**. For per-area directory detail, read the m
 | `Features/`, `EditorFeatures/` | ide | IDE feature logic and editor integration. |
 | `Analyzers/`, `CodeStyle/` | ide | IDE0xxx code-style analyzers & fixes. |
 | `LanguageServer/` | ide | LSP server. |
-| `VisualStudio/` | ide | VS language services, UI, and EditorConfig template/wizard/command packaging under `EditorConfig/`. |
+| `VisualStudio/` | ide | VS language services, UI, EditorConfig template/wizard/command packaging under `EditorConfig/`, and integration-test infrastructure under `IntegrationTest/`. |
 | `Razor/src/` | razor | Razor compiler + tooling (own sub-tree layout). |
 | `Scripting/`, `Interactive/` | — | C#/VB scripting engine and REPL. |
 | `RoslynAnalyzers/` | — | Shipping `Microsoft.CodeAnalysis.*` analyzer packages. |
