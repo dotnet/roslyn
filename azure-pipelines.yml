@@ -339,8 +339,27 @@ stages:
 
                 $sourceLinkArgs = @(
                   '/p:EnableSourceLink=true',
+                  '/p:DebugType=portable',
                   "/p:CustomAfterMicrosoftCommonTargets=$(Scripts)\SourceLinkMarker.targets"
                 )
+                [IO.File]::SetLastWriteTimeUtc(
+                  "$(Scripts)\SourceLinkMarker.targets",
+                  [DateTime]::SpecifyKind([DateTime]'2000-01-01', [DateTimeKind]::Utc))
+                $vsMsbuildRoots = @(
+                  Get-ChildItem "${env:ProgramFiles}\Microsoft Visual Studio\*\*\MSBuild" `
+                    -Directory -ErrorAction SilentlyContinue)
+                if ($vsMsbuildRoots.Count -ne 1) {
+                  throw "Expected one MSBuild root in the pinned Visual Studio image; found $($vsMsbuildRoots.Count)."
+                }
+                $toolsetTimestamp = [DateTime]::SpecifyKind(
+                  [DateTime]'2000-01-01',
+                  [DateTimeKind]::Utc)
+                $toolsetInputs = @(Get-ChildItem $vsMsbuildRoots[0].FullName -Recurse -File |
+                  Where-Object { $_.Extension -in @('.props', '.targets') })
+                foreach ($toolsetInput in $toolsetInputs) {
+                  [IO.File]::SetLastWriteTimeUtc($toolsetInput.FullName, $toolsetTimestamp)
+                }
+                Write-Host "Canonicalized $($toolsetInputs.Count) pinned Visual Studio MSBuild inputs."
                 if ('${{ parameters.SourceLinkMode }}' -eq 'marker') {
                   $sourceLinkArgs += '/p:BigBuildSourceLinkRevisionMarker=$(SourceLinkMarker)'
                 }
