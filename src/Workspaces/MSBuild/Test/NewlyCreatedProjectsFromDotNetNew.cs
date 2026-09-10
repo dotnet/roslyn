@@ -137,6 +137,12 @@ public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
                 continue;
             }
 
+            // The template references an unpublished package: https://github.com/dotnet/aspnetcore/issues/69190
+            if (templateShortName == "blazorwasm-servicedefaults")
+            {
+                continue;
+            }
+
             // WPF and WinForms templates require Windows targeting and fail with
             // NETSDK1100 on non-Windows platforms.
             if (!ExecutionConditionUtil.IsWindows &&
