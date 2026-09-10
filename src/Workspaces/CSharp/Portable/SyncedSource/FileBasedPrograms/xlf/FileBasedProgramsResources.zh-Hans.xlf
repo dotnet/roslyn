@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="QuoteInDirective">
         <source>Directives currently cannot contain double quotes (").</source>
-        <target state="translated">指令当前不能包含双引号(")。</target>
+        <target state="new">Directives currently cannot contain double quotes (").</target>
         <note />
       </trans-unit>
       <trans-unit id="StaticGraphRestoreNotSupported">
