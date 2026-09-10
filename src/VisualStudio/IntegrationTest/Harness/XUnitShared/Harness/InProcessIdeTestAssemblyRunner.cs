@@ -111,7 +111,7 @@ namespace Xunit.Harness
                     testCases,
                     executionMessageSink,
                     executionOptions,
-                    CancellationToken.None).ConfigureAwait(false);
+                    CancellationToken.None).ConfigureAwait(true);
                 return new TestExecutionResult(summary);
             }
             finally
