@@ -97,7 +97,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         public Task NoAssertForInterpolatedStringHandler()
             => new VerifyCS.Test
             {
-                ReferenceAssemblies = ReferenceAssemblies.Default,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net100,
                 TestCode = $$"""
                 using System.Diagnostics;
 

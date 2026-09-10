@@ -19,42 +19,56 @@ public sealed class CallSiteImplicitAllocationAnalyzerTests
 {
     [Fact]
     public Task CallSiteImplicitAllocation_ParamAsync()
-        => VerifyCS.VerifyAnalyzerAsync("""
-            using System;
-            using Roslyn.Utilities;
-
-            public class MyClass
+        => new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net100,
+            TestState =
             {
-                [PerformanceSensitive("uri")]
-                public void Testing()
+                Sources =
                 {
+                    """
+                    using System;
+                    using Roslyn.Utilities;
 
-                    Params(); //no allocation, because compiler will implicitly substitute Array.Empty<int>()
-                    Params(1, 2);
-                    Params(new [] { 1, 2}); // explicit, so no warning
-                    ParamsWithObjects(new [] { 1, 2}); // explicit, but converted to objects, so stil la warning?!
+                    public class MyClass
+                    {
+                        [PerformanceSensitive("uri")]
+                        public void Testing()
+                        {
 
-                    // String.Format uses the params span overload, so it does not allocate an array.
-                    var test = String.Format("Testing {0}, {1}, {2}, {3}", 1, "blah", 2.0m, 'c');
-                }
+                            Params(); //no allocation, because compiler will implicitly substitute Array.Empty<int>()
+                            Params(1, 2);
+                            Params(new [] { 1, 2}); // explicit, so no warning
+                            ParamsWithObjects(new [] { 1, 2}); // explicit, but converted to objects, so stil la warning?!
 
-                public void Params(params int[] args)
+                            // String.Format uses the params span overload, so it does not allocate an array.
+                            var test = String.Format("Testing {0}, {1}, {2}, {3}", 1, "blah", 2.0m, 'c');
+                        }
+
+                        public void Params(params int[] args)
+                        {
+                        }
+
+                        public void ParamsWithObjects(params object[] args)
+                        {
+                        }
+                    }
+                    """,
+                    ("PerformanceSensitiveAttribute.cs", VerifyCS.PerformanceSensitiveAttributeSource),
+                },
+                ExpectedDiagnostics =
                 {
-                }
-
-                public void ParamsWithObjects(params object[] args)
-                {
-                }
-            }
-            """,
-            // Test0.cs(11,9): warning HAA0101: This call site is calling into a function with a 'params' parameter. This results in an array allocation
+                    // Test0.cs(11,9): warning HAA0101: This call site is calling into a function with a 'params' parameter. This results in an array allocation
 #pragma warning disable RS0030 // Do not use banned APIs
-            VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ParamsParameterRule).WithLocation(11, 9),
+                    VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ParamsParameterRule).WithLocation(11, 9),
 #pragma warning restore RS0030 // Do not use banned APIs
-            // Test0.cs(13,9): warning HAA0101: This call site is calling into a function with a 'params' parameter. This results in an array allocation
+                    // Test0.cs(13,9): warning HAA0101: This call site is calling into a function with a 'params' parameter. This results in an array allocation
 #pragma warning disable RS0030 // Do not use banned APIs
-            VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ParamsParameterRule).WithLocation(13, 9));
+                    VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ParamsParameterRule).WithLocation(13, 9),
 #pragma warning restore RS0030 // Do not use banned APIs
+                },
+            },
+        }.RunAsync();
 
     [Fact, WorkItem(3272, "https://github.com/dotnet/roslyn-analyzers/issues/3272")]
     public Task EmptyParamsWithNetFramework45Async()

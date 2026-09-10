@@ -7239,6 +7239,19 @@ class Goo : [|IComparable|]
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994328")]
     public async Task TestDisposePatternWhenAdditionalUsingsAreIntroduced1()
     {
+#if NET
+        var extraUsing = """
+
+            using System.Diagnostics.CodeAnalysis;
+            """;
+
+        var equalsMethod = """
+                public bool Equals([AllowNull] int other)
+                {
+                    throw new NotImplementedException();
+                }
+            """;
+#else
         var extraUsing = "";
 
         var equalsMethod = """
@@ -7247,6 +7260,7 @@ class Goo : [|IComparable|]
                     throw new NotImplementedException();
                 }
             """;
+#endif
 
         //CSharpCodeFixesResources.DisposePattern
         await TestWithAllCodeStyleOptionsOffAsync(

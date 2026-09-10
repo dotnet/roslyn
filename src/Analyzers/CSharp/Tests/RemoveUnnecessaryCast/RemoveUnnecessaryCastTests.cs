@@ -9151,8 +9151,7 @@ public sealed class RemoveUnnecessaryCastTests
                 public nuint N(IntPtr x) => (nuint)(nint)x;
             }
             """,
-            LanguageVersion = LanguageVersion.CSharp9,
-            ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+            LanguageVersion = LanguageVersion.CSharp9
         };
 
         await test.RunAsync();
@@ -9195,8 +9194,7 @@ public sealed class RemoveUnnecessaryCastTests
                 public int N(IntPtr x) => (int)(nint)x;
             }
             """,
-            LanguageVersion = LanguageVersion.CSharp9,
-            ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+            LanguageVersion = LanguageVersion.CSharp9
         };
 
         await test.RunAsync();
@@ -9214,8 +9212,7 @@ public sealed class RemoveUnnecessaryCastTests
                 public nint N(UIntPtr x) => (nint)(nuint)x;
             }
             """,
-            LanguageVersion = LanguageVersion.CSharp9,
-            ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+            LanguageVersion = LanguageVersion.CSharp9
         };
 
         await test.RunAsync();
@@ -9635,14 +9632,8 @@ public sealed class RemoveUnnecessaryCastTests
     [Fact]
     public async Task DoNotRemoveCastIfOverriddenMethodHasDifferentReturnType()
     {
-#if NET
-        const string diagnosticId = "CS8400";
-#else
-        const string diagnosticId = "CS8830";
-#endif
-
         var source =
-            $$"""
+            """
             using System;
 
             abstract class Y
@@ -9657,7 +9648,7 @@ public sealed class RemoveUnnecessaryCastTests
                     var v = ((Y)new X()).Goo();
                 }
 
-                public override string {|{{diagnosticId}}:Goo|}()
+                public override string {|CS8830:Goo|}()
                 {
                     return null;
                 }
@@ -13680,10 +13671,10 @@ public sealed class RemoveUnnecessaryCastTests
 
 #if NET
     [Fact]
-    public Task RemoveNativeIntegerCastsWithDefaultReferences()
+    public Task RemoveNativeIntegerCastsWithNet100References()
         => new VerifyCS.Test
         {
-            ReferenceAssemblies = ReferenceAssemblies.Default,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net100,
             TestCode = """
                 using System;
 

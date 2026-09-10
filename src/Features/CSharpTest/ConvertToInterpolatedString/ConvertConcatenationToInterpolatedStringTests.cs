@@ -1178,7 +1178,6 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                     }
                 }
                 """,
-            ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69721")]
@@ -1234,7 +1233,6 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                     }
                 }
                 """,
-            ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69721")]
