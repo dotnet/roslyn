@@ -18,11 +18,18 @@ if (marker == value)
 
 if (options.ContainsKey("--root"))
 {
+    var embeddedPolicy = options.GetValueOrDefault("--embedded-policy", "fail");
+    if (embeddedPolicy is not ("fail" or "report"))
+    {
+        throw new ArgumentException("--embedded-policy must be 'fail' or 'report'.");
+    }
+
     FinalizeRoot(
         RequiredDirectory(options, "--root"),
         RequiredOutputPath(options, "--output-root"),
         marker,
-        value);
+        value,
+        failOnEmbedded: embeddedPolicy == "fail");
     return 0;
 }
 
@@ -40,7 +47,8 @@ static void FinalizeRoot(
     string root,
     string outputRoot,
     string marker,
-    string value)
+    string value,
+    bool failOnEmbedded)
 {
     if (IsWithin(outputRoot, root))
     {
@@ -51,7 +59,18 @@ static void FinalizeRoot(
         throw new InvalidOperationException("The output root must not already exist.");
     }
 
-    RejectMarkerBearingEmbeddedPdbs(root, marker);
+    var embeddedPaths = FindMarkerBearingEmbeddedPdbs(root, marker);
+    if (failOnEmbedded && embeddedPaths.Count > 0)
+    {
+        throw new InvalidOperationException(
+            "Marker-bearing embedded Portable PDBs are not supported:"
+            + Environment.NewLine
+            + string.Join(Environment.NewLine, embeddedPaths.Select(path => $"  {path}")));
+    }
+    foreach (var path in embeddedPaths)
+    {
+        Console.Error.WriteLine($"Embedded marker not finalized: {path}");
+    }
 
     var pairs = new List<(string Pe, string Pdb)>();
     foreach (var pdbPath in Directory.EnumerateFiles(root, "*.pdb", SearchOption.AllDirectories))
@@ -109,6 +128,7 @@ static void FinalizeRoot(
     }
 
     Console.WriteLine($"Finalized files: {pairs.Count}");
+    Console.WriteLine($"Embedded files reported: {embeddedPaths.Count}");
     Console.WriteLine($"Output root: {outputRoot}");
 }
 
@@ -155,10 +175,12 @@ static bool PortablePdbContainsMarker(string path, string marker)
     }
 }
 
-static void RejectMarkerBearingEmbeddedPdbs(string root, string marker)
+static IReadOnlyList<string> FindMarkerBearingEmbeddedPdbs(string root, string marker)
 {
+    var result = new List<string>();
     foreach (var path in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories)
-        .Where(path => Path.GetExtension(path) is ".dll" or ".exe"))
+        .Where(path => Path.GetExtension(path).Equals(".dll", StringComparison.OrdinalIgnoreCase)
+            || Path.GetExtension(path).Equals(".exe", StringComparison.OrdinalIgnoreCase)))
     {
         try
         {
@@ -170,8 +192,7 @@ static void RejectMarkerBearingEmbeddedPdbs(string root, string marker)
                 if (GetSourceLink(provider.GetMetadataReader())?.Contains(marker, StringComparison.Ordinal)
                     == true)
                 {
-                    throw new InvalidOperationException(
-                        $"Marker-bearing embedded Portable PDB is not supported: '{path}'.");
+                    result.Add(Path.GetRelativePath(root, path));
                 }
             }
         }
@@ -179,6 +200,8 @@ static void RejectMarkerBearingEmbeddedPdbs(string root, string marker)
         {
         }
     }
+
+    return result.OrderBy(path => path, StringComparer.Ordinal).ToArray();
 }
 
 static FinalizedPdb FinalizePdb(byte[] input, string marker, string value)

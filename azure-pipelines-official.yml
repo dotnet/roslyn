@@ -291,7 +291,9 @@ extends:
                 $tool = "$(Agent.TempDirectory)\sourcelink-finalizer\SourceLinkFinalizer.dll"
                 $realRevision = (git rev-parse HEAD).Trim()
                 & $dotnet $tool --root $binRoot --output-root $patchRoot `
-                  --marker "$(SourceLinkMarker)" --value $realRevision
+                  --marker "$(SourceLinkMarker)" --value $realRevision `
+                  --embedded-policy report 2>&1 |
+                  Tee-Object "$(ReplayMetricsDir)\sourcelink-finalization.log"
                 if ($LASTEXITCODE -ne 0) { throw "SourceLink finalization failed ($LASTEXITCODE)" }
 
                 Get-ChildItem $patchRoot -Recurse -File | ForEach-Object {
