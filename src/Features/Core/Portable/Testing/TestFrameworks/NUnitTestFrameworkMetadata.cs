@@ -15,6 +15,8 @@ internal sealed class NUnitTestFrameworkMetadata : ITestFrameworkMetadata
     public ImmutableArray<string> TestAttributeMetadataNames { get; } =
         ["NUnit.Framework.TestAttribute", "NUnit.Framework.TheoryAttribute", "NUnit.Framework.TestCaseAttribute", "NUnit.Framework.TestCaseSourceAttribute"];
 
+    public bool SupportsDerivedTestAttributes => false;
+
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public NUnitTestFrameworkMetadata()

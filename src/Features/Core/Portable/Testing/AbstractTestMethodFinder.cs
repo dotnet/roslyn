@@ -83,11 +83,13 @@ internal abstract class AbstractTestMethodFinder<TMethodDeclaration>(IEnumerable
         var semanticModel = useSemanticDiscovery
             ? await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false)
             : null;
-        var testAttributeTypes = semanticModel is null ? [] : GetTestAttributeTypes(semanticModel.Compilation);
+        var (testAttributeTypes, inheritableTestAttributeTypes) = semanticModel is null
+            ? ([], [])
+            : GetTestAttributeTypes(semanticModel.Compilation);
 
         return nodes.WhereAsArray(node =>
             node is TMethodDeclaration method &&
-            IsTestMethod(method, semanticModel, testAttributeTypes, cancellationToken));
+            IsTestMethod(method, semanticModel, testAttributeTypes, inheritableTestAttributeTypes, cancellationToken));
     }
 
     private async Task<ImmutableArray<SyntaxNode>> GetPotentialTestNodesAsync(
@@ -98,12 +100,14 @@ internal abstract class AbstractTestMethodFinder<TMethodDeclaration>(IEnumerable
         var semanticModel = useSemanticDiscovery
             ? await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false)
             : null;
-        var testAttributeTypes = semanticModel is null ? [] : GetTestAttributeTypes(semanticModel.Compilation);
+        var (testAttributeTypes, inheritableTestAttributeTypes) = semanticModel is null
+            ? ([], [])
+            : GetTestAttributeTypes(semanticModel.Compilation);
 
         using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var testMethods);
         foreach (var method in methodsInRange)
         {
-            if (IsTestMethod(method, semanticModel, testAttributeTypes, cancellationToken))
+            if (IsTestMethod(method, semanticModel, testAttributeTypes, inheritableTestAttributeTypes, cancellationToken))
             {
                 testMethods.Add(method);
             }
@@ -127,6 +131,7 @@ internal abstract class AbstractTestMethodFinder<TMethodDeclaration>(IEnumerable
         TMethodDeclaration method,
         SemanticModel? semanticModel,
         ImmutableArray<INamedTypeSymbol> testAttributeTypes,
+        ImmutableArray<INamedTypeSymbol> inheritableTestAttributeTypes,
         CancellationToken cancellationToken)
     {
         if (semanticModel is null)
@@ -142,9 +147,19 @@ internal abstract class AbstractTestMethodFinder<TMethodDeclaration>(IEnumerable
 
         foreach (var attribute in methodSymbol.GetAttributes())
         {
-            for (var attributeType = attribute.AttributeClass; attributeType is not null; attributeType = attributeType.BaseType)
+            if (attribute.AttributeClass is not { } attributeClass)
             {
-                if (testAttributeTypes.Contains(attributeType, SymbolEqualityComparer.Default))
+                continue;
+            }
+
+            if (testAttributeTypes.Contains(attributeClass, SymbolEqualityComparer.Default))
+            {
+                return true;
+            }
+
+            for (var baseType = attributeClass.BaseType; baseType is not null; baseType = baseType.BaseType)
+            {
+                if (inheritableTestAttributeTypes.Contains(baseType, SymbolEqualityComparer.Default))
                 {
                     return true;
                 }
@@ -154,9 +169,11 @@ internal abstract class AbstractTestMethodFinder<TMethodDeclaration>(IEnumerable
         return false;
     }
 
-    private ImmutableArray<INamedTypeSymbol> GetTestAttributeTypes(Compilation compilation)
+    private (ImmutableArray<INamedTypeSymbol> testAttributeTypes, ImmutableArray<INamedTypeSymbol> inheritableTestAttributeTypes) GetTestAttributeTypes(
+        Compilation compilation)
     {
-        using var _ = ArrayBuilder<INamedTypeSymbol>.GetInstance(out var builder);
+        using var _1 = ArrayBuilder<INamedTypeSymbol>.GetInstance(out var testAttributeTypes);
+        using var _2 = ArrayBuilder<INamedTypeSymbol>.GetInstance(out var inheritableTestAttributeTypes);
 
         foreach (var metadata in TestFrameworkMetadata)
         {
@@ -165,11 +182,15 @@ internal abstract class AbstractTestMethodFinder<TMethodDeclaration>(IEnumerable
                 var attributeType = compilation.GetTypeByMetadataName(metadataName);
                 if (attributeType is not null)
                 {
-                    builder.Add(attributeType);
+                    testAttributeTypes.Add(attributeType);
+                    if (metadata.SupportsDerivedTestAttributes)
+                    {
+                        inheritableTestAttributeTypes.Add(attributeType);
+                    }
                 }
             }
         }
 
-        return builder.ToImmutableAndClear();
+        return (testAttributeTypes.ToImmutableAndClear(), inheritableTestAttributeTypes.ToImmutableAndClear());
     }
 }

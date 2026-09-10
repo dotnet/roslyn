@@ -15,6 +15,8 @@ internal sealed class MSTestTestFrameworkMetadata : ITestFrameworkMetadata
     public ImmutableArray<string> TestAttributeMetadataNames { get; } =
         ["Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute"];
 
+    public bool SupportsDerivedTestAttributes => true;
+
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public MSTestTestFrameworkMetadata()

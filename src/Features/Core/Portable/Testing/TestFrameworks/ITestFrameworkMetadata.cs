@@ -14,6 +14,11 @@ internal interface ITestFrameworkMetadata
     ImmutableArray<string> TestAttributeMetadataNames { get; }
 
     /// <summary>
+    /// Whether attributes derived from the framework's test attributes are supported by its test runner.
+    /// </summary>
+    bool SupportsDerivedTestAttributes { get; }
+
+    /// <summary>
     /// Determines if the input attribute token name matches known test method attribute names.
     /// </summary>
     bool MatchesAttributeSyntacticName(string attributeSyntacticName);

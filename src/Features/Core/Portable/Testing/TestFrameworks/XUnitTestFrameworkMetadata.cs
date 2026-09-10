@@ -15,6 +15,8 @@ internal sealed class XUnitTestFrameworkMetadata : ITestFrameworkMetadata
     public ImmutableArray<string> TestAttributeMetadataNames { get; } =
         ["Xunit.FactAttribute", "Xunit.TheoryAttribute"];
 
+    public bool SupportsDerivedTestAttributes => true;
+
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public XUnitTestFrameworkMetadata()

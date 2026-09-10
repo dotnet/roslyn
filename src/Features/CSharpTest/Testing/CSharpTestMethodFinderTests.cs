@@ -355,14 +355,13 @@ public sealed class CSharpTestMethodFinderTests
             """, "TestMethod1", "TestMethod2", "TestMethod3", "TestMethod4");
 
     [Fact]
-    public Task TestSemanticDiscoveryFindsDerivedNUnitTestMethod()
+    public Task TestSemanticDiscoveryFindsNUnitTestMethod()
         => TestNUnitSemanticAsync("""
             using NUnit.Framework;
-            public sealed class CustomTestAttribute : TestAttribute { }
 
             public class TestClass
             {
-                [CustomTest]
+                [Test]
                 public void Test$$Method1() { }
             }
             """, "TestMethod1");
@@ -567,10 +566,10 @@ public sealed class CSharpTestMethodFinderTests
             using System;
             namespace NUnit.Framework
             {
-                public class TestAttribute : Attribute { }
-                public class TheoryAttribute : Attribute { }
-                public class TestCaseAttribute : Attribute { }
-                public class TestCaseSourceAttribute : Attribute { }
+                public sealed class TestAttribute : Attribute { }
+                public sealed class TheoryAttribute : Attribute { }
+                public sealed class TestCaseAttribute : Attribute { }
+                public sealed class TestCaseSourceAttribute : Attribute { }
             }
             """, true, expectedTestNames);
     }
