@@ -5,6 +5,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
 
@@ -13,6 +14,18 @@ internal interface IFSharpCrossLanguageSymbolNavigationService
 {
     /// <inheritdoc cref="ICrossLanguageSymbolNavigationService.TryGetNavigableLocationAsync"/>
     Task<IFSharpNavigableLocation?> TryGetNavigableLocationAsync(
+        string assemblyName, string documentationCommentId, CancellationToken cancellationToken);
+}
+
+/// <summary>
+/// The part of <see cref="ICrossLanguageSymbolNavigationService"/> added after <see
+/// cref="IFSharpCrossLanguageSymbolNavigationService"/> shipped.  Kept apart so that an implementation compiled
+/// against a version without it still loads.
+/// </summary>
+internal interface IFSharpCrossLanguageSymbolNavigationService2 : IFSharpCrossLanguageSymbolNavigationService
+{
+    /// <inheritdoc cref="ICrossLanguageSymbolNavigationService.TryGetNavigableFileLocationAsync"/>
+    Task<(string filePath, LinePosition linePosition)?> TryGetNavigableFileLocationAsync(
         string assemblyName, string documentationCommentId, CancellationToken cancellationToken);
 }
 

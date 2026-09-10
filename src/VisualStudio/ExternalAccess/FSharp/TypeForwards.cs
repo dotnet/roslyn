@@ -125,6 +125,7 @@ using System.Runtime.CompilerServices;
 [assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigableItem))]
 [assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigationOptions2))]
 [assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.IFSharpCrossLanguageSymbolNavigationService))]
+[assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.IFSharpCrossLanguageSymbolNavigationService2))]
 [assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.IFSharpDocumentNavigationService))]
 [assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.IFSharpNavigableLocation))]
 [assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp.AbstractFSharpSignatureHelpProvider))]
