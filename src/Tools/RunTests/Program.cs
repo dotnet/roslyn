@@ -249,7 +249,11 @@ namespace RunTests
         {
             ConsoleUtil.Error("Test timeout exceeded, dumping remaining processes");
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            var skipScreenshot = string.Equals(
+                Environment.GetEnvironmentVariable("ROSLYN_TEST_SKIP_FAST_TIMEOUT"),
+                "true",
+                StringComparison.OrdinalIgnoreCase);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !skipScreenshot)
             {
                 var screenshotPath = Path.Combine(options.LogFilesDirectory, $"timeout.png");
                 ConsoleUtil.WriteLine($"Taking screenshot on timeout at {screenshotPath}");

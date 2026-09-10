@@ -97,9 +97,10 @@ jobs:
         ROSLYN_TEST_SKIP_STORE: $(Agent.TempDirectory)/testskipstore
         ROSLYN_TEST_SKIP_FORCE_RUN: $(ForceTests)
         ROSLYN_TEST_SKIP_TIMEOUT_MINUTES: $(SingleMachineTestTimeoutMinutes)
+        ROSLYN_TEST_SKIP_FAST_TIMEOUT: true
 
-    # Persist the updated PASS store only when the whole leg (tests included) was green. This is the
-    # authoritative soundness gate: a failed leg publishes nothing, so its assemblies re-run next time.
+    # Persist every individually verified PASS even when another assembly fails or times out. Assemblies
+    # that do not complete successfully receive no record and run again next time.
     - task: PublishPipelineArtifact@1
       displayName: Publish test-skip store
       condition: succeededOrFailed()
