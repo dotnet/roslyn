@@ -7,6 +7,7 @@ namespace Xunit.Harness
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Windows;
@@ -23,9 +24,15 @@ namespace Xunit.Harness
             IReadOnlyCollection<IXunitTestCase> testCases,
             ITestFrameworkExecutionOptions executionOptions)
         {
+            TestAssemblyPaths = testCases
+                .Select(testCase => testCase.TestMethod.TestClass.Class.Assembly.Location)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
             SerializedTestCases = testCases.Select(testCase => SerializationHelper.Instance.Serialize(testCase)).ToArray();
             SerializedExecutionOptions = executionOptions.ToJson();
         }
+
+        public string[] TestAssemblyPaths { get; }
 
         public string[] SerializedTestCases { get; }
 
@@ -75,6 +82,11 @@ namespace Xunit.Harness
             if (!dispatcher.CheckAccess())
             {
                 throw new InvalidOperationException("Integration tests must be invoked on the Visual Studio WPF dispatcher.");
+            }
+
+            foreach (var testAssemblyPath in request.TestAssemblyPaths)
+            {
+                Assembly.LoadFrom(testAssemblyPath);
             }
 
             var testCases = request.SerializedTestCases
