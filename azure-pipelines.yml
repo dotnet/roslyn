@@ -435,6 +435,15 @@ stages:
                 Write-Host "##vso[task.setvariable variable=CaptureSeconds]$seconds"
                 Write-Host "Captured baseline at $baselineDir"
 
+          # Test behavior does not depend on SourceLink provenance. Package the cache-neutral
+          # marker-space binaries so closure fingerprints remain reusable across commits, while the
+          # shipping output tree is finalized independently in the following step.
+          - task: PowerShell@2
+            displayName: Prepare cache-neutral test payload
+            inputs:
+              filePath: eng/prepare-tests.ps1
+              arguments: -configuration Debug
+
           - task: PowerShell@2
             displayName: Finalize SourceLink outputs
             inputs:
@@ -477,12 +486,6 @@ stages:
                 if ($LASTEXITCODE -ne 0) {
                   throw "Final bin inventory failed ($LASTEXITCODE)."
                 }
-
-          - task: PowerShell@2
-            displayName: Prepare current test payload
-            inputs:
-              filePath: eng/prepare-tests.ps1
-              arguments: -configuration Debug
 
           - task: PowerShell@2
             displayName: Install binlog reader SDK
