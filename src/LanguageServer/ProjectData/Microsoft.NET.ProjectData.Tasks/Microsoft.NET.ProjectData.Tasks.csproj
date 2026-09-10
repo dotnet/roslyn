@@ -6,8 +6,8 @@
     <EnableAotAnalyzer>false</EnableAotAnalyzer>
     <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
     <RootNamespace>Microsoft.NET.ProjectData.Tasks</RootNamespace>
-    <!-- Task assemblies are not shipped as NuGet packages from this repo. -->
-    <IsPackable>false</IsPackable>
+    <!-- The SDK extracts this package and arranges its deployment layout; it is not intended for PackageReference consumption. -->
+    <IsPackable>true</IsPackable>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <!-- These members are used by source files that are intentionally not linked into this
          netstandard2.0 task assembly, so Roslyn's partial view reports them as unused. -->
@@ -32,9 +32,9 @@
   <ItemGroup>
     <!-- The targets file ships next to this assembly so MSBuild can resolve the DLL via
          $(MSBuildThisFileDirectory). Copying it to the build output keeps both files together. -->
-    <None Include="build\Microsoft.NET.ProjectData.targets" Link="Microsoft.NET.ProjectData.targets" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="build\Microsoft.NET.ProjectData.targets" Link="Microsoft.NET.ProjectData.targets" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="lib\$(TargetFramework)\" />
     <!-- Generated property allow-list imported by the .targets; must travel with it. -->
-    <None Include="build\Microsoft.NET.ProjectData.Schema.props" Link="Microsoft.NET.ProjectData.Schema.props" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="build\Microsoft.NET.ProjectData.Schema.props" Link="Microsoft.NET.ProjectData.Schema.props" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="lib\$(TargetFramework)\" />
   </ItemGroup>
 
   <ItemGroup>
