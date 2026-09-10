@@ -5,8 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -241,6 +243,58 @@ public sealed class AsynchronousTaggerTests
 
         var tags = tagger.GetTags(new NormalizedSnapshotSpanCollection(textBuffer.CurrentSnapshot.GetFullSpan()));
         Assert.Equal(1, tags.Count());
+    }
+
+    /// <summary>
+    /// Verifies <see cref="TaggerMainThreadManager"/> completes already-canceled work with a null result rather
+    /// than a canceled task, so no first-chance <see cref="TaskCanceledException"/> is observed.
+    /// </summary>
+    [WpfTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task TestMainThreadManagerCanceledWorkCompletesWithoutThrowing(bool runFromBackgroundThread)
+    {
+        using var workspace = EditorTestWorkspace.CreateCSharp("class C { }");
+
+        WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(TestMainThreadManagerCanceledWorkCompletesWithoutThrowing)} exercises {nameof(TaggerMainThreadManager)}");
+
+        var mainThreadManager = workspace.GetService<TaggerHost>().TaggerMainThreadManager;
+
+        var actionRan = false;
+        (bool, SnapshotPoint?, OneOrMany<SnapshotSpan>)? GetTaggerUIData()
+        {
+            actionRan = true;
+            return null;
+        }
+
+        using var cancellationTokenSource = new CancellationTokenSource();
+        cancellationTokenSource.Cancel();
+
+        // Counted with Interlocked (not a List<T>) since FirstChanceException is process-global and can fire
+        // concurrently from unrelated threads/tests; filtered to this test's own token to ignore that noise.
+        var firstChanceCancellationExceptionCount = 0;
+        void FirstChanceExceptionHandler(object? sender, FirstChanceExceptionEventArgs e)
+        {
+            if (e.Exception is OperationCanceledException { CancellationToken: var token } && token == cancellationTokenSource.Token)
+                Interlocked.Increment(ref firstChanceCancellationExceptionCount);
+        }
+
+        AppDomain.CurrentDomain.FirstChanceException += FirstChanceExceptionHandler;
+        try
+        {
+            var result = runFromBackgroundThread
+                ? await Task.Run(async () => await mainThreadManager.PerformWorkOnMainThreadAsync(GetTaggerUIData, cancellationTokenSource.Token))
+                : await mainThreadManager.PerformWorkOnMainThreadAsync(GetTaggerUIData, cancellationTokenSource.Token);
+
+            Assert.Null(result);
+        }
+        finally
+        {
+            AppDomain.CurrentDomain.FirstChanceException -= FirstChanceExceptionHandler;
+        }
+
+        Assert.False(actionRan);
+        Assert.Equal(0, firstChanceCancellationExceptionCount);
     }
 
     private sealed class TestTaggerProvider(
