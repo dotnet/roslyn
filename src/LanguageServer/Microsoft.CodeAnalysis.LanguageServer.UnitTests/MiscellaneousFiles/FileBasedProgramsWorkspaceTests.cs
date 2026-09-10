@@ -116,6 +116,8 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
             <Project>
               <PropertyGroup>
                 <ArtifactsPath>$(MSBuildThisFileDirectory)</ArtifactsPath>
+                <!-- Temporary gap: RC1 lacks this marker. -->
+                <_SupportsFileBasedAppArtifactsPath Condition="'$(NETCoreSdkVersion)' == '11.0.100-rc.1.26425.128'">true</_SupportsFileBasedAppArtifactsPath>
               </PropertyGroup>
             </Project>
             """);
