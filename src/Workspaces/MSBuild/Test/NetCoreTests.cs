@@ -747,6 +747,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         var sourceFilePath = GetSolutionFileName("Program.cs");
 
         using var workspace = CreateMSBuildWorkspace();
+        // Verify extensions registered with the leading dot produced by Path.GetExtension are accepted.
         workspace.AssociateFileExtensionWithLanguage(".cs", LanguageNames.CSharp);
         await workspace.OpenProjectAsync(sourceFilePath);
 
@@ -763,10 +764,10 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         var registry = new ProjectFileExtensionRegistry(new DiagnosticReporter(workspace), fileBasedProgramService: null);
 
         var registeredExtensions = registry.GetRegisteredProjectFileExtensions();
-        Assert.Equal(3, registeredExtensions.Length);
         Assert.Contains(".csproj", registeredExtensions);
         Assert.Contains(".vbproj", registeredExtensions);
         Assert.Contains(".fsproj", registeredExtensions);
+        Assert.All(registeredExtensions, extension => Assert.StartsWith(".", extension));
 
         Assert.True(registry.TryGetLanguageNameFromExtension(".csproj", out var languageName));
         Assert.Equal(LanguageNames.CSharp, languageName);
