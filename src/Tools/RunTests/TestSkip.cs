@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -129,7 +129,9 @@ internal static class TestSkip
     /// <summary>
     /// The environment axis a result depends on beyond the closure bytes: configuration, target
     /// framework, OS, architecture, and culture. Culture matters -- roslyn's localized legs prove test
-    /// output depends on it -- so the same closure under a different culture is a different key.
+    /// output depends on it -- so the same closure under a different culture is a different key. The
+    /// test-mode variables also affect results for the same bytes and are forwarded to Helix, so they
+    /// belong in the key.
     /// </summary>
     internal static string EnvAxis(Options options, string tfm)
     {
@@ -143,7 +145,11 @@ internal static class TestSkip
             culture = "neutral";
         }
 
-        return $"{options.Configuration}|{tfm}|{os}|{arch}|{culture}";
+        string[] modeVariables = ["ROSLYN_TEST_IOPERATION", "ROSLYN_TEST_USEDASSEMBLIES", "DOTNET_RuntimeAsync"];
+        var modes = string.Join(",", modeVariables.Select(
+            variable => $"{variable}={Environment.GetEnvironmentVariable(variable)}"));
+
+        return $"{options.Configuration}|{tfm}|{os}|{arch}|{culture}|{modes}";
     }
 
     internal static string Key(string assembly, string envAxis, string fingerprint)

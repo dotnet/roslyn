@@ -26,6 +26,9 @@ parameters:
 - name: ilasmDiagnostic
   type: boolean
   default: false
+- name: injectTestFailure
+  type: boolean
+  default: false
 - name: helixApiAccessToken
   type: string
   default: ''
@@ -42,11 +45,7 @@ jobs:
     - task: DownloadPipelineArtifact@2
       displayName: Download Test Payload
       inputs:
-        buildType: specific
-        project: $(System.TeamProjectId)
-        definition: $(System.DefinitionId)
-        buildVersionToDownload: specific
-        pipelineId: $(HistoricalSourceBuildId)
+        buildType: current
         artifactName: ${{ parameters.testArtifactName }}
         targetPath: '$(Build.SourcesDirectory)'
 
@@ -107,6 +106,7 @@ jobs:
         ROSLYN_TEST_SKIP_FORCE_RUN: $(ForceTests)
         ROSLYN_TEST_SKIP_DIAGNOSTIC_ASSEMBLY: ${{ parameters.diagnosticAssembly }}
         ROSLYN_TEST_SKIP_DIAGNOSTIC_TEST_METHOD: ${{ parameters.diagnosticTestMethod }}
+        ROSLYN_TEST_SKIP_INJECT_FAILURE: ${{ parameters.injectTestFailure }}
         ROSLYN_TEST_SKIP_ILASM_DIAGNOSTIC: ${{ parameters.ilasmDiagnostic }}
 
     # Persist the updated PASS store only when the whole leg (tests included) was green. This is the

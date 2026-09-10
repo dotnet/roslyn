@@ -39,11 +39,7 @@ jobs:
     - task: DownloadPipelineArtifact@2
       displayName: Download Test Payload
       inputs:
-        buildType: specific
-        project: $(System.TeamProjectId)
-        definition: $(System.DefinitionId)
-        buildVersionToDownload: specific
-        pipelineId: $(HistoricalSourceBuildId)
+        buildType: current
         artifactName: ${{ parameters.testArtifactName }}
         targetPath: '$(Build.SourcesDirectory)'
 

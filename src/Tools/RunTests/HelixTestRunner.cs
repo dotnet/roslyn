@@ -537,6 +537,15 @@ internal sealed class HelixTestRunner
                 command.AppendLine($"dotnet exec \"%vstestConsolePath%\" @{vstestRspFileName}");
             }
 
+            if (string.Equals(
+                Environment.GetEnvironmentVariable("ROSLYN_TEST_SKIP_INJECT_FAILURE"),
+                "true",
+                StringComparison.OrdinalIgnoreCase))
+            {
+                command.AppendLine("echo Injecting an intentional test-work-item failure.");
+                command.AppendLine(isUnix ? "exit 1" : "exit /b 1");
+            }
+
             return (isUnix ? "command.sh" : "command.cmd", command.ToString());
         }
 

@@ -1,9 +1,12 @@
+# TEST ONLY (do not merge): combine portable warm build state, SourceLink
+# finalization, and PASS-only test-result reuse in one non-publishing pipeline.
+#
+# Queue this branch through dnceng-public definition 95.
+
 trigger: none
 pr: none
 
 variables:
-  - name: HistoricalSourceBuildId
-    value: ${{ parameters.SourceBuildId }}
   - name: ReplaySequence
     value: ${{ parameters.ReplaySequence }}
   - name: ReplayExperimentId
@@ -14,6 +17,26 @@ variables:
     value: ${{ parameters.ForceTests }}
   - name: SingleMachineTestTimeoutMinutes
     value: ${{ parameters.SingleMachineTestTimeoutMinutes }}
+  - name: CacheStore
+    value: $(Agent.TempDirectory)/wc-store
+  - name: Scripts
+    value: $(Agent.TempDirectory)/bigbuild-cache-scripts
+  - name: ReplayMetricsDir
+    value: $(Build.ArtifactStagingDirectory)/replay-metrics
+  - name: ForceCold
+    value: ${{ parameters.ForceCold }}
+  - name: Seeded
+    value: false
+  - name: PreviousBaselineSha
+    value: ''
+  - name: RestoreSeconds
+    value: 0
+  - name: BuildSeconds
+    value: 0
+  - name: CaptureSeconds
+    value: 0
+  - name: SourceLinkMarker
+    value: b1b9107cdb8df6bfb36f1cc075a798afd7b28a82
   - name: Codeql.Enabled
     value: false
   - name: Codeql.SkipTaskAutoInjection
@@ -22,8 +45,6 @@ variables:
     value: NetCore-Public
   - name: Vs2026PreviewQueueName
     value: windows.vs2026preview.scout.amd64.open
-  - name: UbuntuQueueName
-    value: Build.Ubuntu.2204.Amd64.Open
   - name: WindowsQueueName
     value: 1es-windows-2022-open
   - name: HelixWindowsQueueName
@@ -32,42 +53,47 @@ variables:
     value: windows.amd64.vs2026.pre.scout.open
   - name: HelixWindowsSpanishQueueName
     value: Windows.10.Amd64.Server2022.ES.Open
-  - name: HelixMacOsQueueName
-    value: OSX.15.Amd64.Open
 
 parameters:
-  - name: SourceBuildId
-    type: number
-    default: 0
+  - name: ReplayCommit
+    type: string
+    default: ''
   - name: ReplaySequence
     type: number
     default: 0
   - name: ReplayExperimentId
     type: string
-    default: 'roslyn-history-testskip-20260904-10'
+    default: 'roslyn-end-to-end-20260909'
   - name: TestSkipStoreGeneration
     type: string
-    default: 'hist0904'
+    default: 'e2e0909'
+  - name: ForceCold
+    type: boolean
+    default: false
   - name: ForceTests
     type: boolean
     default: false
   - name: SingleMachineTestTimeoutMinutes
     type: number
     default: 90
+  - name: SourceLinkMode
+    type: string
+    default: marker
+    values:
+      - marker
+      - real
   - name: DiagnosticAssembly
     type: string
     default: ''
   - name: DiagnosticTestMethod
     type: string
     default: ''
+  - name: InjectTestFailure
+    type: boolean
+    default: false
   - name: IlasmDiagnostic
     type: boolean
     default: false
-  - name: ubuntuPool
-    type: object
-    default:
-      name: $(PoolName)
-      demands: ImageOverride -equals $(UbuntuQueueName)
   - name: windowsPool
     type: object
     default:
@@ -80,238 +106,505 @@ parameters:
       demands: ImageOverride -equals $(Vs2026PreviewQueueName)
 
 stages:
-- stage: Patched_RunTests
-  jobs:
-  - job: Build_Patched_RunTests
-    displayName: Build result-gated RunTests
-    pool: ${{ parameters.vs2026PreviewPool }}
-    timeoutInMinutes: 30
-    variables:
-      - template: eng/pipelines/variables-build.yml
+  - stage: Patched_RunTests
+    dependsOn: []
+    jobs:
+      - job: Build_Patched_RunTests
+        displayName: Build result-gated RunTests
+        pool: ${{ parameters.vs2026PreviewPool }}
+        timeoutInMinutes: 30
+        variables:
+          - template: eng/pipelines/variables-build.yml
+            parameters:
+              configuration: Release
+        steps:
+          - template: eng/pipelines/checkout-windows-task.yml
+
+          - task: PowerShell@2
+            displayName: Validate experiment parameters
+            inputs:
+              targetType: inline
+              pwsh: true
+              script: |
+                if (-not '${{ parameters.ReplayCommit }}'.Trim()) {
+                  throw 'ReplayCommit is required.'
+                }
+                if ('${{ parameters.ReplayExperimentId }}' -notmatch '^[A-Za-z0-9._-]+$') {
+                  throw 'ReplayExperimentId contains unsafe artifact-name characters.'
+                }
+                if ('${{ parameters.TestSkipStoreGeneration }}' -notmatch '^[A-Za-z0-9._-]+$') {
+                  throw 'TestSkipStoreGeneration contains unsafe artifact-name characters.'
+                }
+                if ('${{ parameters.InjectTestFailure }}' -eq 'True' -and
+                    (-not '${{ parameters.DiagnosticAssembly }}'.Trim() -or
+                     -not '${{ parameters.DiagnosticTestMethod }}'.Trim())) {
+                  throw 'InjectTestFailure requires DiagnosticAssembly and DiagnosticTestMethod.'
+                }
+                Write-Host "Sequence ${{ parameters.ReplaySequence }} commit ${{ parameters.ReplayCommit }}"
+                Write-Host "Experiment ${{ parameters.ReplayExperimentId }} forceCold=${{ parameters.ForceCold }} forceTests=${{ parameters.ForceTests }}"
+
+          - task: PowerShell@2
+            displayName: Build patched RunTests
+            inputs:
+              filePath: eng/build.ps1
+              arguments: -configuration Release -prepareMachine -ci -restore -build
+                -solution src/Tools/RunTests/RunTests.csproj -msbuildEngine dotnet
+                -binaryLogName PatchedRunTests.binlog
+
+          - task: PowerShell@2
+            displayName: Stage patched RunTests
+            inputs:
+              targetType: inline
+              pwsh: true
+              script: |
+                $source = "$(Build.SourcesDirectory)\artifacts\bin\RunTests\Release\net10.0\RunTests.dll"
+                $target = "$(Build.ArtifactStagingDirectory)\patched-runtests"
+                if (-not (Test-Path $source)) {
+                  throw "Patched RunTests not found at $source"
+                }
+                New-Item -ItemType Directory -Force $target | Out-Null
+                Copy-Item $source (Join-Path $target 'RunTests.dll') -Force
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publish patched RunTests
+            inputs:
+              targetPath: $(Build.ArtifactStagingDirectory)\patched-runtests
+              artifactName: patched-runtests
+
+  - stage: Windows_Debug_Build
+    dependsOn: []
+    jobs:
+      - job: Build_Windows_Debug
+        displayName: Build and capture Windows Debug
+        pool: ${{ parameters.vs2026PreviewPool }}
+        timeoutInMinutes: 240
+        variables:
+          - template: eng/pipelines/variables-build.yml
+            parameters:
+              configuration: Debug
+        steps:
+          - checkout: self
+            path: s
+            clean: true
+            fetchDepth: 0
+            fetchTags: false
+            persistCredentials: true
+
+          - task: PowerShell@2
+            displayName: Prepare historical replay checkout
+            inputs:
+              targetType: inline
+              pwsh: true
+              workingDirectory: $(Build.SourcesDirectory)
+              script: |
+                $ErrorActionPreference = 'Stop'
+                $requested = '${{ parameters.ReplayCommit }}'.Trim()
+                $experiment = '${{ parameters.ReplayExperimentId }}'.Trim()
+                if (-not $requested) {
+                  throw 'ReplayCommit is required.'
+                }
+                if ($experiment -notmatch '^[A-Za-z0-9._-]+$') {
+                  throw "ReplayExperimentId '$experiment' contains unsafe cache-path characters."
+                }
+
+                New-Item -ItemType Directory -Force "$(ReplayMetricsDir)" | Out-Null
+                if (Test-Path "$(Scripts)") {
+                  Remove-Item "$(Scripts)" -Recurse -Force
+                }
+                Copy-Item "$(Build.SourcesDirectory)\eng\bigbuild-cache\scripts" "$(Scripts)" -Recurse
+
+                git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+                if ($LASTEXITCODE -ne 0) {
+                  throw 'Failed to fetch origin/main.'
+                }
+                git cat-file -e "$requested^{commit}"
+                if ($LASTEXITCODE -ne 0) {
+                  throw "ReplayCommit $requested is not available from origin/main."
+                }
+                git checkout --detach --force $requested
+                if ($LASTEXITCODE -ne 0) {
+                  throw "Failed to check out ReplayCommit $requested."
+                }
+                $actual = (git rev-parse HEAD).Trim()
+                if ($actual -ne $requested) {
+                  throw "Requested $requested but checked out $actual."
+                }
+
+                Write-Host "Replay sequence ${{ parameters.ReplaySequence }}: $actual"
+                Write-Host "Replay experiment: $experiment"
+                Write-Host "##vso[task.setvariable variable=ActualReplayCommit]$actual"
+
+          - task: DownloadPipelineArtifact@2
+            displayName: Pull warmcache
+            continueOnError: true
+            condition: and(succeeded(), ne(variables['ForceCold'], 'True'))
+            inputs:
+              buildType: specific
+              project: $(System.TeamProjectId)
+              definition: $(System.DefinitionId)
+              buildVersionToDownload: latestFromBranch
+              allowPartiallySucceededBuilds: false
+              allowFailedBuilds: false
+              branchName: $(Build.SourceBranch)
+              artifactName: warmcache
+              targetPath: $(CacheStore)
+
+          - task: PowerShell@2
+            displayName: Seed from baseline
+            inputs:
+              targetType: inline
+              pwsh: true
+              workingDirectory: $(Build.SourcesDirectory)
+              script: |
+                $ErrorActionPreference = 'Stop'
+                if ('${{ parameters.ForceCold }}' -eq 'True') {
+                  Write-Host 'ForceCold=true -- skipping baseline selection.'
+                  Write-Host '##vso[task.setvariable variable=Seeded]false'
+                  exit 0
+                }
+
+                $laneDir = Join-Path "$(CacheStore)" "roslyn-${{ parameters.ReplayExperimentId }}-sdk-11.0.100-preview.6-stock-win-debug"
+                $baseline = if (Test-Path $laneDir) {
+                  Get-ChildItem -Directory $laneDir -ErrorAction SilentlyContinue |
+                    Where-Object { Test-Path (Join-Path $_.FullName 'meta.json') } |
+                    Sort-Object LastWriteTime |
+                    Select-Object -Last 1
+                }
+                if (-not $baseline) {
+                  Write-Host '##[warning]No compatible baseline -- cold build.'
+                  Write-Host '##vso[task.setvariable variable=Seeded]false'
+                  exit 0
+                }
+
+                $selected = $baseline.FullName
+                $meta = Get-Content (Join-Path $selected 'meta.json') -Raw | ConvertFrom-Json
+                Write-Host "Seeding from $selected"
+                & "$(Scripts)\Restore-Baseline.ps1" -RepoRoot "$(Build.SourcesDirectory)" -BaselineDir $selected
+                if ($LASTEXITCODE -ne 0) {
+                  throw "Restore-Baseline failed ($LASTEXITCODE)."
+                }
+                & "$(Scripts)\Replay-Baseline.ps1" -RepoRoot "$(Build.SourcesDirectory)" -BaselineDir $selected `
+                  -Mode BackDate -MetricsPath "$(ReplayMetricsDir)\input-classification.json"
+                if ($LASTEXITCODE -ne 0) {
+                  throw "Replay-Baseline failed ($LASTEXITCODE)."
+                }
+                Write-Host "##vso[task.setvariable variable=SeededBaselineDir]$selected"
+                Write-Host "##vso[task.setvariable variable=PreviousBaselineSha]$($meta.Sha)"
+                Write-Host '##vso[task.setvariable variable=Seeded]true'
+
+          - task: PowerShell@2
+            displayName: Restore after seed
+            inputs:
+              targetType: inline
+              pwsh: true
+              workingDirectory: $(Build.SourcesDirectory)
+              script: |
+                $ErrorActionPreference = 'Stop'
+                $sw = [Diagnostics.Stopwatch]::StartNew()
+                & "$(Build.SourcesDirectory)\eng\build.ps1" -ci -restore -prepareMachine `
+                  -solution Roslyn.slnx -binaryLogName Restore.binlog
+                if ($LASTEXITCODE -ne 0) {
+                  throw "Restore failed ($LASTEXITCODE)."
+                }
+                $sw.Stop()
+                $seconds = [math]::Round($sw.Elapsed.TotalSeconds, 1)
+                Write-Host "##[section]Restore finished in $seconds seconds"
+                Write-Host "##vso[task.setvariable variable=RestoreSeconds]$seconds"
+
+          - task: PowerShell@2
+            displayName: Build marker-space outputs
+            inputs:
+              targetType: inline
+              pwsh: true
+              workingDirectory: $(Build.SourcesDirectory)
+              script: |
+                $ErrorActionPreference = 'Stop'
+                Get-ChildItem "$(Build.SourcesDirectory)\artifacts\log" -Recurse `
+                  -Filter Build.WarmCache.binlog -ErrorAction SilentlyContinue |
+                  Remove-Item -Force -ErrorAction SilentlyContinue
+                $env:DOTNET_MULTILEVEL_LOOKUP = '0'
+                $env:ROSLYNUSEHARDLINKS = '1'
+                $dotnet = "$(Build.SourcesDirectory)\.dotnet\dotnet.exe"
+                $globalPackages = & $dotnet nuget locals global-packages --list 2>$null
+                if ("$globalPackages" -match 'global-packages:\s*(.+?)\s*$') {
+                  $env:NUGET_PACKAGES = $matches[1].Trim()
+                }
+
+                $finalizerOutput = "$(Agent.TempDirectory)\sourcelink-finalizer"
+                & $dotnet build "$(Scripts)\SourceLinkFinalizer\SourceLinkFinalizer.csproj" `
+                  -c Release -o $finalizerOutput /p:EnableSourceLink=false
+                if ($LASTEXITCODE -ne 0) {
+                  throw "SourceLink finalizer build failed ($LASTEXITCODE)."
+                }
+
+                $sourceLinkArgs = @(
+                  '/p:EnableSourceLink=true',
+                  "/p:CustomAfterMicrosoftCommonTargets=$(Scripts)\SourceLinkMarker.targets"
+                )
+                if ('${{ parameters.SourceLinkMode }}' -eq 'marker') {
+                  $sourceLinkArgs += '/p:BigBuildSourceLinkRevisionMarker=$(SourceLinkMarker)'
+                }
+
+                $sw = [Diagnostics.Stopwatch]::StartNew()
+                & "$(Build.SourcesDirectory)\eng\build.ps1" -ci -build -configuration Debug `
+                  -solution Roslyn.slnx -msbuildEngine vs -binaryLogName Build.WarmCache.binlog `
+                  /p:DeterministicSourcePaths=true @sourceLinkArgs
+                if ($LASTEXITCODE -ne 0) {
+                  throw "Build failed ($LASTEXITCODE)."
+                }
+                $sw.Stop()
+                $seconds = [math]::Round($sw.Elapsed.TotalSeconds, 1)
+                Write-Host "##[section]Build finished in $seconds seconds (seeded=$(Seeded))"
+                Write-Host "##vso[task.setvariable variable=BuildSeconds]$seconds"
+
+          - task: PowerShell@2
+            displayName: Capture marker-space baseline
+            condition: and(succeeded(), eq('${{ parameters.SourceLinkMode }}', 'marker'))
+            inputs:
+              targetType: inline
+              pwsh: true
+              workingDirectory: $(Build.SourcesDirectory)
+              script: |
+                $ErrorActionPreference = 'Stop'
+                $sw = [Diagnostics.Stopwatch]::StartNew()
+                $store = "$(CacheStore)"
+                $lane = "roslyn-${{ parameters.ReplayExperimentId }}-sdk-11.0.100-preview.6-stock-win-debug"
+                $sha = (git rev-parse HEAD).Trim()
+                $baselineDir = Join-Path (Join-Path $store $lane) $sha
+                $capture = @{
+                  RepoRoot = '.'
+                  BaselineDir = $baselineDir
+                  OutputRoots = @('artifacts\obj')
+                  Archive = $true
+                }
+                $seeded = $env:SEEDEDBASELINEDIR
+                if ($seeded -and (Test-Path (Join-Path $seeded 'outputs.clixml'))) {
+                  $stash = Join-Path "$(Agent.TempDirectory)" 'prior-baseline'
+                  New-Item -ItemType Directory -Force $stash | Out-Null
+                  Copy-Item (Join-Path $seeded 'outputs.clixml') (Join-Path $stash 'outputs.clixml') -Force
+                  $capture['PriorBaselineDir'] = $stash
+                }
+                if (Test-Path $store) {
+                  Remove-Item $store -Recurse -Force
+                }
+                & "$(Scripts)\Capture-Baseline.ps1" @capture
+                if ($LASTEXITCODE -ne 0) {
+                  throw "Capture failed ($LASTEXITCODE)."
+                }
+                $sw.Stop()
+                $seconds = [math]::Round($sw.Elapsed.TotalSeconds, 1)
+                Write-Host "##vso[task.setvariable variable=CaptureSeconds]$seconds"
+                Write-Host "Captured baseline at $baselineDir"
+
+          - task: PowerShell@2
+            displayName: Finalize SourceLink outputs
+            inputs:
+              targetType: inline
+              pwsh: true
+              workingDirectory: $(Build.SourcesDirectory)
+              script: |
+                $ErrorActionPreference = 'Stop'
+                $binRoot = "$(Build.SourcesDirectory)\artifacts\bin"
+                if ('${{ parameters.SourceLinkMode }}' -eq 'marker') {
+                  $patchRoot = "$(Agent.TempDirectory)\sourcelink-finalized"
+                  if (Test-Path $patchRoot) {
+                    Remove-Item $patchRoot -Recurse -Force
+                  }
+                  $dotnet = "$(Build.SourcesDirectory)\.dotnet\dotnet.exe"
+                  $tool = "$(Agent.TempDirectory)\sourcelink-finalizer\SourceLinkFinalizer.dll"
+                  $realRevision = (git rev-parse HEAD).Trim()
+                  & $dotnet $tool --root $binRoot --output-root $patchRoot `
+                    --marker "$(SourceLinkMarker)" --value $realRevision `
+                    --embedded-policy report 2>&1 |
+                    Tee-Object "$(ReplayMetricsDir)\sourcelink-finalization.log"
+                  if ($LASTEXITCODE -ne 0) {
+                    throw "SourceLink finalization failed ($LASTEXITCODE)."
+                  }
+
+                  Get-ChildItem $patchRoot -Recurse -File | ForEach-Object {
+                    $relative = [IO.Path]::GetRelativePath($patchRoot, $_.FullName)
+                    $destination = Join-Path $binRoot $relative
+                    if (-not (Test-Path -LiteralPath $destination -PathType Leaf)) {
+                      throw "Finalized output has no marker-space destination: $relative"
+                    }
+                    $temporary = "$destination.sourcelink-$([Guid]::NewGuid().ToString('N')).tmp"
+                    [IO.File]::Copy($_.FullName, $temporary)
+                    [IO.File]::Move($temporary, $destination, $true)
+                  }
+                }
+
+                & "$(Scripts)\Snap-Tree.ps1" -Roots @($binRoot) `
+                  -Out "$(ReplayMetricsDir)\final-bin.clixml"
+                if ($LASTEXITCODE -ne 0) {
+                  throw "Final bin inventory failed ($LASTEXITCODE)."
+                }
+
+          - task: PowerShell@2
+            displayName: Prepare current test payload
+            inputs:
+              filePath: eng/prepare-tests.ps1
+              arguments: -configuration Debug
+
+          - task: PowerShell@2
+            displayName: Write build metrics
+            condition: and(succeededOrFailed(), not(canceled()))
+            inputs:
+              targetType: inline
+              pwsh: true
+              workingDirectory: $(Build.SourcesDirectory)
+              script: |
+                $ErrorActionPreference = 'Stop'
+                $binlog = Get-ChildItem "$(Build.SourcesDirectory)\artifacts\log" -Recurse `
+                  -Filter Build.WarmCache.binlog -ErrorAction SilentlyContinue |
+                  Select-Object -First 1 -ExpandProperty FullName
+                $dotnet = "$(Build.SourcesDirectory)\.dotnet\dotnet.exe"
+                if ($binlog -and (Test-Path $binlog)) {
+                  & "$(Scripts)\Analyze-CoreCompileBinlog.ps1" `
+                    -Binlog $binlog `
+                    -DotNetPath $dotnet `
+                    -OutputPath "$(ReplayMetricsDir)\corecompile.json"
+                }
+                & "$(Scripts)\Write-ReplayMetrics.ps1" `
+                  -RepoRoot "$(Build.SourcesDirectory)" `
+                  -CacheStore "$(CacheStore)" `
+                  -MetricsDir "$(ReplayMetricsDir)" `
+                  -ReplayCommit '${{ parameters.ReplayCommit }}' `
+                  -ReplaySequence ${{ parameters.ReplaySequence }} `
+                  -ReplayExperimentId '${{ parameters.ReplayExperimentId }}' `
+                  -SdkFingerprint 'sdk-11.0.100-preview.6-stock' `
+                  -Solution 'Roslyn.slnx' `
+                  -BuildEngine 'vs' `
+                  -Seeded "$(Seeded)" `
+                  -PreviousBaselineSha "$(PreviousBaselineSha)" `
+                  -ForceCold '${{ parameters.ForceCold }}' `
+                  -RestoreSeconds $(RestoreSeconds) `
+                  -BuildSeconds $(BuildSeconds) `
+                  -CaptureSeconds $(CaptureSeconds)
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publish warmcache
+            condition: and(succeeded(), eq('${{ parameters.SourceLinkMode }}', 'marker'))
+            inputs:
+              targetPath: $(CacheStore)
+              artifactName: warmcache
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publish current test payload
+            condition: succeeded()
+            inputs:
+              targetPath: $(Build.SourcesDirectory)\artifacts\testPayload
+              artifactName: Transport_Artifacts_Windows_Debug
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publish build logs
+            condition: succeededOrFailed()
+            inputs:
+              targetPath: $(Build.SourcesDirectory)\artifacts\log
+              artifactName: build-binlogs
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publish build metrics
+            condition: and(succeededOrFailed(), not(canceled()))
+            inputs:
+              targetPath: $(ReplayMetricsDir)
+              artifactName: build-replay-metrics
+
+  - stage: Windows_Debug_Desktop
+    dependsOn:
+      - Patched_RunTests
+      - Windows_Debug_Build
+    jobs:
+      - template: eng/pipelines/test-windows-job.yml
         parameters:
-          configuration: Release
-    steps:
-      - template: eng/pipelines/checkout-windows-task.yml
+          testRunName: 'Test Windows Desktop Debug 32'
+          jobName: Test_Windows_Desktop_Debug_32
+          testArtifactName: Transport_Artifacts_Windows_Debug
+          configuration: Debug
+          testArguments: -testDesktop -testArch x86
+          helixQueueName: $(HelixWindowsVsQueueName)
+          helixApiAccessToken: ''
+          poolParameters: ${{ parameters.windowsPool }}
 
-      - task: PowerShell@2
-        displayName: Validate replay parameters
-        inputs:
-          targetType: inline
-          pwsh: true
-          script: |
-            if (${{ parameters.SourceBuildId }} -le 0) { throw 'SourceBuildId is required.' }
-            if ('${{ parameters.TestSkipStoreGeneration }}' -notmatch '^[A-Za-z0-9._-]+$') {
-              throw 'TestSkipStoreGeneration contains unsafe artifact-name characters.'
-            }
-            Write-Host "Sequence ${{ parameters.ReplaySequence }} source build ${{ parameters.SourceBuildId }}"
-            Write-Host "Experiment ${{ parameters.ReplayExperimentId }} forceTests=${{ parameters.ForceTests }}"
+      - template: eng/pipelines/test-windows-job.yml
+        parameters:
+          testRunName: 'Test Windows Desktop Debug 64'
+          jobName: Test_Windows_Desktop_Debug_64
+          testArtifactName: Transport_Artifacts_Windows_Debug
+          configuration: Debug
+          testArguments: -testDesktop -testArch x64
+          helixQueueName: $(HelixWindowsVsQueueName)
+          helixApiAccessToken: ''
+          poolParameters: ${{ parameters.windowsPool }}
 
-      - task: PowerShell@2
-        displayName: Build patched RunTests
-        inputs:
-          filePath: eng/build.ps1
-          arguments: -configuration Release -prepareMachine -ci -restore -build
-            -solution src/Tools/RunTests/RunTests.csproj -msbuildEngine dotnet
-            -binaryLogName PatchedRunTests.binlog
+  - stage: Windows_Debug_CoreClr
+    dependsOn:
+      - Patched_RunTests
+      - Windows_Debug_Build
+    jobs:
+      - template: eng/pipelines/test-windows-job.yml
+        parameters:
+          testRunName: 'Test Windows CoreClr Debug'
+          jobName: Test_Windows_CoreClr_Debug
+          testArtifactName: Transport_Artifacts_Windows_Debug
+          configuration: Debug
+          testArguments: -testCoreClr
+          diagnosticAssembly: ${{ parameters.DiagnosticAssembly }}
+          diagnosticTestMethod: ${{ parameters.DiagnosticTestMethod }}
+          injectTestFailure: ${{ parameters.InjectTestFailure }}
+          ilasmDiagnostic: ${{ parameters.IlasmDiagnostic }}
+          helixQueueName: $(HelixWindowsQueueName)
+          helixApiAccessToken: ''
+          poolParameters: ${{ parameters.windowsPool }}
 
-      - task: PowerShell@2
-        displayName: Stage patched RunTests
-        inputs:
-          targetType: inline
-          pwsh: true
-          script: |
-            $source = "$(Build.SourcesDirectory)\artifacts\bin\RunTests\Release\net10.0\RunTests.dll"
-            $target = "$(Build.ArtifactStagingDirectory)\patched-runtests"
-            if (-not (Test-Path $source)) { throw "Patched RunTests not found at $source" }
-            New-Item -ItemType Directory -Force $target | Out-Null
-            Copy-Item $source (Join-Path $target 'RunTests.dll') -Force
+      - template: eng/pipelines/test-windows-job.yml
+        parameters:
+          testRunName: 'Test Windows CoreClr Debug Spanish'
+          jobName: Test_Windows_CoreClr_Debug_Spanish
+          testArtifactName: Transport_Artifacts_Windows_Debug
+          configuration: Debug
+          testArguments: -testCoreClr
+          helixQueueName: $(HelixWindowsSpanishQueueName)
+          helixApiAccessToken: ''
+          poolParameters: ${{ parameters.windowsPool }}
 
-      - task: PublishPipelineArtifact@1
-        displayName: Publish patched RunTests
-        inputs:
-          targetPath: $(Build.ArtifactStagingDirectory)\patched-runtests
-          artifactName: patched-runtests
+      - template: eng/pipelines/test-windows-job-single-machine.yml
+        parameters:
+          testRunName: 'Test Windows CoreClr Debug Single Machine'
+          jobName: Test_Windows_CoreClr_Debug_Single_Machine
+          testArtifactName: Transport_Artifacts_Windows_Debug
+          configuration: Debug
+          poolParameters: ${{ parameters.vs2026PreviewPool }}
+          testArguments: -testCoreClr
 
-- stage: Windows_Debug_Desktop
-  dependsOn: Patched_RunTests
-  jobs:
-  - template: eng/pipelines/test-windows-job.yml
-    parameters:
-      testRunName: 'Test Windows Desktop Debug 32'
-      jobName: Test_Windows_Desktop_Debug_32
-      testArtifactName: Transport_Artifacts_Windows_Debug
-      configuration: Debug
-      testArguments: -testDesktop -testArch x86
-      diagnosticAssembly: ${{ parameters.DiagnosticAssembly }}
-      diagnosticTestMethod: ${{ parameters.DiagnosticTestMethod }}
-      ilasmDiagnostic: ${{ parameters.IlasmDiagnostic }}
-      helixQueueName: $(HelixWindowsVsQueueName)
-      helixApiAccessToken: ''
-      poolParameters: ${{ parameters.windowsPool }}
+      - template: eng/pipelines/test-windows-job.yml
+        parameters:
+          testRunName: 'Test Windows CoreCLR IOperation Debug'
+          jobName: Test_Windows_CoreClr_IOperation_Debug
+          testArtifactName: Transport_Artifacts_Windows_Debug
+          configuration: Debug
+          testArguments: -testCoreClr -testIOperation -testCompilerOnly
+          helixQueueName: $(HelixWindowsQueueName)
+          helixApiAccessToken: ''
+          poolParameters: ${{ parameters.windowsPool }}
 
-  - template: eng/pipelines/test-windows-job.yml
-    parameters:
-      testRunName: 'Test Windows Desktop Debug 64'
-      jobName: Test_Windows_Desktop_Debug_64
-      testArtifactName: Transport_Artifacts_Windows_Debug
-      configuration: Debug
-      testArguments: -testDesktop -testArch x64
-      diagnosticAssembly: ${{ parameters.DiagnosticAssembly }}
-      diagnosticTestMethod: ${{ parameters.DiagnosticTestMethod }}
-      ilasmDiagnostic: ${{ parameters.IlasmDiagnostic }}
-      helixQueueName: $(HelixWindowsVsQueueName)
-      helixApiAccessToken: ''
-      poolParameters: ${{ parameters.windowsPool }}
+      - template: eng/pipelines/test-windows-job.yml
+        parameters:
+          testRunName: 'Test Windows CoreCLR RuntimeAsync Debug'
+          jobName: Test_Windows_CoreClr_RuntimeAsync_Debug
+          testArtifactName: Transport_Artifacts_Windows_Debug
+          configuration: Debug
+          testArguments: -testCoreClr -testRuntimeAsync -testCompilerOnly
+          helixQueueName: $(HelixWindowsQueueName)
+          helixApiAccessToken: ''
+          poolParameters: ${{ parameters.windowsPool }}
 
-- stage: Windows_Release_Desktop
-  dependsOn: Patched_RunTests
-  jobs:
-  - template: eng/pipelines/test-windows-job.yml
-    parameters:
-      testRunName: 'Test Windows Desktop Release 32'
-      jobName: Test_Windows_Desktop_Release_32
-      testArtifactName: Transport_Artifacts_Windows_Release
-      configuration: Release
-      testArguments: -testDesktop -testArch x86
-      helixQueueName: $(HelixWindowsVsQueueName)
-      helixApiAccessToken: ''
-      poolParameters: ${{ parameters.windowsPool }}
-
-  - template: eng/pipelines/test-windows-job.yml
-    parameters:
-      testRunName: 'Test Windows Desktop Release 64'
-      jobName: Test_Windows_Desktop_Release_64
-      testArtifactName: Transport_Artifacts_Windows_Release
-      configuration: Release
-      testArguments: -testDesktop -testArch x64
-      helixQueueName: $(HelixWindowsVsQueueName)
-      helixApiAccessToken: ''
-      poolParameters: ${{ parameters.windowsPool }}
-
-  - template: eng/pipelines/test-windows-job.yml
-    parameters:
-      testRunName: 'Test Windows Desktop Spanish Release 64'
-      jobName: Test_Windows_Desktop_Spanish_Release_64
-      testArtifactName: Transport_Artifacts_Windows_Release
-      configuration: Release
-      testArguments: -testDesktop -testArch x64
-      helixQueueName: $(HelixWindowsSpanishQueueName)
-      helixApiAccessToken: ''
-      poolParameters: ${{ parameters.windowsPool }}
-
-- stage: Windows_Debug_CoreClr
-  dependsOn: Patched_RunTests
-  jobs:
-  - template: eng/pipelines/test-windows-job.yml
-    parameters:
-      testRunName: 'Test Windows CoreClr Debug'
-      jobName: Test_Windows_CoreClr_Debug
-      testArtifactName: Transport_Artifacts_Windows_Debug
-      configuration: Debug
-      testArguments: -testCoreClr
-      helixQueueName: $(HelixWindowsQueueName)
-      helixApiAccessToken: ''
-      poolParameters: ${{ parameters.windowsPool }}
-
-  - template: eng/pipelines/test-windows-job.yml
-    parameters:
-      testRunName: 'Test Windows CoreClr Debug Spanish'
-      jobName: Test_Windows_CoreClr_Debug_Spanish
-      testArtifactName: Transport_Artifacts_Windows_Debug
-      configuration: Debug
-      testArguments: -testCoreClr
-      helixQueueName: $(HelixWindowsSpanishQueueName)
-      helixApiAccessToken: ''
-      poolParameters: ${{ parameters.windowsPool }}
-
-  - template: eng/pipelines/test-windows-job-single-machine.yml
-    parameters:
-      testRunName: 'Test Windows CoreClr Debug Single Machine'
-      jobName: Test_Windows_CoreClr_Debug_Single_Machine
-      testArtifactName: Transport_Artifacts_Windows_Debug
-      configuration: Debug
-      poolParameters: ${{ parameters.vs2026PreviewPool }}
-      testArguments: -testCoreClr
-
-  - template: eng/pipelines/test-windows-job.yml
-    parameters:
-      testRunName: 'Test Windows CoreCLR IOperation Debug'
-      jobName: Test_Windows_CoreClr_IOperation_Debug
-      testArtifactName: Transport_Artifacts_Windows_Debug
-      configuration: Debug
-      testArguments: -testCoreClr -testIOperation -testCompilerOnly
-      helixQueueName: $(HelixWindowsQueueName)
-      helixApiAccessToken: ''
-      poolParameters: ${{ parameters.windowsPool }}
-
-  - template: eng/pipelines/test-windows-job.yml
-    parameters:
-      testRunName: 'Test Windows CoreCLR RuntimeAsync Debug'
-      jobName: Test_Windows_CoreClr_RuntimeAsync_Debug
-      testArtifactName: Transport_Artifacts_Windows_Debug
-      configuration: Debug
-      testArguments: -testCoreClr -testRuntimeAsync -testCompilerOnly
-      helixQueueName: $(HelixWindowsQueueName)
-      helixApiAccessToken: ''
-      poolParameters: ${{ parameters.windowsPool }}
-
-  - template: eng/pipelines/test-windows-job.yml
-    parameters:
-      testRunName: 'Test Windows CoreCLR UsedAssemblies Debug'
-      jobName: Test_Windows_CoreClr_UsedAssemblies_Debug
-      testArtifactName: Transport_Artifacts_Windows_Debug
-      configuration: Debug
-      testArguments: -testCoreClr -testUsedAssemblies -testCompilerOnly
-      helixQueueName: $(HelixWindowsQueueName)
-      helixApiAccessToken: ''
-      poolParameters: ${{ parameters.windowsPool }}
-
-- stage: Windows_Release_CoreClr
-  dependsOn: Patched_RunTests
-  jobs:
-  - template: eng/pipelines/test-windows-job.yml
-    parameters:
-      testRunName: 'Test Windows CoreClr Release'
-      jobName: Test_Windows_CoreClr_Release
-      testArtifactName: Transport_Artifacts_Windows_Release
-      configuration: Release
-      testArguments: -testCoreClr
-      helixQueueName: $(HelixWindowsQueueName)
-      helixApiAccessToken: ''
-      poolParameters: ${{ parameters.windowsPool }}
-
-- stage: Unix_Debug_CoreClr
-  dependsOn: Patched_RunTests
-  jobs:
-  - template: eng/pipelines/test-unix-job-single-machine.yml
-    parameters:
-      testRunName: 'Test Linux Debug'
-      jobName: Test_Linux_Debug
-      testArtifactName: Transport_Artifacts_Unix_Debug
-      configuration: Debug
-      testArguments: --testCoreClr
-      poolParameters: ${{ parameters.ubuntuPool }}
-
-  - template: eng/pipelines/test-unix-job-single-machine.yml
-    parameters:
-      testRunName: 'Test Linux Debug Spanish Single Machine'
-      jobName: Test_Linux_Debug_Spanish_Single_Machine
-      testArtifactName: Transport_Artifacts_Unix_Debug
-      configuration: Debug
-      testArguments: --testCoreClr
-      poolParameters: ${{ parameters.ubuntuPool }}
-      locale: es_ES.UTF-8
-
-- stage: MacOS_Debug_CoreClr
-  dependsOn: Patched_RunTests
-  jobs:
-  - template: eng/pipelines/test-unix-job.yml
-    parameters:
-      testRunName: 'Test macOS Debug'
-      jobName: Test_macOS_Debug
-      testArtifactName: Transport_Artifacts_macOS_Debug
-      configuration: Debug
-      testArguments: --testCoreClr
-      helixQueueName: $(HelixMacOsQueueName)
-      helixApiAccessToken: ''
-      poolParameters: ${{ parameters.ubuntuPool }}
+      - template: eng/pipelines/test-windows-job.yml
+        parameters:
+          testRunName: 'Test Windows CoreCLR UsedAssemblies Debug'
+          jobName: Test_Windows_CoreClr_UsedAssemblies_Debug
+          testArtifactName: Transport_Artifacts_Windows_Debug
+          configuration: Debug
+          testArguments: -testCoreClr -testUsedAssemblies -testCompilerOnly
+          helixQueueName: $(HelixWindowsQueueName)
+          helixApiAccessToken: ''
+          poolParameters: ${{ parameters.windowsPool }}
