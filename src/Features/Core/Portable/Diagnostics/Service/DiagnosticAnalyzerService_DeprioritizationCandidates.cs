@@ -24,6 +24,8 @@ internal sealed partial class DiagnosticAnalyzerService
     /// like appearing in a different language's compilation, or a compilation with different references, etc.
     /// We accept that this cache may be inaccurate in such scenarios as they are likely rare, and this only
     /// serves as a simple heuristic to order analyzer execution.  If wrong, it's not a major deal.
+    /// Each AsyncLazy wraps a single non-cancelable computation task, so request cancellation only cancels that
+    /// request's wait and cannot restart the analyzer initialization.
     /// </summary>
     private static readonly ConditionalWeakTable<DiagnosticAnalyzer, AsyncLazy<ImmutableHashSet<string>?>> s_analyzerToDeprioritizedDiagnosticIds = new();
 
@@ -56,32 +58,30 @@ internal sealed partial class DiagnosticAnalyzerService
                         project, analyzers, GetOrCreateHostAnalyzerInfo_OnlyCallInProcess(project), this.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
                 }
 
-                var createdLazy = AsyncLazy.Create(
-                    cancellationToken => ComputeDeprioritizedDiagnosticIdsAsync(analyzer, cancellationToken));
+                // Concurrent cache misses can create multiple candidate lazies. Defer Task.Run so candidates that
+                // lose the ConditionalWeakTable race do not start duplicate analyzer work.
+                var computationTaskGate = new object();
+                Task<ImmutableHashSet<string>?>? computationTask = null;
+                var createdLazy = AsyncLazy.Create(_ =>
+                {
+                    lock (computationTaskGate)
+                    {
+                        // AsyncLazy can invoke its delegate again after all of its requesters cancel, even if the
+                        // previous computation ignored cancellation and is still running. Always return the same
+                        // one-shot task so cancellation cannot start duplicate analyzer work.
+                        return computationTask ??= Task.Run(
+                            () => ComputeDeprioritizedDiagnosticIdsAsync(analyzer, CancellationToken.None),
+                            CancellationToken.None);
+                    }
+                });
                 lazyDeprioritizedIds = s_analyzerToDeprioritizedDiagnosticIds.GetValue(analyzer, _ => createdLazy);
 
                 if (ReferenceEquals(lazyDeprioritizedIds, createdLazy))
                 {
-                    // Follow the pattern in SolutionCompilationState.GeneratorDriverInitializationCache: AsyncLazy
-                    // cancels its computation when all requesters cancel, so keep one non-cancelable requester alive
-                    // to prevent repeated edits from repeatedly starting and canceling this initialization.
-                    _ = Task.Run(async () =>
-                    {
-                        try
-                        {
-                            await createdLazy.GetValueAsync(CancellationToken.None).ConfigureAwait(false);
-                        }
-                        catch (Exception ex) when (FatalError.ReportAndCatch(ex))
-                        {
-                            // Removing the failed lazy allows a later lookup to retry. Callers that already requested
-                            // its value will still observe this exception.
-                            if (s_analyzerToDeprioritizedDiagnosticIds.TryGetValue(analyzer, out var currentLazy) &&
-                                ReferenceEquals(currentLazy, createdLazy))
-                            {
-                                s_analyzerToDeprioritizedDiagnosticIds.Remove(analyzer);
-                            }
-                        }
-                    }, CancellationToken.None);
+                    // AsyncLazy gives each caller an independently cancelable wait. The shared task itself is
+                    // non-cancelable, so all callers can cancel without discarding and restarting its work.
+                    var keepAliveTask = createdLazy.GetValueAsync(CancellationToken.None);
+                    _ = ObserveKeepAliveTaskAsync(analyzer, createdLazy, keepAliveTask);
                 }
             }
 
@@ -122,14 +122,35 @@ internal sealed partial class DiagnosticAnalyzerService
         }
     }
 
+    private static async Task ObserveKeepAliveTaskAsync(
+        DiagnosticAnalyzer analyzer,
+        AsyncLazy<ImmutableHashSet<string>?> createdLazy,
+        Task<ImmutableHashSet<string>?> keepAliveTask)
+    {
+        try
+        {
+            await keepAliveTask.ConfigureAwait(false);
+        }
+        catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+        {
+            // Every request through createdLazy resolves to this same one-shot task. Existing callers still observe
+            // this exception, but a stale reference cannot start a retry. Removing the matching cache entry allows
+            // a later lookup to create a fresh task instead.
+            if (s_analyzerToDeprioritizedDiagnosticIds.TryGetValue(analyzer, out var currentLazy) &&
+                ReferenceEquals(currentLazy, createdLazy))
+            {
+                s_analyzerToDeprioritizedDiagnosticIds.Remove(analyzer);
+            }
+        }
+    }
+
     private static async Task<ImmutableHashSet<string>?> GetCachedDeprioritizedDiagnosticIdsAsync(
         DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
     {
         Contract.ThrowIfFalse(s_analyzerToDeprioritizedDiagnosticIds.TryGetValue(analyzer, out var lazy));
 
-        // A caller that joins before this computation faults will observe the same exception. AsyncLazy does not
-        // cache failures, so a caller arriving after the fault but before the cache entry is removed can retry
-        // the computation through this same lazy.
+        // AsyncLazy only coordinates each caller's cancellation. Its delegate returns the same one-shot task even
+        // after a fault, so this await cannot start another computation through a stale cache entry.
         return await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
     }
 }
