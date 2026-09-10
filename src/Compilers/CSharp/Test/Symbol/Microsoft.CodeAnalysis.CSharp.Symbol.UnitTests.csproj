@@ -4,7 +4,15 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetExt>.dll</TargetExt>
-    <RootNamespace>Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests</RootNamespace>
+    <!--
+      Not "Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests": xunit.v3's build-time codegen
+      generates a "namespace $(RootNamespace) { ... }" block (SelfRegisteredExtensions.cs) even
+      though this project doesn't use Microsoft.Testing.Platform. A "Symbol" namespace segment
+      here collides with the real Microsoft.CodeAnalysis.CSharp.Symbol type wherever that
+      namespace is open via `using`, causing CS0118 ('Symbol' is a namespace but is used like a
+      type). Avoid the collision by not giving "Symbol" its own namespace segment.
+    -->
+    <RootNamespace>Microsoft.CodeAnalysis.CSharp.SymbolUnitTests</RootNamespace>
     <NoStdLib>true</NoStdLib>
     <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
