@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
@@ -24,6 +25,7 @@ internal sealed partial class LoadedProject
         private readonly LoadedProject _project;
 
         private readonly ProjectSystemProject _projectSystemProject;
+        private ProjectCapabilityManager? _projectCapabilityManager;
         public bool NeedsRestore { get; private set; }
         public ProjectSystemProjectFactory ProjectFactory { get; }
         private readonly ProjectSystemProjectOptionsProcessor _optionsProcessor;
@@ -96,12 +98,20 @@ internal sealed partial class LoadedProject
             _mostRecentProjectAssetsFileWatcher?.Dispose();
             _assetsFileChangeContext.Dispose();
             _optionsProcessor.Dispose();
+            _projectCapabilityManager?.RemoveProject(ProjectId);
             _projectSystemProject.RemoveFromWorkspace();
         }
 
-        public async ValueTask UpdateWithNewProjectInfoAsync(ProjectFileInfo newProjectInfo, bool isMiscellaneousFile, bool hasAllInformation, ProjectTargetFrameworkManager targetFrameworkManager, ILogger logger)
+        public async ValueTask UpdateWithNewProjectInfoAsync(
+            ProjectFileInfo newProjectInfo,
+            bool isMiscellaneousFile,
+            bool hasAllInformation,
+            ProjectTargetFrameworkManager targetFrameworkManager,
+            ProjectCapabilityManager projectCapabilityManager,
+            ILogger logger)
         {
             Contract.ThrowIfFalse(_project._gate.CurrentCount == 0, $"We should be holding {nameof(LoadedProject)}.{nameof(LoadedProject._gate)} for all methods in this class.");
+            _projectCapabilityManager = projectCapabilityManager;
 
             if (_mostRecentFileInfo != null)
             {
@@ -132,6 +142,8 @@ internal sealed partial class LoadedProject
             {
                 targetFrameworkManager.UpdateIdentifierForProject(_projectSystemProject.Id, newProjectInfo.TargetFrameworkIdentifier);
             }
+
+            projectCapabilityManager.UpdateCapabilities(_projectSystemProject.Id, newProjectInfo.ProjectCapabilities);
 
             _optionsProcessor.SetCommandLine([.. newProjectInfo.CommandLineArgs]);
             var commandLineArguments = _optionsProcessor.GetParsedCommandLineArguments();

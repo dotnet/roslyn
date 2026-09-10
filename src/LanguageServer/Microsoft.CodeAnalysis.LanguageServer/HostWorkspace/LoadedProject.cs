@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -208,6 +209,7 @@ internal sealed partial class LoadedProject : IAsyncDisposable
         bool hasAllInformation,
         ProjectSystemProjectFactory projectFactory,
         ProjectTargetFrameworkManager targetFrameworkManager,
+        ProjectCapabilityManager projectCapabilityManager,
         LanguageServerWorkspaceFactory workspaceFactory,
         ILogger logger,
         CancellationToken cancellationToken,
@@ -228,7 +230,7 @@ internal sealed partial class LoadedProject : IAsyncDisposable
             {
                 var target = await GetOrCreateProjectTargetAsync(loadedProjectInfo, projectFactory, workspaceFactory, cancellationToken);
                 staleTargets.Remove(target);
-                await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, isMiscellaneousFile, hasAllInformation, targetFrameworkManager, logger);
+                await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, isMiscellaneousFile, hasAllInformation, targetFrameworkManager, projectCapabilityManager, logger);
             }
 
             // Now that we've created or updated projects, we can now remove any old projects that went away
