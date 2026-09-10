@@ -42,3 +42,11 @@ public class MyTests
   fact and theory discoverers. Its Visual Studio-specific test cases must carry
   xUnit's source information, traits, skip metadata, and unique IDs when adding
   the `VisualStudioInstanceKey` suffix.
+- .NET Framework xUnit v3 test projects in the VisualStudio integration-test
+  harness still keep `TargetExt=.dll` to satisfy the repo's unit-test naming
+  checks, and add a post-build step to copy the built DLL/config to a matching
+  `.exe` app host for discovery and execution.
+- If a .NET Framework test project in this layer uses `ThrowingTraceListener`
+  under xUnit v3, include an explicit `app.config` when the listener type lives
+  outside the default `Microsoft.CodeAnalysis.Test.Utilities` assembly, so the
+  out-of-proc test host can start with the correct listener binding.
