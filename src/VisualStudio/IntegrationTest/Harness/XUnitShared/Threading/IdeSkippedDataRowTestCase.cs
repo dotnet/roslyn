@@ -5,12 +5,13 @@
 namespace Xunit.Threading
 {
     using System;
+    using System.Collections.Generic;
     using System.ComponentModel;
-    using Xunit.Abstractions;
     using Xunit.Harness;
     using Xunit.Sdk;
+    using Xunit.v3;
 
-    public sealed class IdeSkippedDataRowTestCase : XunitSkippedDataRowTestCase
+    public sealed class IdeSkippedDataRowTestCase : IdeTestCaseBase
     {
         [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("Called by the deserializer; should only be called by deriving classes for deserialization purposes", error: true)]
@@ -18,49 +19,25 @@ namespace Xunit.Threading
         {
         }
 
-        public IdeSkippedDataRowTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod, VisualStudioInstanceKey visualStudioInstanceKey, string skipReason, object?[]? testMethodArguments = null)
-            : base(diagnosticMessageSink, defaultMethodDisplay, defaultMethodDisplayOptions, testMethod, skipReason, testMethodArguments)
+        public IdeSkippedDataRowTestCase(
+            IXunitTestMethod testMethod,
+            string testCaseDisplayName,
+            string uniqueID,
+            bool @explicit,
+            Type[]? skipExceptions,
+            string? skipReason,
+            Type? skipType,
+            string? skipUnless,
+            string? skipWhen,
+            Dictionary<string, HashSet<string>> traits,
+            object?[] testMethodArguments,
+            string? sourceFilePath,
+            int? sourceLineNumber,
+            int? timeout,
+            VisualStudioInstanceKey visualStudioInstanceKey,
+            ITheoryDataRow dataRow)
+            : base(testMethod, testCaseDisplayName, uniqueID, @explicit, skipExceptions, skipReason, skipType, skipUnless, skipWhen, traits, testMethodArguments, sourceFilePath, sourceLineNumber, timeout, visualStudioInstanceKey, dataRow.Label, dataRow.DisableParallelization ?? false, includeRootSuffixInUniqueID: false)
         {
-            VisualStudioInstanceKey = visualStudioInstanceKey;
-        }
-
-        public VisualStudioInstanceKey VisualStudioInstanceKey
-        {
-            get;
-            private set;
-        }
-
-        protected override string GetDisplayName(IAttributeInfo factAttribute, string displayName)
-        {
-            var baseName = base.GetDisplayName(factAttribute, displayName);
-            return $"{baseName} ({VisualStudioInstanceKey.Version})";
-        }
-
-        protected override string GetUniqueID()
-        {
-            return $"{base.GetUniqueID()}_{VisualStudioInstanceKey.Version}";
-        }
-
-        public override void Serialize(IXunitSerializationInfo data)
-        {
-            if (data is null)
-            {
-                throw new ArgumentNullException(nameof(data));
-            }
-
-            base.Serialize(data);
-            data.AddValue(nameof(VisualStudioInstanceKey), VisualStudioInstanceKey.SerializeToString());
-        }
-
-        public override void Deserialize(IXunitSerializationInfo data)
-        {
-            if (data is null)
-            {
-                throw new ArgumentNullException(nameof(data));
-            }
-
-            VisualStudioInstanceKey = VisualStudioInstanceKey.DeserializeFromString(data.GetValue<string>(nameof(VisualStudioInstanceKey)));
-            base.Deserialize(data);
         }
     }
 }

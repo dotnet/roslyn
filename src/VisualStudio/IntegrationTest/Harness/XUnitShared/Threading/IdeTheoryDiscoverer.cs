@@ -5,58 +5,90 @@
 namespace Xunit.Threading
 {
     using System.Collections.Generic;
-    using Xunit.Abstractions;
+    using System.Threading.Tasks;
     using Xunit.Sdk;
+    using Xunit.v3;
 
     public class IdeTheoryDiscoverer : TheoryDiscoverer
     {
-        public IdeTheoryDiscoverer(IMessageSink diagnosticMessageSink)
-            : base(diagnosticMessageSink)
+        protected override ValueTask<IReadOnlyCollection<IXunitTestCase>> CreateTestCasesForDataRow(ITestFrameworkDiscoveryOptions discoveryOptions, IXunitTestMethod testMethod, ITheoryAttribute theoryAttribute, ITheoryDataRow dataRow, object?[] testMethodArguments, string? index)
         {
-        }
-
-        protected override IEnumerable<IXunitTestCase> CreateTestCasesForSkip(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute, string skipReason)
-        {
+            var details = TestIntrospectionHelper.GetTestCaseDetailsForTheoryDataRow(discoveryOptions, testMethod, theoryAttribute, dataRow, testMethodArguments, index);
+            var testCases = new List<IXunitTestCase>();
             foreach (var supportedInstance in IdeFactDiscoverer.GetSupportedInstances(testMethod, theoryAttribute))
             {
-                yield return new IdeTestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, supportedInstance);
-                if (IdeInstanceTestCase.TryCreateNewInstanceForFramework(discoveryOptions, DiagnosticMessageSink, supportedInstance) is { } instanceTestCase)
-                {
-                    yield return instanceTestCase;
-                }
+                var traits = TestIntrospectionHelper.GetTraits(testMethod, dataRow);
+                testCases.Add(details.SkipReason is not null && details.SkipUnless is null && details.SkipWhen is null
+                    ? new IdeSkippedDataRowTestCase(
+                        details.ResolvedTestMethod,
+                        details.TestCaseDisplayName,
+                        details.UniqueID,
+                        details.Explicit,
+                        details.SkipExceptions,
+                        details.SkipReason,
+                        details.SkipType,
+                        details.SkipUnless,
+                        details.SkipWhen,
+                        traits,
+                        testMethodArguments,
+                        details.SourceFilePath,
+                        details.SourceLineNumber,
+                        details.Timeout,
+                        supportedInstance,
+                        dataRow)
+                    : new IdeTestCase(
+                        details.ResolvedTestMethod,
+                        details.TestCaseDisplayName,
+                        details.UniqueID,
+                        details.Explicit,
+                        details.SkipExceptions,
+                        details.SkipReason,
+                        details.SkipType,
+                        details.SkipUnless,
+                        details.SkipWhen,
+                        traits,
+                        testMethodArguments,
+                        details.SourceFilePath,
+                        details.SourceLineNumber,
+                        details.Timeout,
+                        supportedInstance,
+                        dataRow.Label,
+                        dataRow.DisableParallelization ?? false));
+
+                if (IdeInstanceTestCase.TryCreateNewInstanceForFramework(discoveryOptions, supportedInstance) is { } instanceTestCase)
+                    testCases.Add(instanceTestCase);
             }
+
+            return new(testCases);
         }
 
-        protected override IEnumerable<IXunitTestCase> CreateTestCasesForSkippedDataRow(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute, object?[] dataRow, string skipReason)
+        protected override ValueTask<IReadOnlyCollection<IXunitTestCase>> CreateTestCasesForTheory(ITestFrameworkDiscoveryOptions discoveryOptions, IXunitTestMethod testMethod, ITheoryAttribute theoryAttribute)
         {
+            var details = TestIntrospectionHelper.GetTestCaseDetails(discoveryOptions, testMethod, theoryAttribute);
+            var testCases = new List<IXunitTestCase>();
             foreach (var supportedInstance in IdeFactDiscoverer.GetSupportedInstances(testMethod, theoryAttribute))
             {
-                yield return new IdeSkippedDataRowTestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, supportedInstance, skipReason, dataRow);
+                testCases.Add(new IdeTheoryTestCase(
+                    details.ResolvedTestMethod,
+                    details.TestCaseDisplayName,
+                    details.UniqueID,
+                    details.Explicit,
+                    details.SkipExceptions,
+                    details.SkipReason,
+                    details.SkipType,
+                    details.SkipUnless,
+                    details.SkipWhen,
+                    TestIntrospectionHelper.GetTraits(testMethod, dataRow: null),
+                    theoryAttribute.SkipTestWithoutData,
+                    details.SourceFilePath,
+                    details.SourceLineNumber,
+                    details.Timeout,
+                    supportedInstance));
+                if (IdeInstanceTestCase.TryCreateNewInstanceForFramework(discoveryOptions, supportedInstance) is { } instanceTestCase)
+                    testCases.Add(instanceTestCase);
             }
-        }
 
-        protected override IEnumerable<IXunitTestCase> CreateTestCasesForDataRow(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute, object?[] dataRow)
-        {
-            foreach (var supportedInstance in IdeFactDiscoverer.GetSupportedInstances(testMethod, theoryAttribute))
-            {
-                yield return new IdeTestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, supportedInstance, dataRow);
-                if (IdeInstanceTestCase.TryCreateNewInstanceForFramework(discoveryOptions, DiagnosticMessageSink, supportedInstance) is { } instanceTestCase)
-                {
-                    yield return instanceTestCase;
-                }
-            }
-        }
-
-        protected override IEnumerable<IXunitTestCase> CreateTestCasesForTheory(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute)
-        {
-            foreach (var supportedInstance in IdeFactDiscoverer.GetSupportedInstances(testMethod, theoryAttribute))
-            {
-                yield return new IdeTheoryTestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, supportedInstance);
-                if (IdeInstanceTestCase.TryCreateNewInstanceForFramework(discoveryOptions, DiagnosticMessageSink, supportedInstance) is { } instanceTestCase)
-                {
-                    yield return instanceTestCase;
-                }
-            }
+            return new(testCases);
         }
     }
 }

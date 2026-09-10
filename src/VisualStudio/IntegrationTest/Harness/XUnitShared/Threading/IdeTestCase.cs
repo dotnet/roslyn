@@ -5,12 +5,13 @@
 namespace Xunit.Threading
 {
     using System;
+    using System.Collections.Generic;
     using System.ComponentModel;
     using System.Threading;
     using System.Threading.Tasks;
-    using Xunit.Abstractions;
     using Xunit.Harness;
     using Xunit.Sdk;
+    using Xunit.v3;
 
     public sealed class IdeTestCase : IdeTestCaseBase
     {
@@ -20,8 +21,25 @@ namespace Xunit.Threading
         {
         }
 
-        public IdeTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod, VisualStudioInstanceKey visualStudioInstanceKey, object?[]? testMethodArguments = null)
-            : base(diagnosticMessageSink, defaultMethodDisplay, defaultMethodDisplayOptions, testMethod, visualStudioInstanceKey, testMethodArguments)
+        public IdeTestCase(
+            IXunitTestMethod testMethod,
+            string testCaseDisplayName,
+            string uniqueID,
+            bool @explicit,
+            Type[]? skipExceptions,
+            string? skipReason,
+            Type? skipType,
+            string? skipUnless,
+            string? skipWhen,
+            Dictionary<string, HashSet<string>> traits,
+            object?[]? testMethodArguments,
+            string? sourceFilePath,
+            int? sourceLineNumber,
+            int? timeout,
+            VisualStudioInstanceKey visualStudioInstanceKey,
+            string? testLabel = null,
+            bool disableParallelization = false)
+            : base(testMethod, testCaseDisplayName, uniqueID, @explicit, skipExceptions, skipReason, skipType, skipUnless, skipWhen, traits, testMethodArguments, sourceFilePath, sourceLineNumber, timeout, visualStudioInstanceKey, testLabel, disableParallelization)
         {
         }
 

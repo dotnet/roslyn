@@ -6,13 +6,14 @@ namespace Xunit.Threading
 {
     using System;
     using System.Collections.Immutable;
+    using System.Collections.Generic;
     using System.ComponentModel;
     using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
-    using Xunit.Abstractions;
     using Xunit.Harness;
     using Xunit.Sdk;
+    using Xunit.v3;
 
     public sealed class IdeInstanceTestCase : IdeTestCaseBase
     {
@@ -32,17 +33,48 @@ namespace Xunit.Threading
         {
         }
 
-        public IdeInstanceTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod, VisualStudioInstanceKey visualStudioInstanceKey, object?[]? testMethodArguments = null)
-            : base(diagnosticMessageSink, defaultMethodDisplay, defaultMethodDisplayOptions, testMethod, visualStudioInstanceKey, testMethodArguments)
+        public IdeInstanceTestCase(
+            IXunitTestMethod testMethod,
+            string testCaseDisplayName,
+            string uniqueID,
+            bool @explicit,
+            Type[]? skipExceptions,
+            string? skipReason,
+            Type? skipType,
+            string? skipUnless,
+            string? skipWhen,
+            Dictionary<string, HashSet<string>> traits,
+            object?[]? testMethodArguments,
+            string? sourceFilePath,
+            int? sourceLineNumber,
+            int? timeout,
+            VisualStudioInstanceKey visualStudioInstanceKey)
+            : base(testMethod, testCaseDisplayName, uniqueID, @explicit, skipExceptions, skipReason, skipType, skipUnless, skipWhen, traits, testMethodArguments, sourceFilePath, sourceLineNumber, timeout, visualStudioInstanceKey, includeRootSuffixInDisplayName: true)
         {
         }
 
-        protected override bool IncludeRootSuffixInDisplayName => true;
-
-        public static IdeInstanceTestCase? TryCreateNewInstanceForFramework(ITestFrameworkDiscoveryOptions discoveryOptions, IMessageSink diagnosticMessageSink, VisualStudioInstanceKey visualStudioInstanceKey)
+        public static IdeInstanceTestCase? TryCreateNewInstanceForFramework(ITestFrameworkDiscoveryOptions discoveryOptions, VisualStudioInstanceKey visualStudioInstanceKey)
         {
             var lazyInstances = _instances.GetValue(discoveryOptions, static _ => new StrongBox<ImmutableDictionary<VisualStudioInstanceKey, IdeInstanceTestCase>>(ImmutableDictionary<VisualStudioInstanceKey, IdeInstanceTestCase>.Empty));
-            var candidateTestCase = new IdeInstanceTestCase(diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), IdeFactDiscoverer.CreateVisualStudioTestMethod(), visualStudioInstanceKey);
+            var testMethod = IdeFactDiscoverer.CreateVisualStudioTestMethod();
+            var factAttribute = testMethod.FactAttributes.Single();
+            var details = TestIntrospectionHelper.GetTestCaseDetails(discoveryOptions, testMethod, factAttribute);
+            var candidateTestCase = new IdeInstanceTestCase(
+                details.ResolvedTestMethod,
+                details.TestCaseDisplayName,
+                details.UniqueID,
+                details.Explicit,
+                details.SkipExceptions,
+                details.SkipReason,
+                details.SkipType,
+                details.SkipUnless,
+                details.SkipWhen,
+                TestIntrospectionHelper.GetTraits(testMethod, dataRow: null),
+                testMethodArguments: null,
+                details.SourceFilePath,
+                details.SourceLineNumber,
+                details.Timeout,
+                visualStudioInstanceKey);
             var testCase = ImmutableInterlocked.GetOrAdd(ref lazyInstances.Value, visualStudioInstanceKey, candidateTestCase);
             if (testCase != candidateTestCase)
             {

@@ -35,3 +35,10 @@ public class MyTests
   test source code.
 - Keep tests focused — avoid unnecessary intermediary assertions; use `.Single()`
   rather than asserting a count then indexing.
+
+## Visual Studio integration harness
+
+- `src/VisualStudio/IntegrationTest/Harness/XUnitShared` supplies custom xUnit v3
+  fact and theory discoverers. Its Visual Studio-specific test cases must carry
+  xUnit's source information, traits, skip metadata, and unique IDs when adding
+  the `VisualStudioInstanceKey` suffix.
