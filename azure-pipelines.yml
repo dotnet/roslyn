@@ -54,6 +54,15 @@ parameters:
   - name: SingleMachineTestTimeoutMinutes
     type: number
     default: 90
+  - name: DiagnosticAssembly
+    type: string
+    default: ''
+  - name: DiagnosticTestMethod
+    type: string
+    default: ''
+  - name: IlasmDiagnostic
+    type: boolean
+    default: false
   - name: ubuntuPool
     type: object
     default:
@@ -133,6 +142,9 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testDesktop -testArch x86
+      diagnosticAssembly: ${{ parameters.DiagnosticAssembly }}
+      diagnosticTestMethod: ${{ parameters.DiagnosticTestMethod }}
+      ilasmDiagnostic: ${{ parameters.IlasmDiagnostic }}
       helixQueueName: $(HelixWindowsVsQueueName)
       helixApiAccessToken: ''
       poolParameters: ${{ parameters.windowsPool }}
@@ -144,6 +156,9 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testDesktop -testArch x64
+      diagnosticAssembly: ${{ parameters.DiagnosticAssembly }}
+      diagnosticTestMethod: ${{ parameters.DiagnosticTestMethod }}
+      ilasmDiagnostic: ${{ parameters.IlasmDiagnostic }}
       helixQueueName: $(HelixWindowsVsQueueName)
       helixApiAccessToken: ''
       poolParameters: ${{ parameters.windowsPool }}

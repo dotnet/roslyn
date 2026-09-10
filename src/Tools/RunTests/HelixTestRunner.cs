@@ -129,7 +129,8 @@ internal sealed class HelixTestRunner
 
         // Retrieve test runtimes from azure devops historical data.
         var testHistory = await TestHistoryManager.GetTestHistoryAsync(options, cancellationToken);
-        var helixWorkItems = AssemblyScheduler.Schedule(assemblies.Select(x => x.AssemblyPath), platform, testHistory);
+        var helixWorkItems = CreateDiagnosticWorkItem() ??
+            AssemblyScheduler.Schedule(assemblies.Select(x => x.AssemblyPath), platform, testHistory);
         var timeout = testHistory is null ? WorkItemExecutionTimeout * 2 : WorkItemExecutionTimeout;
         var helixProjectFileContent = GetHelixProjectFileContent(
             helixWorkItems,
@@ -148,6 +149,30 @@ internal sealed class HelixTestRunner
         File.Copy(helixFilePath, Path.Combine(logsDir, "helix.proj"));
 
         return helixFilePath;
+
+        ImmutableArray<HelixWorkItem>? CreateDiagnosticWorkItem()
+        {
+            if (Environment.GetEnvironmentVariable("ROSLYN_TEST_SKIP_DIAGNOSTIC_TEST_METHOD") is not string { Length: > 0 } testMethod)
+            {
+                return null;
+            }
+
+            if (assemblies.Length != 1)
+            {
+                throw new InvalidOperationException(
+                    $"A diagnostic test method requires exactly one assembly, but {assemblies.Length} were selected.");
+            }
+
+            ConsoleUtil.WriteLine($"Test-skip diagnostic: restricted Helix execution to {testMethod}.");
+            return
+            [
+                new HelixWorkItem(
+                    id: 0,
+                    assemblyFilePaths: [assemblies[0].AssemblyPath],
+                    testMethodNames: [testMethod],
+                    estimatedExecutionTime: null)
+            ];
+        }
     }
 
     /// <summary>
@@ -321,6 +346,16 @@ internal sealed class HelixTestRunner
 
             var (commandFileName, commandContent) = GetHelixCommandContent(assemblyRelativeFilePaths, rspFileName, testOS);
             File.WriteAllText(Path.Combine(workItemPayloadDir, commandFileName), commandContent);
+            if (testOS == TestOS.Windows &&
+                string.Equals(
+                    Environment.GetEnvironmentVariable("ROSLYN_TEST_SKIP_ILASM_DIAGNOSTIC"),
+                    "true",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                File.WriteAllText(
+                    Path.Combine(workItemPayloadDir, "ilasm-diagnostic.ps1"),
+                    GetIlasmDiagnosticScript());
+            }
 
             var (postCommandFileName, postCommandContent) = GetHelixPostCommandContent(testOS);
             File.WriteAllText(Path.Combine(workItemPayloadDir, postCommandFileName), postCommandContent);
@@ -388,6 +423,14 @@ internal sealed class HelixTestRunner
             command.AppendLine(isUnix ? "env | sort" : "set");
 
             command.AppendLine("powershell -ExecutionPolicy ByPass -NoProfile -File ./eng/enable-preview-sdks.ps1");
+            if (!isUnix &&
+                string.Equals(
+                    Environment.GetEnvironmentVariable("ROSLYN_TEST_SKIP_ILASM_DIAGNOSTIC"),
+                    "true",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                command.AppendLine("powershell -ExecutionPolicy ByPass -NoProfile -File ./ilasm-diagnostic.ps1");
+            }
 
             // Rehydrate assemblies that we need to run as part of this work item.
             foreach (var assemblyRelativeFilePath in assemblyRelativeFilePaths)
@@ -430,6 +473,98 @@ internal sealed class HelixTestRunner
 
             return (isUnix ? "command.sh" : "command.cmd", command.ToString());
         }
+
+        static string GetIlasmDiagnosticScript() =>
+            """
+            $ErrorActionPreference = 'Stop'
+
+            $ilPath = Join-Path $env:HELIX_WORKITEM_UPLOAD_ROOT 'ilasm-diagnostic.il'
+            @'
+            .assembly 'ilasm_diagnostic' {}
+
+            .assembly extern mscorlib
+            {
+              .publickeytoken = (B7 7A 5C 56 19 34 E0 89)
+              .ver 4:0:0:0
+            }
+
+            .class interface public auto ansi abstract I1
+            {
+                .method public hidebysig specialname virtual static
+                    int32 get_M01 () cil managed
+                {
+                  .maxstack 8
+                  IL_0000: ldnull
+                  IL_0001: throw
+                }
+
+                .method public hidebysig specialname virtual static
+                    void modopt(I1) set_M01 (
+                        int32 modopt(I1) 'value'
+                    ) cil managed
+                {
+                  .maxstack 8
+                  IL_0000: ldnull
+                  IL_0001: throw
+                }
+
+                .property int32 M01()
+                {
+                    .get int32 I1::get_M01()
+                    .set void modopt(I1) I1::set_M01(int32 modopt(I1))
+                }
+            }
+
+            .class interface public auto ansi abstract I2
+            {
+                .method public hidebysig specialname abstract virtual static
+                    int32 modopt(I2) get_M01 () cil managed
+                {
+                }
+
+                .method public hidebysig specialname abstract virtual static
+                    void set_M01 (
+                        int32 modopt(I2) 'value'
+                    ) cil managed
+                {
+                }
+
+                .property int32 modopt(I2) M01()
+                {
+                    .get int32 modopt(I2) I2::get_M01()
+                    .set void I2::set_M01(int32 modopt(I2))
+                }
+            }
+            '@ | Set-Content -Path $ilPath -Encoding ascii
+
+            $results = foreach ($architecture in 'x86', 'x64')
+            {
+                $frameworkDirectory = if ($architecture -eq 'x86') { 'Framework' } else { 'Framework64' }
+                $ilasmPath = Join-Path $env:WINDIR "Microsoft.NET\$frameworkDirectory\v4.0.30319\ilasm.exe"
+                $outputPath = Join-Path $env:HELIX_WORKITEM_UPLOAD_ROOT "ilasm-diagnostic-$architecture.dll"
+                $file = Get-Item $ilasmPath
+                $ilasmHash = (Get-FileHash $ilasmPath -Algorithm SHA256).Hash
+                & $ilasmPath $ilPath -DLL "-out=$outputPath"
+                if ($LASTEXITCODE -ne 0)
+                {
+                    throw "$ilasmPath exited with code $LASTEXITCODE."
+                }
+
+                [pscustomobject]@{
+                    Architecture = $architecture
+                    IlasmPath = $ilasmPath
+                    IlasmVersion = $file.VersionInfo.FileVersion
+                    IlasmLength = $file.Length
+                    IlasmSha256 = $ilasmHash
+                    OutputLength = (Get-Item $outputPath).Length
+                    OutputSha256 = (Get-FileHash $outputPath -Algorithm SHA256).Hash
+                }
+            }
+
+            $results | Format-List | Out-String | Write-Host
+            $results | ConvertTo-Json | Set-Content (
+                Join-Path $env:HELIX_WORKITEM_UPLOAD_ROOT 'ilasm-diagnostic.json') -Encoding ascii
+            """;
 
         static (string FileName, string Content) GetHelixPostCommandContent(TestOS testOS)
         {
