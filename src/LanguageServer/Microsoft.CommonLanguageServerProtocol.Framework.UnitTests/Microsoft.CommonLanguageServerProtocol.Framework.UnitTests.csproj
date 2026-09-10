@@ -4,7 +4,8 @@
   <PropertyGroup>
     <StartupObject />
     <TargetFrameworks>$(NetRoslynAll);net472</TargetFrameworks>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
+    <TargetExt>.dll</TargetExt>
     <RootNamespace>Microsoft.CommonLanguageServerProtocol.Framework.UnitTests</RootNamespace>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
