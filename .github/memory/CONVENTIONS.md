@@ -53,11 +53,6 @@ var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
 - The testing-library projects do not copy NuGet runtime dependencies into their .NET Framework output directories. Final test projects resolve and copy the unified dependency graph.
 - Roslyn SDK samples and Visual Studio SDK project templates retain NuGet package references because they model standalone consumers outside the repository source graph.
 
-### CI test payload artifacts
-
-- Shared Windows and Unix build jobs suffix test payload artifact names with `-Attempt$(System.JobAttempt)` and expose the name through `SetTestArtifactName.testArtifactName`.
-- Consuming stages resolve that output through `stageDependencies`. Use the producer's name, not the consuming test job's attempt, so build retries and test-only retries both select the correct payload.
-
 ## Patterns Explicitly Avoided
 
 - **No `TODO` or `TODO2` comments** — CI correctness leg flags `TODO`. Track follow-up work as a GitHub issue and link it in code (e.g. `// https://github.com/dotnet/roslyn/issues/NNNN`). Existing `TODO2` markers are a frozen baseline from when enforcement started, not a pattern to follow.
