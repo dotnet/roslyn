@@ -75,7 +75,8 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
         if (!globalOptionService.GetOption(LspOptionsStorage.LspUsingDevkitFeatures) && testsCodeLensEnabled)
         {
             // Only return test codelenses if we're not using devkit.
-            AddTestCodeLens(codeLenses, members, document, text, textDocumentIdentifier);
+            var useSemanticTestDiscovery = globalOptionService.GetOption(LspOptionsStorage.LspUseSemanticTestDiscovery, document.Project.Language);
+            await AddTestCodeLensAsync(codeLenses, members, document, text, textDocumentIdentifier, useSemanticTestDiscovery, cancellationToken).ConfigureAwait(false);
         }
 
         return codeLenses.ToArray();
@@ -107,12 +108,14 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
         }
     }
 
-    private static void AddTestCodeLens(
+    private static async Task AddTestCodeLensAsync(
         ArrayBuilder<LSP.CodeLens> codeLenses,
         ImmutableArray<CodeLensMember> members,
         Document document,
         SourceText text,
-        LSP.TextDocumentIdentifier textDocumentIdentifier)
+        LSP.TextDocumentIdentifier textDocumentIdentifier,
+        bool useSemanticTestDiscovery,
+        CancellationToken cancellationToken)
     {
         var testMethodFinder = document.GetLanguageService<ITestMethodFinder>();
         // The service is not implemented for all languages.
@@ -122,11 +125,14 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
         }
 
         // Find test method members.
+        var memberNodes = members.SelectAsArray(static member => member.Node);
+        var testMethodNodes = await testMethodFinder.GetTestMethodsAsync(
+            document, memberNodes, useSemanticTestDiscovery, cancellationToken).ConfigureAwait(false);
+
         using var _ = ArrayBuilder<CodeLensMember>.GetInstance(out var testMethodMembers);
         foreach (var member in members)
         {
-            var isTestMethod = testMethodFinder.IsTestMethod(member.Node);
-            if (isTestMethod)
+            if (testMethodNodes.Contains(member.Node))
             {
                 testMethodMembers.Add(member);
             }

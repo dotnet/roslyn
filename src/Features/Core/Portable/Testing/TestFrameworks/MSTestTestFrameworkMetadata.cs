@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -11,6 +12,9 @@ namespace Microsoft.CodeAnalysis.Features.Testing;
 [Export(typeof(ITestFrameworkMetadata)), Shared]
 internal sealed class MSTestTestFrameworkMetadata : ITestFrameworkMetadata
 {
+    public ImmutableArray<string> TestAttributeMetadataNames { get; } =
+        ["Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute"];
+
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public MSTestTestFrameworkMetadata()

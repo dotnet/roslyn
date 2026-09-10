@@ -30,11 +30,10 @@ internal abstract class AbstractTestMethodFinder<TMethodDeclaration>(IEnumerable
 
     protected abstract bool DescendIntoChildren(SyntaxNode node);
 
-    public async Task<ImmutableArray<SyntaxNode>> GetPotentialTestMethodsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<SyntaxNode>> GetPotentialTestMethodsAsync(
+        Document document, TextSpan textSpan, bool useSemanticDiscovery, CancellationToken cancellationToken)
     {
-        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-        var testNodes = await GetPotentialTestNodesAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+        var testNodes = await GetPotentialTestNodesAsync(document, textSpan, useSemanticDiscovery, cancellationToken).ConfigureAwait(false);
 
         // Find any test methods that intersect with the requested span.
         var intersectingNodes = testNodes.WhereAsArray(node => node.Span.IntersectsWith(textSpan));
@@ -78,20 +77,33 @@ internal abstract class AbstractTestMethodFinder<TMethodDeclaration>(IEnumerable
         return fullyQualifiedMethodName == fullyQualifiedTestName;
     }
 
-    public bool IsTestMethod(SyntaxNode node)
+    public async Task<ImmutableArray<SyntaxNode>> GetTestMethodsAsync(
+        Document document, ImmutableArray<SyntaxNode> nodes, bool useSemanticDiscovery, CancellationToken cancellationToken)
     {
-        return node is TMethodDeclaration method && IsTestMethod(method);
+        var semanticModel = useSemanticDiscovery
+            ? await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false)
+            : null;
+        var testAttributeTypes = semanticModel is null ? [] : GetTestAttributeTypes(semanticModel.Compilation);
+
+        return nodes.WhereAsArray(node =>
+            node is TMethodDeclaration method &&
+            IsTestMethod(method, semanticModel, testAttributeTypes, cancellationToken));
     }
 
-    private async Task<ImmutableArray<SyntaxNode>> GetPotentialTestNodesAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+    private async Task<ImmutableArray<SyntaxNode>> GetPotentialTestNodesAsync(
+        Document document, TextSpan textSpan, bool useSemanticDiscovery, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var methodsInRange = root.DescendantNodesAndSelf(descendIntoChildren: ShouldDescend, descendIntoTrivia: false).OfType<TMethodDeclaration>();
+        var semanticModel = useSemanticDiscovery
+            ? await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false)
+            : null;
+        var testAttributeTypes = semanticModel is null ? [] : GetTestAttributeTypes(semanticModel.Compilation);
 
         using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var testMethods);
         foreach (var method in methodsInRange)
         {
-            if (IsTestMethod(method))
+            if (IsTestMethod(method, semanticModel, testAttributeTypes, cancellationToken))
             {
                 testMethods.Add(method);
             }
@@ -109,5 +121,55 @@ internal abstract class AbstractTestMethodFinder<TMethodDeclaration>(IEnumerable
             // If the text span doesn't intersect with the node at all we don't need to explore it.
             return node.Span.IntersectsWith(textSpan) && DescendIntoChildren(node);
         }
+    }
+
+    private bool IsTestMethod(
+        TMethodDeclaration method,
+        SemanticModel? semanticModel,
+        ImmutableArray<INamedTypeSymbol> testAttributeTypes,
+        CancellationToken cancellationToken)
+    {
+        if (semanticModel is null)
+        {
+            return IsTestMethod(method);
+        }
+
+        var methodSymbol = semanticModel.GetDeclaredSymbol(method, cancellationToken);
+        if (methodSymbol is null)
+        {
+            return false;
+        }
+
+        foreach (var attribute in methodSymbol.GetAttributes())
+        {
+            for (var attributeType = attribute.AttributeClass; attributeType is not null; attributeType = attributeType.BaseType)
+            {
+                if (testAttributeTypes.Contains(attributeType, SymbolEqualityComparer.Default))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private ImmutableArray<INamedTypeSymbol> GetTestAttributeTypes(Compilation compilation)
+    {
+        using var _ = ArrayBuilder<INamedTypeSymbol>.GetInstance(out var builder);
+
+        foreach (var metadata in TestFrameworkMetadata)
+        {
+            foreach (var metadataName in metadata.TestAttributeMetadataNames)
+            {
+                var attributeType = compilation.GetTypeByMetadataName(metadataName);
+                if (attributeType is not null)
+                {
+                    builder.Add(attributeType);
+                }
+            }
+        }
+
+        return builder.ToImmutableAndClear();
     }
 }

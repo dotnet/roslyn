@@ -500,6 +500,79 @@ public sealed class CSharpCodeLensTests : AbstractCodeLensTests
     }
 
     [Theory, CombinatorialData]
+    public async Task TestSemanticDiscoveryFindsDerivedTestAttributeAsync(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            using System;
+            namespace Xunit
+            {
+                [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+                public class FactAttribute : Attribute { }
+            }
+            namespace Test
+            {
+                using Xunit;
+
+                public class ConditionalFactAttribute : FactAttribute { }
+                public sealed class WindowsOnlyFactAttribute : ConditionalFactAttribute { }
+
+                class A
+                {
+                    [WindowsOnlyFact]
+                    public void {|codeLens:M|}()
+                    {
+                    }
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions
+        {
+            ClientCapabilities = CapabilitiesWithVSExtensions,
+            OptionUpdater = (globalOptions) =>
+            {
+                globalOptions.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, false);
+                globalOptions.SetGlobalOption(LspOptionsStorage.LspUseSemanticTestDiscovery, LanguageNames.CSharp, true);
+            }
+        });
+        await VerifyTestCodeLensAsync(testLspServer, FeaturesResources.Run_Test, FeaturesResources.Debug_Test);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestSemanticDiscoveryDisabledByDefaultAsync(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            using System;
+            namespace Xunit
+            {
+                [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+                public class FactAttribute : Attribute { }
+            }
+            namespace Test
+            {
+                using Xunit;
+
+                public sealed class ConditionalFactAttribute : FactAttribute { }
+
+                class A
+                {
+                    [ConditionalFact]
+                    public void {|codeLens:M|}()
+                    {
+                    }
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions
+        {
+            ClientCapabilities = CapabilitiesWithVSExtensions,
+            OptionUpdater = (globalOptions) => globalOptions.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, false)
+        });
+        await VerifyTestCodeLensMissingAsync(testLspServer);
+    }
+
+    [Theory, CombinatorialData]
     public async Task TestHasAllTestsCommandAsync(bool mutatingLspWorkspace)
     {
         var markup =

@@ -14,15 +14,15 @@ internal interface ITestMethodFinder : ILanguageService
 {
     /// <summary>
     /// Finds potential test methods in the range.  This is not intended to be 100% accurate, but good enough without exploding complexity.
-    /// For example, this does not consider inheritance.
+    /// Semantic discovery recognizes derived test attribute types when enabled.
     /// </summary>
-    Task<ImmutableArray<SyntaxNode>> GetPotentialTestMethodsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
+    Task<ImmutableArray<SyntaxNode>> GetPotentialTestMethodsAsync(Document document, TextSpan textSpan, bool useSemanticDiscovery, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Determines if the given method node is a potential test method.
-    /// This is used in code lens computation, so it generally does syntax-only checks.
+    /// Finds potential test methods in <paramref name="nodes"/>.
     /// </summary>
-    bool IsTestMethod(SyntaxNode node);
+    Task<ImmutableArray<SyntaxNode>> GetTestMethodsAsync(
+        Document document, ImmutableArray<SyntaxNode> nodes, bool useSemanticDiscovery, CancellationToken cancellationToken);
 
     /// <summary>
     /// Determines if a node is a likely match for the fully qualified test name.
