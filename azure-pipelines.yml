@@ -445,6 +445,13 @@ stages:
               filePath: eng/prepare-tests.ps1
               arguments: -configuration Debug
 
+          - task: UseDotNet@2
+            displayName: Install binlog reader SDK
+            inputs:
+              packageType: sdk
+              version: 11.0.100-rc.1.26420.103
+              installationPath: $(Agent.TempDirectory)\binlog-sdk
+
           - task: PowerShell@2
             displayName: Write build metrics
             condition: and(succeededOrFailed(), not(canceled()))
@@ -457,7 +464,7 @@ stages:
                 $binlog = Get-ChildItem "$(Build.SourcesDirectory)\artifacts\log" -Recurse `
                   -Filter Build.WarmCache.binlog -ErrorAction SilentlyContinue |
                   Select-Object -First 1 -ExpandProperty FullName
-                $dotnet = "$(Build.SourcesDirectory)\.dotnet\dotnet.exe"
+                $dotnet = "$(Agent.TempDirectory)\binlog-sdk\dotnet.exe"
                 if ($binlog -and (Test-Path $binlog)) {
                   & "$(Scripts)\Analyze-CoreCompileBinlog.ps1" `
                     -Binlog $binlog `
@@ -495,11 +502,25 @@ stages:
               targetPath: $(Build.SourcesDirectory)\artifacts\testPayload
               artifactName: Transport_Artifacts_Windows_Debug
 
+          - task: PowerShell@2
+            displayName: Stage build binlogs
+            condition: and(succeededOrFailed(), not(canceled()))
+            inputs:
+              targetType: inline
+              pwsh: true
+              script: |
+                $target = "$(Build.ArtifactStagingDirectory)\build-binlogs"
+                New-Item -ItemType Directory -Force $target | Out-Null
+                Get-ChildItem "$(Build.SourcesDirectory)\artifacts\log" -Recurse -File -Filter '*.binlog' |
+                  ForEach-Object {
+                    Copy-Item $_.FullName (Join-Path $target $_.Name) -Force
+                  }
+
           - task: PublishPipelineArtifact@1
             displayName: Publish build logs
             condition: succeededOrFailed()
             inputs:
-              targetPath: $(Build.SourcesDirectory)\artifacts\log
+              targetPath: $(Build.ArtifactStagingDirectory)\build-binlogs
               artifactName: build-binlogs
 
           - task: PublishPipelineArtifact@1
