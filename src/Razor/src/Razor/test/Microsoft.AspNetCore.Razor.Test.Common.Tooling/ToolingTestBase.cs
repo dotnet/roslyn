@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor.Test.Common.Logging;
 using Microsoft.CodeAnalysis.Razor.Logging;
 
 using Microsoft.VisualStudio.Threading;
-using Xunit;
 using IAsyncDisposable = System.IAsyncDisposable;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;
@@ -34,13 +33,6 @@ namespace Microsoft.AspNetCore.Razor.Test.Common;
 /// </summary>
 public abstract partial class ToolingTestBase : IAsyncLifetime
 {
-    static ToolingTestBase()
-    {
-#if NET472
-        XunitDisposeHook.Initialize();
-#endif
-    }
-
     private readonly JoinableTaskCollection _joinableTaskCollection;
     private readonly CancellationTokenSource _disposalTokenSource;
     private List<IDisposable>? _disposables;
@@ -99,9 +91,9 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
         Thread.CurrentThread.Name ??= "Main Thread";
     }
 
-    Task IAsyncLifetime.InitializeAsync() => InitializeAsync();
+    ValueTask IAsyncLifetime.InitializeAsync() => new(InitializeAsync());
 
-    async Task IAsyncLifetime.DisposeAsync()
+    async ValueTask IAsyncDisposable.DisposeAsync()
     {
         // First, call the protected DisposeAsync() to let test classes to run custom logic.
         await DisposeAsync();

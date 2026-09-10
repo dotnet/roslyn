@@ -1,12 +1,10 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.Extensibility.Testing;
-using Xunit;
-using Xunit.Sdk;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests;
@@ -22,7 +20,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 /// <item><description><see cref="BeforeAfterTestAttribute.Before"/></description></item>
 /// <item><description>Test method</description></item>
 /// <item><description><see cref="BeforeAfterTestAttribute.After"/></description></item>
-/// <item><description><see cref="IAsyncLifetime.DisposeAsync"/></description></item>
+/// <item><description><see cref="IAsyncDisposable.DisposeAsync"/></description></item>
 /// <item><description><see cref="IDisposable.Dispose"/></description></item>
 /// </list>
 /// </remarks>

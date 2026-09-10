@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Linq;
@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -58,6 +57,53 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
                 }
                 """,
             codeActionName: PredefinedCodeFixProviderNames.GenerateMethod);
+
+    [Fact]
+    public Task GenerateMethod_NoCodeBlock_UsesEditorConfig()
+        => VerifyCodeActionAsync(
+            csharpFile: """
+                using SomeProject;
+                using Microsoft.AspNetCore.Components;
+
+                public class C
+                {
+                    private void M()
+                    {
+                        new Component().$$NewMethod();
+                    }
+                }
+                """,
+            razorFile: """
+                This is a Razor document.
+
+                <Component></Component>
+
+                The end.
+                """,
+            expectedRazorFile: """
+                @using System
+                This is a Razor document.
+
+                <Component></Component>
+
+                The end.
+                @code {
+                    internal void NewMethod ()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """,
+            codeActionName: PredefinedCodeFixProviderNames.GenerateMethod,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_space_between_method_declaration_name_and_open_parenthesis = true
+                    """)
+            ]);
 
     [Fact]
     public async Task GenerateMethod_NoCodeBlock_CodeBlockBraceOnNextLine()
@@ -672,6 +718,7 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
         return composition
             .AddParts(typeof(RazorSourceGeneratedDocumentSpanMappingService))
             .AddParts(typeof(RazorSourceGeneratedDocumentSpanMappingServiceWrapper))
+            .AddParts(typeof(RazorSourceGeneratedDocumentAnalyzerConfigOptionsProvider))
             .AddParts(typeof(ExportableRemoteServiceInvoker));
     }
 
@@ -680,9 +727,13 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
         TestCode razorFile,
         TestCode expectedRazorFile,
         string codeActionName,
-        int childActionIndex = 0)
+        int childActionIndex = 0,
+        (string fileName, string contents)[]? additionalFiles = null)
     {
-        var razorDocument = CreateProjectAndRazorDocument(razorFile.Text, documentFilePath: FilePath("Component.razor"), additionalFiles: [(FilePath("File.cs"), csharpFile.Text)]);
+        (string fileName, string contents)[] projectFiles = additionalFiles is null
+            ? [(FilePath("File.cs"), csharpFile.Text)]
+            : additionalFiles.Prepend((FilePath("File.cs"), csharpFile.Text)).ToArray();
+        var razorDocument = CreateProjectAndRazorDocument(razorFile.Text, documentFilePath: FilePath("Component.razor"), additionalFiles: projectFiles);
         var project = razorDocument.Project;
         var csharpDocument = project.Documents.First();
         var solution = csharpDocument.Project.Solution;

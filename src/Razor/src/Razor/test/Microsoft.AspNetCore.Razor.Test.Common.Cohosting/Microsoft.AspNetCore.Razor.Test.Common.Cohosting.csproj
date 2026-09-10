@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\..\Shared\Microsoft.AspNetCore.Razor.Test.Common\XunitGlobalUsings.cs" Link="XunitGlobalUsings.cs" />
     <ProjectReference Include="..\..\..\Shared\Microsoft.AspNetCore.Razor.Test.Common\Microsoft.AspNetCore.Razor.Test.Common.csproj" />
     <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
@@ -33,7 +34,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzer.Testing" />
     <ProjectReference Include="..\..\..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\..\..\..\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
     <ProjectReference Include="..\..\..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
@@ -44,10 +44,22 @@
     <PackageReference Include="Microsoft.VisualStudio.Threading" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" />
     <PackageReference Include="Moq" />
+    <PackageReference Include="xunit.v3.assert">
+      <Aliases>XunitV3</Aliases>
+    </PackageReference>
     <PackageReference Include="xunit.analyzers" />
-    <PackageReference Include="xunit.v3.extensibility.core" />
-    <PackageReference Include="Xunit.Combinatorial" />
-    <PackageReference Include="Xunit.StaFact" />
+    <PackageReference Include="xunit.v3.common">
+      <Aliases>XunitV3</Aliases>
+    </PackageReference>
+    <PackageReference Include="xunit.v3.extensibility.core">
+      <Aliases>XunitV3</Aliases>
+    </PackageReference>
+    <PackageReference Include="Xunit.Combinatorial">
+      <Aliases>XunitV3</Aliases>
+    </PackageReference>
+    <PackageReference Include="Xunit.StaFact">
+      <Aliases>XunitV3</Aliases>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == '$(NetFxVS)'">

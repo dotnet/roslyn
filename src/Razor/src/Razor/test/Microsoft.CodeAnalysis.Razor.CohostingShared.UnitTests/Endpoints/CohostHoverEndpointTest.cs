@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -144,7 +143,7 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
         await VerifyHoverAsync(code, htmlResponse, h => Assert.Same(htmlResponse, h));
     }
 
-    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public async Task CSharp_Impl()
     {
         TestCode code = """
@@ -177,7 +176,7 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
         });
     }
 
-    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public async Task CSharp_Decl()
     {
         TestCode code = """
@@ -214,7 +213,7 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
         });
     }
 
-    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public async Task CSharp_Legacy()
     {
         TestCode code = """

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Linq;
@@ -6,13 +6,12 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.VisualStudioCode.RazorExtension.Services;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Microsoft.VisualStudioCode.RazorExtension.Test;
 
 public class MEFCompositionTest(ITestOutputHelper testOutputHelper) : ToolingTestBase(testOutputHelper)
 {
-    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public void Composes()
     {
         var testComposition = TestComposition.RoslynFeatures

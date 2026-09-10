@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
@@ -12,13 +12,12 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Microsoft.VisualStudioCode.RazorExtension.Test.Endpoints;
 
 public class CohostCodeLensEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
-    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public Task OneMethod()
     {
         return VerifyCodeLensAsync("""
@@ -34,7 +33,7 @@ public class CohostCodeLensEndpointTest(ITestOutputHelper testOutputHelper) : Co
             expectedTitles: ["0 references"]);
     }
 
-    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public Task OneProperty_WithMarkup()
     {
         return VerifyCodeLensAsync("""
@@ -45,7 +44,7 @@ public class CohostCodeLensEndpointTest(ITestOutputHelper testOutputHelper) : Co
             expectedTitles: ["0 references"]);
     }
 
-    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public Task OneMethod_WithMarkup()
     {
         return VerifyCodeLensAsync("""
@@ -56,7 +55,7 @@ public class CohostCodeLensEndpointTest(ITestOutputHelper testOutputHelper) : Co
             expectedTitles: ["0 references"]);
     }
 
-    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public Task OneMethod_Legacy()
     {
         return VerifyCodeLensAsync("""
@@ -73,7 +72,7 @@ public class CohostCodeLensEndpointTest(ITestOutputHelper testOutputHelper) : Co
             fileKind: RazorFileKind.Legacy);
     }
 
-    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public Task TwoMethods()
     {
         return VerifyCodeLensAsync("""
@@ -94,7 +93,7 @@ public class CohostCodeLensEndpointTest(ITestOutputHelper testOutputHelper) : Co
             expectedTitles: ["0 references", "1 reference"]);
     }
 
-    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public Task TwoMethods_Legacy()
     {
         return VerifyCodeLensAsync("""
@@ -116,7 +115,7 @@ public class CohostCodeLensEndpointTest(ITestOutputHelper testOutputHelper) : Co
             fileKind: RazorFileKind.Legacy);
     }
 
-    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public Task UsageInRazor()
     {
         return VerifyCodeLensAsync("""
@@ -134,7 +133,7 @@ public class CohostCodeLensEndpointTest(ITestOutputHelper testOutputHelper) : Co
             expectedTitles: ["1 reference"]);
     }
 
-    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public Task UsageInRazor_Legacy()
     {
         return VerifyCodeLensAsync("""

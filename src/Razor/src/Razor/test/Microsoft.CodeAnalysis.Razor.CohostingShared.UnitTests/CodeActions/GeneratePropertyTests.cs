@@ -1,10 +1,9 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Xunit;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.CodeActions;
 
@@ -43,6 +42,48 @@ public class GeneratePropertyTests(ITestOutputHelper testOutputHelper) : CohostC
             PredefinedCodeFixProviderNames.GenerateVariable,
             codeActionIndex: PropertyActionIndex,
             makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task GenerateProperty_FromCodeBlock_ExistingCodeBlock_UsesEditorConfig()
+    {
+        var input = """
+            @code
+            {
+                private (int, string) M()
+                {
+                    return [||]NewProperty;
+                }
+            }
+            """;
+
+        var expected = """
+            @code
+            {
+                private (int, string) M()
+                {
+                    return NewProperty;
+                }
+
+                public (int,string) NewProperty { get; private set; }
+            }
+            """;
+
+        await VerifyCodeActionAsync(
+            input,
+            expected,
+            PredefinedCodeFixProviderNames.GenerateVariable,
+            codeActionIndex: PropertyActionIndex,
+            makeDiagnosticsRequest: true,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_space_after_comma = false
+                    """)
+            ]);
     }
 
     [Fact]

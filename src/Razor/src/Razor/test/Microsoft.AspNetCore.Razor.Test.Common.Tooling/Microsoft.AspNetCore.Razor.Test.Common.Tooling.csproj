@@ -16,6 +16,7 @@
     <Compile Remove="Resources\**\*.*" />
     <None Remove="Resources\**\*.*" />
     <Compile Include="..\..\src\Microsoft.CodeAnalysis.Razor.Workspaces\GlobalUsings.cs" Link="GlobalUsings.cs" />
+    <Compile Include="..\..\..\Shared\Microsoft.AspNetCore.Razor.Test.Common\XunitGlobalUsings.cs" Link="XunitGlobalUsings.cs" />
 
     <EmbeddedResource Include="Resources\**\*.*" />
     <EmbeddedResource Include="$(SharedFilesRoot)\Tooling\**\*.*" Link="Resources\%(RecursiveDir)%(Filename)%(Extension)" />
@@ -44,7 +45,7 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzer.Testing" />
+    <ProjectReference Include="..\..\..\..\..\RoslynSdk\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.Analyzer.Testing\Microsoft.CodeAnalysis.Analyzer.Testing.csproj" />
     <ProjectReference Include="..\..\..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\..\..\..\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
     <ProjectReference Include="..\..\..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
@@ -56,10 +57,22 @@
     <PackageReference Include="Microsoft.VisualStudio.Threading" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" />
     <PackageReference Include="Moq" />
+    <PackageReference Include="xunit.v3.assert">
+      <Aliases>XunitV3</Aliases>
+    </PackageReference>
     <PackageReference Include="xunit.analyzers" />
-    <PackageReference Include="xunit.v3.extensibility.core" />
-    <PackageReference Include="Xunit.Combinatorial" />
-    <PackageReference Include="Xunit.StaFact" />
+    <PackageReference Include="xunit.v3.common">
+      <Aliases>XunitV3</Aliases>
+    </PackageReference>
+    <PackageReference Include="xunit.v3.extensibility.core">
+      <Aliases>XunitV3</Aliases>
+    </PackageReference>
+    <PackageReference Include="Xunit.Combinatorial">
+      <Aliases>XunitV3</Aliases>
+    </PackageReference>
+    <PackageReference Include="Xunit.StaFact">
+      <Aliases>XunitV3</Aliases>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == '$(NetFxVS)'">

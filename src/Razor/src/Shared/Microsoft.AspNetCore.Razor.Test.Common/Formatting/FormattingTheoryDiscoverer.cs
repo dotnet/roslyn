@@ -1,25 +1,47 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+extern alias XunitV3;
+
 using System.Collections.Generic;
-using Xunit.Sdk;
+using System.Threading.Tasks;
+using XunitV3::Xunit;
+using XunitV3::Xunit.Sdk;
+using XunitV3::Xunit.v3;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;
 
-internal sealed class FormattingTheoryDiscoverer(IMessageSink diagnosticMessageSink)
-    : TheoryDiscoverer(diagnosticMessageSink)
+public sealed class FormattingTheoryDiscoverer : TheoryDiscoverer
 {
-    public override IEnumerable<IXunitTestCase> Discover(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute)
+    public override ValueTask<IReadOnlyCollection<IXunitTestCase>> Discover(
+        ITestFrameworkDiscoveryOptions discoveryOptions,
+        IXunitTestMethod testMethod,
+        IFactAttribute factAttribute)
     {
-        // We have to force pre-enumeration of theories for this discoverer to work correctly. Normally its true in VS,
+        // We have to force pre-enumeration of theories for this discoverer to work correctly. Normally it's true in VS,
         // but false in command line/CI. Since we're injecting "fake" data rows, we rely on it everywhere. Without this
         // set to true, the method below that we override doesn't get called.
         discoveryOptions.SetValue("xunit.discovery.PreEnumerateTheories", true);
-        return base.Discover(discoveryOptions, testMethod, theoryAttribute);
+        return base.Discover(discoveryOptions, testMethod, factAttribute);
     }
 
-    protected override IEnumerable<IXunitTestCase> CreateTestCasesForDataRow(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute, object[] dataRow)
+    protected override ValueTask<IReadOnlyCollection<IXunitTestCase>> CreateTestCasesForDataRow(
+        ITestFrameworkDiscoveryOptions discoveryOptions,
+        IXunitTestMethod testMethod,
+        ITheoryAttribute theoryAttribute,
+        ITheoryDataRow dataRow,
+        object?[] testMethodArguments,
+        string testCaseDisplayName)
     {
-        return FormattingFactDiscoverer.CreateTestCases(discoveryOptions, testMethod, DiagnosticMessageSink, dataRow);
+        var details = TestIntrospectionHelper.GetTestCaseDetailsForTheoryDataRow(
+            discoveryOptions,
+            testMethod,
+            theoryAttribute,
+            dataRow,
+            testMethodArguments,
+            testCaseDisplayName);
+        var traits = TestIntrospectionHelper.GetTraits(testMethod, dataRow);
+
+        return new(FormattingFactDiscoverer.CreateTestCases(details, traits, testMethodArguments));
     }
 }

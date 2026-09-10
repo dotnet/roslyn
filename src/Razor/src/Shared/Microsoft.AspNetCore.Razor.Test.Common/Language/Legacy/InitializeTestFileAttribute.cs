@@ -1,12 +1,12 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+
+extern alias XunitV3;
 
 #nullable disable
 
 using System.Reflection;
-using Xunit;
-using Xunit.Sdk;
-using Xunit.v3;
+using XunitV3::Xunit.v3;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 

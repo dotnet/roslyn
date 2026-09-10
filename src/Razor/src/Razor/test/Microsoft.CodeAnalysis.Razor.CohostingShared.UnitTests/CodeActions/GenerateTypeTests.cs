@@ -1,10 +1,9 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Xunit;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.CodeActions;
 
@@ -41,6 +40,45 @@ public class GenerateTypeTests(ITestOutputHelper testOutputHelper) : CohostCodeA
             codeActionName: PredefinedCodeFixProviderNames.GenerateType,
             codeActionIndex: 1,
             makeDiagnosticsRequest: true);
+
+    [Fact]
+    public Task GenerateType_FromCodeBlock_ExistingCodeBlock_UsesEditorConfig()
+        => VerifyCodeActionAsync(
+            input: """
+                @code
+                {
+                    private object M()
+                    {
+                        return new [||]MissingType();
+                    }
+                }
+                """,
+            expected: """
+                @code
+                {
+                    private object M()
+                    {
+                        return new MissingType();
+                    }
+
+                    private class MissingType {
+                        public MissingType() {
+                        }
+                    }
+                }
+                """,
+            codeActionName: PredefinedCodeFixProviderNames.GenerateType,
+            codeActionIndex: 1,
+            makeDiagnosticsRequest: true,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_new_line_before_open_brace = none
+                    """)
+            ]);
 
     [Fact]
     public Task GenerateType_FromCodeBlock_ExistingCodeBlock_Struct()

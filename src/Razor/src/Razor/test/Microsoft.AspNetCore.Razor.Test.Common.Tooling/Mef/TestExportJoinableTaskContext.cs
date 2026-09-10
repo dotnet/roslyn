@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.ComponentModel.Composition;
@@ -81,11 +81,7 @@ public partial class TestExportJoinableTaskContext
     }
 
     internal static SynchronizationContext? GetEffectiveSynchronizationContext()
-    {
-        // xUnit v3 no longer installs a custom SynchronizationContext (e.g. AsyncTestSyncContext) for
-        // async Task test methods, so the current context is always the effective one.
-        return SynchronizationContext.Current;
-    }
+        => SynchronizationContext.Current;
 
 #if false
 /// <summary>

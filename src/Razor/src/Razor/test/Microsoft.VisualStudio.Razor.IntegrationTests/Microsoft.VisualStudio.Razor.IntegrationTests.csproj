@@ -6,7 +6,7 @@
     <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
     <TargetFramework>$(NetFxVS)</TargetFramework>
     <Nullable>enable</Nullable>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <RootNamespace>Microsoft.VisualStudio.Razor.IntegrationTests</RootNamespace>
 
     <!-- Must use "dotnet test" to get blame-hang options -->
@@ -47,14 +47,13 @@
          pull in the right version, this can be removed. -->
     <PackageReference Include="Microsoft.IO.Redist" Condition="'$(TargetFramework)' == '$(NetFxVS)'" />
     <PackageReference Include="Microsoft.Internal.VisualStudio.Shell.Framework" />
-    <PackageReference Include="xunit.runner.utility" />
-    <PackageReference Include="xunit.runner.console" Version="$(XUnitRunnerConsoleVersion)" IsImplicitlyDefined="true" PrivateAssets="all" Publish="true" />
+    <PackageReference Include="xunit.v3.runner.utility" />
+    <PackageReference Include="xunit.v3.runner.console" Version="4.0.0" IsImplicitlyDefined="true" PrivateAssets="all" Publish="true" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="**\TestFiles\**\*" />
   </ItemGroup>
-
 
   <Import Project="..\..\..\..\..\VisualStudio\IntegrationTest\Harness\XUnitShared\build\Microsoft.VisualStudio.Extensibility.Testing.Xunit.targets" />
 </Project>
