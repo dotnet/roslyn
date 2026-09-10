@@ -206,7 +206,7 @@ namespace Xunit.Harness
                 GetExtensionFiles(testCases),
                 ImmutableHashSet<string>.Empty).ConfigureAwait(true);
 
-            var messageSink = new BufferedMessageSink(context, finalAttempt, completedTestCaseIds);
+            var messageSink = new BufferedMessageSink(context, testCases, finalAttempt, completedTestCaseIds);
             marshalledObjects.Add(messageSink);
             var request = new TestExecutionRequest(testCases, context.ExecutionOptionsValue);
             TestExecutionResult result;
@@ -221,14 +221,14 @@ namespace Xunit.Harness
                 messageSink.Flush(publishMessages);
             }
 
-            return new RunSummary
+            return messageSink.AdjustRunSummary(new RunSummary
             {
                 Total = result.Total,
-                Failed = finalAttempt ? result.Failed : 0,
-                Skipped = result.Skipped + (finalAttempt ? 0 : result.Failed),
+                Failed = result.Failed,
+                Skipped = result.Skipped,
                 NotRun = result.NotRun,
                 Time = result.Time,
-            };
+            });
         }
 
         private static async ValueTask<RunSummary> RunLocallyAsync(
@@ -236,7 +236,7 @@ namespace Xunit.Harness
             IReadOnlyCollection<IXunitTestCase> testCases,
             HashSet<string> completedTestCaseIds)
         {
-            var messageSink = new BufferedMessageSink(context, finalAttempt: true, completedTestCaseIds);
+            var messageSink = new BufferedMessageSink(context, testCases, finalAttempt: true, completedTestCaseIds);
             var summary = await XunitTestAssemblyRunner.Instance.Run(
                 context.TestAssembly,
                 testCases,
@@ -323,16 +323,26 @@ namespace Xunit.Harness
         private sealed class BufferedMessageSink : TestExecutionMessageSink
         {
             private readonly Context _context;
+            private readonly IReadOnlyDictionary<string, IXunitTestCase> _knownTestCasesByUniqueId;
             private readonly bool _finalAttempt;
             private readonly HashSet<string> _completedTestCaseIds;
             private readonly List<string> _messages = new();
+            private readonly Dictionary<string, RetrySummaryAdjustment> _retrySummaryAdjustmentsByUniqueId = new(StringComparer.Ordinal);
 
             public BufferedMessageSink(
                 Context context,
+                IEnumerable<IXunitTestCase> testCases,
                 bool finalAttempt,
                 HashSet<string> completedTestCaseIds)
             {
                 _context = context;
+                var knownTestCasesByUniqueId = new Dictionary<string, IXunitTestCase>(StringComparer.Ordinal);
+                foreach (var testCase in testCases)
+                {
+                    knownTestCasesByUniqueId[testCase.UniqueID] = testCase;
+                }
+
+                _knownTestCasesByUniqueId = knownTestCasesByUniqueId;
                 _finalAttempt = finalAttempt;
                 _completedTestCaseIds = completedTestCaseIds;
             }
@@ -373,9 +383,52 @@ namespace Xunit.Harness
                         }
                         else
                         {
+                            _retrySummaryAdjustmentsByUniqueId.Add(
+                                testCaseFinished.TestCaseUniqueID,
+                                new RetrySummaryAdjustment(testCaseFinished.TestsTotal, testCaseFinished.TestsFailed));
+
                             var concreteMessage = (Xunit.v3.TestCaseFinished)message;
+                            if (_knownTestCasesByUniqueId.TryGetValue(testCaseFinished.TestCaseUniqueID, out var knownTestCase))
+                            {
+                                concreteMessage.TestCaseUniqueID = knownTestCase.UniqueID;
+                                concreteMessage.TestMethodUniqueID = knownTestCase.TestMethod.UniqueID;
+                                concreteMessage.TestClassUniqueID = knownTestCase.TestMethod.TestClass.UniqueID;
+                                concreteMessage.TestCollectionUniqueID = knownTestCase.TestMethod.TestClass.TestCollection.UniqueID;
+                                concreteMessage.AssemblyUniqueID = knownTestCase.TestMethod.TestClass.TestCollection.TestAssembly.UniqueID;
+                            }
+
                             concreteMessage.TestsSkipped += concreteMessage.TestsFailed;
                             concreteMessage.TestsFailed = 0;
+                        }
+                    }
+                    else if (!_finalAttempt && message is ITestMethodFinished testMethodFinished)
+                    {
+                        var retrySummaryAdjustment = GetRetrySummaryAdjustment(_knownTestCasesByUniqueId.Values.Where(tc => tc.TestMethod.UniqueID == testMethodFinished.TestMethodUniqueID));
+                        if (!retrySummaryAdjustment.IsDefault)
+                        {
+                            var concreteMessage = (Xunit.v3.TestMethodFinished)message;
+                            concreteMessage.TestsFailed -= retrySummaryAdjustment.TestsFailed;
+                            concreteMessage.TestsSkipped += retrySummaryAdjustment.TestsFailed;
+                        }
+                    }
+                    else if (!_finalAttempt && message is ITestClassFinished testClassFinished)
+                    {
+                        var retrySummaryAdjustment = GetRetrySummaryAdjustment(_knownTestCasesByUniqueId.Values.Where(tc => tc.TestMethod.TestClass.UniqueID == testClassFinished.TestClassUniqueID));
+                        if (!retrySummaryAdjustment.IsDefault)
+                        {
+                            var concreteMessage = (Xunit.v3.TestClassFinished)message;
+                            concreteMessage.TestsFailed -= retrySummaryAdjustment.TestsFailed;
+                            concreteMessage.TestsSkipped += retrySummaryAdjustment.TestsFailed;
+                        }
+                    }
+                    else if (!_finalAttempt && message is ITestCollectionFinished testCollectionFinished)
+                    {
+                        var retrySummaryAdjustment = GetRetrySummaryAdjustment(_knownTestCasesByUniqueId.Values.Where(tc => tc.TestMethod.TestClass.TestCollection.UniqueID == testCollectionFinished.TestCollectionUniqueID));
+                        if (!retrySummaryAdjustment.IsDefault)
+                        {
+                            var concreteMessage = (Xunit.v3.TestCollectionFinished)message;
+                            concreteMessage.TestsFailed -= retrySummaryAdjustment.TestsFailed;
+                            concreteMessage.TestsSkipped += retrySummaryAdjustment.TestsFailed;
                         }
                     }
                     else if (!_finalAttempt && message is ITestFailed testFailed)
@@ -404,6 +457,73 @@ namespace Xunit.Harness
                 }
 
                 _messages.Clear();
+            }
+
+            public RunSummary AdjustRunSummary(RunSummary runSummary)
+            {
+                if (_retrySummaryAdjustmentsByUniqueId.Count == 0)
+                {
+                    return runSummary;
+                }
+
+                var retriedTestsRun = 0;
+                var retriedTestsFailed = 0;
+                foreach (var retrySummaryAdjustment in _retrySummaryAdjustmentsByUniqueId.Values)
+                {
+                    retriedTestsRun += retrySummaryAdjustment.TestsRun;
+                    retriedTestsFailed += retrySummaryAdjustment.TestsFailed;
+                }
+
+                return new RunSummary
+                {
+                    Total = runSummary.Total - retriedTestsRun,
+                    Failed = runSummary.Failed - retriedTestsFailed,
+                    Skipped = runSummary.Skipped,
+                    NotRun = runSummary.NotRun,
+                    Time = runSummary.Time,
+                };
+            }
+
+            private IXunitTestCase GetKnownTestCase(IXunitTestCase testCase)
+                => _knownTestCasesByUniqueId.TryGetValue(testCase.UniqueID, out var knownTestCase) ? knownTestCase : testCase;
+
+            private IReadOnlyCollection<IXunitTestCase> GetKnownTestCases(IEnumerable<IXunitTestCase>? testCases)
+                => testCases is null ? [] : testCases.Select(GetKnownTestCase).ToArray();
+
+            private RetrySummaryAdjustment GetRetrySummaryAdjustment(IEnumerable<IXunitTestCase>? testCases)
+            {
+                if (testCases is null)
+                {
+                    return default;
+                }
+
+                var testsRun = 0;
+                var testsFailed = 0;
+                foreach (var testCase in testCases)
+                {
+                    if (_retrySummaryAdjustmentsByUniqueId.TryGetValue(testCase.UniqueID, out var retrySummaryAdjustment))
+                    {
+                        testsRun += retrySummaryAdjustment.TestsRun;
+                        testsFailed += retrySummaryAdjustment.TestsFailed;
+                    }
+                }
+
+                return new RetrySummaryAdjustment(testsRun, testsFailed);
+            }
+
+            private readonly struct RetrySummaryAdjustment
+            {
+                public RetrySummaryAdjustment(int testsRun, int testsFailed)
+                {
+                    TestsRun = testsRun;
+                    TestsFailed = testsFailed;
+                }
+
+                public int TestsRun { get; }
+
+                public int TestsFailed { get; }
+
+                public bool IsDefault => TestsRun == 0 && TestsFailed == 0;
             }
         }
 
