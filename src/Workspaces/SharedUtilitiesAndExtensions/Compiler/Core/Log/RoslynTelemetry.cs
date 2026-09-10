@@ -93,6 +93,9 @@ internal sealed partial class RoslynTelemetry
         return false;
     }
 
+    public bool IsEnabled(FunctionId functionId)
+        => TryGetEnabledSinks(functionId, out _);
+
     private static void LogToSinks(ImmutableArray<IEventSink> sinks, FunctionId functionId, LogMessage logMessage)
     {
         foreach (var sink in sinks)

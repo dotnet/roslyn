@@ -61,6 +61,20 @@ public sealed class RoslynTelemetryTests
     }
 
     [Fact]
+    public void IsEnabledReflectsRegisteredSinks()
+    {
+        var telemetry = new RoslynTelemetry();
+        var sink = new RecordingSink { Enabled = false };
+        using var registration = telemetry.AddEventSink(sink);
+
+        Assert.False(telemetry.IsEnabled(FunctionId.TestEvent_NotUsed));
+
+        sink.Enabled = true;
+        Assert.True(telemetry.IsEnabled(FunctionId.TestEvent_NotUsed));
+        Assert.False(telemetry.IsEnabled(FunctionId.LSP_Initialize));
+    }
+
+    [Fact]
     public void SetCurrentRoutesTelemetryAndRestoresPreviousInstance()
     {
         var defaultTelemetry = RoslynTelemetry.Current;
