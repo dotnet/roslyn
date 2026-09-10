@@ -57,7 +57,7 @@ try {
   # MSBuildAdditionalCommandLineArgs=
   $args = "/p:TreatWarningsAsErrors=true /warnaserror /nologo /nodeReuse:false /p:Configuration=$configuration /v:m";
   $args += " /p:RunAnalyzersDuringBuild=false /bl:$binaryLogFilePath"
-  $args += " /t:Pack /p:RoslynEnforceCodeStyle=false /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP"
+  $args += " /t:Pack /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP"
   $args += " /p:PackageOutputPath=$output /p:NgenOptimization=false /p:PublishWindowsPdb=false"
 
   if ($ci) {
