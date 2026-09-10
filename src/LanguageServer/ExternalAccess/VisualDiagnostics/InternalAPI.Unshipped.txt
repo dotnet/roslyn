@@ -2,6 +2,8 @@ const Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.Constant
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.Constants
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.HotReloadRequestContext
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.HotReloadRequestContext.ClientCapabilities.get -> Roslyn.LanguageServer.Protocol.ClientCapabilities!
+Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.HotReloadRequestContext.GetSolutionAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.Solution?>
+Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.HotReloadRequestContext.GetTextDocumentAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.TextDocument?>
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.HotReloadRequestContext.HotReloadRequestContext(Microsoft.CodeAnalysis.LanguageServer.Handler.RequestContext context) -> void
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.HotReloadRequestContext.IsTracking(Microsoft.CodeAnalysis.TextDocument! textDocument) -> bool
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.HotReloadRequestContext.Solution.get -> Microsoft.CodeAnalysis.Solution?

@@ -57,9 +57,8 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
-      <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
-    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\EnvironmentExtensions.cs" Link="InternalUtilities\EnvironmentExtensions.cs" />
+    <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs" Link="InternalUtilities\GlobalAssemblyCache.cs" />
     <Compile Include="..\..\..\Compilers\Shared\NamedPipeUtil.cs" Link="InternalUtilities\NamedPipeUtil.cs" />
   </ItemGroup>
   <ItemGroup>

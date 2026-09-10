@@ -17,6 +17,7 @@ pr:
     - release/*
     - features/*
     - demos/*
+    - dev/*
   paths:
     exclude:
       - docs/*
@@ -331,7 +332,6 @@ stages:
     # https://github.com/dotnet/runtime/issues/97186
     - template: eng/pipelines/test-unix-job.yml
       parameters:
-        testRunName: 'Test macOS Debug'
         jobName: Test_macOS_Debug
         testArtifactName: Transport_Artifacts_macOS_Debug
         configuration: Debug
@@ -519,6 +519,11 @@ stages:
         continueOnError: true
         condition: failed()
 
+      - script: dotnet build-server shutdown
+        displayName: Shutdown Build Server
+        continueOnError: true
+        condition: always()
+
       - template: eng/pipelines/publish-logs.yml
         parameters:
           jobName: Correctness_Rebuild
@@ -535,7 +540,7 @@ stages:
     steps:
       - template: eng/pipelines/checkout-unix-task.yml
 
-      - script: ./eng/build.sh --solution Roslyn.slnx --restore --build --configuration Debug --prepareMachine --ci --binaryLog --runanalyzers --warnaserror /p:RoslynEnforceCodeStyle=true
+      - script: ./eng/build.sh --solution Roslyn.slnx --restore --build --configuration Debug --prepareMachine --ci --binaryLog --runanalyzers --warnaserror
         displayName: Build with analyzers
 
       - template: eng/pipelines/publish-logs.yml

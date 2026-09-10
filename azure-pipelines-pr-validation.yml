@@ -292,7 +292,7 @@ extends:
           dependsOn:
           - PRValidationBuild
           pool:
-            name: VSEngSS-MicroBuild2022-1ES
+            name: VSEng-MicroBuildVSStable
 
     - stage: publish
       displayName: Publish
@@ -302,7 +302,7 @@ extends:
       - job: publishDarc
         displayName: Publish using darc
         pool:
-          name: VSEngSS-MicroBuild2022-1ES
+          name: VSEng-MicroBuildVSStable
         steps:
         - checkout: none
         # Make BarBuildId available.
@@ -337,7 +337,7 @@ extends:
           OriginalBuildNumber: $[stageDependencies.build.PRValidationBuild.outputs['SetOriginalBuildNumber.OutputOriginalBuildNumber']]
         displayName: Insert to VS
         pool:
-          name: VSEngSS-MicroBuild2022-1ES
+          name: VSEng-MicroBuildVSStable
         steps:
         - download: current
           artifact: VSSetup

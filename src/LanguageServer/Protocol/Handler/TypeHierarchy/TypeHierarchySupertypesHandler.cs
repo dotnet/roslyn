@@ -29,7 +29,7 @@ internal sealed class TypeHierarchySupertypesHandler() : ILspServiceDocumentRequ
         => TypeHierarchyHelpers.GetResolveData(request.Item).TextDocument;
 
     public async Task<LSP.TypeHierarchyItem[]?> HandleRequestAsync(LSP.TypeHierarchySupertypesParams request, RequestContext context, CancellationToken cancellationToken)
-        => await ResolveSupertypesAsync(context.GetRequiredDocument(), request.Item, cancellationToken).ConfigureAwait(false);
+        => await ResolveSupertypesAsync(await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false), request.Item, cancellationToken).ConfigureAwait(false);
 
     internal static async Task<LSP.TypeHierarchyItem[]?> ResolveSupertypesAsync(Document document, LSP.TypeHierarchyItem item, CancellationToken cancellationToken)
     {

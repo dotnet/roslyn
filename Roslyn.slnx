@@ -462,8 +462,14 @@
     <Project Path="src/VisualStudio/Setup/Roslyn.VisualStudio.Setup.csproj" />
     <Project Path="src/VisualStudio/TestUtilities2/Microsoft.VisualStudio.LanguageServices.Test.Utilities2.vbproj" />
     <Project Path="src/VisualStudio/VisualBasic/Impl/Microsoft.VisualStudio.LanguageServices.VisualBasic.vbproj" />
-    <Project Path="src/VisualStudio/VisualStudioDiagnosticsToolWindow/Roslyn.VisualStudio.DiagnosticsWindow.csproj" />
     <Project Path="src/VisualStudio/Xaml/Impl/Microsoft.VisualStudio.LanguageServices.Xaml.csproj" />
+  </Folder>
+  <Folder Name="/VisualStudio/EditorConfig/">
+    <Project Path="src/VisualStudio/EditorConfig/Command/Microsoft.VisualStudio.Templates.Editorconfig.Command.csproj" />
+    <Project Path="src/VisualStudio/EditorConfig/Setup/Microsoft.VisualStudio.Templates.Editorconfig.Setup.csproj" />
+    <Project Path="src/VisualStudio/EditorConfig/Templates/Microsoft.VisualStudio.Templates.Editorconfig.csproj" />
+    <Project Path="src/VisualStudio/EditorConfig/Wizard/Microsoft.VisualStudio.Templates.Editorconfig.Wizard.csproj" />
+    <Project Path="src/VisualStudio/EditorConfig/WizardSetup/Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Setup.csproj" />
   </Folder>
   <Folder Name="/VisualStudio/ExternalAccess/">
     <Project Path="src/VisualStudio/ExternalAccess/Apex/Microsoft.CodeAnalysis.ExternalAccess.Apex.csproj" />
@@ -490,7 +496,6 @@
     </Project>
     <Project Path="src/VisualStudio/IntegrationTest/TestSetup/Microsoft.VisualStudio.IntegrationTest.Setup.csproj">
       <BuildDependency Project="src/Deployment/RoslynDeployment.csproj" />
-      <BuildDependency Project="src/VisualStudio/VisualStudioDiagnosticsToolWindow/Roslyn.VisualStudio.DiagnosticsWindow.csproj" />
     </Project>
   </Folder>
   <Folder Name="/VisualStudio/Packages/">
@@ -537,6 +542,8 @@
   <Folder Name="/LanguageServer/ProjectData/">
     <Project Path="src/LanguageServer/ProjectData/Microsoft.NET.ProjectData.Generators/Microsoft.NET.ProjectData.Generators.csproj" />
     <Project Path="src/LanguageServer/ProjectData/Microsoft.NET.ProjectData.Generators.Tests/Microsoft.NET.ProjectData.Generators.Tests.csproj" />
+    <Project Path="src/LanguageServer/ProjectData/Microsoft.NET.ProjectData.Tasks/Microsoft.NET.ProjectData.Tasks.csproj" />
+    <Project Path="src/LanguageServer/ProjectData/Microsoft.NET.ProjectData.Tasks.Tests/Microsoft.NET.ProjectData.Tasks.Tests.csproj" />
     <Project Path="src/LanguageServer/ProjectData/Microsoft.NET.ProjectData.Tests/Microsoft.NET.ProjectData.Tests.csproj" />
     <Project Path="src/LanguageServer/ProjectData/Microsoft.NET.ProjectData/Microsoft.NET.ProjectData.csproj" />
   </Folder>

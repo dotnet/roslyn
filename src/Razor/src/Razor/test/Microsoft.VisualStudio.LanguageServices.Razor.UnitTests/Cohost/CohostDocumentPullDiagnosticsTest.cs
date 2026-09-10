@@ -125,6 +125,57 @@ public partial class CohostDocumentPullDiagnosticsTest
             }]);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/13251")]
+    public Task FilterTypeScriptExpressionExpectedAfterRazorExpression()
+    {
+        TestCode input = """
+            <script>
+                const values = @Html.Raw("[]");
+                const next = 0;
+            </script>
+            """;
+
+        return VerifyDiagnosticsAsync(
+            input,
+            htmlResponse: [new VSInternalDiagnosticReport
+            {
+                Diagnostics =
+                [
+                    new LspDiagnostic
+                    {
+                        Code = "TS1109",
+                        Range = SourceText.From(input.Text).GetRange(new TextSpan(input.Text.IndexOf(';'), 1))
+                    }
+                ]
+            }],
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/13251")]
+    public Task DoNotFilterTypeScriptExpressionExpectedInJavaScript()
+    {
+        TestCode input = """
+            <script>
+                const values = {|TS1109:;|}
+            </script>
+            """;
+
+        return VerifyDiagnosticsAsync(
+            input,
+            htmlResponse: [new VSInternalDiagnosticReport
+            {
+                Diagnostics =
+                [
+                    new LspDiagnostic
+                    {
+                        Code = "TS1109",
+                        Range = SourceText.From(input.Text).GetRange(input.NamedSpans["TS1109"].First())
+                    }
+                ]
+            }],
+            fileKind: RazorFileKind.Legacy);
+    }
+
     [Fact]
     public Task Html()
     {

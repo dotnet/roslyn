@@ -42,7 +42,7 @@ internal sealed class DocumentHighlightsHandler : ILspServiceDocumentRequestHand
 
     public async Task<DocumentHighlight[]?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var document = context.Document;
+        var document = await context.GetDocumentAsync(cancellationToken).ConfigureAwait(false);
         if (document == null)
             return null;
 

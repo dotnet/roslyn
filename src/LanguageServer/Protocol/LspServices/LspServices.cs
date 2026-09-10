@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -27,10 +28,11 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
     private readonly FrozenDictionary<string, ImmutableArray<BaseService>> _baseServices;
 
     /// <summary>
-    /// Gates access to <see cref="_servicesToDispose"/>.
+    /// Gates access to <see cref="_servicesToDispose"/> and <see cref="_servicesToDisposeAsync"/>.
     /// </summary>
     private readonly object _gate = new();
     private readonly HashSet<IDisposable> _servicesToDispose = new(ReferenceEqualityComparer.Instance);
+    private readonly HashSet<IAsyncDisposable> _servicesToDisposeAsync = new(ReferenceEqualityComparer.Instance);
 
     public LspServices(
         ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> mefLspServices,
@@ -165,11 +167,14 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
             var checkDisposal = !lazyService.Metadata.IsStateless && !lazyService.IsValueCreated;
 
             var lspService = lazyService.Value;
-            if (checkDisposal && lspService is IDisposable disposable)
+            if (checkDisposal)
             {
                 lock (_gate)
                 {
-                    _servicesToDispose.Add(disposable);
+                    if (lspService is IAsyncDisposable asyncDisposableService)
+                        _servicesToDisposeAsync.Add(asyncDisposableService);
+                    else if (lspService is IDisposable disposableService)
+                        _servicesToDispose.Add(disposableService);
                 }
             }
 
@@ -235,20 +240,34 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
         }
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         ImmutableArray<IDisposable> disposableServices;
+        ImmutableArray<IAsyncDisposable> asyncDisposableServices;
         lock (_gate)
         {
             disposableServices = [.. _servicesToDispose];
             _servicesToDispose.Clear();
+            asyncDisposableServices = [.. _servicesToDisposeAsync];
+            _servicesToDisposeAsync.Clear();
         }
 
-        foreach (var disposableService in disposableServices)
+        foreach (var service in disposableServices)
         {
             try
             {
-                disposableService.Dispose();
+                service.Dispose();
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+            {
+            }
+        }
+
+        foreach (var service in asyncDisposableServices)
+        {
+            try
+            {
+                await service.DisposeAsync().ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex))
             {

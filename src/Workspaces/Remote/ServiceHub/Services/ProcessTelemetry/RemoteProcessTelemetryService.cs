@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -68,33 +65,5 @@ internal sealed partial class RemoteProcessTelemetryService(
                 _performanceReporter = new PerformanceReporter(telemetrySession, diagnosticAnalyzerPerformanceTracker);
             }
         }, cancellationToken);
-    }
-
-    /// <summary>
-    /// Remote API.
-    /// </summary>
-    public ValueTask EnableLoggingAsync(ImmutableArray<string> loggerTypeNames, ImmutableArray<FunctionId> functionIds, CancellationToken cancellationToken)
-    {
-        return RunServiceAsync(async cancellationToken =>
-        {
-            var functionIdsSet = new HashSet<FunctionId>(functionIds);
-            bool logChecker(FunctionId id) => functionIdsSet.Contains(id);
-
-            // we only support 2 types of loggers
-            SetRoslynLogger(loggerTypeNames, () => new EtwLogger(logChecker));
-            SetRoslynLogger(loggerTypeNames, () => new TraceLogger(logChecker));
-        }, cancellationToken);
-    }
-
-    private static void SetRoslynLogger<T>(ImmutableArray<string> loggerTypes, Func<T> creator) where T : ILogger
-    {
-        if (loggerTypes.Contains(typeof(T).Name))
-        {
-            RoslynLogger.SetLogger(AggregateLogger.AddOrReplace(creator(), RoslynLogger.GetLogger(), l => l is T));
-        }
-        else
-        {
-            RoslynLogger.SetLogger(AggregateLogger.Remove(RoslynLogger.GetLogger(), l => l is T));
-        }
     }
 }

@@ -108,7 +108,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         // First, store the LSP view of the text as the uri is now owned by the LSP client.
         Contract.ThrowIfTrue(_trackedDocuments.ContainsKey(uri), $"didOpen received for {uri} which is already open.");
 
-        if (uri.ParsedUri is null)
+        if (uri.ParsedDocumentUri is null)
         {
             _logger.LogError($"Unable to parse URI {uri}");
         }
@@ -377,9 +377,9 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
             var documentsInWorkspace = GetDocumentsForUris([.. _trackedDocuments.Keys], workspaceCurrentSolution);
             var sourceGeneratedDocuments =
-                _trackedDocuments.Keys.Where(static trackedDocument => trackedDocument.ParsedUri?.Scheme == SourceGeneratedDocumentUri.Scheme)
+                _trackedDocuments.Keys.Where(static trackedDocument => trackedDocument.IsSourceGeneratedUri())
                     // We know we have a non null URI with a source generated scheme.
-                    .Select(uri => (identity: SourceGeneratedDocumentUri.DeserializeIdentity(workspaceCurrentSolution, uri.ParsedUri!), _trackedDocuments[uri].SourceText))
+                    .Select(uri => (identity: SourceGeneratedDocumentUri.DeserializeIdentity(workspaceCurrentSolution, uri.GetRequiredParsedUri()), _trackedDocuments[uri].SourceText))
                     .SelectAsArray(
                         predicate: tuple => tuple.identity.HasValue,
                         selector: tuple => (tuple.identity!.Value, DateTime.Now, tuple.SourceText));
@@ -498,14 +498,16 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     {
         foreach (var (uriInWorkspace, documentsForUri) in documentsInWorkspace)
         {
-            // We're comparing text, so we can take any of the linked documents.
-            var firstDocument = documentsForUri.First();
-            var isTextEquivalent = await AreChecksumsEqualAsync(firstDocument, _trackedDocuments[uriInWorkspace].SourceText, cancellationToken).ConfigureAwait(false);
-
-            if (!isTextEquivalent)
+            var lspText = _trackedDocuments[uriInWorkspace].SourceText;
+            foreach (var document in documentsForUri)
             {
-                _logger.LogWarning($"Text for {uriInWorkspace} did not match document text {firstDocument.Id} in workspace's {firstDocument.Project.Solution.WorkspaceKind} current solution");
-                return false;
+                // Linked documents can temporarily have different text when only part of the linked set has been updated.
+                var isTextEquivalent = await AreChecksumsEqualAsync(document, lspText, cancellationToken).ConfigureAwait(false);
+                if (!isTextEquivalent)
+                {
+                    _logger.LogWarning($"Text for {uriInWorkspace} did not match document text {document.Id} in workspace's {document.Project.Solution.WorkspaceKind} current solution");
+                    return false;
+                }
             }
         }
 

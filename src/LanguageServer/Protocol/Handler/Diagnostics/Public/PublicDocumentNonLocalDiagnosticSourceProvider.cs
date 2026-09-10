@@ -30,11 +30,13 @@ internal sealed class PublicDocumentNonLocalDiagnosticSourceProvider(
 
     public async ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
+        var document = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
+
         // Non-local document diagnostics are reported only when full solution analysis is enabled for analyzer execution.
-        if (globalOptions.GetBackgroundAnalysisScope(context.GetRequiredDocument().Project.Language) == BackgroundAnalysisScope.FullSolution)
+        if (globalOptions.GetBackgroundAnalysisScope(document.Project.Language) == BackgroundAnalysisScope.FullSolution)
         {
             // NOTE: Compiler does not report any non-local diagnostics, so we only ask to run non-compiler-analyzers.
-            return [new NonLocalDocumentDiagnosticSource(context.GetRequiredDocument(), AnalyzerFilter.NonCompilerAnalyzer)];
+            return [new NonLocalDocumentDiagnosticSource(document, AnalyzerFilter.NonCompilerAnalyzer)];
         }
 
         return [];

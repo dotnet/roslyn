@@ -295,7 +295,7 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
             return syntax != null && !syntax.OverlapsHiddenPosition(cancellationToken);
         }
 
-        private bool IsInTypeDeclarationOrValidCompilationUnit()
+        public bool IsInTypeDeclarationOrValidCompilationUnit()
         {
             if (Expression.GetAncestorOrThis<TTypeDeclarationSyntax>() != null)
             {

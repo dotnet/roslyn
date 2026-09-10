@@ -13,7 +13,9 @@ Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot.CopilotRequestConte
 Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot.CopilotRequestContext.CopilotRequestContext() -> void
 Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot.CopilotRequestContext.CopilotRequestContext(Microsoft.CodeAnalysis.LanguageServer.Handler.RequestContext context) -> void
 Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot.CopilotRequestContext.Document.get -> Microsoft.CodeAnalysis.Document?
+Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot.CopilotRequestContext.GetDocumentAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.Document?>
 Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot.CopilotRequestContext.GetRequiredService<T>() -> T!
+Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot.CopilotRequestContext.GetSolutionAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.Solution!>
 Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot.CopilotRequestContext.Solution.get -> Microsoft.CodeAnalysis.Solution!
 Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot.ExportCopilotStatelessLspServiceAttribute
 Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot.ExportCopilotStatelessLspServiceAttribute.ExportCopilotStatelessLspServiceAttribute(System.Type! type) -> void

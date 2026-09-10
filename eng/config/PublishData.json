@@ -42,6 +42,7 @@
     "Microsoft.Net.Compilers.Toolset": "arcade",
     "Microsoft.Net.Compilers.Toolset.Arm64": "arcade",
     "Microsoft.Net.Compilers.Toolset.Framework": "arcade",
+    "Microsoft.NET.ProjectData.Tasks": "arcade",
     "Microsoft.CodeAnalysis.BuildClient": "arcade",
     "Microsoft.CodeAnalysis.Contracts": "arcade",
     "Microsoft.CodeAnalysis.Debugging": "arcade",
@@ -131,7 +132,7 @@
       "NonShipping"
     ],
     "vsBranch": "main",
-    "insertionCreateDraftPR": true,
+    "insertionCreateDraftPR": false,
     "insertionTitlePrefix": "[Main 18.12]"
   }
 }
