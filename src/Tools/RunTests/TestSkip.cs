@@ -42,6 +42,19 @@ internal static class TestSkip
     internal static (ImmutableArray<AssemblyInfo> ToRun, Dictionary<string, string> Fingerprints, int Skipped) Plan(
         ImmutableArray<AssemblyInfo> assemblies, Options options)
     {
+        if (Environment.GetEnvironmentVariable("ROSLYN_TEST_SKIP_DIAGNOSTIC_ASSEMBLY") is string { Length: > 0 } diagnosticAssembly)
+        {
+            assemblies = assemblies
+                .Where(assembly => string.Equals(assembly.AssemblyName, diagnosticAssembly, StringComparison.Ordinal))
+                .ToImmutableArray();
+            if (assemblies.IsEmpty)
+            {
+                throw new InvalidOperationException($"Diagnostic assembly '{diagnosticAssembly}' was not discovered.");
+            }
+
+            ConsoleUtil.WriteLine($"Test-skip diagnostic: restricted execution to {diagnosticAssembly}.");
+        }
+
         var fingerprints = new Dictionary<string, string>(StringComparer.Ordinal);
         var store = ResolveStore(options);
         if (string.IsNullOrEmpty(store))

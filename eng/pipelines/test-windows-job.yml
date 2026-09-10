@@ -17,6 +17,15 @@ parameters:
 - name: testArguments
   type: string
   default: ''
+- name: diagnosticAssembly
+  type: string
+  default: ''
+- name: diagnosticTestMethod
+  type: string
+  default: ''
+- name: ilasmDiagnostic
+  type: boolean
+  default: false
 - name: helixApiAccessToken
   type: string
   default: ''
@@ -89,13 +98,16 @@ jobs:
       inputs:
         filePath: eng/build.ps1
         ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          arguments: -ci -helix -configuration ${{ parameters.configuration }} -helixQueueName ${{ parameters.helixQueueName }} -helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ parameters.testArguments }} -collectDumps        
+          arguments: -ci -helix -configuration ${{ parameters.configuration }} -helixQueueName ${{ parameters.helixQueueName }} -helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ parameters.testArguments }} -collectDumps
         ${{ else }}:
           arguments: -ci -helix -configuration ${{ parameters.configuration }} -helixQueueName ${{ parameters.helixQueueName }} ${{ parameters.testArguments }} -collectDumps
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         ROSLYN_TEST_SKIP_STORE: $(Agent.TempDirectory)/testskipstore
         ROSLYN_TEST_SKIP_FORCE_RUN: $(ForceTests)
+        ROSLYN_TEST_SKIP_DIAGNOSTIC_ASSEMBLY: ${{ parameters.diagnosticAssembly }}
+        ROSLYN_TEST_SKIP_DIAGNOSTIC_TEST_METHOD: ${{ parameters.diagnosticTestMethod }}
+        ROSLYN_TEST_SKIP_ILASM_DIAGNOSTIC: ${{ parameters.ilasmDiagnostic }}
 
     # Persist the updated PASS store only when the whole leg (tests included) was green. This is the
     # authoritative soundness gate: a failed leg publishes nothing, so its assemblies re-run next time.
