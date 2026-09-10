@@ -29,6 +29,9 @@ parameters:
 - name: injectTestFailure
   type: boolean
   default: false
+- name: testSkipBaselineBuildId
+  type: number
+  default: 0
 - name: helixApiAccessToken
   type: string
   default: ''
@@ -78,19 +81,32 @@ jobs:
     # Pull this leg's closure-fingerprint PASS store from the most recent build on the branch. A leg
     # only skips an assembly whose full deploy closure has a recorded PASS under this same leg. Missing
     # on the first run (nothing to download) -> everything runs, so continueOnError is intentional.
-    - task: DownloadPipelineArtifact@2
-      displayName: Pull test-skip store
-      continueOnError: true
-      inputs:
-        buildType: specific
-        project: $(System.TeamProject)
-        definition: $(System.DefinitionId)
-        buildVersionToDownload: latestFromBranch
-        branchName: $(Build.SourceBranch)
-        allowPartiallySucceededBuilds: true
-        allowFailedBuilds: true
-        artifact: testskip-$(TestSkipStoreGeneration)-${{ parameters.jobName }}
-        path: $(Agent.TempDirectory)/testskipstore
+    - ${{ if gt(parameters.testSkipBaselineBuildId, 0) }}:
+      - task: DownloadPipelineArtifact@2
+        displayName: Pull test-skip store
+        continueOnError: true
+        inputs:
+          buildType: specific
+          project: $(System.TeamProject)
+          definition: $(System.DefinitionId)
+          buildVersionToDownload: specific
+          pipelineId: ${{ parameters.testSkipBaselineBuildId }}
+          artifact: testskip-$(TestSkipStoreGeneration)-${{ parameters.jobName }}
+          path: $(Agent.TempDirectory)/testskipstore
+    - ${{ else }}:
+      - task: DownloadPipelineArtifact@2
+        displayName: Pull test-skip store
+        continueOnError: true
+        inputs:
+          buildType: specific
+          project: $(System.TeamProject)
+          definition: $(System.DefinitionId)
+          buildVersionToDownload: latestFromBranch
+          branchName: $(Build.SourceBranch)
+          allowPartiallySucceededBuilds: true
+          allowFailedBuilds: true
+          artifact: testskip-$(TestSkipStoreGeneration)-${{ parameters.jobName }}
+          path: $(Agent.TempDirectory)/testskipstore
 
     - task: PowerShell@2
       displayName: Run Unit Tests

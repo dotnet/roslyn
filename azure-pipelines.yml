@@ -73,6 +73,12 @@ parameters:
   - name: ForceTests
     type: boolean
     default: false
+  - name: WarmCacheBuildId
+    type: number
+    default: 0
+  - name: TestSkipBaselineBuildId
+    type: number
+    default: 0
   - name: SingleMachineTestTimeoutMinutes
     type: number
     default: 90
@@ -234,20 +240,34 @@ stages:
                 Write-Host "Replay experiment: $experiment"
                 Write-Host "##vso[task.setvariable variable=ActualReplayCommit]$actual"
 
-          - task: DownloadPipelineArtifact@2
-            displayName: Pull warmcache
-            continueOnError: true
-            condition: and(succeeded(), ne(variables['ForceCold'], 'True'))
-            inputs:
-              buildType: specific
-              project: $(System.TeamProjectId)
-              definition: $(System.DefinitionId)
-              buildVersionToDownload: latestFromBranch
-              allowPartiallySucceededBuilds: false
-              allowFailedBuilds: false
-              branchName: $(Build.SourceBranch)
-              artifactName: warmcache
-              targetPath: $(CacheStore)
+          - ${{ if gt(parameters.WarmCacheBuildId, 0) }}:
+            - task: DownloadPipelineArtifact@2
+              displayName: Pull warmcache
+              continueOnError: true
+              condition: and(succeeded(), ne(variables['ForceCold'], 'True'))
+              inputs:
+                buildType: specific
+                project: $(System.TeamProjectId)
+                definition: $(System.DefinitionId)
+                buildVersionToDownload: specific
+                pipelineId: ${{ parameters.WarmCacheBuildId }}
+                artifactName: warmcache
+                targetPath: $(CacheStore)
+          - ${{ else }}:
+            - task: DownloadPipelineArtifact@2
+              displayName: Pull warmcache
+              continueOnError: true
+              condition: and(succeeded(), ne(variables['ForceCold'], 'True'))
+              inputs:
+                buildType: specific
+                project: $(System.TeamProjectId)
+                definition: $(System.DefinitionId)
+                buildVersionToDownload: latestFromBranch
+                allowPartiallySucceededBuilds: false
+                allowFailedBuilds: false
+                branchName: $(Build.SourceBranch)
+                artifactName: warmcache
+                targetPath: $(CacheStore)
 
           - task: PowerShell@2
             displayName: Seed from baseline
@@ -578,6 +598,7 @@ stages:
           testArtifactName: Transport_Artifacts_Windows_Debug
           configuration: Debug
           testArguments: -testDesktop -testArch x86
+          testSkipBaselineBuildId: ${{ parameters.TestSkipBaselineBuildId }}
           helixQueueName: $(HelixWindowsVsQueueName)
           helixApiAccessToken: ''
           poolParameters: ${{ parameters.windowsPool }}
@@ -589,6 +610,7 @@ stages:
           testArtifactName: Transport_Artifacts_Windows_Debug
           configuration: Debug
           testArguments: -testDesktop -testArch x64
+          testSkipBaselineBuildId: ${{ parameters.TestSkipBaselineBuildId }}
           helixQueueName: $(HelixWindowsVsQueueName)
           helixApiAccessToken: ''
           poolParameters: ${{ parameters.windowsPool }}
@@ -609,6 +631,7 @@ stages:
           diagnosticTestMethod: ${{ parameters.DiagnosticTestMethod }}
           injectTestFailure: ${{ parameters.InjectTestFailure }}
           ilasmDiagnostic: ${{ parameters.IlasmDiagnostic }}
+          testSkipBaselineBuildId: ${{ parameters.TestSkipBaselineBuildId }}
           helixQueueName: $(HelixWindowsQueueName)
           helixApiAccessToken: ''
           poolParameters: ${{ parameters.windowsPool }}
@@ -620,6 +643,7 @@ stages:
           testArtifactName: Transport_Artifacts_Windows_Debug
           configuration: Debug
           testArguments: -testCoreClr
+          testSkipBaselineBuildId: ${{ parameters.TestSkipBaselineBuildId }}
           helixQueueName: $(HelixWindowsSpanishQueueName)
           helixApiAccessToken: ''
           poolParameters: ${{ parameters.windowsPool }}
@@ -631,6 +655,7 @@ stages:
           testArtifactName: Transport_Artifacts_Windows_Debug
           configuration: Debug
           testArguments: -testCoreClr -testIOperation -testCompilerOnly
+          testSkipBaselineBuildId: ${{ parameters.TestSkipBaselineBuildId }}
           helixQueueName: $(HelixWindowsQueueName)
           helixApiAccessToken: ''
           poolParameters: ${{ parameters.windowsPool }}
@@ -642,6 +667,7 @@ stages:
           testArtifactName: Transport_Artifacts_Windows_Debug
           configuration: Debug
           testArguments: -testCoreClr -testRuntimeAsync -testCompilerOnly
+          testSkipBaselineBuildId: ${{ parameters.TestSkipBaselineBuildId }}
           helixQueueName: $(HelixWindowsQueueName)
           helixApiAccessToken: ''
           poolParameters: ${{ parameters.windowsPool }}
@@ -653,6 +679,7 @@ stages:
           testArtifactName: Transport_Artifacts_Windows_Debug
           configuration: Debug
           testArguments: -testCoreClr -testUsedAssemblies -testCompilerOnly
+          testSkipBaselineBuildId: ${{ parameters.TestSkipBaselineBuildId }}
           helixQueueName: $(HelixWindowsQueueName)
           helixApiAccessToken: ''
           poolParameters: ${{ parameters.windowsPool }}
