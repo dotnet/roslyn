@@ -3045,13 +3045,13 @@ End Class
    </compilation>)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
-BC42333: Interface 'IEnumerable(Of Mammals)' is ambiguous with another implemented interface 'IEnumerable(Of Fish)' due to the 'In' and 'Out' parameters in 'Interface IEnumerable(Of Out T)'.
+BC42333: Interface 'IEnumerable(Of Mammals)' is ambiguous with another implemented interface 'IEnumerable(Of Fish)' due to the 'In' and 'Out' parameters in 'Interface IEnumerable(Of T)'.
     Implements IEnumerable(Of Mammals)
                ~~~~~~~~~~~~~~~~~~~~~~~
-BC42333: Interface 'IEnumerable(Of Animals)' is ambiguous with another implemented interface 'IEnumerable(Of Fish)' due to the 'In' and 'Out' parameters in 'Interface IEnumerable(Of Out T)'.
+BC42333: Interface 'IEnumerable(Of Animals)' is ambiguous with another implemented interface 'IEnumerable(Of Fish)' due to the 'In' and 'Out' parameters in 'Interface IEnumerable(Of T)'.
     Implements IEnumerable(Of Animals)
                ~~~~~~~~~~~~~~~~~~~~~~~
-BC42333: Interface 'IEnumerable(Of Animals)' is ambiguous with another implemented interface 'IEnumerable(Of Mammals)' due to the 'In' and 'Out' parameters in 'Interface IEnumerable(Of Out T)'.
+BC42333: Interface 'IEnumerable(Of Animals)' is ambiguous with another implemented interface 'IEnumerable(Of Mammals)' due to the 'In' and 'Out' parameters in 'Interface IEnumerable(Of T)'.
     Implements IEnumerable(Of Animals)
                ~~~~~~~~~~~~~~~~~~~~~~~
                                                          </expected>)
@@ -3092,13 +3092,13 @@ End Interface
    </compilation>)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
-BC42333: Interface 'EnumAnimals' is ambiguous with another implemented interface 'EnumFish' due to the 'In' and 'Out' parameters in 'Interface IEnumerable(Of Out T)'.
+BC42333: Interface 'EnumAnimals' is ambiguous with another implemented interface 'EnumFish' due to the 'In' and 'Out' parameters in 'Interface IEnumerable(Of T)'.
     Inherits EnumFish, EnumAnimals, IEnumerable(Of Mammals)
                        ~~~~~~~~~~~
-BC42333: Interface 'IEnumerable(Of Mammals)' is ambiguous with another implemented interface 'EnumAnimals' due to the 'In' and 'Out' parameters in 'Interface IEnumerable(Of Out T)'.
+BC42333: Interface 'IEnumerable(Of Mammals)' is ambiguous with another implemented interface 'EnumAnimals' due to the 'In' and 'Out' parameters in 'Interface IEnumerable(Of T)'.
     Inherits EnumFish, EnumAnimals, IEnumerable(Of Mammals)
                                     ~~~~~~~~~~~~~~~~~~~~~~~
-BC42333: Interface 'IEnumerable(Of Mammals)' is ambiguous with another implemented interface 'EnumFish' due to the 'In' and 'Out' parameters in 'Interface IEnumerable(Of Out T)'.
+BC42333: Interface 'IEnumerable(Of Mammals)' is ambiguous with another implemented interface 'EnumFish' due to the 'In' and 'Out' parameters in 'Interface IEnumerable(Of T)'.
     Inherits EnumFish, EnumAnimals, IEnumerable(Of Mammals)
                                     ~~~~~~~~~~~~~~~~~~~~~~~
                                                          </expected>)
@@ -3150,10 +3150,10 @@ End Class
    </compilation>)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
-BC42333: Interface 'IFoo(Of Y, GX(Of U))' is ambiguous with another implemented interface 'IFoo(Of X, GX(Of T))' due to the 'In' and 'Out' parameters in 'Interface IFoo(Of Out T, U)'.
+BC42333: Interface 'IFoo(Of Y, GX(Of U))' is ambiguous with another implemented interface 'IFoo(Of X, GX(Of T))' due to the 'In' and 'Out' parameters in 'Interface IFoo(Of T, U)'.
     Implements IFoo(Of X, GX(Of T)), IFoo(Of Y, GX(Of U))
                                      ~~~~~~~~~~~~~~~~~~~~
-BC42333: Interface 'IFoo(Of Y, U)' is ambiguous with another implemented interface 'IFoo(Of X, T)' due to the 'In' and 'Out' parameters in 'Interface IFoo(Of Out T, U)'.
+BC42333: Interface 'IFoo(Of Y, U)' is ambiguous with another implemented interface 'IFoo(Of X, T)' due to the 'In' and 'Out' parameters in 'Interface IFoo(Of T, U)'.
     Implements IFoo(Of X, T), IFoo(Of Y, U)
                               ~~~~~~~~~~~~~
                                                             </expected>)
@@ -3212,10 +3212,10 @@ End Class
    </compilation>)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
-BC42333: Interface 'IFoo(Of Y, T)' is ambiguous with another implemented interface 'IFoo(Of X, Integer)' due to the 'In' and 'Out' parameters in 'Interface IFoo(Of Out T, Out U)'.
+BC42333: Interface 'IFoo(Of Y, T)' is ambiguous with another implemented interface 'IFoo(Of X, Integer)' due to the 'In' and 'Out' parameters in 'Interface IFoo(Of T, U)'.
     Implements IFoo(Of X, Integer), IFoo(Of Y, T)
                                     ~~~~~~~~~~~~~
-BC42333: Interface 'IFoo(Of Y, S(Of U))' is ambiguous with another implemented interface 'IFoo(Of X, S(Of T))' due to the 'In' and 'Out' parameters in 'Interface IFoo(Of Out T, Out U)'.
+BC42333: Interface 'IFoo(Of Y, S(Of U))' is ambiguous with another implemented interface 'IFoo(Of X, S(Of T))' due to the 'In' and 'Out' parameters in 'Interface IFoo(Of T, U)'.
     Implements IFoo(Of X, S(Of T)), IFoo(Of Y, S(Of U))
                                     ~~~~~~~~~~~~~~~~~~~
                                                             </expected>)
@@ -3301,13 +3301,13 @@ End Class
    </compilation>)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
-BC42333: Interface 'IFoo(Of J, Integer)' is ambiguous with another implemented interface 'IFoo(Of X, Integer)' due to the 'In' and 'Out' parameters in 'Interface IFoo(Of In T, In U)'.
+BC42333: Interface 'IFoo(Of J, Integer)' is ambiguous with another implemented interface 'IFoo(Of X, Integer)' due to the 'In' and 'Out' parameters in 'Interface IFoo(Of T, U)'.
     Implements IFoo(Of X, Integer), IFoo(Of J, Integer)
                                     ~~~~~~~~~~~~~~~~~~~
-BC42333: Interface 'IFoo(Of X, Integer)' is ambiguous with another implemented interface 'IFoo(Of W, Integer)' due to the 'In' and 'Out' parameters in 'Interface IFoo(Of In T, In U)'.
+BC42333: Interface 'IFoo(Of X, Integer)' is ambiguous with another implemented interface 'IFoo(Of W, Integer)' due to the 'In' and 'Out' parameters in 'Interface IFoo(Of T, U)'.
     Implements IFoo(Of W, Integer), IFoo(Of X, Integer)
                                     ~~~~~~~~~~~~~~~~~~~
-BC42333: Interface 'IFoo(Of J, T)' is ambiguous with another implemented interface 'IFoo(Of X, Integer)' due to the 'In' and 'Out' parameters in 'Interface IFoo(Of In T, In U)'.
+BC42333: Interface 'IFoo(Of J, T)' is ambiguous with another implemented interface 'IFoo(Of X, Integer)' due to the 'In' and 'Out' parameters in 'Interface IFoo(Of T, U)'.
     Implements IFoo(Of X, Integer), IFoo(Of J, T)
                                     ~~~~~~~~~~~~~
                                                             </expected>)
