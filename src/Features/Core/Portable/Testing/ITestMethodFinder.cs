@@ -19,10 +19,15 @@ internal interface ITestMethodFinder : ILanguageService
     Task<ImmutableArray<SyntaxNode>> GetPotentialTestMethodsAsync(Document document, TextSpan textSpan, bool useSemanticDiscovery, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Finds potential test methods in <paramref name="nodes"/>.
+    /// Determines if the given method node is a potential test method using syntax-only checks.
     /// </summary>
-    Task<ImmutableArray<SyntaxNode>> GetTestMethodsAsync(
-        Document document, ImmutableArray<SyntaxNode> nodes, bool useSemanticDiscovery, CancellationToken cancellationToken);
+    bool IsTestMethod(SyntaxNode node);
+
+    /// <summary>
+    /// Finds potential test methods in <paramref name="nodes"/> using semantic checks.
+    /// </summary>
+    Task<ImmutableArray<SyntaxNode>> GetSemanticTestMethodsAsync(
+        Document document, ImmutableArray<SyntaxNode> nodes, CancellationToken cancellationToken);
 
     /// <summary>
     /// Determines if a node is a likely match for the fully qualified test name.

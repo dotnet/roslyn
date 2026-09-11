@@ -77,15 +77,14 @@ internal abstract class AbstractTestMethodFinder<TMethodDeclaration>(IEnumerable
         return fullyQualifiedMethodName == fullyQualifiedTestName;
     }
 
-    public async Task<ImmutableArray<SyntaxNode>> GetTestMethodsAsync(
-        Document document, ImmutableArray<SyntaxNode> nodes, bool useSemanticDiscovery, CancellationToken cancellationToken)
+    public bool IsTestMethod(SyntaxNode node)
+        => node is TMethodDeclaration method && IsTestMethod(method);
+
+    public async Task<ImmutableArray<SyntaxNode>> GetSemanticTestMethodsAsync(
+        Document document, ImmutableArray<SyntaxNode> nodes, CancellationToken cancellationToken)
     {
-        var semanticModel = useSemanticDiscovery
-            ? await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false)
-            : null;
-        var (testAttributeTypes, inheritableTestAttributeTypes) = semanticModel is null
-            ? ([], [])
-            : GetTestAttributeTypes(semanticModel.Compilation);
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var (testAttributeTypes, inheritableTestAttributeTypes) = GetTestAttributeTypes(semanticModel.Compilation);
 
         return nodes.WhereAsArray(node =>
             node is TMethodDeclaration method &&
