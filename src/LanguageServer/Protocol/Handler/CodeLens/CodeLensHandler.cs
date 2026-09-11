@@ -129,10 +129,13 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
         var testMethodNodes = await testMethodFinder.GetTestMethodsAsync(
             document, memberNodes, useSemanticTestDiscovery, cancellationToken).ConfigureAwait(false);
 
-        using var _ = ArrayBuilder<CodeLensMember>.GetInstance(out var testMethodMembers);
+        using var _1 = PooledHashSet<SyntaxNode>.GetInstance(out var testMethodNodeSet);
+        testMethodNodeSet.UnionWith(testMethodNodes);
+
+        using var _2 = ArrayBuilder<CodeLensMember>.GetInstance(out var testMethodMembers);
         foreach (var member in members)
         {
-            if (testMethodNodes.Contains(member.Node))
+            if (testMethodNodeSet.Contains(member.Node))
             {
                 testMethodMembers.Add(member);
             }
