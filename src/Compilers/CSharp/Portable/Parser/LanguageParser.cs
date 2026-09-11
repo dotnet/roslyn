@@ -2483,7 +2483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return true;
 
                 case SyntaxKind.DelegateKeyword:
-                    return !IsFunctionPointerStart(peekIndex):
+                    return !IsFunctionPointerStart(peekIndex);
 
                 case SyntaxKind.IdentifierToken:
 
