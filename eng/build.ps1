@@ -44,7 +44,7 @@ param (
   [bool][Alias('mt')]$msbuildMultiThreaded = $false,
   [bool]$nodeReuse = $true,
   [switch]$useGlobalNuGetCache = $true,
-  [switch]$warnAsError = $false,
+  [switch]$warnAsError = $ci,
   [string]$warnNotAsError = "",
   [switch][Alias('pb')]$productBuild = $false,
   [switch]$fromVMR = $false,
@@ -129,7 +129,7 @@ function Print-Usage() {
   Write-Host "  -msbuildMultiThreaded <value> Sets MSBuild's multi-threaded mode, i.e. the -mt switch ('1' or '0') (short: -mt)"
   Write-Host "  -nodeReuse <value>        Sets nodereuse msbuild parameter ('1' or '0')"
   Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
-  Write-Host "  -warnAsError              Treat all warnings as errors"
+  Write-Host "  -warnAsError              Treat all warnings as errors (default: true with -ci)"
   Write-Host "  -warnNotAsError <codes>   Suppress specific warnings from being treated as errors (semi-colon delimited)"
   Write-Host "  -productBuild             Build the repository in product-build mode"
   Write-Host "  -fromVMR                  Set when building from within the VMR"
@@ -827,7 +827,7 @@ try {
   if ($bootstrap -and $bootstrapDir -eq "") {
     Write-Host "Building bootstrap Compiler"
     $bootstrapDir = Join-Path (Join-Path $ArtifactsDir "bootstrap") "build"
-    & eng/make-bootstrap.ps1 -output $bootstrapDir -force -ci:$ci
+    & eng/make-bootstrap.ps1 -output $bootstrapDir -force -ci:$ci -warnAsError:$warnAsError
     Test-LastExitCode
   }
 

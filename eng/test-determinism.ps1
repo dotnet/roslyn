@@ -4,6 +4,7 @@ param([string]$configuration = "Debug",
       [string]$altRootDrive = "q:",
       [string]$bootstrapDir = "",
       [switch]$ci = $false,
+      [switch]$warnAsError = $ci,
       [switch]$help)
 
 Set-StrictMode -version 2.0
@@ -15,6 +16,7 @@ function Print-Usage() {
   Write-Host "  -msbuildEngine <value>    Msbuild engine to use to run build ('dotnet', 'vs', or unspecified)."
   Write-Host "  -bootstrapDir             Directory containing the bootstrap compiler"
   Write-Host "  -altRootDrive             The drive we build on (via subst) for verifying pathmap implementation"
+  Write-Host "  -warnAsError              Treat all warnings as errors (default: true with -ci)"
 }
 
 if ($help) {
@@ -75,7 +77,7 @@ function Run-Build([string]$rootDir, [string]$logFileName) {
      /p:Features="debug-determinism" `
      /p:DeployExtension=false `
      /p:RepoRoot=$rootDir `
-     /p:TreatWarningsAsErrors=true `
+     /p:TreatWarningsAsErrors=$warnAsError `
      /p:BootstrapBuildPath=$bootstrapDir `
      /p:DeterministicSourcePaths=true `
      /p:RunAnalyzers=false `
@@ -300,7 +302,7 @@ try {
   if ($bootstrapDir -eq "") {
     Write-Host "Building bootstrap compiler"
     $bootstrapDir = Join-Path $ArtifactsDir (Join-Path "bootstrap" "determinism")
-    & eng/make-bootstrap.ps1 -output $bootstrapDir -ci:$ci -force
+    & eng/make-bootstrap.ps1 -output $bootstrapDir -ci:$ci -force -warnAsError:$warnAsError
     Test-LastExitCode
   }
 

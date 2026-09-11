@@ -6,7 +6,8 @@ param (
   [string]$toolset = "Default",
   [string]$configuration = "Release",
   [switch]$force = $false,
-  [switch]$ci = $false
+  [switch]$ci = $false,
+  [switch]$warnAsError = $ci
 )
 
 Set-StrictMode -version 2.0
@@ -55,10 +56,14 @@ try {
   # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
   # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
   # MSBuildAdditionalCommandLineArgs=
-  $args = "/p:TreatWarningsAsErrors=true /warnaserror /nologo /nodeReuse:false /p:Configuration=$configuration /v:m";
+  $args = "/p:TreatWarningsAsErrors=$warnAsError /nologo /nodeReuse:false /p:Configuration=$configuration /v:m";
   $args += " /p:RunAnalyzersDuringBuild=false /bl:$binaryLogFilePath"
   $args += " /t:Pack /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP"
   $args += " /p:PackageOutputPath=$output /p:NgenOptimization=false /p:PublishWindowsPdb=false"
+
+  if ($warnAsError) {
+    $args += " /warnaserror"
+  }
 
   if ($ci) {
     $args += " /p:ContinuousIntegrationBuild=true"

@@ -6,7 +6,8 @@
 [CmdletBinding(PositionalBinding=$false)]
 param(
   [string]$configuration = "Release",
-  [switch]$ci = $false)
+  [switch]$ci = $false,
+  [switch]$warnAsError = $ci)
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
@@ -61,9 +62,13 @@ $buildArgs = @(
   $solutionPath
   "-c", $configuration
   "--no-incremental"
-  "--warnaserror"
+  "/p:TreatWarningsAsErrors=$warnAsError"
   "/p:RunAnalyzersDuringBuild=true"
 )
+
+if ($warnAsError) {
+  $buildArgs += "--warnaserror"
+}
 
 if ($ci) {
   $logDir = Join-Path $repoDir "artifacts\log\$configuration"
