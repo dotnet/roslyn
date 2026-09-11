@@ -385,7 +385,11 @@ namespace Xunit.Harness
                         {
                             _retrySummaryAdjustmentsByUniqueId.Add(
                                 testCaseFinished.TestCaseUniqueID,
-                                new RetrySummaryAdjustment(testCaseFinished.TestsTotal, testCaseFinished.TestsFailed));
+                                new RetrySummaryAdjustment(
+                                    testCaseFinished.TestsTotal,
+                                    testCaseFinished.TestsFailed,
+                                    testCaseFinished.TestsSkipped,
+                                    testCaseFinished.TestsNotRun));
 
                             var concreteMessage = (Xunit.v3.TestCaseFinished)message;
                             if (_knownTestCasesByUniqueId.TryGetValue(testCaseFinished.TestCaseUniqueID, out var knownTestCase))
@@ -466,20 +470,24 @@ namespace Xunit.Harness
                     return runSummary;
                 }
 
-                var retriedTestsRun = 0;
+                var retriedTestsTotal = 0;
                 var retriedTestsFailed = 0;
+                var retriedTestsSkipped = 0;
+                var retriedTestsNotRun = 0;
                 foreach (var retrySummaryAdjustment in _retrySummaryAdjustmentsByUniqueId.Values)
                 {
-                    retriedTestsRun += retrySummaryAdjustment.TestsRun;
+                    retriedTestsTotal += retrySummaryAdjustment.TestsTotal;
                     retriedTestsFailed += retrySummaryAdjustment.TestsFailed;
+                    retriedTestsSkipped += retrySummaryAdjustment.TestsSkipped;
+                    retriedTestsNotRun += retrySummaryAdjustment.TestsNotRun;
                 }
 
                 return new RunSummary
                 {
-                    Total = runSummary.Total - retriedTestsRun,
+                    Total = runSummary.Total - retriedTestsTotal,
                     Failed = runSummary.Failed - retriedTestsFailed,
-                    Skipped = runSummary.Skipped,
-                    NotRun = runSummary.NotRun,
+                    Skipped = runSummary.Skipped - retriedTestsSkipped,
+                    NotRun = runSummary.NotRun - retriedTestsNotRun,
                     Time = runSummary.Time,
                 };
             }
@@ -497,33 +505,39 @@ namespace Xunit.Harness
                     return default;
                 }
 
-                var testsRun = 0;
+                var testsTotal = 0;
                 var testsFailed = 0;
                 foreach (var testCase in testCases)
                 {
                     if (_retrySummaryAdjustmentsByUniqueId.TryGetValue(testCase.UniqueID, out var retrySummaryAdjustment))
                     {
-                        testsRun += retrySummaryAdjustment.TestsRun;
+                        testsTotal += retrySummaryAdjustment.TestsTotal;
                         testsFailed += retrySummaryAdjustment.TestsFailed;
                     }
                 }
 
-                return new RetrySummaryAdjustment(testsRun, testsFailed);
+                return new RetrySummaryAdjustment(testsTotal, testsFailed, testsSkipped: 0, testsNotRun: 0);
             }
 
             private readonly struct RetrySummaryAdjustment
             {
-                public RetrySummaryAdjustment(int testsRun, int testsFailed)
+                public RetrySummaryAdjustment(int testsTotal, int testsFailed, int testsSkipped, int testsNotRun)
                 {
-                    TestsRun = testsRun;
+                    TestsTotal = testsTotal;
                     TestsFailed = testsFailed;
+                    TestsSkipped = testsSkipped;
+                    TestsNotRun = testsNotRun;
                 }
 
-                public int TestsRun { get; }
+                public int TestsTotal { get; }
 
                 public int TestsFailed { get; }
 
-                public bool IsDefault => TestsRun == 0 && TestsFailed == 0;
+                public int TestsSkipped { get; }
+
+                public int TestsNotRun { get; }
+
+                public bool IsDefault => TestsTotal == 0 && TestsFailed == 0 && TestsSkipped == 0 && TestsNotRun == 0;
             }
         }
 
