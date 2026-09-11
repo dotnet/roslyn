@@ -201,7 +201,7 @@ else if (token.Equals(this.parameterProxy) || token.Equals(default))
 else
 {
     result.combinedTokens = CancellationTokenSource.CreateLinkedTokenSource(this.parameterProxy, token);
-    result.parameter = combinedTokens.Token;
+    result.parameter = result.combinedTokens.Token;
 }
 ```
 For a discussion of the threadID check, see https://github.com/dotnet/corefx/issues/3481
