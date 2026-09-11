@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Extensions;
 
 /// <summary>
-/// The base interface required to implement an extension message handler for non-document-specific messages.
+/// The base interface required to implement an extension message handler for document-specific messages.
 /// </summary>
 /// <typeparam name="TMessage">The type of the message received by the hander. <typeparamref name="TMessage"/> must be
 /// serializable using System.Text.Json.</typeparam>
@@ -30,13 +31,15 @@ namespace Microsoft.CodeAnalysis.Extensions;
 /// be used as the handler that receives messages for a particular solution.
 /// </para>
 /// </remarks>
-public interface IExtensionWorkspaceMessageHandler<TMessage, TResponse>
+[Experimental("RSEXPERIMENTAL008", UrlFormat = "https://github.com/dotnet/roslyn/pull/85209")]
+public interface IExtensionDocumentMessageHandler<TMessage, TResponse>
 {
     /// <summary>
     /// The method that receives the message and returns the response.
     /// </summary>
     /// <param name="message">The message sent by the IDE.</param>
     /// <param name="context">The context containing the current state of the solution.</param>
+    /// <param name="document">The document object the message refers to.</param>
     /// <returns>The response to be returned to the IDE.</returns>
-    Task<TResponse> ExecuteAsync(TMessage message, ExtensionMessageContext context, CancellationToken cancellationToken);
+    Task<TResponse> ExecuteAsync(TMessage message, ExtensionMessageContext context, Document document, CancellationToken cancellationToken);
 }
