@@ -78,7 +78,7 @@ internal sealed class WatchedDirectory
 internal interface IFileChangeContext : IDisposable
 {
     /// <summary>
-    /// Raised when a file has been changed. This may be a file watched explicitly by <see cref="EnqueueWatchingFile(string)"/> or it could be any
+    /// Raised when a file has been changed, created, or deleted. This may be a file watched explicitly by <see cref="EnqueueWatchingFile(string)"/> or it could be any
     /// file in the directory if the <see cref="IFileChangeContext"/> was watching a directory.
     /// </summary>
     event EventHandler<FileChangedEventArgs> FileChanged;
@@ -98,8 +98,8 @@ internal sealed class FileChangedEventArgs(string filePath, FileChangeKind chang
 
 internal enum FileChangeKind
 {
-    Added,
-    Removed,
+    Created,
+    Deleted,
     Changed
 }
 

@@ -101,9 +101,9 @@ public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper
     }
 
     [Theory]
-    [InlineData((int)FileChangeType.Created, (int)FileChangeKind.Added)]
+    [InlineData((int)FileChangeType.Created, (int)FileChangeKind.Created)]
     [InlineData((int)FileChangeType.Changed, (int)FileChangeKind.Changed)]
-    [InlineData((int)FileChangeType.Deleted, (int)FileChangeKind.Removed)]
+    [InlineData((int)FileChangeType.Deleted, (int)FileChangeKind.Deleted)]
     public async Task FileChangeNotificationIncludesChangeKind(int fileChangeType, int expectedChangeKind)
     {
         await using var testLspServer = await CreateLanguageServerAsync(_clientCapabilitiesWithFileWatcherSupport);
@@ -130,7 +130,7 @@ public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper
             });
 
         var eventArgs = await fileChangedSource.Task;
-        Assert.Equal(filePath, eventArgs.FilePath);
+        Assert.Equal(filePath, eventArgs.FilePath, ignoreCase: true);
         Assert.Equal((FileChangeKind)expectedChangeKind, eventArgs.ChangeKind);
     }
 

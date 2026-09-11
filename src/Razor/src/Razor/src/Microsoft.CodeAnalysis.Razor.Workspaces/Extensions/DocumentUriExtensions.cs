@@ -19,10 +19,12 @@ internal static class DocumentUriExtensions
         public bool IsRazorHtmlDocumentUri([NotNullWhen(true)] out DocumentUri? razorDocumentUri)
         {
             razorDocumentUri = null;
+#pragma warning disable CS0618 // Type or member is obsolete - Tracking https://github.com/dotnet/roslyn/issues/84785
             if (documentUri.ParsedUri is not { } uri)
             {
                 return false;
             }
+#pragma warning restore CS0618 // Type or member is obsolete
 
             // In VS Code specifically we use a "razor-html" scheme to represent our virtual documents, so convert them back to file
             // before further processing. We otherwise treat non-file scheme URIs specially, and assume they're never part of a project.

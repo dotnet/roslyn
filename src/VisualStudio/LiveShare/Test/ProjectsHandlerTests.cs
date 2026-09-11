@@ -34,6 +34,6 @@ public sealed class ProjectsHandlerTests : AbstractLiveShareRequestHandlerTests
         {
             Language = project.Language,
             Name = project.Name,
-            SourceFiles = [.. project.Documents.Select(document => document.GetURI().GetRequiredParsedUri())]
+            SourceFiles = [.. project.Documents.Select(document => ProtocolConversions.CreateAbsoluteUri(document.FilePath))]
         };
 }

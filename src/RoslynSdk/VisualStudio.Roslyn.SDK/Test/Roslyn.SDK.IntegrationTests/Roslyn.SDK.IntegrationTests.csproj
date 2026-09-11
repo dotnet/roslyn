@@ -43,7 +43,7 @@
   <Target Name="PrepareVsixProjectReferences"
           BeforeTargets="ResolveProjectReferences"
           DependsOnTargets="PrepareProjectReferences"
-          Condition="'$(UsingToolVSSDK)' == 'true'">
+          Condition="'$(UsingToolVSSDK)' == 'true' and '$(MSBuildRuntimeType)' != 'Core'">
     <MSBuild
       Projects="@(_MSBuildProjectReferenceExistent)"
       Targets="VSIXContainerProjectOutputGroup"

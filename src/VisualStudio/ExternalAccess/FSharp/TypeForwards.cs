@@ -119,6 +119,7 @@ using System.Runtime.CompilerServices;
 [assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.ExternalAccess.FSharp.NavigateTo.FSharpNavigateToItemKind))]
 [assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.ExternalAccess.FSharp.NavigateTo.FSharpNavigateToMatchKind))]
 [assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.ExternalAccess.FSharp.NavigateTo.FSharpNavigateToSearchResult))]
+[assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.ExternalAccess.FSharp.NavigateTo.IFSharpAdvancedNavigateToSearchService))]
 [assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.ExternalAccess.FSharp.NavigateTo.IFSharpNavigateToSearchService))]
 [assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpDocumentNavigationService))]
 [assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigableItem))]

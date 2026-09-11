@@ -260,8 +260,6 @@ public class CohostTypeHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
         var request = new TypeHierarchySupertypesParams
         {
             Item = roundTrippedItem,
-            Position = roundTrippedItem.SelectionRange.Start,
-            TextDocument = new TextDocumentIdentifier { DocumentUri = roundTrippedItem.Uri },
         };
 
         return await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken) ?? [];
@@ -275,8 +273,6 @@ public class CohostTypeHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
         var request = new TypeHierarchySubtypesParams
         {
             Item = roundTrippedItem,
-            Position = roundTrippedItem.SelectionRange.Start,
-            TextDocument = new TextDocumentIdentifier { DocumentUri = roundTrippedItem.Uri },
         };
 
         return await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken) ?? [];

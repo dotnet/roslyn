@@ -53,14 +53,7 @@ internal static class ProjectExtensions
         // and for non-Razor SDK projects we fallback to using the full path for hint names. We can't easily detect which situation we're
         // in here, so the loop below handles both cases.
 
-        // For misc files, and projects that don't have a globalconfig file (eg, non Razor SDK projects), the hint name will be based
-        // on the full path of the file.
-        var fullPathHintName = RazorSourceGenerator.GetIdentifierFromPath(razorDocument.FilePath);
-        var fullPathDeclHintName = RazorSourceGenerator.GetDeclIdentifierFromHintName(fullPathHintName);
-
-        // For normal Razor SDK projects, the hint name will be based on the project-relative path of the file.
-        var projectRelativeHintName = GetProjectRelativeHintName(razorDocument);
-        var projectRelativeDeclHintName = projectRelativeHintName is null ? null : RazorSourceGenerator.GetDeclIdentifierFromHintName(projectRelativeHintName);
+        var (fullPathHintName, fullPathDeclHintName, projectRelativeHintName, projectRelativeDeclHintName) = GetGeneratedDocumentHintNames(razorDocument);
 
         SourceGeneratedDocument? fullPathMatchedDoc = null;
         SourceGeneratedDocument? fullPathMatchedDeclDoc = null;
@@ -133,6 +126,21 @@ internal static class ProjectExtensions
         }
 
         return new(candidateDoc, candidateDeclDoc);
+    }
+
+    internal static (string fullPath, string fullPathDecl, string? projectRelative, string? projectRelativeDecl) GetGeneratedDocumentHintNames(
+        TextDocument razorDocument)
+    {
+        // For misc files, and projects that don't have a globalconfig file (eg, non Razor SDK projects), the hint name will be based
+        // on the full path of the file.
+        var fullPathHintName = RazorSourceGenerator.GetIdentifierFromPath(razorDocument.FilePath.AssumeNotNull());
+        var fullPathDeclHintName = RazorSourceGenerator.GetDeclIdentifierFromHintName(fullPathHintName);
+
+        // For normal Razor SDK projects, the hint name will be based on the project-relative path of the file.
+        var projectRelativeHintName = GetProjectRelativeHintName(razorDocument);
+        var projectRelativeDeclHintName = projectRelativeHintName is null ? null : RazorSourceGenerator.GetDeclIdentifierFromHintName(projectRelativeHintName);
+
+        return (fullPathHintName, fullPathDeclHintName, projectRelativeHintName, projectRelativeDeclHintName);
 
         static string? GetProjectRelativeHintName(TextDocument razorDocument)
         {

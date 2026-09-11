@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
@@ -80,7 +81,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
             testLspServer, document.GetURI(), useVSDiagnostics);
 
         Assert.Equal("CS1513", results.Single().Diagnostics!.Single().Code);
-        Assert.NotNull(results.Single().Diagnostics!.Single().CodeDescription!.Href.ParsedUri);
+        Assert.NotNull(results.Single().Diagnostics!.Single().CodeDescription!.Href.ParsedDocumentUri);
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/fsharp/issues/15972")]
@@ -625,7 +626,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         // Assert that we have diagnostics even though the option is set to push.
         Assert.Equal("CS1513", results.Single().Diagnostics!.Single().Code);
-        Assert.NotNull(results.Single().Diagnostics!.Single().CodeDescription!.Href.ParsedUri);
+        Assert.NotNull(results.Single().Diagnostics!.Single().CodeDescription!.Href.ParsedDocumentUri);
     }
 
     [Theory, CombinatorialData]
@@ -1031,7 +1032,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // When diagnostics checks if the document is open, it should also be able to tell that the document is open, even though the URI casing is different from the file path.
 
         Assert.Equal("CS1513", results.Single().Diagnostics!.Single().Code);
-        Assert.NotNull(results.Single().Diagnostics!.Single().CodeDescription!.Href.ParsedUri);
+        Assert.NotNull(results.Single().Diagnostics!.Single().CodeDescription!.Href.ParsedDocumentUri);
     }
 
     #endregion
@@ -1364,7 +1365,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var documentResults1 = await RunGetDocumentPullDiagnosticsAsync(testLspServer, openDocument.GetURI(), useVSDiagnostics, category: PullDiagnosticCategories.EditAndContinue);
 
-        var rootUri = ProtocolConversions.GetAbsoluteUriString(TestWorkspace.RootDirectory);
+        var rootUri = ProtocolConversions.CreateAbsoluteDocumentUri(TestWorkspace.RootDirectory);
 
         // both diagnostics located in the open document are reported:
         AssertEx.Equal(
@@ -1523,15 +1524,15 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         Assert.Equal(3, results.Length);
 
         // The file in the project should have the editorconfig rule applied and return an error.
-        Assert.True(results[0].Uri.ParsedUri!.AbsolutePath.EndsWith("file.cs"));
+        Assert.True(results[0].Uri.ParsedDocumentUri!.Path.EndsWith("file.cs"));
         Assert.Equal(CSharpSyntaxAnalyzer.RuleId, results[0].Diagnostics!.Single().Code);
         Assert.Equal(LSP.DiagnosticSeverity.Error, results[0].Diagnostics!.Single().Severity);
 
         // The source generated file should only have the .globalconfig rule applied, which suppresses the diagnostic.
-        Assert.True(results[1].Uri.ParsedUri!.AbsolutePath.EndsWith("GeneratedFile.cs"));
+        Assert.True(results[1].Uri.ParsedDocumentUri!.Path.EndsWith("GeneratedFile.cs"));
         Assert.Empty(results[1].Diagnostics!);
 
-        Assert.True(results[2].Uri.ParsedUri!.AbsolutePath.EndsWith("Assembly1.csproj"));
+        Assert.True(results[2].Uri.ParsedDocumentUri!.Path.EndsWith("Assembly1.csproj"));
         Assert.Empty(results[2].Diagnostics!);
     }
 

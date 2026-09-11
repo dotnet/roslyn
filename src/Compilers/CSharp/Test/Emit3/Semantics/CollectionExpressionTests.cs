@@ -17175,8 +17175,8 @@ partial class Program
                   IL_0034:  box        "int"
                   IL_0039:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
                   IL_003e:  ldloc.0
-                  IL_003f:  callvirt   "object[] System.Collections.Generic.List<object>.ToArray()"
-                  IL_0044:  newobj     "System.ReadOnlySpan<object>..ctor(object[])"
+                  IL_003f:  call       "System.Span<object> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<object>(System.Collections.Generic.List<object>)"
+                  IL_0044:  call       "System.ReadOnlySpan<object> System.Span<object>.op_Implicit(System.Span<object>)"
                   IL_0049:  call       "MyCollection<object> MyCollectionBuilder.Create<object>(System.ReadOnlySpan<object>)"
                   IL_004e:  ret
                 }
@@ -37315,6 +37315,239 @@ partial class Program
                   IL_007f:  ldc.i4.0
                   IL_0080:  call       "void CollectionExtensions.Report(object, bool)"
                   IL_0085:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75863")]
+        public void IEnumerableToSpan_Spreads()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        List<int> list1 = [1, 2, 3];
+                        List<int> list2 = [4, 5, 6];
+                        M(list1, list2);
+                    }
+
+                    static void M(IEnumerable<int> e1, IEnumerable<int> e2)
+                    {
+                        Span<int> result = [..e1, ..e2];
+                        result.ReportSpan();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("[1, 2, 3, 4, 5, 6], "), targetFramework: TargetFramework.Net80);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+                {
+                  // Code size       33 (0x21)
+                  .maxstack  3
+                  .locals init (System.Span<int> V_0) //result
+                  IL_0000:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                  IL_0005:  dup
+                  IL_0006:  ldarg.0
+                  IL_0007:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
+                  IL_000c:  dup
+                  IL_000d:  ldarg.1
+                  IL_000e:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
+                  IL_0013:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
+                  IL_0018:  stloc.0
+                  IL_0019:  ldloca.s   V_0
+                  IL_001b:  call       "void CollectionExtensions.ReportSpan<int>(in System.Span<int>)"
+                  IL_0020:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75863")]
+        public void IEnumerableToSpan_Spreads_MissingCollectionsMarshal()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        List<int> list1 = [1, 2, 3];
+                        List<int> list2 = [4, 5, 6];
+                        M(list1, list2);
+                    }
+
+                    static void M(IEnumerable<int> e1, IEnumerable<int> e2)
+                    {
+                        Span<int> result = [..e1, ..e2];
+                        result.ReportSpan();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, s_collectionExtensionsWithSpan }, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T);
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("[1, 2, 3, 4, 5, 6], "));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+                {
+                  // Code size       39 (0x27)
+                  .maxstack  4
+                  .locals init (System.Span<int> V_0) //result
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                  IL_0007:  dup
+                  IL_0008:  ldarg.0
+                  IL_0009:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
+                  IL_000e:  dup
+                  IL_000f:  ldarg.1
+                  IL_0010:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
+                  IL_0015:  callvirt   "int[] System.Collections.Generic.List<int>.ToArray()"
+                  IL_001a:  call       "System.Span<int>..ctor(int[])"
+                  IL_001f:  ldloca.s   V_0
+                  IL_0021:  call       "void CollectionExtensions.ReportSpan<int>(in System.Span<int>)"
+                  IL_0026:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75863")]
+        public void IEnumerableToReadOnlySpan_Spreads()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        List<int> list1 = [1, 2, 3];
+                        List<int> list2 = [4, 5, 6];
+                        M(list1, list2);
+                    }
+
+                    static void M(IEnumerable<int> e1, IEnumerable<int> e2)
+                    {
+                        ReadOnlySpan<int> result = [..e1, ..e2];
+                        result.Report();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("[1, 2, 3, 4, 5, 6], "), targetFramework: TargetFramework.Net80);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  3
+                  .locals init (System.ReadOnlySpan<int> V_0) //result
+                  IL_0000:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                  IL_0005:  dup
+                  IL_0006:  ldarg.0
+                  IL_0007:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
+                  IL_000c:  dup
+                  IL_000d:  ldarg.1
+                  IL_000e:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
+                  IL_0013:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
+                  IL_0018:  call       "System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)"
+                  IL_001d:  stloc.0
+                  IL_001e:  ldloca.s   V_0
+                  IL_0020:  call       "void CollectionExtensions.Report<int>(in System.ReadOnlySpan<int>)"
+                  IL_0025:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75863")]
+        public void IEnumerableToReadOnlySpan_Spreads_MissingImplicitCast()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        List<int> list1 = [1, 2, 3];
+                        List<int> list2 = [4, 5, 6];
+                        M(list1, list2);
+                    }
+
+                    static void M(IEnumerable<int> e1, IEnumerable<int> e2)
+                    {
+                        ReadOnlySpan<int> result = [..e1, ..e2];
+                        result.Report();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, s_collectionExtensionsWithSpan }, targetFramework: TargetFramework.Net80);
+            comp.MakeMemberMissing(WellKnownMember.System_Span_T__op_Implicit_ReadOnlySpan_T);
+            comp.VerifyEmitDiagnostics(
+                // (15,36): error CS0656: Missing compiler required member 'System.Span`1.op_Implicit'
+                //     ReadOnlySpan<int> result = [..e1, ..e2];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e1, ..e2]").WithArguments("System.Span`1", "op_Implicit").WithLocation(15, 36)
+                );
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75863")]
+        [CombinatorialData]
+        public void IEnumerableToReadOnlySpan_Spreads_MissingCollectionsMarshal(bool missingImplicitCast)
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        List<int> list1 = [1, 2, 3];
+                        List<int> list2 = [4, 5, 6];
+                        M(list1, list2);
+                    }
+
+                    static void M(IEnumerable<int> e1, IEnumerable<int> e2)
+                    {
+                        ReadOnlySpan<int> result = [..e1, ..e2];
+                        result.Report();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, s_collectionExtensionsWithSpan }, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T);
+            if (missingImplicitCast)
+                comp.MakeMemberMissing(WellKnownMember.System_Span_T__op_Implicit_ReadOnlySpan_T);
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("[1, 2, 3, 4, 5, 6], "));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+                {
+                  // Code size       39 (0x27)
+                  .maxstack  4
+                  .locals init (System.ReadOnlySpan<int> V_0) //result
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                  IL_0007:  dup
+                  IL_0008:  ldarg.0
+                  IL_0009:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
+                  IL_000e:  dup
+                  IL_000f:  ldarg.1
+                  IL_0010:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
+                  IL_0015:  callvirt   "int[] System.Collections.Generic.List<int>.ToArray()"
+                  IL_001a:  call       "System.ReadOnlySpan<int>..ctor(int[])"
+                  IL_001f:  ldloca.s   V_0
+                  IL_0021:  call       "void CollectionExtensions.Report<int>(in System.ReadOnlySpan<int>)"
+                  IL_0026:  ret
                 }
                 """);
         }

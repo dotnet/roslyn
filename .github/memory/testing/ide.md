@@ -55,3 +55,7 @@ public class MyTests
   under xUnit v3, include an explicit `app.config` when the listener type lives
   outside the default `Microsoft.CodeAnalysis.Test.Utilities` assembly, so the
   out-of-proc test host can start with the correct listener binding.
+- Language Server orchestration tests can pass additional MEF parts to
+  `LanguageServerTestComposition.GetSharedExportProvider`. A controllable
+  `PartNotDiscoverable` project loader can provide deterministic design-time
+  build timing and results without invoking MSBuild.

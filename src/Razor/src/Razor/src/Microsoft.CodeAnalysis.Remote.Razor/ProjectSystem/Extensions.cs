@@ -32,9 +32,9 @@ internal static class Extensions
             return false;
         }
 
-        // Match Roslyn's language classification by checking the local path of an absolute URI.
-        return new DocumentUri(filePath).ParsedUri is { IsAbsoluteUri: true } uri &&
-            uri.LocalPath.IsRazorFilePath();
+        // Match Roslyn's language classification by checking the file system path derived from the URI.
+        return new DocumentUri(filePath).ParsedDocumentUri is { } uri &&
+            uri.FsPath.IsRazorFilePath();
     }
 
     public static bool ContainsRazorDocuments(this Project project)

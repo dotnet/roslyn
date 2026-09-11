@@ -417,8 +417,6 @@ public sealed class TypeHierarchyTests(ITestOutputHelper testOutputHelper) : Abs
             LSP.Methods.TypeHierarchySupertypesName,
             new LSP.TypeHierarchySupertypesParams
             {
-                TextDocument = CreateTextDocumentIdentifier(item.Uri),
-                Position = item.SelectionRange.Start,
                 Item = item,
             },
             CancellationToken.None) ?? [];
@@ -428,8 +426,6 @@ public sealed class TypeHierarchyTests(ITestOutputHelper testOutputHelper) : Abs
             LSP.Methods.TypeHierarchySubtypesName,
             new LSP.TypeHierarchySubtypesParams
             {
-                TextDocument = CreateTextDocumentIdentifier(item.Uri),
-                Position = item.SelectionRange.Start,
                 Item = item,
             },
             CancellationToken.None) ?? [];

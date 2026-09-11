@@ -121,12 +121,12 @@ Consulte [Browser compatibility](https://developer.mozilla.org/docs/Web/HTML/Ref
 
 For most modern browsers (including Firefox 38+, Google Chrome 34+, IE 11+) setting the autocomplete attribute will not prevent a browser's password manager from asking the user if they want to store login fields (username and password), if the user permits the storage the browser will autofill the login the next time the user visits the page. See [The autocomplete attribute and login fields](https://developer.mozilla.org/en-US/docs/Web/Security/Securing_your_site/Turning_off_form_autocompletion#The_autocomplete_attribute_and_login_fields).
 **Note:** If you set `autocomplete` to `off` in a form because the document provides its own auto-completion, then you should also set `autocomplete` to `off` for each of the form's `input` elements that the document can auto-complete. For details, see the note regarding Google Chrome in the [Browser Compatibility chart](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/form#compatChart).</source>
-        <target state="translated">Indica si los elementos de entrada pueden tener, de forma predeterminada, sus valores completados automáticamente por el explorador. Este valor se puede invalidar con un atributo `autocomplete` en un elemento que pertenezca al formulario. Los valores posibles son: 
+        <target state="translated">Indica si los elementos de entrada pueden tener, de forma predeterminada, sus valores completados automáticamente por el explorador. Este valor se puede invalidar con un atributo `autocomplete` en un elemento que pertenezca al formulario. Los valores posibles son:
 
 * `off`: el usuario debe introducir explícitamente un valor en cada campo para cada uso o el documento proporciona su propio método de finalización automática; el explorador no finaliza automáticamente las entradas.
 * `on`: el explorador puede completar automáticamente los valores en función de los valores que el usuario ha escrito previamente en el formulario.
 
-En la mayoría de los exploradores modernos (incluidos Firefox 38+, Google Chrome 34+, IE 11+), establecer el atributo autocompletar no impedirá que el administrador de contraseñas del explorador pregunte al usuario si quiere guardar los campos de inicio de sesión (nombre de usuario y contraseña). Si el usuario permite el guardado, el explorador rellenará automáticamente el inicio de sesión la próxima vez que visite la página. Vea [The autocomplete attribute and login fields](https://developer.mozilla.org/en-US/docs/Web/Security/Securing_your_site/Turning_off_form_autocompletion#The_autocomplete_attribute_and_login_fields).
+En la mayoría de los exploradores modernos (incluidos Firefox 38+, Google Chrome 34+, IE 11+), establecer el atributo autocompletar no impedirá que el administrador de contraseñas del explorador pregunte al usuario si quiere guardar los campos de inicio de sesión (nombre de usuario y contraseña). Si el usuario permite el guardado, el explorador rellenará automáticamente el inicio de sesión la próxima vez que visite la página. Consulte [The autocomplete attribute and login fields](https://developer.mozilla.org/en-US/docs/Web/Security/Securing_your_site/Turning_off_form_autocompletion#The_autocomplete_attribute_and_login_fields).
 **Nota:** Si establece`autocomplete` en `off` en un formulario porque el documento proporciona su propia finalización automática, también debe establecer `autocomplete` en `off` para cada uno de los elementos`input`del formulario que el documento puede finalizar automáticamente. Para obtener más información, consulte la nota sobre Google Chrome en el [Browser Compatibility chart](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/form#compatChart).</target>
         <note />
       </trans-unit>
@@ -167,7 +167,7 @@ En la mayoría de los exploradores modernos (incluidos Firefox 38+, Google Chrom
 * This [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") element is only one part of the [algorithm to determine a page's character set](https://www.whatwg.org/specs/web-apps/current-work/multipage/parsing.html#encoding-sniffing-algorithm "Algorithm charset page"). The [`Content-Type` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type) and any [Byte-Order Marks](https://developer.mozilla.org/en-US/docs/Glossary/Byte-Order_Mark "The definition of that term (Byte-Order Marks) has not been written yet; please consider contributing it!") override this element.
 * It is strongly recommended to define the character encoding. If a page's encoding is undefined, cross-scripting techniques are possible, such as the [`UTF-7` fallback cross-scripting technique](https://code.google.com/p/doctype-mirror/wiki/ArticleUtf7).
 * The [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") element with a `charset` attribute is a synonym for the pre-HTML5 `&lt;meta http-equiv="Content-Type" content="text/html; charset=_IANAcharset_"&gt;`, where _`IANAcharset`_ contains the value of the equivalent [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) attribute. This syntax is still allowed, although no longer recommended.</source>
-        <target state="translated">Este atributo declara la codificación de caracteres de la página. Debe contener un [standard IANA MIME name for character encodings](https://www.iana.org/assignments/character-sets). Aunque el estándar no solicita una codificación específica, sugiere:
+        <target state="translated">Este atributo declara la codificación de caracteres de la página. Debe contener un [nombre MIME estándar de IANA para codificaciones de caracteres](https://www.iana.org/assignments/character-sets). Aunque el estándar no solicita una codificación específica, sugiere:
 
 * Se recomienda a los autores que usen [`UTF-8`](https://developer.mozilla.org/en-US/docs/Glossary/UTF-8).
 * Los autores no deben usar codificaciones incompatibles con ASCII para evitar riesgos de seguridad: los exploradores que no los admiten pueden interpretar el contenido dañino como HTML. Esto sucede con `JIS_C6226-1983`, `JIS_X0212-1990`, `HZ-GB-2312`, `JOHAB`, la familia ISO-2022 y la familia EBCDIC.
@@ -385,7 +385,7 @@ Para conseguir un efecto similar en scripts insertados dinámicamente, use `asyn
 * `text/plain`: (HTML5)
 
 This value can be overridden by a [`formenctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formenctype) attribute on a [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") or [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") element.</source>
-        <target state="translated">Cuando el valor del atributo `method` es `post`, enctype es el [MIME type](https://en.wikipedia.org/wiki/Mime_type) del contenido que se usa para enviar el formulario al servidor. Los valores posibles son: 
+        <target state="translated">Cuando el valor del atributo `method` es `post`, enctype es el [MIME type](https://en.wikipedia.org/wiki/Mime_type) del contenido que se usa para enviar el formulario al servidor. Los valores posibles son:
 
 * `application/x-www-form-urlencoded`: valor predeterminado si no se especifica el atributo.
 * `multipart/form-data`: el valor usado para [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "El elemento HTML &lt;input&gt; se usa para crear controles interactivos para formularios basados en web con el fin de aceptar datos del usuario; hay una amplia variedad de tipos de datos de entrada y widgets de control disponibles, según el dispositivo y el agente de usuario") con el atributo `type` establecido en "file".
@@ -436,7 +436,7 @@ Este valor se puede invalidar mediante un atributo [`formenctype`](https://devel
 * `text/plain`
 
 If this attribute is specified, it overrides the [`enctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-enctype) attribute of the button's form owner.</source>
-        <target state="translated">Si el botón es un botón de envío, este atributo especifica el tipo de contenido que se usa para enviar el formulario al servidor. Los valores posibles son: 
+        <target state="translated">Si el botón es un botón de envío, este atributo especifica el tipo de contenido que se usa para enviar el formulario al servidor. Los valores posibles son:
 
 * `application/x-www-form-urlencoded`: valor predeterminado si no se especifica el atributo.
 * `multipart/form-data`: use este valor si usa el elemento [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "El elemento HTML &lt;input&gt; se usa para crear controles interactivos para formularios basados en web con el fin de aceptar datos del usuario; hay una amplia variedad de tipos de datos de entrada y widgets de control disponibles, según el dispositivo y el agente de usuario") con el atributo [`type`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-type) establecido en `file`.
@@ -452,7 +452,7 @@ Si se especifica este atributo, invalida el atributo [`enctype`](https://develop
 * `get`: The data from the form are appended to the **form** attribute URI, with a '?' as a separator, and the resulting URI is sent to the server. Use this method when the form has no side-effects and contains only ASCII characters.
 
 If specified, this attribute overrides the [`method`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-method) attribute of the button's form owner.</source>
-        <target state="translated">Si el botón es un botón de envío, este atributo especifica el método HTTP que el explorador usa para enviar el formulario. Los valores posibles son: 
+        <target state="translated">Si el botón es un botón de envío, este atributo especifica el método HTTP que el explorador usa para enviar el formulario. Los valores posibles son:
 
 * `post`: los datos del formulario se incluyen en el cuerpo del formulario y se envían al servidor.
 * `get`: los datos del formulario se anexan al atributo **form** del URI, con un '?' como separador, y el URI resultante se envía al servidor. Use este método cuando el formulario no tenga efectos secundarios y contenga solo caracteres ASCII.
@@ -632,7 +632,7 @@ Define una [cookie](https://developer.mozilla.org/en-US/docs/cookie) para la pá
 * Chapter titles are intended to be used when the user is navigating the media resource.
 * `metadata`
 * Tracks used by scripts. Not visible to the user.</source>
-        <target state="translated">Cómo se va a usar la pista de texto. Si se omite, el tipo predeterminado es `subtitles`. Si el atributo no está presente, se usará `subtitles`. Si el atributo contiene un valor no válido, se usará `metadata`. (Las versiones de Chrome anteriores a la 52 trataban un valor no válido como `subtitles`). Se permiten las palabras clave siguientes:
+        <target state="translated">Cómo se va a usar la pista de texto. Si se omite, el tipo predeterminado es `subtitles`. Si el atributo no está presente, se usará `subtitles`. Si el atributo contiene un valor no válido, se usará `metadata`. (Las versiones de Chrome anteriores a la 52 trataban un valor no válido como `subtitles`.) Se permiten las palabras clave siguientes:
 
 * `subtitles`
 * Los subtítulos proporcionan traducción del contenido que el espectador no puede entender. Por ejemplo, diálogo o texto que no está en inglés en una película en inglés.
@@ -647,7 +647,7 @@ Define una [cookie](https://developer.mozilla.org/en-US/docs/cookie) para la pá
 * `chapters`
 * Los títulos de capítulo están diseñados para usarse cuando el usuario navega por el recurso multimedia.
 * `metadata`
-* Las pistas usadas por los scripts. No son visibles para el usuario.</target>
+* Las pistas usadas por los scripts. No es visible para el usuario.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_label">
@@ -708,7 +708,7 @@ Define una [cookie](https://developer.mozilla.org/en-US/docs/cookie) para la pá
 * `dialog`: Use when the form is inside a [`&lt;dialog&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog "The HTML &lt;dialog&gt; element represents a dialog box or other interactive component, such as an inspector or window.") element to close the dialog when submitted.
 
 This value can be overridden by a [`formmethod`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formmethod) attribute on a [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") or [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") element.</source>
-        <target state="translated">Método[HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP) que el explorador usa para enviar el formulario. Los valores posibles son:
+        <target state="translated">Método [HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP) que el explorador usa para enviar el formulario. Los valores posibles son:
 
 * `post`: corresponde al HTTP [POST method](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.5); los datos del formulario se incluyen en el cuerpo del formulario y se envían al servidor.
 * `get`: corresponde al HTTP [GET method](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.3); los datos de formulario se anexan al atributo `action` del URI con un '?' como separador y el URI resultante se envía al servidor. Use este método cuando el formulario no tenga efectos secundarios y contenga solo caracteres ASCII.
@@ -947,7 +947,7 @@ Este nombre de metadatos está asociado al valor contenido por el atributo [`con
 
 * `application-name`: define el nombre de la aplicación que se ejecuta en la página web.
 
-**Note:**
+**Nota:**
 
 * Los exploradores pueden usarlo para identificar la aplicación. Es diferente del elemento [`&lt;title&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/title "El elemento HTML Title (&lt;title&gt;) define el título del documento que se muestra en la barra de título de un explorador o en la pestaña de una página") que normalmente contiene el nombre de la aplicación, pero también puede contener información como el nombre del documento o un estado.
 * Las páginas web simples no deben definir application-name.
@@ -992,7 +992,7 @@ Enviar una dirección URL completa al realizar una solicitud del mismo origen, s
 
 Enviar la dirección URL completa (sin parámetros) para las solicitudes del mismo origen o entre orígenes.
 
-**Notes:**
+**Notas:**
 
 * Algunos exploradores admiten los valores en desuso de `always`, `default` y `never` para el origen de referencia.
 * La inserción dinámica de `&lt;meta name="referrer"&gt;` (con [`document.write`](https://developer.mozilla.org/en-US/docs/Web/API/Document/write) o [`appendChild`](https://developer.mozilla.org/en-US/docs/Web/API/Node/appendChild)) hace que el comportamiento del origen de referencia sea impredecible.
@@ -1074,10 +1074,10 @@ Sinónimo de `noarchive`.
 
 [Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240)
 
-**Notes:**
+**Notas:**
 
 * Solo los robots cooperativos siguen estas reglas. No espere evitar recopiladores de correo electrónico con ellos.
-* El robot aún necesita acceder a la página para poder leer estas reglas. Para evitar el consumo de ancho de banda, use un _[robots.txt](https://developer.mozilla.org/en-US/docs/Glossary/robots.txt "robots.txt: Robots.txt es un archivo que normalmente se coloca en la raíz de cualquier sitio web. Decide si se permite o prohíbe el acceso a los rastreadores (crawlers) al sitio web")_ file.
+* El robot aún necesita acceder a la página para poder leer estas reglas. Para evitar el consumo de ancho de banda, use un _[robots.txt](https://developer.mozilla.org/en-US/docs/Glossary/robots.txt "robots.txt: Robots.txt es un archivo que normalmente se coloca en la raíz de cualquier sitio web. Decide si se permite o prohíbe el acceso a los rastreadores crawlers al sitio web")_ file.
 * Si desea quitar una página, `noindex`, este funcionará, pero solo después de que el robot vuelva a visitar la página. Asegúrese de que el archivo `robots.txt` no impide visitas repetidas.
 * Algunos valores son mutuamente excluyentes, como `index`, `noindex` o `follow` y `nofollow`. En estos casos, el comportamiento del robot es indefinido y puede variar entre ellos.
 * Algunos robots rastreadores (crawlers), como Google, Yahoo y Bing, admiten los mismos valores para el encabezado HTTP `X-Robots-Tag`; esto permite que los documentos que no son HTML, como las imágenes, usen estas reglas.
@@ -1135,14 +1135,14 @@ Estado
 
 Comentario
 
-[CSS Device Adaptation 
-The definition of '&lt;meta name="viewport"&gt;' in that specification.](https://drafts.csswg.org/css-device-adapt/#viewport-meta)
+[Adaptación de dispositivos CSS 
+Definición de "&lt;meta name="viewport"&gt;" en esa especificación.](https://drafts.csswg.org/css-device-adapt/#viewport-meta)
 
 Borrador de trabajo
 
 De forma no normativa se describe el elemento ventanilla META
 
-Vea también:[`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewport "El @viewport regla de CSS le permite configurar la ventanilla a través de la que se ve el documento. Se usa principalmente para dispositivos móviles, pero también lo usan los exploradores de escritorio que admiten características como "acoplar al borde" (como Microsoft Edge).")
+Consulte también:[`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewport "El @viewport regla de CSS le permite configurar la ventanilla a través de la que se ve el documento. Se usa principalmente para dispositivos móviles, pero también lo usan los exploradores de escritorio que admiten características como "acoplar al borde" (como Microsoft Edge).")
 
 **Notas:**
 
@@ -1517,7 +1517,7 @@ Vea también:[`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@vie
 **Note:** Placeholders should only be used to show an example of the type of data that should be entered into a form; they are _not_ a substitute for a proper [`&lt;label&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label "The HTML &lt;label&gt; element represents a caption for an item in a user interface.") element tied to the input. See [Labels and placeholders](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Labels_and_placeholders "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") in [&lt;input&gt;: The Input (Form Input) element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") for a full explanation.</source>
         <target state="translated">Sugerencia al usuario de lo que se puede escribir en el control. Los retornos de carro o avances de línea dentro del texto del marcador de posición deben tratarse como saltos de línea al representar la sugerencia.
 
-**Nota:** Los marcadores de posición solo deben usarse para mostrar un ejemplo del tipo de datos que se deben escribir en un formulario; son _not_ un sustituto de un elemento [`&lt;label&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label "El elemento HTML &lt;label&gt; representa un título para un elemento de una interfaz de usuario") apropiado, asociado a la entrada. Vea [Labels and placeholders](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Labels_and_placeholders "El elemento HTML &lt;input&gt; se usa para crear controles interactivos para formularios basados en web con el fin de aceptar datos del usuario; hay una amplia variedad de tipos de datos de entrada y widgets de control disponibles, según el dispositivo y el agente de usuario) en [&lt;input&gt;: The Input (Form Input) element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "El elemento HTML &lt;input&gt; se usa para crear controles interactivos para formularios basados en web con el fin de aceptar datos del usuario; hay una amplia variedad de tipos de datos de entrada y widgets de control disponibles, según el dispositivo y el agente de usuario") para obtener una explicación completa.</target>
+**Nota:** Los marcadores de posición solo deben usarse para mostrar un ejemplo del tipo de datos que se deben escribir en un formulario; son _not_ un sustituto de un elemento [`&lt;label&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label "El elemento HTML &lt;label&gt; representa un título para un elemento de una interfaz de usuario") apropiado, asociado a la entrada. Consulte [Labels and placeholders](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Labels_and_placeholders "El elemento HTML &lt;input&gt; se usa para crear controles interactivos para formularios basados en web con el fin de aceptar datos del usuario; hay una amplia variedad de tipos de datos de entrada y widgets de control disponibles, según el dispositivo y el agente de usuario) en [&lt;input&gt;: The Input (Form Input) element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "El elemento HTML &lt;input&gt; se usa para crear controles interactivos para formularios basados en web con el fin de aceptar datos del usuario; hay una amplia variedad de tipos de datos de entrada y widgets de control disponibles, según el dispositivo y el agente de usuario") para obtener una explicación completa.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_popover">
@@ -1545,7 +1545,7 @@ Vea también:[`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@vie
 * `unsafe-url` means that the referrer will include the origin and the path (but not the fragment, password, or username). This case is unsafe because it can leak origins and paths from TLS-protected resources to insecure origins.</source>
         <target state="translated">Cadena que indica qué referencia usar al capturar el recurso:
 
-* `no-referrer`: significa que `Referer`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer "El encabezado de solicitud del remitente contiene la dirección de la página web anterior desde la que se siguió un vínculo a la página solicitada actualmente. El encabezado Referer permite a los servidores identificar desde dónde los visitan los usuarios y puede usar esos datos para el análisis, el registro o el almacenamiento en caché optimizado, por ejemplo") el encabezado no se enviará.
+* `no-referrer`: significa que [`Referer`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer "El encabezado de solicitud del remitente contiene la dirección de la página web anterior desde la que se siguió un vínculo a la página solicitada actualmente. El encabezado Referer permite a los servidores identificar desde dónde los visitan los usuarios y puede usar esos datos para el análisis, el registro o el almacenamiento en caché optimizado, por ejemplo") el encabezado no se enviará.
 *`no-referrer-when-downgrade`: significa que no [`Referer`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer "El encabezado de solicitud del remitente contiene la dirección de la página web anterior desde la que se siguió un vínculo a la página solicitada actualmente. El encabezado Referer permite a los servidores identificar desde dónde los visitan los usuarios y puede usar esos datos para el análisis, el registro o el almacenamiento en caché optimizado, por ejemplo") se enviará el encabezado al navegar a un origen sin TLS (HTTPS). Este es el comportamiento predeterminado de un agente de usuario, si no se especifica ninguna directiva.
 * `origin`: significa que el remitente de la página será el origen, que es aproximadamente el esquema, el host y el puerto.
 * `origin-when-cross-origin`: significa que la navegación a otros orígenes se limitará al esquema, el host y el puerto, mientras que navegar en el mismo origen incluirá la ruta de acceso del remitente.
@@ -1619,7 +1619,7 @@ Vea también:[`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@vie
         <source>This attribute defines the scheme in which metadata is described. A scheme is a context leading to the correct interpretations of the [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) value, like a format.
 
 **Warning:** Do not use this value, as it is obsolete. There is no replacement as there was no real usage for it.</source>
-        <target state="translated">Este atributo define el esquema en el que se describen los metadatos. Un esquema es un contexto que conduce a las interpretaciones correctas del valor [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) , como un formato.
+        <target state="translated">Este atributo define el esquema en el que se describen los metadatos. Un esquema es un contexto que conduce a las interpretaciones correctas del valor [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content), como un formato.
 
 **Advertencia:** No use este valor, ya que está obsoleto. No hay ningún reemplazo porque no había ningún uso real para él.</target>
         <note />
@@ -1704,7 +1704,7 @@ The user agent selects any one of the available sources at its discretion. This 
         <target state="translated">Una lista de una o varias cadenas separadas por comas que indica un conjunto de posibles orígenes de imagen que el agente de usuario puede usar. Cada cadena se compone de:
 
 1. Una dirección URL a una imagen,
-2. Opcionalmente, un espacio en blanco seguido de uno de:
+2. opcionalmente, un espacio en blanco seguido de uno de:
 * Un descriptor de ancho o un entero positivo seguido directamente de `w`. El descriptor de ancho se divide por el tamaño de origen especificado en el atributo `sizes` para calcular la densidad de píxeles efectiva.
 * Un descriptor de densidad de píxeles, que es un número de punto flotante positivo seguido directamente de `x`.
 
@@ -1797,7 +1797,7 @@ Si se especifica este atributo, este elemento debe ir delante de cualquier otro 
 **Note**: This attribute was deprecated in HTML4, but reintroduced in HTML5.
 
 **Note:** Prior to Gecko 9.0, negative values were incorrectly converted to 0. Starting in Gecko 9.0 all integer values are correctly parsed.</source>
-        <target state="translated">Este atributo entero indica el valor ordinal actual del elemento de lista tal y como se define en el elemento [`&lt;ol&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ol "El elemento HTML &lt;ol&gt; representa una lista ordenada de elementos, que normalmente se representa como una lista numerada"). El único valor permitido para este atributo es un número, incluso si la lista se muestra con números romanos o letras. Los elementos de lista que siguen a este se continúan numerando desde el conjunto de valores. El atributo **value** no tiene ningún significado para las listas no ordenadas ([`&lt;ul&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ul "El elemento HTML &lt;ul&gt; representa una lista no ordenada de elementos, representada normalmente como una lista con viñetas")) o para los menús ([`&lt;menu&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/menu "El elemento HTML &lt;menu&gt; representa un grupo de comandos que un usuario puede realizar o activar. Esto incluye ambos menús de lista, que pueden aparecer en la parte superior de una pantalla, así como menús contextuales, como los que pueden aparecer debajo de un botón después de hacer clic en él")). 
+        <target state="translated">Este atributo entero indica el valor ordinal actual del elemento de lista tal y como se define en el elemento [`&lt;ol&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ol "El elemento HTML &lt;ol&gt; representa una lista ordenada de elementos, que normalmente se representa como una lista numerada"). El único valor permitido para este atributo es un número, incluso si la lista se muestra con números romanos o letras. Los elementos de lista que siguen a este se continúan numerando desde el conjunto de valores. El atributo **value** no tiene ningún significado para las listas no ordenadas ([`&lt;ul&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ul "El elemento HTML &lt;ul&gt; representa una lista no ordenada de elementos, representada normalmente como una lista con viñetas")) o para los menús ([`&lt;menu&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/menu "El elemento HTML &lt;menu&gt; representa un grupo de comandos que un usuario puede realizar o activar. Esto incluye ambos menús de lista, que pueden aparecer en la parte superior de una pantalla, así como menús contextuales, como los que pueden aparecer debajo de un botón después de hacer clic en él".)).
 
 **Nota**: Este atributo quedó en desuso en HTML4, pero se reintroduce en HTML5.
 
