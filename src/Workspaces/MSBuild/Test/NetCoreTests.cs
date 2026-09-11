@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Logging;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -812,6 +813,63 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         // Assert that there are no compilation errors.
         var compilation = await project.GetCompilationAsync();
         compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestLoadProject_FileBasedApp_RefDirectiveGraph()
+    {
+        CreateFiles(new FileSet(
+            ("Program.cs", """
+                #:property TargetFramework=net10.0
+                #:property ExperimentalFileBasedProgramEnableRefDirective=true
+                #:ref Util.cs
+                Console.WriteLine(Util.M());
+                """),
+            ("Util.cs", """
+                #:property TargetFramework=net10.0
+                #:property OutputType=Library
+                #:property ExperimentalFileBasedProgramEnableRefDirective=true
+                #:ref Common.cs
+                public static class Util
+                {
+                    public static string M() => Common.Value;
+                }
+                """),
+            ("Common.cs", """
+                #:property TargetFramework=net10.0
+                #:property OutputType=Library
+                public static class Common
+                {
+                    public static string Value => "Common";
+                }
+                """)));
+
+        var sourceFilePath = GetSolutionFileName("Program.cs");
+        using var workspace = CreateMSBuildWorkspace();
+        var fileBasedProgramService = workspace.CurrentSolution.Services.GetRequiredService<IFileBasedProgramService>();
+        await using var buildHostProcessManager = new BuildHostProcessManager(
+            knownCommandLineParserLanguages: [LanguageNames.CSharp],
+            maxNodeCount: 1);
+        var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessKind.NetCore, CancellationToken.None);
+        var errors = new List<string>();
+
+        var result = await FileBasedProgramsProjectLoader.LoadFileBasedAppProjectGraphAsync(
+            buildHost,
+            fileBasedProgramService,
+            sourceFilePath,
+            errors.Add,
+            CancellationToken.None);
+
+        Assert.Empty(errors);
+        var results = result.ReferencedProjects.Insert(0, result.Root);
+        var resultsByPath = results.ToDictionary(result => result.EntryPointFilePath, PathUtilities.Comparer);
+        Assert.Equal(3, resultsByPath.Count);
+        Assert.Contains(GetSolutionFileName("Program.cs"), resultsByPath.Keys, PathUtilities.Comparer);
+        Assert.Contains(GetSolutionFileName("Util.cs"), resultsByPath.Keys, PathUtilities.Comparer);
+        Assert.Contains(GetSolutionFileName("Common.cs"), resultsByPath.Keys, PathUtilities.Comparer);
+        Assert.All(results, result => Assert.NotEmpty(result.ProjectFileInfos));
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]

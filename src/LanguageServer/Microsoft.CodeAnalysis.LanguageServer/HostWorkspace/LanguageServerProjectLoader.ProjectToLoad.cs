@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics.CodeAnalysis;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
@@ -19,12 +20,12 @@ internal abstract partial class LanguageServerProjectLoader
         {
             public bool Equals(ProjectToLoad? x, ProjectToLoad? y)
             {
-                return StringComparer.Ordinal.Equals(x?.Path, y?.Path);
+                return PathUtilities.Comparer.Equals(x?.Path, y?.Path);
             }
 
             public int GetHashCode([DisallowNull] ProjectToLoad obj)
             {
-                return StringComparer.Ordinal.GetHashCode(obj.Path);
+                return PathUtilities.Comparer.GetHashCode(obj.Path);
             }
         }
     }

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -52,6 +53,18 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     /// <summary>Reachable projects that must bypass entry-point classification.</summary>
     private readonly HashSet<string> _referencedProjectPaths = new(PathUtilities.Comparer);
 
+    /// <summary>One-shot project data produced while loading another project in the same #:ref graph.</summary>
+    private readonly Dictionary<string, PreparedProjectLoad> _preparedProjectLoads = new(PathUtilities.Comparer);
+
+    /// <summary>Projects to reload once after their restore attempt completes.</summary>
+    private readonly HashSet<string> _pendingPostRestoreReloadPaths = new(PathUtilities.Comparer);
+
+    /// <summary>Projects that already reloaded after their latest restore attempt.</summary>
+    private readonly HashSet<string> _postRestoreReloadAttemptedPaths = new(PathUtilities.Comparer);
+
+    /// <summary>Serializes aggregate graph loads that share one MSBuild project collection.</summary>
+    private readonly SemaphoreSlim _projectGraphLoadGate = new(initialCount: 1);
+
     /// <summary>Changes whenever reconciliation may need to recheck the desired load state.</summary>
     private long _projectGraphVersion;
 
@@ -97,6 +110,9 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             _referencesByProjectPath.Clear();
             _reachablePaths.Clear();
             _referencedProjectPaths.Clear();
+            _preparedProjectLoads.Clear();
+            _pendingPostRestoreReloadPaths.Clear();
+            _postRestoreReloadAttemptedPaths.Clear();
         }
 
         return base.DisposeAsync();
@@ -130,6 +146,9 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                         _referencesByProjectPath.Clear();
                         _reachablePaths.Clear();
                         _referencedProjectPaths.Clear();
+                        _preparedProjectLoads.Clear();
+                        _pendingPostRestoreReloadPaths.Clear();
+                        _postRestoreReloadAttemptedPaths.Clear();
                         _projectGraphVersion++;
                     }
                 }
@@ -456,31 +475,55 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             RegisterRoot(documentPath);
 
         const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
-        var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, documentPath, dotnetPath: null, cancellationToken);
-        var loadedFile = await FileBasedProgramsProjectLoader.LoadFileBasedAppProjectAsync(
-            buildHost,
-            _workspaceFactory.HostWorkspace.Services.GetRequiredService<IFileBasedProgramService>(),
-            documentPath,
-            (error) => _logger.LogError(error),
-            cancellationToken);
-
-        return new RemoteProjectLoadResult
+        if (TryTakePreparedProjectLoad(documentPath, out var preparedLoad))
         {
-            ProjectFileInfos = await loadedFile.GetProjectFileInfosAsync(cancellationToken),
-            DiagnosticLogItems = await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken),
-            ProjectRestorePath = documentPath,
-            ProjectFactory = _workspaceFactory.HostProjectFactory,
-            IsFileBasedProgram = true,
-            HasFileBasedAppDirectives = true,
-            IsMiscellaneousFile = false,
-            HasAllInformation = true,
-            PreferredBuildHostKind = buildHostKind,
-            ActualBuildHostKind = buildHostKind,
-        };
+            return CreateProjectLoadResult(
+                preparedLoad.Result,
+                projectRestorePath: documentPath,
+                preparedLoad.ProjectGraphLoads);
+        }
+
+        FileBasedProgramsProjectLoader.ProjectGraphLoadResult graphLoadResults;
+        using (await _projectGraphLoadGate.DisposableWaitAsync(cancellationToken))
+        {
+            var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, documentPath, dotnetPath: null, cancellationToken);
+            graphLoadResults = await FileBasedProgramsProjectLoader.LoadFileBasedAppProjectGraphAsync(
+                buildHost,
+                _fileBasedProgramService,
+                documentPath,
+                (error) => _logger.LogError(error),
+                cancellationToken);
+        }
+
+        return CreateProjectLoadResult(
+            graphLoadResults.Root,
+            documentPath,
+            graphLoadResults.ReferencedProjects);
+
+        RemoteProjectLoadResult CreateProjectLoadResult(
+            FileBasedProgramsProjectLoader.ProjectLoadResult loadResult,
+            string? projectRestorePath,
+            ImmutableArray<FileBasedProgramsProjectLoader.ProjectLoadResult> preparedProjectLoads = default)
+        {
+            return new()
+            {
+                ProjectFileInfos = loadResult.ProjectFileInfos,
+                DiagnosticLogItems = loadResult.DiagnosticLogItems,
+                ProjectRestorePath = projectRestorePath,
+                ProjectFactory = _workspaceFactory.HostProjectFactory,
+                IsFileBasedProgram = true,
+                HasFileBasedAppDirectives = true,
+                IsMiscellaneousFile = false,
+                HasAllInformation = true,
+                PreferredBuildHostKind = buildHostKind,
+                ActualBuildHostKind = buildHostKind,
+                PreparedProjectLoads = preparedProjectLoads,
+            };
+        }
     }
 
     protected override async ValueTask OnProjectLoadedAsync(
-        string projectPath, RemoteProjectLoadResult projectLoadResult, CancellationToken cancellationToken)
+        string projectPath, RemoteProjectLoadResult projectLoadResult, bool needsRestore, CancellationToken cancellationToken)
     {
         if (!projectLoadResult.IsFileBasedProgram || projectLoadResult.IsMiscellaneousFile)
         {
@@ -491,6 +534,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
         if (!IsReachable(projectPath))
         {
+            RemovePreparedProjectLoadsOwnedBy(projectPath);
             await ReconcileProjectAsync(projectPath);
             return;
         }
@@ -502,7 +546,64 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             .ToImmutableHashSet(PathUtilities.Comparer);
 
         var update = UpdateProjectReferences(projectPath, referencedPaths);
+        if (!update.ReferencesApplied)
+        {
+            await ReconcileProjectAsync(projectPath);
+            return;
+        }
+
+        if (needsRestore &&
+            !projectLoadResult.PreparedProjectLoads.IsDefaultOrEmpty &&
+            GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore))
+        {
+            await ReconcileProjectsAsync(update.ProjectsToUnload);
+
+            lock (_projectGraphGate)
+            {
+                if (!_postRestoreReloadAttemptedPaths.Contains(projectPath))
+                    _pendingPostRestoreReloadPaths.Add(projectPath);
+            }
+
+            return;
+        }
+
+        lock (_projectGraphGate)
+        {
+            _pendingPostRestoreReloadPaths.Remove(projectPath);
+            _postRestoreReloadAttemptedPaths.Remove(projectPath);
+        }
+
+        PublishPreparedProjectLoads(projectPath, referencedPaths, projectLoadResult.PreparedProjectLoads);
         await ReconcileProjectsAsync(update.ProjectsToReconcile);
+
+        foreach (var referencedPath in referencedPaths)
+        {
+            if (!update.ProjectsToReconcile.Contains(referencedPath, PathUtilities.Comparer) &&
+                IsReachable(referencedPath) &&
+                TrySchedulePreparedProjectLoad(referencedPath))
+            {
+                await BeginLoadingProjectAsync(referencedPath, projectGuid: null, reloadIfAlreadyLoaded: true);
+            }
+        }
+    }
+
+    protected override async ValueTask OnProjectsRestoredAsync(
+        ImmutableArray<string> restoredProjectPaths, CancellationToken cancellationToken)
+    {
+        foreach (var projectPath in restoredProjectPaths)
+        {
+            bool shouldReload;
+            lock (_projectGraphGate)
+            {
+                shouldReload = _pendingPostRestoreReloadPaths.Remove(projectPath) &&
+                    _reachablePaths.Contains(projectPath);
+                if (shouldReload)
+                    _postRestoreReloadAttemptedPaths.Add(projectPath);
+            }
+
+            if (shouldReload)
+                await BeginLoadingProjectAsync(projectPath, projectGuid: null, reloadIfAlreadyLoaded: true);
+        }
     }
 
     private void RegisterRoot(string projectPath)
@@ -535,12 +636,90 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             return _reachablePaths.Contains(projectPath);
     }
 
+    private bool TrySchedulePreparedProjectLoad(string projectPath)
+    {
+        lock (_projectGraphGate)
+        {
+            if (!_preparedProjectLoads.TryGetValue(projectPath, out var preparedLoad) ||
+                preparedLoad.IsScheduled)
+            {
+                return false;
+            }
+
+            _preparedProjectLoads[projectPath] = preparedLoad with { IsScheduled = true };
+            return true;
+        }
+    }
+
+    private bool TryTakePreparedProjectLoad(string projectPath, [NotNullWhen(true)] out PreparedProjectLoad? preparedLoad)
+    {
+        lock (_projectGraphGate)
+            _preparedProjectLoads.Remove(projectPath, out preparedLoad);
+
+        if (preparedLoad is not null)
+        {
+            var currentLastWriteTimeUtc = File.GetLastWriteTimeUtc(projectPath);
+            if (currentLastWriteTimeUtc == preparedLoad.Result.EntryPointLastWriteTimeUtc &&
+                currentLastWriteTimeUtc < preparedLoad.Result.GraphLoadStartTimeUtc)
+            {
+                return true;
+            }
+        }
+
+        preparedLoad = null;
+        return false;
+    }
+
+    private void PublishPreparedProjectLoads(
+        string ownerProjectPath,
+        ImmutableHashSet<string> referencedPaths,
+        ImmutableArray<FileBasedProgramsProjectLoader.ProjectLoadResult> preparedProjectLoads)
+    {
+        if (preparedProjectLoads.IsDefaultOrEmpty)
+            return;
+
+        lock (_projectGraphGate)
+        {
+            foreach (var preparedProjectLoad in preparedProjectLoads)
+            {
+                if (!referencedPaths.Contains(preparedProjectLoad.EntryPointFilePath))
+                    continue;
+
+                var isScheduled = _preparedProjectLoads.TryGetValue(preparedProjectLoad.EntryPointFilePath, out var existingLoad) &&
+                    existingLoad.IsScheduled;
+                _preparedProjectLoads[preparedProjectLoad.EntryPointFilePath] = new(
+                    ownerProjectPath,
+                    preparedProjectLoad,
+                    preparedProjectLoads,
+                    isScheduled);
+            }
+        }
+    }
+
+    private void RemovePreparedProjectLoadsOwnedBy(string projectPath)
+    {
+        lock (_projectGraphGate)
+        {
+            foreach (var (preparedProjectPath, preparedLoad) in _preparedProjectLoads)
+            {
+                if (PathUtilities.Comparer.Equals(preparedLoad.OwnerProjectPath, projectPath))
+                    _preparedProjectLoads.Remove(preparedProjectPath);
+            }
+        }
+    }
+
     private ProjectGraphUpdate UpdateProjectReferences(string projectPath, ImmutableHashSet<string> referencedPaths)
     {
         lock (_projectGraphGate)
         {
             if (!_reachablePaths.Contains(projectPath))
-                return new(WasReachable: false, ProjectsToReconcile: [projectPath]);
+            {
+                return new(
+                    WasReachable: false,
+                    ReferencesApplied: false,
+                    ProjectsToReconcile: [projectPath],
+                    ProjectsToUnload: [projectPath]);
+            }
 
             _referencesByProjectPath[projectPath] = referencedPaths;
             _projectGraphVersion++;
@@ -592,7 +771,9 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             }
         }
 
-        var projectsToReconcile = previousReachablePaths.SymmetricExcept(reachablePaths).ToImmutableArray();
+        var projectsToLoad = reachablePaths.Except(previousReachablePaths).ToImmutableArray();
+        var projectsToUnload = previousReachablePaths.Except(reachablePaths).ToImmutableArray();
+        ImmutableArray<string> projectsToReconcile = [.. projectsToLoad, .. projectsToUnload];
 
         _reachablePaths.Clear();
         _reachablePaths.UnionWith(reachablePaths);
@@ -603,12 +784,25 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         foreach (var projectToReconcile in projectsToReconcile)
         {
             if (!reachablePaths.Contains(projectToReconcile))
+            {
                 _referencesByProjectPath.Remove(projectToReconcile);
+                _preparedProjectLoads.Remove(projectToReconcile);
+                _pendingPostRestoreReloadPaths.Remove(projectToReconcile);
+                _postRestoreReloadAttemptedPaths.Remove(projectToReconcile);
+
+                foreach (var (preparedProjectPath, preparedLoad) in _preparedProjectLoads)
+                {
+                    if (PathUtilities.Comparer.Equals(preparedLoad.OwnerProjectPath, projectToReconcile))
+                        _preparedProjectLoads.Remove(preparedProjectPath);
+                }
+            }
         }
 
         return new(
             WasReachable: false,
-            ProjectsToReconcile: projectsToReconcile);
+            ReferencesApplied: true,
+            ProjectsToReconcile: projectsToReconcile,
+            ProjectsToUnload: projectsToUnload);
     }
 
     private async ValueTask ReconcileProjectsAsync(ImmutableArray<string> projectPaths, string? exceptProjectPath = null)
@@ -633,7 +827,13 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             }
 
             if (shouldBeLoaded)
-                await BeginLoadingProjectAsync(projectPath, projectGuid: null);
+            {
+                var reloadIfAlreadyLoaded = TrySchedulePreparedProjectLoad(projectPath);
+                await BeginLoadingProjectAsync(
+                    projectPath,
+                    projectGuid: null,
+                    reloadIfAlreadyLoaded: reloadIfAlreadyLoaded);
+            }
             else
                 await TryUnloadProjectAsync(projectPath);
 
@@ -647,5 +847,13 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
     private readonly record struct ProjectGraphUpdate(
         bool WasReachable,
-        ImmutableArray<string> ProjectsToReconcile);
+        bool ReferencesApplied,
+        ImmutableArray<string> ProjectsToReconcile,
+        ImmutableArray<string> ProjectsToUnload);
+
+    private sealed record PreparedProjectLoad(
+        string OwnerProjectPath,
+        FileBasedProgramsProjectLoader.ProjectLoadResult Result,
+        ImmutableArray<FileBasedProgramsProjectLoader.ProjectLoadResult> ProjectGraphLoads,
+        bool IsScheduled);
 }
