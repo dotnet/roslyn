@@ -24,6 +24,8 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'=='net472'">
+    <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <None Include="app.config" />
     <PackageReference Include="System.Threading.Channels" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
     <PackageReference Include="System.Collections.Immutable" />
