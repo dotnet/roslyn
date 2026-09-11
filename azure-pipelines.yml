@@ -6,7 +6,6 @@ trigger:
 - release/*
 - features/*
 - demos/*
-- dev/*
 
 # Branches that trigger builds on PR
 pr:
@@ -18,6 +17,7 @@ pr:
     - release/*
     - features/*
     - demos/*
+    - dev/*
   paths:
     exclude:
       - docs/*
@@ -540,7 +540,7 @@ stages:
     steps:
       - template: eng/pipelines/checkout-unix-task.yml
 
-      - script: ./eng/build.sh --solution Roslyn.slnx --restore --build --configuration Debug --prepareMachine --ci --binaryLog --runanalyzers --warnaserror /p:RoslynEnforceCodeStyle=true
+      - script: ./eng/build.sh --solution Roslyn.slnx --restore --build --configuration Debug --prepareMachine --ci --binaryLog --runanalyzers --warnaserror
         displayName: Build with analyzers
 
       - template: eng/pipelines/publish-logs.yml

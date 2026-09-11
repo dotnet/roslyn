@@ -26,10 +26,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" />
-  </ItemGroup>
-
-  <ItemGroup>
     <!--
       These helpers are shared verbatim with Microsoft.CodeAnalysis.LanguageServer.UnitTests
       and live in the Microsoft.CodeAnalysis.LanguageServer.UnitTests namespace.
