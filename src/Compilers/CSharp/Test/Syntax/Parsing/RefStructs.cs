@@ -391,6 +391,24 @@ class Program
         }
 
         [Theory]
+        [InlineData("record", LanguageVersion.CSharp9)]
+        [InlineData("union", LanguageVersion.CSharp15)]
+        [InlineData("extension", LanguageVersion.CSharp14)]
+        public void RefReadonlyContextualKeywordRemainsReturnTypeWhenFeatureEnabled(
+            string contextualKeyword, LanguageVersion languageVersion)
+        {
+            var source = $$"""class C { ref readonly {{contextualKeyword}} M(); }""";
+            var tree = ParseTree(source, TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            var root = tree.GetCompilationUnitRoot();
+            var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
+            Assert.Equal(SyntaxKind.MethodDeclaration, Assert.Single(containingType.Members).Kind());
+            Assert.Contains(
+                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).GetDiagnostics(),
+                diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+        }
+
+        [Theory]
         [InlineData("record", LanguageVersion.CSharp8)]
         [InlineData("union", LanguageVersion.CSharp14)]
         [InlineData("extension", LanguageVersion.CSharp13)]
@@ -560,6 +578,24 @@ class Program
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
+        }
+
+        [Theory]
+        [InlineData("record", LanguageVersion.CSharp9)]
+        [InlineData("union", LanguageVersion.CSharp15)]
+        [InlineData("extension", LanguageVersion.CSharp14)]
+        public void RefReadonlyContextualKeywordRemainsPropertyTypeWhenFeatureEnabled(
+            string contextualKeyword, LanguageVersion languageVersion)
+        {
+            var source = $$"""class C { ref readonly {{contextualKeyword}} A { get; } }""";
+            var tree = ParseTree(source, TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            var root = tree.GetCompilationUnitRoot();
+            var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
+            Assert.Equal(SyntaxKind.PropertyDeclaration, Assert.Single(containingType.Members).Kind());
+            Assert.Contains(
+                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).GetDiagnostics(),
+                diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
         }
 
         [Fact]
