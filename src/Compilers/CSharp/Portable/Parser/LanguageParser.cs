@@ -2464,15 +2464,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         private bool IsTypeDeclarationStart()
+            => this.IsTypeDeclarationStart(peekIndex: 0);
+
+        private bool IsTypeDeclarationStart(int peekIndex)
         {
-            switch (this.CurrentToken.Kind)
+            var token = this.PeekToken(peekIndex);
+
+            switch (token.Kind)
             {
                 case SyntaxKind.ClassKeyword:
-                case SyntaxKind.DelegateKeyword when !IsFunctionPointerStart():
                 case SyntaxKind.EnumKeyword:
                 case SyntaxKind.InterfaceKeyword:
                 case SyntaxKind.StructKeyword:
                     return true;
+
+                case SyntaxKind.DelegateKeyword:
+                    return !IsFunctionPointerStart(peekIndex):
 
                 case SyntaxKind.IdentifierToken:
 
@@ -2480,19 +2487,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // diagnostic. Record and union are contextual keywords, however, so treating them as type
                     // declarations in every ambiguous context would break older code. Only recognize them here
                     // when the corresponding feature is enabled.
-                    if (this.CurrentToken.ContextualKind == SyntaxKind.RecordKeyword &&
+                    if (token.ContextualKind == SyntaxKind.RecordKeyword &&
                         IsFeatureEnabled(MessageID.IDS_FeatureRecords))
                     {
                         return true;
                     }
 
-                    if (this.CurrentToken.ContextualKind == SyntaxKind.UnionKeyword &&
+                    if (token.ContextualKind == SyntaxKind.UnionKeyword &&
                         IsFeatureEnabled(MessageID.IDS_FeatureUnions))
                     {
                         return true;
                     }
 
-                    if (IsExtensionContainerStart())
+                    if (IsExtensionContainerStart(peekIndex))
                     {
                         return true;
                     }
@@ -2502,19 +2509,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 default:
                     return false;
             }
-        }
-
-        private bool IsTypeDeclarationStart(int peekIndex)
-        {
-            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
-
-            while (peekIndex > 0)
-            {
-                this.EatToken();
-                peekIndex--;
-            }
-
-            return this.IsTypeDeclarationStart();
         }
 
         private bool CanReuseMemberDeclaration(SyntaxKind kind, bool isGlobal)
@@ -3406,11 +3400,11 @@ parse_member_name:;
             }
         }
 
-        private bool IsExtensionContainerStart()
+        private bool IsExtensionContainerStart(int peekIndex = 0)
         {
             // For error recovery, we recognize `extension` followed by `<` even in older language versions
-            return this.CurrentToken.ContextualKind == SyntaxKind.ExtensionKeyword &&
-                (IsFeatureEnabled(MessageID.IDS_FeatureExtensions) || this.PeekToken(1).Kind == SyntaxKind.LessThanToken);
+            return this.PeekToken(peekIndex).ContextualKind == SyntaxKind.ExtensionKeyword &&
+                (IsFeatureEnabled(MessageID.IDS_FeatureExtensions) || this.PeekToken(peekIndex + 1).Kind == SyntaxKind.LessThanToken);
         }
 
         // if the modifiers do not contain async or replace and the type is the identifier "async" or "replace", then
@@ -8174,8 +8168,8 @@ done:
             }
         }
 
-        private bool IsFunctionPointerStart()
-            => CurrentToken.Kind == SyntaxKind.DelegateKeyword && PeekToken(1).Kind == SyntaxKind.AsteriskToken;
+        private bool IsFunctionPointerStart(int peekIndex = 0)
+            => PeekToken(peekIndex).Kind == SyntaxKind.DelegateKeyword && PeekToken(peekIndex + 1).Kind == SyntaxKind.AsteriskToken;
 
         private static bool IsPossibleFunctionPointerParameterListStart(SyntaxToken token)
             // We consider both ( and < to be possible starts, in order to make error recovery more graceful
