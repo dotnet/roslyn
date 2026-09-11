@@ -333,7 +333,7 @@ public class CohostTypeHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
         {
             JsonElement jsonElement => jsonElement,
             { } value => JsonSerializer.SerializeToElement(value, value.GetType()),
-            _ => throw new Xunit.Sdk.XunitException("Expected type hierarchy item to have resolve data."),
+            _ => throw new XunitException("Expected type hierarchy item to have resolve data."),
         };
 
         var textDocument = data.TryGetProperty("textDocument", out var camelCaseTextDocument)

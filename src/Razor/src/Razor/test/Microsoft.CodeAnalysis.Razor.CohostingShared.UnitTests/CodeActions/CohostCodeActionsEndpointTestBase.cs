@@ -26,9 +26,6 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.CodeActions;
 
 public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
-    private protected override TestComposition ConfigureLocalComposition(TestComposition composition)
-        => composition.AddParts(typeof(RazorSourceGeneratedDocumentAnalyzerConfigOptionsProvider));
-
     private protected async Task VerifyCodeActionAsync(
         TestCode input,
         string? expected,
