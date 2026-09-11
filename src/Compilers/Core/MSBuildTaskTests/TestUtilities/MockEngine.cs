@@ -40,13 +40,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
         public void LogCustomEvent(CustomBuildEventArgs eventArgs)
         {
-            _testOutputHelper?.WriteLine(eventArgs.Message);
+            _testOutputHelper?.WriteLine(eventArgs.Message ?? string.Empty);
             _log.AppendLine(eventArgs.Message);
         }
 
         public void LogMessageEvent(BuildMessageEventArgs eventArgs)
         {
-            _testOutputHelper?.WriteLine(eventArgs.Message);
+            _testOutputHelper?.WriteLine(eventArgs.Message ?? string.Empty);
             _log.AppendLine(eventArgs.Message);
             BuildMessages.Add(eventArgs);
         }
