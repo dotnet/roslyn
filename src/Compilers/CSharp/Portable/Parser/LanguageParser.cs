@@ -2480,12 +2480,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // diagnostic. Record and union are contextual keywords, however, so treating them as type
                     // declarations in every ambiguous context would break older code. Only recognize them here
                     // when the corresponding feature is enabled.
-                    if (this.CurrentToken.ContextualKind switch
+                    if (this.CurrentToken.ContextualKind == SyntaxKind.RecordKeyword &&
+                        IsFeatureEnabled(MessageID.IDS_FeatureRecords))
                     {
-                        SyntaxKind.RecordKeyword => IsFeatureEnabled(MessageID.IDS_FeatureRecords),
-                        SyntaxKind.UnionKeyword => IsFeatureEnabled(MessageID.IDS_FeatureUnions),
-                        _ => false,
-                    })
+                        return true;
+                    }
+
+                    if (this.CurrentToken.ContextualKind == SyntaxKind.UnionKeyword &&
+                        IsFeatureEnabled(MessageID.IDS_FeatureUnions))
                     {
                         return true;
                     }
