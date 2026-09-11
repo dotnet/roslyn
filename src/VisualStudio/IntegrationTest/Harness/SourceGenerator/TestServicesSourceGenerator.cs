@@ -1407,7 +1407,8 @@ namespace Microsoft.VisualStudio
             var referenceDataModel = context.CompilationProvider.Select(
                 static (compilation, cancellationToken) =>
                 {
-                    var asyncLifetimeType = compilation.GetTypeByMetadataName("Xunit.IAsyncLifetime");
+                    var asyncLifetimeTypes = compilation.SourceModule.ReferencedAssemblySymbols
+                        .Select(static assembly => assembly.GetTypeByMetadataName("Xunit.IAsyncLifetime"));
                     var hasSAsyncServiceProvider = compilation.GetTypeByMetadataName("Microsoft.VisualStudio.Shell.Interop.SAsyncServiceProvider") is not null;
                     var hasThreadHelperJoinableTaskContext = compilation.GetTypeByMetadataName("Microsoft.VisualStudio.Shell.ThreadHelper") is { } threadHelper
                         && threadHelper.GetMembers("JoinableTaskContext").Any(member => member.Kind == SymbolKind.Property);
@@ -1430,9 +1431,10 @@ namespace Microsoft.VisualStudio
                         }
                     }
 
-                    var hasXunitV3AsyncLifetime = asyncLifetimeType?.GetMembers("InitializeAsync")
-                        .OfType<IMethodSymbol>()
-                        .Any(method => method.Parameters.IsEmpty && method.ReturnType.ToDisplayString() == "System.Threading.Tasks.ValueTask") == true;
+                    var hasXunitV3AsyncLifetime = asyncLifetimeTypes.Any(
+                        static asyncLifetimeType => asyncLifetimeType?.GetMembers("InitializeAsync")
+                            .OfType<IMethodSymbol>()
+                            .Any(static method => method.Parameters.IsEmpty && method.ReturnType.ToDisplayString() == "System.Threading.Tasks.ValueTask") == true);
 
                     return new ReferenceDataModel(
                         hasXunitV3AsyncLifetime,

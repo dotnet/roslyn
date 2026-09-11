@@ -8,6 +8,7 @@
     <Nullable>enable</Nullable>
     <OutputType>Exe</OutputType>
     <RootNamespace>Microsoft.VisualStudio.Razor.IntegrationTests</RootNamespace>
+    <GenerateTestFrameworkAttribute>false</GenerateTestFrameworkAttribute>
 
     <!-- Must use "dotnet test" to get blame-hang options -->
     <UseVSTestRunner>true</UseVSTestRunner>

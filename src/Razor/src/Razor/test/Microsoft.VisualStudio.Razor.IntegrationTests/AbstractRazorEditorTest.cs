@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -34,7 +34,7 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutput) : Ab
 
     protected string ProjectFilePath => _projectFilePath.AssumeNotNull();
 
-    public override async Task InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync();
 
@@ -125,7 +125,7 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutput) : Ab
         return Path.Combine(Path.GetTempPath(), "razor-test", Path.GetRandomFileName());
     }
 
-    public override async Task DisposeAsync()
+    public override async ValueTask DisposeAsync()
     {
         _testLogger!.LogInformation($"#### Razor integration test dispose.");
 
