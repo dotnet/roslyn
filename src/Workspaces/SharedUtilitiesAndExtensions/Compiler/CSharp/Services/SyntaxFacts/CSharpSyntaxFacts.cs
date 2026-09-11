@@ -39,7 +39,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
         => SyntaxFactory.ElasticMarker;
 
     public SyntaxTrivia ElasticCarriageReturnLineFeed
-        => SyntaxFactory.ElasticCarriageReturnLineFeed;
+        => SyntaxFactory.ElasticEndOfLine(Environment.NewLine);
 
     public ISyntaxKinds SyntaxKinds { get; } = CSharpSyntaxKinds.Instance;
 
