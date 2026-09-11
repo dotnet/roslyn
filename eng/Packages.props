@@ -311,7 +311,7 @@
     <PackageVersion Include="Xunit.StaFact" Version="4.0.23" />
     <PackageVersion Include="xunit.v3.extensibility.core" Version="$(_xunitVersion)" />
     <PackageVersion Include="xunit.v3.mtp-off" Version="$(_xunitVersion)" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="$(_xunitVersion)" />
     <PackageVersion Include="xunit.v3.runner.utility" Version="$(_xunitVersion)" />
     <PackageVersion Include="XunitXml.TestLogger" Version="8.0.0" />
     <PackageVersion Include="runtime.win-x64.Microsoft.NETCore.ILDAsm" Version="$(ILDAsmPackageVersion)" />
