@@ -44,59 +44,77 @@ namespace Microsoft.CodeAnalysis.Collections
 
                 set
                 {
-                    if (Equals(KeyComparer, value ?? EqualityComparer<T>.Default))
+                    var self = this;
+                    if (Equals(self.KeyComparer, value ?? EqualityComparer<T>.Default))
                         return;
 
-                    _mutableSet = new SegmentedHashSet<T>(ReadOnlySet, value ?? EqualityComparer<T>.Default);
-                    _set = default;
+                    self._mutableSet = new SegmentedHashSet<T>(self.ReadOnlySet, value ?? EqualityComparer<T>.Default);
+                    self._set = default;
+                    this = self;
                 }
             }
 
             /// <inheritdoc cref="ImmutableHashSet{T}.Builder.Count"/>
             public readonly int Count => ReadOnlySet.Count;
 
-            internal readonly SegmentedHashSet<T> ReadOnlySet => _mutableSet ?? _set._set;
+            internal readonly SegmentedHashSet<T> ReadOnlySet
+            {
+                get
+                {
+                    var self = this;
+
+                    return self._mutableSet ?? self._set._set;
+                }
+            }
 
             readonly bool ICollection<T>.IsReadOnly => false;
 
             private SegmentedHashSet<T> GetOrCreateMutableSet()
             {
-                if (_mutableSet is null)
+                var self = this;
+                if (self._mutableSet is null)
                 {
-                    var originalSet = RoslynImmutableInterlocked.InterlockedExchange(ref _set, default);
+                    var originalSet = RoslynImmutableInterlocked.InterlockedExchange(ref self._set, default);
                     if (originalSet.IsDefault)
-                        throw new InvalidOperationException($"Unexpected concurrent access to {GetType()}");
+                        throw new InvalidOperationException($"Unexpected concurrent access to {self.GetType()}");
 
-                    _mutableSet = new SegmentedHashSet<T>(originalSet._set, originalSet.KeyComparer);
+                    self._mutableSet = new SegmentedHashSet<T>(originalSet._set, originalSet.KeyComparer);
                 }
 
-                return _mutableSet;
+                this = self;
+                return self._mutableSet;
             }
 
             /// <inheritdoc cref="ImmutableHashSet{T}.Builder.Add(T)"/>
             public bool Add(T item)
             {
-                if (_mutableSet is null && Contains(item))
+                var self = this;
+                if (self._mutableSet is null && self.Contains(item))
                     return false;
 
-                return GetOrCreateMutableSet().Add(item);
+                bool result = self.GetOrCreateMutableSet().Add(item);
+                this = self;
+                return result;
             }
 
             /// <inheritdoc cref="ImmutableHashSet{T}.Builder.Clear()"/>
             public void Clear()
             {
-                if (ReadOnlySet.Count != 0)
+                var self = this;
+                if (self.ReadOnlySet.Count != 0)
                 {
-                    if (_mutableSet is null)
+                    if (self._mutableSet is null)
                     {
-                        _mutableSet = new SegmentedHashSet<T>(KeyComparer);
-                        _set = default;
+                        self._mutableSet = new SegmentedHashSet<T>(self.KeyComparer);
+                        self._set = default;
                     }
                     else
                     {
-                        _mutableSet.Clear();
+                        self._mutableSet.Clear();
                     }
                 }
+
+                this = self;
             }
 
             /// <inheritdoc cref="ImmutableHashSet{T}.Builder.Contains(T)"/>
@@ -106,61 +124,68 @@ namespace Microsoft.CodeAnalysis.Collections
             /// <inheritdoc cref="ImmutableHashSet{T}.Builder.ExceptWith(IEnumerable{T})"/>
             public void ExceptWith(IEnumerable<T> other)
             {
+                var self = this;
                 if (other is null)
                     ThrowHelper.ThrowArgumentNullException(ExceptionArgument.other);
 
-                if (_mutableSet is not null)
-                {
-                    _mutableSet.ExceptWith(other);
-                    return;
-                }
+                InnerExceptWith(other, ref self);
+                this = self;
 
-                // ValueBuilder is not a public API, so there shouldn't be any callers trying to pass a boxed instance
-                // to this method.
-                Debug.Assert(other is not ValueBuilder);
-
-                if (other == ReadOnlySet)
+                void InnerExceptWith(IEnumerable<T> other, ref ValueBuilder self)
                 {
-                    Clear();
-                    return;
-                }
-                else if (other is ImmutableSegmentedHashSet<T> otherSet)
-                {
-                    if (otherSet == _set)
+                    if (self._mutableSet is not null)
                     {
-                        Clear();
+                        self._mutableSet.ExceptWith(other);
                         return;
                     }
-                    else if (otherSet.IsEmpty)
+
+                    // ValueBuilder is not a public API, so there shouldn't be any callers trying to pass a boxed instance
+                    // to this method.
+                    Debug.Assert(other is not ValueBuilder);
+
+                    if (other == self.ReadOnlySet)
                     {
-                        // No action required
+                        self.Clear();
                         return;
+                    }
+                    else if (other is ImmutableSegmentedHashSet<T> otherSet)
+                    {
+                        if (otherSet == self._set)
+                        {
+                            self.Clear();
+                            return;
+                        }
+                        else if (otherSet.IsEmpty)
+                        {
+                            // No action required
+                            return;
+                        }
+                        else
+                        {
+                            self.GetOrCreateMutableSet().ExceptWith(otherSet._set);
+                            return;
+                        }
                     }
                     else
                     {
-                        GetOrCreateMutableSet().ExceptWith(otherSet._set);
-                        return;
-                    }
-                }
-                else
-                {
-                    // Manually enumerate to avoid changes to the builder if 'other' is empty or does not contain any
-                    // items present in the current set.
-                    SegmentedHashSet<T>? mutableSet = null;
-                    foreach (var item in other)
-                    {
-                        if (mutableSet is null)
+                        // Manually enumerate to avoid changes to the builder if 'other' is empty or does not contain any
+                        // items present in the current set.
+                        SegmentedHashSet<T>? mutableSet = null;
+                        foreach (var item in other)
                         {
-                            if (!ReadOnlySet.Contains(item))
-                                continue;
+                            if (mutableSet is null)
+                            {
+                                if (!self.ReadOnlySet.Contains(item))
+                                    continue;
 
-                            mutableSet = GetOrCreateMutableSet();
+                                mutableSet = self.GetOrCreateMutableSet();
+                            }
+
+                            mutableSet.Remove(item);
                         }
 
-                        mutableSet.Remove(item);
+                        return;
                     }
-
-                    return;
                 }
             }
 
@@ -195,10 +220,13 @@ namespace Microsoft.CodeAnalysis.Collections
             /// <inheritdoc cref="ImmutableHashSet{T}.Builder.Remove(T)"/>
             public bool Remove(T item)
             {
-                if (_mutableSet is null && !Contains(item))
+                var self = this;
+                if (self._mutableSet is null && !self.Contains(item))
                     return false;
 
-                return GetOrCreateMutableSet().Remove(item);
+                bool removed = self.GetOrCreateMutableSet().Remove(item);
+                this = self;
+                return removed;
             }
 
             /// <inheritdoc cref="ImmutableHashSet{T}.Builder.SetEquals(IEnumerable{T})"/>
@@ -212,7 +240,8 @@ namespace Microsoft.CodeAnalysis.Collections
             /// <inheritdoc cref="ImmutableHashSet{T}.Builder.TryGetValue(T, out T)"/>
             public readonly bool TryGetValue(T equalValue, out T actualValue)
             {
-                if (ReadOnlySet.TryGetValue(equalValue, out var value))
+                var self = this;
+                if (self.ReadOnlySet.TryGetValue(equalValue, out var value))
                 {
                     actualValue = value;
                     return true;
@@ -225,47 +254,56 @@ namespace Microsoft.CodeAnalysis.Collections
             /// <inheritdoc cref="ImmutableHashSet{T}.Builder.UnionWith(IEnumerable{T})"/>
             public void UnionWith(IEnumerable<T> other)
             {
+                var self = this;
                 if (other is null)
                     ThrowHelper.ThrowArgumentNullException(ExceptionArgument.other);
 
-                if (_mutableSet is not null)
-                {
-                    _mutableSet.UnionWith(other);
-                    return;
-                }
+                InnerUnionWith(other, ref self);
+                this = self;
 
-                if (other is ImmutableSegmentedHashSet<T> { IsEmpty: true })
+                void InnerUnionWith(IEnumerable<T> other, ref ValueBuilder self)
                 {
-                    return;
-                }
-                else
-                {
-                    // Manually enumerate to avoid changes to the builder if 'other' is empty or only contains items
-                    // already present in the current set.
-                    SegmentedHashSet<T>? mutableSet = null;
-                    foreach (var item in other)
+                    if (self._mutableSet is not null)
                     {
-                        if (mutableSet is null)
-                        {
-                            if (ReadOnlySet.Contains(item))
-                                continue;
-
-                            mutableSet = GetOrCreateMutableSet();
-                        }
-
-                        mutableSet.Add(item);
+                        self._mutableSet.UnionWith(other);
+                        return;
                     }
 
-                    return;
+                    if (other is ImmutableSegmentedHashSet<T> { IsEmpty: true })
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        // Manually enumerate to avoid changes to the builder if 'other' is empty or only contains items
+                        // already present in the current set.
+                        SegmentedHashSet<T>? mutableSet = null;
+                        foreach (var item in other)
+                        {
+                            if (mutableSet is null)
+                            {
+                                if (self.ReadOnlySet.Contains(item))
+                                    continue;
+
+                                mutableSet = self.GetOrCreateMutableSet();
+                            }
+
+                            mutableSet.Add(item);
+                        }
+
+                        return;
+                    }
                 }
             }
 
             /// <inheritdoc cref="ImmutableHashSet{T}.Builder.ToImmutable()"/>
             public ImmutableSegmentedHashSet<T> ToImmutable()
             {
-                _set = new ImmutableSegmentedHashSet<T>(ReadOnlySet);
-                _mutableSet = null;
-                return _set;
+                var self = this;
+                self._set = new ImmutableSegmentedHashSet<T>(self.ReadOnlySet);
+                self._mutableSet = null;
+                this = self;
+                return self._set;
             }
 
             void ICollection<T>.Add(T item)

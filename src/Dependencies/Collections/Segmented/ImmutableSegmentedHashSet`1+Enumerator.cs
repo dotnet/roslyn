@@ -40,9 +40,11 @@ namespace Microsoft.CodeAnalysis.Collections
             /// <inheritdoc cref="ImmutableHashSet{T}.Enumerator.Reset()"/>
             public void Reset()
             {
+                var self = this;
                 // Create a new enumerator, since _enumerator.Reset() will fail for cases where the set was mutated
                 // after enumeration started, and ImmutableSegmentHashSet<T>.Builder allows for this case without error.
-                _enumerator = _set.GetEnumerator();
+                self._enumerator = self._set.GetEnumerator();
+                this = self;
             }
         }
     }

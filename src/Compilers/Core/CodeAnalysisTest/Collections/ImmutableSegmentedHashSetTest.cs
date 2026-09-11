@@ -166,6 +166,65 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         }
 
         /// <summary>
+        /// Verifies that if you request an immutable hashset built directly from an immutable
+        /// hashset, you get the same instance (effectively, copy on write)
+        /// </summary>
+        [Fact]
+        public void CreatingSetFromExistingSet()
+        {
+            IEnumerable<string> makeSetAsIEnumerable()
+            {
+                return ImmutableSegmentedHashSet.Create("a", "b");
+            }
+
+            var set = makeSetAsIEnumerable();
+            var newSet = ImmutableSegmentedHashSet.CreateRange(set);
+            Assert.True(IsSame((ImmutableSegmentedHashSet<string>)set, newSet));
+            var updatedSet = newSet.Add("c");
+            Assert.True(IsSame((ImmutableSegmentedHashSet<string>)set, newSet));
+            Assert.False(IsSame((ImmutableSegmentedHashSet<string>)set, updatedSet));
+        }
+
+        /// <summary>
+        /// Verifies that if you request an immutable hashset built directly from an immutable
+        /// hashset, you get the same instance (effectively, copy on write)
+        /// </summary>
+        [Fact]
+        public void CreatingSetFromExistingSetWithSameComparer()
+        {
+            IEnumerable<string> makeSetAsIEnumerable()
+            {
+                return ImmutableSegmentedHashSet.Create(StringComparer.OrdinalIgnoreCase, "a", "b");
+            }
+
+            var set = makeSetAsIEnumerable();
+            var newSet = ImmutableSegmentedHashSet.CreateRange(StringComparer.OrdinalIgnoreCase, set);
+            Assert.True(IsSame((ImmutableSegmentedHashSet<string>)set, newSet));
+
+            // prove copy-on-write
+            var updatedSet = newSet.Add("c");
+            Assert.True(IsSame((ImmutableSegmentedHashSet<string>)set, newSet));
+            Assert.False(IsSame((ImmutableSegmentedHashSet<string>)set, updatedSet));
+        }
+
+        /// <summary>
+        /// Verifies that if you request an immutable hashset built directly from an immutable
+        /// hashset, you get a different instance because of the different comparer
+        /// </summary>
+        [Fact]
+        public void CreatingSetFromExistingSetWithDifferentComparer()
+        {
+            IEnumerable<string> makeSetAsIEnumerable()
+            {
+                return ImmutableSegmentedHashSet.Create(StringComparer.OrdinalIgnoreCase, "a", "b");
+            }
+
+            var set = makeSetAsIEnumerable();
+            var newSet = ImmutableSegmentedHashSet.CreateRange(StringComparer.Ordinal, set);
+            Assert.False(IsSame((ImmutableSegmentedHashSet<string>)set, newSet));
+        }
+
+        /// <summary>
         /// Verifies the non-removal of an item that does not belong to the set,
         /// but which happens to have a colliding hash code with another value
         /// that *is* in the set.
@@ -210,6 +269,40 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             var actualSet = set.SymmetricExcept(otherCollection);
             CollectionAssertAreEquivalent(expectedSet.ToList(), actualSet.ToList());
+
+            var otherImmutableSet = ImmutableSegmentedHashSet.CreateRange(set.KeyComparer, otherCollection);
+            var actualSetVsImmutable = set.SymmetricExcept(otherImmutableSet);
+            CollectionAssertAreEquivalent(expectedSet.ToList(), actualSetVsImmutable.ToList());
+        }
+
+        [Fact]
+        public void SymmetricExceptWithEmptyTests()
+        {
+            var emptySet = ImmutableSegmentedHashSet.Create<string>().WithComparer(StringComparer.OrdinalIgnoreCase);
+            var nonEmptySet = ImmutableSegmentedHashSet.Create<string>("a").WithComparer(StringComparer.OrdinalIgnoreCase);
+            var otherCollection = new string[] { };
+            var otherImmutableSet = ImmutableSegmentedHashSet.CreateRange(emptySet.KeyComparer, otherCollection);
+            var otherNonEmptyCollection = new string[] { "D" };
+            var otherNonEmptyImmutableSet = ImmutableSegmentedHashSet.CreateRange(emptySet.KeyComparer, otherNonEmptyCollection);
+
+            testOneSetPair(nonEmptySet, otherCollection);
+            testOneSetPair(nonEmptySet, otherImmutableSet);
+            testOneSetPair(nonEmptySet, otherNonEmptyCollection);
+            testOneSetPair(nonEmptySet, otherNonEmptyImmutableSet);
+            testOneSetPair(emptySet, otherImmutableSet);
+            testOneSetPair(emptySet, otherImmutableSet);
+            testOneSetPair(emptySet, otherNonEmptyCollection);
+            testOneSetPair(emptySet, otherNonEmptyImmutableSet);
+
+            static void testOneSetPair(ImmutableSegmentedHashSet<string> immutableSet, IEnumerable<string> anySet)
+            {
+                // We need to be the same behavior as HashSet
+                var expectedSet = new HashSet<string>(immutableSet, immutableSet.KeyComparer);
+                expectedSet.SymmetricExceptWith(anySet);
+
+                var actualSet = immutableSet.SymmetricExcept(anySet);
+                CollectionAssertAreEquivalent(expectedSet.ToList(), actualSet.ToList());
+            }
         }
 
         protected override System.Collections.Immutable.IImmutableSet<T> Empty<T>()

@@ -34,9 +34,11 @@ namespace Microsoft.CodeAnalysis.Collections
 
             public void Reset()
             {
+                var self = this;
                 // Create a new enumerator, since _enumerator.Reset() will fail for cases where the list was mutated
                 // after enumeration started, and ImmutableSegmentList<T>.Builder allows for this case without error.
-                _enumerator = _list.GetEnumerator();
+                self._enumerator = self._list.GetEnumerator();
+                this = self;
             }
         }
     }

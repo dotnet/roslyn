@@ -164,6 +164,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Equal(1, builder.Count);
             builder.Clear();
             Assert.Equal(0, builder.Count);
+
+            builder.Add("six", 6);
+            Assert.Equal(1, builder.Count);
+            builder.ToImmutable();
+            Assert.Equal(1, builder.Count);
+            builder.Clear();
+            // a cleared builder is empty afterwards but can have items added.
+            Assert.Equal(0, builder.Count);
+            builder.Add("seven", 7);
+            Assert.Equal(1, builder.Count);
+
         }
 
         [Fact]
