@@ -89,6 +89,7 @@ try
 
     Console.Write($"Discovering tests in {tfm} {assemblyFileName} ... ");
 
+    var testAssembly = Assembly.LoadFrom(assemblyFilePath);
     var assemblyMetadata = AssemblyUtility.GetAssemblyMetadata(assemblyFilePath)
         ?? throw new InvalidOperationException($"Could not determine the xUnit test framework used by '{assemblyFilePath}'.");
     var projectAssembly = new XunitProjectAssembly(new XunitProject(), assemblyFilePath, assemblyMetadata);
@@ -113,7 +114,7 @@ try
     // which loads the test assembly via reflection and requires no apphost.
     await using var controller = XunitFrontController.Create(projectAssembly, testProcessLauncher: InProcessTestProcessLauncher.Instance)
         ?? throw new InvalidOperationException($"Could not create a test framework front controller for '{assemblyFilePath}'.");
-    var sink = new Sink(assemblyFilePath);
+    var sink = new Sink(testAssembly);
     var discoveryOptions = TestFrameworkOptions.ForDiscovery(projectAssembly.Configuration);
     controller.Find(sink, new FrontControllerFindSettings(discoveryOptions, projectAssembly.Configuration?.Filters ?? new XunitFilters()));
 
@@ -169,18 +170,20 @@ file class TestInfo
 
 file class Sink : IMessageSink
 {
+    private const string AsyncLifetimeInterfaceName = "Xunit.IAsyncLifetime";
+
     public bool AnyWriteFailures { get; private set; }
 
-    public Sink(string assemblyFilePath)
+    public Sink(Assembly testAssembly)
     {
-        _assemblyFilePath = assemblyFilePath;
+        _testAssembly = testAssembly;
         _channel = Channel.CreateUnbounded<(string FullName, bool HasAsyncLifetime)>();
     }
 
-    private readonly string _assemblyFilePath;
+    private readonly Assembly _testAssembly;
     private readonly Channel<(string FullName, bool HasAsyncLifetime)> _channel;
     private readonly Dictionary<string, bool> _asyncLifetimeCache = new();
-    private Assembly? _testAssembly;
+    private readonly Dictionary<string, Type?> _typeCache = new();
 
     public async IAsyncEnumerable<(string FullName, bool HasAsyncLifetime)> GetTestCaseInfosAsync()
     {
@@ -210,8 +213,17 @@ file class Sink : IMessageSink
 
     private void OnTestDiscovered(ITestCaseDiscovered testCaseDiscovered)
     {
-        var fullName = $"{testCaseDiscovered.TestClassName}.{testCaseDiscovered.TestMethodName}";
-        var hasAsyncLifetime = HasAsyncLifetime(testCaseDiscovered.TestClassName);
+        var className = testCaseDiscovered.TestClassName;
+        var methodName = testCaseDiscovered.TestMethodName;
+
+        if (string.IsNullOrEmpty(className) || string.IsNullOrEmpty(methodName))
+        {
+            AnyWriteFailures = true;
+            return;
+        }
+        var fullName = $"{className}.{methodName}";
+        var hasAsyncLifetime = HasAsyncLifetime(className);
+        var hasAsyncLifetime = HasAsyncLifetime(className);
 
         // this shouldn't happen as our channel is unbounded but we are Paranoid Coding™️
         if (!_channel.Writer.TryWrite((fullName, hasAsyncLifetime)))
@@ -220,19 +232,19 @@ file class Sink : IMessageSink
         }
     }
 
-    private bool HasAsyncLifetime(string? testClassName)
+    private bool HasAsyncLifetime(string typeName)
     {
-        if (testClassName is null)
-            return false;
-
-        if (_asyncLifetimeCache.TryGetValue(testClassName, out var cached))
+        if (_asyncLifetimeCache.TryGetValue(typeName, out var cached))
             return cached;
 
-        // xUnit v3's discovery metadata does not expose the interfaces implemented by the test
-        // class, so load the real type from the assembly under test to check for IAsyncLifetime.
-        _testAssembly ??= Assembly.LoadFrom(_assemblyFilePath);
-        var result = _testAssembly.GetType(testClassName)?.GetInterfaces().Any(i => i.FullName == "Xunit.IAsyncLifetime") == true;
-        _asyncLifetimeCache[testClassName] = result;
+        if (!_typeCache.TryGetValue(typeName, out var type))
+        {
+            type = _testAssembly.GetType(typeName, throwOnError: false);
+            _typeCache[typeName] = type;
+        }
+
+        var result = type?.GetInterfaces().Any(@interface => @interface.FullName == AsyncLifetimeInterfaceName) == true;
+        _asyncLifetimeCache[typeName] = result;
         return result;
     }
 }
