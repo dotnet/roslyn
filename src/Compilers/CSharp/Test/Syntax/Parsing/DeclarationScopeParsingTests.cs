@@ -2058,6 +2058,8 @@ ref scoped int c;
             const string source = "ref public int F;";
             UsingTree(
                 source,
+                // (1,5): error CS1031: Type expected
+                // ref public int F;
                 Diagnostic(ErrorCode.ERR_TypeExpected, "public").WithLocation(1, 5));
             N(SyntaxKind.CompilationUnit);
             {
