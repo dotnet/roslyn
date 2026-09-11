@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -128,6 +129,33 @@ public class CohostEndpointTest(ITestOutputHelper testOutputHelper) : ToolingTes
 
             Assert.All(registrations, registration => Assert.IsAssignableFrom<ITextDocumentRegistrationOptions>(registration.RegisterOptions));
         }
+
+        var legacyDiagnosticEndpoint = Assert.Single(providers.OfType<CohostDocumentPullDiagnosticsEndpoint>());
+        var legacyDiagnosticRegistration = Assert.Single(legacyDiagnosticEndpoint.GetRegistrations(clientCapabilities, requestContext: new()));
+        Assert.Equal(VSInternalMethods.DocumentPullDiagnosticName, legacyDiagnosticRegistration.Method);
+        var legacyDiagnosticOptions = Assert.IsType<VSInternalDiagnosticRegistrationOptions>(legacyDiagnosticRegistration.RegisterOptions);
+        Assert.Equal([VSInternalDiagnosticKind.Syntax, VSInternalDiagnosticKind.Task], legacyDiagnosticOptions.DiagnosticKinds);
+
+        var publicDiagnosticEndpoint = Assert.Single(providers.OfType<PublicCohostDocumentPullDiagnosticsEndpoint>());
+        var publicDiagnosticRegistrations = publicDiagnosticEndpoint.GetRegistrations(clientCapabilities, requestContext: new());
+        Assert.Collection(
+            publicDiagnosticRegistrations,
+            registration =>
+            {
+                Assert.Equal(Methods.TextDocumentDiagnosticName, registration.Method);
+                var options = Assert.IsType<DiagnosticRegistrationOptions>(registration.RegisterOptions);
+                Assert.Equal(PullDiagnosticCategories.DocumentCompilerSyntax, options.Identifier);
+                Assert.True(options.InterFileDependencies);
+                Assert.False(options.WorkspaceDiagnostics);
+            },
+            registration =>
+            {
+                Assert.Equal(Methods.TextDocumentDiagnosticName, registration.Method);
+                var options = Assert.IsType<DiagnosticRegistrationOptions>(registration.RegisterOptions);
+                Assert.Equal(PullDiagnosticCategories.Task, options.Identifier);
+                Assert.True(options.InterFileDependencies);
+                Assert.False(options.WorkspaceDiagnostics);
+            });
     }
 
     [Export(typeof(ILanguageServiceBroker2)), PartNotDiscoverable]

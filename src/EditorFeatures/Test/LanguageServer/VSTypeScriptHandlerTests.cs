@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Composition;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.LanguageServer.Protocol;
@@ -33,7 +35,7 @@ public sealed class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTes
     protected override TestComposition Composition => EditorTestCompositions.LanguageServerProtocolEditorFeatures.AddParts(typeof(VSTypeScriptTestLoggerFactory));
 
     [Fact]
-    public async Task TestRoslynTypeScriptHandlerInvoked()
+    public async Task TestRoslynTypeScriptDiagnosticHandlersInvoked()
     {
         var workspaceXml =
             $"""
@@ -47,13 +49,88 @@ public sealed class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTes
         await using var testLspServer = await CreateTsTestLspServerAsync(workspaceXml, new InitializationOptions());
 
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
-        var documentPullRequest = new VSInternalDocumentDiagnosticsParams
+        var legacyDocumentPullRequest = new VSInternalDocumentDiagnosticsParams
         {
             TextDocument = CreateTextDocumentIdentifier(document.GetURI(), document.Project.Id)
         };
 
-        var response = await testLspServer.ExecuteRequestAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(VSInternalMethods.DocumentPullDiagnosticName, documentPullRequest, CancellationToken.None);
-        AssertEx.Empty(response);
+        var legacyDocumentResponse = await testLspServer.ExecuteRequestAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(VSInternalMethods.DocumentPullDiagnosticName, legacyDocumentPullRequest, CancellationToken.None);
+        AssertEx.Empty(legacyDocumentResponse);
+
+        var publicDocumentPullRequest = new DocumentDiagnosticParams
+        {
+            TextDocument = CreateTextDocumentIdentifier(document.GetURI(), document.Project.Id)
+        };
+
+        var publicDocumentResponse = await testLspServer.ExecuteRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>>(Methods.TextDocumentDiagnosticName, publicDocumentPullRequest, CancellationToken.None);
+        AssertEx.Empty(publicDocumentResponse.First.Items);
+
+        var publicWorkspacePullRequest = new WorkspaceDiagnosticParams
+        {
+            Identifier = PullDiagnosticCategories.WorkspaceDocumentsAndProject,
+            PreviousResultId = []
+        };
+
+        var publicWorkspaceResponse = await testLspServer.ExecuteRequestAsync<WorkspaceDiagnosticParams, WorkspaceDiagnosticReport?>(Methods.WorkspaceDiagnosticName, publicWorkspacePullRequest, CancellationToken.None);
+        Assert.NotNull(publicWorkspaceResponse);
+        AssertEx.Empty(publicWorkspaceResponse.Items);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task TestRoslynTypeScriptDiagnosticCapabilities(bool dynamicRegistration)
+    {
+        var clientCallbackTarget = new ClientCallbackTarget();
+        var initializationOptions = new InitializationOptions
+        {
+            CallInitialized = true,
+            ClientCapabilities = new ClientCapabilities
+            {
+                TextDocument = new TextDocumentClientCapabilities
+                {
+                    Diagnostic = new DiagnosticSetting
+                    {
+                        DynamicRegistration = dynamicRegistration,
+                    }
+                }
+            },
+            ClientTarget = clientCallbackTarget,
+        };
+
+        await using var testLspServer = await CreateTsTestLspServerAsync("<Workspace></Workspace>", initializationOptions);
+
+        var serverCapabilities = Assert.IsType<VSInternalServerCapabilities>(testLspServer.GetServerCapabilities());
+        Assert.True(serverCapabilities.SupportsDiagnosticRequests);
+        var legacyDiagnosticOptions = Assert.IsType<VSInternalDiagnosticOptions>(serverCapabilities.DiagnosticProvider);
+        Assert.True(legacyDiagnosticOptions.SupportsMultipleContextsDiagnostics);
+        AssertEx.Equal(
+            [
+                PullDiagnosticCategories.Task,
+                PullDiagnosticCategories.WorkspaceDocumentsAndProject,
+                PullDiagnosticCategories.DocumentAnalyzerSyntax,
+                PullDiagnosticCategories.DocumentAnalyzerSemantic,
+            ],
+            Assert.IsType<VSInternalDiagnosticKind[]>(legacyDiagnosticOptions.DiagnosticKinds).Select(kind => kind.Value));
+
+        var publicRegistrations = clientCallbackTarget.Registrations
+            .Where(registration => registration.Method == Methods.TextDocumentDiagnosticName)
+            .Select(registration => JsonSerializer.Deserialize<DiagnosticRegistrationOptions>((JsonElement)registration.RegisterOptions!, ProtocolConversions.LspJsonSerializerOptions)!)
+            .ToArray();
+
+        if (dynamicRegistration)
+        {
+            Assert.Null(serverCapabilities.DiagnosticOptions);
+            Assert.NotEmpty(publicRegistrations);
+            Assert.Contains(publicRegistrations, options => options.WorkspaceDiagnostics);
+        }
+        else
+        {
+            Assert.Empty(publicRegistrations);
+            var diagnosticOptions = Assert.IsType<DiagnosticOptions>(serverCapabilities.DiagnosticOptions?.Value);
+            Assert.True(diagnosticOptions.InterFileDependencies);
+            Assert.True(diagnosticOptions.WorkspaceDiagnostics);
+        }
     }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1901118")]
@@ -81,7 +158,16 @@ public sealed class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTes
         var testWorkspace = await CreateWorkspaceAsync(options, mutatingLspWorkspace: false, workspaceKind: null);
         testWorkspace.InitializeDocuments(XElement.Parse(workspaceXml), openDocuments: false);
 
-        return await VSTypeScriptTestLspServer.CreateAsync(testWorkspace, new InitializationOptions(), TestOutputHelper);
+        return await VSTypeScriptTestLspServer.CreateAsync(testWorkspace, options ?? new InitializationOptions(), TestOutputHelper);
+    }
+
+    private sealed class ClientCallbackTarget
+    {
+        public List<Registration> Registrations { get; } = [];
+
+        [JsonRpcMethod(Methods.ClientRegisterCapabilityName, UseSingleObjectParameterDeserialization = true)]
+        public void ClientRegisterCapability(RegistrationParams registrationParams, CancellationToken _)
+            => Registrations.AddRange(registrationParams.Registrations);
     }
 
     private sealed class VSTypeScriptTestLspServer : AbstractTestLspServer<LspTestWorkspace, TestHostDocument, TestHostProject, TestHostSolution>
