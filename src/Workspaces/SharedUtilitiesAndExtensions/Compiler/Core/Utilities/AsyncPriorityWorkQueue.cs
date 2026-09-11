@@ -122,6 +122,37 @@ internal sealed class AsyncPriorityWorkQueue<TItem> : IDisposable where TItem : 
         }
     }
 
+    public void ChangeWorkPriorityIfScheduled(TItem item, int newPriority)
+    {
+        if (newPriority < 0 || newPriority >= _itemsByPriority.Length)
+            throw new ArgumentOutOfRangeException(paramName: nameof(newPriority), message: $"Priority must be between 0 and {_itemsByPriority.Length - 1}");
+
+        lock (_gate)
+        {
+            if (_entireQueueCancellationTokenSource.IsCancellationRequested)
+                return;
+
+            for (var priority = 0; priority < _itemsByPriority.Length; priority++)
+            {
+                if (_itemsByPriority[priority].Contains(item))
+                {
+                    if (priority == newPriority)
+                    {
+                        // Already at the right priority, nothing to do
+                        return;
+                    }
+                    else
+                    {
+                        // Found at a different priority, so remove it and add it to the right priority
+                        Contract.ThrowIfFalse(_itemsByPriority[priority].Remove(item));
+                        Contract.ThrowIfFalse(_itemsByPriority[newPriority].Add(item));
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
     private void StartWork()
     {
         lock (_gate)

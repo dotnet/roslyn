@@ -156,6 +156,117 @@ public sealed class AsyncPriorityWorkQueueTests
         Assert.Equal(new[] { 2, 1 }, processed);
     }
 
+    [Theory]
+    [InlineData(0, 2)]
+    [InlineData(2, 0)]
+    [InlineData(0, 0)]
+    [InlineData(2, 2)]
+    public async Task ChangePriorityMovesScheduledItemWithoutDuplicating(int originalPriority, int newPriority)
+    {
+        var processed = new List<string>();
+        var listener = new AsynchronousOperationListener();
+        using var queue = new AsyncPriorityWorkQueue<string>(
+            maximumPriority: 2,
+            delay: TimeSpan.FromDays(1), // ExpeditedWaitAsync skips this delay
+            processBatchAsync: async (enumerator, cancellationToken) => processed.AddRange(Drain(enumerator)),
+            equalityComparer: EqualityComparer<string>.Default,
+            asyncListener: listener);
+
+        queue.AddWork("item", originalPriority);
+        queue.AddWork("middle", priority: 1);
+        queue.ChangeWorkPriorityIfScheduled("item", newPriority);
+
+        await listener.ExpeditedWaitAsync();
+
+        Assert.Equal(newPriority > 1 ? new[] { "item", "middle" } : new[] { "middle", "item" }, processed);
+    }
+
+    [Fact]
+    public async Task ChangePriorityUsesEqualityComparer()
+    {
+        var processed = new List<string>();
+        var listener = new AsynchronousOperationListener();
+        using var queue = new AsyncPriorityWorkQueue<string>(
+            maximumPriority: 3,
+            delay: TimeSpan.FromDays(1), // ExpeditedWaitAsync skips this delay
+            processBatchAsync: async (enumerator, cancellationToken) => processed.AddRange(Drain(enumerator)),
+            equalityComparer: StringComparer.OrdinalIgnoreCase,
+            asyncListener: listener);
+
+        queue.AddWork("item", priority: 3);
+        queue.AddWork("middle", priority: 1);
+        queue.ChangeWorkPriorityIfScheduled("ITEM", newPriority: 0);
+
+        await listener.ExpeditedWaitAsync();
+
+        Assert.Equal(new[] { "middle", "item" }, processed, StringComparer.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task ChangePriorityDoesNotScheduleAbsentItem()
+    {
+        var processed = new List<string>();
+        var callbackCount = 0;
+        var listener = new AsynchronousOperationListener();
+        using var queue = new AsyncPriorityWorkQueue<string>(
+            maximumPriority: 3,
+            delay: TimeSpan.FromDays(1), // ExpeditedWaitAsync skips this delay
+            processBatchAsync: async (enumerator, cancellationToken) =>
+            {
+                callbackCount++;
+                processed.AddRange(Drain(enumerator));
+            },
+            equalityComparer: EqualityComparer<string>.Default,
+            asyncListener: listener);
+
+        queue.ChangeWorkPriorityIfScheduled("absent", newPriority: 3);
+        await listener.ExpeditedWaitAsync();
+        Assert.Equal(0, callbackCount);
+
+        queue.AddWork("scheduled", priority: 0);
+        queue.ChangeWorkPriorityIfScheduled("absent", newPriority: 3);
+        await listener.ExpeditedWaitAsync();
+
+        Assert.Equal(1, callbackCount);
+        Assert.Equal(new[] { "scheduled" }, processed);
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(4)]
+    public void ChangePriorityRejectsOutOfRangePriority(int newPriority)
+    {
+        using var queue = new AsyncPriorityWorkQueue<int>(
+            maximumPriority: 3,
+            delay: TimeSpan.FromDays(1),
+            processBatchAsync: async (enumerator, cancellationToken) => { },
+            equalityComparer: EqualityComparer<int>.Default,
+            asyncListener: AsynchronousOperationListenerProvider.NullListener);
+
+        Assert.Throws<ArgumentOutOfRangeException>("newPriority", () => queue.ChangeWorkPriorityIfScheduled(1, newPriority));
+    }
+
+    [Fact]
+    public async Task ChangePriorityAfterDisposeDoesNotRun()
+    {
+        var processed = false;
+        var listener = new AsynchronousOperationListener();
+        var queue = new AsyncPriorityWorkQueue<int>(
+            maximumPriority: 3,
+            delay: TimeSpan.FromDays(1), // ExpeditedWaitAsync skips this delay
+            processBatchAsync: async (enumerator, cancellationToken) => processed = true,
+            equalityComparer: EqualityComparer<int>.Default,
+            asyncListener: listener);
+
+        queue.AddWork(1, priority: 0);
+        queue.Dispose();
+        queue.ChangeWorkPriorityIfScheduled(1, newPriority: 3);
+
+        await listener.ExpeditedWaitAsync();
+
+        Assert.False(processed);
+    }
+
     [Fact]
     public async Task PendingItemCanBeReprioritizedWhileBatchRuns()
     {
