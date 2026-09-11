@@ -10058,6 +10058,45 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Member_Constructor_NewConstraint_GenericExtensionMethod()
+    {
+        CompileAndVerifyUnsafe(
+            lib: """
+                public class C1
+                {
+                    unsafe public C1() { }
+                }
+                public class C2
+                {
+                    unsafe public C2() { }
+                }
+                """,
+            caller: """
+                C1 c = null;
+                c.M<C1, C2>();
+
+                static class E
+                {
+                    extension<TExtension>(TExtension value) where TExtension : new()
+                    {
+                        public void M<TMethod>() where TMethod : new() { }
+                    }
+                }
+                """,
+            expectedUnsafeSymbols: ["C1..ctor", "C2..ctor"],
+            expectedSafeSymbols: ["C1", "C2"],
+            expectedDiagnostics:
+            [
+                // (2,1): error CS9376: An unsafe context is required for constructor 'C1.C1()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'TExtension' in 'E.extension<TExtension>(TExtension).M<TMethod>()'
+                // c.M<C1, C2>();
+                Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "c.M<C1, C2>()").WithArguments("C1.C1()", "TExtension", "E.extension<TExtension>(TExtension).M<TMethod>()").WithLocation(2, 1),
+                // (2,1): error CS9376: An unsafe context is required for constructor 'C2.C2()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'TMethod' in 'E.extension<TExtension>(TExtension).M<TMethod>()'
+                // c.M<C1, C2>();
+                Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "c.M<C1, C2>()").WithArguments("C2.C2()", "TMethod", "E.extension<TExtension>(TExtension).M<TMethod>()").WithLocation(2, 1),
+            ]);
+    }
+
+    [Fact]
     public void Member_Constructor_NewConstraint_MoreArguments()
     {
         CompileAndVerifyUnsafe(
