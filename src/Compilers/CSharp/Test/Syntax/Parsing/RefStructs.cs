@@ -398,13 +398,43 @@ class Program
             string contextualKeyword, LanguageVersion languageVersion)
         {
             var source = $$"""class C { ref readonly {{contextualKeyword}} M(); }""";
-            var tree = ParseTree(source, TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var options = TestOptions.Regular.WithLanguageVersion(languageVersion);
 
-            var root = tree.GetCompilationUnitRoot();
-            var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
-            Assert.Equal(SyntaxKind.MethodDeclaration, Assert.Single(containingType.Members).Kind());
+            UsingTree(source, options);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, contextualKeyword);
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
             Assert.Contains(
-                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).GetDiagnostics(),
+                CreateCompilation(source, parseOptions: options).GetDiagnostics(),
                 diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
         }
 
@@ -588,13 +618,47 @@ class Program
             string contextualKeyword, LanguageVersion languageVersion)
         {
             var source = $$"""class C { ref readonly {{contextualKeyword}} A { get; } }""";
-            var tree = ParseTree(source, TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var options = TestOptions.Regular.WithLanguageVersion(languageVersion);
 
-            var root = tree.GetCompilationUnitRoot();
-            var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
-            Assert.Equal(SyntaxKind.PropertyDeclaration, Assert.Single(containingType.Members).Kind());
+            UsingTree(source, options);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, contextualKeyword);
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "A");
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.GetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.GetKeyword);
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
             Assert.Contains(
-                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).GetDiagnostics(),
+                CreateCompilation(source, parseOptions: options).GetDiagnostics(),
                 diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
         }
 
