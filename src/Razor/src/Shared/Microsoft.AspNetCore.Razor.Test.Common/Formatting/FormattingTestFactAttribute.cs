@@ -5,7 +5,6 @@ extern alias XunitV3;
 
 using System;
 using System.Runtime.CompilerServices;
-using XunitV3::Xunit.v3;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;
 

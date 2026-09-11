@@ -111,8 +111,9 @@ try
     // *.UnitTests.dll naming requirement), so they never produce the native apphost executable
     // that the default out-of-process launcher requires. Use the in-process launcher instead,
     // which loads the test assembly via reflection and requires no apphost.
-    await using var controller = XunitFrontController.Create(projectAssembly, testProcessLauncher: InProcessTestProcessLauncher.Instance)
+    var controller = XunitFrontController.Create(projectAssembly, testProcessLauncher: InProcessTestProcessLauncher.Instance)
         ?? throw new InvalidOperationException($"Could not create a test framework front controller for '{assemblyFilePath}'.");
+    await using var controllerDisposer = controller.ConfigureAwait(false);
     var sink = new Sink();
     var discoveryOptions = TestFrameworkOptions.ForDiscovery(projectAssembly.Configuration);
     controller.Find(sink, new FrontControllerFindSettings(discoveryOptions, projectAssembly.Configuration?.Filters ?? new XunitFilters()));

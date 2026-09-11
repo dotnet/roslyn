@@ -8,7 +8,6 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
-using XunitV3::Xunit.v3;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 

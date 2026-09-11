@@ -4,7 +4,6 @@
 // Uncomment to easily generate baselines for tests
 //#define GENERATE_BASELINES
 
-
 public class GenerateBaselines
 {
 #if GENERATE_BASELINES
