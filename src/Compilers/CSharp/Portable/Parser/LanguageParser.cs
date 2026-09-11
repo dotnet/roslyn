@@ -1449,6 +1449,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 Debug.Assert(this.CurrentToken.Kind == SyntaxKind.RefKeyword);
 
+                // If the token immediately after 'ref' starts a type declaration, treat 'ref' as a
+                // modifier rather than part of a return type. Use the canonical declaration lookahead
+                // so record, union, and extension follow the same rules. Checking only the immediate
+                // token preserves a member such as 'ref readonly record M()' as a ref-returning method.
                 if (this.IsTypeDeclarationStart(peekIndex: 1))
                 {
                     return false;
