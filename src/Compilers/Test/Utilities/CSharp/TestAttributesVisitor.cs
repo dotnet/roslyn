@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             foreach (var attribute in attributes)
             {
                 Assert.NotNull(attribute.AttributeConstructor);
-                var containingType = attribute.AttributeConstructor.ContainingType;
+                var containingType = attribute.AttributeConstructor.RequiredContainingType;
                 if (containingType.Name == name && containingType.ContainingNamespace.QualifiedName == namespaceName)
                 {
                     return attribute;

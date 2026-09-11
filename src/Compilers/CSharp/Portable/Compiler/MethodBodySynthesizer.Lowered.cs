@@ -381,7 +381,7 @@ start:
             SyntheticBoundNodeFactory F)
         {
             // Prepare constructed symbols
-            NamedTypeSymbol equalityComparerType = system_Collections_Generic_EqualityComparer_T__GetHashCode.ContainingType;
+            NamedTypeSymbol equalityComparerType = system_Collections_Generic_EqualityComparer_T__GetHashCode.RequiredContainingType;
             NamedTypeSymbol constructedEqualityComparer = equalityComparerType.Construct(valueToHash.Type);
 
             return F.Call(F.StaticCall(constructedEqualityComparer,
@@ -415,7 +415,7 @@ start:
             var equalityComparer_Equals = F.WellKnownMethod(
                 WellKnownMember.System_Collections_Generic_EqualityComparer_T__Equals);
 
-            NamedTypeSymbol equalityComparerType = equalityComparer_Equals.ContainingType;
+            NamedTypeSymbol equalityComparerType = equalityComparer_Equals.RequiredContainingType;
 
             BoundExpression? retExpression = initialExpression;
 
@@ -462,7 +462,7 @@ start:
                 argBuilder.Add(F.Parameter(param));
             }
 
-            BoundExpression invocation = F.Call(methodToInvoke.IsStatic ? null : (useBaseReference ? (BoundExpression)F.Base(baseType: methodToInvoke.ContainingType) : F.This()),
+            BoundExpression invocation = F.Call(methodToInvoke.IsStatic ? null : (useBaseReference ? (BoundExpression)F.Base(baseType: methodToInvoke.RequiredContainingType) : F.This()),
                                                 methodToInvoke,
                                                 argBuilder.ToImmutableAndFree());
 

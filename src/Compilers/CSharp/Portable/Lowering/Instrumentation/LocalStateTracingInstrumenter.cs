@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var contextType = factory.Compilation.GetWellKnownType(WellKnownType.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker);
-            if (IsSameOrNestedType(method.ContainingType, contextType))
+            if (IsSameOrNestedType(method.RequiredContainingType, contextType))
             {
                 return false;
             }

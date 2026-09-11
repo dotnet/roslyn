@@ -1150,11 +1150,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression ConvertReceiverForExtensionMemberIfNeeded(Symbol member, BoundExpression receiver, bool markAsChecked)
         {
-            if (member.IsExtensionBlockMember())
+            if (member.IsExtensionBlockMember(out var extension))
             {
                 Debug.Assert(!member.IsStatic);
-                ParameterSymbol? extensionParameter = member.ContainingType.ExtensionParameter;
-                Debug.Assert(extensionParameter is not null);
+                ParameterSymbol extensionParameter = extension.RequiredExtensionParameter;
                 return ConvertReceiverForExtensionIfNeeded(receiver, markAsChecked, extensionParameter);
             }
 

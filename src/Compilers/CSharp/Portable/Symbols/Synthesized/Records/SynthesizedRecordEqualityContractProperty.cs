@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static void VerifyOverridesEqualityContractFromBase(PropertySymbol overriding, BindingDiagnosticBag diagnostics)
         {
-            var baseType = overriding.ContainingType.BaseTypeNoUseSiteDiagnostics;
+            var baseType = overriding.RequiredContainingType.BaseTypeNoUseSiteDiagnostics;
             if (baseType.IsObjectType())
             {
                 return;
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var overridden = overriding.OverriddenProperty;
 
                 if (overridden is object &&
-                    !overridden.ContainingType.Equals(baseType, TypeCompareKind.AllIgnoreOptions))
+                    !overridden.RequiredContainingType.Equals(baseType, TypeCompareKind.AllIgnoreOptions))
                 {
                     reportAnError = true;
                 }

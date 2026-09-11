@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// Gets the <see cref="INamedTypeSymbolInternal"/> for the containing type. Returns null if the
         /// symbol is not contained within a type.
         /// </summary>
-        INamedTypeSymbolInternal ContainingType { get; }
+        INamedTypeSymbolInternal? ContainingType { get; }
 
         /// <summary>
         /// Gets the <see cref="INamespaceSymbolInternal"/> for the nearest enclosing namespace. Returns null if the

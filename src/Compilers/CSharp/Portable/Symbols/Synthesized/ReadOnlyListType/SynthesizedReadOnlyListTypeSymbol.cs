@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // IEnumerable.GetEnumerator(), IEnumerable<T>.GetEnumerator()
             static BoundStatement generateGetEnumerator(SyntheticBoundNodeFactory f, MethodSymbol method, MethodSymbol interfaceMethod)
             {
-                var containingType = (SynthesizedReadOnlyListTypeSymbol)method.ContainingType;
+                var containingType = (SynthesizedReadOnlyListTypeSymbol)method.RequiredContainingType;
                 var field = containingType._field;
                 var fieldReference = f.Field(f.This(), field);
                 if (containingType.IsSingleElement)
@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     // return _items.GetEnumerator();
-                    NamedTypeSymbol interfaceType = interfaceMethod.ContainingType;
+                    NamedTypeSymbol interfaceType = interfaceMethod.RequiredContainingType;
                     Debug.Assert(interfaceType.IsInterface);
                     Conversion c = f.ClassifyEmitConversion(fieldReference, interfaceType);
                     Debug.Assert(c.IsImplicit);
@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // ICollection.Count, IReadOnlyCollection<T>.Count, ICollection<T>.Count
             static BoundStatement generateCount(SyntheticBoundNodeFactory f, MethodSymbol method, MethodSymbol interfaceMethod)
             {
-                var containingType = (SynthesizedReadOnlyListTypeSymbol)method.ContainingType;
+                var containingType = (SynthesizedReadOnlyListTypeSymbol)method.RequiredContainingType;
                 if (containingType.IsSingleElement)
                 {
                     // return 1;
@@ -577,7 +577,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // IList.Contains(object), ICollection<T>.Contains(T)
             static BoundStatement generateContains(SyntheticBoundNodeFactory f, MethodSymbol method, MethodSymbol interfaceMethod)
             {
-                var containingType = (SynthesizedReadOnlyListTypeSymbol)method.ContainingType;
+                var containingType = (SynthesizedReadOnlyListTypeSymbol)method.RequiredContainingType;
                 var field = containingType._field;
                 var fieldReference = f.Field(f.This(), field);
                 var parameterReference = f.Parameter(method.Parameters[0]);
@@ -587,10 +587,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return f.Return(
                         makeEqualityComparerDefaultEquals(f, fieldReference, parameterReference));
                 }
-                else if (containingType.IsArray || !interfaceMethod.ContainingType.IsGenericType)
+                else if (containingType.IsArray || !interfaceMethod.RequiredContainingType.IsGenericType)
                 {
                     // return ((ICollection<T>)_items).Contains(param0);
-                    NamedTypeSymbol interfaceType = interfaceMethod.ContainingType;
+                    NamedTypeSymbol interfaceType = interfaceMethod.RequiredContainingType;
                     Debug.Assert(interfaceType.IsInterface);
                     Conversion c = f.ClassifyEmitConversion(fieldReference, interfaceType);
                     Debug.Assert(c.IsImplicit);
@@ -620,7 +620,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // ICollection.CopyTo(Array, int), ICollection<T>.CopyTo(T[], int)
             static BoundStatement generateCopyTo(SyntheticBoundNodeFactory f, MethodSymbol method, MethodSymbol interfaceMethod)
             {
-                var containingType = (SynthesizedReadOnlyListTypeSymbol)method.ContainingType;
+                var containingType = (SynthesizedReadOnlyListTypeSymbol)method.RequiredContainingType;
                 var field = containingType._field;
                 var fieldReference = f.Field(f.This(), field);
                 var parameterReference0 = f.Parameter(method.Parameters[0]);
@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 BoundStatement statement;
                 if (containingType.IsSingleElement)
                 {
-                    if (!interfaceMethod.ContainingType.IsGenericType)
+                    if (!interfaceMethod.RequiredContainingType.IsGenericType)
                     {
                         var arraySetValueMethod = (MethodSymbol)method.DeclaringCompilation.GetSpecialTypeMember(SpecialMember.System_Array__SetValue)!;
 
@@ -653,10 +653,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             fieldReference);
                     }
                 }
-                else if (containingType.IsArray || !interfaceMethod.ContainingType.IsGenericType)
+                else if (containingType.IsArray || !interfaceMethod.RequiredContainingType.IsGenericType)
                 {
                     // ((ICollection<T>)_items).CopyTo(param0, param1);
-                    NamedTypeSymbol interfaceType = interfaceMethod.ContainingType;
+                    NamedTypeSymbol interfaceType = interfaceMethod.RequiredContainingType;
                     Debug.Assert(interfaceType.IsInterface);
                     Conversion c = f.ClassifyEmitConversion(fieldReference, interfaceType);
                     Debug.Assert(c.IsImplicit);
@@ -689,7 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // IList.this[int], IReadOnlyList<T>.this[int], IList<T>.this[int]
             static BoundStatement generateIndexer(SyntheticBoundNodeFactory f, MethodSymbol method, MethodSymbol interfaceMethod)
             {
-                var containingType = (SynthesizedReadOnlyListTypeSymbol)method.ContainingType;
+                var containingType = (SynthesizedReadOnlyListTypeSymbol)method.RequiredContainingType;
                 var field = containingType._field;
                 var fieldReference = f.Field(f.This(), field);
                 var parameterReference = f.Parameter(method.Parameters[0]);
@@ -723,7 +723,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // IList.IndexOf(object), IList<T>.IndexOf(T)
             static BoundStatement generateIndexOf(SyntheticBoundNodeFactory f, MethodSymbol method, MethodSymbol interfaceMethod)
             {
-                var containingType = (SynthesizedReadOnlyListTypeSymbol)method.ContainingType;
+                var containingType = (SynthesizedReadOnlyListTypeSymbol)method.RequiredContainingType;
                 var field = containingType._field;
                 var fieldReference = f.Field(f.This(), field);
                 var parameterReference = f.Parameter(method.Parameters[0]);
@@ -737,10 +737,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             f.Literal(-1),
                             method.ReturnType));
                 }
-                else if (containingType.IsArray || !interfaceMethod.ContainingType.IsGenericType)
+                else if (containingType.IsArray || !interfaceMethod.RequiredContainingType.IsGenericType)
                 {
                     // return ((IList<T>)_items).IndexOf(param0);
-                    NamedTypeSymbol interfaceType = interfaceMethod.ContainingType;
+                    NamedTypeSymbol interfaceType = interfaceMethod.RequiredContainingType;
                     Debug.Assert(interfaceType.IsInterface);
                     Conversion c = f.ClassifyEmitConversion(fieldReference, interfaceType);
                     Debug.Assert(c.IsImplicit);
@@ -793,7 +793,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     WellKnownMember.System_Collections_Generic_EqualityComparer_T__get_Default);
                 var equalityComparer_Equals = f.WellKnownMethod(
                     WellKnownMember.System_Collections_Generic_EqualityComparer_T__Equals);
-                var equalityComparerType = equalityComparer_Equals.ContainingType;
+                var equalityComparerType = equalityComparer_Equals.RequiredContainingType;
                 var constructedEqualityComparer = equalityComparerType.Construct(fieldType);
 
                 Conversion c = f.ClassifyEmitConversion(parameterReference, fieldType);

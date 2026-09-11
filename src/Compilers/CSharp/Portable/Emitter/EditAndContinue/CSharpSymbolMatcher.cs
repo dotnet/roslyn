@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             private Symbol? VisitNamedTypeMember<T>(T member, Func<T, T, bool> predicate)
                 where T : Symbol
             {
-                var otherType = (NamedTypeSymbol?)Visit(member.ContainingType);
+                var otherType = (NamedTypeSymbol?)Visit(member.RequiredContainingType);
 
                 // Containing type may be null for synthesized
                 // types such as iterators.

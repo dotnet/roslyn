@@ -127,8 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static T SubstituteExplicitInterfaceImplementation<T>(T unsubstitutedPropertyImplemented, TypeMap map) where T : Symbol
         {
-            var unsubstitutedInterfaceType = unsubstitutedPropertyImplemented.ContainingType;
-            Debug.Assert((object)unsubstitutedInterfaceType != null);
+            var unsubstitutedInterfaceType = unsubstitutedPropertyImplemented.RequiredContainingType;
             var explicitInterfaceType = map.SubstituteNamedType(unsubstitutedInterfaceType);
             Debug.Assert((object)explicitInterfaceType != null);
             var name = unsubstitutedPropertyImplemented.Name; //should already be unqualified

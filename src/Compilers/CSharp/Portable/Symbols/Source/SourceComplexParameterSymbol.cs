@@ -707,7 +707,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol containingSymbol = parameter.ContainingSymbol;
             if (containingSymbol.IsExtensionBlockMember() && !containingSymbol.IsStatic)
             {
-                if (parameter.ContainingType.ExtensionParameter is { } extensionParameter
+                if (parameter.RequiredContainingType.ExtensionParameter is { } extensionParameter
                     && extensionParameter.Name.Equals(parameterName, StringComparison.Ordinal))
                 {
                     return 0;
@@ -1309,7 +1309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypedConstant constructorArgument = arguments.Attribute.CommonConstructorArguments[0];
 
             ImmutableArray<ParameterSymbol> containingSymbolParameters = ContainingSymbol.GetParameters();
-            ParameterSymbol? extensionParameter = ContainingType.ExtensionParameter;
+            ParameterSymbol? extensionParameter = this.RequiredContainingType.ExtensionParameter;
 
             ImmutableArray<int> parameterOrdinals;
             if (attributeIndex == 0)
@@ -1728,7 +1728,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
 
                 bool result = method.IsAsRestrictive(ContainingSymbol, ref useSiteInfo) &&
-                              method.ContainingType.IsAtLeastAsVisibleAs(ContainingSymbol, ref useSiteInfo);
+                              method.RequiredContainingType.IsAtLeastAsVisibleAs(ContainingSymbol, ref useSiteInfo);
 
                 diagnostics.Add(syntax.Location, useSiteInfo);
                 return result;

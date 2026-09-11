@@ -6298,12 +6298,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static ImmutableSegmentedDictionary<string, Symbol> GetMembersRequiringInitialization(MethodSymbol constructor)
         {
             if (!constructor.ShouldCheckRequiredMembers() ||
-                constructor.ContainingType.HasRequiredMembersError) // An error will be reported on the constructor if from source, or a use-site diagnostic will be reported on the use if from metadata.
+                constructor.RequiredContainingType.HasRequiredMembersError) // An error will be reported on the constructor if from source, or a use-site diagnostic will be reported on the use if from metadata.
             {
                 return ImmutableSegmentedDictionary<string, Symbol>.Empty;
             }
 
-            return constructor.ContainingType.AllRequiredMembers;
+            return constructor.RequiredContainingType.AllRequiredMembers;
         }
 
         internal static void CheckRequiredMembersInObjectInitializer(
@@ -8291,11 +8291,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (extensionMember)
             {
                 case PropertySymbol propertySymbol:
-                    Debug.Assert(propertySymbol.ContainingType.ExtensionParameter is not null);
+                    NamedTypeSymbol extensionType = propertySymbol.RequiredContainingType;
+                    Debug.Assert(extensionType.ExtensionParameter is not null);
 
                     if (receiver is not BoundTypeExpression)
                     {
-                        receiver = CheckAndConvertExtensionReceiver(receiver, propertySymbol.ContainingType.ExtensionParameter, diagnostics);
+                        receiver = CheckAndConvertExtensionReceiver(receiver, extensionType.ExtensionParameter, diagnostics);
                     }
 
                     return BindPropertyAccess(syntax, receiver, propertySymbol, diagnostics, LookupResultKind.Viable, hasErrors: false);
@@ -9403,7 +9404,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (lengthOrCountProperty is not null)
                 {
                     lengthOrCountProperty.AddUseSiteInfo(ref useSiteInfo);
-                    Debug.Assert(lengthOrCountProperty.ContainingType.ExtensionParameter is not null);
+                    Debug.Assert(lengthOrCountProperty.RequiredContainingType.ExtensionParameter is not null);
                     lengthOrCountAccess = binder.GetExtensionMemberAccess(syntax, receiver, lengthOrCountProperty, diagnostics).MakeCompilerGenerated();
                     lengthOrCountAccess = binder.CheckValue(lengthOrCountAccess, BindValueKind.RValue, diagnostics);
                 }

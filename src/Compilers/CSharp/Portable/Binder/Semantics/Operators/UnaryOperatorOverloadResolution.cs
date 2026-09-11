@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static void getDeclaredUserDefinedUnaryOperators(ArrayBuilder<Symbol> extensionCandidatesInSingleScope, UnaryOperatorKind kind, string name, ArrayBuilder<UnaryOperatorSignature> operators)
             {
-                Debug.Assert(extensionCandidatesInSingleScope.All(static m => m.ContainingType.ExtensionParameter is not null));
+                Debug.Assert(extensionCandidatesInSingleScope.All(static m => m.RequiredContainingType.ExtensionParameter is not null));
                 var typeOperators = ArrayBuilder<MethodSymbol>.GetInstance();
                 NamedTypeSymbol.AddOperators(typeOperators, extensionCandidatesInSingleScope);
                 GetDeclaredUserDefinedUnaryOperators(constrainedToTypeOpt: null, typeOperators, kind, name, operators);
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var candidate = operators[i];
                     MethodSymbol method = candidate.Method;
-                    NamedTypeSymbol extension = method.ContainingType;
+                    NamedTypeSymbol extension = method.RequiredContainingType;
 
                     if (extension.Arity == 0)
                     {
@@ -218,19 +218,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isApplicableToReceiver(in UnaryOperatorSignature candidate, BoundExpression operand, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
                 Debug.Assert(operand.Type is not null);
-                Debug.Assert(candidate.Method.ContainingType.ExtensionParameter is not null);
+                var extensionParameter = candidate.Method.RequiredContainingType.RequiredExtensionParameter;
 
                 if (candidate.Kind.IsLifted())
                 {
                     Debug.Assert(operand.Type.IsNullableType());
 
-                    if (!candidate.Method.ContainingType.ExtensionParameter.Type.IsValidNullableTypeArgument() ||
-                        !Conversions.ConvertExtensionMethodThisArg(MakeNullable(candidate.Method.ContainingType.ExtensionParameter.Type), operand.Type, ref useSiteInfo, isMethodGroupConversion: false).Exists)
+                    if (!extensionParameter.Type.IsValidNullableTypeArgument() ||
+                        !Conversions.ConvertExtensionMethodThisArg(MakeNullable(extensionParameter.Type), operand.Type, ref useSiteInfo, isMethodGroupConversion: false).Exists)
                     {
                         return false;
                     }
                 }
-                else if (!Conversions.ConvertExtensionMethodThisArg(candidate.Method.ContainingType.ExtensionParameter.Type, operand.Type, ref useSiteInfo, isMethodGroupConversion: false).Exists)
+                else if (!Conversions.ConvertExtensionMethodThisArg(extensionParameter.Type, operand.Type, ref useSiteInfo, isMethodGroupConversion: false).Exists)
                 {
                     return false; // Conversion to 'this' parameter failed
                 }
@@ -250,15 +250,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(x is { });
                 Debug.Assert(y is { });
 
-                if (x.OriginalDefinition.ContainingType.ContainingType != (object)y.OriginalDefinition.ContainingType.ContainingType)
+                if (x.OriginalDefinition.RequiredContainingType.RequiredContainingType != (object?)y.OriginalDefinition.RequiredContainingType.RequiredContainingType)
                 {
                     return false;
                 }
 
-                var xExtension = x.OriginalDefinition.ContainingType;
+                var xExtension = x.OriginalDefinition.RequiredContainingType;
                 var xGroupingKey = xExtension.ExtensionGroupingName;
                 Debug.Assert(xGroupingKey is not null);
-                var yExtension = y.OriginalDefinition.ContainingType;
+                var yExtension = y.OriginalDefinition.RequiredContainingType;
                 var yGroupingKey = yExtension.ExtensionGroupingName;
 
                 if (!xGroupingKey.Equals(yGroupingKey))
@@ -285,9 +285,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var typeComparer = Symbols.SymbolEqualityComparer.AllIgnoreOptions;
 
-                int result = typeComparer.GetHashCode(op.OriginalDefinition.ContainingType.ContainingType);
+                int result = typeComparer.GetHashCode(op.OriginalDefinition.RequiredContainingType.RequiredContainingType);
 
-                var extension = op.OriginalDefinition.ContainingType;
+                var extension = op.OriginalDefinition.RequiredContainingType;
                 var groupingKey = extension.ExtensionGroupingName;
                 Debug.Assert(groupingKey is not null);
                 result = Hash.Combine(result, groupingKey.GetHashCode());

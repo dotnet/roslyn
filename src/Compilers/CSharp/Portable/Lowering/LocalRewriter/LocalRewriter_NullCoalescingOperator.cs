@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var method = boundCall.Method;
 
-            if (method.IsStatic && method.ContainingType.SpecialType == SpecialType.System_String)
+            if (method.IsStatic && method.RequiredContainingType.SpecialType == SpecialType.System_String)
             {
                 if ((object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringString) ||
                     (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringString) ||

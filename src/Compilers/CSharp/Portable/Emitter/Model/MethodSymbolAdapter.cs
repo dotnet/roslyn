@@ -312,15 +312,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (AdaptedMethodSymbol is SynthesizedExtensionMarker marker)
                 {
-                    return ((SourceMemberContainerTypeSymbol)AdaptedMethodSymbol.ContainingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingMarkerType(marker);
+                    return ((SourceMemberContainerTypeSymbol)AdaptedMethodSymbol.RequiredContainingType.RequiredContainingType).GetExtensionGroupingInfo().GetCorrespondingMarkerType(marker);
                 }
                 else if (AdaptedMethodSymbol.IsExtensionBlockMember())
                 {
-                    var containingType = AdaptedMethodSymbol.ContainingType;
-                    return ((SourceMemberContainerTypeSymbol)containingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingGroupingType((SourceNamedTypeSymbol)containingType);
+                    var containingType = AdaptedMethodSymbol.RequiredContainingType;
+                    return ((SourceMemberContainerTypeSymbol)containingType.RequiredContainingType).GetExtensionGroupingInfo().GetCorrespondingGroupingType((SourceNamedTypeSymbol)containingType);
                 }
 
-                return AdaptedMethodSymbol.ContainingType.GetCciAdapter();
+                return AdaptedMethodSymbol.RequiredContainingType.GetCciAdapter();
             }
         }
 
@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 CheckDefinitionInvariant();
 
-                return !AdaptedMethodSymbol.ContainingType.IsExtension && AdaptedMethodSymbol.IsExternal;
+                return !AdaptedMethodSymbol.RequiredContainingType.IsExtension && AdaptedMethodSymbol.IsExternal;
             }
         }
 
@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return !AdaptedMethodSymbol.ContainingType.IsExtension && AdaptedMethodSymbol.GetDllImportData() != null;
+                return !AdaptedMethodSymbol.RequiredContainingType.IsExtension && AdaptedMethodSymbol.GetDllImportData() != null;
             }
         }
 #nullable disable

@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (method.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is MethodSymbol implementationMethod)
                     {
                         return implementationMethod.AsMember(method.ContainingSymbol.ContainingType).
-                            ConstructIfGeneric(method.ContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Concat(method.TypeArgumentsWithAnnotations));
+                            ConstructIfGeneric(method.RequiredContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Concat(method.TypeArgumentsWithAnnotations));
                     }
 
                     // Valid scenarios shouldn't get to here. These are the cases we know can get to here. If this assert triggers for
@@ -2414,7 +2414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static MethodInvocationInfo ReplaceWithExtensionImplementationIfNeeded(ref readonly MethodInvocationInfo methodInvocationInfo)
         {
             Symbol? symbol = methodInvocationInfo.MethodInfo.Symbol;
-            if (symbol?.IsExtensionBlockMember() != true || symbol.IsStatic)
+            if (symbol == null || symbol.IsStatic || !symbol.IsExtensionBlockMember(out var extension))
             {
                 return methodInvocationInfo;
             }
@@ -2426,8 +2426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var result = methodInvocationInfo with { MethodInfo = replacedMethodInfo };
-            var extensionParameter = symbol.ContainingType.ExtensionParameter;
-            Debug.Assert(extensionParameter is not null);
+            var extensionParameter = extension.RequiredExtensionParameter;
             result.Parameters = methodInvocationInfo.Parameters.IsDefault ? [extensionParameter] : [extensionParameter, .. methodInvocationInfo.Parameters];
 
             if (methodInvocationInfo.Receiver is not null)
@@ -2849,7 +2848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case MethodSymbol method:
                         if (method.MethodKind == MethodKind.Constructor)
                         {
-                            return method.ContainingType.IsRefLikeType;
+                            return method.RequiredContainingType.IsRefLikeType;
                         }
 
                         return method.ReturnType.IsRefLikeOrAllowsRefLikeType();
@@ -3376,7 +3375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return underlyingRefKind;
                     }
 
-                    if (!_underlyingParameter.ContainingType.IsInterface || _type.IsReferenceType)
+                    if (!_underlyingParameter.RequiredContainingType.IsInterface || _type.IsReferenceType)
                     {
                         return RefKind.None;
                     }
@@ -3408,7 +3407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return ScopedKind.None;
                     }
 
-                    if (!_underlyingParameter.ContainingType.IsInterface || _type.IsReferenceType)
+                    if (!_underlyingParameter.RequiredContainingType.IsInterface || _type.IsReferenceType)
                     {
                         return ScopedKind.None;
                     }

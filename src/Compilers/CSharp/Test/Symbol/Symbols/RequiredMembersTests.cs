@@ -42,7 +42,7 @@ public class RequiredMembersTests : CSharpTestBase
                 Assert.True(member.IsRequired());
                 Assert.All(member.GetAttributes(), attr => AssertEx.NotEqual("System.Runtime.CompilerServices.RequiredMemberAttribute", attr.AttributeClass.ToTestDisplayString()));
 
-                requiredTypes.Add((NamedTypeSymbol)member.ContainingType);
+                requiredTypes.Add((NamedTypeSymbol)member.RequiredContainingType);
             }
 
             foreach (var type in requiredTypes)

@@ -214,11 +214,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 ImmutableArray<ParameterSymbol> parametersForNameConflict = parameters.Cast<TParameterSymbol, ParameterSymbol>();
 
-                if (owner.IsExtensionBlockMember())
+                if (owner.IsExtensionBlockMember(out var extension))
                 {
-                    typeParameters = owner.ContainingType.TypeParameters.Concat(typeParameters);
+                    typeParameters = extension.TypeParameters.Concat(typeParameters);
 
-                    if (owner.ContainingType.ExtensionParameter is { Name: not "" } receiver)
+                    if (extension.ExtensionParameter is { Name: not "" } receiver)
                     {
                         parametersForNameConflict = parametersForNameConflict.Insert(0, receiver);
                     }
@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(extensionMember.IsExtensionBlockMember());
 
-            NamedTypeSymbol extension = extensionMember.ContainingType;
+            NamedTypeSymbol extension = extensionMember.RequiredContainingType;
             if (extension.ExtensionParameter is not { } extensionParameter || extension.ContainingType?.Arity != 0)
             {
                 // error cases, already reported elsewhere

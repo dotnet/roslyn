@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     (PropertySymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__Current),
                     static (f, method, interfaceMethod) =>
                     {
-                        var containingType = (SynthesizedReadOnlyListEnumeratorTypeSymbol)method.ContainingType;
+                        var containingType = (SynthesizedReadOnlyListEnumeratorTypeSymbol)method.RequiredContainingType;
                         var itemField = containingType._itemField;
                         var itemFieldReference = f.Field(f.This(), itemField);
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ((PropertySymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Collections_Generic_IEnumerator_T__Current)).AsMember(iEnumeratorT),
                     static (f, method, interfaceMethod) =>
                     {
-                        var containingType = (SynthesizedReadOnlyListEnumeratorTypeSymbol)method.ContainingType;
+                        var containingType = (SynthesizedReadOnlyListEnumeratorTypeSymbol)method.RequiredContainingType;
                         var itemField = containingType._itemField;
                         var itemFieldReference = f.Field(f.This(), itemField);
                         // return _item;
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ((MethodSymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext)),
                     static (f, method, interfaceMethod) =>
                     {
-                        var containingType = (SynthesizedReadOnlyListEnumeratorTypeSymbol)method.ContainingType;
+                        var containingType = (SynthesizedReadOnlyListEnumeratorTypeSymbol)method.RequiredContainingType;
                         var moveNextCalledField = containingType._moveNextCalledField;
                         var moveNextCalledFieldReference = f.Field(f.This(), moveNextCalledField);
                         // return _moveNextCalled ? false : (_moveNextCalled = true);
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ((MethodSymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__Reset)),
                     static (f, method, interfaceMethod) =>
                     {
-                        var containingType = (SynthesizedReadOnlyListEnumeratorTypeSymbol)method.ContainingType;
+                        var containingType = (SynthesizedReadOnlyListEnumeratorTypeSymbol)method.RequiredContainingType;
                         var moveNextCalledField = containingType._moveNextCalledField;
                         var moveNextCalledFieldReference = f.Field(f.This(), moveNextCalledField);
                         // _moveNextCalled = false;

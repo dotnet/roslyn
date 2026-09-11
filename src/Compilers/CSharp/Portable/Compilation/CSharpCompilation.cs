@@ -2085,7 +2085,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
-                    if (candidate.IsGenericMethod || candidate.ContainingType.IsGenericType)
+                    if (candidate.IsGenericMethod || candidate.RequiredContainingType.IsGenericType)
                     {
                         // a single error for partial methods:
                         noMainFoundDiagnostics.Add(ErrorCode.WRN_MainCantBeGeneric, candidate.GetFirstLocation(), candidate);
@@ -3188,7 +3188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (symbol.Kind == SymbolKind.Method && symbol.IsImplicitlyDeclared && ((MethodSymbol)symbol).MethodKind == MethodKind.Constructor)
             {
                 // Include implicitly declared constructor if containing type is included
-                return IsDefinedOrImplementedInSourceTree(symbol.ContainingType, tree, span);
+                return IsDefinedOrImplementedInSourceTree(symbol.RequiredContainingType, tree, span);
             }
 
             return false;

@@ -593,7 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 infos[j++] = GetArgumentInfo(argumentInfoFactory, loweredRight, NoName, RefKind.None, isStaticType: false);
             }
 
-            return _factory.ArrayOrEmpty(argumentInfoFactory.ContainingType, infos);
+            return _factory.ArrayOrEmpty(argumentInfoFactory.RequiredContainingType, infos);
         }
 
         internal LoweredDynamicOperation MakeDynamicOperation(

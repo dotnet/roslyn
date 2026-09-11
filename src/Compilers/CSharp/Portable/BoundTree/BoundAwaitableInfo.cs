@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp;
 
@@ -12,7 +13,7 @@ partial class BoundAwaitableInfo
     {
         if (RuntimeAsyncAwaitCall is not null)
         {
-            Debug.Assert(RuntimeAsyncAwaitCall.Method.ContainingType.ExtendedSpecialType == InternalSpecialType.System_Runtime_CompilerServices_AsyncHelpers);
+            Debug.Assert(RuntimeAsyncAwaitCall.Method.RequiredContainingType.ExtendedSpecialType == InternalSpecialType.System_Runtime_CompilerServices_AsyncHelpers);
             Debug.Assert(RuntimeAsyncAwaitCallPlaceholder is not null);
 
             switch (RuntimeAsyncAwaitCall.Method.Name)

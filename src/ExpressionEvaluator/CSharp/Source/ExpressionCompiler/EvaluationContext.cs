@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 return null;
             }
 
-            Debug.Assert(synthesizedMethod.ContainingType.MetadataName == TypeName);
+            Debug.Assert(synthesizedMethod.RequiredContainingType.MetadataName == TypeName);
             Debug.Assert(synthesizedMethod.MetadataName == MethodName);
 
             resultProperties = synthesizedMethod.ResultProperties;
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 return null;
             }
 
-            Debug.Assert(synthesizedMethod.ContainingType.MetadataName == TypeName);
+            Debug.Assert(synthesizedMethod.RequiredContainingType.MetadataName == TypeName);
             Debug.Assert(synthesizedMethod.MetadataName == MethodName);
 
             resultProperties = synthesizedMethod.ResultProperties;

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             public override SyntaxReference? ApplicationSyntaxReference => null;
-            public override NamedTypeSymbol AttributeClass => _wellKnownMember.ContainingType;
+            public override NamedTypeSymbol AttributeClass => _wellKnownMember.RequiredContainingType;
             public override MethodSymbol AttributeConstructor => _wellKnownMember;
             protected internal override ImmutableArray<TypedConstant> CommonConstructorArguments => _arguments;
             protected internal override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments => _namedArguments;

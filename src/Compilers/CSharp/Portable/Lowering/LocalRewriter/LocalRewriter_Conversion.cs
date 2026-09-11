@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(method is { });
                         var oldSyntax = _factory.Syntax;
                         _factory.Syntax = (mg.ReceiverOpt ?? mg).Syntax;
-                        var receiver = (!method.RequiresInstanceReceiver && !oldNodeOpt.IsExtensionMethod && !method.IsAbstract && !method.IsVirtual) ? _factory.Type(method.ContainingType) : mg.ReceiverOpt;
+                        var receiver = (!method.RequiresInstanceReceiver && !oldNodeOpt.IsExtensionMethod && !method.IsAbstract && !method.IsVirtual) ? _factory.Type(method.RequiredContainingType) : mg.ReceiverOpt;
                         Debug.Assert(receiver is { });
                         _factory.Syntax = oldSyntax;
 
@@ -1577,7 +1577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     defaultArguments: default,
                     constantValueOpt: null,
                     initializerExpressionOpt: null,
-                    constructor.ContainingType);
+                    constructor.RequiredContainingType);
             }
             else
             {
@@ -1987,7 +1987,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private Conversion TryMakeUserDefinedConversion(SyntaxNode syntax, MethodSymbol meth, TypeSymbol fromType, TypeSymbol toType, bool @checked, bool isImplicit)
         {
-            Debug.Assert(!meth.ContainingType.IsInterface);
+            Debug.Assert(!meth.RequiredContainingType.IsInterface);
 
             Conversion fromConversion = TryMakeConversion(syntax, fromType, meth.Parameters[0].Type, @checked: @checked);
             if (!fromConversion.Exists)

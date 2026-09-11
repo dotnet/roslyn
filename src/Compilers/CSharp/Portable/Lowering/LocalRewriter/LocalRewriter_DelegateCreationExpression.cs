@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(method is { });
                 var oldSyntax = _factory.Syntax;
                 _factory.Syntax = (mg.ReceiverOpt ?? mg).Syntax;
-                var receiver = (!method.RequiresInstanceReceiver && !node.IsExtensionMethod && !method.IsAbstract && !method.IsVirtual) ? _factory.Type(method.ContainingType) : VisitExpression(mg.ReceiverOpt)!;
+                var receiver = (!method.RequiresInstanceReceiver && !node.IsExtensionMethod && !method.IsAbstract && !method.IsVirtual) ? _factory.Type(method.RequiredContainingType) : VisitExpression(mg.ReceiverOpt)!;
                 _factory.Syntax = oldSyntax;
                 return node.Update(receiver, method, node.IsExtensionMethod, node.WasTargetTyped, node.Type);
             }

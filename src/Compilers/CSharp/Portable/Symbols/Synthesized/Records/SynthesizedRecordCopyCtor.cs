@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool HasCopyConstructorSignature(MethodSymbol member)
         {
-            NamedTypeSymbol containingType = member.ContainingType;
+            NamedTypeSymbol containingType = member.RequiredContainingType;
             return member is MethodSymbol { IsStatic: false, ParameterCount: 1, Arity: 0 } method &&
                 method.Parameters[0].Type.Equals(containingType, TypeCompareKind.AllIgnoreOptions) &&
                 method.Parameters[0].RefKind == RefKind.None;

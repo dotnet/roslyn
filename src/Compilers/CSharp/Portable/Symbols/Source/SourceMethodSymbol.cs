@@ -18,6 +18,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract partial class SourceMethodSymbol : MethodSymbol
     {
+        public override NamedTypeSymbol ContainingType
+        {
+            get
+            {
+                var containingType = base.ContainingType;
+                Debug.Assert(containingType is not null, $"'{Name}': Unexpected null ContainingType");
+                return containingType;
+            }
+        }
+
         /// <summary>
         /// If there are no constraints, returns an empty immutable array. Otherwise, returns an immutable
         /// array of types, indexed by the constrained type parameter in <see cref="MethodSymbol.TypeParameters"/>.
@@ -158,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(target is not (LambdaSymbol or LocalFunctionSymbol));
 
-            if (target.IsDeclaredReadOnly && !target.ContainingType.IsReadOnly)
+            if (target.IsDeclaredReadOnly && !target.RequiredContainingType.IsReadOnly)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(target));
             }
@@ -233,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Do not generate CompilerGeneratedAttribute for members of compiler-generated types:
             if (((target.IsImplicitlyDeclared && target is not SourceFieldLikeEventSymbol.SourceEventDefinitionAccessorSymbol { PartialImplementationPart.IsImplicitlyDeclared: false }) ||
                  target is SourcePropertyAccessorSymbol { IsAutoPropertyAccessor: true }) &&
-                !target.ContainingType.IsImplicitlyDeclared &&
+                !target.RequiredContainingType.IsImplicitlyDeclared &&
                 target is SynthesizedMethodBaseSymbol or
                           SourcePropertyAccessorSymbol or
                           SynthesizedSourceOrdinaryMethodSymbol or
@@ -293,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (target.IsExtensionBlockMember())
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeExtensionMarkerAttribute(target, ((SourceNamedTypeSymbol)target.ContainingType).ExtensionMarkerName));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeExtensionMarkerAttribute(target, ((SourceNamedTypeSymbol)target.RequiredContainingType).ExtensionMarkerName));
             }
         }
 

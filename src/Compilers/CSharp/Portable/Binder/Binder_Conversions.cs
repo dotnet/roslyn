@@ -1641,7 +1641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             collectionBuilderMethod.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(
                 Compilation, Conversions, includeNullability: false, syntax.Location, diagnostics));
 
-            ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod.ContainingType, syntax, hasBaseReceiver: false);
+            ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod.RequiredContainingType, syntax, hasBaseReceiver: false);
             ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod, syntax, hasBaseReceiver: false);
             ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, collectionBuilderMethod, syntax);
             ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, collectionBuilderMethod, syntax, isDelegateConversion: false);
@@ -2766,7 +2766,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (analysis.Operator.MethodKind == MethodKind.Constructor)
             {
                 var analyzedArguments = AnalyzedArguments.GetInstance([convertedOperand], argumentNamesOpt: default, argumentRefKindsOpt: default);
-                var instantiatedType = analysis.Operator.ContainingType;
+                var instantiatedType = analysis.Operator.RequiredContainingType;
 
                 if (instantiatedType.IsAbstract)
                 {
@@ -3683,7 +3683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(method.IsExtensionBlockMember());
-            return method.ContainingType.ExtensionParameter;
+            return method.RequiredContainingType.ExtensionParameter;
         }
 
         /// <summary>

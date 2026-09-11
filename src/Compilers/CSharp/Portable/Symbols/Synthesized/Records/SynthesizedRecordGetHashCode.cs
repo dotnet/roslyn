@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return;
                     }
 
-                    currentHashValue = F.Call(F.Base(overridden.ContainingType), overridden);
+                    currentHashValue = F.Call(F.Base(overridden.RequiredContainingType), overridden);
                 }
 
                 //  bound HASH_FACTOR

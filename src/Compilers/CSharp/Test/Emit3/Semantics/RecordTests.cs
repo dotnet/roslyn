@@ -3499,8 +3499,8 @@ abstract sealed record C1;
             Assert.False(clone.IsSealed);
             Assert.True(clone.IsImplicitlyDeclared);
 
-            Assert.True(clone.ContainingType.IsSealed);
-            Assert.True(clone.ContainingType.IsAbstract);
+            Assert.True(clone.RequiredContainingType.IsSealed);
+            Assert.True(clone.RequiredContainingType.IsAbstract);
 
             var namedTypeSymbol = comp.GlobalNamespace.GetTypeMember("C1");
             Assert.True(namedTypeSymbol.IsRecord);
@@ -3530,8 +3530,8 @@ sealed abstract record C1;
             Assert.False(clone.IsSealed);
             Assert.True(clone.IsImplicitlyDeclared);
 
-            Assert.True(clone.ContainingType.IsSealed);
-            Assert.True(clone.ContainingType.IsAbstract);
+            Assert.True(clone.RequiredContainingType.IsSealed);
+            Assert.True(clone.RequiredContainingType.IsAbstract);
 
             var namedTypeSymbol = comp.GlobalNamespace.GetTypeMember("C1");
             Assert.True(namedTypeSymbol.IsRecord);
@@ -3562,8 +3562,8 @@ abstract sealed record C2 : C1;
             Assert.False(clone.IsSealed);
             Assert.True(clone.IsImplicitlyDeclared);
 
-            Assert.True(clone.ContainingType.IsSealed);
-            Assert.True(clone.ContainingType.IsAbstract);
+            Assert.True(clone.RequiredContainingType.IsSealed);
+            Assert.True(clone.RequiredContainingType.IsAbstract);
         }
 
         [Fact]
@@ -3589,8 +3589,8 @@ sealed abstract record C2 : C1;
             Assert.False(clone.IsSealed);
             Assert.True(clone.IsImplicitlyDeclared);
 
-            Assert.True(clone.ContainingType.IsSealed);
-            Assert.True(clone.ContainingType.IsAbstract);
+            Assert.True(clone.RequiredContainingType.IsSealed);
+            Assert.True(clone.RequiredContainingType.IsAbstract);
 
             var namedTypeSymbol = comp.GlobalNamespace.GetTypeMember("C1");
             Assert.True(namedTypeSymbol.IsRecord);
