@@ -6,6 +6,7 @@ extern alias MSBuildWorkspaces;
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Pipes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -229,6 +230,53 @@ public sealed class RpcTests
         // Invoke the method, and ensure we don't get exceptions back due to the shutdown if the pipe closed too early.
         // This is not guaranteed to catch any bug, since any bug is fundamentally a race, but it at least ensures we aren't always broken.
         await rpcPair.Client.InvokeAsync(targetObject: 0, nameof(ObjectWithMethodThatShutsDownServer.Shutdown), [], CancellationToken.None);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84411")]
+    public async Task ResponseWriteAfterClientDisconnectDoesNotCrashServer()
+    {
+        // Unlike RequestThatClosesServerDoesNotThrow, this forces the client-already-disconnected ordering
+        // deterministically instead of relying on a race.
+        var pipeName = Guid.NewGuid().ToString();
+        var pipeServer = NamedPipeUtil.CreateServer(pipeName, PipeDirection.InOut);
+        var pipeServerConnectionTask = pipeServer.WaitForConnectionAsync();
+        var pipeClient = NamedPipeUtil.CreateClient(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
+
+        pipeClient.Connect();
+        await pipeServerConnectionTask;
+
+        var loggerOutput = new StringWriter();
+        var server = new RpcServer(pipeServer, new BuildHostLogger(loggerOutput));
+        var serverRunTask = server.RunAsync();
+
+        var rpcTarget = new ObjectWithRealAsyncMethod();
+        server.AddTarget(rpcTarget);
+
+        var client = new RpcClient(pipeClient);
+
+        try
+        {
+            client.Start();
+            var invokeTask = client.InvokeAsync(targetObject: 0, nameof(ObjectWithRealAsyncMethod.WaitAsync), [], CancellationToken.None);
+
+            rpcTarget.WaitUntilRequest(index: 0);
+            pipeClient.Dispose();
+            rpcTarget.Complete(index: 0);
+
+            // The client's read loop notices the disconnect and faults the outstanding request.
+            await Assert.ThrowsAnyAsync<Exception>(() => invokeTask);
+
+            // Before the fix, the write failure here would crash RunAsync via Task.WhenAll.
+            await serverRunTask;
+
+            // Confirm we actually hit the expected catch block, not some other path that happens not to crash.
+            Assert.Contains("Failed to write RPC response", loggerOutput.ToString());
+        }
+        finally
+        {
+            pipeClient.Dispose();
+            pipeServer.Dispose();
+        }
     }
 
 #pragma warning disable CA1822 // Mark members as static
