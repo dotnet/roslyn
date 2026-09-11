@@ -12,13 +12,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 internal sealed class WorkspaceFolderTracker : IWorkspaceFolderTracker
 {
-    /// <summary>
-    /// Mutations are serialized by the request queue, but non-mutating requests may read the current folders concurrently.
-    /// </summary>
+    // The gate makes updates atomic; volatile allows lock-free reads of the latest immutable snapshot.
     private readonly object _gate = new();
     private volatile ImmutableHashSet<string> _workspaceFolderPaths = ImmutableHashSet.Create(PathUtilities.Comparer);
 
-    public event Action? WorkspaceFoldersChanged;
+    public event EventHandler? WorkspaceFoldersChanged;
 
     public void Update(WorkspaceFolder[]? addedFolders, WorkspaceFolder[]? removedFolders)
     {
@@ -54,7 +52,7 @@ internal sealed class WorkspaceFolderTracker : IWorkspaceFolderTracker
             _workspaceFolderPaths = updatedWorkspaceFolderPaths;
         }
 
-        WorkspaceFoldersChanged?.Invoke();
+        WorkspaceFoldersChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public ImmutableHashSet<string> GetRequiredWorkspaceFolderPaths()
