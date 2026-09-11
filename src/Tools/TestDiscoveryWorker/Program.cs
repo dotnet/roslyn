@@ -89,7 +89,6 @@ try
 
     Console.Write($"Discovering tests in {tfm} {assemblyFileName} ... ");
 
-    var testAssembly = Assembly.LoadFrom(assemblyFilePath);
     var assemblyMetadata = AssemblyUtility.GetAssemblyMetadata(assemblyFilePath)
         ?? throw new InvalidOperationException($"Could not determine the xUnit test framework used by '{assemblyFilePath}'.");
     var projectAssembly = new XunitProjectAssembly(new XunitProject(), assemblyFilePath, assemblyMetadata);
@@ -114,16 +113,13 @@ try
     // which loads the test assembly via reflection and requires no apphost.
     await using var controller = XunitFrontController.Create(projectAssembly, testProcessLauncher: InProcessTestProcessLauncher.Instance)
         ?? throw new InvalidOperationException($"Could not create a test framework front controller for '{assemblyFilePath}'.");
-    var sink = new Sink(testAssembly);
+    var sink = new Sink();
     var discoveryOptions = TestFrameworkOptions.ForDiscovery(projectAssembly.Configuration);
     controller.Find(sink, new FrontControllerFindSettings(discoveryOptions, projectAssembly.Configuration?.Filters ?? new XunitFilters()));
 
-    var testsToWrite = new Dictionary<string, bool>();
-    await foreach (var (fullyQualifiedName, hasAsyncLifetime) in sink.GetTestCaseInfosAsync().ConfigureAwait(false))
-    {
-        if (!testsToWrite.ContainsKey(fullyQualifiedName))
-            testsToWrite[fullyQualifiedName] = hasAsyncLifetime;
-    }
+    var testsToWrite = new HashSet<string>();
+    await foreach (var fullyQualifiedName in sink.GetTestCaseInfosAsync().ConfigureAwait(false))
+        testsToWrite.Add(fullyQualifiedName);
 
     if (sink.AnyWriteFailures)
     {
@@ -134,8 +130,8 @@ try
     Console.WriteLine($"{testsToWrite.Count} found");
 
     var testInfos = testsToWrite
-        .OrderBy(x => x.Key)
-        .Select(x => new TestInfo(x.Key, x.Value))
+        .OrderBy(x => x)
+        .Select(x => new TestInfo(x))
         .ToArray();
     using var fileStream = new FileStream(outputFilePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
     await JsonSerializer.SerializeAsync(fileStream, testInfos).ConfigureAwait(false);
@@ -157,35 +153,25 @@ catch (Exception ex)
 file class TestInfo
 {
     public string MethodName { get; set; } = "";
-    public bool HasAsyncLifetime { get; set; }
 
     public TestInfo() { }
 
-    public TestInfo(string methodName, bool hasAsyncLifetime)
-    {
-        MethodName = methodName;
-        HasAsyncLifetime = hasAsyncLifetime;
-    }
+    public TestInfo(string methodName)
+        => MethodName = methodName;
 }
 
 file class Sink : IMessageSink
 {
-    private const string AsyncLifetimeInterfaceName = "Xunit.IAsyncLifetime";
-
     public bool AnyWriteFailures { get; private set; }
 
-    public Sink(Assembly testAssembly)
+    public Sink()
     {
-        _testAssembly = testAssembly;
-        _channel = Channel.CreateUnbounded<(string FullName, bool HasAsyncLifetime)>();
+        _channel = Channel.CreateUnbounded<string>();
     }
 
-    private readonly Assembly _testAssembly;
-    private readonly Channel<(string FullName, bool HasAsyncLifetime)> _channel;
-    private readonly Dictionary<string, bool> _asyncLifetimeCache = new();
-    private readonly Dictionary<string, Type?> _typeCache = new();
+    private readonly Channel<string> _channel;
 
-    public async IAsyncEnumerable<(string FullName, bool HasAsyncLifetime)> GetTestCaseInfosAsync()
+    public async IAsyncEnumerable<string> GetTestCaseInfosAsync()
     {
         while (await _channel.Reader.WaitToReadAsync(CancellationToken.None).ConfigureAwait(false))
         {
@@ -223,28 +209,11 @@ file class Sink : IMessageSink
         }
 
         var fullName = $"{className}.{methodName}";
-        var hasAsyncLifetime = HasAsyncLifetime(className);
 
         // this shouldn't happen as our channel is unbounded but we are Paranoid Coding™️
-        if (!_channel.Writer.TryWrite((fullName, hasAsyncLifetime)))
+        if (!_channel.Writer.TryWrite(fullName))
         {
             AnyWriteFailures = true;
         }
-    }
-
-    private bool HasAsyncLifetime(string typeName)
-    {
-        if (_asyncLifetimeCache.TryGetValue(typeName, out var cached))
-            return cached;
-
-        if (!_typeCache.TryGetValue(typeName, out var type))
-        {
-            type = _testAssembly.GetType(typeName, throwOnError: false);
-            _typeCache[typeName] = type;
-        }
-
-        var result = type?.GetInterfaces().Any(@interface => @interface.FullName == AsyncLifetimeInterfaceName) == true;
-        _asyncLifetimeCache[typeName] = result;
-        return result;
     }
 }
