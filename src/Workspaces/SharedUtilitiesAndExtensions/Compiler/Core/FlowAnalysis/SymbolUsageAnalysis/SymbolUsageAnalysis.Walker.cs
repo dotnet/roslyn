@@ -26,7 +26,7 @@ internal static partial class SymbolUsageAnalysis
         private ISymbol _currentContainingSymbol;
         private IOperation _currentRootOperation;
         private CancellationToken _cancellationToken;
-        private PooledDictionary<IAssignmentOperation, PooledHashSet<(ISymbol, IOperation)>> _pendingWritesMap;
+        private PooledDictionary<IOperation, PooledHashSet<(ISymbol, IOperation)>> _pendingWritesMap;
 
         private static readonly ObjectPool<Walker> s_visitorPool = new(() => new Walker());
         private Walker() { }
@@ -55,7 +55,7 @@ internal static partial class SymbolUsageAnalysis
             Debug.Assert(_currentRootOperation == null);
             Debug.Assert(_pendingWritesMap == null);
 
-            _pendingWritesMap = PooledDictionary<IAssignmentOperation, PooledHashSet<(ISymbol, IOperation)>>.GetInstance();
+            _pendingWritesMap = PooledDictionary<IOperation, PooledHashSet<(ISymbol, IOperation)>>.GetInstance();
             try
             {
                 _currentContainingSymbol = containingSymbol;
@@ -179,6 +179,18 @@ internal static partial class SymbolUsageAnalysis
                 set.Add((symbolOpt, operation));
                 return true;
             }
+            else if (operation.Parent is IArgumentOperation { Parameter.RefKind: RefKind.Out } argument &&
+                argument.Parent is not null)
+            {
+                if (!_pendingWritesMap.TryGetValue(argument.Parent, out var set))
+                {
+                    set = PooledHashSet<(ISymbol, IOperation)>.GetInstance();
+                    _pendingWritesMap.Add(argument.Parent, set);
+                }
+
+                set.Add((symbolOpt, operation));
+                return true;
+            }
 
             return false;
         }
@@ -214,6 +226,22 @@ internal static partial class SymbolUsageAnalysis
                 }
 
                 _pendingWritesMap.Remove(operation);
+                pendingWrites.Free();
+            }
+        }
+
+        private void ProcessPendingWritesForArgumentContainer(IOperation operation)
+        {
+            if (_pendingWritesMap.TryGetValue(operation, out var pendingWrites))
+            {
+                foreach (var (symbolOpt, write) in pendingWrites)
+                {
+                    Debug.Assert(symbolOpt != null);
+                    OnWriteReferenceFound(symbolOpt, write, ValueUsageInfo.WritableReference);
+                }
+
+                _pendingWritesMap.Remove(operation);
+                pendingWrites.Free();
             }
         }
 
@@ -319,6 +347,7 @@ internal static partial class SymbolUsageAnalysis
         public override void VisitInvocation(IInvocationOperation operation)
         {
             base.VisitInvocation(operation);
+            ProcessPendingWritesForArgumentContainer(operation);
 
             switch (operation.TargetMethod.MethodKind)
             {
@@ -339,6 +368,31 @@ internal static partial class SymbolUsageAnalysis
                     AnalyzeLocalFunctionInvocation(operation.TargetMethod);
                     break;
             }
+        }
+
+        public override void VisitObjectCreation(IObjectCreationOperation operation)
+        {
+            foreach (var argument in operation.Arguments)
+            {
+                Visit(argument);
+            }
+
+            ProcessPendingWritesForArgumentContainer(operation);
+
+            Visit(operation.Initializer);
+        }
+
+        public override void VisitRaiseEvent(IRaiseEventOperation operation)
+        {
+            base.VisitRaiseEvent(operation);
+            // Defensive: VB RaiseEvent can contain an out-typed delegate argument that needs flushing.
+            ProcessPendingWritesForArgumentContainer(operation);
+        }
+
+        public override void VisitFunctionPointerInvocation(IFunctionPointerInvocationOperation operation)
+        {
+            base.VisitFunctionPointerInvocation(operation);
+            ProcessPendingWritesForArgumentContainer(operation);
         }
 
         private void AnalyzeLocalFunctionInvocation(IMethodSymbol localFunction)
