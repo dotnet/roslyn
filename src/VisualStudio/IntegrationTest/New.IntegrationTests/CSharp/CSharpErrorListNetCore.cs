@@ -18,7 +18,7 @@ public class CSharpErrorListNetCore : CSharpErrorListCommon
     {
     }
 
-    public override async Task InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync().ConfigureAwait(false);
 
