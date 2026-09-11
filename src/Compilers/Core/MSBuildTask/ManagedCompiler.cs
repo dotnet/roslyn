@@ -508,10 +508,18 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             using var innerLogger = new CompilerServerLogger($"MSBuild {Process.GetCurrentProcess().Id}", TaskEnvironment.BuildEnvironment);
             var logger = new TaskCompilerServerLogger(Log, innerLogger);
-            return ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger);
+            return ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger, innerLogger);
         }
 
         internal int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands, ICompilerServerLogger logger)
+            => ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger, logger);
+
+        private int ExecuteTool(
+            string pathToTool,
+            string responseFileCommands,
+            string commandLineCommands,
+            ICompilerServerLogger logger,
+            ICompilerServerLogger responseFileLogger)
         {
             if (ProvideCommandLineArgs)
             {
@@ -540,7 +548,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 _sharedCompileCts = new CancellationTokenSource();
                 logger.Log($"CommandLine = '{commandLineCommands}'");
-                logger.Log($"BuildResponseFile = '{responseFileCommands}'");
+                responseFileLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
 
                 var clientDirectory = Path.GetDirectoryName(PathToBuiltInTool);
                 if (clientDirectory is null || tempDirectory is null)
