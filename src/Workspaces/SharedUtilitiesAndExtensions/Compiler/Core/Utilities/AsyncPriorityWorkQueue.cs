@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities;
 /// </summary>
 internal sealed class AsyncPriorityWorkQueue<TItem> : IDisposable where TItem : notnull
 {
-    private readonly Func<Enumerator, CancellationToken, ValueTask> _processBatchAsync;
+    private readonly Func<WorkToProcess, CancellationToken, ValueTask> _processBatchAsync;
     private readonly IAsynchronousOperationListener _asyncListener;
 
     /// <summary>
@@ -55,6 +56,8 @@ internal sealed class AsyncPriorityWorkQueue<TItem> : IDisposable where TItem : 
     /// </summary>
     private readonly HashSet<TItem>[] _itemsByPriority;
 
+    private readonly IEqualityComparer<TItem> _equalityComparer;
+
     /// <summary>
     /// Task kicked off to do the next batch of processing of <see cref="_itemsByPriority"/>. These
     /// tasks form a chain so that the next task only processes when the previous one completes.
@@ -71,7 +74,7 @@ internal sealed class AsyncPriorityWorkQueue<TItem> : IDisposable where TItem : 
     public AsyncPriorityWorkQueue(
         int maximumPriority,
         TimeSpan delay,
-        Func<Enumerator, CancellationToken, ValueTask> processBatchAsync,
+        Func<WorkToProcess, CancellationToken, ValueTask> processBatchAsync,
         IEqualityComparer<TItem> equalityComparer,
         IAsynchronousOperationListener asyncListener)
     {
@@ -79,6 +82,7 @@ internal sealed class AsyncPriorityWorkQueue<TItem> : IDisposable where TItem : 
             throw new ArgumentOutOfRangeException(nameof(maximumPriority), maximumPriority, "Maximum priority must be non-negative.");
 
         _itemsByPriority = new HashSet<TItem>[maximumPriority + 1];
+        _equalityComparer = equalityComparer;
         _delay = delay;
         _processBatchAsync = processBatchAsync;
         _asyncListener = asyncListener;
@@ -193,8 +197,6 @@ internal sealed class AsyncPriorityWorkQueue<TItem> : IDisposable where TItem : 
 
     private async Task ProcessNextBatchAsync()
     {
-        Enumerator enumerator;
-
         lock (_gate)
         {
             // If we don't have any items left, then the work was cancelled and we can immediately be done.
@@ -203,44 +205,49 @@ internal sealed class AsyncPriorityWorkQueue<TItem> : IDisposable where TItem : 
                 _taskInFlight = false;
                 return;
             }
-
-            enumerator = new Enumerator(this);
         }
 
         try
         {
-            await _processBatchAsync(enumerator, _entireQueueCancellationTokenSource.Token).ConfigureAwait(false);
+            await _processBatchAsync(new WorkToProcess(this), _entireQueueCancellationTokenSource.Token).ConfigureAwait(false);
         }
         finally
         {
-            // We have completed that batch. When enumeration was stopped, _taskInFlight would have been set to false, and a later AddWork would
-            // have set it to true again. But, it's also possible the enumeration was stopped prematurely; in that case we still have work queued up, and
-            // we should start that again.
-            if (!enumerator.EnumeratorStopped)
+            // We have completed that batch. It's possible the enumeration was stopped prematurely, or that new items were added while we were processing but we couldn't process
+            // them yet. If there is remaining work, let's queue a new task to start it again.
+            lock (_gate)
             {
-                Contract.ThrowIfFalse(_taskInFlight);
-                StartWork();
+                if (_itemsByPriority.Any(static s => s.Count > 0))
+                    StartWork();
+                else
+                    _taskInFlight = false;
             }
         }
     }
 
-    private bool TryGetNextItem([NotNullWhen(true)] out TItem? item)
+    /// <summary>
+    /// Tries to get the next item from the queue that is not already in flight. If there are no items left, returns false and sets <paramref name="item"/> to default.
+    /// </summary>
+    /// <param name="itemsInFlight">The list of items currently being processed; we want to skip these so we're not processing an item in parallel.</param>
+    private bool TryGetNextItem(ICollection<TItem> itemsInFlight, [NotNullWhen(true)] out TItem? item)
     {
         lock (_gate)
         {
             for (var priorityToCheck = _itemsByPriority.Length - 1; priorityToCheck >= 0; priorityToCheck--)
             {
                 var items = _itemsByPriority[priorityToCheck];
-                if (items.Count > 0)
+                foreach (var itemToCheck in items)
                 {
-                    item = items.First();
-                    items.Remove(item);
-                    return true;
+                    if (!itemsInFlight.Contains(itemToCheck))
+                    {
+                        items.Remove(itemToCheck);
+                        item = itemToCheck;
+                        return true;
+                    }
                 }
             }
 
             // We have no items left; we'll end the enumeration here; if a new item is added, we need to start a task again
-            _taskInFlight = false;
             item = default;
             return false;
         }
@@ -266,31 +273,38 @@ internal sealed class AsyncPriorityWorkQueue<TItem> : IDisposable where TItem : 
     /// An enumerator that will return the items of the queue in priority order. This doesn't implement IEnumerable so the interface can be used from
     /// multiple threads.
     /// </summary>
-    public sealed class Enumerator(AsyncPriorityWorkQueue<TItem> queue)
+    public sealed class WorkToProcess(AsyncPriorityWorkQueue<TItem> queue)
     {
         private readonly object _gate = new object();
+        private readonly HashSet<TItem> _itemsInFlight = new HashSet<TItem>(queue._equalityComparer);
 
-        public bool EnumeratorStopped { get; private set; } = false;
-
-        public bool TryGetNextItem([NotNullWhen(true)] out TItem? item)
+        /// <summary>
+        /// Invokes <paramref name="processItemAsync"/> on the next item in the queue, if there is one. Returns true if an item was processed, false if there are no more items to process.
+        /// </summary>
+        /// <param name="processItemAsync"></param>
+        /// <returns></returns>
+        public async ValueTask<bool> TryProcessNextItemAsync(Func<TItem, ValueTask> processItemAsync)
         {
+            TItem? item;
+
             lock (_gate)
             {
-                // Once we have stopped the enumeration this batch is done, even if more get added later.
-                if (EnumeratorStopped)
-                {
-                    item = default;
+                if (!queue.TryGetNextItem(_itemsInFlight, out item))
                     return false;
-                }
 
-                if (queue.TryGetNextItem(out item))
+                Contract.ThrowIfFalse(_itemsInFlight.Add(item));
+            }
+
+            try
+            {
+                await processItemAsync(item).ConfigureAwait(false);
+                return true;
+            }
+            finally
+            {
+                lock (_gate)
                 {
-                    return true;
-                }
-                else
-                {
-                    EnumeratorStopped = true;
-                    return false;
+                    Contract.ThrowIfFalse(_itemsInFlight.Remove(item));
                 }
             }
         }

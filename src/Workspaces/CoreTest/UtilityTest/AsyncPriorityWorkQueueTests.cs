@@ -24,10 +24,10 @@ public sealed class AsyncPriorityWorkQueueTests
         using var queue = new AsyncPriorityWorkQueue<string>(
             maximumPriority: 3,
             delay: TimeSpan.FromDays(1), // ExpeditedWaitAsync skips this delay
-            processBatchAsync: async (enumerator, cancellationToken) =>
+            processBatchAsync: async (workToProcess, cancellationToken) =>
             {
                 callbackCount++;
-                processed.AddRange(Drain(enumerator));
+                processed.AddRange(await DrainAsync(workToProcess));
             },
             equalityComparer: EqualityComparer<string>.Default,
             asyncListener: listener);
@@ -50,7 +50,7 @@ public sealed class AsyncPriorityWorkQueueTests
         using var queue = new AsyncPriorityWorkQueue<int>(
             maximumPriority: 3,
             delay: TimeSpan.FromDays(1), // ExpeditedWaitAsync skips this delay
-            processBatchAsync: async (enumerator, cancellationToken) => processed.AddRange(Drain(enumerator)),
+            processBatchAsync: async (workToProcess, cancellationToken) => processed.AddRange(await DrainAsync(workToProcess)),
             equalityComparer: EqualityComparer<int>.Default,
             asyncListener: listener);
 
@@ -71,7 +71,7 @@ public sealed class AsyncPriorityWorkQueueTests
         using var queue = new AsyncPriorityWorkQueue<string>(
             maximumPriority: 3,
             delay: TimeSpan.FromDays(1), // ExpeditedWaitAsync skips this delay
-            processBatchAsync: async (enumerator, cancellationToken) => processed.AddRange(Drain(enumerator)),
+            processBatchAsync: async (workToProcess, cancellationToken) => processed.AddRange(await DrainAsync(workToProcess)),
             equalityComparer: StringComparer.OrdinalIgnoreCase,
             asyncListener: listener);
 
@@ -91,7 +91,7 @@ public sealed class AsyncPriorityWorkQueueTests
         using var queue = new AsyncPriorityWorkQueue<string>(
             maximumPriority: 3,
             delay: TimeSpan.FromDays(1), // ExpeditedWaitAsync skips this delay
-            processBatchAsync: async (enumerator, cancellationToken) => processed.AddRange(Drain(enumerator)),
+            processBatchAsync: async (workToProcess, cancellationToken) => processed.AddRange(await DrainAsync(workToProcess)),
             equalityComparer: EqualityComparer<string>.Default,
             asyncListener: listener);
 
@@ -112,7 +112,7 @@ public sealed class AsyncPriorityWorkQueueTests
         using var queue = new AsyncPriorityWorkQueue<string>(
             maximumPriority: 3,
             delay: TimeSpan.FromDays(1), // ExpeditedWaitAsync skips this delay
-            processBatchAsync: async (enumerator, cancellationToken) => processed.AddRange(Drain(enumerator)),
+            processBatchAsync: async (workToProcess, cancellationToken) => processed.AddRange(await DrainAsync(workToProcess)),
             equalityComparer: EqualityComparer<string>.Default,
             asyncListener: listener);
 
@@ -126,7 +126,7 @@ public sealed class AsyncPriorityWorkQueueTests
     }
 
     [Fact]
-    public async Task AdditionsWhileBatchRunsAreVisibleToCurrentEnumerator()
+    public async Task AdditionsWhileBatchRunsAreVisibleToCurrentBatch()
     {
         using var callbackStarted = new Barrier(participantCount: 2);
         using var continueCallback = new Barrier(participantCount: 2);
@@ -136,12 +136,12 @@ public sealed class AsyncPriorityWorkQueueTests
         using var queue = new AsyncPriorityWorkQueue<int>(
             maximumPriority: 3,
             delay: TimeSpan.FromMilliseconds(1),
-            processBatchAsync: async (enumerator, cancellationToken) =>
+            processBatchAsync: async (workToProcess, cancellationToken) =>
             {
                 callbackCount++;
                 callbackStarted.SignalAndWait(cancellationToken);
                 continueCallback.SignalAndWait(cancellationToken);
-                processed.AddRange(Drain(enumerator));
+                processed.AddRange(await DrainAsync(workToProcess));
             },
             equalityComparer: EqualityComparer<int>.Default,
             asyncListener: listener);
@@ -168,7 +168,7 @@ public sealed class AsyncPriorityWorkQueueTests
         using var queue = new AsyncPriorityWorkQueue<string>(
             maximumPriority: 2,
             delay: TimeSpan.FromDays(1), // ExpeditedWaitAsync skips this delay
-            processBatchAsync: async (enumerator, cancellationToken) => processed.AddRange(Drain(enumerator)),
+            processBatchAsync: async (workToProcess, cancellationToken) => processed.AddRange(await DrainAsync(workToProcess)),
             equalityComparer: EqualityComparer<string>.Default,
             asyncListener: listener);
 
@@ -189,7 +189,7 @@ public sealed class AsyncPriorityWorkQueueTests
         using var queue = new AsyncPriorityWorkQueue<string>(
             maximumPriority: 3,
             delay: TimeSpan.FromDays(1), // ExpeditedWaitAsync skips this delay
-            processBatchAsync: async (enumerator, cancellationToken) => processed.AddRange(Drain(enumerator)),
+            processBatchAsync: async (workToProcess, cancellationToken) => processed.AddRange(await DrainAsync(workToProcess)),
             equalityComparer: StringComparer.OrdinalIgnoreCase,
             asyncListener: listener);
 
@@ -211,10 +211,10 @@ public sealed class AsyncPriorityWorkQueueTests
         using var queue = new AsyncPriorityWorkQueue<string>(
             maximumPriority: 3,
             delay: TimeSpan.FromDays(1), // ExpeditedWaitAsync skips this delay
-            processBatchAsync: async (enumerator, cancellationToken) =>
+            processBatchAsync: async (workToProcess, cancellationToken) =>
             {
                 callbackCount++;
-                processed.AddRange(Drain(enumerator));
+                processed.AddRange(await DrainAsync(workToProcess));
             },
             equalityComparer: EqualityComparer<string>.Default,
             asyncListener: listener);
@@ -239,7 +239,7 @@ public sealed class AsyncPriorityWorkQueueTests
         using var queue = new AsyncPriorityWorkQueue<int>(
             maximumPriority: 3,
             delay: TimeSpan.FromDays(1),
-            processBatchAsync: async (enumerator, cancellationToken) => { },
+            processBatchAsync: async (workToProcess, cancellationToken) => { },
             equalityComparer: EqualityComparer<int>.Default,
             asyncListener: AsynchronousOperationListenerProvider.NullListener);
 
@@ -254,7 +254,7 @@ public sealed class AsyncPriorityWorkQueueTests
         var queue = new AsyncPriorityWorkQueue<int>(
             maximumPriority: 3,
             delay: TimeSpan.FromDays(1), // ExpeditedWaitAsync skips this delay
-            processBatchAsync: async (enumerator, cancellationToken) => processed = true,
+            processBatchAsync: async (workToProcess, cancellationToken) => processed = true,
             equalityComparer: EqualityComparer<int>.Default,
             asyncListener: listener);
 
@@ -277,14 +277,13 @@ public sealed class AsyncPriorityWorkQueueTests
         using var queue = new AsyncPriorityWorkQueue<int>(
             maximumPriority: 3,
             delay: TimeSpan.FromDays(1), // ExpeditedWaitAsync skips this delay
-            processBatchAsync: async (enumerator, cancellationToken) =>
+            processBatchAsync: async (workToProcess, cancellationToken) =>
             {
-                if (enumerator.TryGetNextItem(out var item))
-                    processed.Add(item);
+                await workToProcess.TryProcessNextItemAsync(async item => processed.Add(item));
 
                 firstItemProcessed.SignalAndWait(cancellationToken);
                 continueCallback.SignalAndWait(cancellationToken);
-                processed.AddRange(Drain(enumerator));
+                processed.AddRange(await DrainAsync(workToProcess));
             },
             equalityComparer: EqualityComparer<int>.Default,
             asyncListener: listener);
@@ -303,11 +302,10 @@ public sealed class AsyncPriorityWorkQueueTests
     }
 
     [Fact]
-    public async Task EnumeratorRemainsStoppedAndLaterWorkUsesNewCallback()
+    public async Task WorkAddedAfterDrainingUsesNewCallback()
     {
-        using var firstEnumeratorStopped = new Barrier(participantCount: 2);
+        using var firstBatchDrained = new Barrier(participantCount: 2);
         using var allowFirstCallbackToReturn = new Barrier(participantCount: 2);
-        AsyncPriorityWorkQueue<int>.Enumerator? firstEnumerator = null;
         var firstBatch = new List<int>();
         var secondBatch = new List<int>();
         var callbackCount = 0;
@@ -315,18 +313,17 @@ public sealed class AsyncPriorityWorkQueueTests
         using var queue = new AsyncPriorityWorkQueue<int>(
             maximumPriority: 3,
             delay: TimeSpan.FromDays(1), // ExpeditedWaitAsync skips this delay
-            processBatchAsync: async (enumerator, cancellationToken) =>
+            processBatchAsync: async (workToProcess, cancellationToken) =>
             {
                 if (++callbackCount == 1)
                 {
-                    firstEnumerator = enumerator;
-                    firstBatch.AddRange(Drain(enumerator));
-                    firstEnumeratorStopped.SignalAndWait(cancellationToken);
+                    firstBatch.AddRange(await DrainAsync(workToProcess));
+                    firstBatchDrained.SignalAndWait(cancellationToken);
                     allowFirstCallbackToReturn.SignalAndWait(cancellationToken);
                 }
                 else
                 {
-                    secondBatch.AddRange(Drain(enumerator));
+                    secondBatch.AddRange(await DrainAsync(workToProcess));
                 }
             },
             equalityComparer: EqualityComparer<int>.Default,
@@ -334,41 +331,39 @@ public sealed class AsyncPriorityWorkQueueTests
 
         queue.AddWork(1, priority: 0);
         var waitTask = listener.ExpeditedWaitAsync();
-        firstEnumeratorStopped.SignalAndWait();
+        firstBatchDrained.SignalAndWait();
 
         queue.AddWork(2, priority: 0);
-        var oldEnumeratorAcceptedLaterWork = firstEnumerator!.TryGetNextItem(out _);
         allowFirstCallbackToReturn.SignalAndWait();
         await waitTask;
 
-        Assert.False(oldEnumeratorAcceptedLaterWork);
         Assert.Equal(2, callbackCount);
         Assert.Equal(new[] { 1 }, firstBatch);
         Assert.Equal(new[] { 2 }, secondBatch);
     }
 
     [Fact]
-    public async Task ConcurrentConsumersEnumerateWithoutDuplicates()
+    public async Task ConcurrentConsumersProcessWithoutDuplicates()
     {
         var processed = new List<int>();
         var listener = new AsynchronousOperationListener();
         using var queue = new AsyncPriorityWorkQueue<int>(
             maximumPriority: 3,
             delay: TimeSpan.FromDays(1), // ExpeditedWaitAsync skips this delay
-            processBatchAsync: async (enumerator, cancellationToken) =>
+            processBatchAsync: async (workToProcess, cancellationToken) =>
             {
                 using var consumersReady = new Barrier(participantCount: 2);
 
                 var firstConsumer = Task.Run(() =>
                 {
                     consumersReady.SignalAndWait();
-                    return Drain(enumerator);
+                    return DrainAsync(workToProcess);
                 });
 
                 var secondConsumer = Task.Run(() =>
                 {
                     consumersReady.SignalAndWait();
-                    return Drain(enumerator);
+                    return DrainAsync(workToProcess);
                 });
 
                 var results = await Task.WhenAll(firstConsumer, secondConsumer);
@@ -386,6 +381,58 @@ public sealed class AsyncPriorityWorkQueueTests
     }
 
     [Fact]
+    public async Task RequeuedItemIsNotProcessedWhileAlreadyInFlight()
+    {
+        using var firstItemStarted = new Barrier(participantCount: 2);
+        using var additionalWorkQueued = new Barrier(participantCount: 2);
+        using var completeFirstItem = new Barrier(participantCount: 2);
+        var processedWhileFirstItemInFlight = new List<string>();
+        var processedAfterFirstItem = new List<string>();
+        var listener = new AsynchronousOperationListener();
+        using var queue = new AsyncPriorityWorkQueue<string>(
+            maximumPriority: 1,
+            delay: TimeSpan.FromDays(1), // ExpeditedWaitAsync skips this delay
+            processBatchAsync: async (workToProcess, cancellationToken) =>
+            {
+                var firstProcessing = Task.Run(async () =>
+                    await workToProcess.TryProcessNextItemAsync(async item =>
+                    {
+                        firstItemStarted.SignalAndWait(cancellationToken);
+
+                        // Don't let the first item complete until we've drained the rest of all items
+                        completeFirstItem.SignalAndWait(cancellationToken);
+                    }));
+
+                try
+                {
+                    additionalWorkQueued.SignalAndWait(cancellationToken);
+                    processedWhileFirstItemInFlight.AddRange(await DrainAsync(workToProcess));
+                }
+                finally
+                {
+                    completeFirstItem.SignalAndWait(cancellationToken);
+                    await firstProcessing;
+                }
+
+                processedAfterFirstItem.AddRange(await DrainAsync(workToProcess));
+            },
+            equalityComparer: EqualityComparer<string>.Default,
+            asyncListener: listener);
+
+        queue.AddWork("requeued", priority: 1);
+        var waitTask = listener.ExpeditedWaitAsync();
+        firstItemStarted.SignalAndWait();
+
+        queue.AddWork("requeued", priority: 1);
+        queue.AddWork("unrelated", priority: 0);
+        additionalWorkQueued.SignalAndWait();
+        await waitTask;
+
+        Assert.Equal(new[] { "unrelated" }, processedWhileFirstItemInFlight);
+        Assert.Equal(new[] { "requeued" }, processedAfterFirstItem);
+    }
+
+    [Fact]
     public async Task ReturningBeforeDrainingSchedulesRemainingWorkInLaterBatch()
     {
         var processed = new List<int>();
@@ -394,11 +441,10 @@ public sealed class AsyncPriorityWorkQueueTests
         using var queue = new AsyncPriorityWorkQueue<int>(
             maximumPriority: 3,
             delay: TimeSpan.FromDays(1), // ExpeditedWaitAsync skips this delay
-            processBatchAsync: async (enumerator, cancellationToken) =>
+            processBatchAsync: async (workToProcess, cancellationToken) =>
             {
                 callbackCount++;
-                if (enumerator.TryGetNextItem(out var item))
-                    processed.Add(item);
+                await workToProcess.TryProcessNextItemAsync(async item => processed.Add(item));
             },
             equalityComparer: EqualityComparer<int>.Default,
             asyncListener: listener);
@@ -413,7 +459,7 @@ public sealed class AsyncPriorityWorkQueueTests
     }
 
     [Fact]
-    public async Task EmptyRescheduledBatchAllowsLaterWork()
+    public async Task DrainedBatchAllowsLaterWork()
     {
         var processed = new List<int>();
         var callbackCount = 0;
@@ -421,11 +467,10 @@ public sealed class AsyncPriorityWorkQueueTests
         using var queue = new AsyncPriorityWorkQueue<int>(
             maximumPriority: 3,
             delay: TimeSpan.FromDays(1), // ExpeditedWaitAsync skips this delay
-            processBatchAsync: async (enumerator, cancellationToken) =>
+            processBatchAsync: async (workToProcess, cancellationToken) =>
             {
                 callbackCount++;
-                if (enumerator.TryGetNextItem(out var item))
-                    processed.Add(item);
+                await workToProcess.TryProcessNextItemAsync(async item => processed.Add(item));
             },
             equalityComparer: EqualityComparer<int>.Default,
             asyncListener: listener);
@@ -449,9 +494,9 @@ public sealed class AsyncPriorityWorkQueueTests
         using var queue = new AsyncPriorityWorkQueue<int>(
             maximumPriority: 3,
             delay: TimeSpan.Zero,
-            processBatchAsync: async (enumerator, cancellationToken) =>
+            processBatchAsync: async (workToProcess, cancellationToken) =>
             {
-                processed.AddRange(Drain(enumerator));
+                processed.AddRange(await DrainAsync(workToProcess));
                 if (++callbackCount == 1)
                     throw new InvalidOperationException("Expected test exception.");
             },
@@ -476,7 +521,7 @@ public sealed class AsyncPriorityWorkQueueTests
         var queue = new AsyncPriorityWorkQueue<int>(
             maximumPriority: 3,
             delay: TimeSpan.FromDays(1), // ExpeditedWaitAsync skips this delay
-            processBatchAsync: async (enumerator, cancellationToken) => processed = true,
+            processBatchAsync: async (workToProcess, cancellationToken) => processed = true,
             equalityComparer: EqualityComparer<int>.Default,
             asyncListener: listener);
 
@@ -499,18 +544,17 @@ public sealed class AsyncPriorityWorkQueueTests
         var queue = new AsyncPriorityWorkQueue<int>(
             maximumPriority: 3,
             delay: TimeSpan.FromDays(1), // ExpeditedWaitAsync skips this delay
-            processBatchAsync: async (enumerator, cancellationToken) =>
+            processBatchAsync: async (workToProcess, cancellationToken) =>
             {
                 using var registration = cancellationToken.Register(
                     static state => ((TaskCompletionSource<bool>)state!).SetResult(true),
                     cancellationObserved);
 
-                if (enumerator.TryGetNextItem(out var item))
-                    processed.Add(item);
+                await workToProcess.TryProcessNextItemAsync(async item => processed.Add(item));
 
                 callbackStarted.SignalAndWait(cancellationToken);
                 await cancellationObserved.Task;
-                foundItemAfterDispose = enumerator.TryGetNextItem(out _);
+                foundItemAfterDispose = await workToProcess.TryProcessNextItemAsync(async item => { });
             },
             equalityComparer: EqualityComparer<int>.Default,
             asyncListener: listener);
@@ -535,7 +579,7 @@ public sealed class AsyncPriorityWorkQueueTests
         var queue = new AsyncPriorityWorkQueue<int>(
             maximumPriority: 3,
             delay: TimeSpan.Zero,
-            processBatchAsync: async (enumerator, cancellationToken) => processed = true,
+            processBatchAsync: async (workToProcess, cancellationToken) => processed = true,
             equalityComparer: EqualityComparer<int>.Default,
             asyncListener: listener);
 
@@ -553,7 +597,7 @@ public sealed class AsyncPriorityWorkQueueTests
         var queue = new AsyncPriorityWorkQueue<int>(
             maximumPriority: 3,
             delay: TimeSpan.Zero,
-            processBatchAsync: async (enumerator, cancellationToken) => { },
+            processBatchAsync: async (workToProcess, cancellationToken) => { },
             equalityComparer: EqualityComparer<int>.Default,
             asyncListener: AsynchronousOperationListenerProvider.NullListener);
 
@@ -561,12 +605,13 @@ public sealed class AsyncPriorityWorkQueueTests
         queue.Dispose();
     }
 
-    private static List<TItem> Drain<TItem>(AsyncPriorityWorkQueue<TItem>.Enumerator enumerator)
+    private static async Task<List<TItem>> DrainAsync<TItem>(AsyncPriorityWorkQueue<TItem>.WorkToProcess workToProcess)
         where TItem : notnull
     {
         var result = new List<TItem>();
-        while (enumerator.TryGetNextItem(out var item))
-            result.Add(item);
+        while (await workToProcess.TryProcessNextItemAsync(async item => result.Add(item)))
+        {
+        }
 
         return result;
     }
