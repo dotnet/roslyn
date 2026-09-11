@@ -8,6 +8,8 @@ Particularly for developers who aren't experienced with .NET Core development on
 1. Run `./build.sh --restore`
 1. Run `./build.sh --build`
 
+You can pass `--enableCompilerCache` to `build.sh` to download and enable the compiler cache, which speeds up subsequent builds.
+
 ## Working in Visual Studio Code
 1. Install [VS Code](https://code.visualstudio.com/Download)
     - After you install VS Code, install the [C# extension](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp)

@@ -6,6 +6,9 @@ parameters:
 - name: testArtifactName
   type: string
   default: ''
+- name: cacheArtifactName
+  type: string
+  default: ''
 - name: configuration
   type: string
   default: 'Debug'
@@ -33,12 +36,15 @@ jobs:
       parameters:
         configuration: ${{ parameters.configuration }}
 
+    - template: build-file-based-apps.yml
+
     - script: ./eng/build.sh --ci --build --prepareMachine --binaryLog --skipDocumentation --configuration ${{ parameters.configuration }}
       displayName: Build
 
     - template: post-cache-roslyn-outputs.yml
       parameters:
         configuration: ${{ parameters.configuration }}
+        cacheArtifactName: ${{ parameters.cacheArtifactName }}
 
     - script: ./eng/prepare-tests.sh
       displayName: Prepare Test Payload

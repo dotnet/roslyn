@@ -6,6 +6,9 @@ parameters:
 - name: testArtifactName
   type: string
   default: ''
+- name: cacheArtifactName
+  type: string
+  default: ''
 - name: configuration
   type: string
   default: 'Debug'
@@ -44,6 +47,8 @@ jobs:
       parameters:
         configuration: ${{ parameters.configuration }}
 
+    - template: build-file-based-apps.yml
+
     - task: PowerShell@2
       displayName: Build
       inputs:
@@ -53,6 +58,7 @@ jobs:
     - template: post-cache-roslyn-outputs.yml
       parameters:
         configuration: ${{ parameters.configuration }}
+        cacheArtifactName: ${{ parameters.cacheArtifactName }}
 
     - task: PowerShell@2
       displayName: Prepare Unit Tests
