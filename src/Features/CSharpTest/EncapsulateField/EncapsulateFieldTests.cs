@@ -482,6 +482,106 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
             }
             """, index: 0);
 
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/82023")]
+    public Task EncapsulateSingleFieldWithInitializerInMultipleVariableDeclaration(TestHost host)
+        => TestAllOptionsOffAsync(host, """
+            class goo
+            {
+                public string [|a|] = 1.ToString(), b;
+            }
+            """, """
+            class goo
+            {
+                public string b;
+                private string a = 1.ToString();
+
+                public string A
+                {
+                    get
+                    {
+                        return a;
+                    }
+
+                    set
+                    {
+                        a = value;
+                    }
+                }
+            }
+            """, index: 0);
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/82023")]
+    public Task EncapsulateMultipleFieldsWithInitializerInMultipleVariableDeclaration(TestHost host)
+        => TestAllOptionsOffAsync(host, """
+            class goo
+            {
+                public string [|a = 1.ToString(), b = 2.ToString()|];
+            }
+            """, """
+            class goo
+            {
+                private string b = 2.ToString();
+                private string a = 1.ToString();
+
+                public string A
+                {
+                    get
+                    {
+                        return a;
+                    }
+
+                    set
+                    {
+                        a = value;
+                    }
+                }
+
+                public string B
+                {
+                    get
+                    {
+                        return b;
+                    }
+
+                    set
+                    {
+                        b = value;
+                    }
+                }
+            }
+            """, index: 0);
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/82023")]
+    public Task EncapsulateConstsWithInitializersInMultipleVariableDeclaration(TestHost host)
+        => TestAllOptionsOffAsync(host, """
+            class goo
+            {
+                public const string [|A = nameof(A), B = nameof(B)|];
+            }
+            """, """
+            class goo
+            {
+                private const string b = nameof(B);
+                private const string a = nameof(A);
+
+                public static string A
+                {
+                    get
+                    {
+                        return a;
+                    }
+                }
+
+                public static string B
+                {
+                    get
+                    {
+                        return b;
+                    }
+                }
+            }
+            """, index: 0);
+
     [Theory, CombinatorialData]
     public Task EncapsulateMultiplePrivateFields(TestHost host)
         => TestAllOptionsOffAsync(host, """
