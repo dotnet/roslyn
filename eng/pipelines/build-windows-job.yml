@@ -61,15 +61,20 @@ jobs:
         arguments: -configuration ${{ parameters.configuration }}
       condition: and(ne(variables['artifactName'], ''), succeeded())
 
+    - powershell: |
+        Write-Host "##vso[task.setvariable variable=testArtifactName;isOutput=true]${{ parameters.testArtifactName }}-Attempt$(System.JobAttempt)"
+      name: SetTestArtifactName
+      displayName: Set Test Payload Artifact Name
+      condition: and(ne(variables['artifactName'], ''), succeeded())
+
     - task: PublishPipelineArtifact@1
       displayName: Publish Test Payload
       inputs:
         targetPath: '$(Build.SourcesDirectory)\artifacts\testPayload'
-        artifactName: ${{ parameters.testArtifactName }}
+        artifactName: $(SetTestArtifactName.testArtifactName)
       condition: and(ne(variables['artifactName'], ''), succeeded())
 
     - template: publish-logs.yml
       parameters:
         configuration: ${{ parameters.configuration }}
         jobName: ${{ parameters.jobName }}
-
