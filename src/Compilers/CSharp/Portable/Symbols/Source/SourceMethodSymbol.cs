@@ -170,7 +170,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute());
             }
 
-            if (compilation.ShouldEmitNullableAttributes(target) &&
+            if (target is not SynthesizedSimpleProgramEntryPointSymbol &&
+                compilation.ShouldEmitNullableAttributes(target) &&
                 target.ShouldEmitNullableContextValue(out byte nullableContextValue))
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableContextAttribute(target, nullableContextValue));
