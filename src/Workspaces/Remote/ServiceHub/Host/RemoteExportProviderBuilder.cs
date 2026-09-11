@@ -21,14 +21,18 @@ namespace Microsoft.CodeAnalysis.Remote;
 
 internal sealed class RemoteExportProviderBuilder : ExportProviderBuilder
 {
+    internal static readonly ImmutableArray<string> AdditionalRemoteHostAssemblyNames =
+    [
+        "Microsoft.CodeAnalysis.Remote.ServiceHub",
+        "Microsoft.CodeAnalysis.Remote.Workspaces",
+        "Microsoft.CodeAnalysis.ExternalAccess.AspNetCore",
+        "Microsoft.CodeAnalysis.ExternalAccess.Extensions",
+        "Microsoft.CodeAnalysis.Features.ExternalAccess",
+        "Microsoft.VisualStudio.Copilot.Roslyn.SemanticSearch",
+    ];
+
     internal static readonly ImmutableArray<string> RemoteHostAssemblyNames =
-        MefHostServices.DefaultAssemblyNames
-            .Add("Microsoft.CodeAnalysis.Remote.ServiceHub")
-            .Add("Microsoft.CodeAnalysis.Remote.Workspaces")
-            .Add("Microsoft.CodeAnalysis.ExternalAccess.AspNetCore")
-            .Add("Microsoft.CodeAnalysis.ExternalAccess.Extensions")
-            .Add("Microsoft.CodeAnalysis.Features.ExternalAccess")
-            .Add("Microsoft.VisualStudio.Copilot.Roslyn.SemanticSearch");
+        [.. MefHostServices.DefaultAssemblyNames, .. AdditionalRemoteHostAssemblyNames];
 
     private static ExportProvider? s_instance;
     private static Task? s_cacheWriteTask_forTestingPurposesOnly;
@@ -115,8 +119,10 @@ internal sealed class RemoteExportProviderBuilder : ExportProviderBuilder
 
     internal static class TestAccessor
     {
-        public static Task WaitForCacheWriteAsync(CancellationToken cancellationToken)
-            => (s_cacheWriteTask_forTestingPurposesOnly ?? throw new InvalidOperationException("No cache write was scheduled.")).WithCancellation(cancellationToken);
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
+        public static Task? GetCacheWriteTask()
+            => Interlocked.Exchange(ref s_cacheWriteTask_forTestingPurposesOnly, null);
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
     }
 
     private sealed class SimpleAssemblyLoader : IAssemblyLoader
