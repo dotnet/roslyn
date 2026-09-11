@@ -2227,7 +2227,7 @@ Console.WriteLine($""{span}"");";
                 );
         }
 
-        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
         public void UseOfSpanInInterpolationHole(bool useDefaultParameters, bool useBoolReturns, bool constructorBoolArg,
             [CombinatorialValues(@"$""base{a}{a,1}{a:X}{a,2:Y}""", @"$""base"" + $""{a}"" + $""{a,1}"" + $""{a:X}"" + $""{a,2:Y}""")] string expression)
@@ -3936,7 +3936,7 @@ Caught");
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly), typeof(NoIOperationValidation))]
+        [ConditionalFact(skipConditions: [typeof(MonoOrCoreClrOnly), typeof(NoIOperationValidation)])]
         public void ExceptionFilter_02()
         {
             var source = @"
@@ -4028,7 +4028,7 @@ Caught");
 ");
         }
 
-        [ConditionalTheory(typeof(MonoOrCoreClrOnly), typeof(NoIOperationValidation))]
+        [ConditionalTheory(skipConditions: [typeof(MonoOrCoreClrOnly), typeof(NoIOperationValidation)])]
         [InlineData(@"$""{s}{c}""")]
         [InlineData(@"$""{s}"" + $""{c}""")]
         public void ImplicitUserDefinedConversionInHole(string expression)
@@ -15875,7 +15875,7 @@ class Program
         }
 
         [WorkItem(67070, "https://github.com/dotnet/roslyn/issues/67070")]
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void RefEscape_NestedCalls_01()
         {
             string source = """
@@ -15918,7 +15918,7 @@ class Program
         }
 
         [WorkItem(67070, "https://github.com/dotnet/roslyn/issues/67070")]
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void RefEscape_NestedCalls_02()
         {
             string source = """
@@ -15957,7 +15957,7 @@ class Program
         }
 
         [WorkItem(67070, "https://github.com/dotnet/roslyn/issues/67070")]
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void RefEscape_NestedCalls_03()
         {
             string source = """
@@ -15996,7 +15996,7 @@ class Program
         }
 
         [WorkItem(67070, "https://github.com/dotnet/roslyn/issues/67070")]
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void RefEscape_NestedCalls_04()
         {
             string source = """
@@ -16036,7 +16036,7 @@ class Program
         }
 
         [WorkItem(67070, "https://github.com/dotnet/roslyn/issues/67070")]
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void RefEscape_NestedCalls_05()
         {
             string source = """
@@ -16075,7 +16075,7 @@ class Program
         }
 
         [WorkItem(67070, "https://github.com/dotnet/roslyn/issues/67070")]
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void RefEscape_NestedCalls_06()
         {
             string source = """
@@ -16118,7 +16118,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void RefEscape_NestedCalls_06b()
         {
             string source = """
@@ -16181,7 +16181,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(10, 19));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void RefEscape_NestedCalls_07()
         {
             string source = """
@@ -16226,7 +16226,7 @@ class Program
         }
 
         [WorkItem(67070, "https://github.com/dotnet/roslyn/issues/67070")]
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void RefEscape_NestedCalls_08()
         {
             string source = """
@@ -17469,7 +17469,7 @@ IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.St
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/68834")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/68834")]
         public void ParenthesizedAdditiveExpression_06()
         {
             var src = """

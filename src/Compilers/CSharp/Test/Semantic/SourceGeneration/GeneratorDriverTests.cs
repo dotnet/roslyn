@@ -20,7 +20,6 @@ using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 {
@@ -477,7 +476,7 @@ class C { }
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public void Generator_HintName_MustBe_Unique_Across_Outputs()
         {
             var source = @"
@@ -770,7 +769,7 @@ class C
             Assert.Same(oldDriver, driver);
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public void Adding_A_Source_Text_Without_Encoding_Fails_Generation()
         {
             var source = @"
@@ -3694,7 +3693,7 @@ class C { }
             Assert.Single(referenceList, modifiedRef.Display);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [ConditionalFact(skipConditions: typeof(NoIOperationValidation))]
         [WorkItem(59190, "https://github.com/dotnet/roslyn/issues/59190")]
         public void LongBinaryExpression()
         {
@@ -4040,7 +4039,7 @@ class D {  (int, bool) _field; }";
             compilation.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_DetachedSyntaxTree_Incremental()
         {
@@ -4072,7 +4071,7 @@ class D {  (int, bool) _field; }";
             compilation.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_DetachedSyntaxTree_Incremental_AdditionalLocations()
         {
@@ -4106,7 +4105,7 @@ class D {  (int, bool) _field; }";
             compilation.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_DetachedSyntaxTree_Execute()
         {
@@ -4135,7 +4134,7 @@ class D {  (int, bool) _field; }";
             compilation.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_DetachedSyntaxTree_Execute_AdditionalLocations()
         {
@@ -4166,7 +4165,7 @@ class D {  (int, bool) _field; }";
             compilation.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_SpanOutsideRange_Incremental()
         {
@@ -4240,7 +4239,7 @@ class D {  (int, bool) _field; }";
             compilation.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_SpanOutsideRange_Incremental_AdditionalLocations()
         {
@@ -4273,7 +4272,7 @@ class D {  (int, bool) _field; }";
             compilation.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_SpanOutsideRange_Execute()
         {
@@ -4302,7 +4301,7 @@ class D {  (int, bool) _field; }";
             compilation.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_SpanOutsideRange_Execute_AdditionalLocations()
         {
@@ -4332,7 +4331,7 @@ class D {  (int, bool) _field; }";
             compilation.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_SpaceInIdentifier_Incremental()
         {
@@ -4364,7 +4363,7 @@ class D {  (int, bool) _field; }";
             compilation.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_SpaceInIdentifier_Execute()
         {

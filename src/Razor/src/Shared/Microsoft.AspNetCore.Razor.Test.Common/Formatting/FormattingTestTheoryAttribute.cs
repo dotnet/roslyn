@@ -1,15 +1,45 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+extern alias XunitV3;
+
 using System;
-using Xunit;
-using Xunit.Sdk;
+using System.Runtime.CompilerServices;
+using XunitV3::Xunit.v3;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-[XunitTestCaseDiscoverer($"Microsoft.AspNetCore.Razor.Test.Common.{nameof(FormattingTheoryDiscoverer)}", "Microsoft.AspNetCore.Razor.Test.Common")]
-internal sealed class FormattingTestTheoryAttribute : TheoryAttribute
+[XunitTestCaseDiscoverer(typeof(FormattingTheoryDiscoverer))]
+public sealed class FormattingTestTheoryAttribute(
+    [CallerFilePath] string sourceFilePath = "",
+    [CallerLineNumber] int sourceLineNumber = 0) : Attribute, ITheoryAttribute
 {
-    // NOTE: Property names need to match FormattingTestFactAttribute
+    public bool DisableDiscoveryEnumeration { get; set; }
+
+    public bool DisableParallelization { get; set; }
+
+    public bool IncludeTestCaseIndex { get; set; }
+
+    public bool SkipTestWithoutData { get; set; }
+
+    public string? DisplayName { get; set; }
+
+    public bool Explicit { get; set; }
+
+    public string? Skip { get; set; }
+
+    public Type[]? SkipExceptions { get; set; }
+
+    public Type? SkipType { get; set; }
+
+    public string? SkipUnless { get; set; }
+
+    public string? SkipWhen { get; set; }
+
+    public string SourceFilePath { get; } = sourceFilePath;
+
+    public int? SourceLineNumber { get; } = sourceLineNumber;
+
+    public int Timeout { get; set; }
 }

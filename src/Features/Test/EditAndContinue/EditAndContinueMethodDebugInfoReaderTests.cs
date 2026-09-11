@@ -49,7 +49,7 @@ public sealed class EditAndContinueMethodDebugInfoReaderTests
         DebugInfoImpl(format, useSymReader);
     }
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "Native PDB writing requires Windows")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "Native PDB writing requires Windows")]
     public void DebugInfo_NativePdb()
     {
         // xunit3: consider using Assert.Skip

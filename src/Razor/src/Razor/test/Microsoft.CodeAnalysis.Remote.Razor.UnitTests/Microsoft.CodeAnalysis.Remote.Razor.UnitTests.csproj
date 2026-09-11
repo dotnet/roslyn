@@ -5,6 +5,7 @@
     <IsShipping>false</IsShipping>
     <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
     <TargetFrameworks>$(StandardTestTfms)</TargetFrameworks>
+    <OutputType Condition="'$(TargetFramework)' == '$(NetFxVS)'">Exe</OutputType>
   </PropertyGroup>
 
   <ItemGroup>

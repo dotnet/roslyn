@@ -5,7 +5,6 @@
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
-using Xunit.Abstractions;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;

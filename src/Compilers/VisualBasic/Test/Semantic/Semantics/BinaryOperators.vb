@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Inherits BasicTestBase
 
         ' The test uses double.ToString which has precision differences between English and non-English cultures
-        <ConditionalFact(GetType(WindowsDesktopOnly), GetType(IsEnglishLocal), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
+        <ConditionalFact({GetType(WindowsDesktopOnly), GetType(IsEnglishLocal)}, Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Test1()
 
             Dim currCulture = System.Threading.Thread.CurrentThread.CurrentCulture
@@ -354,7 +354,7 @@ False
         End Sub
 
         ' The test uses double.ToString which has precision differences between English and non-English cultures
-        <ConditionalFact(GetType(WindowsDesktopOnly), GetType(IsEnglishLocal), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
+        <ConditionalFact({GetType(WindowsDesktopOnly), GetType(IsEnglishLocal)}, Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Test5()
 
             Dim compilationDef =

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using Microsoft.AspNetCore.Razor;
@@ -8,8 +8,6 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.VisualStudio.Razor.Logging;
 using Microsoft.VisualStudio.Shell.Interop;
 using Moq;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor;
 

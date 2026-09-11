@@ -115,7 +115,7 @@ build_metadata.Compile.ToRetrieve = def456
             Assert.Equal("def456", sectionOptions.AnalyzerOptions["build_metadata.compile.toretrieve"]);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void CanGetSectionsWithDifferentDriveCasing()
         {
             var config = Parse(@"is_global = true
@@ -149,7 +149,7 @@ build_metadata.compile.toretrieve = def456
             Assert.Equal("global", sectionOptions.AnalyzerOptions["build_metadata.compile.toretrieve"]);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void WindowsPath()
         {
             const string path = "Z:\\bogus\\.editorconfig";
@@ -1207,7 +1207,7 @@ dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
             }, options.Select(o => o.TreeOptions).ToArray());
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void WindowsRootConfig()
         {
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
@@ -1493,7 +1493,7 @@ dotnet_diagnostic.cs000.some_key = some_other_val", "/subdir/.editorconfig"));
             Assert.Throws<ArgumentException>(() => Parse("", "/subdir/"));
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void BadWindowsFilePaths()
         {
             Assert.Throws<ArgumentException>(() => Parse("", "Z:"));

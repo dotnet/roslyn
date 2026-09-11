@@ -4,13 +4,19 @@
 
   <PropertyGroup>
     <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);AddDefaultTestAppConfig</PrepareForBuildDependsOn>
+
+    <!--
+      xunit.v3 test projects build an executable capable of running under either VSTest or
+      Microsoft.Testing.Platform (MTP). Roslyn's test infrastructure (CI harnesses, custom
+      runners, xunit.runner.visualstudio) still targets VSTest, so opt out of MTP for now.
+    -->
+    <IsTestingPlatformApplication>false</IsTestingPlatformApplication>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="XunitXml.TestLogger" />
-    <PackageReference Include="xunit.extensibility.execution" />
     <PackageReference Include="xunit.runner.visualstudio" />
-    <PackageReference Include="xunit.core" />
+    <PackageReference Include="xunit.v3" />
     <PackageReference Include="xunit.analyzers" />
   </ItemGroup>
 

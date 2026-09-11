@@ -1001,7 +1001,7 @@ public class C
             CompareAssemblies(sourceTemplate, left, right, expectedMatch, includePrivateMembers: false);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
         public void RefAssembly_NoPia()
         {
             string piaSource = @"
@@ -1079,7 +1079,7 @@ public class D : ITest1
             }
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
         public void RefAssembly_NoPia_ReferenceFromMethodBody()
         {
             string piaSource = @"
@@ -1237,7 +1237,7 @@ public class C
         }
 
 #if NET472
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         [WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")]
         public void RefAssembly_InvariantToResourceChanges()
         {
@@ -4342,7 +4342,7 @@ public sealed class ContentType
         }
 
         // Verify via MetadataReader - comp option
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void CheckUnsafeAttributes3()
         {
             string source = @"
@@ -4377,7 +4377,7 @@ class C
         }
 
         // Verify via MetadataReader - comp option, module case
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void CheckUnsafeAttributes4()
         {
             string source = @"
@@ -4399,7 +4399,7 @@ class C
         }
 
         // Verify via MetadataReader - attr in source
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void CheckUnsafeAttributes5()
         {
             // Writing the attributes in the source should have the same effect as the compilation option.
@@ -4446,7 +4446,7 @@ class C
         }
 
         // Verify via MetadataReader - two attrs in source, same action
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void CheckUnsafeAttributes6()
         {
             string source = @"
@@ -4507,7 +4507,7 @@ class C
         }
 
         // Verify via MetadataReader - two attrs in source, different actions
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void CheckUnsafeAttributes7()
         {
             string source = @"
@@ -4574,7 +4574,7 @@ class C
         }
 
         // Verify via MetadataReader - one attr in source, one synthesized, same action
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void CheckUnsafeAttributes8()
         {
             string source = @"
@@ -4631,7 +4631,7 @@ class C
         }
 
         // Verify via MetadataReader - one attr in source, one synthesized, different actions
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void CheckUnsafeAttributes9()
         {
             string source = @"
@@ -4725,7 +4725,7 @@ public class Test
             CompileAndVerify(source2, references: new[] { metadataRef }, options: TestOptions.ReleaseModule, verify: Verification.Fails);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         [WorkItem(530879, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530879")]
         public void TestCompilationEmitUsesDifferentStreamsForBinaryAndPdb()
         {
@@ -4768,7 +4768,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "b").WithArguments("b"));
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         public void PlatformMismatch_01()
         {
             var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
@@ -4853,7 +4853,7 @@ public interface IUsePlatform
             useCompilation.VerifyEmitDiagnostics(emitOptions);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         public void PlatformMismatch_02()
         {
             var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
@@ -4898,7 +4898,7 @@ public interface IUsePlatform
             useCompilation.VerifyEmitDiagnostics(emitOptions);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         public void PlatformMismatch_03()
         {
             var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
@@ -4954,7 +4954,7 @@ public interface IUsePlatform
                 Diagnostic(ErrorCode.WRN_ConflictingMachineAssembly).WithArguments("PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         public void PlatformMismatch_04()
         {
             var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
@@ -4985,7 +4985,7 @@ public interface IUsePlatform
                 Diagnostic(ErrorCode.ERR_ConflictingMachineModule).WithArguments("PlatformMismatch.netmodule"));
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         public void PlatformMismatch_05()
         {
             var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
@@ -5033,7 +5033,7 @@ public interface IUsePlatform
             useCompilation.VerifyEmitDiagnostics(emitOptions);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         public void PlatformMismatch_06()
         {
             var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
@@ -5062,7 +5062,7 @@ public interface IUsePlatform
             useCompilation.VerifyEmitDiagnostics(emitOptions);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         public void PlatformMismatch_07()
         {
             var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
@@ -5110,7 +5110,7 @@ public interface IUsePlatform
             useCompilation.VerifyEmitDiagnostics(emitOptions);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         public void PlatformMismatch_08()
         {
             var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
@@ -5302,7 +5302,7 @@ class C
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/23760")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/23760")]
         public void BrokenPDBStream()
         {
             string source = @"class Goo {}";
@@ -5332,7 +5332,7 @@ class C
             Assert.Equal(ioExceptionMessage, (string)err.Arguments[0]);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NetModulesNeedDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NetModulesNeedDesktop)]
         public void MultipleNetmodulesWithPrivateImplementationDetails()
         {
             var s1 = @"
@@ -5379,7 +5379,7 @@ public class Program
             CompileAndVerify(comp3, expectedOutput: "Hello, world!");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NetModulesNeedDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NetModulesNeedDesktop)]
         public void MultipleNetmodulesWithAnonymousTypes()
         {
             var s1 = @"

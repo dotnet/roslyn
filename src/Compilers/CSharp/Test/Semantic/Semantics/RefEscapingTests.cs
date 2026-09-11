@@ -8761,7 +8761,7 @@ public static class Extensions
             }
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(CoreClrOnly))]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
         public void DeconstructionAssignmentWithRefReadonlyExtension_02(LanguageVersion languageVersion)
@@ -8796,7 +8796,7 @@ public static class Extensions
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "local").WithArguments("Extensions.Deconstruct(in System.Span<int>, out System.Span<int>, out System.Span<int>)", "self").WithLocation(10, 20));
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(CoreClrOnly))]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
         public void DeconstructionAssignmentWithRefReadonlyExtension_03(LanguageVersion languageVersion)
@@ -12380,7 +12380,7 @@ public struct Vec4
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "z = ref x").WithArguments("z", "x").WithLocation(6, 9));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ParameterEscape()
         {
             var source = """

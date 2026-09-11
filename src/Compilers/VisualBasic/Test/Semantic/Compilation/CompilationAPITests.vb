@@ -2442,7 +2442,7 @@ End Class
             End Function
         End Class
 
-        <ConditionalFact(GetType(NoIOperationValidation), GetType(NoUsedAssembliesValidation))>
+        <ConditionalFact({GetType(NoIOperationValidation), GetType(NoUsedAssembliesValidation)})>
         Public Sub MetadataConsistencyWhileEvolvingCompilation()
             Dim md1 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib40({"Public Class C : End Class"}, options:=TestOptions.ReleaseDll).EmitToArray())
             Dim md2 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib40({"Public Class D : End Class"}, options:=TestOptions.ReleaseDll).EmitToArray())

@@ -453,7 +453,7 @@ public class C
 ");
         }
         [WorkItem(546412, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546412")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void TestBug15818()
         {
             var source =
@@ -1874,7 +1874,7 @@ public class D
 ");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         public void TestAssignIdentity()
         {
             string source = @"
@@ -1920,7 +1920,7 @@ There are no context policies.
 ");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         public void TestRefCast()
         {
             string source = @"
@@ -6627,7 +6627,7 @@ public class D
         }
 
         [WorkItem(9229, "DevDiv_Projects/Roslyn")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void InitFromBlob()
         {
             string source = @"
@@ -11382,7 +11382,7 @@ class C
 }");
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/runtime/issues/1611")]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly), Reason = "https://github.com/dotnet/runtime/issues/1611")]
         [WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")]
         [WorkItem(34198, "https://github.com/dotnet/roslyn/issues/34198")]
         public void DecimalBinaryOp_03()
@@ -13302,7 +13302,7 @@ expectedOutput: "-100");
             diagnostics.Free();
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         [WorkItem(546957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546957")]
         public void Bug17352_VarArgCtor()
         {
@@ -13372,7 +13372,7 @@ blah");
         }
 
         [WorkItem(24348, "https://github.com/dotnet/roslyn/issues/24348")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void VarargBridgeSource()
         {
 
@@ -13411,7 +13411,7 @@ public static class P
         }
 
         [WorkItem(26113, "https://github.com/dotnet/roslyn/issues/26113")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         public void VarargByRef()
         {
             var code = @"
@@ -13471,7 +13471,7 @@ class A
         }
 
         [WorkItem(24348, "https://github.com/dotnet/roslyn/issues/24348")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void VarargBridgeMeta()
         {
             var reference = CreateCompilation(@"

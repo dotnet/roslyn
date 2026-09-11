@@ -1,9 +1,18 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <RootNamespace>Microsoft.CodeAnalysis.CSharp.IOperation.UnitTests</RootNamespace>
+    <OutputType>Exe</OutputType>
+    <TargetExt>.dll</TargetExt>
+    <!--
+      Not "Microsoft.CodeAnalysis.CSharp.IOperation.UnitTests": xunit.v3's build-time codegen
+      generates a "namespace $(RootNamespace) { ... }" block (SelfRegisteredExtensions.cs) even
+      though this project doesn't use Microsoft.Testing.Platform. An "IOperation" namespace
+      segment here collides with the real Microsoft.CodeAnalysis.IOperation type wherever that
+      namespace is open via `using`, causing CS0234/CS0118. Avoid the collision by not giving
+      "IOperation" its own namespace segment.
+    -->
+    <RootNamespace>Microsoft.CodeAnalysis.CSharp.IOperationUnitTests</RootNamespace>
     <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup Label="Project References">

@@ -1671,7 +1671,7 @@ End Class
             Assert.True(corlib1.ReferenceManagerEquals(corlib2))
         End Sub
 
-        <ConditionalFact(GetType(NoIOperationValidation), GetType(NoUsedAssembliesValidation))>
+        <ConditionalFact({GetType(NoIOperationValidation), GetType(NoUsedAssembliesValidation)})>
         Public Sub MissingAssemblyResolution1()
             ' c - a -> b
             Dim bRef = CreateCompilationWithMscorlib40({"Public Class B : End Class"}, options:=TestOptions.ReleaseDll, assemblyName:="B").EmitToImageReference()
@@ -1693,7 +1693,7 @@ End Class
                 "A -> B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
         End Sub
 
-        <ConditionalFact(GetType(NoIOperationValidation), GetType(NoUsedAssembliesValidation))>
+        <ConditionalFact({GetType(NoIOperationValidation), GetType(NoUsedAssembliesValidation)})>
         Public Sub MissingAssemblyResolution_WeakIdentities1()
             ' c - a -> "b,v1,PKT=null" 
             '   - d -> "b,v2,PKT=null"
@@ -1728,7 +1728,7 @@ End Class
                 "A -> B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null")
         End Sub
 
-        <ConditionalFact(GetType(NoIOperationValidation), GetType(NoUsedAssembliesValidation))>
+        <ConditionalFact({GetType(NoIOperationValidation), GetType(NoUsedAssembliesValidation)})>
         Public Sub MissingAssemblyResolution_WeakIdentities2()
             ' c - a -> "b,v1,PKT=null"
             '   - d -> "b,v2,PKT=null"
@@ -1779,7 +1779,7 @@ End Class
             resolver.VerifyResolutionAttempts()
         End Sub
 
-        <ConditionalFact(GetType(NoIOperationValidation), GetType(NoUsedAssembliesValidation))>
+        <ConditionalFact({GetType(NoIOperationValidation), GetType(NoUsedAssembliesValidation)})>
         Public Sub MissingAssemblyResolution_ActualMissing()
             ' c - a -> d
             Dim dRef = CreateCompilationWithMscorlib40({"Public Interface D : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="D").EmitToImageReference()
@@ -1800,7 +1800,7 @@ End Class
         ''' <summary>
         ''' Ignore assemblies returned by the resolver that don't match the reference identity.
         ''' </summary>
-        <ConditionalFact(GetType(NoIOperationValidation), GetType(NoUsedAssembliesValidation))>
+        <ConditionalFact({GetType(NoIOperationValidation), GetType(NoUsedAssembliesValidation)})>
         Public Sub MissingAssemblyResolution_MissingDueToResolutionMismatch()
             ' c - a -> b
             Dim bRef = CreateCompilationWithMscorlib40({"Public Interface D : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="B").EmitToImageReference()
@@ -1823,7 +1823,7 @@ End Class
                 "A -> B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
         End Sub
 
-        <ConditionalFact(GetType(NoIOperationValidation), GetType(NoUsedAssembliesValidation))>
+        <ConditionalFact({GetType(NoIOperationValidation), GetType(NoUsedAssembliesValidation)})>
         Public Sub MissingAssemblyResolution_Modules()
             ' c - a - d
             '   - module(m) - b
@@ -1889,7 +1889,7 @@ End Class
         ''' <summary>
         ''' Don't try to resolve AssemblyRefs that already match explicitly specified definition.
         ''' </summary>
-        <ConditionalFact(GetType(NoIOperationValidation), GetType(NoUsedAssembliesValidation))>
+        <ConditionalFact({GetType(NoIOperationValidation), GetType(NoUsedAssembliesValidation)})>
         Public Sub MissingAssemblyResolution_BindingToExplicitReference_WorseVersion()
             ' c - a -> d -> "b,v2"
             '          e -> "b,v1"
@@ -1929,7 +1929,7 @@ End Class
         ''' <summary>
         ''' Don't try to resolve AssemblyRefs that already match explicitly specified definition.
         ''' </summary>
-        <ConditionalFact(GetType(NoIOperationValidation), GetType(NoUsedAssembliesValidation))>
+        <ConditionalFact({GetType(NoIOperationValidation), GetType(NoUsedAssembliesValidation)})>
         Public Sub MissingAssemblyResolution_BindingToExplicitReference_BetterVersion()
             ' c - a -> d -> "b,v2"
             '          e -> "b,v1"
@@ -1968,7 +1968,7 @@ End Class
                 "A -> E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2")
         End Sub
 
-        <ConditionalFact(GetType(NoIOperationValidation), GetType(NoUsedAssembliesValidation))>
+        <ConditionalFact({GetType(NoIOperationValidation), GetType(NoUsedAssembliesValidation)})>
         Public Sub MissingAssemblyResolution_BindingToImplicitReference1()
             ' c - a -> d -> "b,v2"
             '          e -> "b,v1"
@@ -2014,7 +2014,7 @@ End Class
                 "D -> B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2")
         End Sub
 
-        <ConditionalFact(GetType(NoIOperationValidation), GetType(NoUsedAssembliesValidation))>
+        <ConditionalFact({GetType(NoIOperationValidation), GetType(NoUsedAssembliesValidation)})>
         Public Sub MissingAssemblyResolution_BindingToImplicitReference2()
             ' c - a -> d -> "b,v2"
             '          e -> "b,v1"

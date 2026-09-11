@@ -4,7 +4,6 @@
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateMethod
     <Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>

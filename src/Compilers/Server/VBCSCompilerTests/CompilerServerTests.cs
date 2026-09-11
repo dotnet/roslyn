@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
@@ -251,7 +250,7 @@ End Module")
 
         #endregion
 
-        [ConditionalFact(typeof(UnixLikeOnly))]
+        [ConditionalFact(skipConditions: typeof(UnixLikeOnly))]
         public async Task ServerFailsWithLongTempPathUnix()
         {
             var newTempDir = _tempDirectory.CreateDirectory(new string('a', 100 - _tempDirectory.Path.Length));
@@ -410,7 +409,7 @@ End Module")
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         [WorkItem(946954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/946954")]
         public void CompilerBinariesAreNotX86()
         {
@@ -460,7 +459,7 @@ End Module")
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task ExtraMSCorLibCS()
         {
@@ -488,7 +487,7 @@ End Module")
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task ExtraMSCorLibVB()
         {
@@ -812,7 +811,7 @@ End Module
             GC.KeepAlive(rootDirectory);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/19763")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/19763")]
         [WorkItem(723280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/723280")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task ReferenceCachingCS()
@@ -984,7 +983,7 @@ End Module";
 
         [WorkItem(997372, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/997372")]
         [WorkItem(761326, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/761326")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task MultipleSimultaneousCompiles()
         {
@@ -1206,7 +1205,7 @@ End Module
         }
 
         [WorkItem(871477, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/871477")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task AssemblyIdentityComparer1()
         {
@@ -1313,7 +1312,7 @@ static void Main(string[] args)
         }
 
         [WorkItem(25777, "https://github.com/dotnet/roslyn/issues/25777")]
-        [ConditionalFact(typeof(DesktopOnly), typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: [typeof(DesktopOnly), typeof(IsEnglishLocal)])]
         public void BadKeepAlive1()
         {
             var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive", _tempDirectory, shouldRunOnServer: false);
@@ -1323,7 +1322,7 @@ static void Main(string[] args)
         }
 
         [WorkItem(25777, "https://github.com/dotnet/roslyn/issues/25777")]
-        [ConditionalFact(typeof(DesktopOnly), typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: [typeof(DesktopOnly), typeof(IsEnglishLocal)])]
         public void BadKeepAlive2()
         {
             var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:goo", _tempDirectory, shouldRunOnServer: false);
@@ -1333,7 +1332,7 @@ static void Main(string[] args)
         }
 
         [WorkItem(25777, "https://github.com/dotnet/roslyn/issues/25777")]
-        [ConditionalFact(typeof(DesktopOnly), typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: [typeof(DesktopOnly), typeof(IsEnglishLocal)])]
         public void BadKeepAlive3()
         {
             var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:-100", _tempDirectory, shouldRunOnServer: false);
@@ -1343,7 +1342,7 @@ static void Main(string[] args)
         }
 
         [WorkItem(25777, "https://github.com/dotnet/roslyn/issues/25777")]
-        [ConditionalFact(typeof(DesktopOnly), typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: [typeof(DesktopOnly), typeof(IsEnglishLocal)])]
         public void BadKeepAlive4()
         {
             var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:9999999999", _tempDirectory, shouldRunOnServer: false);
@@ -1352,7 +1351,7 @@ static void Main(string[] args)
             Assert.Equal("Argument to '/keepalive' option is not a 32-bit integer.", result.Output.Trim());
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         [WorkItem(1024619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024619")]
         public async Task Bug1024619_01()
         {

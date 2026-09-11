@@ -754,7 +754,7 @@ class C
             });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(skipConditions: typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void LocalsAndPseudoVariables()
         {
             var source =
@@ -3869,7 +3869,7 @@ class C
                 context.CompileGetLocals(locals, argumentsOnly: true, typeName: out unused, testData: null);
                 var names = locals.Select(l => l.LocalName).ToArray();
                 // The order must confirm the order of the arguments in the method signature.
-                Assert.Equal(names, ["y", "x"]);
+                Assert.Equal<string>(names, ["y", "x"]);
                 locals.Free();
             });
 
@@ -3883,7 +3883,7 @@ class C
                 context.CompileGetLocals(locals, argumentsOnly: true, typeName: out unused, testData: null);
                 var names = locals.Select(l => l.LocalName).ToArray();
                 // The problem is not fixed in versions before 4.5: the order of arguments can be wrong.
-                Assert.Equal(names, ["x", "y"]);
+                Assert.Equal<string>(names, ["x", "y"]);
                 locals.Free();
             });
         }
@@ -3919,7 +3919,7 @@ class C
                 context.CompileGetLocals(locals, argumentsOnly: true, typeName: out unused, testData: null);
                 var names = locals.Select(l => l.LocalName).ToArray();
                 // The order must confirm the order of the arguments in the method signature.
-                Assert.Equal(names, ["y", "x"]);
+                Assert.Equal<string>(names, ["y", "x"]);
                 locals.Free();
             });
         }

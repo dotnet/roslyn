@@ -2026,7 +2026,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             Diagnostic(RudeEditKind.ModifiersUpdate, "ref struct X", FeaturesResources.struct_));
     }
 
-    [ConditionalFact(typeof(IsEnglishLocal))]
+    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
     public void Struct_ReadonlyModifier_Add()
     {
         var src1 = "struct X { }";
@@ -7388,7 +7388,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "extension", GetResource("extension block")));
     }
 
-    [ConditionalFact(typeof(IsEnglishLocal))]
+    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
     public void Extension_Block_ChangeParent()
     {
         var src1 = """
@@ -8030,7 +8030,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "set", GetResource("extension block")));
     }
 
-    [ConditionalFact(typeof(IsEnglishLocal))]
+    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
     public void Extension_Operator_AddRemove()
     {
         var src1 = """
@@ -9608,7 +9608,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("S").GetMember<IMethodSymbol>("M")));
     }
 
-    [ConditionalFact(typeof(IsEnglishLocal))]
+    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
     public void Method_ReadOnlyModifier_Add_InReadOnlyStruct2()
     {
         var src1 = """
@@ -17274,7 +17274,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             ]);
     }
 
-    [ConditionalFact(typeof(IsEnglishLocal))]
+    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
     public void MemberInitializer_Update_Property_StaticCtorUpdate1()
     {
         var src1 = "class C { static int a { get; } = 1; static C() { } }";
@@ -23559,7 +23559,7 @@ class C() : B{{initializer}}
             capabilities: EditAndContinueCapabilities.Baseline);
     }
 
-    [ConditionalFact(typeof(IsEnglishLocal))]
+    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
     public void EventField_Delete()
     {
         var src1 = "class C { event System.Action E; }";

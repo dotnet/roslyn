@@ -1,62 +1,118 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+extern alias XunitV3;
+
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Xunit.Abstractions;
-using Xunit.Sdk;
+using XunitV3::Xunit.Sdk;
+using XunitV3::Xunit.v3;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;
 
-internal sealed class FormattingTestCase : XunitTestCase
+public sealed class FormattingTestCase : XunitTestCase, ISelfExecutingXunitTestCase
 {
     private bool _shouldFlipLineEndings;
 
     [EditorBrowsable(EditorBrowsableState.Never)]
     [Obsolete("Called by the de-serializer; should only be called by deriving classes for de-serialization purposes")]
-    public FormattingTestCase() { }
+    public FormattingTestCase()
+    {
+    }
 
-    public FormattingTestCase(bool shouldFlipLineEndings, IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod, object[]? testMethodArguments = null)
-        : base(diagnosticMessageSink, defaultMethodDisplay, defaultMethodDisplayOptions, testMethod, testMethodArguments)
+    public FormattingTestCase(
+        bool shouldFlipLineEndings,
+        IXunitTestMethod testMethod,
+        string testCaseDisplayName,
+        string uniqueId,
+        bool @explicit,
+        Type[]? skipExceptions = null,
+        string? skipReason = null,
+        Type? skipType = null,
+        string? skipUnless = null,
+        string? skipWhen = null,
+        Dictionary<string, HashSet<string>>? traits = null,
+        object?[]? testMethodArguments = null,
+        string? sourceFilePath = null,
+        int? sourceLineNumber = null,
+        int? timeout = null)
+        : base(testMethod, testCaseDisplayName, uniqueId, @explicit, skipExceptions, skipReason, skipType, skipUnless, skipWhen, traits, testMethodArguments, sourceFilePath, sourceLineNumber, timeout)
     {
         _shouldFlipLineEndings = shouldFlipLineEndings;
     }
 
-    protected override string GetDisplayName(IAttributeInfo factAttribute, string displayName)
+    public async ValueTask<RunSummary> Run(
+        ExplicitOption explicitOption,
+        IMessageBus messageBus,
+        object?[] constructorArguments,
+        ExceptionAggregator aggregator,
+        CancellationTokenSource cancellationTokenSource,
+        ParallelMode parallelMode,
+        ExecutionScheduler executionScheduler,
+        FixtureMappingManager fixtureMappingManager)
     {
-        return base.GetDisplayName(factAttribute, displayName) +
-            (_shouldFlipLineEndings ? " (LF)" : " (CRLF)");
+        var updatedConstructorArguments = CreateConstructorArguments(constructorArguments);
+        var tests = await CreateTests().ConfigureAwait(false);
+
+        return await XunitTestCaseRunner.Instance.Run(
+            this,
+            tests,
+            messageBus,
+            aggregator,
+            cancellationTokenSource,
+            parallelMode,
+            executionScheduler,
+            TestCaseDisplayName,
+            SkipReason,
+            explicitOption,
+            updatedConstructorArguments,
+            fixtureMappingManager).ConfigureAwait(false);
     }
 
-    public override Task<RunSummary> RunAsync(IMessageSink diagnosticMessageSink, IMessageBus messageBus, object[] constructorArguments, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
+    protected override void Deserialize(IXunitSerializationInfo data)
     {
-        Debug.Assert(constructorArguments.Length >= 1 && constructorArguments[0] is FormattingTestContext, $"{TestMethod.TestClass.Class.Name}.{TestMethod.Method.Name} uses a formatting test attribute in a class without a FormattingTestContext parameter?");
-        constructorArguments[0] = new FormattingTestContext
+        _shouldFlipLineEndings = (bool)(data.GetValue(nameof(_shouldFlipLineEndings)) ?? false);
+        base.Deserialize(data);
+    }
+
+    protected override void Serialize(IXunitSerializationInfo data)
+    {
+        data.AddValue(nameof(_shouldFlipLineEndings), _shouldFlipLineEndings, typeof(bool));
+        base.Serialize(data);
+    }
+
+    private object?[] CreateConstructorArguments(object?[] constructorArguments)
+    {
+        var updatedConstructorArguments = (object?[])constructorArguments.Clone();
+        var replacement = new FormattingTestContext
         {
             ShouldFlipLineEndings = _shouldFlipLineEndings,
             CreatedByFormattingDiscoverer = true
         };
-        return base.RunAsync(diagnosticMessageSink, messageBus, constructorArguments, aggregator, cancellationTokenSource);
-    }
 
-    public override void Deserialize(IXunitSerializationInfo data)
-    {
-        _shouldFlipLineEndings = data.GetValue<bool>(nameof(_shouldFlipLineEndings));
-        base.Deserialize(data);
-    }
+        var replaced = false;
+        for (var i = 0; i < updatedConstructorArguments.Length; i++)
+        {
+            if (updatedConstructorArguments[i] is FormattingTestContext)
+            {
+                updatedConstructorArguments[i] = replacement;
+                replaced = true;
+            }
+        }
 
-    public override void Serialize(IXunitSerializationInfo data)
-    {
-        data.AddValue(nameof(_shouldFlipLineEndings), _shouldFlipLineEndings);
-        base.Serialize(data);
-    }
+        if (replaced)
+        {
+            return updatedConstructorArguments;
+        }
 
-    protected override string GetUniqueID()
-    {
-        return base.GetUniqueID() +
-            (_shouldFlipLineEndings ? "lf" : "crlf");
+        if (updatedConstructorArguments.Length == 0)
+        {
+            return [replacement];
+        }
+
+        throw new InvalidOperationException($"{TestMethod.TestClass.Class.Name}.{TestMethod.Method.Name} uses a formatting test attribute without an injectable {nameof(FormattingTestContext)} fixture argument.");
     }
 }

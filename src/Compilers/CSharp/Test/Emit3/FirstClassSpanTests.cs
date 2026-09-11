@@ -663,7 +663,7 @@ public class FirstClassSpanTests : CSharpTestBase
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
     }
 
-    [ConditionalFact(typeof(CoreClrOnly))]
+    [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
     public void BreakingChange_Conversion_ArrayVsArraySegment()
     {
         var source = """
@@ -8623,7 +8623,7 @@ public class FirstClassSpanTests : CSharpTestBase
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
     }
 
-    [ConditionalFact(typeof(CoreClrOnly))]
+    [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
     public void OverloadResolution_ReadOnlySpanVsReadOnlySpan_Params()
     {
         var source1 = """

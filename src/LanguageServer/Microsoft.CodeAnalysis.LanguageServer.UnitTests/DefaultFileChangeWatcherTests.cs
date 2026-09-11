@@ -540,7 +540,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
     /// </summary>
     private sealed record FileChangeTask(Task<FileChangeKind> Task, string FilePath);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
     public async Task FileCreated_InWatchedParentDirectory_RaisesFileChangedEvent()
     {
         var tempDirectory = _tempRoot.CreateDirectory();
@@ -561,7 +561,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
         Assert.Equal(FileChangeKind.Created, await fileChangeTask.Task);
     }
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
     public async Task FileModified_InWatchedDirectory_RaisesFileChangedEvent()
     {
         var tempDirectory = _tempRoot.CreateDirectory();
@@ -582,7 +582,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
         Assert.Equal(FileChangeKind.Changed, await fileChangeTask.Task);
     }
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
     public async Task FileDeleted_InWatchedDirectory_RaisesFileChangedEvent()
     {
         var tempDirectory = _tempRoot.CreateDirectory();
@@ -603,7 +603,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
         Assert.Equal(FileChangeKind.Deleted, await fileChangeTask.Task);
     }
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
     public async Task FileCreated_WithMatchingExtensionFilter_RaisesFileChangedEvent()
     {
         var tempDirectory = _tempRoot.CreateDirectory();
@@ -620,7 +620,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
         await AssertAllChangesFire([fileChangeTask], s_fileChangeTimeout);
     }
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
     public async Task FileCreated_WithNonMatchingExtensionFilter_DoesNotRaiseFileChangedEvent()
     {
         var tempDirectory = _tempRoot.CreateDirectory();
@@ -640,7 +640,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
         Assert.False(fileChangeTask.Task.IsCompleted, "FileChanged event should NOT fire for files not matching extension filter");
     }
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
     public async Task FileCreated_InSubdirectory_RaisesFileChangedEvent()
     {
         var tempDirectory = _tempRoot.CreateDirectory();
@@ -658,7 +658,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
         await AssertAllChangesFire([fileChangeTask], s_fileChangeTimeout);
     }
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
     public async Task IndividualFileWatch_FileCreated_RaisesFileChangedEvent()
     {
         var tempDirectory = _tempRoot.CreateDirectory();
@@ -679,7 +679,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
         await AssertAllChangesFire([fileChangeTask], s_fileChangeTimeout);
     }
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
     public async Task IndividualFileWatch_FileModified_RaisesFileChangedEvent()
     {
         var tempDirectory = _tempRoot.CreateDirectory();
@@ -729,7 +729,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
         await AssertAllChangesFire(fileChangeTasks, s_fileChangeTimeout);
     }
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
     public async Task IndividualFileWatch_AfterDispose_DoesNotRaiseEvent()
     {
         var tempDirectory = _tempRoot.CreateDirectory();
@@ -756,7 +756,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
         Assert.False(fileChangeTask.Task.IsCompleted, "FileChanged event should NOT fire after individual file watch is disposed");
     }
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
     public async Task MultipleFileChanges_AllRaiseEvents()
     {
         var tempDirectory = _tempRoot.CreateDirectory();
@@ -817,7 +817,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
         await AssertAllChangesFire([fileChangeTask], s_fileChangeTimeout);
     }
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
     public async Task FileRenamed_InWatchedDirectory_FiresEventForOriginalPath()
     {
         var tempDirectory = _tempRoot.CreateDirectory();
@@ -837,7 +837,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
         await AssertAllChangesFire([fileChangeTask], s_fileChangeTimeout);
     }
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
     public async Task FileRenamed_InWatchedDirectory_FiresEventForRenamedPath()
     {
         var tempDirectory = _tempRoot.CreateDirectory();
@@ -958,7 +958,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
         Assert.Empty(DefaultFileChangeWatcher.TestAccessor.GetWatchedDirectories(watcher));
     }
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
     public async Task SharedWatcher_MultipleContexts_BothReceiveEvents()
     {
         var tempDirectory = _tempRoot.CreateDirectory();
@@ -981,7 +981,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
         await AssertAllChangesFire(fileChangeTasks, s_fileChangeTimeout);
     }
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
     public async Task SharedWatcher_DisposedContext_DoesNotReceiveEvents()
     {
         var tempDirectory = _tempRoot.CreateDirectory();

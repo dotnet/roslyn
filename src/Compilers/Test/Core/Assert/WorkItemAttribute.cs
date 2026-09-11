@@ -5,14 +5,14 @@
 #nullable disable
 
 using System;
-using Xunit.Sdk;
+using System.Collections.Generic;
+using Xunit.v3;
 
 namespace Roslyn.Test.Utilities
 {
     /// <summary>
     /// Used to tag test methods or types which are created for a given WorkItem
     /// </summary>
-    [TraitDiscoverer("Microsoft.CodeAnalysis.Test.Utilities.WorkItemTraitDiscoverer", assemblyName: "Microsoft.CodeAnalysis.Test.Utilities")]
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
     public sealed class WorkItemAttribute : Attribute, ITraitAttribute
     {
@@ -46,6 +46,20 @@ namespace Roslyn.Test.Utilities
         /// original source.</param>
         public WorkItemAttribute(string issueUri) : this(-1, issueUri)
         {
+        }
+
+        public IReadOnlyCollection<KeyValuePair<string, string>> GetTraits()
+        {
+            var traits = new List<KeyValuePair<string, string>>(2);
+
+            if (Id != -1)
+            {
+                traits.Add(new KeyValuePair<string, string>("WorkItemId", Id.ToString()));
+            }
+
+            traits.Add(new KeyValuePair<string, string>("WorkItemUrl", Location));
+
+            return traits;
         }
     }
 }

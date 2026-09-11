@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly;
 
@@ -214,7 +213,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
             }
             """);
 
-    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [ConditionalTheory(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     [InlineData("")]
     [InlineData("\r\n")]
     [InlineData("\r\n\r\n")]

@@ -341,7 +341,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void InvalidContent_02()
         {
             var source = @"
@@ -362,7 +362,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void InvalidContent_03()
         {
             var source = @"
@@ -387,7 +387,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void NoBehaviorChangeForConversionFromNullLiteral_01()
         {
             var source = @"
@@ -1426,7 +1426,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void OverloadResolution_01()
         {
             var source = @"
@@ -1475,7 +1475,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void OverloadResolution_03()
         {
             var source = @"
@@ -1511,7 +1511,7 @@ class C2
             CompileAndVerify(comp, expectedOutput: @"string").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void OverloadResolution_04()
         {
             var source = @"
@@ -1535,7 +1535,7 @@ class C
             CompileAndVerify(comp, expectedOutput: @"ReadOnlySpan").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void OverloadResolution_05()
         {
             var source = @"
@@ -1571,7 +1571,7 @@ class C1
             CompileAndVerify(comp, expectedOutput: @"string").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void OverloadResolution_10()
         {
             var source = @"
@@ -1618,7 +1618,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(CoreClrOnly))]
         [InlineData("u8")]
         [InlineData("U8")]
         public void Utf8StringLiteral_01(string suffix)
@@ -1671,7 +1671,7 @@ class C
                 );
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(CoreClrOnly))]
         [InlineData("u8")]
         [InlineData("U8")]
         public void Utf8StringLiteral_02(string suffix)
@@ -1724,7 +1724,7 @@ class C
                 );
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(CoreClrOnly))]
         [InlineData("u8")]
         [InlineData("U8")]
         public void Utf8StringLiteral_03(string suffix)
@@ -1780,7 +1780,7 @@ class C
                 );
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(CoreClrOnly))]
         [InlineData("u8")]
         [InlineData("U8")]
         public void Utf8StringLiteral_04(string suffix)
@@ -1846,7 +1846,7 @@ class C
                 );
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(CoreClrOnly))]
         [InlineData("u8")]
         [InlineData("U8")]
         public void Utf8StringLiteral_01_InPlaceCtorCall(string suffix)
@@ -1977,7 +1977,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void MissingHelpers_07()
         {
             var source = @"
@@ -2013,7 +2013,7 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void MissingHelpers_09()
         {
             var source = @"
@@ -2077,7 +2077,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void OverloadResolution_11()
         {
             var source = @"
@@ -2097,7 +2097,7 @@ class C
             CompileAndVerify(comp, expectedOutput: @"ReadOnlySpan", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void OverloadResolution_13()
         {
             var source = @"
@@ -2117,7 +2117,7 @@ class C
             CompileAndVerify(comp, expectedOutput: @"ReadOnlySpan", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void OverloadResolution_14()
         {
             var source = @"
@@ -2138,7 +2138,7 @@ class C
             CompileAndVerify(comp, expectedOutput: @"ReadOnlySpan", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void UserDefinedImplicitConversions_03()
         {
             var source = @"
@@ -2167,7 +2167,7 @@ class C1
 ", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void UserDefinedImplicitConversions_04()
         {
             var source = @"
@@ -2331,7 +2331,7 @@ class C3
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void UserDefinedExplicitConversions_04()
         {
             var source = @"
@@ -2433,7 +2433,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void OverloadResolution_15()
         {
             var source = @"
@@ -3001,7 +3001,7 @@ class C
             Assert.True(model.GetConversion(node).IsIdentity);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void SemanticModel_03()
         {
             var source = @"
@@ -3029,7 +3029,7 @@ class C
             Assert.False(model.GetConversion(node).Exists);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void SemanticModel_04()
         {
             var source = @"
@@ -3057,7 +3057,7 @@ class C
             Assert.True(model.GetConversion(node).IsIdentity);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void SemanticModel_05()
         {
             var source = @"
@@ -3085,7 +3085,7 @@ class C
             Assert.False(model.GetConversion(node).Exists);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void SemanticModel_06()
         {
             var source = @"
@@ -3169,7 +3169,7 @@ class C
             Assert.True(model.GetConversion(node).IsIdentity);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void SemanticModel_09()
         {
             var source = @"
@@ -3197,7 +3197,7 @@ class C
             Assert.False(model.GetConversion(node).Exists);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void SemanticModel_11()
         {
             var source = @"
@@ -3225,7 +3225,7 @@ class C
             Assert.True(model.GetConversion(node).IsIdentity);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void SemanticModel_12()
         {
             var source = @"
@@ -3253,7 +3253,7 @@ class C
             Assert.True(model.GetConversion(node).IsIdentity);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void SemanticModel_13()
         {
             var source = @"
@@ -3281,7 +3281,7 @@ class C
             Assert.True(model.GetConversion(node).IsSpan);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void SemanticModel_14()
         {
             var source = @"
@@ -3407,7 +3407,7 @@ class C
 ");
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(CoreClrOnly))]
         [InlineData(0, -1, "ldc.i4.0", "ldc.i4.m1")]
         [InlineData(0, 4, "ldc.i4.0", "ldc.i4.4")]
         [InlineData(-1, -1, "ldc.i4.m1", "ldc.i4.m1")]
@@ -3463,7 +3463,7 @@ class C
 ");
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(CoreClrOnly))]
         [InlineData(0, "{ }")]
         [InlineData(1, "{ 0x1 }")]
         [InlineData(2, "{ 0x1 0x2 }")]
@@ -3508,7 +3508,7 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void System_ReadOnlySpan_T__ctor_Array_Start_Length_ExplicitUsage_03()
         {
             var source = @"
@@ -3555,7 +3555,7 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void System_ReadOnlySpan_T__ctor_Array_Start_Length_ExplicitUsage_04()
         {
             var source = @"
@@ -3604,7 +3604,7 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void System_ReadOnlySpan_T__ctor_Array_Start_Length_ExplicitUsage_05()
         {
             var source = @"
@@ -3653,7 +3653,7 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void System_ReadOnlySpan_T__ctor_Array_Start_Length_ExplicitUsage_06()
         {
             var source = @"
@@ -3703,7 +3703,7 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void System_ReadOnlySpan_T__ctor_Array_Start_Length_ExplicitUsage_07()
         {
             var source = @"
@@ -3746,7 +3746,7 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void PassAround_01()
         {
             var source = @"
@@ -3797,7 +3797,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void UserDefinedConcatenation_01()
         {
             var source = @"
@@ -3823,7 +3823,7 @@ class C
             CompileAndVerify(comp, expectedOutput: @"called", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void UserDefinedConcatenation_02()
         {
             var source = @"
@@ -4028,7 +4028,7 @@ namespace System
             CompileAndVerify(comp, expectedOutput: @"called", verify: Verification.Fails).Diagnostics.Where(d => d.Code is not (int)ErrorCode.WRN_SameFullNameThisAggAgg).Verify();
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(CoreClrOnly))]
         [InlineData(@"""12""u8 + ""34""u8")]
         [InlineData(@"""12""u8 + ""3""u8 + ""4""u8")]
         [InlineData(@"""12""u8 + (""3""u8 + ""4""u8)")]
@@ -4085,7 +4085,7 @@ class C
             }
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(CoreClrOnly))]
         [InlineData(@"(""1""u8 + ""2""u8 + (""3""u8 + ""4""u8)) + new C()")]
         [InlineData(@"(""1""u8 + ""2""u8 + (""3""u8 + ""4""u8)) + new C() + new C()")]
         [InlineData(@"new C() + (""1""u8 + ""2""u8 + (""3""u8 + ""4""u8))")]
@@ -4274,7 +4274,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly), typeof(NoIOperationValidation)), WorkItem(62361, "https://github.com/dotnet/roslyn/issues/62361")]
+        [ConditionalFact(skipConditions: [typeof(CoreClrOnly), typeof(NoIOperationValidation)]), WorkItem(62361, "https://github.com/dotnet/roslyn/issues/62361")]
         public void DeeplyNestedConcatenation()
         {
             var longConcat = new StringBuilder();

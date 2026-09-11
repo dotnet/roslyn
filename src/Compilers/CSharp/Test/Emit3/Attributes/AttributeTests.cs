@@ -2114,7 +2114,7 @@ public class Test
                 );
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void TestWellKnownAttributeOnProperty_DynamicAttribute()
         {
             string source = @"
@@ -5534,7 +5534,7 @@ public class C6 {}
         }
 
         [WorkItem(546621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546621")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void TestUnicodeAttributeArgument_Bug16353()
         {
             var source =
@@ -5557,7 +5557,7 @@ class C
         }
 
         [WorkItem(546621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546621")]
-        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/41280")]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/41280")]
         public void TestUnicodeAttributeArgumentsStrings()
         {
             string HighSurrogateCharacter = "\uD800";
@@ -9255,7 +9255,7 @@ class Program
         }
 
         [WorkItem(728865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/728865")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
         public void Repro728865()
         {
             var source = @"
@@ -10658,7 +10658,7 @@ public class Program { }
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "C<>").WithArguments("C<>").WithLocation(6, 2));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void GenericAttribute_Reflection_CoreClr()
         {
             var source = @"
@@ -10678,7 +10678,7 @@ public class Program {
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void GenericAttribute_AllowMultiple_False()
         {
             var source = @"
@@ -10703,7 +10703,7 @@ public class C {
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr<int>").WithArguments("Attr<>").WithLocation(9, 2));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void GenericAttribute_AllowMultiple_True()
         {
             var source = @"
@@ -10730,7 +10730,7 @@ public class Program {
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void GenericAttributeInvalidMultipleFromMetadata()
         {
             // This IL includes an attribute with `AllowMultiple = false` (the default).
@@ -11239,7 +11239,7 @@ class Outer<T2>
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(T2)").WithLocation(10, 22));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem(55190, "https://github.com/dotnet/roslyn/issues/55190")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem(55190, "https://github.com/dotnet/roslyn/issues/55190")]
         public void GenericAttributeParameter_01()
         {
             var source = @"
@@ -11372,7 +11372,7 @@ public class Attr<T> : Attribute { }
             }
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void GenericAttributeReflection_OpenGeneric()
         {
             var source = @"

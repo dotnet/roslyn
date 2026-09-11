@@ -1233,7 +1233,7 @@ null");
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         [WorkItem(25846, "https://github.com/dotnet/roslyn/issues/25846")]
         public void DuplicateDouble()
         {

@@ -13,8 +13,6 @@ using System.Text;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Roslyn.Test.Utilities;
-using Xunit;
-using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
