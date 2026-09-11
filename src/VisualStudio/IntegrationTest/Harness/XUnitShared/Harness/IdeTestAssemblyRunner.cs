@@ -29,16 +29,23 @@ namespace Xunit.Harness
 
         public static IdeTestAssemblyRunner Instance { get; } = new();
 
-        public async ValueTask<RunSummary> Run(
+        public async ValueTask<RunSummary> RunAsync(
             IXunitTestAssembly testAssembly,
             IReadOnlyCollection<IXunitTestCase> testCases,
             IMessageSink executionMessageSink,
             ITestFrameworkExecutionOptions executionOptions,
             CancellationToken cancellationToken)
         {
-            await using var context = new Context(testAssembly, testCases, executionMessageSink, executionOptions, cancellationToken);
-            await context.InitializeAsync();
-            return await Run(context);
+            var context = new Context(testAssembly, testCases, executionMessageSink, executionOptions, cancellationToken);
+            try
+            {
+                await context.InitializeAsync().ConfigureAwait(false);
+                return await Run(context).ConfigureAwait(false);
+            }
+            finally
+            {
+                await context.DisposeAsync().ConfigureAwait(false);
+            }
         }
 
         protected override ValueTask<string> GetTestFrameworkDisplayName(Context context)
@@ -50,7 +57,7 @@ namespace Xunit.Harness
         {
             if (exception is not null)
             {
-                return await base.RunTestCollections(context, exception);
+                return await base.RunTestCollections(context, exception).ConfigureAwait(false);
             }
 
             var summary = new RunSummary();
@@ -59,14 +66,14 @@ namespace Xunit.Harness
             var nonIdeTestCases = context.TestCases.Where(static testCase => testCase is not IIdeTestCase).ToArray();
             if (nonIdeTestCases.Length != 0)
             {
-                summary.Aggregate(await RunLocallyAsync(context, nonIdeTestCases, completedTestCaseIds));
+                summary.Aggregate(await RunLocallyAsync(context, nonIdeTestCases, completedTestCaseIds).ConfigureAwait(false));
             }
 
             var ideTestCases = context.TestCases.Where(static testCase => testCase is IIdeTestCase).ToArray();
             var staticallySkippedIdeTestCases = ideTestCases.Where(IsStaticallySkipped).ToArray();
             if (staticallySkippedIdeTestCases.Length != 0)
             {
-                summary.Aggregate(await RunLocallyAsync(context, staticallySkippedIdeTestCases, completedTestCaseIds));
+                summary.Aggregate(await RunLocallyAsync(context, staticallySkippedIdeTestCases, completedTestCaseIds).ConfigureAwait(false));
             }
 
             foreach (var testCasesByInstance in ideTestCases
@@ -87,14 +94,14 @@ namespace Xunit.Harness
                             instance,
                             currentTests,
                             finalAttempt,
-                            completedTestCaseIds);
+                            completedTestCaseIds).ConfigureAwait(false);
                         summary.Aggregate(attemptSummary);
                     }
                     catch (Exception ex)
                     {
                         DataCollectionService.CaptureFailureState("Unknown", ex);
                         var remainingTests = currentTests.Where(testCase => !completedTestCaseIds.Contains(testCase.UniqueID)).ToArray();
-                        summary.Aggregate(await RunHarnessFailuresAsync(context, remainingTests, ex, completedTestCaseIds));
+                        summary.Aggregate(await RunHarnessFailuresAsync(context, remainingTests, ex, completedTestCaseIds).ConfigureAwait(false));
                         break;
                     }
 
@@ -120,7 +127,7 @@ namespace Xunit.Harness
             if (visualStudioInstanceKey.Version == VisualStudioVersion.Unspecified
                 || !IdeTestCaseBase.IsInstalled(visualStudioInstanceKey.Version))
             {
-                return await RunLocallyAsync(context, testCases, completedTestCaseIds);
+                return await RunLocallyAsync(context, testCases, completedTestCaseIds).ConfigureAwait(false);
             }
 
             DispatcherSynchronizationContext? synchronizationContext = null;
@@ -242,7 +249,7 @@ namespace Xunit.Harness
                 testCases,
                 new SerializingMessageSink(messageSink),
                 context.ExecutionOptionsValue,
-                context.CancellationTokenSource.Token);
+                context.CancellationTokenSource.Token).ConfigureAwait(false);
             messageSink.Flush();
             return summary;
         }
@@ -265,7 +272,7 @@ namespace Xunit.Harness
 
             return errorTestCases.Length == 0
                 ? new RunSummary()
-                : await RunLocallyAsync(context, errorTestCases, completedTestCaseIds);
+                : await RunLocallyAsync(context, errorTestCases, completedTestCaseIds).ConfigureAwait(false);
         }
 
         private static ImmutableList<string> GetExtensionFiles(IEnumerable<IXunitTestCase> testCases)
@@ -491,12 +498,6 @@ namespace Xunit.Harness
                     Time = runSummary.Time,
                 };
             }
-
-            private IXunitTestCase GetKnownTestCase(IXunitTestCase testCase)
-                => _knownTestCasesByUniqueId.TryGetValue(testCase.UniqueID, out var knownTestCase) ? knownTestCase : testCase;
-
-            private IReadOnlyCollection<IXunitTestCase> GetKnownTestCases(IEnumerable<IXunitTestCase>? testCases)
-                => testCases is null ? [] : testCases.Select(GetKnownTestCase).ToArray();
 
             private RetrySummaryAdjustment GetRetrySummaryAdjustment(IEnumerable<IXunitTestCase>? testCases)
             {

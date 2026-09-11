@@ -1174,12 +1174,12 @@ public sealed class ParsedUriTests
 
         public void Deserialize(IXunitSerializationInfo info)
         {
-            Input = info.GetValue<string>(nameof(Input));
-            Scheme = info.GetValue<string>(nameof(Scheme));
-            Authority = info.GetValue<string>(nameof(Authority));
-            Path = info.GetValue<string>(nameof(Path));
-            Query = info.GetValue<string>(nameof(Query));
-            Fragment = info.GetValue<string>(nameof(Fragment));
+            Input = info.GetValue<string>(nameof(Input)) ?? throw new InvalidOperationException();
+            Scheme = info.GetValue<string>(nameof(Scheme)) ?? throw new InvalidOperationException();
+            Authority = info.GetValue<string>(nameof(Authority)) ?? throw new InvalidOperationException();
+            Path = info.GetValue<string>(nameof(Path)) ?? throw new InvalidOperationException();
+            Query = info.GetValue<string>(nameof(Query)) ?? throw new InvalidOperationException();
+            Fragment = info.GetValue<string>(nameof(Fragment)) ?? throw new InvalidOperationException();
             WindowsFsPath = info.GetValue<string?>(nameof(WindowsFsPath));
             UnixFsPath = info.GetValue<string?>(nameof(UnixFsPath));
             ExpectedToString = info.GetValue<string?>(nameof(ExpectedToString));
@@ -1215,8 +1215,8 @@ public sealed class ParsedUriTests
 
         public void Deserialize(IXunitSerializationInfo info)
         {
-            UriString = info.GetValue<string>(nameof(UriString));
-            ExpectedToString = info.GetValue<string>(nameof(ExpectedToString));
+            UriString = info.GetValue<string>(nameof(UriString)) ?? throw new InvalidOperationException();
+            ExpectedToString = info.GetValue<string>(nameof(ExpectedToString)) ?? throw new InvalidOperationException();
             ExpectedToStringSkipEncoding = info.GetValue<string?>(nameof(ExpectedToStringSkipEncoding));
         }
     }
@@ -1249,8 +1249,8 @@ public sealed class ParsedUriTests
 
         public void Deserialize(IXunitSerializationInfo info)
         {
-            Left = info.GetValue<string>(nameof(Left));
-            Right = info.GetValue<string>(nameof(Right));
+            Left = info.GetValue<string>(nameof(Left)) ?? throw new InvalidOperationException();
+            Right = info.GetValue<string>(nameof(Right)) ?? throw new InvalidOperationException();
             AreEqual = info.GetValue<bool>(nameof(AreEqual));
         }
     }

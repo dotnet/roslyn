@@ -6,7 +6,6 @@ extern alias XunitV3;
 #nullable disable
 
 using System.Reflection;
-using XunitV3::Xunit.v3;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 

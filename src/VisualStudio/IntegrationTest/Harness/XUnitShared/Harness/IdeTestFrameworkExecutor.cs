@@ -23,7 +23,7 @@ namespace Xunit.Harness
             ITestFrameworkExecutionOptions executionOptions,
             CancellationToken cancellationToken)
         {
-            await IdeTestAssemblyRunner.Instance.Run(TestAssembly, testCases, executionMessageSink, executionOptions, cancellationToken);
+            await IdeTestAssemblyRunner.Instance.RunAsync(TestAssembly, testCases, executionMessageSink, executionOptions, cancellationToken).ConfigureAwait(false);
         }
     }
 }

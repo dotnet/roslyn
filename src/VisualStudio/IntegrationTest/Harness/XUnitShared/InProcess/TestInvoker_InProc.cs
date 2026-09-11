@@ -26,7 +26,8 @@ namespace Xunit.InProcess
             var dispatcher = Application.Current?.Dispatcher
                 ?? throw new InvalidOperationException("The Visual Studio WPF dispatcher is unavailable.");
 
-            return dispatcher
+#pragma warning disable VSTHRD001 // The remote component's synchronous API requires waiting for the dispatcher operation.
+            var result = dispatcher
                 .InvokeAsync(
                     () => InProcessIdeTestAssemblyRunner.RunAsync(request, messageSink),
                     DispatcherPriority.Background)
@@ -34,6 +35,8 @@ namespace Xunit.InProcess
                 .Unwrap()
                 .GetAwaiter()
                 .GetResult();
+#pragma warning restore VSTHRD001 // Await JoinableTaskFactory.SwitchToMainThreadAsync
+            return result;
         }
     }
 }

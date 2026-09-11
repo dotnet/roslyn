@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.Internal.VisualStudio.Shell.Embeddable.Feedback;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
-using Xunit.Harness;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 

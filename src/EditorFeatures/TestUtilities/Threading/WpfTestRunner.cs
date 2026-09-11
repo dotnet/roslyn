@@ -15,11 +15,9 @@ namespace Roslyn.Test.Utilities;
 /// </summary>
 public static class WpfTestRunner
 {
-    private static string s_wpfFactRequirementReason;
-
     /// <summary>
     /// Asserts that the test is running on a <see cref="WpfFactAttribute"/> or <see cref="WpfTheoryAttribute"/>
-    /// test method, and records the reason for requiring the use of an STA thread.
+    /// test method.
     /// </summary>
     internal static void RequireWpfFact(string reason)
     {
@@ -27,7 +25,5 @@ public static class WpfTestRunner
         {
             throw new InvalidOperationException($"This test requires {nameof(WpfFactAttribute)} because '{reason}' but is missing {nameof(WpfFactAttribute)}. Either the attribute should be changed, or the reason it needs an STA thread audited.");
         }
-
-        s_wpfFactRequirementReason = reason;
     }
 }
