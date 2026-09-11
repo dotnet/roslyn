@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddNestedTypeSeparator()
         {
-            AddPunctuation(Format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes) ? SyntaxKind.PlusToken : SyntaxKind.DotToken);
+            AddPunctuation((Format.CompilerInternalOptions & SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes) != 0 ? SyntaxKind.PlusToken : SyntaxKind.DotToken);
         }
 
         private bool ShouldDisplayAsValueTuple(INamedTypeSymbol symbol)
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol? underlyingTypeSymbol = (symbol as Symbols.PublicModel.NamedTypeSymbol)?.UnderlyingNamedTypeSymbol;
             if (symbol.IsExtension)
             {
-                if (Format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames))
+                if ((Format.CompilerInternalOptions & SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames) != 0)
                 {
                     Builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, symbol, symbol.ExtensionGroupingName));
                 }
@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void addExtensionParameter(INamedTypeSymbol symbol)
             {
-                if (!Format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames)
+                if ((Format.CompilerInternalOptions & SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames) == 0
                     && symbol.ExtensionParameter is { } extensionParameter)
                 {
                     AddPunctuation(SyntaxKind.OpenParenToken);

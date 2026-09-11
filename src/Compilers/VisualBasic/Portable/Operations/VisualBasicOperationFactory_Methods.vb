@@ -575,7 +575,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Dim conversion = DirectCast(expression, BoundConversion)
                 Dim conversionKind = conversion.ConversionKind
                 Dim method As MethodSymbol = Nothing
-                If conversionKind.HasFlag(VisualBasic.ConversionKind.UserDefined) AndAlso conversion.Operand.Kind = BoundKind.UserDefinedConversion Then
+                If (conversionKind And VisualBasic.ConversionKind.UserDefined) <> 0 AndAlso conversion.Operand.Kind = BoundKind.UserDefinedConversion Then
                     method = DirectCast(conversion.Operand, BoundUserDefinedConversion).Call.Method
                 End If
                 Return New Conversion(KeyValuePair.Create(conversionKind, method))

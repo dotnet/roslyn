@@ -1,3 +1,4 @@
+M:System.Enum.HasFlag(System.Enum); Use bitwise operations instead to avoid boxing on .NET Framework.
 M:System.IO.Path.GetTempPath(); Cannot be used safely in APIs or compiler server as underlying environment variables can change during build.
 P:System.Environment.CurrentDirectory; Cannot be used safely in APIs or compiler server as underlying environment variables can change during build.
 M:System.Text.StringBuilder.Append(System.SByte); Use ToString(CultureInfo.InvariantCulture) to avoid culture-sensitive formatting.

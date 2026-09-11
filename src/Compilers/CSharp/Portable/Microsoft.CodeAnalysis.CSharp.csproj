@@ -35,6 +35,7 @@
     <None Include="BoundTree\BoundNodes.xsd" />
     <None Include="Generated\CSharp.Generated.g4" />
     <AdditionalFiles Include="Syntax\Syntax.xml" />
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\..\Core\Portable\BannedSymbols.CompilerLibraries.txt" />
     <None Include="Syntax\Syntax.xsd" />
     <None Include="UseSiteDiagnosticsCheckEnforcer\BaseLine.txt" />
     <None Include="UseSiteDiagnosticsCheckEnforcer\Run.bat" />

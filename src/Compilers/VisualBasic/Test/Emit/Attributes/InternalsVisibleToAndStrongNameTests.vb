@@ -55,7 +55,7 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
             outStream.Position = 0
 
             Dim headers = New PEHeaders(outStream)
-            Assert.Equal(expectedToBeSigned, headers.CorHeader.Flags.HasFlag(CorFlags.StrongNameSigned))
+            Assert.Equal(expectedToBeSigned, (headers.CorHeader.Flags And CorFlags.StrongNameSigned) <> 0)
         End Using
     End Sub
 
@@ -1966,7 +1966,7 @@ End Class
         Using reader As New PEReader(stream)
             Assert.True(reader.HasMetadata)
             Dim flags = reader.PEHeaders.CorHeader.Flags
-            Assert.True(flags.HasFlag(CorFlags.StrongNameSigned))
+            Assert.True((flags And CorFlags.StrongNameSigned) <> 0)
         End Using
     End Sub
 

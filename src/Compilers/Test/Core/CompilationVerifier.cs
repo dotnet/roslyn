@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     DumpAssemblyData(emitData.Modules, dumpPath);
                 }
 
-                if (peVerify.Status.HasFlag(VerificationStatus.PassesOrFailFast))
+                if ((peVerify.Status & VerificationStatus.PassesOrFailFast) != 0)
                 {
                     var il = DumpIL();
                     Console.WriteLine(il);
@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal static void ILVerify(Verification verification, ModuleData mainModule, ImmutableArray<ModuleData> modules)
         {
-            if (verification.Status.HasFlag(VerificationStatus.Skipped))
+            if ((verification.Status & VerificationStatus.Skipped) != 0)
             {
                 return;
             }
@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 string name = module.SimpleName;
                 if (readersByName.ContainsKey(name))
                 {
-                    if (verification.Status.HasFlag(VerificationStatus.FailsILVerify) && verification.ILVerifyMessage is null)
+                    if ((verification.Status & VerificationStatus.FailsILVerify) != 0 && verification.ILVerifyMessage is null)
                     {
                         return;
                     }
@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var mscorlibModule = modules.SingleOrDefault(m => m.IsCorLib);
             if (mscorlibModule is null)
             {
-                if (verification.Status.HasFlag(VerificationStatus.FailsILVerify) && verification.ILVerifyMessage is null)
+                if ((verification.Status & VerificationStatus.FailsILVerify) != 0 && verification.ILVerifyMessage is null)
                 {
                     return;
                 }
@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var mainModuleReader = resolver.Resolve(mainModule.SimpleName);
 
             var (actualSuccess, actualMessage) = verify(verifier, mscorlibModule.FullName, mainModuleReader);
-            var expectedSuccess = !verification.Status.HasFlag(VerificationStatus.FailsILVerify);
+            var expectedSuccess = (verification.Status & VerificationStatus.FailsILVerify) == 0;
 
             if (actualSuccess != expectedSuccess)
             {

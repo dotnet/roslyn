@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis
             {
                 unsafe
                 {
-                    Action? onDispose = options.HasFlag(PEStreamOptions.LeaveOpen)
+                    Action? onDispose = (options & PEStreamOptions.LeaveOpen) != 0
                         ? null
                         : unmanagedMemoryStream.Dispose;
 

@@ -190,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Sub AddNestedTypeSeparator()
-            If Format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes) Then
+            If (Format.CompilerInternalOptions And SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes) <> 0 Then
                 AddOperator(SyntaxKind.PlusToken)
             Else
                 AddOperator(SyntaxKind.DotToken)

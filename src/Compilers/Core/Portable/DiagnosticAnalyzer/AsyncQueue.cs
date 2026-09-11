@@ -99,7 +99,7 @@ retry:
                 waiter = _waiters.Dequeue();
             }
 
-            Debug.Assert(waiter.Task.CreationOptions.HasFlag(TaskCreationOptions.RunContinuationsAsynchronously));
+            Debug.Assert((waiter.Task.CreationOptions & TaskCreationOptions.RunContinuationsAsynchronously) != 0);
             if (!waiter.TrySetResult(value))
             {
                 // A waiter was available in the queue, but was cancelled before we were able to assign this value
@@ -197,12 +197,12 @@ retry:
                 Debug.Assert(this.Count == 0, "we should not be cancelling the waiters when we have items in the queue");
                 foreach (var tcs in existingWaiters)
                 {
-                    Debug.Assert(tcs.Task.CreationOptions.HasFlag(TaskCreationOptions.RunContinuationsAsynchronously));
+                    Debug.Assert((tcs.Task.CreationOptions & TaskCreationOptions.RunContinuationsAsynchronously) != 0);
                     tcs.TrySetResult(default);
                 }
             }
 
-            Debug.Assert(_whenCompleted.Task.CreationOptions.HasFlag(TaskCreationOptions.RunContinuationsAsynchronously));
+            Debug.Assert((_whenCompleted.Task.CreationOptions & TaskCreationOptions.RunContinuationsAsynchronously) != 0);
             _whenCompleted.SetResult(true);
 
             return true;
@@ -313,7 +313,7 @@ retry:
                 cancelableTaskCompletionSource,
                 useSynchronizationContext: false);
 
-            Debug.Assert(taskCompletionSource.Task.CreationOptions.HasFlag(TaskCreationOptions.RunContinuationsAsynchronously));
+            Debug.Assert((taskCompletionSource.Task.CreationOptions & TaskCreationOptions.RunContinuationsAsynchronously) != 0);
             taskCompletionSource.Task.ContinueWith(
                 static (_, s) =>
                 {
