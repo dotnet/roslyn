@@ -123,6 +123,8 @@ Write the plan to `plan.md` in your session folder (see the session context) and
 
 **Post the plan and wait for approval before writing the implementing diff** — the plan is meant to be reviewed now, not after a large diff already exists.
 
+If a pull request already exists when work pauses for plan approval, update its description or add a comment that clearly states the implementation is **not complete**, summarizes what remains, and links to the Copilot session containing the plan and approval request so the user can provide further instructions.
+
 Then implement, keeping the diff **scoped and reviewable** — prefer the smallest change that fully addresses the task over a broad refactor. If the plan changes materially while implementing, update it rather than silently diverging. Only after the plan's **Acceptance** and **Validation** are satisfied (and the Definition of Done below passes) is the work "done."
 
 Trivial changes don't need a written plan — go straight to the Definition of Done.
