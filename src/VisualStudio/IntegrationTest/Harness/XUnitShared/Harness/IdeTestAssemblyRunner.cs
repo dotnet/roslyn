@@ -209,8 +209,17 @@ namespace Xunit.Harness
             var messageSink = new BufferedMessageSink(context, finalAttempt, completedTestCaseIds);
             marshalledObjects.Add(messageSink);
             var request = new TestExecutionRequest(testCases, context.ExecutionOptionsValue);
-            var result = visualStudioContext.Instance.TestInvoker.RunTests(request, messageSink);
-            messageSink.Flush();
+            TestExecutionResult result;
+            var publishMessages = false;
+            try
+            {
+                result = visualStudioContext.Instance.TestInvoker.RunTests(request, messageSink);
+                publishMessages = true;
+            }
+            finally
+            {
+                messageSink.Flush(publishMessages);
+            }
 
             return new RunSummary
             {
@@ -338,8 +347,14 @@ namespace Xunit.Harness
                 return !_context.CancellationTokenSource.IsCancellationRequested;
             }
 
-            public void Flush()
+            public void Flush(bool publishMessages = true)
             {
+                if (!publishMessages)
+                {
+                    _messages.Clear();
+                    return;
+                }
+
                 foreach (var serializedMessage in _messages)
                 {
                     var message = MessageSinkMessageDeserializer.Deserialize(serializedMessage, diagnosticMessageSink: null)
