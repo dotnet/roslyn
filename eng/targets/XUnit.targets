@@ -68,4 +68,22 @@
       </None>
     </ItemGroup>
   </Target>
+
+  <!--
+    xunit.v3's VSTest adapter launches .NET Framework test assemblies through an app host.
+    Roslyn test projects use a .dll target extension to satisfy test naming checks, so provide
+    a matching .exe host without changing the primary test artifact.
+  -->
+  <Target Name="CreateXunitV3AppHost"
+          AfterTargets="Build"
+          Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' and '$(OutputType)' == 'Exe' and '$(TargetExt)' == '.dll' and '$(DotNetBuildSourceOnly)' != 'true'">
+    <PropertyGroup>
+      <_XunitV3AppHost>$(TargetDir)$(TargetName).exe</_XunitV3AppHost>
+      <_TargetConfigPath>$(TargetPath).config</_TargetConfigPath>
+      <_XunitV3AppHostConfig>$(_XunitV3AppHost).config</_XunitV3AppHostConfig>
+    </PropertyGroup>
+
+    <Copy SourceFiles="$(TargetPath)" DestinationFiles="$(_XunitV3AppHost)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(_TargetConfigPath)" DestinationFiles="$(_XunitV3AppHostConfig)" SkipUnchangedFiles="true" Condition="Exists('$(_TargetConfigPath)')" />
+  </Target>
 </Project>
