@@ -221,8 +221,8 @@ file class Sink : IMessageSink
             AnyWriteFailures = true;
             return;
         }
+
         var fullName = $"{className}.{methodName}";
-        var hasAsyncLifetime = HasAsyncLifetime(className);
         var hasAsyncLifetime = HasAsyncLifetime(className);
 
         // this shouldn't happen as our channel is unbounded but we are Paranoid Coding™️
