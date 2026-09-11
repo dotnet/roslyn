@@ -269,7 +269,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return -1;
                 }
 
-                return GetOrCreateSlot(member.Symbol, inputSlot);
+                Symbol memberSymbol = member.Symbol;
+                if (memberSymbol.IsExtensionBlockMember())
+                {
+                    memberSymbol = AsExtensionMemberOfReceiverType(memberSymbol, NominalSlotType(inputSlot), member.Syntax);
+                }
+
+                return GetOrCreateSlot(memberSymbol, inputSlot);
             }
         }
 
