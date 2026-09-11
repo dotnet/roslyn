@@ -14,4 +14,5 @@ internal enum RazorCompletionItemKind
     TagHelperElement,
     TagHelperAttribute,
     Attribute,
+    AssetPath,
 }

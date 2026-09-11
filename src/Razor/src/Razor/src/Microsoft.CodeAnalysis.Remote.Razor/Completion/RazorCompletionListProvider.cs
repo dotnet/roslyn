@@ -281,6 +281,38 @@ internal sealed class RazorCompletionListProvider(
                     completionItem = csharpRazorKeywordCompletionItem;
                     return true;
                 }
+            case RazorCompletionItemKind.AssetPath:
+                {
+                    var assetPathCompletionItem = new VSInternalCompletionItem()
+                    {
+                        Label = razorCompletionItem.DisplayText,
+                        FilterText = razorCompletionItem.DisplayText,
+                        SortText = razorCompletionItem.SortText,
+                        InsertTextFormat = insertTextFormat,
+                        Kind = CompletionItemKind.File,
+                    };
+
+                    // An explicit edit rather than InsertText: asset keys contain '/' and '.', which
+                    // the editor's word-boundary heuristic treats as boundaries, so it would replace
+                    // only the last segment of a partially typed path.
+                    if (razorCompletionItem.ReplacementRange is { } replacementRange)
+                    {
+                        assetPathCompletionItem.TextEdit = new TextEdit()
+                        {
+                            Range = replacementRange.ToRange(),
+                            NewText = razorCompletionItem.InsertText,
+                        };
+                    }
+                    else
+                    {
+                        assetPathCompletionItem.InsertText = razorCompletionItem.InsertText;
+                    }
+
+                    assetPathCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
+
+                    completionItem = assetPathCompletionItem;
+                    return true;
+                }
         }
 
         completionItem = null;

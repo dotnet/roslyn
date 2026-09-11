@@ -185,7 +185,7 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
         {
             // The first phase won't include any metadata references for component discovery. This mirrors
             // what the build does.
-            var projectEngine = CreateProjectEngine(RazorConfiguration.Default, Array.Empty<MetadataReference>());
+            var projectEngine = CreateProjectEngine(Configuration, Array.Empty<MetadataReference>());
 
             RazorCodeDocument codeDocument;
             foreach (var item in AdditionalRazorItems)
@@ -216,7 +216,7 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
 
             // Add the 'temp' compilation as a metadata reference
             var references = BaseCompilation.References.Concat(new[] { tempAssembly.Compilation.ToMetadataReference() }).ToArray();
-            projectEngine = CreateProjectEngine(RazorConfiguration.Default, references);
+            projectEngine = CreateProjectEngine(Configuration, references);
 
             // Now update the any additional files
             foreach (var item in AdditionalRazorItems)

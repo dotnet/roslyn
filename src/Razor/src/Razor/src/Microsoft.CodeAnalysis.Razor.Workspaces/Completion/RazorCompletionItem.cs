@@ -131,4 +131,16 @@ internal sealed class RazorCompletionItem
         string displayText, string insertText,
         ImmutableArray<RazorCommitCharacter> commitCharacters)
         => new(RazorCompletionItemKind.CSharpRazorKeyword, displayText, insertText, sortText: null, new CSharpRazorKeywordCompletionDescription(displayText), commitCharacters, isSnippet: false);
+
+    /// <summary>
+    /// Creates an item for a static web asset offered inside a <c>~/</c> attribute value.
+    /// </summary>
+    /// <remarks>
+    /// No commit characters: an asset key can contain <c>/</c>, <c>.</c> and <c>-</c>, all of which
+    /// would otherwise commit the item partway through typing a longer path.
+    /// </remarks>
+    public static RazorCompletionItem CreateAssetPath(
+        string displayText, string insertText,
+        LinePositionSpan replacementRange)
+        => new(RazorCompletionItemKind.AssetPath, displayText, insertText, sortText: null, descriptionInfo: AssetPathCompletionDescription.Instance, commitCharacters: [], isSnippet: false, replacementRange: replacementRange);
 }
