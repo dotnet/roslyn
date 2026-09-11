@@ -134,6 +134,8 @@ using System.Runtime.CompilerServices;
 [assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp.FSharpSignatureHelpTriggerInfo))]
 [assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp.FSharpSignatureHelpTriggerReason))]
 [assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp.IFSharpSignatureHelpProvider))]
+[assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.ExternalAccess.FSharp.Storage.IFSharpChecksummedPersistentStorage))]
+[assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.ExternalAccess.FSharp.Storage.IFSharpChecksummedPersistentStorageService))]
 [assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure.FSharpBlockSpan))]
 [assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure.FSharpBlockStructure))]
 [assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure.FSharpBlockTypes))]
