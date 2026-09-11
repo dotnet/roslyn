@@ -3707,11 +3707,14 @@ class C(int X, int Y)
             EOF();
         }
 
-        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
-        public void RecordStructParsing_PartialReadonly()
+        [Theory, CompilerTrait(CompilerFeature.RecordStructs)]
+        [InlineData(LanguageVersion.CSharp14)]
+        [InlineData(LanguageVersion.Preview)]
+        public void RecordStructParsing_PartialReadonly(LanguageVersion languageVersion)
         {
             var text = "partial readonly record struct S;";
-            UsingTree(text, options: TestOptions.RegularPreview);
+            var options = TestOptions.Regular.WithLanguageVersion(languageVersion);
+            UsingTree(text, options);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3728,10 +3731,14 @@ class C(int X, int Y)
             }
             EOF();
 
-            CreateCompilation(text, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                // partial readonly record struct S;
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
+            CreateCompilation(text, parseOptions: options).VerifyDiagnostics(
+                languageVersion == LanguageVersion.CSharp14
+                ? [
+                    // (1,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
+                    // partial readonly record struct S;
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(1, 1)
+                ]
+                : []);
         }
 
         [Fact, CompilerTrait(CompilerFeature.RecordStructs)]

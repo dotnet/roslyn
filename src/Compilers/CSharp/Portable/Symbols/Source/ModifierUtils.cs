@@ -89,6 +89,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // whether it appears in the correct position.
                         break;
 
+                    case DeclarationModifiers.Ref when !isForTypeDeclaration && isMisplacedRefModifier():
+                        // On members, `ref` belongs to the return type. The parser accepts it in the
+                        // modifier list for recovery, but it must still be written before the type.
+                        var refToken = modifierTokens?.FirstOrDefault(SyntaxKind.RefKeyword) ?? default;
+                        diagnostics.Add(
+                            ErrorCode.ERR_BadModifierLocation,
+                            refToken == default ? errorLocation : refToken.GetLocation(),
+                            SyntaxFacts.GetText(SyntaxKind.RefKeyword));
+                        break;
+
                     case DeclarationModifiers.Abstract:
                     case DeclarationModifiers.Override:
                     case DeclarationModifiers.Virtual:
@@ -134,6 +144,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool checkFeature(DeclarationModifiers modifier, MessageID featureID)
                 => ((result & modifier) != 0) && !Binder.CheckFeatureAvailability(errorLocation.SourceTree, featureID, diagnostics, errorLocation);
+
+            bool isMisplacedRefModifier()
+            {
+                if (modifierTokens is not { } tokens)
+                    return false;
+
+                var refIndex = tokens.IndexOf(SyntaxKind.RefKeyword);
+                if (refIndex < 0)
+                    return false;
+
+                // `readonly` can follow `ref` in a return type. Preserve existing recovery for
+                // `scoped`, but diagnose an ordinary declaration modifier following `ref`.
+                for (var i = refIndex + 1; i < tokens.Count; i++)
+                {
+                    if (tokens[i].ContextualKind() is not (SyntaxKind.ReadOnlyKeyword or SyntaxKind.ScopedKeyword))
+                        return true;
+                }
+
+                return false;
+            }
         }
 
         internal static void CheckScopedModifierAvailability(CSharpSyntaxNode syntax, SyntaxToken modifier, BindingDiagnosticBag diagnostics)
@@ -486,15 +516,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (!messageId.CheckFeatureAvailability(diagnostics, partialToken))
                         return true;
 
-                    // `partial` normally must be last. Preserve the historical exception for ordinary methods ending in
-                    // `partial async`. Ordinary methods are the only declarations that allow both modifiers; elsewhere,
-                    // either `partial` is rejected here or `async` is rejected by ModifierUtils.CheckModifiers.
-                    var isLegalLocation =
-                        partialIndex == modifiers.Count - 1 ||
-                        (partialIndex == modifiers.Count - 2 && modifiers[partialIndex + 1].ContextualKind() is SyntaxKind.AsyncKeyword);
-                    if (!allowsPartialModifier || !isLegalLocation)
+                    if (!allowsPartialModifier)
                     {
                         diagnostics.Add(ErrorCode.ERR_PartialMisplaced, partialToken.GetLocation());
+                        return true;
+                    }
+
+                    if (reportModifierOrderingDiagnostic(
+                            partialIndex,
+                            allowedTrailingModifier: SyntaxKind.AsyncKeyword,
+                            MessageID.IDS_FeatureRelaxedPartialModifierOrdering,
+                            ErrorCode.ERR_PartialModifierOrdering))
+                    {
                         return true;
                     }
                 }
@@ -505,21 +538,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool reportMisplacedRefModifier()
             {
                 var refIndex = modifiers.IndexOf(SyntaxKind.RefKeyword);
-                if (refIndex >= 0 && modifiers[refIndex] is var refToken && refToken.Parent is StructDeclarationSyntax)
+                if (refIndex >= 0)
                 {
-                    // `ref` normally must be last. It may precede `partial` because `partial` itself must be last, as in
-                    // `ref partial struct`.
-                    var isLegalLocation =
-                        refIndex == modifiers.Count - 1 ||
-                        (refIndex == modifiers.Count - 2 && modifiers[refIndex + 1].ContextualKind() is SyntaxKind.PartialKeyword);
-                    if (!isLegalLocation)
+                    var refToken = modifiers[refIndex];
+                    // CheckModifiers reports `ref` when it is used on any other declaration kind.
+                    if (refToken.Parent is StructDeclarationSyntax)
                     {
-                        diagnostics.Add(ErrorCode.ERR_BadModifierLocation, refToken.GetLocation(), refToken.Text);
-                        return true;
+                        if (reportModifierOrderingDiagnostic(
+                                refIndex,
+                                allowedTrailingModifier: SyntaxKind.PartialKeyword,
+                                MessageID.IDS_FeatureRelaxedRefModifierOrdering,
+                                ErrorCode.ERR_RefModifierOrdering))
+                        {
+                            return true;
+                        }
                     }
                 }
 
                 return false;
+            }
+
+            bool reportModifierOrderingDiagnostic(
+                int modifierIndex,
+                SyntaxKind allowedTrailingModifier,
+                MessageID feature,
+                ErrorCode errorCode)
+            {
+                // Before relaxed modifier ordering, the modifier had to be last unless followed by
+                // its historically permitted trailing modifier.
+                var isLegalLocation =
+                    modifierIndex == modifiers.Count - 1 ||
+                    (modifierIndex == modifiers.Count - 2 && modifiers[modifierIndex + 1].ContextualKind() == allowedTrailingModifier);
+                if (isLegalLocation)
+                    return false;
+
+                var modifierToken = modifiers[modifierIndex];
+                if (modifierToken.Parent.IsFeatureEnabled(feature))
+                    return false;
+
+                var availableVersion = ((CSharpParseOptions)modifierToken.Parent.SyntaxTree.Options).LanguageVersion;
+                diagnostics.Add(
+                    errorCode,
+                    modifierToken.GetLocation(),
+                    availableVersion.ToDisplayString(),
+                    new CSharpRequiredLanguageVersion(feature.RequiredVersion()));
+                return true;
             }
         }
 

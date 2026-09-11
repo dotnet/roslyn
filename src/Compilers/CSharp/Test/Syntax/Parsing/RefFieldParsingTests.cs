@@ -552,15 +552,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 source,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                    // (1,27): error CS0106: The modifier 'ref' is not valid for this item
+                    // (1,13): error CS1585: Member modifier 'ref' must precede the member type and name
                     // struct S {  ref fixed int F1[1]; ref readonly fixed int F2[2]; }
-                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "F1").WithArguments("ref").WithLocation(1, 27),
+                    Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 13),
                     // (1,27): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                     // struct S {  ref fixed int F1[1]; ref readonly fixed int F2[2]; }
                     Diagnostic(ErrorCode.ERR_UnsafeNeeded, "F1[1]").WithLocation(1, 27),
-                    // (1,57): error CS0106: The modifier 'ref' is not valid for this item
+                    // (1,34): error CS1585: Member modifier 'ref' must precede the member type and name
                     // struct S {  ref fixed int F1[1]; ref readonly fixed int F2[2]; }
-                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "F2").WithArguments("ref").WithLocation(1, 57),
+                    Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 34),
                     // (1,57): error CS0106: The modifier 'readonly' is not valid for this item
                     // struct S {  ref fixed int F1[1]; ref readonly fixed int F2[2]; }
                     Diagnostic(ErrorCode.ERR_BadMemberFlag, "F2").WithArguments("readonly").WithLocation(1, 57),

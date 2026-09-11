@@ -592,7 +592,7 @@ class Goo
 
         [WorkItem(536668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536668")]
         [Fact]
-        public void CS0267ERR_PartialMisplaced()
+        public void PartialBeforeAccessibility_CSharp14()
         {
             // Diff error
             var test = @"
@@ -608,10 +608,29 @@ public class Test
 }
 ";
 
-            CreateCompilation(test).VerifyDiagnostics(
-                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+            CreateCompilation(test, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+                // (2,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                 // partial public class C  // CS0267
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1));
+                Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void PartialBeforeAccessibility_Preview()
+        {
+            var test = """
+                partial public class C  // CS0267
+                {
+                }
+                public class Test
+                {
+                    public static int Main ()
+                    {
+                        return 1;
+                    }
+                }
+                """;
+
+            CreateCompilation(test, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [Fact]

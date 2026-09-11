@@ -1587,6 +1587,16 @@
         <target state="translated">Kısmi üye bildirimlerinin ikisi de 'safe' olarak işaretlenmeli ya da hiçbiri 'safe' olarak işaretlenmemelidir</target>
         <note>'safe' is a keyword and should not be localized</note>
       </trans-unit>
+      <trans-unit id="ERR_PartialModifierOrdering">
+        <source>In C# {0}, 'partial' must be the last modifier. Move it after the other modifiers, or use language version {1} or later.</source>
+        <target state="new">In C# {0}, 'partial' must be the last modifier. Move it after the other modifiers, or use language version {1} or later.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefModifierOrdering">
+        <source>In C# {0}, 'ref' must be the last modifier. Move it after the other modifiers, or use language version {1} or later.</source>
+        <target state="new">In C# {0}, 'ref' must be the last modifier. Move it after the other modifiers, or use language version {1} or later.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeInSource">
         <source>Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</source>
         <target state="translated">Kaynakta 'RequiresUnsafeAttribute' kullanmayın; bunun yerine 'unsafe' değiştiricisini kullanın.</target>
@@ -3220,6 +3230,16 @@
       <trans-unit id="IDS_FeatureRefUnsafeInIteratorAsync">
         <source>ref and unsafe in async and iterator methods</source>
         <target state="translated">zaman uyumsuz ve yineleyici metotlarda başvuru ve güvenli olmayan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRelaxedPartialModifierOrdering">
+        <source>relaxed partial modifier ordering</source>
+        <target state="new">relaxed partial modifier ordering</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRelaxedRefModifierOrdering">
+        <source>relaxed ref modifier ordering</source>
+        <target state="new">relaxed ref modifier ordering</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
@@ -7361,8 +7381,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</source>
-        <target state="translated">'Partial' değiştirici yalnızca ‘class’, ‘record’, ‘struct’, ‘interface’, ‘event’, örnek oluşturucu adı, metot veya özellik dönüş türünden hemen önce kullanılabilir.</target>
+        <source>The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.</source>
+        <target state="needs-review-translation">'Partial' değiştirici yalnızca ‘class’, ‘record’, ‘struct’, ‘interface’, ‘event’, örnek oluşturucu adı, metot veya özellik dönüş türünden hemen önce kullanılabilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">

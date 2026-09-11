@@ -1242,19 +1242,29 @@ new partial class C { }
             }
         }
 
-        [Fact]
-        public void NewModifier_ClassWithMisplacedModifiers1()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp14)]
+        [InlineData(LanguageVersion.Preview)]
+        public void NewModifier_ClassWithMisplacedModifiers1(LanguageVersion languageVersion)
         {
             var source = "new partial public class C { }";
-            CreateCompilation(source).VerifyDiagnostics(
-                    // (1,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+            var options = TestOptions.Regular.WithLanguageVersion(languageVersion);
+            CreateCompilation(source, parseOptions: options).VerifyDiagnostics(
+                languageVersion == LanguageVersion.CSharp14
+                ? [
+                    // (1,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                     // new partial public class C { }
-                    Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 5),
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(1, 5),
                     // (1,26): error CS0106: The modifier 'new' is not valid for this item
                     // new partial public class C { }
                     Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("new").WithLocation(1, 26)
-                );
-            var tree = UsingTree(source);
+                ]
+                : [
+                    // (1,26): error CS0106: The modifier 'new' is not valid for this item
+                    // new partial public class C { }
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("new").WithLocation(1, 26)
+                ]);
+            var tree = UsingTree(source, options);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -1271,18 +1281,29 @@ new partial class C { }
             }
         }
 
-        [Fact]
-        public void NewModifier_ClassWithMisplacedModifiers2()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp14)]
+        [InlineData(LanguageVersion.Preview)]
+        public void NewModifier_ClassWithMisplacedModifiers2(LanguageVersion languageVersion)
         {
             var source = "new static partial public class C { }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (1,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                // new static partial public class C { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 12),
-                // (1,33): error CS0106: The modifier 'new' is not valid for this item
-                // new static partial public class C { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("new").WithLocation(1, 33));
-            var tree = UsingTree(source);
+            var options = TestOptions.Regular.WithLanguageVersion(languageVersion);
+            CreateCompilation(source, parseOptions: options).VerifyDiagnostics(
+                languageVersion == LanguageVersion.CSharp14
+                ? [
+                    // (1,12): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
+                    // new static partial public class C { }
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(1, 12),
+                    // (1,33): error CS0106: The modifier 'new' is not valid for this item
+                    // new static partial public class C { }
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("new").WithLocation(1, 33)
+                ]
+                : [
+                    // (1,33): error CS0106: The modifier 'new' is not valid for this item
+                    // new static partial public class C { }
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("new").WithLocation(1, 33)
+                ]);
+            var tree = UsingTree(source, options);
 
             N(SyntaxKind.CompilationUnit);
             {
