@@ -5907,7 +5907,7 @@ namespace NS
                 );
         }
 
-        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
+        [ConditionalFact(skipConditions: [typeof(DesktopOnly), typeof(ClrOnly)])]
         [WorkItem(568953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568953")]
         public void CS0436WRN_SameFullNameThisAggAgg_01()
         {
@@ -5964,7 +5964,7 @@ namespace NS
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util"));
         }
 
-        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
+        [ConditionalFact(skipConditions: [typeof(DesktopOnly), typeof(ClrOnly)])]
         [WorkItem(568953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568953")]
         public void CS0436WRN_SameFullNameThisAggAgg_02()
         {
@@ -6023,7 +6023,7 @@ namespace NS
                 );
         }
 
-        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
+        [ConditionalFact(skipConditions: [typeof(DesktopOnly), typeof(ClrOnly)])]
         [WorkItem(568953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568953")]
         public void CS0435WRN_SameFullNameThisNsAgg_01()
         {
@@ -6082,7 +6082,7 @@ namespace NS
                 );
         }
 
-        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
+        [ConditionalFact(skipConditions: [typeof(DesktopOnly), typeof(ClrOnly)])]
         [WorkItem(568953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568953")]
         public void CS0437WRN_SameFullNameThisAggNs_01()
         {
@@ -7083,7 +7083,7 @@ namespace NS
                 Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("Util", "NS"));
         }
 
-        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
+        [ConditionalFact(skipConditions: [typeof(DesktopOnly), typeof(ClrOnly)])]
         [WorkItem(641639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/641639")]
         public void Bug641639()
         {
@@ -16337,7 +16337,7 @@ class Test
                 new ErrorDescription { Code = 1751, Line = 3, Column = 34 });
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void CS1754ERR_NoPIANestedType()
         {
             var textdll = @"using System;
@@ -16405,7 +16405,7 @@ public class Test
             //    new ErrorDescription { Code = 1755, Line = 4, Column = 14 });
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void CS1757ERR_InteropStructContainsMethods()
         {
             var textdll = @"using System;
@@ -20828,7 +20828,7 @@ namespace A
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "ClassB.MethodB").WithArguments("CModule.dll", "C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C.ClassC", "D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10332")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10332")]
         [WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
         public void MultipleTypeForwardersToTheSameAssemblyShouldNotResultInMultipleForwardError()
         {

@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
@@ -684,7 +683,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             TaskTestUtil.AssertCommandLine(csc, engine, "/out:test.dll", "/target:library", "test.cs", "blah.cs");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/71571")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/71571")]
         public void ReferenceForms()
         {
             parse(@"util.dll", null, @"/reference:util.dll");
@@ -830,7 +829,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             AssertEx.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
         }
 
-        [ConditionalFact(typeof(UnixLikeOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/80865")]
+        [ConditionalFact(skipConditions: typeof(UnixLikeOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/80865")]
         public void SourceFileInRootDirectoryOnUnix()
         {
             // On Unix, a source file path starting with "/" without another "/" 
@@ -845,7 +844,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.DoesNotContain(" /Program.cs", responseFileContents);
         }
 
-        [ConditionalFact(typeof(UnixLikeOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/80865")]
+        [ConditionalFact(skipConditions: typeof(UnixLikeOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/80865")]
         public void MultipleSourceFilesWithRootDirectoryOnUnix()
         {
             // Test multiple files where some are in root and some are not
@@ -864,7 +863,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.DoesNotContain("/./dir/File.cs", responseFileContents);
         }
 
-        [ConditionalFact(typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/80865")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/80865")]
         public void SourceFilePathsOnWindows()
         {
             // On Windows, paths should not be transformed even if they start with "/"

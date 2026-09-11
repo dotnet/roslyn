@@ -14,327 +14,278 @@ namespace Xunit.Harness
     using System.Threading;
     using System.Threading.Tasks;
     using System.Windows.Threading;
-    using Xunit.Abstractions;
+    using Xunit.Runner.Common;
     using Xunit.Sdk;
     using Xunit.Threading;
+    using Xunit.v3;
 
-    internal class IdeTestAssemblyRunner : XunitTestAssemblyRunner
+    internal sealed class IdeTestAssemblyRunner : CoreTestAssemblyRunner<IdeTestAssemblyRunner.Context, IXunitTestAssembly, IXunitTestCollection, IXunitTestCase>
     {
-        /// <summary>
-        /// A long timeout used to avoid hangs in tests, where a test failure manifests as an operation never occurring.
-        /// </summary>
         private static readonly TimeSpan HangMitigatingTimeout = TimeSpan.FromMinutes(1);
 
-        private HashSet<VisualStudioInstanceKey>? _ideInstancesInTests;
-
-        public IdeTestAssemblyRunner(ITestAssembly testAssembly, IEnumerable<IXunitTestCase> testCases, IMessageSink diagnosticMessageSink, IMessageSink executionMessageSink, ITestFrameworkExecutionOptions executionOptions)
-            : base(testAssembly, testCases, diagnosticMessageSink, executionMessageSink, executionOptions)
+        private IdeTestAssemblyRunner()
         {
         }
 
-        protected override async Task AfterTestAssemblyStartingAsync()
+        public static IdeTestAssemblyRunner Instance { get; } = new();
+
+        public async ValueTask<RunSummary> Run(
+            IXunitTestAssembly testAssembly,
+            IReadOnlyCollection<IXunitTestCase> testCases,
+            IMessageSink executionMessageSink,
+            ITestFrameworkExecutionOptions executionOptions,
+            CancellationToken cancellationToken)
         {
-            await base.AfterTestAssemblyStartingAsync().ConfigureAwait(false);
-            TestCollectionOrderer = new TestCollectionOrdererWrapper(TestCollectionOrderer);
-            _ideInstancesInTests = new HashSet<VisualStudioInstanceKey>();
+            await using var context = new Context(testAssembly, testCases, executionMessageSink, executionOptions, cancellationToken);
+            await context.InitializeAsync();
+            return await Run(context);
         }
 
-        protected override async Task BeforeTestAssemblyFinishedAsync()
-        {
-            _ideInstancesInTests = null;
-            TestCollectionOrderer = ((TestCollectionOrdererWrapper)TestCollectionOrderer).Underlying;
-            await base.BeforeTestAssemblyFinishedAsync().ConfigureAwait(true);
-        }
+        protected override ValueTask<string> GetTestFrameworkDisplayName(Context context)
+            => new("xUnit.net v3");
 
-        protected override async Task<RunSummary> RunTestCollectionAsync(IMessageBus messageBus, ITestCollection testCollection, IEnumerable<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
+        protected override async ValueTask<RunSummary> RunTestCollections(
+            Context context,
+            Exception? exception)
         {
-            var result = new RunSummary();
+            if (exception is not null)
+            {
+                return await base.RunTestCollections(context, exception);
+            }
+
+            var summary = new RunSummary();
             var completedTestCaseIds = new HashSet<string>();
-            try
+
+            var nonIdeTestCases = context.TestCases.Where(static testCase => testCase is not IIdeTestCase).ToArray();
+            if (nonIdeTestCases.Length != 0)
             {
-                // Handle [Fact], and also handle IdeSkippedDataRowTestCase that doesn't run inside Visual Studio
-                var nonIdeTestCases = testCases.Where(testCase => testCase is not IdeTestCaseBase).ToArray();
-                if (nonIdeTestCases.Any())
-                {
-                    var summary = await RunTestCollectionForUnspecifiedVersionAsync(completedTestCaseIds, nonIdeTestCases, cancellationTokenSource).ConfigureAwait(true);
-                    result.Aggregate(summary);
-                }
-
-                var ideTestCases = testCases.OfType<IdeTestCaseBase>().Where(testCase => testCase is not IdeInstanceTestCase).ToArray();
-                foreach (var testCasesByTargetVersion in ideTestCases.GroupBy(GetVisualStudioVersionForTestCase))
-                {
-                    _ideInstancesInTests!.Add(testCasesByTargetVersion.Key);
-
-                    var currentInstance = testCasesByTargetVersion.Key;
-                    var currentTests = testCasesByTargetVersion.ToArray();
-
-                    for (var currentAttempt = 0; currentAttempt < testCasesByTargetVersion.Key.MaxAttempts; currentAttempt++)
-                    {
-                        using var marshalledObjects = new MarshalledObjects();
-                        using var visualStudioInstanceFactory = new VisualStudioInstanceFactory();
-
-                        marshalledObjects.Add(visualStudioInstanceFactory);
-                        var summary = await RunTestCollectionForVersionAsync(visualStudioInstanceFactory, currentAttempt, currentInstance, completedTestCaseIds, messageBus, testCollection, currentTests, cancellationTokenSource).ConfigureAwait(true);
-                        result.Aggregate(summary);
-
-                        currentTests = currentTests.Where(test => !completedTestCaseIds.Contains(test.UniqueID)).ToArray();
-                        if (currentTests.Length == 0)
-                        {
-                            break;
-                        }
-                    }
-                }
-
-                foreach (var ideInstanceTestCase in testCases.OfType<IdeInstanceTestCase>())
-                {
-                    if (_ideInstancesInTests!.Contains(ideInstanceTestCase.VisualStudioInstanceKey))
-                    {
-                        // Already had at least one test run in this version, so no need to launch it separately.
-                        // Report it as passed and continue.
-                        ExecutionMessageSink.OnMessage(new TestClassStarting(new[] { ideInstanceTestCase }, ideInstanceTestCase.TestMethod.TestClass));
-                        ExecutionMessageSink.OnMessage(new TestMethodStarting(new[] { ideInstanceTestCase }, ideInstanceTestCase.TestMethod));
-                        ExecutionMessageSink.OnMessage(new TestCaseStarting(ideInstanceTestCase));
-
-                        var test = new XunitTest(ideInstanceTestCase, ideInstanceTestCase.DisplayName);
-                        ExecutionMessageSink.OnMessage(new TestStarting(test));
-                        ExecutionMessageSink.OnMessage(new TestPassed(test, 0, output: null));
-                        ExecutionMessageSink.OnMessage(new TestFinished(test, 0, output: null));
-
-                        ExecutionMessageSink.OnMessage(new TestCaseFinished(ideInstanceTestCase, 0, 1, 0, 0));
-                        ExecutionMessageSink.OnMessage(new TestMethodFinished(new[] { ideInstanceTestCase }, ideInstanceTestCase.TestMethod, 0, 1, 0, 0));
-                        ExecutionMessageSink.OnMessage(new TestClassFinished(new[] { ideInstanceTestCase }, ideInstanceTestCase.TestMethod.TestClass, 0, 1, 0, 0));
-
-                        continue;
-                    }
-
-                    using var marshalledObjects = new MarshalledObjects();
-                    using (var visualStudioInstanceFactory = new VisualStudioInstanceFactory(leaveRunning: true))
-                    {
-                        marshalledObjects.Add(visualStudioInstanceFactory);
-                        var summary = await RunTestCollectionForVersionAsync(visualStudioInstanceFactory, currentAttempt: 0, ideInstanceTestCase.VisualStudioInstanceKey, completedTestCaseIds, messageBus, testCollection, new[] { ideInstanceTestCase }, cancellationTokenSource).ConfigureAwait(true);
-                        result.Aggregate(summary);
-                    }
-                }
+                summary.Aggregate(await RunLocallyAsync(context, nonIdeTestCases, completedTestCaseIds));
             }
-            catch (Exception ex)
+
+            var ideTestCases = context.TestCases.Where(static testCase => testCase is IIdeTestCase).ToArray();
+            var staticallySkippedIdeTestCases = ideTestCases.Where(IsStaticallySkipped).ToArray();
+            if (staticallySkippedIdeTestCases.Length != 0)
             {
-                var completedTestCases = testCases.Where(testCase => completedTestCaseIds.Contains(testCase.UniqueID));
-                var remainingTestCases = testCases.Except(completedTestCases);
-                foreach (var casesByTestClass in remainingTestCases.GroupBy(testCase => testCase.TestMethod.TestClass))
+                summary.Aggregate(await RunLocallyAsync(context, staticallySkippedIdeTestCases, completedTestCaseIds));
+            }
+
+            foreach (var testCasesByInstance in ideTestCases
+                .Where(static testCase => !IsStaticallySkipped(testCase))
+                .Cast<IIdeTestCase>()
+                .GroupBy(static testCase => testCase.VisualStudioInstanceKey))
+            {
+                var instance = testCasesByInstance.Key;
+                var currentTests = testCasesByInstance.Cast<IXunitTestCase>().ToArray();
+
+                for (var currentAttempt = 0; currentAttempt < instance.MaxAttempts && currentTests.Length != 0; currentAttempt++)
                 {
-                    ExecutionMessageSink.OnMessage(new TestClassStarting(casesByTestClass.ToArray(), casesByTestClass.Key));
-
-                    foreach (var casesByTestMethod in casesByTestClass.GroupBy(testCase => testCase.TestMethod))
+                    var finalAttempt = currentAttempt == instance.MaxAttempts - 1;
+                    try
                     {
-                        ExecutionMessageSink.OnMessage(new TestMethodStarting(casesByTestMethod.ToArray(), casesByTestMethod.Key));
-
-                        foreach (var testCase in casesByTestMethod)
-                        {
-                            ExecutionMessageSink.OnMessage(new TestCaseStarting(testCase));
-
-                            var test = new XunitTest(testCase, testCase.DisplayName);
-                            ExecutionMessageSink.OnMessage(new TestStarting(test));
-                            ExecutionMessageSink.OnMessage(new TestFailed(test, 0, null, new InvalidOperationException("Test did not run due to a harness failure.", ex)));
-                            result.Failed++;
-                            ExecutionMessageSink.OnMessage(new TestFinished(test, 0, null));
-
-                            ExecutionMessageSink.OnMessage(new TestCaseFinished(testCase, 0, 1, 1, 0));
-                        }
-
-                        ExecutionMessageSink.OnMessage(new TestMethodFinished(casesByTestMethod.ToArray(), casesByTestMethod.Key, 0, casesByTestMethod.Count(), casesByTestMethod.Count(), 0));
+                        var attemptSummary = await RunOnStaThreadAsync(
+                            context,
+                            instance,
+                            currentTests,
+                            finalAttempt,
+                            completedTestCaseIds);
+                        summary.Aggregate(attemptSummary);
+                    }
+                    catch (Exception ex)
+                    {
+                        DataCollectionService.CaptureFailureState("Unknown", ex);
+                        var remainingTests = currentTests.Where(testCase => !completedTestCaseIds.Contains(testCase.UniqueID)).ToArray();
+                        summary.Aggregate(await RunHarnessFailuresAsync(context, remainingTests, ex, completedTestCaseIds));
+                        break;
                     }
 
-                    ExecutionMessageSink.OnMessage(new TestClassFinished(casesByTestClass.ToArray(), casesByTestClass.Key, 0, casesByTestClass.Count(), casesByTestClass.Count(), 0));
+                    currentTests = currentTests.Where(testCase => !completedTestCaseIds.Contains(testCase.UniqueID)).ToArray();
                 }
             }
 
-            return result;
+            return summary;
         }
 
-        /// <param name="currentAttempt">The 0-based attempt number. If this value is
-        /// <c><see cref="VisualStudioInstanceKey.MaxAttempts"/> - 1</c>, a failed test will not be retried.</param>
-        protected virtual Task<RunSummary> RunTestCollectionForVersionAsync(VisualStudioInstanceFactory visualStudioInstanceFactory, int currentAttempt, VisualStudioInstanceKey visualStudioInstanceKey, HashSet<string> completedTestCaseIds, IMessageBus messageBus, ITestCollection testCollection, IEnumerable<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
+        private static bool IsStaticallySkipped(IXunitTestCase testCase)
+            => !string.IsNullOrWhiteSpace(testCase.SkipReason)
+                && string.IsNullOrWhiteSpace(testCase.SkipUnless)
+                && string.IsNullOrWhiteSpace(testCase.SkipWhen);
+
+        private static async Task<RunSummary> RunOnStaThreadAsync(
+            Context context,
+            VisualStudioInstanceKey visualStudioInstanceKey,
+            IXunitTestCase[] testCases,
+            bool finalAttempt,
+            HashSet<string> completedTestCaseIds)
         {
             if (visualStudioInstanceKey.Version == VisualStudioVersion.Unspecified
                 || !IdeTestCaseBase.IsInstalled(visualStudioInstanceKey.Version))
             {
-                return RunTestCollectionForUnspecifiedVersionAsync(completedTestCaseIds, testCases, cancellationTokenSource);
+                return await RunLocallyAsync(context, testCases, completedTestCaseIds);
             }
 
             DispatcherSynchronizationContext? synchronizationContext = null;
             Dispatcher? dispatcher = null;
             Thread staThread;
+
             using (var staThreadStartedEvent = new ManualResetEventSlim(initialState: false))
             {
-                staThread = new Thread((ThreadStart)(() =>
+                staThread = new Thread(() =>
                 {
-                    // All WPF Tests need a DispatcherSynchronizationContext and we don't want to block pending keyboard
-                    // or mouse input from the user. So use background priority which is a single level below user input.
                     synchronizationContext = new DispatcherSynchronizationContext();
                     dispatcher = Dispatcher.CurrentDispatcher;
-
-                    // xUnit creates its own synchronization context and wraps any existing context so that messages are
-                    // still pumped as necessary. So we are safe setting it here, where we are not safe setting it in test.
                     SynchronizationContext.SetSynchronizationContext(synchronizationContext);
-
                     staThreadStartedEvent.Set();
-
                     Dispatcher.Run();
-                }));
+                })
+                {
+                    Name = nameof(IdeTestAssemblyRunner),
+                };
 
-                staThread.Name = $"{nameof(IdeTestAssemblyRunner)}";
                 staThread.SetApartmentState(ApartmentState.STA);
                 staThread.Start();
-
                 staThreadStartedEvent.Wait();
-#pragma warning disable CA1508 // Avoid dead conditional code
-                Debug.Assert(synchronizationContext != null, "Assertion failed: synchronizationContext != null");
-#pragma warning restore CA1508 // Avoid dead conditional code
+                Debug.Assert(synchronizationContext is not null);
             }
 
-            var taskScheduler = new SynchronizationContextTaskScheduler(synchronizationContext!);
+            var scheduler = new SynchronizationContextTaskScheduler(synchronizationContext!);
             var task = Task.Factory.StartNew(
                 async () =>
                 {
-                    Debug.Assert(SynchronizationContext.Current is DispatcherSynchronizationContext, "Assertion failed: SynchronizationContext.Current is DispatcherSynchronizationContext");
-
                     using (await WpfTestSharedData.Instance.TestSerializationGate.DisposableWaitAsync(CancellationToken.None).ConfigureAwait(true))
                     {
-                        // Just call back into the normal xUnit dispatch process now that we are on an STA Thread with no synchronization context.
-                        var invoker = CreateTestCollectionInvoker(visualStudioInstanceFactory, currentAttempt, visualStudioInstanceKey, completedTestCaseIds, messageBus, testCases, cancellationTokenSource);
-                        return await invoker().ConfigureAwait(true);
+                        return await RunInVisualStudioAsync(
+                            context,
+                            visualStudioInstanceKey,
+                            testCases,
+                            finalAttempt,
+                            completedTestCaseIds).ConfigureAwait(true);
                     }
                 },
-                cancellationTokenSource.Token,
+                context.CancellationTokenSource.Token,
                 TaskCreationOptions.None,
-                taskScheduler).Unwrap();
+                scheduler).Unwrap();
 
-            return Task.Run(
-                async () =>
-                {
-                    try
-                    {
-#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
-                        return await task.ConfigureAwait(false);
-#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
-                    }
-                    finally
-                    {
-                        // Make sure to shut down the dispatcher. Certain framework types listed for the dispatcher
-                        // shutdown to perform cleanup actions. In the absence of an explicit shutdown, these actions
-                        // are delayed and run during AppDomain or process shutdown, where they can lead to crashes of
-                        // the test process.
-                        dispatcher!.InvokeShutdown();
-
-                        // Join the STA thread, which ensures shutdown is complete.
-                        staThread.Join(HangMitigatingTimeout);
-                    }
-                });
-        }
-
-        private async Task<RunSummary> RunTestCollectionForUnspecifiedVersionAsync(HashSet<string> completedTestCaseIds, IEnumerable<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
-        {
-            // These tests just run in the current process, but we still need to hook the assembly and collection events
-            // to work correctly in mixed-testing scenarios.
-            using var marshalledObjects = new MarshalledObjects();
-            var executionMessageSinkFilter = new IpcMessageSink(ExecutionMessageSink, testCases.ToDictionary<IXunitTestCase, string, ITestCase>(testCase => testCase.UniqueID, testCase => testCase), finalAttempt: true, completedTestCaseIds, cancellationTokenSource.Token);
-            marshalledObjects.Add(executionMessageSinkFilter);
-            using (var runner = new XunitTestAssemblyRunner(TestAssembly, testCases, DiagnosticMessageSink, executionMessageSinkFilter, ExecutionOptions))
+            try
             {
-                var runSummary = await runner.RunAsync().ConfigureAwait(true);
-                return runSummary;
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
+                return await task.ConfigureAwait(false);
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
+            }
+            finally
+            {
+                dispatcher!.InvokeShutdown();
+                staThread.Join(HangMitigatingTimeout);
             }
         }
 
-        /// <param name="currentAttempt">The 0-based attempt number. If this value is
-        /// <c><see cref="VisualStudioInstanceKey.MaxAttempts"/> - 1</c>, a failed test will not be retried.</param>
-        private Func<Task<RunSummary>> CreateTestCollectionInvoker(VisualStudioInstanceFactory visualStudioInstanceFactory, int currentAttempt, VisualStudioInstanceKey visualStudioInstanceKey, HashSet<string> completedTestCaseIds, IMessageBus messageBus, IEnumerable<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
+        private static async Task<RunSummary> RunInVisualStudioAsync(
+            Context context,
+            VisualStudioInstanceKey visualStudioInstanceKey,
+            IXunitTestCase[] testCases,
+            bool finalAttempt,
+            HashSet<string> completedTestCaseIds)
         {
-            return async () =>
+            Assert.Equal(ApartmentState.STA, Thread.CurrentThread.GetApartmentState());
+
+            var leaveRunning = testCases.All(static testCase => testCase is IdeInstanceTestCase);
+            using var marshalledObjects = new MarshalledObjects();
+            using var visualStudioInstanceFactory = new VisualStudioInstanceFactory(leaveRunning);
+            marshalledObjects.Add(visualStudioInstanceFactory);
+            using var messageFilter = new MessageFilter();
+
+            var environmentVariables = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase).SetItems(
+                visualStudioInstanceKey.EnvironmentVariables.Select(
+                    variable => variable.IndexOf('=') is var index && index > 0
+                        ? new KeyValuePair<string, string>(variable.Substring(0, index), variable.Substring(index + 1))
+                        : new KeyValuePair<string, string>(variable, string.Empty)));
+
+            using var visualStudioContext = await visualStudioInstanceFactory.GetNewOrUsedInstanceAsync(
+                GetVersion(visualStudioInstanceKey.Version),
+                visualStudioInstanceKey.RootSuffix,
+                environmentVariables,
+                GetExtensionFiles(testCases),
+                ImmutableHashSet<string>.Empty).ConfigureAwait(true);
+
+            var messageSink = new BufferedMessageSink(context, testCases, finalAttempt, completedTestCaseIds);
+            marshalledObjects.Add(messageSink);
+            var request = new TestExecutionRequest(testCases, context.ExecutionOptionsValue);
+            TestExecutionResult result;
+            var publishMessages = false;
+            try
             {
-                Assert.Equal(ApartmentState.STA, Thread.CurrentThread.GetApartmentState());
+                result = visualStudioContext.Instance.TestInvoker.RunTests(request, messageSink);
+                publishMessages = true;
+            }
+            finally
+            {
+                messageSink.Flush(publishMessages);
+            }
 
-                using var marshalledObjects = new MarshalledObjects();
+            return messageSink.AdjustRunSummary(new RunSummary
+            {
+                Total = result.Total,
+                Failed = result.Failed,
+                Skipped = result.Skipped,
+                NotRun = result.NotRun,
+                Time = result.Time,
+            });
+        }
 
-                IpcMessageSink? executionMessageSinkFilter = null;
+        private static async ValueTask<RunSummary> RunLocallyAsync(
+            Context context,
+            IReadOnlyCollection<IXunitTestCase> testCases,
+            HashSet<string> completedTestCaseIds)
+        {
+            var messageSink = new BufferedMessageSink(context, testCases, finalAttempt: true, completedTestCaseIds);
+            var summary = await XunitTestAssemblyRunner.Instance.Run(
+                context.TestAssembly,
+                testCases,
+                new SerializingMessageSink(messageSink),
+                context.ExecutionOptionsValue,
+                context.CancellationTokenSource.Token);
+            messageSink.Flush();
+            return summary;
+        }
 
-                try
-                {
-                    var finalAttempt = currentAttempt == visualStudioInstanceKey.MaxAttempts - 1;
-                    var knownTestCasesByUniqueId = testCases.ToDictionary<IXunitTestCase, string, ITestCase>(testCase => testCase.UniqueID, testCase => testCase);
-                    executionMessageSinkFilter = new IpcMessageSink(ExecutionMessageSink, knownTestCasesByUniqueId, finalAttempt, completedTestCaseIds, cancellationTokenSource.Token);
-                    marshalledObjects.Add(executionMessageSinkFilter);
+        private static async ValueTask<RunSummary> RunHarnessFailuresAsync(
+            Context context,
+            IReadOnlyCollection<IXunitTestCase> testCases,
+            Exception exception,
+            HashSet<string> completedTestCaseIds)
+        {
+            var errorTestCases = testCases
+                .Select(testCase => (IXunitTestCase)new ExecutionErrorTestCase(
+                    testCase.TestMethod,
+                    testCase.TestCaseDisplayName,
+                    testCase.UniqueID,
+                    testCase.SourceFilePath,
+                    testCase.SourceLineNumber,
+                    $"Test did not run due to a harness failure.{Environment.NewLine}{exception}"))
+                .ToArray();
 
-                    // Use SetItems instead of ToImmutableDictionary to avoid exceptions in the case of value conflicts
-                    var environmentVariables = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase).SetItems(
-                        visualStudioInstanceKey.EnvironmentVariables.Select(
-                            variable => variable.IndexOf('=') is var index && index > 0
-                                ? new KeyValuePair<string, string>(variable.Substring(0, index), variable.Substring(index + 1))
-                                : new KeyValuePair<string, string>(variable, string.Empty)));
-
-                    // Install a COM message filter to handle retry operations when the first attempt fails
-                    using (var messageFilter = new MessageFilter())
-                    using (var visualStudioContext = await visualStudioInstanceFactory.GetNewOrUsedInstanceAsync(GetVersion(visualStudioInstanceKey.Version), visualStudioInstanceKey.RootSuffix, environmentVariables, GetExtensionFiles(testCases), ImmutableHashSet.Create<string>()).ConfigureAwait(true))
-                    {
-                        using (var runner = visualStudioContext.Instance.TestInvoker.CreateTestAssemblyRunner(new IpcTestAssembly(TestAssembly), testCases.ToArray(), new IpcMessageSink(DiagnosticMessageSink, knownTestCasesByUniqueId, finalAttempt, new HashSet<string>(), cancellationTokenSource.Token), executionMessageSinkFilter, new IpcTestFrameworkExecutionOptions(ExecutionOptions)))
-                        {
-                            marshalledObjects.Add(runner);
-
-                            var ipcMessageBus = new IpcMessageBus(messageBus);
-                            marshalledObjects.Add(ipcMessageBus);
-
-                            var result = runner.RunTestCollection();
-                            var runSummary = new RunSummary
-                            {
-                                Total = result.Item1,
-                                Failed = result.Item2,
-                                Skipped = result.Item3,
-                                Time = result.Item4,
-                            };
-
-                            return runSummary;
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    // Since this exception occurred in the harness communication, we can't assume it was logged by the
-                    // in-process data collection service. We need to log it separately here.
-                    DataCollectionService.CaptureFailureState(executionMessageSinkFilter?.CurrentTestCase ?? "Unknown", e);
-
-                    var previousException = WpfTestSharedData.Instance.Exception;
-                    try
-                    {
-                        // Run the tests again, but using an error reporting test runner that will report the exception.
-                        WpfTestSharedData.Instance.Exception = e;
-                        return await RunTestCollectionForUnspecifiedVersionAsync(completedTestCaseIds, testCases, cancellationTokenSource).ConfigureAwait(true);
-                    }
-                    finally
-                    {
-                        WpfTestSharedData.Instance.Exception = previousException;
-                    }
-                }
-            };
+            return errorTestCases.Length == 0
+                ? new RunSummary()
+                : await RunLocallyAsync(context, errorTestCases, completedTestCaseIds);
         }
 
         private static ImmutableList<string> GetExtensionFiles(IEnumerable<IXunitTestCase> testCases)
         {
             var extensionFiles = ImmutableHashSet.Create<string>(StringComparer.OrdinalIgnoreCase);
-            var visited = new HashSet<IAssemblyInfo>();
+            var visited = new HashSet<System.Reflection.Assembly>();
+
             foreach (var testCase in testCases)
             {
-                var assemblyInfo = testCase.Method.Type.Assembly;
-                if (!visited.Add(assemblyInfo))
+                var assembly = testCase.TestMethod.TestClass.Class.Assembly;
+                if (!visited.Add(assembly))
                 {
                     continue;
                 }
 
-                var assemblyDirectory = Path.GetDirectoryName(assemblyInfo.AssemblyPath);
-                var requiredExtensions = assemblyInfo.GetCustomAttributes(typeof(RequireExtensionAttribute))
-                    .Select(attributeInfo => attributeInfo.GetConstructorArguments().First().ToString())
-                    .Select(extensionFile => Path.IsPathRooted(extensionFile)
-                        ? extensionFile
-                        : Path.Combine(assemblyDirectory, extensionFile));
+                var assemblyDirectory = Path.GetDirectoryName(assembly.Location);
+                var requiredExtensions = assembly.GetCustomAttributes<RequireExtensionAttribute>()
+                    .Select(attribute => Path.IsPathRooted(attribute.ExtensionFile)
+                        ? attribute.ExtensionFile
+                        : Path.Combine(assemblyDirectory!, attribute.ExtensionFile));
                 extensionFiles = extensionFiles.Union(requiredExtensions);
             }
 
@@ -343,271 +294,267 @@ namespace Xunit.Harness
 
         private static Version GetVersion(VisualStudioVersion visualStudioVersion)
         {
-            switch (visualStudioVersion)
+            return visualStudioVersion switch
             {
-                case VisualStudioVersion.VS2012:
-                    return new Version(11, 0);
-
-                case VisualStudioVersion.VS2013:
-                    return new Version(12, 0);
-
-                case VisualStudioVersion.VS2015:
-                    return new Version(14, 0);
-
-                case VisualStudioVersion.VS2017:
-                    return new Version(15, 0);
-
-                case VisualStudioVersion.VS2019:
-                    return new Version(16, 0);
-
-                case VisualStudioVersion.VS2022:
-                    return new Version(17, 0);
-
-                case VisualStudioVersion.VS18:
-                    return new Version(18, 0);
-
-                default:
-                    throw new ArgumentException();
-            }
+                VisualStudioVersion.VS2012 => new Version(11, 0),
+                VisualStudioVersion.VS2013 => new Version(12, 0),
+                VisualStudioVersion.VS2015 => new Version(14, 0),
+                VisualStudioVersion.VS2017 => new Version(15, 0),
+                VisualStudioVersion.VS2019 => new Version(16, 0),
+                VisualStudioVersion.VS2022 => new Version(17, 0),
+                VisualStudioVersion.VS18 => new Version(18, 0),
+                _ => throw new ArgumentOutOfRangeException(nameof(visualStudioVersion)),
+            };
         }
 
-        private VisualStudioInstanceKey GetVisualStudioVersionForTestCase(IXunitTestCase testCase)
+        private sealed class SerializingMessageSink : IMessageSink
         {
-            if (testCase is IdeTestCaseBase ideTestCase)
-            {
-                return ideTestCase.VisualStudioInstanceKey;
-            }
+            private readonly TestExecutionMessageSink _messageSink;
 
-            return VisualStudioInstanceKey.Unspecified;
-        }
-
-        private class IpcMessageSink : MarshalByRefObject, IMessageSink
-        {
-            private readonly IMessageSink _messageSink;
-            private readonly IReadOnlyDictionary<string, ITestCase> _knownTestCasesByUniqueId;
-            private readonly CancellationToken _cancellationToken;
-
-            private readonly bool _finalAttempt;
-            private readonly HashSet<string> _completedTestCaseIds;
-
-            public IpcMessageSink(IMessageSink messageSink, IReadOnlyDictionary<string, ITestCase> knownTestCasesByUniqueId, bool finalAttempt, HashSet<string> completedTestCaseIds, CancellationToken cancellationToken)
+            public SerializingMessageSink(TestExecutionMessageSink messageSink)
             {
                 _messageSink = messageSink;
-                _knownTestCasesByUniqueId = knownTestCasesByUniqueId;
-                _finalAttempt = finalAttempt;
-                _completedTestCaseIds = completedTestCaseIds;
-                _cancellationToken = cancellationToken;
-            }
-
-            public string? CurrentTestCase
-            {
-                get;
-                private set;
             }
 
             public bool OnMessage(IMessageSinkMessage message)
+                => _messageSink.OnMessage(message.ToJson() ?? throw new InvalidOperationException("xUnit could not serialize an execution message."));
+        }
+
+        private sealed class BufferedMessageSink : TestExecutionMessageSink
+        {
+            private readonly Context _context;
+            private readonly IReadOnlyDictionary<string, IXunitTestCase> _knownTestCasesByUniqueId;
+            private readonly bool _finalAttempt;
+            private readonly HashSet<string> _completedTestCaseIds;
+            private readonly List<string> _messages = new();
+            private readonly Dictionary<string, RetrySummaryAdjustment> _retrySummaryAdjustmentsByUniqueId = new(StringComparer.Ordinal);
+
+            public BufferedMessageSink(
+                Context context,
+                IEnumerable<IXunitTestCase> testCases,
+                bool finalAttempt,
+                HashSet<string> completedTestCaseIds)
             {
-                if (message is ITestAssemblyFinished testAssemblyFinished)
+                _context = context;
+                var knownTestCasesByUniqueId = new Dictionary<string, IXunitTestCase>(StringComparer.Ordinal);
+                foreach (var testCase in testCases)
                 {
-                    // The test cases in the ITestAssemblyFinished message are remote proxies, but the objects won't be
-                    // used until after the remote process terminates. Recreate the objects in the current process (or
-                    // map them to an equivalent object already in the current process) to avoid using objects that are
-                    // no longer available.
-                    var testCases = testAssemblyFinished.TestCases.Select(testCase =>
+                    knownTestCasesByUniqueId[testCase.UniqueID] = testCase;
+                }
+
+                _knownTestCasesByUniqueId = knownTestCasesByUniqueId;
+                _finalAttempt = finalAttempt;
+                _completedTestCaseIds = completedTestCaseIds;
+            }
+
+            public override bool OnMessage(string message)
+            {
+                lock (_messages)
+                {
+                    _messages.Add(message);
+                }
+
+                return !_context.CancellationTokenSource.IsCancellationRequested;
+            }
+
+            public void Flush(bool publishMessages = true)
+            {
+                if (!publishMessages)
+                {
+                    _messages.Clear();
+                    return;
+                }
+
+                foreach (var serializedMessage in _messages)
+                {
+                    var message = MessageSinkMessageDeserializer.Deserialize(serializedMessage, diagnosticMessageSink: null)
+                        ?? throw new InvalidOperationException("xUnit returned an unrecognized execution message.");
+
+                    if (message is ITestAssemblyStarting or ITestAssemblyFinished)
                     {
-                        if (_knownTestCasesByUniqueId.TryGetValue(testCase.UniqueID, out var knownTestCase))
+                        continue;
+                    }
+
+                    if (message is ITestCaseFinished testCaseFinished)
+                    {
+                        if (_finalAttempt || testCaseFinished.TestsFailed == 0)
                         {
-                            return knownTestCase;
-                        }
-                        else if (testCase is IdeTestCase ideTestCase)
-                        {
-                            return new IdeTestCase(this, ideTestCase.DefaultMethodDisplay, ideTestCase.DefaultMethodDisplayOptions, ideTestCase.TestMethod, ideTestCase.VisualStudioInstanceKey, ideTestCase.TestMethodArguments);
-                        }
-                        else if (testCase is IdeTheoryTestCase ideTheoryTestCase)
-                        {
-                            return new IdeTheoryTestCase(this, ideTheoryTestCase.DefaultMethodDisplay, ideTheoryTestCase.DefaultMethodDisplayOptions, ideTheoryTestCase.TestMethod, ideTheoryTestCase.VisualStudioInstanceKey, ideTheoryTestCase.TestMethodArguments);
-                        }
-                        else if (testCase is IdeInstanceTestCase ideInstanceTestCase)
-                        {
-                            return new IdeInstanceTestCase(this, ideInstanceTestCase.DefaultMethodDisplay, ideInstanceTestCase.DefaultMethodDisplayOptions, ideInstanceTestCase.TestMethod, ideInstanceTestCase.VisualStudioInstanceKey, ideInstanceTestCase.TestMethodArguments);
+                            _completedTestCaseIds.Add(testCaseFinished.TestCaseUniqueID);
                         }
                         else
                         {
-                            return new XunitTestCase(this, TestMethodDisplay.ClassAndMethod, TestMethodDisplayOptions.None, testCase.TestMethod, testCase.TestMethodArguments);
+                            _retrySummaryAdjustmentsByUniqueId.Add(
+                                testCaseFinished.TestCaseUniqueID,
+                                new RetrySummaryAdjustment(
+                                    testCaseFinished.TestsTotal,
+                                    testCaseFinished.TestsFailed,
+                                    testCaseFinished.TestsSkipped,
+                                    testCaseFinished.TestsNotRun));
+
+                            var concreteMessage = (Xunit.v3.TestCaseFinished)message;
+                            if (_knownTestCasesByUniqueId.TryGetValue(testCaseFinished.TestCaseUniqueID, out var knownTestCase))
+                            {
+                                concreteMessage.TestCaseUniqueID = knownTestCase.UniqueID;
+                                concreteMessage.TestMethodUniqueID = knownTestCase.TestMethod.UniqueID;
+                                concreteMessage.TestClassUniqueID = knownTestCase.TestMethod.TestClass.UniqueID;
+                                concreteMessage.TestCollectionUniqueID = knownTestCase.TestMethod.TestClass.TestCollection.UniqueID;
+                                concreteMessage.AssemblyUniqueID = knownTestCase.TestMethod.TestClass.TestCollection.TestAssembly.UniqueID;
+                            }
+
+                            concreteMessage.TestsSkipped += concreteMessage.TestsFailed;
+                            concreteMessage.TestsFailed = 0;
                         }
-                    });
-
-                    return !_cancellationToken.IsCancellationRequested;
-                }
-                else if (message is ITestCaseStarting testCaseStarting)
-                {
-                    CurrentTestCase = DataCollectionService.GetTestName(testCaseStarting.TestCase);
-                    return _messageSink.OnMessage(message);
-                }
-                else if (message is ITestCaseFinished testCaseFinished)
-                {
-                    CurrentTestCase = null;
-
-                    if (_finalAttempt || testCaseFinished.TestsFailed == 0)
-                    {
-                        _completedTestCaseIds.Add(testCaseFinished.TestCase.UniqueID);
                     }
-                    else
+                    else if (!_finalAttempt && message is ITestMethodFinished testMethodFinished)
                     {
-                        // This test will run again; report the statistics as skipped instead of failed
-                        message = new TestCaseFinished(
-                            testCaseFinished.TestCase,
-                            testCaseFinished.ExecutionTime,
-                            testCaseFinished.TestsRun,
-                            testsFailed: 0,
-                            testCaseFinished.TestsSkipped + testCaseFinished.TestsFailed);
+                        var retrySummaryAdjustment = GetRetrySummaryAdjustment(_knownTestCasesByUniqueId.Values.Where(tc => tc.TestMethod.UniqueID == testMethodFinished.TestMethodUniqueID));
+                        if (!retrySummaryAdjustment.IsDefault)
+                        {
+                            var concreteMessage = (Xunit.v3.TestMethodFinished)message;
+                            concreteMessage.TestsFailed -= retrySummaryAdjustment.TestsFailed;
+                            concreteMessage.TestsSkipped += retrySummaryAdjustment.TestsFailed;
+                        }
+                    }
+                    else if (!_finalAttempt && message is ITestClassFinished testClassFinished)
+                    {
+                        var retrySummaryAdjustment = GetRetrySummaryAdjustment(_knownTestCasesByUniqueId.Values.Where(tc => tc.TestMethod.TestClass.UniqueID == testClassFinished.TestClassUniqueID));
+                        if (!retrySummaryAdjustment.IsDefault)
+                        {
+                            var concreteMessage = (Xunit.v3.TestClassFinished)message;
+                            concreteMessage.TestsFailed -= retrySummaryAdjustment.TestsFailed;
+                            concreteMessage.TestsSkipped += retrySummaryAdjustment.TestsFailed;
+                        }
+                    }
+                    else if (!_finalAttempt && message is ITestCollectionFinished testCollectionFinished)
+                    {
+                        var retrySummaryAdjustment = GetRetrySummaryAdjustment(_knownTestCasesByUniqueId.Values.Where(tc => tc.TestMethod.TestClass.TestCollection.UniqueID == testCollectionFinished.TestCollectionUniqueID));
+                        if (!retrySummaryAdjustment.IsDefault)
+                        {
+                            var concreteMessage = (Xunit.v3.TestCollectionFinished)message;
+                            concreteMessage.TestsFailed -= retrySummaryAdjustment.TestsFailed;
+                            concreteMessage.TestsSkipped += retrySummaryAdjustment.TestsFailed;
+                        }
+                    }
+                    else if (!_finalAttempt && message is ITestFailed testFailed)
+                    {
+                        message = new Xunit.v3.TestSkipped
+                        {
+                            AssemblyUniqueID = testFailed.AssemblyUniqueID,
+                            TestCollectionUniqueID = testFailed.TestCollectionUniqueID,
+                            TestClassUniqueID = testFailed.TestClassUniqueID,
+                            TestMethodUniqueID = testFailed.TestMethodUniqueID,
+                            TestCaseUniqueID = testFailed.TestCaseUniqueID,
+                            TestUniqueID = testFailed.TestUniqueID,
+                            ExecutionTime = testFailed.ExecutionTime,
+                            FinishTime = testFailed.FinishTime,
+                            Output = testFailed.Output,
+                            Warnings = testFailed.Warnings,
+                            Reason = "Test will automatically retry.",
+                        };
                     }
 
-                    if (_cancellationToken.IsCancellationRequested)
+                    if (!_context.MessageBus.QueueMessage(message))
                     {
-                        return false;
+                        _context.CancellationTokenSource.Cancel();
+                        break;
                     }
-
-                    return _messageSink.OnMessage(message);
                 }
-                else if (!_finalAttempt && message is ITestFailed testFailed)
+
+                _messages.Clear();
+            }
+
+            public RunSummary AdjustRunSummary(RunSummary runSummary)
+            {
+                if (_retrySummaryAdjustmentsByUniqueId.Count == 0)
                 {
-                    // This test will run again; report it as skipped instead of failed
-                    // TODO: What kind of additional logs should we include?
-                    message = new TestSkipped(testFailed.Test, "Test will automatically retry.");
+                    return runSummary;
                 }
-                else if (message is ITestAssemblyStarting)
+
+                var retriedTestsTotal = 0;
+                var retriedTestsFailed = 0;
+                var retriedTestsSkipped = 0;
+                var retriedTestsNotRun = 0;
+                foreach (var retrySummaryAdjustment in _retrySummaryAdjustmentsByUniqueId.Values)
                 {
-                    return !_cancellationToken.IsCancellationRequested;
+                    retriedTestsTotal += retrySummaryAdjustment.TestsTotal;
+                    retriedTestsFailed += retrySummaryAdjustment.TestsFailed;
+                    retriedTestsSkipped += retrySummaryAdjustment.TestsSkipped;
+                    retriedTestsNotRun += retrySummaryAdjustment.TestsNotRun;
                 }
 
-                return _messageSink.OnMessage(message);
+                return new RunSummary
+                {
+                    Total = runSummary.Total - retriedTestsTotal,
+                    Failed = runSummary.Failed - retriedTestsFailed,
+                    Skipped = runSummary.Skipped - retriedTestsSkipped,
+                    NotRun = runSummary.NotRun - retriedTestsNotRun,
+                    Time = runSummary.Time,
+                };
             }
 
-            // The life of this object is managed explicitly
-            public override object? InitializeLifetimeService()
+            private IXunitTestCase GetKnownTestCase(IXunitTestCase testCase)
+                => _knownTestCasesByUniqueId.TryGetValue(testCase.UniqueID, out var knownTestCase) ? knownTestCase : testCase;
+
+            private IReadOnlyCollection<IXunitTestCase> GetKnownTestCases(IEnumerable<IXunitTestCase>? testCases)
+                => testCases is null ? [] : testCases.Select(GetKnownTestCase).ToArray();
+
+            private RetrySummaryAdjustment GetRetrySummaryAdjustment(IEnumerable<IXunitTestCase>? testCases)
             {
-                return null;
+                if (testCases is null)
+                {
+                    return default;
+                }
+
+                var testsTotal = 0;
+                var testsFailed = 0;
+                foreach (var testCase in testCases)
+                {
+                    if (_retrySummaryAdjustmentsByUniqueId.TryGetValue(testCase.UniqueID, out var retrySummaryAdjustment))
+                    {
+                        testsTotal += retrySummaryAdjustment.TestsTotal;
+                        testsFailed += retrySummaryAdjustment.TestsFailed;
+                    }
+                }
+
+                return new RetrySummaryAdjustment(testsTotal, testsFailed, testsSkipped: 0, testsNotRun: 0);
+            }
+
+            private readonly struct RetrySummaryAdjustment
+            {
+                public RetrySummaryAdjustment(int testsTotal, int testsFailed, int testsSkipped, int testsNotRun)
+                {
+                    TestsTotal = testsTotal;
+                    TestsFailed = testsFailed;
+                    TestsSkipped = testsSkipped;
+                    TestsNotRun = testsNotRun;
+                }
+
+                public int TestsTotal { get; }
+
+                public int TestsFailed { get; }
+
+                public int TestsSkipped { get; }
+
+                public int TestsNotRun { get; }
+
+                public bool IsDefault => TestsTotal == 0 && TestsFailed == 0 && TestsSkipped == 0 && TestsNotRun == 0;
             }
         }
 
-        private class IpcMessageBus : MarshalByRefObject, IMessageBus
+        internal sealed class Context : XunitTestAssemblyRunnerContext
         {
-            private readonly IMessageBus _messageBus;
-
-            public IpcMessageBus(IMessageBus messageBus)
+            public Context(
+                IXunitTestAssembly testAssembly,
+                IReadOnlyCollection<IXunitTestCase> testCases,
+                IMessageSink executionMessageSink,
+                ITestFrameworkExecutionOptions executionOptions,
+                CancellationToken cancellationToken)
+                : base(testAssembly, testCases, executionMessageSink, executionOptions, cancellationToken)
             {
-                _messageBus = messageBus;
+                ExecutionOptionsValue = executionOptions;
             }
 
-            public void Dispose() => _messageBus.Dispose();
-
-            public bool QueueMessage(IMessageSinkMessage message) => _messageBus.QueueMessage(message);
-
-            // The life of this object is managed explicitly
-            public override object? InitializeLifetimeService() => null;
-        }
-
-        private class IpcTestAssembly : LongLivedMarshalByRefObject, ITestAssembly
-        {
-            private readonly ITestAssembly _testAssembly;
-            private readonly IAssemblyInfo _assembly;
-
-            public IpcTestAssembly(ITestAssembly testAssembly)
-            {
-                _testAssembly = testAssembly;
-                _assembly = new IpcAssemblyInfo(_testAssembly.Assembly);
-            }
-
-            public IAssemblyInfo Assembly => _assembly;
-
-            public string ConfigFileName => _testAssembly.ConfigFileName;
-
-            public void Deserialize(IXunitSerializationInfo info)
-            {
-                _testAssembly.Deserialize(info);
-            }
-
-            public void Serialize(IXunitSerializationInfo info)
-            {
-                _testAssembly.Serialize(info);
-            }
-        }
-
-        private class IpcTestFrameworkExecutionOptions : LongLivedMarshalByRefObject, ITestFrameworkExecutionOptions
-        {
-            private readonly ITestFrameworkExecutionOptions _executionOptions;
-
-            public IpcTestFrameworkExecutionOptions(ITestFrameworkExecutionOptions executionOptions)
-            {
-                _executionOptions = executionOptions;
-            }
-
-            public TValue GetValue<TValue>(string name)
-            {
-                return _executionOptions.GetValue<TValue>(name);
-            }
-
-            public void SetValue<TValue>(string name, TValue value)
-            {
-                _executionOptions.SetValue(name, value);
-            }
-        }
-
-        private class IpcAssemblyInfo : LongLivedMarshalByRefObject, IAssemblyInfo
-        {
-            private readonly IAssemblyInfo _assemblyInfo;
-
-            public IpcAssemblyInfo(IAssemblyInfo assemblyInfo)
-            {
-                _assemblyInfo = assemblyInfo;
-            }
-
-            public string AssemblyPath => _assemblyInfo.AssemblyPath;
-
-            public string Name => _assemblyInfo.Name;
-
-            public IEnumerable<IAttributeInfo> GetCustomAttributes(string assemblyQualifiedAttributeTypeName)
-            {
-                return _assemblyInfo.GetCustomAttributes(assemblyQualifiedAttributeTypeName).ToArray();
-            }
-
-            public ITypeInfo GetType(string typeName)
-            {
-                return _assemblyInfo.GetType(typeName);
-            }
-
-            public IEnumerable<ITypeInfo> GetTypes(bool includePrivateTypes)
-            {
-                return _assemblyInfo.GetTypes(includePrivateTypes).ToArray();
-            }
-        }
-
-        /// <summary>
-        /// A collection orderer wrapper that ensures <see cref="IdeInstanceTestCase"/> runs after other test cases.
-        /// </summary>
-        private sealed class TestCollectionOrdererWrapper : ITestCollectionOrderer
-        {
-            public TestCollectionOrdererWrapper(ITestCollectionOrderer underlying)
-            {
-                Underlying = underlying;
-            }
-
-            public ITestCollectionOrderer Underlying { get; }
-
-            public IEnumerable<ITestCollection> OrderTestCollections(IEnumerable<ITestCollection> testCollections)
-            {
-                var collections = Underlying.OrderTestCollections(testCollections).ToArray();
-                var collectionsWithoutIdeInstanceCases = collections.Where(collection => !ContainsIdeInstanceCase(collection));
-                var collectionsWithIdeInstanceCases = collections.Where(collection => ContainsIdeInstanceCase(collection));
-                return collectionsWithoutIdeInstanceCases.Concat(collectionsWithIdeInstanceCases);
-            }
-
-            private static bool ContainsIdeInstanceCase(ITestCollection collection)
-            {
-                var assemblyName = new AssemblyName(collection.TestAssembly.Assembly.Name);
-                return assemblyName.Name == "Microsoft.VisualStudio.Extensibility.Testing.Xunit";
-            }
+            public ITestFrameworkExecutionOptions ExecutionOptionsValue { get; }
         }
     }
 }

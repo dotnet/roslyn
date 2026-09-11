@@ -8,6 +8,7 @@
     <!-- TODO: Target net8 and net9. net8 tests are failing due to System.Text.Encoding.Web upgrade to 9.0.0 -->
     <TargetFrameworks>$(NetVSCode)</TargetFrameworks>
     <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TargetFrameworks);$(NetFxVS)</TargetFrameworks>
+    <OutputType Condition="'$(TargetFramework)' == '$(NetFxVS)'">Exe</OutputType>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <DefaultItemExcludes>$(DefaultItemExcludes);TestFiles\**</DefaultItemExcludes>
 

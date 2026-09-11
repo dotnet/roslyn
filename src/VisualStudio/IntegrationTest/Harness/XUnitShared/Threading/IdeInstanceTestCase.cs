@@ -5,14 +5,14 @@
 namespace Xunit.Threading
 {
     using System;
+    using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.ComponentModel;
+    using System.Linq;
     using System.Runtime.CompilerServices;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using Xunit.Abstractions;
     using Xunit.Harness;
     using Xunit.Sdk;
+    using Xunit.v3;
 
     public sealed class IdeInstanceTestCase : IdeTestCaseBase
     {
@@ -25,24 +25,53 @@ namespace Xunit.Threading
         private static readonly ConditionalWeakTable<ITestFrameworkDiscoveryOptions, StrongBox<ImmutableDictionary<VisualStudioInstanceKey, IdeInstanceTestCase>>> _instances = new();
 
         [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("Called by the deserializer; should only be called by deriving classes for deserialization purposes", error: true)]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        [Obsolete("Called by the deserializer; should only be called by deriving classes for deserialization purposes")]
         public IdeInstanceTestCase()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
         }
 
-        public IdeInstanceTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod, VisualStudioInstanceKey visualStudioInstanceKey, object?[]? testMethodArguments = null)
-            : base(diagnosticMessageSink, defaultMethodDisplay, defaultMethodDisplayOptions, testMethod, visualStudioInstanceKey, testMethodArguments)
+        public IdeInstanceTestCase(
+            IXunitTestMethod testMethod,
+            string testCaseDisplayName,
+            string uniqueID,
+            bool @explicit,
+            Type[]? skipExceptions,
+            string? skipReason,
+            Type? skipType,
+            string? skipUnless,
+            string? skipWhen,
+            Dictionary<string, HashSet<string>>? traits,
+            object?[]? testMethodArguments,
+            string? sourceFilePath,
+            int? sourceLineNumber,
+            int? timeout,
+            VisualStudioInstanceKey visualStudioInstanceKey)
+            : base(testMethod, testCaseDisplayName, uniqueID, @explicit, skipExceptions, skipReason, skipType, skipUnless, skipWhen, traits, testMethodArguments, sourceFilePath, sourceLineNumber, timeout, visualStudioInstanceKey, includeRootSuffixInDisplayName: true)
         {
         }
 
-        protected override bool IncludeRootSuffixInDisplayName => true;
-
-        public static IdeInstanceTestCase? TryCreateNewInstanceForFramework(ITestFrameworkDiscoveryOptions discoveryOptions, IMessageSink diagnosticMessageSink, VisualStudioInstanceKey visualStudioInstanceKey)
+        public static IdeInstanceTestCase? TryCreateNewInstanceForFramework(ITestFrameworkDiscoveryOptions discoveryOptions, VisualStudioInstanceKey visualStudioInstanceKey)
         {
             var lazyInstances = _instances.GetValue(discoveryOptions, static _ => new StrongBox<ImmutableDictionary<VisualStudioInstanceKey, IdeInstanceTestCase>>(ImmutableDictionary<VisualStudioInstanceKey, IdeInstanceTestCase>.Empty));
-            var candidateTestCase = new IdeInstanceTestCase(diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), IdeFactDiscoverer.CreateVisualStudioTestMethod(), visualStudioInstanceKey);
+            var testMethod = IdeFactDiscoverer.CreateVisualStudioTestMethod();
+            var factAttribute = testMethod.FactAttributes.Single();
+            var details = TestIntrospectionHelper.GetTestCaseDetails(discoveryOptions, testMethod, factAttribute);
+            var candidateTestCase = new IdeInstanceTestCase(
+                details.ResolvedTestMethod,
+                details.TestCaseDisplayName,
+                details.UniqueID,
+                details.Explicit,
+                details.SkipExceptions,
+                details.SkipReason,
+                details.SkipType,
+                details.SkipUnless,
+                details.SkipWhen,
+                TestIntrospectionHelper.GetTraits(testMethod, dataRow: null),
+                testMethodArguments: null,
+                details.SourceFilePath,
+                details.SourceLineNumber,
+                details.Timeout,
+                visualStudioInstanceKey);
             var testCase = ImmutableInterlocked.GetOrAdd(ref lazyInstances.Value, visualStudioInstanceKey, candidateTestCase);
             if (testCase != candidateTestCase)
             {
@@ -51,22 +80,6 @@ namespace Xunit.Threading
             }
 
             return candidateTestCase;
-        }
-
-        public override Task<RunSummary> RunAsync(IMessageSink diagnosticMessageSink, IMessageBus messageBus, object[] constructorArguments, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
-        {
-            TestCaseRunner<IXunitTestCase> runner;
-            if (!string.IsNullOrEmpty(SkipReason))
-            {
-                // Use XunitTestCaseRunner so the skip gets reported without trying to open VS
-                runner = new XunitTestCaseRunner(this, DisplayName, SkipReason, constructorArguments, TestMethodArguments, messageBus, aggregator, cancellationTokenSource);
-            }
-            else
-            {
-                runner = new IdeTestCaseRunner(SharedData, VisualStudioInstanceKey, this, DisplayName, SkipReason, constructorArguments, TestMethodArguments, messageBus, aggregator, cancellationTokenSource);
-            }
-
-            return runner.RunAsync();
         }
     }
 }

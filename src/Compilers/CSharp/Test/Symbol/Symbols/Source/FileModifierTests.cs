@@ -1101,7 +1101,7 @@ public partial class C
         }
     }
 
-    [ConditionalFact(typeof(IsEnglishLocal))]
+    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
     public void BadFileNames_04()
     {
         var source1 = """

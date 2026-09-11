@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.Extensions.Logging;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests;
 
@@ -63,7 +62,7 @@ public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
     // Only run these on 64-bit machines; some templates have source generators that are 64-bit Ready-to-Run images,
     // and those will fail to load if we're in a 32-bit process. Ideally if the machines had a 32-bit SDK we'd be able to run
     // the tests in that case, but that's not worth the engineering work to set up.
-    [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled), typeof(Bitness64))]
+    [ConditionalTheory(skipConditions: [typeof(DotNetSdkMSBuildInstalled), typeof(Bitness64)])]
     [MemberData(nameof(GetCSharpProjectTemplateNames), DisableDiscoveryEnumeration = false)]
     public Task ValidateCSharpTemplateProjects(string templateName)
     {
@@ -73,7 +72,7 @@ public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
     // Only run these on 64-bit machines; some templates have source generators that are 64-bit Ready-to-Run images,
     // and those will fail to load if we're in a 32-bit process. Ideally if the machines had a 32-bit SDK we'd be able to run
     // the tests in that case, but that's not worth the engineering work to set up.
-    [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled), typeof(Bitness64))]
+    [ConditionalTheory(skipConditions: [typeof(DotNetSdkMSBuildInstalled), typeof(Bitness64)])]
     [MemberData(nameof(GetVisualBasicProjectTemplateNames), DisableDiscoveryEnumeration = false)]
     public async Task ValidateVisualBasicTemplateProjects(string templateName)
     {

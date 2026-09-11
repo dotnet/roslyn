@@ -5,6 +5,7 @@
     <IsShipping>false</IsShipping>
     <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
     <TargetFrameworks>$(StandardTestTfms)</TargetFrameworks>
+    <OutputType Condition="'$(TargetFramework)' == '$(NetFxVS)'">Exe</OutputType>
     <PreserveCompilationContext>true</PreserveCompilationContext>
 
     <!-- To generate baselines, run tests with /p:GenerateJsonFiles=true -->

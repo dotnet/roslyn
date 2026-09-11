@@ -22780,7 +22780,7 @@ ref struct S
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/73553")]
         public void RefFieldTypeAllowsRefLike()
         {

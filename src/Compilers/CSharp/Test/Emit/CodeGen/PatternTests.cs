@@ -3450,7 +3450,7 @@ public class Class1
         }
 
         // Possible test helper bug on Linux; see https://github.com/dotnet/roslyn/issues/33356
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void SwitchExpressionSequencePoints()
         {
             string source = @"
@@ -4878,7 +4878,7 @@ class B : Exception
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void TargetTypedSwitch_Arglist()
         {
             var source = @"

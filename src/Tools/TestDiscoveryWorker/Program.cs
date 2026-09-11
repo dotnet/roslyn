@@ -6,13 +6,16 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using Mono.Options;
 using Xunit;
-using Xunit.Abstractions;
+using Xunit.Runner.Common;
+using Xunit.Sdk;
+using Xunit.v3;
 
 const int ExitFailure = 1;
 const int ExitSuccess = 0;
@@ -42,10 +45,16 @@ try
         return ExitFailure;
     }
 
-    if (outputFilePath is null)
-    {
-        outputFilePath = Path.Combine(Path.GetDirectoryName(assemblyFilePath)!, "testlist.json");
-    }
+    // Resolve to an absolute path up front: xUnit changes the current directory to the test
+    // assembly's own directory during discovery, so any relative path computed from
+    // assemblyFilePath later on would otherwise silently break.
+    assemblyFilePath = Path.GetFullPath(assemblyFilePath);
+
+    // Same reasoning as above: normalize an explicit --out path too, since discovery changes
+    // the current directory before the output file is written.
+    outputFilePath = outputFilePath is null
+        ? Path.Combine(Path.GetDirectoryName(assemblyFilePath)!, "testlist.json")
+        : Path.GetFullPath(outputFilePath);
 
 #if NET
     var resolver = new System.Runtime.Loader.AssemblyDependencyResolver(assemblyFilePath);
@@ -59,6 +68,16 @@ try
 
         return null;
     };
+#else
+    // .NET Framework only probes its own directory (and the GAC) for dependencies, but the test
+    // assembly's dependencies live alongside it, not alongside this worker. Resolve them from
+    // there instead.
+    string testAssemblyDirectory = Path.GetDirectoryName(assemblyFilePath)!;
+    AppDomain.CurrentDomain.AssemblyResolve += (sender, resolveArgs) =>
+    {
+        var candidatePath = Path.Combine(testAssemblyDirectory, new AssemblyName(resolveArgs.Name).Name + ".dll");
+        return File.Exists(candidatePath) ? Assembly.LoadFrom(candidatePath) : null;
+    };
 #endif
 
     string assemblyFileName = Path.GetFileName(assemblyFilePath);
@@ -70,19 +89,37 @@ try
 
     Console.Write($"Discovering tests in {tfm} {assemblyFileName} ... ");
 
-    using var xunit = new XunitFrontController(AppDomainSupport.IfAvailable, assemblyFilePath, shadowCopy: false);
-    var configuration = ConfigReader.Load(assemblyFileName, configFileName: null);
-    var sink = new Sink();
-    xunit.Find(includeSourceInformation: false,
-                messageSink: sink,
-                discoveryOptions: TestFrameworkOptions.ForDiscovery(configuration));
+    var assemblyMetadata = AssemblyUtility.GetAssemblyMetadata(assemblyFilePath)
+        ?? throw new InvalidOperationException($"Could not determine the xUnit test framework used by '{assemblyFilePath}'.");
+    var projectAssembly = new XunitProjectAssembly(new XunitProject(), assemblyFilePath, assemblyMetadata);
 
-    var testsToWrite = new Dictionary<string, bool>();
-    await foreach (var (fullyQualifiedName, hasAsyncLifetime) in sink.GetTestCaseInfosAsync().ConfigureAwait(false))
+    // InProcessTestProcessLauncher requires xunit.v3.runner.inproc.console to already be loaded
+    // into this process, but .NET only loads assemblies on first use. Since nothing else in this
+    // worker references that assembly, force-load it from the test assembly's own output
+    // directory before creating the front controller.
+    string inProcConsolePath = Path.Combine(Path.GetDirectoryName(assemblyFilePath)!, "xunit.v3.runner.inproc.console.dll");
+    if (File.Exists(inProcConsolePath))
     {
-        if (!testsToWrite.ContainsKey(fullyQualifiedName))
-            testsToWrite[fullyQualifiedName] = hasAsyncLifetime;
+#if NET
+        System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromAssemblyPath(inProcConsolePath);
+#else
+        Assembly.LoadFrom(inProcConsolePath);
+#endif
     }
+
+    // Roslyn's xUnit v3 test projects override TargetExt to .dll (to satisfy the repo's
+    // *.UnitTests.dll naming requirement), so they never produce the native apphost executable
+    // that the default out-of-process launcher requires. Use the in-process launcher instead,
+    // which loads the test assembly via reflection and requires no apphost.
+    await using var controller = XunitFrontController.Create(projectAssembly, testProcessLauncher: InProcessTestProcessLauncher.Instance)
+        ?? throw new InvalidOperationException($"Could not create a test framework front controller for '{assemblyFilePath}'.");
+    var sink = new Sink();
+    var discoveryOptions = TestFrameworkOptions.ForDiscovery(projectAssembly.Configuration);
+    controller.Find(sink, new FrontControllerFindSettings(discoveryOptions, projectAssembly.Configuration?.Filters ?? new XunitFilters()));
+
+    var testsToWrite = new HashSet<string>();
+    await foreach (var fullyQualifiedName in sink.GetTestCaseInfosAsync().ConfigureAwait(false))
+        testsToWrite.Add(fullyQualifiedName);
 
     if (sink.AnyWriteFailures)
     {
@@ -93,8 +130,8 @@ try
     Console.WriteLine($"{testsToWrite.Count} found");
 
     var testInfos = testsToWrite
-        .OrderBy(x => x.Key)
-        .Select(x => new TestInfo(x.Key, x.Value))
+        .OrderBy(x => x)
+        .Select(x => new TestInfo(x))
         .ToArray();
     using var fileStream = new FileStream(outputFilePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
     await JsonSerializer.SerializeAsync(fileStream, testInfos).ConfigureAwait(false);
@@ -116,15 +153,11 @@ catch (Exception ex)
 file class TestInfo
 {
     public string MethodName { get; set; } = "";
-    public bool HasAsyncLifetime { get; set; }
 
     public TestInfo() { }
 
-    public TestInfo(string methodName, bool hasAsyncLifetime)
-    {
-        MethodName = methodName;
-        HasAsyncLifetime = hasAsyncLifetime;
-    }
+    public TestInfo(string methodName)
+        => MethodName = methodName;
 }
 
 file class Sink : IMessageSink
@@ -133,13 +166,12 @@ file class Sink : IMessageSink
 
     public Sink()
     {
-        _channel = Channel.CreateUnbounded<(string FullName, bool HasAsyncLifetime)>();
+        _channel = Channel.CreateUnbounded<string>();
     }
 
-    private readonly Channel<(string FullName, bool HasAsyncLifetime)> _channel;
-    private readonly Dictionary<string, bool> _asyncLifetimeCache = new();
+    private readonly Channel<string> _channel;
 
-    public async IAsyncEnumerable<(string FullName, bool HasAsyncLifetime)> GetTestCaseInfosAsync()
+    public async IAsyncEnumerable<string> GetTestCaseInfosAsync()
     {
         while (await _channel.Reader.WaitToReadAsync(CancellationToken.None).ConfigureAwait(false))
         {
@@ -152,12 +184,12 @@ file class Sink : IMessageSink
 
     public bool OnMessage(IMessageSinkMessage message)
     {
-        if (message is ITestCaseDiscoveryMessage discoveryMessage)
+        if (message is ITestCaseDiscovered discoveryMessage)
         {
             OnTestDiscovered(discoveryMessage);
         }
 
-        if (message is IDiscoveryCompleteMessage)
+        if (message is IDiscoveryComplete)
         {
             _channel.Writer.Complete();
         }
@@ -165,28 +197,23 @@ file class Sink : IMessageSink
         return true;
     }
 
-    private void OnTestDiscovered(ITestCaseDiscoveryMessage testCaseDiscovered)
+    private void OnTestDiscovered(ITestCaseDiscovered testCaseDiscovered)
     {
-        var testClass = testCaseDiscovered.TestCase.TestMethod.TestClass.Class;
-        var fullName = $"{testClass.Name}.{testCaseDiscovered.TestCase.TestMethod.Method.Name}";
-        var hasAsyncLifetime = HasAsyncLifetime(testClass);
+        var className = testCaseDiscovered.TestClassName;
+        var methodName = testCaseDiscovered.TestMethodName;
+
+        if (string.IsNullOrEmpty(className) || string.IsNullOrEmpty(methodName))
+        {
+            AnyWriteFailures = true;
+            return;
+        }
+
+        var fullName = $"{className}.{methodName}";
 
         // this shouldn't happen as our channel is unbounded but we are Paranoid Coding™️
-        if (!_channel.Writer.TryWrite((fullName, hasAsyncLifetime)))
+        if (!_channel.Writer.TryWrite(fullName))
         {
             AnyWriteFailures = true;
         }
     }
-
-    private bool HasAsyncLifetime(ITypeInfo typeInfo)
-    {
-        var typeName = typeInfo.Name;
-        if (_asyncLifetimeCache.TryGetValue(typeName, out var cached))
-            return cached;
-
-        var result = typeInfo.Interfaces.Any(i => i.Name == "Xunit.IAsyncLifetime");
-        _asyncLifetimeCache[typeName] = result;
-        return result;
-    }
 }
-

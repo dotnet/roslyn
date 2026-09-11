@@ -510,7 +510,7 @@ public sealed class MakeMemberRequiredTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();
 
-    [ConditionalFact(typeof(IsEnglishLocal))]
+    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
     public Task FixAllIgnoresStaticMembers()
         => new VerifyCS.Test
         {

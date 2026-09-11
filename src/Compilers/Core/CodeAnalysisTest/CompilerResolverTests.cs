@@ -54,7 +54,7 @@ public sealed class CompilerResolverTests : IDisposable
         Assert.Null(assembly);
     }
 
-    [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/79352")]
+    [ConditionalFact(skipConditions: typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/79352")]
     public void ResolveReturnsForHostAssembly()
     {
         var assembly = Loader.CompilerAnalyzerAssemblyResolver.Resolve(Loader, AssemblyInCompilerContext.GetName(), ScratchContext, TempRoot.CreateDirectory().Path);

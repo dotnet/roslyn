@@ -278,7 +278,7 @@ int y = 1;
         }
 
         [WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void NormalizedPath_Tree()
         {
             var source = @"
@@ -313,7 +313,7 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         [WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")]
         public void NoResolver()
         {
@@ -347,7 +347,7 @@ class C { void M() { } }
         }
 
         [WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void NormalizedPath_LineDirective()
         {
             var source = @"
@@ -404,7 +404,7 @@ class C
         }
 
         [WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void NormalizedPath_ChecksumDirective()
         {
             var source = @"
@@ -469,7 +469,7 @@ class C
         }
 
         [WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void NormalizedPath_NoBaseDirectory()
         {
             var source = @"

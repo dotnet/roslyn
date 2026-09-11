@@ -2890,7 +2890,7 @@ class Program
 
         #region CoreCLR Signing Tests
 
-        [ConditionalFact(typeof(UnixLikeOnly), typeof(ClrOnly)), WorkItem(9288, "https://github.com/dotnet/roslyn/issues/9288")]
+        [ConditionalFact(skipConditions: [typeof(UnixLikeOnly), typeof(ClrOnly)]), WorkItem(9288, "https://github.com/dotnet/roslyn/issues/9288")]
         public void Bug9288_keycontainer()
         {
             const string source = "";

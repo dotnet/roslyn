@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading.Tasks;
 using Basic.Reference.Assemblies;
 using Microsoft.AspNetCore.Razor;
@@ -26,8 +27,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -94,7 +93,7 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
 
         // Force initialization and creation of the remote workspace. It will be filled in later.
         var traceSource = new TraceSource("Cohost test remote initialization");
-        traceSource.Listeners.Add(new XunitTraceListener(TestOutputHelper));
+        traceSource.Listeners.Add(new TestOutputTraceListener(TestOutputHelper));
         await RemoteWorkspaceProvider.TestAccessor.InitializeRemoteExportProviderBuilderAsync(Path.GetTempPath(), traceSource, DisposalToken);
         _ = RemoteWorkspaceProvider.Instance.GetWorkspace();
 
@@ -286,6 +285,34 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
 
     private static bool IsEditorConfig(string fileName)
         => Path.GetFileName(fileName).Equals(".editorconfig", StringComparison.OrdinalIgnoreCase);
+
+    private sealed class TestOutputTraceListener(ITestOutputHelper logger) : TraceListener
+    {
+        private readonly StringBuilder _lineInProgress = new();
+        private bool _disposed;
+
+        public override bool IsThreadSafe => false;
+
+        public override void Write(string? message)
+            => _lineInProgress.Append(message);
+
+        public override void WriteLine(string? message)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            logger.WriteLine(_lineInProgress.ToString() + message);
+            _lineInProgress.Clear();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            _disposed = true;
+            base.Dispose(disposing);
+        }
+    }
 
     private static ImmutableArray<PortableExecutableReference> CreateMetadataReferences(bool net461)
     {

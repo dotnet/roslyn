@@ -6,6 +6,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests
 {
     using System;
     using System.Diagnostics;
+    using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Windows;
@@ -158,6 +159,19 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests
             Assert.Equal("CustomValue", Environment.GetEnvironmentVariable("CustomKey1"));
             Assert.Equal("A=B;C", Environment.GetEnvironmentVariable("CustomKey2"));
             Assert.Null(Environment.GetEnvironmentVariable("CustomEmptyKey"));
+        }
+
+        [IdeFact(MaxAttempts = 2)]
+        public void TestRetryPassesOnSecondAttempt()
+        {
+            var markerFile = Path.Combine(Path.GetTempPath(), $"{typeof(IdeFactTest).FullName}.{nameof(TestRetryPassesOnSecondAttempt)}.marker");
+            if (!File.Exists(markerFile))
+            {
+                File.WriteAllText(markerFile, "retry");
+                Assert.True(false, "First attempt should fail so the harness retries the test.");
+            }
+
+            File.Delete(markerFile);
         }
     }
 }

@@ -11,7 +11,6 @@ namespace Xunit.Harness
     using System.Linq;
     using System.Runtime.CompilerServices;
     using System.Runtime.ExceptionServices;
-    using Xunit.Abstractions;
     using Xunit.Sdk;
 
     public static class DataCollectionService
@@ -23,20 +22,7 @@ namespace Xunit.Harness
         [ThreadStatic]
         private static bool _inHandler;
 
-        internal static ITest? CurrentTest { get; set; }
-
-        private static string CurrentTestName
-        {
-            get
-            {
-                if (CurrentTest is null)
-                {
-                    return "Unknown";
-                }
-
-                return GetTestName(CurrentTest.TestCase);
-            }
-        }
+        internal static string? CurrentTestName { get; set; }
 
         /// <summary>
         /// Register a custom logger to collect data in the event of a test failure.
@@ -95,13 +81,9 @@ namespace Xunit.Harness
                 new CustomLoggerData(callback, logId, extension));
         }
 
-        internal static string GetTestName(ITestCase testCase)
+        internal static string GetTestName(ITestCaseMetadata testCase)
         {
-            var testMethod = testCase.TestMethod.Method;
-            var testClass = testMethod.Type.Name;
-            var lastDot = testClass.LastIndexOf('.');
-            testClass = testClass.Substring(lastDot + 1);
-            return $"{testClass}.{testMethod.Name}";
+            return $"{testCase.TestClassSimpleName}.{testCase.TestMethodName}";
         }
 
         internal static void InstallFirstChanceExceptionHandler()
@@ -156,7 +138,7 @@ namespace Xunit.Harness
             }
 
             logged.Value = true;
-            CaptureFailureState(CurrentTestName, ex);
+            CaptureFailureState(CurrentTestName ?? "Unknown", ex);
             return true;
         }
 

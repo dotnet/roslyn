@@ -4,7 +4,6 @@
 using System;
 using System.IO;
 using System.Text;
-using Xunit;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 

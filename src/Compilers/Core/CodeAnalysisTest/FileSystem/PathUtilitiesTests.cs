@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
             Assert.Equal(dotnetName, roslynName);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void TestGetDirectoryName_WindowsPaths_Absolute()
         {
             TestGetDirectoryNameAndCompareToDotnet(@"C:\temp", @"C:\temp\goo.txt");
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
             TestGetDirectoryNameAndCompareToDotnet(null, null);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void TestGetDirectoryName_WindowsPaths_Relative()
         {
             TestGetDirectoryNameAndCompareToDotnet(@"goo\temp", @"goo\temp\goo.txt");
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void TestGetDirectoryName_WindowsSharePaths()
         {
             TestGetDirectoryNameAndCompareToDotnet(@"\\server\temp", @"\\server\temp\goo.txt");
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
             TestGetDirectoryNameAndCompareToDotnet(null, @"\");
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void TestGetDirectoryName_EsotericCases()
         {
             TestGetDirectoryNameAndCompareToDotnet(@"C:\temp", @"C:\temp\\goo.txt");
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
             TestGetDirectoryNameAndCompareToDotnet(null, @"C:");
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void TestContainsPathComponent()
         {
             Assert.True(
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
                 PathUtilities.ContainsPathComponent(@"c:\Package\temp", "packages", ignoreCase: false));
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void IsSameDirectoryOrChildOfHandlesDifferentSlashes()
         {
             Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"C:\", @"C:"));
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
             Assert.False(PathUtilities.IsSameDirectoryOrChildOf(@"C:\A\B\C", @"C:\A\B\C\D"));
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void IsSameDirectoryOrChildOfSpecifyingCaseSensitivity_Windows()
         {
             Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"C:\a\B\C", @"C:\A\B", StringComparison.OrdinalIgnoreCase));
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
             Assert.False(PathUtilities.IsSameDirectoryOrChildOf(@"C:\A\b\C", @"C:\A\B", StringComparison.Ordinal));
         }
 
-        [ConditionalFact(typeof(UnixLikeOnly))]
+        [ConditionalFact(skipConditions: typeof(UnixLikeOnly))]
         public void IsSameDirectoryOrChildOfSpecifyingCaseSensitivity_Unix()
         {
             Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"/a/B/C", @"/A/B", StringComparison.OrdinalIgnoreCase));
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
             }
         }
 
-        [ConditionalTheory(typeof(WindowsOnly))]
+        [ConditionalTheory(skipConditions: typeof(WindowsOnly))]
         [InlineData(@"C:\", "B")]
         [InlineData(@"C:\A", "B")]
         [InlineData(@"C:\A\", "B")]
@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
             Assert.Equal(Path.Combine(path1, path2), PathUtilities.CombinePaths(path1, path2));
         }
 
-        [ConditionalTheory(typeof(UnixLikeOnly))]
+        [ConditionalTheory(skipConditions: typeof(UnixLikeOnly))]
         [InlineData("C", "B")]
         [InlineData("C/", "\t")]
         [InlineData("C/", "B")]
@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
             Assert.Equal(Path.Combine(path1, path2), PathUtilities.CombinePaths(path1, path2));
         }
 
-        [ConditionalTheory(typeof(WindowsOnly))]
+        [ConditionalTheory(skipConditions: typeof(WindowsOnly))]
         [InlineData(@"C:\|\<>", @"C:\|", "<>")]
         [InlineData("C:\\\t", @"C:\", "\t")]
         [InlineData("C", "C", null)]
@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
             Assert.Equal(expected, PathUtilities.CombinePaths(path1, path2));
         }
 
-        [ConditionalFact(typeof(WindowsOnly)), WorkItem(51602, @"https://github.com/dotnet/roslyn/issues/51602")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly)), WorkItem(51602, @"https://github.com/dotnet/roslyn/issues/51602")]
         public void GetRelativePath_EnsureNo_IndexOutOfRangeException_Windows()
         {
             var expected = "";
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
             Assert.Equal(expected, result);
         }
 
-        [ConditionalFact(typeof(UnixLikeOnly)), WorkItem(51602, @"https://github.com/dotnet/roslyn/issues/51602")]
+        [ConditionalFact(skipConditions: typeof(UnixLikeOnly)), WorkItem(51602, @"https://github.com/dotnet/roslyn/issues/51602")]
         public void GetRelativePath_EnsureNo_IndexOutOfRangeException_Unix()
         {
             var expected = "";
@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
             AssertEx.Equal(output, PathUtilities.CollapseWithForwardSlash(input.AsSpan()));
         }
 
-        [ConditionalTheory(typeof(WindowsOnly))]
+        [ConditionalTheory(skipConditions: typeof(WindowsOnly))]
         [InlineData(@"//a/b/c", @"//a/b/c")]
         [InlineData(@"/a\b/c/", @"/a\b/c/")]
         [InlineData(@"C:B", @"C:B")]
@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
             AssertEx.Equal(output, PathUtilities.NormalizeDriveLetter(input));
         }
 
-        [ConditionalTheory(typeof(UnixLikeOnly))]
+        [ConditionalTheory(skipConditions: typeof(UnixLikeOnly))]
         [InlineData(@"//a/b/c")]
         [InlineData(@"/a\b/c/")]
         [InlineData(@"C:B")]

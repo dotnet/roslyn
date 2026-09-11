@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -8,12 +8,14 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Test;
 
 public class TagHelperCollectionTest
 {
+    private static void AssertSameItems(IEnumerable<TagHelperDescriptor> expected, IEnumerable<TagHelperDescriptor> actual)
+        => Assert.Equal(expected, actual, ReferenceEqualityComparer.Instance);
+
     private static TagHelperDescriptor CreateTagHelper(string name, string assemblyName = "TestAssembly")
     {
         var builder = TagHelperDescriptorBuilder.Create(name, assemblyName);
@@ -149,7 +151,7 @@ public class TagHelperCollectionTest
         var collection = TagHelperCollection.Create(array);
 
         // Assert
-        Assert.SameItems([tagHelper1, tagHelper2], collection);
+        AssertSameItems([tagHelper1, tagHelper2], collection);
     }
 
     [Fact]
@@ -190,7 +192,7 @@ public class TagHelperCollectionTest
         var collection = TagHelperCollection.Create(tagHelpers);
 
         // Assert
-        Assert.SameItems(tagHelpers, collection);
+        AssertSameItems(tagHelpers, collection);
     }
 
     [Fact]
@@ -205,7 +207,7 @@ public class TagHelperCollectionTest
         var collection = TagHelperCollection.Create(array);
 
         // Assert
-        Assert.SameItems([tagHelper1, tagHelper2], collection);
+        AssertSameItems([tagHelper1, tagHelper2], collection);
     }
 
     [Fact]
@@ -271,7 +273,7 @@ public class TagHelperCollectionTest
         TagHelperCollection collection = [tagHelper1, tagHelper2, tagHelper1];
 
         // Assert
-        Assert.SameItems([tagHelper1, tagHelper2], collection);
+        AssertSameItems([tagHelper1, tagHelper2], collection);
     }
 
     [Fact]
@@ -302,7 +304,7 @@ public class TagHelperCollectionTest
         TagHelperCollection collection = [.. tagHelpers];
 
         // Assert
-        Assert.SameItems(tagHelpers, collection);
+        AssertSameItems(tagHelpers, collection);
     }
 
     [Fact]
@@ -397,7 +399,7 @@ public class TagHelperCollectionTest
         // Assert
         Assert.Equal(4, collection.Count);
         Assert.False(collection.IsEmpty);
-        Assert.SameItems(tagHelpers, collection);
+        AssertSameItems(tagHelpers, collection);
     }
 
     [Fact]
@@ -412,7 +414,7 @@ public class TagHelperCollectionTest
 
         // Assert
         Assert.Equal(4, collection.Count);
-        Assert.SameItems(tagHelpers, collection);
+        AssertSameItems(tagHelpers, collection);
     }
 
     [Fact]
@@ -428,7 +430,7 @@ public class TagHelperCollectionTest
 
         // Assert
         Assert.Equal(2, collection.Count);
-        Assert.SameItems([tagHelper1, tagHelper2], collection);
+        AssertSameItems([tagHelper1, tagHelper2], collection);
     }
 
     [Fact]
@@ -445,7 +447,7 @@ public class TagHelperCollectionTest
 
         // Assert
         Assert.Equal(2, collection.Count);
-        Assert.SameItems([tagHelper1, tagHelper2], collection);
+        AssertSameItems([tagHelper1, tagHelper2], collection);
     }
 
     [Fact]
@@ -460,7 +462,7 @@ public class TagHelperCollectionTest
 
         // Assert
         Assert.Equal(3, collection.Count);
-        Assert.SameItems(tagHelpers, collection);
+        AssertSameItems(tagHelpers, collection);
     }
 
     [Fact]
@@ -475,7 +477,7 @@ public class TagHelperCollectionTest
 
         // Assert
         Assert.Equal(3, collection.Count);
-        Assert.SameItems(tagHelpers, collection);
+        AssertSameItems(tagHelpers, collection);
     }
 
     [Fact]
@@ -510,7 +512,7 @@ public class TagHelperCollectionTest
 
         // Assert
         Assert.Equal(3, collection.Count);
-        Assert.SameItems(tagHelpers, collection);
+        AssertSameItems(tagHelpers, collection);
     }
 
     [Fact]
@@ -525,7 +527,7 @@ public class TagHelperCollectionTest
 
         // Assert
         Assert.Equal(3, collection.Count);
-        Assert.SameItems(tagHelpers, collection);
+        AssertSameItems(tagHelpers, collection);
     }
 
     [Fact]
@@ -540,7 +542,7 @@ public class TagHelperCollectionTest
 
         // Assert
         Assert.Equal(3, collection.Count);
-        Assert.SameItems(tagHelpers, collection);
+        AssertSameItems(tagHelpers, collection);
     }
 
     [Fact]
@@ -587,7 +589,7 @@ public class TagHelperCollectionTest
 
         // Assert
         Assert.Equal(3, collection.Count);
-        Assert.SameItems(tagHelpers, collection);
+        AssertSameItems(tagHelpers, collection);
     }
 
     [Fact]
@@ -611,7 +613,7 @@ public class TagHelperCollectionTest
 
         // Assert
         Assert.Equal(3, collection.Count);
-        Assert.SameItems(tagHelpers, collection);
+        AssertSameItems(tagHelpers, collection);
     }
 
     // Helper classes for testing
@@ -695,7 +697,7 @@ public class TagHelperCollectionTest
         });
 
         // Assert
-        Assert.SameItems(tagHelpers, collection);
+        AssertSameItems(tagHelpers, collection);
     }
 
     [Fact]
@@ -714,7 +716,7 @@ public class TagHelperCollectionTest
         });
 
         // Assert
-        Assert.SameItems([tagHelper1, tagHelper2], collection);
+        AssertSameItems([tagHelper1, tagHelper2], collection);
     }
 
     [Fact]
@@ -891,7 +893,7 @@ public class TagHelperCollectionTest
         }
 
         // Assert
-        Assert.SameItems(tagHelpers, enumeratedItems);
+        AssertSameItems(tagHelpers, enumeratedItems);
     }
 
     [Fact]
@@ -910,7 +912,7 @@ public class TagHelperCollectionTest
         }
 
         // Assert
-        Assert.SameItems(tagHelpers, enumeratedItems);
+        AssertSameItems(tagHelpers, enumeratedItems);
     }
 
     [Fact]
@@ -1519,7 +1521,7 @@ public class TagHelperCollectionTest
         var collection = builder.ToCollection();
 
         // Assert
-        Assert.SameItems(tagHelpers, collection);
+        AssertSameItems(tagHelpers, collection);
     }
 
     [Fact]
@@ -1593,7 +1595,7 @@ public class TagHelperCollectionTest
         }
 
         // Assert
-        Assert.SameItems(tagHelpers, enumerated);
+        AssertSameItems(tagHelpers, enumerated);
     }
 
     [Fact]
@@ -1616,7 +1618,7 @@ public class TagHelperCollectionTest
         }
 
         // Assert
-        Assert.SameItems(tagHelpers, enumerated);
+        AssertSameItems(tagHelpers, enumerated);
     }
 
     [Fact]
@@ -1640,7 +1642,7 @@ public class TagHelperCollectionTest
         }
 
         // Assert
-        Assert.SameItems(tagHelpers, enumerated);
+        AssertSameItems(tagHelpers, enumerated);
     }
 
     [Fact]
@@ -1865,7 +1867,7 @@ public class TagHelperCollectionTest
 
         // Assert
         Assert.Equal(3, merged.Count); // Should not duplicate
-        Assert.SameItems(tagHelpers, merged);
+        AssertSameItems(tagHelpers, merged);
     }
 
     [Fact]
@@ -3223,7 +3225,7 @@ public class TagHelperCollectionTest
 
         // Assert
         Assert.Equal(collection.Count, filtered.Count);
-        Assert.SameItems(tagHelpers, filtered);
+        AssertSameItems(tagHelpers, filtered);
 
         // Verify the result has the same structure (should be optimized)
         for (var i = 0; i < tagHelpers.Length; i++)

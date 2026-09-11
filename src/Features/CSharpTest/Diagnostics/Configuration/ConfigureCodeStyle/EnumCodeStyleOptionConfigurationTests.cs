@@ -48,7 +48,7 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
     {
         protected override int CodeActionIndex => 0;
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_Empty_UnusedLocalVariable()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -136,7 +136,7 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_RuleExists_DotnetDiagnosticEntry()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -183,7 +183,7 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_RuleExists_ConflictingDotnetDiagnosticEntry()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -229,7 +229,7 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_InvalidHeader_UnusedLocalVariable()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -322,7 +322,7 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_InvalidRule_UnusedLocalVariable()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -375,7 +375,7 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
     {
         protected override int CodeActionIndex => 1;
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_Empty_DiscardVariable()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -507,7 +507,7 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_InvalidHeader_DiscardVariable()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -600,7 +600,7 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_InvalidRule_DiscardVariable()
             => TestInRegularAndScriptAsync("""
                 <Workspace>

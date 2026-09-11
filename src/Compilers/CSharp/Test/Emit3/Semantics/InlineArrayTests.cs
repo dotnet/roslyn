@@ -61,7 +61,7 @@ public struct Buffer4<T>
             }
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void InlineArrayType_00_LayoutAtRuntime()
         {
             var src = @"
@@ -1552,7 +1552,7 @@ unsafe struct Buffer
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void InlineArrayType_31_Nested()
         {
             var src = @"
@@ -1587,7 +1587,7 @@ public class Enclosing
             }
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void InlineArrayType_32_Generic()
         {
             var src = @"
@@ -1622,7 +1622,7 @@ public class Enclosing<T>
             }
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void InlineArrayType_33_Generic()
         {
             var src = @"
@@ -1657,7 +1657,7 @@ public class Enclosing
             }
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void InlineArrayType_34_Generic()
         {
             var src = @"
@@ -1692,7 +1692,7 @@ public class Enclosing<T>
             }
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void InlineArrayType_35_Generic()
         {
             var src = @"
@@ -1887,7 +1887,7 @@ struct Buffer
             Assert.Equal(0, length);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void InlineArrayType_42()
         {
             var src = @"
@@ -2439,7 +2439,7 @@ class Program
             Assert.Equal("System.Range", typeInfo.ConvertedType.ToTestDisplayString());
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_01()
         {
             var src = @"
@@ -2534,7 +2534,7 @@ class Program
             Assert.Empty(symbolInfo.CandidateSymbols);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_02()
         {
             var src = @"
@@ -2571,7 +2571,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_03()
         {
             var src = @"
@@ -2684,7 +2684,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_06()
         {
             var src = @"
@@ -2721,7 +2721,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_07()
         {
             var src = @"
@@ -2759,7 +2759,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_08()
         {
             var src = @"
@@ -2800,7 +2800,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_09()
         {
             var src = @"
@@ -2842,7 +2842,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_10()
         {
             var src = @"
@@ -2870,7 +2870,7 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_11()
         {
             var src = @"
@@ -2895,7 +2895,7 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_12()
         {
             var src = @"
@@ -2996,7 +2996,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_15()
         {
             var src = @"
@@ -3021,7 +3021,7 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_16()
         {
             var src = @"
@@ -3047,7 +3047,7 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_17()
         {
             var src = @"
@@ -3076,7 +3076,7 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_18()
         {
             var src = @"
@@ -3106,7 +3106,7 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_19()
         {
             var src = @"
@@ -3169,7 +3169,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_20()
         {
             var src = @"
@@ -3232,7 +3232,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_21()
         {
             var src = @"
@@ -3305,7 +3305,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Await_01()
         {
             var src = @"
@@ -3529,7 +3529,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Await_02()
         {
             var src = @"
@@ -3761,7 +3761,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Await_03()
         {
             var src = @"
@@ -3989,7 +3989,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Await_04()
         {
             var src = @"
@@ -4114,7 +4114,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Await_05()
         {
             var src = @"
@@ -4243,7 +4243,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Await_06()
         {
             var src = @"
@@ -4370,7 +4370,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Await_07()
         {
             var src = @"
@@ -4501,7 +4501,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Await_08()
         {
             var src = @"
@@ -4643,7 +4643,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Await_09_01()
         {
             var src = @"
@@ -4794,7 +4794,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Await_09_02()
         {
             var src = @"
@@ -5191,7 +5191,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Await_14_GenericMethod()
         {
             var src = @"
@@ -5424,7 +5424,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Await_15()
         {
             var src = @"
@@ -5641,7 +5641,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Await_16()
         {
             var src = @"
@@ -5775,7 +5775,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Await_17()
         {
             var src = @"
@@ -5990,7 +5990,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Await_18()
         {
             var src = @"
@@ -6123,7 +6123,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Index_Variable_01()
         {
             var src = @"
@@ -6206,7 +6206,7 @@ class Program
             Assert.Equal("Buffer10<System.Int32> C.F", symbolInfo.Symbol.ToTestDisplayString());
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Dynamic_Variable_01()
         {
             var src = @"
@@ -6300,7 +6300,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_Variable_01()
         {
             var src = @"
@@ -6383,7 +6383,7 @@ class Program
             Assert.Empty(symbolInfo.CandidateSymbols);
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(CoreClrOnly))]
         [CombinatorialData]
         public void Slice_Variable_03([CombinatorialValues("..10", "0..", "..^0", "^10..")] string range)
         {
@@ -6500,7 +6500,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_Variable_06()
         {
             var src = @"
@@ -6539,7 +6539,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_Variable_07()
         {
             var src = @"
@@ -6578,7 +6578,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_Variable_08()
         {
             var src = @"
@@ -6621,7 +6621,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_Variable_09()
         {
             var src = @"
@@ -6664,7 +6664,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_Variable_10()
         {
             var src = @"
@@ -6692,7 +6692,7 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_Variable_12()
         {
             var src = @"
@@ -6793,7 +6793,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_Variable_15()
         {
             var src = @"
@@ -6819,7 +6819,7 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_Variable_16()
         {
             var src = @"
@@ -6845,7 +6845,7 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_Variable_17()
         {
             var src = @"
@@ -6875,7 +6875,7 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_Variable_18()
         {
             var src = @"
@@ -6950,7 +6950,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_Variable_21()
         {
             var src = @"
@@ -6990,7 +6990,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_Variable_22()
         {
             var src = @"
@@ -7040,7 +7040,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_Variable_23()
         {
             var src = @"
@@ -7090,7 +7090,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_Variable_24()
         {
             var src = @"
@@ -7145,7 +7145,7 @@ class Program
 ");
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(CoreClrOnly))]
         [CombinatorialData]
         public void Slice_Variable_25([CombinatorialValues("1..", "^9..")] string range)
         {
@@ -7219,7 +7219,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_Variable_26()
         {
             var src = @"
@@ -7296,7 +7296,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_Variable_27()
         {
             var src = @"
@@ -7366,7 +7366,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_Range_Variable_01()
         {
             var src = @"
@@ -7438,7 +7438,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_Range_Variable_Readonly_01()
         {
             var src = @"
@@ -7508,7 +7508,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_Await_01()
         {
             var src = @"
@@ -7645,7 +7645,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_Await_02()
         {
             var src = @"
@@ -7791,7 +7791,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_Await_03()
         {
             var src = @"
@@ -7956,7 +7956,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_Await_04()
         {
             var src = @"
@@ -8119,7 +8119,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_Await_05()
         {
             var src = @"
@@ -8341,7 +8341,7 @@ class Program
             Assert.Empty(symbolInfo.CandidateSymbols);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_ObjectInitializer_Int_02()
         {
             var src = @"
@@ -8426,7 +8426,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_ObjectInitializer_Index_02()
         {
             var src = @"
@@ -8501,7 +8501,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_ConditionalAccess_Variable()
         {
             var src = @"
@@ -8561,7 +8561,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_ConditionalAccess_Variable()
         {
             var src = @"
@@ -8613,7 +8613,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_ConditionalAccess_Value_01()
         {
             var src = @"
@@ -8671,7 +8671,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_ConditionalAccess_Value_02()
         {
             var src = @"
@@ -8736,7 +8736,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_ConditionalAccess_Value_03()
         {
             var src = @"
@@ -8793,7 +8793,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_ConditionalAccess_Value_04()
         {
             var src = @"
@@ -9001,7 +9001,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Value_01()
         {
             var src = @"
@@ -9085,7 +9085,7 @@ class Program
             Assert.Empty(symbolInfo.CandidateSymbols);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Value_02()
         {
             var src = @"
@@ -9250,7 +9250,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Value_06()
         {
             var src = @"
@@ -9307,7 +9307,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Value_07()
         {
             var src = @"
@@ -9447,7 +9447,7 @@ class Program
             Assert.Equal("Buffer10<System.Int32> Program.M3()", symbolInfo.Symbol.ToTestDisplayString());
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_ReadonlyContext_01()
         {
             var src = @"
@@ -9495,7 +9495,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_ReadonlyContext_02()
         {
             var src = @"
@@ -9547,7 +9547,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_ReadonlyContext_03()
         {
             var src = @"
@@ -9646,7 +9646,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_ReadonlyContext_05()
         {
             var src = @"
@@ -9697,7 +9697,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_ReadonlyContext_06()
         {
             var src = @"
@@ -9822,7 +9822,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_ReadonlyContext_09()
         {
             var src = @"
@@ -9871,7 +9871,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_ReadonlyContext_10()
         {
             var src = @"
@@ -9924,7 +9924,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_ReadonlyContext_11()
         {
             var src = @"
@@ -10064,7 +10064,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_ReadonlyContext_14()
         {
             var src = @"
@@ -10155,7 +10155,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_ReadonlyContext_16()
         {
             var src = @"
@@ -10268,7 +10268,7 @@ struct C
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_ReadonlyContext_01()
         {
             var src = @"
@@ -10311,7 +10311,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_ReadonlyContext_02()
         {
             var src = @"
@@ -10594,7 +10594,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_ReadonlyContext_14()
         {
             var src = @"
@@ -10643,7 +10643,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_ReadonlyContext_16()
         {
             var src = @"
@@ -10782,7 +10782,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_Readonly_01()
         {
             var src = @"
@@ -10857,7 +10857,7 @@ class Program
             Assert.Empty(symbolInfo.CandidateSymbols);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_Readonly_02()
         {
             var src = @"
@@ -10910,7 +10910,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_Readonly_03()
         {
             var src = @"
@@ -11011,7 +11011,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_Readonly_05()
         {
             var src = @"
@@ -11063,7 +11063,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_Readonly_06()
         {
             var src = @"
@@ -11152,7 +11152,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_Readonly_08()
         {
             var src = @"
@@ -11188,7 +11188,7 @@ class Program
                 ).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_Readonly_09()
         {
             var src = @"
@@ -11228,7 +11228,7 @@ class Program
                 ).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_Readonly_10()
         {
             var src = @"
@@ -11316,7 +11316,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_Readonly_12()
         {
             var src = @"
@@ -11356,7 +11356,7 @@ class Program
                 ).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_Readonly_13()
         {
             var src = @"
@@ -11433,7 +11433,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_Readonly_19()
         {
             var src = @"
@@ -11479,7 +11479,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_Readonly_20()
         {
             var src = @"
@@ -11525,7 +11525,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Variable_Readonly_21()
         {
             var src = @"
@@ -11576,7 +11576,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_Variable_Readonly_01()
         {
             var src = @"
@@ -11646,7 +11646,7 @@ class Program
             Assert.Empty(symbolInfo.CandidateSymbols);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_Variable_Readonly_02()
         {
             var src = @"
@@ -11776,7 +11776,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_Variable_Readonly_08()
         {
             var src = @"
@@ -12299,7 +12299,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void DefiniteAssignment_03()
         {
             var src = @"
@@ -12571,7 +12571,7 @@ public struct Buffer2<T>
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void DefiniteAssignment_09()
         {
             var src = @"
@@ -12634,7 +12634,7 @@ public struct Buffer2<T>
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void DefiniteAssignment_10()
         {
             var src = @"
@@ -12700,7 +12700,7 @@ public struct Buffer2<T>
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void DefiniteAssignment_11()
         {
             var src = @"
@@ -13110,7 +13110,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void DefiniteAssignment_33()
         {
             var src = @"
@@ -13306,7 +13306,7 @@ public struct Buffer2
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void DefiniteAssignment_39()
         {
             var src = @"
@@ -13361,7 +13361,7 @@ public struct Buffer2
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void DefiniteAssignment_40()
         {
             var src = @"
@@ -13420,7 +13420,7 @@ public struct Buffer2
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void DefiniteAssignment_41()
         {
             var src = @"
@@ -13506,7 +13506,7 @@ public ref struct Buffer1Ref
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void DefiniteAssignment_42()
         {
             var src = @"
@@ -13545,7 +13545,7 @@ public struct Buffer1
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void DefiniteAssignment_43()
         {
             var src = @"
@@ -13775,7 +13775,7 @@ public struct Buffer2
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void DefiniteAssignment_47()
         {
             var src = @"
@@ -13874,7 +13874,7 @@ public ref struct Buffer2Ref
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void DefiniteAssignment_48()
         {
             var src = @"
@@ -13928,7 +13928,7 @@ public struct Buffer1
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void DefiniteAssignment_49()
         {
             var src = @"
@@ -14004,7 +14004,7 @@ public struct Buffer1
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void DefiniteAssignment_50()
         {
             var src = @"
@@ -14045,7 +14045,7 @@ public struct Buffer1
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void DefiniteAssignment_51()
         {
             var src = @"
@@ -14086,7 +14086,7 @@ public struct Buffer1
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void DefiniteAssignment_52()
         {
             var src = @"
@@ -14144,7 +14144,7 @@ public struct Buffer2<T>
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void DefiniteAssignment_53()
         {
             var src = @"
@@ -14202,7 +14202,7 @@ public struct Buffer2<T>
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void DefiniteAssignment_54()
         {
             var src = @"
@@ -14260,7 +14260,7 @@ public struct Buffer2<T>
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void DefiniteAssignment_55()
         {
             var src = @"
@@ -14311,7 +14311,7 @@ public struct Buffer2
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void DefiniteAssignment_56()
         {
             var src = @"
@@ -14362,7 +14362,7 @@ public struct Buffer2
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void DefiniteAssignment_57()
         {
             var src = @"
@@ -15566,7 +15566,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void CompoundAssignment_01()
         {
             var src = @"
@@ -15612,7 +15612,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Conversion_Variable_01()
         {
             var src = @"
@@ -15699,7 +15699,7 @@ class Program
             Assert.Equal(ConversionKind.InlineArray, model.GetConversion(f[^1]).Kind);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Conversion_Variable_03()
         {
             var src = @"
@@ -15836,7 +15836,7 @@ struct C
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Conversion_Variable_06()
         {
             var src = @"
@@ -15888,7 +15888,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Conversion_Variable_07()
         {
             var src = @"
@@ -15943,7 +15943,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Conversion_Variable_08()
         {
             var src = @"
@@ -16004,7 +16004,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Conversion_Variable_09()
         {
             var src = @"
@@ -16067,7 +16067,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Conversion_Variable_10_1()
         {
             var src = @"
@@ -16095,7 +16095,7 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Conversion_Variable_10_2()
         {
             var src = @"
@@ -16123,7 +16123,7 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Conversion_Variable_12_1()
         {
             var src = @"
@@ -16149,7 +16149,7 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Conversion_Variable_12_2()
         {
             var src = @"
@@ -16175,7 +16175,7 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Conversion_Variable_13_1()
         {
             var src = @"
@@ -16345,7 +16345,7 @@ struct C
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Conversion_Variable_15_1()
         {
             var src = @"
@@ -16371,7 +16371,7 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Conversion_Variable_15_2()
         {
             var src = @"
@@ -16397,7 +16397,7 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Conversion_Variable_16_1()
         {
             var src = @"
@@ -16426,7 +16426,7 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Conversion_Variable_16_2()
         {
             var src = @"
@@ -16455,7 +16455,7 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Conversion_Variable_17_1()
         {
             var src = @"
@@ -16490,7 +16490,7 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Conversion_Variable_17_2()
         {
             var src = @"
@@ -16525,7 +16525,7 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Conversion_Variable_18_1()
         {
             var src = @"
@@ -16562,7 +16562,7 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Conversion_Variable_18_2()
         {
             var src = @"
@@ -16629,7 +16629,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Conversion_Variable_Readonly_01()
         {
             var src = @"
@@ -16673,7 +16673,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Conversion_Variable_Readonly_02()
         {
             var src = @"
@@ -16765,7 +16765,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Conversion_ReadonlyContext_01()
         {
             var src = @"
@@ -16874,7 +16874,7 @@ struct C
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Conversion_ReadonlyContext_14()
         {
             var src = @"
@@ -17111,7 +17111,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Conversion_Await_01()
         {
             var src = @"
@@ -17391,7 +17391,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Conversion_NotFromType_02()
         {
             var src = @"
@@ -17422,7 +17422,7 @@ public struct Buffer10
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Conversion_Standard_01()
         {
             var src = @"
@@ -17461,7 +17461,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Conversion_Standard_02()
         {
             var src = @"
@@ -17610,7 +17610,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Conversion_Standard_06()
         {
             var src = @"
@@ -17977,7 +17977,7 @@ public struct Buffer10
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_IndexerIsIgnored_01()
         {
             var src = @"
@@ -18093,7 +18093,7 @@ public ref struct Buffer10<T>
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Index_IndexerIsIgnored_01()
         {
             var src = @"
@@ -18167,7 +18167,7 @@ public struct Buffer10<T>
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_SliceMethodIsIgnored_01()
         {
             var src = @"
@@ -18428,7 +18428,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementAccess_Bounds_05()
         {
             var src = @"
@@ -18609,7 +18609,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Slice_Bounds_05()
         {
             var src = @"
@@ -18728,7 +18728,7 @@ struct Buffer
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementPointer_01()
         {
             var src = @"
@@ -18752,7 +18752,7 @@ unsafe class Program
             CompileAndVerify(comp, expectedOutput: "2", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementPointer_02()
         {
             var src = @"
@@ -18816,7 +18816,7 @@ unsafe class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementPointer_04()
         {
             var src = @"
@@ -18948,7 +18948,7 @@ unsafe class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void ElementPointer_08()
         {
             var src = @"
@@ -18981,7 +18981,7 @@ struct S
             CompileAndVerify(comp, expectedOutput: "2", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Foreach_Variable_01()
         {
             var src = @"
@@ -19084,7 +19084,7 @@ class Program
             Assert.True(forEachInfo.CurrentConversion.IsIdentity);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Foreach_Variable_02()
         {
             var src = @"
@@ -19164,7 +19164,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Foreach_Variable_03()
         {
             var src = @"
@@ -19321,7 +19321,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Foreach_Variable_ReadOnly_01()
         {
             var src = @"
@@ -19452,7 +19452,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Foreach_Variable_ReadOnly_03()
         {
             var src = @"
@@ -19664,7 +19664,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Foreach_Value_03()
         {
             var src = @"
@@ -19934,7 +19934,7 @@ namespace System
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void AwaitForeach_03()
         {
             var src = @"
@@ -20510,7 +20510,7 @@ ref struct Buffer
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Foreach_InAsync_01()
         {
             var src = @"
@@ -20699,7 +20699,7 @@ class Program
             CompileAndVerify(comp, expectedOutput: "-1 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Foreach_InAsync_02()
         {
             var src = @"
@@ -20959,7 +20959,7 @@ class Program
                 """);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Foreach_InAsync_03()
         {
             var src = @"
@@ -21033,7 +21033,7 @@ class Program
             comp.VerifyEmitDiagnostics(expected);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Foreach_InAsync_05()
         {
             var src = @"
@@ -21221,7 +21221,7 @@ class Program
             CompileAndVerify(comp, expectedOutput: "-1 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Foreach_InAsync_06()
         {
             var src = @"
@@ -21421,7 +21421,7 @@ class Program
             CompileAndVerify(comp, expectedOutput: " 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Foreach_InAsync_07()
         {
             var src = @"
@@ -21495,7 +21495,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Foreach_InAsync_09()
         {
             var src = @"
@@ -21648,7 +21648,7 @@ class Program
                 ).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Foreach_InAsync_10()
         {
             var src = @"
@@ -21991,7 +21991,7 @@ class Program
             CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Foreach_InAsync_17()
         {
             var src = @"
@@ -22142,7 +22142,7 @@ class Program
             CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Foreach_InIterator_01()
         {
             var src = @"
@@ -22262,7 +22262,7 @@ class Program
             CompileAndVerify(comp, expectedOutput: "-1 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Foreach_InIterator_02()
         {
             var src = @"
@@ -22382,7 +22382,7 @@ class Program
             CompileAndVerify(comp, expectedOutput: " 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Foreach_InIterator_03()
         {
             var src = @"
@@ -22461,7 +22461,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Foreach_InIterator_05()
         {
             var src = @"
@@ -22581,7 +22581,7 @@ class Program
             CompileAndVerify(comp, expectedOutput: "-1 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Foreach_InIterator_06()
         {
             var src = @"
@@ -22701,7 +22701,7 @@ class Program
             CompileAndVerify(comp, expectedOutput: " 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Foreach_InIterator_07()
         {
             var src = @"
@@ -22783,7 +22783,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Foreach_InIterator_09()
         {
             var src = @"
@@ -22895,7 +22895,7 @@ class Program
                 ).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Foreach_InIterator_10()
         {
             var src = @"
@@ -23268,7 +23268,7 @@ class Program
             CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Foreach_InIterator_17()
         {
             var src = @"
@@ -23413,7 +23413,7 @@ class Program
             CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void UserDefinedIndexer_Warning_01()
         {
             var src = @"
@@ -23446,7 +23446,7 @@ struct Buffer4
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void UserDefinedIndexer_Warning_02()
         {
             var src = @"
@@ -23473,7 +23473,7 @@ struct Buffer4
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void UserDefinedIndexer_Warning_03()
         {
             var src = @"
@@ -23500,7 +23500,7 @@ struct Buffer4
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void UserDefinedIndexer_Warning_04()
         {
             var src = @"
@@ -23548,7 +23548,7 @@ ref struct Buffer4
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void UserDefinedIndexer_Warning_06()
         {
             var src = @"
@@ -23575,7 +23575,7 @@ interface I1
             CompileAndVerify(comp, expectedOutput: "0", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void UserDefinedSlice_Warning_01()
         {
             var src = @"
@@ -23609,7 +23609,7 @@ struct Buffer4
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void UserDefinedSlice_Warning_02()
         {
             var src = @"
@@ -23634,7 +23634,7 @@ struct Buffer4
             CompileAndVerify(comp, expectedOutput: "0", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void UserDefinedSlice_Warning_03()
         {
             var src = @"
@@ -23662,7 +23662,7 @@ interface I1
             CompileAndVerify(comp, expectedOutput: "0", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void UserDefinedConversion_Warning_01()
         {
             var src = @"
@@ -23695,7 +23695,7 @@ struct Buffer4
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void UserDefinedConversion_Warning_02()
         {
             var src = @"
@@ -23728,7 +23728,7 @@ struct Buffer4
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void UserDefinedConversion_Warning_03()
         {
             var src = @"
@@ -23750,7 +23750,7 @@ struct Buffer4
             CompileAndVerify(comp, expectedOutput: "s", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void UserDefinedConversion_Warning_04()
         {
             var src = @"
@@ -23772,7 +23772,7 @@ struct Buffer4
             CompileAndVerify(comp, expectedOutput: "1", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void UserDefinedConversion_Warning_05()
         {
             var src = @"
@@ -23801,7 +23801,7 @@ struct Buffer4
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void UserDefinedConversion_Warning_06()
         {
             var src = @"
@@ -23827,7 +23827,7 @@ struct Buffer4
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void UserDefinedConversion_Warning_07()
         {
             var src = @"
@@ -23853,7 +23853,7 @@ struct Buffer4
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/70738")]
         public void CoalesceForNullableElement()
         {
@@ -23898,7 +23898,7 @@ struct MyArray
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/70910")]
         public void StringConcatenation()
         {
@@ -24174,7 +24174,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[2]").WithLocation(8, 12));
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(CoreClrOnly))]
         [CombinatorialData]
         public void SliceStart_01(bool isMissing)
         {
@@ -24241,7 +24241,7 @@ class Program
 """);
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(CoreClrOnly))]
         [InlineData(null)]
         [InlineData("Span")]
         [InlineData("ReadOnlySpan")]
@@ -24311,7 +24311,7 @@ class Program
 ");
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(CoreClrOnly))]
         [CombinatorialData]
         public void SliceStart_03(bool isMissing)
         {
@@ -24394,7 +24394,7 @@ class Program
 """);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void SliceStart_04()
         {
             // slice with closed range `1..5`
@@ -24432,7 +24432,7 @@ class Program
 """);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void SliceStart_05()
         {
             // slice with `0..`
@@ -24473,7 +24473,7 @@ class Program
 """);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void SliceStart_06()
         {
             // slice with Range parameter
@@ -24559,7 +24559,7 @@ class Program
 """);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void SliceStart_07()
         {
             // slice with `..`
@@ -24599,7 +24599,7 @@ class Program
 """);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void SliceStart_08()
         {
             // SubtractFromLength strategy in start..
@@ -24646,7 +24646,7 @@ class Program
 """);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void SliceStart_09()
         {
             // UseGetOffsetAPI strategy in start..
@@ -24804,7 +24804,7 @@ static class E
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c.F[1..]").WithArguments("System.Span`1", "Slice").WithLocation(2, 5));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
         public void NullCheck_FirstElementRef()
         {
             var src = """
@@ -24832,7 +24832,7 @@ public struct S { public sbyte F; }
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
         public void NullCheck_FirstElementRefReadOnly()
         {
             var src = """
@@ -24859,7 +24859,7 @@ public struct S { public byte F; }
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
         public void NullCheck_ElementRef()
         {
             var src = """
@@ -24886,7 +24886,7 @@ public struct S { public byte F; }
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
         public void NullCheck_ElementRefReadOnly()
         {
             var src = """
@@ -24913,7 +24913,7 @@ public struct S { public byte F; }
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
         public void NullCheck_AsSpan()
         {
             var src = """
@@ -24940,7 +24940,7 @@ public struct S { public byte F; }
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
         public void NullCheck_AsReadOnlySpan()
         {
             var src = """
@@ -24967,7 +24967,7 @@ public struct S { public byte F; }
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
         public void NullCheck_Slice_FullRange()
         {
             var src = """
@@ -24994,7 +24994,7 @@ public struct S { public byte F; }
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
         public void NullCheck_Slice_FullRange_ReadOnly()
         {
             var src = """
@@ -25021,7 +25021,7 @@ public struct S { public byte F; }
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
         public void NullCheck_Slice()
         {
             var src = """
@@ -25048,7 +25048,7 @@ public struct S { public byte F; }
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
         public void NullCheck_Slice_ReadOnly()
         {
             var src = """
@@ -25075,7 +25075,7 @@ public struct S { public byte F; }
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
         public void NullCheck_NonConstantIndex()
         {
             var src = """
@@ -25103,7 +25103,7 @@ public struct S { public byte F; }
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
         public void NullCheck_NonConstantIndex_ReadOnly()
         {
             var src = """
@@ -25131,7 +25131,7 @@ public struct S { public byte F; }
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
         public void NullCheck_ForEach()
         {
             var src = """
@@ -25160,7 +25160,7 @@ public struct S { public byte F; }
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
         public void NullCheck_ForEach_ReadOnly()
         {
             var src = """
@@ -25189,7 +25189,7 @@ public struct S { public byte F; }
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
         public void NullCheck_IndexAccess()
         {
             var src = """
@@ -25216,7 +25216,7 @@ public struct S { public byte F; }
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
         public void NullCheck_IndexAccess_ReadOnly()
         {
             var src = """
@@ -25243,7 +25243,7 @@ public struct S { public byte F; }
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
         public void NullCheck_SpreadInCollectionExpression()
         {
             var src = """
@@ -25270,7 +25270,7 @@ public struct S { public byte F; }
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
         public void NullCheck_SpreadInCollectionExpression_ReadOnly()
         {
             var src = """
@@ -25297,7 +25297,7 @@ public struct S { public byte F; }
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
         public void NullCheck_InlineArray_As_Field_01()
         {
             var src = """
@@ -25329,7 +25329,7 @@ public struct S { public byte F; }
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
         public void NullCheck_InlineArray_As_Field_02()
         {
             var src = """
@@ -25361,7 +25361,7 @@ public struct S { public byte F; }
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
         public void NullCheck_InlineArray_As_Field_03()
         {
             var src = """
@@ -25394,7 +25394,7 @@ public struct S { public byte F; }
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
         public void NullCheck_InlineArray_As_This()
         {
             var src = """
@@ -25438,7 +25438,7 @@ public struct S
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
         public void NullCheck_InlineArray_As_Parameter_01()
         {
             var src = """
@@ -25470,7 +25470,7 @@ public struct S { public byte F; }
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
         public void NullCheck_InlineArray_As_Parameter_02()
         {
             var src = """
@@ -25502,7 +25502,7 @@ public struct S { public byte F; }
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
         public void NullCheck_InlineArray_As_Parameter_03()
         {
             var src = """

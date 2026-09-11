@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromStream(new TestStream(canRead: true, canSeek: false)));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void CreateFromFile()
         {
             Assert.Throws<ArgumentNullException>(() => ModuleMetadata.CreateFromFile((string)null));
@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         /// <summary>
         /// Only test in 64-bit process. <see cref="UnmanagedMemoryStream"/> throws if the given length is greater than the size of the available address space.
         /// </summary>
-        [ConditionalFact(typeof(Bitness64))]
+        [ConditionalFact(skipConditions: typeof(Bitness64))]
         public unsafe void CreateFromUnmanagedMemoryStream_LargeIntSize()
         {
             var assembly = TestResources.Basic.Members;

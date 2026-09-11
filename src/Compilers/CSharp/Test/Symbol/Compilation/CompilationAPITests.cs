@@ -2199,7 +2199,7 @@ class C { }", options: TestOptions.Script.WithLanguageVersion(LanguageVersion.CS
             }
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation), typeof(NoIOperationValidation), Reason = "IOperation skip: Compilation changes over time, adds new errors")]
+        [ConditionalFact(skipConditions: [typeof(NoUsedAssembliesValidation), typeof(NoIOperationValidation)], Reason = "IOperation skip: Compilation changes over time, adds new errors")]
         public void MetadataConsistencyWhileEvolvingCompilation()
         {
             var md1 = AssemblyMetadata.CreateFromImage(CreateCompilation("public class C { }").EmitToArray());
@@ -3111,7 +3111,7 @@ class C
             Assert.Equal(2, comp.Assembly.Modules.Length);
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         [WorkItem(65499, "https://github.com/dotnet/roslyn/issues/65499")]
         [WorkItem(71236, "https://github.com/dotnet/roslyn/issues/71236")]
         public void NetModuleReference_AssemblySpecifiedAsModule()
@@ -3132,7 +3132,7 @@ class C
             Assert.Equal(1, comp.Assembly.Modules.Length);
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         [WorkItem(65499, "https://github.com/dotnet/roslyn/issues/65499")]
         [WorkItem(71236, "https://github.com/dotnet/roslyn/issues/71236")]
         public void NetModuleReference_ModuleSpecifiedAsAssembly()
@@ -3155,7 +3155,7 @@ class C
 
         #region Script return values
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void ReturnNullAsObject()
         {
             var script = CreateSubmission("return null;", returnType: typeof(object));
@@ -3163,7 +3163,7 @@ class C
             Assert.True(script.HasSubmissionResult());
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void ReturnStringAsObject()
         {
             var script = CreateSubmission("return \"¡Hola!\";", returnType: typeof(object));
@@ -3171,7 +3171,7 @@ class C
             Assert.True(script.HasSubmissionResult());
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void ReturnIntAsObject()
         {
             var script = CreateSubmission("return 42;", returnType: typeof(object));
@@ -3179,7 +3179,7 @@ class C
             Assert.True(script.HasSubmissionResult());
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void TrailingReturnVoidAsObject()
         {
             var script = CreateSubmission("return", returnType: typeof(object));
@@ -3193,7 +3193,7 @@ class C
             Assert.False(script.HasSubmissionResult());
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void ReturnIntAsInt()
         {
             var script = CreateSubmission("return 42;", returnType: typeof(int));
@@ -3201,7 +3201,7 @@ class C
             Assert.True(script.HasSubmissionResult());
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void ReturnNullResultType()
         {
             // test that passing null is the same as passing typeof(object)
@@ -3210,7 +3210,7 @@ class C
             Assert.True(script.HasSubmissionResult());
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void ReturnNoSemicolon()
         {
             var script = CreateSubmission("return 42", returnType: typeof(uint));
@@ -3221,7 +3221,7 @@ class C
             Assert.False(script.HasSubmissionResult());
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void ReturnAwait()
         {
             var script = CreateSubmission("return await System.Threading.Tasks.Task.FromResult(42);", returnType: typeof(int));
@@ -3236,7 +3236,7 @@ class C
             Assert.True(script.HasSubmissionResult());
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void ReturnTaskNoAwait()
         {
             var script = CreateSubmission("return System.Threading.Tasks.Task.FromResult(42);", returnType: typeof(int));
@@ -3247,7 +3247,7 @@ class C
             Assert.True(script.HasSubmissionResult());
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void ReturnInNestedScopes()
         {
             var script = CreateSubmission(@"
@@ -3264,7 +3264,7 @@ else
             Assert.True(script.HasSubmissionResult());
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void ReturnInNestedScopeWithTrailingExpression()
         {
             var script = CreateSubmission(@"
@@ -3292,7 +3292,7 @@ System.Console.WriteLine()", returnType: typeof(object));
             Assert.True(script.HasSubmissionResult());
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void ReturnInNestedScopeNoTrailingExpression()
         {
             var script = CreateSubmission(@"
@@ -3306,7 +3306,7 @@ System.Console.WriteLine();", returnType: typeof(int));
             Assert.True(script.HasSubmissionResult());
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void ReturnInNestedMethod()
         {
             var script = CreateSubmission(@"
@@ -3327,7 +3327,7 @@ TopMethod().ToString()", returnType: typeof(string));
             Assert.True(script.HasSubmissionResult());
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void ReturnInNestedLambda()
         {
             var script = CreateSubmission(@"
@@ -3346,7 +3346,7 @@ System.Func<object> f = () => new System.Exception();
             Assert.True(script.HasSubmissionResult());
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void ReturnInNestedAnonymousMethod()
         {
             var script = CreateSubmission(@"
@@ -3359,7 +3359,7 @@ System.Func<object> f = delegate ()
             Assert.True(script.HasSubmissionResult());
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void LoadedFileWithWrongReturnType()
         {
             var resolver = TestSourceReferenceResolver.Create(
@@ -3377,7 +3377,7 @@ System.Func<object> f = delegate ()
             Assert.True(script.HasSubmissionResult());
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void ReturnVoidInNestedMethodOrLambda()
         {
             var script = CreateSubmission(@"
