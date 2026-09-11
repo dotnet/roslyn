@@ -2481,11 +2481,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // declarations in every ambiguous context would break older code. Only recognize them here
                     // when the corresponding feature is enabled.
                     if (this.CurrentToken.ContextualKind switch
-                        {
-                            SyntaxKind.RecordKeyword => IsFeatureEnabled(MessageID.IDS_FeatureRecords),
-                            SyntaxKind.UnionKeyword => IsFeatureEnabled(MessageID.IDS_FeatureUnions),
-                            _ => false,
-                        })
+                    {
+                        SyntaxKind.RecordKeyword => IsFeatureEnabled(MessageID.IDS_FeatureRecords),
+                        SyntaxKind.UnionKeyword => IsFeatureEnabled(MessageID.IDS_FeatureUnions),
+                        _ => false,
+                    })
                     {
                         return true;
                     }
