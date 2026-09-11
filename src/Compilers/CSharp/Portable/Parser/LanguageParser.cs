@@ -3265,6 +3265,10 @@ parse_member_name:;
                 bool isPossibleTypeDeclaration;
                 this.ParseModifiers(modifiers, forTopLevelStatements: false, out isPossibleTypeDeclaration);
 
+                // An extension declaration starts with `extension(`, where `(` begins its parameter list.
+                // Check for it before the constructor form below, which has the same `IdentifierToken (`
+                // shape. Record and union declarations instead require a type name after their contextual
+                // keyword, so they are not ambiguous with constructors.
                 if (IsExtensionContainerStart())
                 {
                     return this.ParseMainTypeDeclaration(attributes, modifiers);
@@ -3309,7 +3313,9 @@ parse_member_name:;
 
                 // Namespaces should be handled by the caller, not checking for them
 
-                // It's valid to have a type declaration here -- check for those
+                // Check for the remaining type declarations here. This can come after constructor parsing
+                // because declarations such as `record R` and `union U` have a type name after the
+                // contextual keyword rather than an immediate `(`.
                 if (isPossibleTypeDeclaration && IsTypeDeclarationStart())
                 {
                     return this.ParseTypeDeclaration(attributes, modifiers);
