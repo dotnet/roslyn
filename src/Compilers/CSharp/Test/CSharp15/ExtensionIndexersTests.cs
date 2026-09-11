@@ -15918,7 +15918,7 @@ namespace N2
         //{
         //    extension(C c)
         //    {
-        //        public int this[ref short p] { get { return 0; } }
+        //        public int this[ref short p] { get { return 0; } set {}}
         //    }
         //}
         var ilSrc = """
@@ -15967,6 +15967,20 @@ namespace N2
             IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
             IL_0005: throw
         }
+        .method public hidebysig specialname 
+            instance void set_Item (
+                int16& p,
+                int32 'value'
+            ) cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 37 33 41 44 39 46 38 39 39
+                31 32 42 43 34 33 33 37 33 33 38 45 33 44 45 37
+                31 38 32 42 37 38 35 00 00
+            )
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
+        } // end of method '<G>$9794DAFCCB9E752B29BFD6350ADA77F2'::set_Item
         .property instance int32 Item( int16& p )
         {
             .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
@@ -15975,11 +15989,16 @@ namespace N2
                 31 38 32 42 37 38 35 00 00
             )
             .get instance int32 E/'<G>$9794DAFCCB9E752B29BFD6350ADA77F2'::get_Item(int16&)
+            .set instance void E/'<G>$9794DAFCCB9E752B29BFD6350ADA77F2'::set_Item(int16&, int32)
         }
     }
     .method public hidebysig static int32 get_Item ( class C c, int16& p ) cil managed
     {
         ldc.i4.0
+        ret
+    }
+    .method public hidebysig static void set_Item ( class C c, int16& p, int32 'value') cil managed 
+    {
         ret
     }
 }
@@ -15990,6 +16009,12 @@ short x = 123;
 C c = new C();
 _ = c[ref x];
 _ = c[x];
+c[ref x] += 1;
+c[x] += 1;
+_ = c.get_Item(ref x);
+_ = c.get_Item(x);
+c.set_Item(ref x, 1);
+c.set_Item(x, 1);
 """;
         var comp = CreateCompilationWithIL(source, ilSrc);
         comp.VerifyEmitDiagnostics(
@@ -15998,7 +16023,14 @@ _ = c[x];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[ref x]").WithArguments("C").WithLocation(3, 5),
             // (4,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             // _ = c[x];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[x]").WithArguments("C").WithLocation(4, 5));
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[x]").WithArguments("C").WithLocation(4, 5),
+            // (5,1): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // c[ref x] += 1;
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[ref x]").WithArguments("C").WithLocation(5, 1),
+            // (6,1): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // c[x] += 1;
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[x]").WithArguments("C").WithLocation(6, 1)
+            );
     }
 
     [Fact]
@@ -16038,6 +16070,175 @@ static class E
             // (18,24): error CS8337: The first parameter of a 'ref' extension method 'M2' must be a value type or a generic type constrained to struct.
             //     public static void M2(this ref C c) { }
             Diagnostic(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, "M2").WithArguments("M2").WithLocation(18, 24));
+    }
+
+    [Fact]
+    public void RefOmittedComCall_03()
+    {
+        // For COM import type, omitting the ref is allowed, but properties with parameters are disallowed
+
+        // [ComImport, Guid("1234C65D-1234-447A-B786-64682CBEF136")]
+        //public class C { }
+        //
+        //public static class E
+        //{
+        //    extension(C c)
+        //    {
+        //        public int Item[ref short p] { get { return 0; } set {}}
+        //    }
+        //}
+        var ilSrc = """
+.class public auto ansi import beforefieldinit C
+    extends System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = (
+        01 00 24 31 32 33 34 43 36 35 44 2d 31 32 33 34
+        2d 34 34 37 41 2d 42 37 38 36 2d 36 34 36 38 32
+        43 42 45 46 31 33 36 00 00
+    )
+    .method public hidebysig specialname rtspecialname
+        instance void .ctor () runtime managed internalcall
+    {
+    }
+}
+
+.class public auto ansi abstract sealed beforefieldinit E
+    extends System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname '<G>$9794DAFCCB9E752B29BFD6350ADA77F2'
+        extends System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<M>$73AD9F89912BC4337338E3DE7182B785'
+            extends System.Object
+        {
+            // Methods
+            .method public hidebysig specialname static void '<Extension>$' ( class C c ) cil managed
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                ret
+            }
+        }
+        .method public hidebysig specialname instance int32 get_Item ( int16& p ) cil managed
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 37 33 41 44 39 46 38 39 39
+                31 32 42 43 34 33 33 37 33 33 38 45 33 44 45 37
+                31 38 32 42 37 38 35 00 00
+            )
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
+        }
+        .method public hidebysig specialname 
+            instance void set_Item (
+                int16& p,
+                int32 'value'
+            ) cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 37 33 41 44 39 46 38 39 39
+                31 32 42 43 34 33 33 37 33 33 38 45 33 44 45 37
+                31 38 32 42 37 38 35 00 00
+            )
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
+        } // end of method '<G>$9794DAFCCB9E752B29BFD6350ADA77F2'::set_Item
+        .property instance int32 Item( int16& p )
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 37 33 41 44 39 46 38 39 39
+                31 32 42 43 34 33 33 37 33 33 38 45 33 44 45 37
+                31 38 32 42 37 38 35 00 00
+            )
+            .get instance int32 E/'<G>$9794DAFCCB9E752B29BFD6350ADA77F2'::get_Item(int16&)
+            .set instance void E/'<G>$9794DAFCCB9E752B29BFD6350ADA77F2'::set_Item(int16&, int32)
+        }
+    }
+    .method public hidebysig static int32 get_Item ( class C c, int16& p ) cil managed
+    {
+        ldc.i4.0
+        ret
+    }
+    .method public hidebysig static void set_Item ( class C c, int16& p, int32 'value') cil managed 
+    {
+        ret
+    }
+}
+""" + ExtensionMarkerAttributeIL;
+
+        string source = """
+short x = 123;
+C c = new C();
+_ = c[ref x];
+_ = c[x];
+c[ref x] += 1;
+c[x] += 1;
+_ = c.Item[ref x];
+_ = c.Item[x];
+c.Item[ref x] += 1;
+c.Item[x] += 1;
+_ = c.get_Item(ref x);
+_ = c.get_Item(x);
+c.set_Item(ref x, 1);
+c.set_Item(x, 1);
+""";
+        var comp = CreateCompilationWithIL(source, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (3,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // _ = c[ref x];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[ref x]").WithArguments("C").WithLocation(3, 5),
+            // (4,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // _ = c[x];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[x]").WithArguments("C").WithLocation(4, 5),
+            // (5,1): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // c[ref x] += 1;
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[ref x]").WithArguments("C").WithLocation(5, 1),
+            // (6,1): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // c[x] += 1;
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[x]").WithArguments("C").WithLocation(6, 1),
+            // (7,7): error CS1061: 'C' does not contain a definition for 'Item' and no accessible extension method 'Item' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // _ = c.Item[ref x];
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Item").WithArguments("C", "Item").WithLocation(7, 7),
+            // (8,7): error CS1061: 'C' does not contain a definition for 'Item' and no accessible extension method 'Item' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // _ = c.Item[x];
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Item").WithArguments("C", "Item").WithLocation(8, 7),
+            // (9,3): error CS1061: 'C' does not contain a definition for 'Item' and no accessible extension method 'Item' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // c.Item[ref x] += 1;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Item").WithArguments("C", "Item").WithLocation(9, 3),
+            // (10,3): error CS1061: 'C' does not contain a definition for 'Item' and no accessible extension method 'Item' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // c.Item[x] += 1;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Item").WithArguments("C", "Item").WithLocation(10, 3)
+            );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84735")]
+    public void ComReceiver_CompoundAssignment()
+    {
+        var source = """
+using System;
+using System.Runtime.InteropServices;
+
+C c = default;
+c[0] += 1;
+
+[ComImport, Guid("1234C65D-1234-447A-B786-64682CBEF136")]
+class C { }
+
+static class E
+{
+    extension(C c)
+    {
+        public int this[int i]
+        {
+            get { Console.Write($"get({i}) "); return 0; }
+            set { Console.Write($"set({i}, {value}) "); }
+        }
+    }
+}
+""";
+        var compilation = CreateCompilation(source);
+        CompileAndVerify(compilation, expectedOutput: ExpectedOutput("get(0) set(0, 1) ")).VerifyDiagnostics();
     }
 
     [Fact]
