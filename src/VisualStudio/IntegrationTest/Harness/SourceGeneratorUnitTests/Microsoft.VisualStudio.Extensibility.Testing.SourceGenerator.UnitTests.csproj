@@ -35,17 +35,6 @@
 
   <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />
 
-  <Target Name="CreateXunitV3AppHost" AfterTargets="Build" Condition="'$(DotNetBuildSourceOnly)' != 'true'">
-    <PropertyGroup>
-      <_XunitV3AppHost>$(TargetDir)$(TargetName).exe</_XunitV3AppHost>
-      <_TargetConfigPath>$(TargetPath).config</_TargetConfigPath>
-      <_XunitV3AppHostConfig>$(_XunitV3AppHost).config</_XunitV3AppHostConfig>
-    </PropertyGroup>
-
-    <Copy SourceFiles="$(TargetPath)" DestinationFiles="$(_XunitV3AppHost)" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="$(_TargetConfigPath)" DestinationFiles="$(_XunitV3AppHostConfig)" SkipUnchangedFiles="true" Condition="Exists('$(_TargetConfigPath)')" />
-  </Target>
-
   <Target Name="UpdateContentPaths" AfterTargets="ResolveProjectReferences">
     <ItemGroup>
       <Content Include="@(CurrentContent)" Link="Current\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />

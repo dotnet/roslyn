@@ -47,12 +47,11 @@ public class MyTests
 - Discovery also injects synthetic `IdeInstanceTestCase` launches per Visual
   Studio instance group; only instance-only launches should leave the IDE
   running after the collection completes.
-- .NET Framework xUnit v3 test projects in the VisualStudio integration-test
-  harness still keep `TargetExt=.dll` to satisfy the repo's unit-test naming
-  checks, and add a post-build step to copy the built DLL/config to a matching
-  `.exe` app host for discovery and execution. Source-only builds exclude these
-  projects, so the app-host target must not run when `DotNetBuildSourceOnly` is
-  `true`.
+- .NET Framework xUnit v3 test projects can keep `TargetExt=.dll` to satisfy
+  the repo's unit-test naming checks. `eng/targets/XUnit.targets` creates a
+  matching `.exe` app host (and its `.config`, when present) after normal
+  builds so VSTest discovery and execution can launch them. The target skips
+  source-only builds (`DotNetBuildSourceOnly=true`).
 - If a .NET Framework test project in this layer uses `ThrowingTraceListener`
   under xUnit v3, include an explicit `app.config` when the listener type lives
   outside the default `Microsoft.CodeAnalysis.Test.Utilities` assembly, so the
