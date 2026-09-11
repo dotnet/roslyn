@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.UnitTests.Logging;
 using Microsoft.VisualStudio.Telemetry;
@@ -57,6 +59,18 @@ public sealed class TelemetryEventSinkTests
             "vs.ide.vbcs.debugging.encsession.editsession.emitdeltaerrorid.test2=PII(2)",
             "vs.ide.vbcs.debugging.encsession.editsession.emitdeltaerrorid.test3=Complex[3,PII(4)]",
         }, InspectProperties(postedEvent));
+
+        logger.PostedEvents.Clear();
+        logger.ReportFault(new InvalidOperationException(), ErrorSeverity.General, forceDump: false);
+
+        var fault = Assert.IsType<FaultEvent>(Assert.Single(logger.PostedEvents));
+        Assert.Equal("vs/ide/vbcs/nonfatalwatson", fault.Name);
+        Assert.Equal("Roslyn NonFatal Watson", fault.Properties["roslyn.fault.description"]);
+
+        logger.PostedEvents.Clear();
+        logger.Enabled = false;
+        logger.ReportFault(new InvalidOperationException("opted out"), ErrorSeverity.Critical, forceDump: false);
+        Assert.Empty(logger.PostedEvents);
     }
 
     [Theory, CombinatorialData]
