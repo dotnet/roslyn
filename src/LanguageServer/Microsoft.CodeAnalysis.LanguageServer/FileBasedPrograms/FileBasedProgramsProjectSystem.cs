@@ -375,7 +375,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
         const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
         var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, documentPath, dotnetPath: null, cancellationToken);
-        var loadedFile = await FileBasedProgramsProjectLoader.LoadFileBasedAppProjectAsync(
+        await using var loadedFile = await FileBasedProgramsProjectLoader.LoadFileBasedAppProjectAsync(
             buildHost,
             _workspaceFactory.HostWorkspace.Services.GetRequiredService<IFileBasedProgramService>(),
             documentPath,
