@@ -613,11 +613,6 @@
         <target state="translated">发出到辅助程序集输出时不应包含私有成员。</target>
         <note />
       </trans-unit>
-      <trans-unit id="EmbeddingPdbUnexpectedWhenEmittingMetadata">
-        <source>Embedding PDB is not allowed when emitting metadata.</source>
-        <target state="translated">不允许在发出元数据时嵌入 PDB。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="CannotTargetNetModuleWhenEmittingRefAssembly">
         <source>Cannot target net module when emitting ref assembly.</source>
         <target state="translated">无法在发出引用程序集时将 Net 模块作为目标。</target>

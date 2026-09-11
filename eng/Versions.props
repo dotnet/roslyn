@@ -28,13 +28,27 @@
     <RazorAssemblyVersion>$(RazorMajorVersion).$(RazorMinorVersion).0.0</RazorAssemblyVersion>
   </PropertyGroup>
 
+  <!-- Visual Studio train version (used to version VS components that ship out-of-band from Roslyn/Razor) -->
+  <PropertyGroup>
+    <VsMajorVersion>$([MSBuild]::Add($(MajorVersion), 13))</VsMajorVersion>
+    <VsMinorVersion>$(MinorVersion)</VsMinorVersion>
+  </PropertyGroup>
+
   <!-- Razor tooling version -->
   <PropertyGroup>
-    <RazorVsixVersionPrefix>18.12.1</RazorVsixVersionPrefix>
-    <RazorAddinMajorVersion>18.12</RazorAddinMajorVersion>
+    <RazorVsixPatchVersion>1</RazorVsixPatchVersion>
+    <RazorVsixVersionPrefix>$(VsMajorVersion).$(VsMinorVersion).$(RazorVsixPatchVersion)</RazorVsixVersionPrefix>
+    <RazorAddinMajorVersion>$(VsMajorVersion).$(VsMinorVersion)</RazorAddinMajorVersion>
     <RazorAddinVersion>$(RazorAddinMajorVersion)</RazorAddinVersion>
     <RazorAddinVersion Condition="'$(OfficialBuildId)' != ''">$(RazorAddinVersion).$(OfficialBuildId)</RazorAddinVersion>
     <RazorAddinVersion Condition="'$(OfficialBuildId)' == ''">$(RazorAddinVersion).42424242.42</RazorAddinVersion>
+  </PropertyGroup>
+
+  <!-- EditorConfig components version -->
+  <PropertyGroup>
+    <EditorConfigPatchVersion>0</EditorConfigPatchVersion>
+    <EditorConfigVersionPrefix>$(VsMajorVersion).$(VsMinorVersion).$(EditorConfigPatchVersion)</EditorConfigVersionPrefix>
+    <EditorConfigAssemblyVersion>$(VsMajorVersion).$(VsMinorVersion).0.0</EditorConfigAssemblyVersion>
   </PropertyGroup>
 
   <!--

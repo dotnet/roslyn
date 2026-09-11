@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
@@ -26,6 +27,44 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.FileBasedPrograms;
 
 public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutputHelper) : AbstractLspMiscellaneousFilesWorkspaceTests(testOutputHelper)
 {
+    [Fact]
+    public async Task GetOrLoadEntryPointDocument_NormalizesPath()
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+        var projectSystem = (FileBasedProgramsProjectSystem)testLspServer.GetRequiredLspService<ILspMiscellaneousFilesWorkspaceProvider>();
+        var sourceFile = CreateTempDirectoryWithGlobalJson().CreateFile("SomeFile.cs");
+        var nonCanonicalPath = Path.Combine(Path.GetDirectoryName(sourceFile.Path)!, "directory", "..", Path.GetFileName(sourceFile.Path));
+        var sourceText = SourceText.From("Console.WriteLine(\"Hello World!\");");
+        var languageInformation = new LanguageInformation(LanguageNames.CSharp, "csx");
+
+        var documents = await projectSystem.GetOrLoadEntryPointDocumentAsync(
+            nonCanonicalPath, new SourceTextLoader(sourceText, nonCanonicalPath), languageInformation, SourceHashAlgorithms.Default, doDesignTimeBuild: false);
+        var document = Assert.Single(documents);
+        var documentsFromCanonicalPath = await projectSystem.GetOrLoadEntryPointDocumentAsync(
+            sourceFile.Path, new SourceTextLoader(sourceText, sourceFile.Path), languageInformation, SourceHashAlgorithms.Default, doDesignTimeBuild: false);
+
+        Assert.Equal(sourceFile.Path, document.FilePath);
+        Assert.Equal(document.Id, Assert.Single(documentsFromCanonicalPath).Id);
+    }
+
+    [ConditionalFact(typeof(WindowsOnly))]
+    public async Task GetOrLoadEntryPointDocument_MatchesPathCaseInsensitively()
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+        var projectSystem = (FileBasedProgramsProjectSystem)testLspServer.GetRequiredLspService<ILspMiscellaneousFilesWorkspaceProvider>();
+        var sourceFile = CreateTempDirectoryWithGlobalJson().CreateFile("SomeFile.cs");
+        var sourceText = SourceText.From("Console.WriteLine(\"Hello World!\");");
+        var languageInformation = new LanguageInformation(LanguageNames.CSharp, "csx");
+
+        var document = Assert.Single(await projectSystem.GetOrLoadEntryPointDocumentAsync(
+            sourceFile.Path, new SourceTextLoader(sourceText, sourceFile.Path), languageInformation, SourceHashAlgorithms.Default, doDesignTimeBuild: false));
+        var pathWithDifferentCasing = sourceFile.Path.ToUpperInvariant();
+        var documentsFromDifferentCasing = await projectSystem.GetOrLoadEntryPointDocumentAsync(
+            pathWithDifferentCasing, new SourceTextLoader(sourceText, pathWithDifferentCasing), languageInformation, SourceHashAlgorithms.Default, doDesignTimeBuild: false);
+
+        Assert.Equal(document.Id, Assert.Single(documentsFromDifferentCasing).Id);
+    }
+
     [Theory, CombinatorialData]
     public async Task TestFileBasedProgram_Simple(bool mutatingLspWorkspace)
     {
@@ -104,6 +143,74 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         await WaitForProjectLoad(looseFileUri, testLspServer);
         var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
         Assert.NotEmpty(document.Project.MetadataReferences);
+        var model = await document.GetRequiredSemanticModelAsync(CancellationToken.None);
+        model.GetDiagnostics().Verify();
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestFileBasedProgram_PackageRestoreWithExplicitArtifactsPath(bool mutatingLspWorkspace)
+    {
+        var tempDir = TempRoot.CreateDirectory();
+        tempDir.CreateFile("Directory.Build.props").WriteAllText("""
+            <Project>
+              <PropertyGroup>
+                <ArtifactsPath>$(MSBuildThisFileDirectory)</ArtifactsPath>
+              </PropertyGroup>
+            </Project>
+            """);
+
+        var sourceText = """
+            #:package Newtonsoft.Json@13.0.4
+            #:property PublishAot=false
+            Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject("Hello World!"));
+            """;
+        var sourceFile = tempDir.CreateFile("App.cs").WriteAllText(sourceText);
+        var sourceFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceFile.Path);
+
+        await using var testLspServer = await CreateTestLspServerAsync(
+            string.Empty,
+            mutatingLspWorkspace,
+            new InitializationOptions
+            {
+                ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+                ClientCapabilities = new()
+                {
+                    Workspace = new()
+                    {
+                        DidChangeWatchedFiles = new() { DynamicRegistration = true },
+                    },
+                },
+            });
+        await testLspServer.OpenDocumentAsync(sourceFileUri, sourceText).ConfigureAwait(false);
+        await WaitForProjectLoad(sourceFileUri, testLspServer);
+
+        // Simulate VS Code relaying the file change produced by dotnet restore.
+        var projectAssetsFile = Assert.Single(
+            Directory.EnumerateFiles(tempDir.Path, "project.assets.json", SearchOption.AllDirectories));
+        var fileChangeTask = WaitForFileChangeAsync(projectAssetsFile, testLspServer);
+        await testLspServer.ExecuteNotificationAsync(
+            Methods.WorkspaceDidChangeWatchedFilesName,
+            new DidChangeWatchedFilesParams
+            {
+                Changes =
+                [
+                    new FileEvent
+                    {
+                        Uri = ProtocolConversions.CreateAbsoluteDocumentUri(projectAssetsFile),
+                        FileChangeType = FileChangeType.Changed,
+                    },
+                ],
+            });
+        await fileChangeTask;
+        await WaitForProjectLoad(sourceFileUri, testLspServer);
+
+        var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(sourceFileUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        Assert.True(document.Project.State.HasAllInformation);
+        Assert.Contains(
+            document.Project.MetadataReferences,
+            static reference => StringComparer.OrdinalIgnoreCase.Equals(Path.GetFileName(reference.Display), "Newtonsoft.Json.dll"));
+
         var model = await document.GetRequiredSemanticModelAsync(CancellationToken.None);
         model.GetDiagnostics().Verify();
     }
@@ -203,7 +310,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         var globalOptions = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
         globalOptions.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, true);
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
-        await discovery.FindAndLoadEntryPointsAsync();
+        await discovery.FindAndLoadEntryPointsAsync(CancellationToken.None);
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
 
         // Verify all FBAs loaded successfully in the host workspace.
@@ -439,10 +546,11 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
 
         // Adding a top-level statement to a misc file causes it to report semantic errors.
         var textToInsert = $"""Console.WriteLine("Hello World!");{Environment.NewLine}""";
+        var fileChangeTask = WaitForFileChangeAsync(sourceFile.Path, testLspServer);
         // Write updated content to disk so the project system can pick up the change.
         sourceFile.WriteAllText($"{textToInsert}{initialText}");
         await testLspServer.InsertTextAsync(looseFileUriOne, (Line: 0, Column: 0, Text: textToInsert));
-        await Task.Delay(100);
+        await fileChangeTask;
         await WaitForProjectLoad(looseFileUriOne, testLspServer);
         var (workspace, canonicalDocumentTwo) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
         Assert.Equal("""
@@ -609,6 +717,23 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
     {
         _ = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+    }
+
+    /// <summary>
+    /// Call before triggering the change, then await the result before waiting for the project reload.
+    /// </summary>
+    private static async Task WaitForFileChangeAsync(string filePath, TestLspServer testLspServer)
+    {
+        var fileChangeWatcher = testLspServer.GetRequiredLspService<IFileChangeWatcher>();
+        using var fileChangeContext = fileChangeWatcher.CreateContext([new WatchedDirectory(Path.GetDirectoryName(filePath)!, extensionFilters: [])]);
+        var fileChangeTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        fileChangeContext.FileChanged += (_, e) =>
+        {
+            if (PathUtilities.Comparer.Equals(e.FilePath, filePath))
+                fileChangeTcs.TrySetResult();
+        };
+
+        await fileChangeTcs.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
     }
 
     [Theory, CombinatorialData]
@@ -868,22 +993,12 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(appCsUri, testLspServer).ConfigureAwait(false);
         Assert.Equal(newAppCsText, (await document.GetTextAsync()).ToString());
 
-        // Set up a listener for file change events before writing to disk, so we can wait for
-        // the FileSystemWatcher to deliver the event (which triggers the project reload enqueue).
-        var fileChangeWatcher = testLspServer.GetRequiredLspService<IFileChangeWatcher>();
-        using var fileChangeContext = fileChangeWatcher.CreateContext([new WatchedDirectory(Path.GetDirectoryName(appCsFile.Path)!, extensionFilters: [])]);
-        var fileChangeTcs = new TaskCompletionSource();
-        fileChangeContext.FileChanged += (_, e) =>
-        {
-            if (e.FilePath.Equals(appCsFile.Path, StringComparison.OrdinalIgnoreCase))
-                fileChangeTcs.TrySetResult();
-        };
-
+        var fileChangeTask = WaitForFileChangeAsync(appCsFile.Path, testLspServer);
         // Flush the document change to disk to trigger a reload of the FBA project.
         appCsFile.WriteAllText(newAppCsText);
 
         // Wait for the file change event to be delivered, ensuring the reload is enqueued.
-        await fileChangeTcs.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        await fileChangeTask;
         await WaitForProjectLoad(appCsUri, testLspServer);
 
         // Now the document is a miscellaneous file
@@ -1201,23 +1316,13 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         );
 
         // Trivial edit+save of the App.cs file will trigger a reload though.
-        // Subscribe before writing to disk so the workspace waiter cannot finish before
-        // the FileSystemWatcher has delivered the event that enqueues the reload.
-        var fileChangeWatcher = testLspServer.GetRequiredLspService<IFileChangeWatcher>();
-        using var fileChangeContext = fileChangeWatcher.CreateContext([new WatchedDirectory(Path.GetDirectoryName(appCsFile.Path)!, extensionFilters: [])]);
-        var fileChangeTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        fileChangeContext.FileChanged += (_, e) =>
-        {
-            if (PathUtilities.Comparer.Equals(e.FilePath, appCsFile.Path))
-                fileChangeTcs.TrySetResult();
-        };
-
+        var fileChangeTask = WaitForFileChangeAsync(appCsFile.Path, testLspServer);
         appCsFile.WriteAllText(appCsText + Environment.NewLine);
         var appCsSourceText = SourceText.From(appCsText);
         var appCsEndPosition = appCsSourceText.Lines.GetLinePosition(appCsSourceText.Length);
         await testLspServer.InsertTextAsync(appCsUri, (Line: appCsEndPosition.Line, Column: appCsEndPosition.Character, Text: Environment.NewLine));
 
-        await fileChangeTcs.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        await fileChangeTask;
         await WaitForProjectLoad(appCsUri, testLspServer);
 
         // Get the Util.cs document again
@@ -1282,7 +1387,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         var globalOptions = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
         globalOptions.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, true);
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
-        await discovery.FindAndLoadEntryPointsAsync();
+        await discovery.FindAndLoadEntryPointsAsync(CancellationToken.None);
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
 
         // Even though the primary file was never opened in the editor,

@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal sealed class TypeHierarchySubtypesParams : TextDocumentPositionParams, IWorkDoneProgressParams, IPartialResultParams<TypeHierarchyItem[]>
+internal sealed class TypeHierarchySubtypesParams : IWorkDoneProgressParams, IPartialResultParams<TypeHierarchyItem[]>
 {
     /// <summary>
     /// The <see cref="TypeHierarchyItem"/> for which to return subtypes
@@ -29,9 +29,6 @@ internal sealed class TypeHierarchySubtypesParams : TextDocumentPositionParams, 
     public IProgress<WorkDoneProgress>? WorkDoneToken { get; set; }
 
     /// <inheritdoc/>
-    /// <remarks>
-    /// <see cref="LocationLink"/> may only be used if the client opts in via <see cref="DefinitionClientCapabilities.LinkSupport"/>
-    /// </remarks>
     [JsonPropertyName(Methods.PartialResultTokenName)]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IProgress<TypeHierarchyItem[]>? PartialResultToken { get; set; }
