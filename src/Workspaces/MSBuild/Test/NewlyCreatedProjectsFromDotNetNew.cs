@@ -137,12 +137,6 @@ public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
                 continue;
             }
 
-            // The template references an unpublished package: https://github.com/dotnet/aspnetcore/issues/69190
-            if (templateShortName == "blazorwasm-servicedefaults")
-            {
-                continue;
-            }
-
             // WPF and WinForms templates require Windows targeting and fail with
             // NETSDK1100 on non-Windows platforms.
             if (!ExecutionConditionUtil.IsWindows &&
@@ -255,7 +249,17 @@ public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
             foreach (var analyzerReference in project.AnalyzerReferences.OfType<AnalyzerFileReference>())
                 analyzerReference.AnalyzerLoadFailed += (sender, e) => analyzerLoadDiagnostics.Add(e);
 
-            AssertEx.Empty(workspace.Diagnostics, $"The following workspace diagnostics are being reported for the template.");
+            if (templateName == "blazorwasm-servicedefaults")
+            {
+                // The template references an unpublished package: https://github.com/dotnet/aspnetcore/issues/69190
+                var diagnostic = Assert.Single(workspace.Diagnostics);
+                Assert.Equal(WorkspaceDiagnosticKind.Failure, diagnostic.Kind);
+                Assert.Contains("Microsoft.Extensions.ServiceDiscovery", diagnostic.Message);
+            }
+            else
+            {
+                AssertEx.Empty(workspace.Diagnostics, $"The following workspace diagnostics are being reported for the template.");
+            }
 
             var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
             AssertEx.Empty(await project.GetSourceGeneratorDiagnosticsAsync(CancellationToken.None), $"The following source generator diagnostics are being reported for the template.");
