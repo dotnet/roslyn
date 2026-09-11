@@ -1407,8 +1407,6 @@ namespace Microsoft.VisualStudio
             var referenceDataModel = context.CompilationProvider.Select(
                 static (compilation, cancellationToken) =>
                 {
-                    var asyncLifetimeTypes = compilation.SourceModule.ReferencedAssemblySymbols
-                        .Select(static assembly => assembly.GetTypeByMetadataName("Xunit.IAsyncLifetime"));
                     var hasSAsyncServiceProvider = compilation.GetTypeByMetadataName("Microsoft.VisualStudio.Shell.Interop.SAsyncServiceProvider") is not null;
                     var hasThreadHelperJoinableTaskContext = compilation.GetTypeByMetadataName("Microsoft.VisualStudio.Shell.ThreadHelper") is { } threadHelper
                         && threadHelper.GetMembers("JoinableTaskContext").Any(member => member.Kind == SymbolKind.Property);
@@ -1431,13 +1429,7 @@ namespace Microsoft.VisualStudio
                         }
                     }
 
-                    var hasXunitV3AsyncLifetime = asyncLifetimeTypes.Any(
-                        static asyncLifetimeType => asyncLifetimeType?.GetMembers("InitializeAsync")
-                            .OfType<IMethodSymbol>()
-                            .Any(static method => method.Parameters.IsEmpty && method.ReturnType.ToDisplayString() == "System.Threading.Tasks.ValueTask") == true);
-
                     return new ReferenceDataModel(
-                        hasXunitV3AsyncLifetime,
                         hasSAsyncServiceProvider,
                         hasThreadHelperJoinableTaskContext,
                         canCancelJoinTillEmptyAsync,
@@ -1454,12 +1446,6 @@ namespace Microsoft.VisualStudio
                 referenceDataModel,
                 static (context, referenceDataModel) =>
                 {
-                    var initializeAsyncReturnType = referenceDataModel.HasXunitV3AsyncLifetime ? "ValueTask" : "Task";
-                    var initializeAsyncBody = referenceDataModel.HasXunitV3AsyncLifetime ? "return new(InitializeCoreAsync());" : "return InitializeCoreAsync();";
-                    var disposeAsyncInterface = referenceDataModel.HasXunitV3AsyncLifetime ? "global::System.IAsyncDisposable" : "IAsyncLifetime";
-                    var disposeAsyncReturnType = referenceDataModel.HasXunitV3AsyncLifetime ? "ValueTask" : "Task";
-                    var disposeAsyncBody = referenceDataModel.HasXunitV3AsyncLifetime ? "return default;" : "return Task.CompletedTask;";
-
                     var usings = new List<string>
                     {
                         "System",
@@ -1538,14 +1524,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
         protected JoinableTaskFactory JoinableTaskFactory => TestServices.JoinableTaskFactory;
 
-        {initializeAsyncReturnType} IAsyncLifetime.InitializeAsync()
+        ValueTask IAsyncLifetime.InitializeAsync()
         {{
-            {initializeAsyncBody}
+            return new(InitializeCoreAsync());
         }}
 
-        {disposeAsyncReturnType} {disposeAsyncInterface}.DisposeAsync()
+        ValueTask global::System.IAsyncDisposable.DisposeAsync()
         {{
-            {disposeAsyncBody}
+            return default;
         }}
 
         protected virtual Task InitializeCoreAsync()
@@ -1752,19 +1738,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                         context.AddSource($"SolutionExplorerInProcess.SolutionEvents_IDisposable{SourceSuffix}", SolutionExplorerInProcessSolutionEventsDisposeSource);
                     }
 
-                    var disposeAsyncCref = referenceDataModel.HasXunitV3AsyncLifetime
-                        ? "global::System.IAsyncDisposable.DisposeAsync"
-                        : "IAsyncLifetime.DisposeAsync";
-                    var disposeAsyncListItem = referenceDataModel.HasXunitV3AsyncLifetime
-                        ? @"    /// <item><description><see cref=""global::System.IAsyncDisposable.DisposeAsync""/></description></item>"
-                        : @"    /// <item><description><see cref=""IAsyncLifetime.DisposeAsync""/></description></item>
-    /// <item><description><see cref=""IDisposable.Dispose""/></description></item>";
-                    var lifetimeReturnType = referenceDataModel.HasXunitV3AsyncLifetime ? "ValueTask" : "Task";
-                    var postDisposeCleanup = referenceDataModel.HasXunitV3AsyncLifetime
-                        ? @"            JoinableTaskContext = null;
-            Dispose();"
-                        : @"            JoinableTaskContext = null;";
-
                     var usings2 = new List<string>
                     {
                         "System",
@@ -1843,7 +1816,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
     /// <item><description>BeforeAfterTestAttribute.Before</description></item>
     /// <item><description>Test method</description></item>
     /// <item><description>BeforeAfterTestAttribute.After</description></item>
-{disposeAsyncListItem}
+    /// <item><description><see cref=""global::System.IAsyncDisposable.DisposeAsync""/></description></item>
     /// </list>
     /// </remarks>
     public abstract class AbstractIdeIntegrationTest : IAsyncLifetime, IDisposable
@@ -1941,7 +1914,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             => _hangMitigatingCancellationTokenSource.Token;
 
         /// <remarks>
-        /// ⚠️ Note that this token will not be cancelled prior to the call to <see cref=""{disposeAsyncCref}""/> (which starts
+        /// ⚠️ Note that this token will not be cancelled prior to the call to <see cref=""global::System.IAsyncDisposable.DisposeAsync""/> (which starts
         /// the cancellation timer). Derived types are not likely to make use of this, so it's marked
         /// <see langword=""private""/>.
         /// </remarks>
@@ -1949,17 +1922,17 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             => _cleanupCancellationTokenSource.Token;
 
         /// <inheritdoc/>
-        public virtual async {lifetimeReturnType} InitializeAsync()
+        public virtual async ValueTask InitializeAsync()
         {{
             TestServices = await CreateTestServicesAsync();
         }}
 
         /// <summary>
-        /// This method implements <see cref=""{disposeAsyncCref}""/>, and is used for releasing resources
+        /// This method implements <see cref=""global::System.IAsyncDisposable.DisposeAsync""/>, and is used for releasing resources
         /// created by <see cref=""IAsyncLifetime.InitializeAsync""/>. This method is only called if
         /// <see cref=""InitializeAsync""/> completes successfully.
         /// </summary>
-        public virtual async {lifetimeReturnType} DisposeAsync()
+        public virtual async ValueTask DisposeAsync()
         {{
             _cleanupCancellationTokenSource.CancelAfter(CleanupHangMitigatingTimeout);
 
@@ -1970,7 +1943,8 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 {joinTillEmpty}
             }}
 
-{postDisposeCleanup}
+            JoinableTaskContext = null;
+            Dispose();
         }}
 
         /// <summary>
@@ -2146,7 +2120,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             string ImplementingTypeName);
 
         private sealed record ReferenceDataModel(
-            bool HasXunitV3AsyncLifetime,
             bool HasSAsyncServiceProvider,
             bool HasThreadHelperJoinableTaskContext,
             bool CanCancelJoinTillEmptyAsync,
