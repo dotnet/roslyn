@@ -171,7 +171,7 @@ namespace Xunit.Threading
                 settingsAttributes,
                 static attribute => attribute.RootSuffix,
                 static value => value is not null,
-                "Exp");
+                "Exp")!;
         }
 
         private static int GetMaxAttempts(IIdeSettingsAttribute factAttribute, IIdeSettingsAttribute[] settingsAttributes)

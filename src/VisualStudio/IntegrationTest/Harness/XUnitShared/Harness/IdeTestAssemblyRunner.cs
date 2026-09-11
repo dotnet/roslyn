@@ -187,7 +187,7 @@ namespace Xunit.Harness
         {
             Assert.Equal(ApartmentState.STA, Thread.CurrentThread.GetApartmentState());
 
-            var leaveRunning = testCases.Any(static testCase => testCase is IdeInstanceTestCase);
+            var leaveRunning = testCases.All(static testCase => testCase is IdeInstanceTestCase);
             using var marshalledObjects = new MarshalledObjects();
             using var visualStudioInstanceFactory = new VisualStudioInstanceFactory(leaveRunning);
             marshalledObjects.Add(visualStudioInstanceFactory);
