@@ -2397,7 +2397,6 @@ class C
     public void WithModifiers_Ref_CSharp13()
     {
         const string source = "class C { ref extension(Type) { } }";
-
         UsingTree(
             source,
             TestOptions.Regular13,
@@ -2506,8 +2505,14 @@ class C
         UsingTree(
             source,
             TestOptions.Regular13,
+            // (1,1): error CS0106: The modifier 'readonly' is not valid for this item
+            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 1),
+            // (1,19): error CS1001: Identifier expected
+            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 19),
+            // (1,26): error CS1001: Identifier expected
+            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 26));
         N(SyntaxKind.CompilationUnit);
         {
@@ -2546,10 +2551,20 @@ class C
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (1,1): error CS0106: The modifier 'readonly' is not valid for this item
+            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 1),
+            // (1,10): error CS0246: The type or namespace name 'extension' could not be found (are you missing a using directive or an assembly reference?)
+            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "extension").WithArguments("extension").WithLocation(1, 10),
+            // (1,19): error CS1001: Identifier expected
+            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 19),
+            // (1,19): error CS0161: '(object)': not all code paths return a value
+            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("(object)").WithLocation(1, 19),
+            // (1,26): error CS1001: Identifier expected
+            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 26));
     }
 
@@ -2695,8 +2710,14 @@ class C
         UsingTree(
             source,
             TestOptions.Regular14,
+            // (1,1): error CS0106: The modifier 'readonly' is not valid for this item
+            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 1),
+            // (1,19): error CS1001: Identifier expected
+            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 19),
+            // (1,26): error CS1001: Identifier expected
+            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 26));
         N(SyntaxKind.CompilationUnit);
         {
@@ -2735,10 +2756,20 @@ class C
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            // (1,1): error CS0106: The modifier 'readonly' is not valid for this item
+            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 1),
+            // (1,10): error CS0246: The type or namespace name 'extension' could not be found (are you missing a using directive or an assembly reference?)
+            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "extension").WithArguments("extension").WithLocation(1, 10),
+            // (1,19): error CS1001: Identifier expected
+            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 19),
+            // (1,19): error CS0161: '(object)': not all code paths return a value
+            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("(object)").WithLocation(1, 19),
+            // (1,26): error CS1001: Identifier expected
+            // readonly extension(object) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 26));
     }
 
@@ -2884,6 +2915,8 @@ class C
         UsingTree(
             source,
             TestOptions.Regular13,
+            // (1,36): error CS1001: Identifier expected
+            // class C { readonly extension(object) { } }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 36));
         N(SyntaxKind.CompilationUnit);
         {
@@ -2922,8 +2955,14 @@ class C
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (1,11): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+            // class C { readonly extension(object) { } }
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "readonly extension(object) { }").WithArguments("extensions", "14.0").WithLocation(1, 11),
+            // (1,20): error CS0106: The modifier 'readonly' is not valid for this item
+            // class C { readonly extension(object) { } }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("readonly").WithLocation(1, 20),
+            // (1,36): error CS1001: Identifier expected
+            // class C { readonly extension(object) { } }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 36));
     }
 
@@ -3086,6 +3125,8 @@ class C
         EOF();
 
         CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            // (1,27): error CS0106: The modifier 'readonly' is not valid for this item
+            // static class C { readonly extension(object) { } }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("readonly").WithLocation(1, 27));
     }
 
