@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -9,7 +9,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Xunit;
 
-namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
+namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic;
 
 [Trait(Traits.Feature, Traits.Features.DocumentationComments)]
 public sealed class DocumentationCommentTests : AbstractEditorTest
@@ -19,43 +19,7 @@ public sealed class DocumentationCommentTests : AbstractEditorTest
     {
     }
 
-    protected override string LanguageName => LanguageNames.CSharp;
-
-    [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/54391")]
-    public async Task TypingCharacter_MultiCaret()
-    {
-        await SetUpEditorAsync("""
-
-            //{|selection:|}
-            class C1 { }
-
-            //{|selection:|}
-            class C2 { }
-
-            //{|selection:|}
-            class C3 { }
-
-            """, HangMitigatingCancellationToken);
-        await TestServices.Input.SendAsync('/', HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.TextContainsAsync("""
-
-            /// <summary>
-            /// $$
-            /// </summary>
-            class C1 { }
-
-            /// <summary>
-            /// 
-            /// </summary>
-            class C2 { }
-
-            /// <summary>
-            /// 
-            /// </summary>
-            class C3 { }
-
-            """, assertCaretPosition: true, cancellationToken: HangMitigatingCancellationToken);
-    }
+    protected override string LanguageName => LanguageNames.VisualBasic;
 
     [IdeTheory, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
     [InlineData("\r\n", "\r\n", "\r\n")]
@@ -66,42 +30,68 @@ public sealed class DocumentationCommentTests : AbstractEditorTest
         await SetUpEditorAsync(
             JoinLines(documentNewLine,
                 "",
-                "class C",
-                "{",
-                "    /// <summary>",
-                "    /// $$",
-                "    /// </summary>",
-                "}",
+                "Public Class C",
+                "    ''' <summary>",
+                "    ''' $$",
+                "    ''' </summary>",
+                "End Class",
                 ""),
             HangMitigatingCancellationToken);
         await TestServices.Editor.SetNewLineCharacterAsync(editorNewLine, HangMitigatingCancellationToken);
 
         await TestServices.Editor.PasteAsync(
-            "Line 1" + pastedNewLine + "Line 2 with List<int> & value", HangMitigatingCancellationToken);
+            "Line 1" + pastedNewLine + "Line 2 with A & B", HangMitigatingCancellationToken);
 
         AssertEx.EqualOrDiff(
             "" + documentNewLine +
-            "class C" + documentNewLine +
-            "{" + documentNewLine +
-            "    /// <summary>" + documentNewLine +
-            "    /// Line 1" + documentNewLine +
-            "    /// Line 2 with List<int> &amp; value" + documentNewLine +
-            "    /// </summary>" + documentNewLine +
-            "}" + documentNewLine,
+            "Public Class C" + documentNewLine +
+            "    ''' <summary>" + documentNewLine +
+            "    ''' Line 1" + documentNewLine +
+            "    ''' Line 2 with A &amp; B" + documentNewLine +
+            "    ''' </summary>" + documentNewLine +
+            "End Class" + documentNewLine,
             await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
     }
 
     [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
-    public async Task Paste_MixedSelections()
+    public async Task Paste_RemovesEditorIndentationFromContinuationLines()
     {
         await SetUpEditorAsync(
             JoinLines("\r\n",
                 "",
-                "/// <summary>Replace {|selection:documentation|}</summary>",
-                "// Replace {|selection:ordinary|}",
-                "class C",
-                "{",
-                "}",
+                "Public Class C",
+                "    ''' <summary>",
+                "    ''' $$",
+                "    ''' </summary>",
+                "End Class",
+                ""),
+            HangMitigatingCancellationToken);
+
+        await TestServices.Editor.PasteAsync("Line 1\r\n    Line 2", HangMitigatingCancellationToken);
+
+        AssertEx.EqualOrDiff(
+            JoinLines("\r\n",
+                "",
+                "Public Class C",
+                "    ''' <summary>",
+                "    ''' Line 1",
+                "    ''' Line 2",
+                "    ''' </summary>",
+                "End Class",
+                ""),
+            await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+    }
+
+    [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    public async Task Paste_MixedEligibleAndIneligibleSelections()
+    {
+        await SetUpEditorAsync(
+            JoinLines("\r\n",
+                "",
+                "''' <summary>Replace {|selection:documentation|}</summary>",
+                "' Replace {|selection:ordinary|}",
+                "Public Class C",
+                "End Class",
                 ""),
             HangMitigatingCancellationToken);
 
@@ -110,48 +100,46 @@ public sealed class DocumentationCommentTests : AbstractEditorTest
         AssertEx.EqualOrDiff(
             JoinLines("\r\n",
                 "",
-                "/// <summary>Replace A &amp; B",
-                "/// Line 2",
-                "/// Line 3</summary>",
-                "// Replace A & B",
+                "''' <summary>Replace A &amp; B",
+                "''' Line 2",
+                "''' Line 3</summary>",
+                "' Replace A & B",
                 "Line 2",
                 "Line 3",
-                "class C",
-                "{",
-                "}",
+                "Public Class C",
+                "End Class",
                 ""),
             await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
     }
 
     [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
-    public async Task Paste_Undo()
+    public async Task Paste_UndoSmartAdjustmentThenNormalPaste()
     {
         await SetUpEditorAsync(
             JoinLines("\r\n",
                 "",
-                "/// <summary>",
-                "/// $$",
-                "/// </summary>",
-                "class C",
-                "{",
-                "}",
+                "''' <summary>",
+                "''' $$",
+                "''' </summary>",
+                "Public Class C",
+                "End Class",
                 ""),
             HangMitigatingCancellationToken);
 
         await TestServices.Editor.PasteAsync("A & B\r\nLine 2", HangMitigatingCancellationToken);
 
         AssertEx.EqualOrDiff(
-            JoinLines("\r\n", "", "/// <summary>", "/// A &amp; B", "/// Line 2", "/// </summary>", "class C", "{", "}", ""),
+            JoinLines("\r\n", "", "''' <summary>", "''' A &amp; B", "''' Line 2", "''' </summary>", "Public Class C", "End Class", ""),
             await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
 
         await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Undo, HangMitigatingCancellationToken);
         AssertEx.EqualOrDiff(
-            JoinLines("\r\n", "", "/// <summary>", "/// A & B", "Line 2", "/// </summary>", "class C", "{", "}", ""),
+            JoinLines("\r\n", "", "''' <summary>", "''' A & B", "Line 2", "''' </summary>", "Public Class C", "End Class", ""),
             await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
 
         await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Undo, HangMitigatingCancellationToken);
         AssertEx.EqualOrDiff(
-            JoinLines("\r\n", "", "/// <summary>", "/// ", "/// </summary>", "class C", "{", "}", ""),
+            JoinLines("\r\n", "", "''' <summary>", "''' ", "''' </summary>", "Public Class C", "End Class", ""),
             await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
     }
 
