@@ -35,6 +35,36 @@ internal static class PredefinedTypeExtensions
             _ => SpecialType.None,
         };
 
+    /// <summary>
+    /// Gets the simple metadata name of the predefined type (e.g. <c>Int32</c> for <see cref="PredefinedType.Int32"/>),
+    /// matching the <see cref="ISymbol.Name"/> of the corresponding type symbol.  Returns <see langword="null"/> for
+    /// <see cref="PredefinedType.None"/>.
+    /// </summary>
+    public static string? GetMetadataName(this PredefinedType predefinedType)
+        => predefinedType switch
+        {
+            PredefinedType.Object => "Object",
+            PredefinedType.Void => "Void",
+            PredefinedType.Boolean => "Boolean",
+            PredefinedType.Char => "Char",
+            PredefinedType.SByte => "SByte",
+            PredefinedType.Byte => "Byte",
+            PredefinedType.Int16 => "Int16",
+            PredefinedType.UInt16 => "UInt16",
+            PredefinedType.Int32 => "Int32",
+            PredefinedType.UInt32 => "UInt32",
+            PredefinedType.Int64 => "Int64",
+            PredefinedType.UInt64 => "UInt64",
+            PredefinedType.Decimal => "Decimal",
+            PredefinedType.Single => "Single",
+            PredefinedType.Double => "Double",
+            PredefinedType.String => "String",
+            PredefinedType.DateTime => "DateTime",
+            PredefinedType.IntPtr => "IntPtr",
+            PredefinedType.UIntPtr => "UIntPtr",
+            _ => null,
+        };
+
     public static PredefinedType ToPredefinedType(this SpecialType specialType)
         => specialType switch
         {

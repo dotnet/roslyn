@@ -206,7 +206,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
     public static ReferenceLocation CreateReferenceLocation(FindReferencesDocumentState state, SyntaxToken token, CandidateReason reason, CancellationToken cancellationToken)
         => new(
             state.Document,
-            state.Cache.GetAliasInfo(state.SemanticFacts, token, cancellationToken),
+            state.Cache.GetAliasInfo(state.SemanticFacts, token, state.GlobalAliases, cancellationToken),
             token.GetLocation(),
             isImplicit: false,
             GetSymbolUsageInfo(token.GetRequiredParent(), state, cancellationToken),
