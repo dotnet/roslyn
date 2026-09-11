@@ -16,5 +16,5 @@ public interface IWorkspaceServiceFactory
     /// Returns <c>null</c> if the service is not applicable to the given workspace.
     /// </summary>
     /// <param name="workspaceServices">The <see cref="HostWorkspaceServices"/> that can be used to access other services.</param>
-    IWorkspaceService CreateService(HostWorkspaceServices workspaceServices);
+    IWorkspaceService? CreateService(HostWorkspaceServices workspaceServices);
 }
