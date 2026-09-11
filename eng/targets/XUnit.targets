@@ -21,6 +21,9 @@
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
   </ItemGroup>
 
+  <!-- VSTest and direct runner references copy the required runner files. -->
+  <Target Name="_XunitCopyRunnerDependencies" />
+
   <ItemGroup>
     <!-- Include BannedSymbols covering all test projects -->
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\config\test\BannedSymbols.txt" />
