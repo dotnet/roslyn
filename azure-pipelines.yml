@@ -540,7 +540,7 @@ stages:
     steps:
       - template: eng/pipelines/checkout-unix-task.yml
 
-      - script: ./eng/build.sh --solution Roslyn.slnx --restore --build --configuration Debug --prepareMachine --ci --binaryLog --runanalyzers --warnaserror
+      - script: ./eng/build.sh --solution Roslyn.slnx --restore --build --configuration Debug --prepareMachine --ci --binaryLog --runanalyzers
         displayName: Build with analyzers
 
       - template: eng/pipelines/publish-logs.yml

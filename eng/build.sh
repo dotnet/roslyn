@@ -39,7 +39,7 @@ usage()
   echo "  --prepareMachine           Prepare machine for CI run, clean up processes after build"
   echo "  --msbuildMultiThreaded <value> Sets MSBuild's multi-threaded mode, i.e. the -mt switch ('true' or 'false') (short: --mt)"
   echo "  --nodeReuse <value>        Sets nodereuse msbuild parameter ('true' or 'false')"
-  echo "  --warnAsError              Treat all warnings as errors"
+  echo "  --warnAsError [true|false] Treat all warnings as errors (default: true with --ci)"
   echo "  --warnNotAsError <codes>   Suppress specific warnings from being treated as errors (semi-colon delimited)"
   echo "  --sourceBuild              Build the repository in source-only mode"
   echo "  --productBuild             Build the repository in product-build mode."
@@ -86,7 +86,7 @@ skip_documentation=false
 prepare_machine=false
 # Empty means "not specified"; tools.sh leaves it off unless it's explicitly requested.
 msbuild_multi_threaded=''
-warn_as_error=false
+warn_as_error=""
 warn_not_as_error=""
 properties=()
 source_build=false
@@ -197,6 +197,13 @@ while [[ $# > 0 ]]; do
       ;;
     --warnaserror)
       warn_as_error=true
+      case "${2:-}" in
+        true|false)
+          warn_as_error=$2
+          args="$args $1"
+          shift
+          ;;
+      esac
       ;;
     --warnnotaserror)
       warn_not_as_error=$2
@@ -234,6 +241,9 @@ while [[ $# > 0 ]]; do
   shift
 done
 
+# Resolve the default after parsing so explicit overrides work in either argument order.
+warn_as_error=${warn_as_error:-$ci}
+
 # Import Arcade functions
 . "$scriptroot/common/tools.sh"
 
@@ -248,7 +258,12 @@ function MakeBootstrapBuild {
   local package_name="Microsoft.Net.Compilers.Toolset"
   local project_path=src/NuGet/$package_name/AnyCpu/$package_name.Package.csproj
 
-  dotnet pack -nologo "$project_path" -p:ContinuousIntegrationBuild=$ci -p:DotNetUseShippingVersions=true -p:InitialDefineConstants=BOOTSTRAP -p:PackageOutputPath="$dir" -bl:"$log_dir/Bootstrap.binlog"
+  local msbuild_warn_as_error=""
+  if [[ "$warn_as_error" == true ]]; then
+    msbuild_warn_as_error="/warnAsError"
+  fi
+
+  dotnet pack -nologo "$project_path" -p:TreatWarningsAsErrors=$warn_as_error $msbuild_warn_as_error -p:ContinuousIntegrationBuild=$ci -p:DotNetUseShippingVersions=true -p:InitialDefineConstants=BOOTSTRAP -p:PackageOutputPath="$dir" -bl:"$log_dir/Bootstrap.binlog"
   unzip "$dir/$package_name.*.nupkg" -d "$dir"
   chmod -R 755 "$dir"
 
