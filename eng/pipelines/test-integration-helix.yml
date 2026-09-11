@@ -11,12 +11,17 @@ parameters:
     values: [ 'Debug', 'Release' ] 
   - name: timeout
     type: number
+  - name: prepareNuGetPackageUpgradePayload
+    type: boolean
+    default: false
   - name: testRuns
     type: object
     default:
       - oop64bit: true
         lspEditor: false
         runName: 64
+        testFilter: TestGate!=NuGetPackageUpgrade
+        useNuGetPackageUpgradePayload: false
   
 
 stages:
@@ -33,6 +38,7 @@ stages:
         demands: ImageOverride -equals ${{ parameters.buildQueueName }}
       restoreArguments: -msbuildEngine vs
       buildArguments: -msbuildEngine vs /p:Projects='"$(Build.Repository.LocalPath)\src\VisualStudio\IntegrationTest\IntegrationTestBuildProject.csproj"'
+      prepareNuGetPackageUpgradePayload: ${{ parameters.prepareNuGetPackageUpgradePayload }}
 
 - stage: ${{ parameters.configuration }}_Integration
   dependsOn: Windows_${{ parameters.configuration }}_Build
@@ -53,6 +59,13 @@ stages:
         inputs:
           artifact: Transport_Artifacts_Windows_${{ parameters.configuration }}
           path: '$(Build.SourcesDirectory)'
+
+      - ${{ if eq(testParameters.useNuGetPackageUpgradePayload, true) }}:
+        - task: DownloadPipelineArtifact@2
+          displayName: Download NuGet Package Upgrade Payload
+          inputs:
+            artifact: Roslyn_NuGet_Packages_Release
+            path: '$(Build.SourcesDirectory)\artifacts\packageValidation\Release'
 
       - task: BatchScript@1
         displayName: Rehydrate RunTests
@@ -118,7 +131,7 @@ stages:
         displayName: Run Integration Tests
         inputs:
           filePath: eng/build.ps1
-          arguments: -ci -prepareMachine -testVsi -configuration ${{ parameters.configuration }} -oop64bit:$${{ testParameters.oop64bit }} -collectDumps -lspEditor:$${{ testParameters.lspEditor }}
+          arguments: -ci -prepareMachine -testVsi -configuration ${{ parameters.configuration }} -oop64bit:$${{ testParameters.oop64bit }} -collectDumps -lspEditor:$${{ testParameters.lspEditor }} -testFilter:'${{ testParameters.testFilter }}'
 
       # These are temporary publishing steps - once the tests run on helix, the artifacts will be attached to the helix payload.
       - task: PublishTestResults@2
