@@ -401,9 +401,8 @@
 -target:library                   创建库程序集。
 -target:module                    创建可添加到
                                   程序集的模块。
--target:appcontainerexe           创建在 
- 中运行的 Windows 应用程序
-                                  AppContainer。
+-target:appcontainerexe           创建在
+                                  AppContainer 中运行的 Windows 应用程序。
 -target:winmdobj                  创建 Windows 元数据中间文件
 -doc[+|-]                         生成 XML 文档文件。
 -doc:&lt;file&gt;                       将 XML 文档文件生成到 &lt;file&gt;。
@@ -467,7 +466,7 @@
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
                                   指定用于按 SARIF 格式记录所有编译器和
                                   分析器诊断的文件。
-                                  sarif_version:{1|2|2.1} 默认值为 1。2 和 2.1
+                                  sarif_version:{1|2|2.1} 默认值为 1、2 和 2.1
                                   均表示 SARIF 版本 2.1.0。
 -reportanalyzer                   报告其他分析器信息，例如
                                   执行时间。
@@ -510,7 +509,7 @@
                                   (十六进制)。
 -checksumalgorithm:&lt;alg&gt;          指定用于计算存储在 PDB 中的源文件
                                   校验和的算法。支持的值为: 
-                                  SHA1、SHA256(默认)、SHA384 或 SHA512。
+                                  SHA1、SHA256 (默认)、SHA384 或 SHA512。
 -codepage:&lt;number&gt;                指定打开源文件时要使用的
                                   代码页。
 -delaysign[+|-]                   仅使用强名称密钥的公共部分
