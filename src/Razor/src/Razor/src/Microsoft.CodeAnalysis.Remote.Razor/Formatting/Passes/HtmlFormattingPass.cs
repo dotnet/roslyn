@@ -88,7 +88,10 @@ internal sealed partial class HtmlFormattingPass(
     {
         var codeDocument = context.CodeDocument;
         var originalText = codeDocument.Source.Text;
-        var (scriptAndStyleSpans, razorCommentSpans) = BuildSpans(codeDocument, originalText);
+        var (scriptAndStyleSpans, razorCommentSpans) = BuildSpans(
+            codeDocument,
+            originalText,
+            context.Options.IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor);
 
         var csharpSyntaxTree = await context.OriginalSnapshot.GetCSharpSyntaxTreeAsync(declarationDocument: false, cancellationToken).ConfigureAwait(false);
         var csharpSyntaxRoot = await csharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
@@ -309,7 +312,8 @@ internal sealed partial class HtmlFormattingPass(
     /// </summary>
     private static (ImmutableArray<TextSpan> ScriptAndStyleSpans, ImmutableArray<TextSpan> RazorCommentSpans) BuildSpans(
         RazorCodeDocument codeDocument,
-        SourceText sourceText)
+        SourceText sourceText,
+        bool ignoreIndentationInScriptOrStyleBlocksWithComplexRazor)
     {
         var syntaxRoot = codeDocument.GetRequiredSyntaxRoot();
 
@@ -334,7 +338,17 @@ internal sealed partial class HtmlFormattingPass(
                 var end = firstNonWhitespace == endTag.SpanStart
                     ? endTagLine.Start
                     : firstNonWhitespace.GetValueOrDefault() + 1;
-                scriptStyleBuilder.Add(TextSpan.FromBounds(startTag.EndPosition, end));
+                if (end <= startTag.EndPosition)
+                {
+                    continue;
+                }
+
+                var span = TextSpan.FromBounds(startTag.EndPosition, end);
+                if (!ignoreIndentationInScriptOrStyleBlocksWithComplexRazor ||
+                    !RazorSyntaxFacts.ContainsComplexRazorInScriptOrStyleBody(element, sourceText))
+                {
+                    scriptStyleBuilder.Add(span);
+                }
             }
             else if (node is RazorCommentBlockSyntax comment)
             {

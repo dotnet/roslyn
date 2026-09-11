@@ -20,6 +20,7 @@ public partial class FormattingLogTest
         public int TabSize { get; init; } = 4;
         public bool CodeBlockBraceOnNextLine { get; init; }
         public AttributeIndentStyle AttributeIndentStyle { get; init; } = AttributeIndentStyle.AlignWithFirst;
+        public bool IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor { get; init; } = true;
         public RazorCSharpSyntaxFormattingOptions? CSharpSyntaxFormattingOptions { get; init; }
         public bool FromPaste { get; init; }
 
@@ -34,6 +35,7 @@ public partial class FormattingLogTest
                 TabSize = TabSize,
                 CodeBlockBraceOnNextLine = CodeBlockBraceOnNextLine,
                 AttributeIndentStyle = AttributeIndentStyle,
+                IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor = IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor,
                 CSharpSyntaxFormattingOptions = CSharpSyntaxFormattingOptions?.ToCSharpSyntaxFormattingOptions()
                     ?? Microsoft.CodeAnalysis.CSharp.Formatting.CSharpSyntaxFormattingOptions.Default,
                 FromPaste = FromPaste,

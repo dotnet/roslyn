@@ -66,6 +66,7 @@ public class RemoteClientSettingsServiceTest(ITestOutputHelper testOutput) : Coh
                 ColorBackground: true,
                 CodeBlockBraceOnNextLine: true,
                 AttributeIndentStyle: AttributeIndentStyle.IndentByOne,
+                IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor: false,
                 CommitElementsWithSpace: false,
                 SnippetSetting: SnippetSetting.None,
                 LogLevel: LogLevel.Trace,
