@@ -1587,6 +1587,11 @@
         <target state="translated">As duas declarações de membros parciais precisam ser marcadas como ''safe'' ou nenhuma pode ser marcada como ''safe''</target>
         <note>'safe' is a keyword and should not be localized</note>
       </trans-unit>
+      <trans-unit id="ERR_PartialModifierOrdering">
+        <source>In C# {0}, 'partial' must be the last modifier. Move it after the other modifiers, or use language version {1} or later.</source>
+        <target state="new">In C# {0}, 'partial' must be the last modifier. Move it after the other modifiers, or use language version {1} or later.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeInSource">
         <source>Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</source>
         <target state="translated">Não use ''RequiresUnsafeAttribute'' na fonte; use o modificador ''unsafe''.</target>
@@ -3220,6 +3225,11 @@
       <trans-unit id="IDS_FeatureRefUnsafeInIteratorAsync">
         <source>ref and unsafe in async and iterator methods</source>
         <target state="translated">ref e unsafe em métodos assíncronos e iteradores</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRelaxedPartialModifierOrdering">
+        <source>relaxed partial modifier ordering</source>
+        <target state="new">relaxed partial modifier ordering</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
@@ -7361,8 +7371,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</source>
-        <target state="translated">O modificador "partial" só pode aparecer imediatamente antes de "class", "record", "struct", "interface", "event", um nome de construtor de instância ou um método ou tipo de retorno de propriedade.</target>
+        <source>The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.</source>
+        <target state="needs-review-translation">O modificador "partial" só pode aparecer imediatamente antes de "class", "record", "struct", "interface", "event", um nome de construtor de instância ou um método ou tipo de retorno de propriedade.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">

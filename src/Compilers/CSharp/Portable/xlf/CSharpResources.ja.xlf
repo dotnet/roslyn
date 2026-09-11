@@ -1587,6 +1587,11 @@
         <target state="translated">部分メンバー宣言は両方とも 'safe' とマークする必要があります。または、いずれも 'safe' とマークされなくても構いません</target>
         <note>'safe' is a keyword and should not be localized</note>
       </trans-unit>
+      <trans-unit id="ERR_PartialModifierOrdering">
+        <source>In C# {0}, 'partial' must be the last modifier. Move it after the other modifiers, or use language version {1} or later.</source>
+        <target state="new">In C# {0}, 'partial' must be the last modifier. Move it after the other modifiers, or use language version {1} or later.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeInSource">
         <source>Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</source>
         <target state="translated">ソースで 'RequiresUnsafeAttribute' を使用しないでください。代わりに 'unsafe' 修飾子を使用してください。</target>
@@ -3220,6 +3225,11 @@
       <trans-unit id="IDS_FeatureRefUnsafeInIteratorAsync">
         <source>ref and unsafe in async and iterator methods</source>
         <target state="translated">非同期および反復子メソッドの ref と unsafe</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRelaxedPartialModifierOrdering">
+        <source>relaxed partial modifier ordering</source>
+        <target state="new">relaxed partial modifier ordering</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
@@ -7361,8 +7371,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</source>
-        <target state="translated">'partial' 修飾子は、'class'、'record'、'struct'、'interface'、'event'、インスタンス コンストラクター名、またはメソッドまたはプロパティの戻り値の型の直前にのみ使用できます。</target>
+        <source>The 'partial' modifier is only valid on class, record, struct, interface, event, instance constructor, method, and property declarations.</source>
+        <target state="needs-review-translation">'partial' 修飾子は、'class'、'record'、'struct'、'interface'、'event'、インスタンス コンストラクター名、またはメソッドまたはプロパティの戻り値の型の直前にのみ使用できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">

@@ -25,10 +25,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             return SyntaxFactory.ParseSyntaxTree(text, options ?? TestOptions.Regular);
         }
 
-        [Fact]
-        public void PartialLocationInModifierList()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp14)]
+        [InlineData(LanguageVersion.Preview)]
+        public void PartialLocationInModifierList(LanguageVersion languageVersion)
         {
-            var comp = CreateCompilation(@"
+            var compilation = CreateCompilation(@"
 class Program
 {
     partial abstract class A {}
@@ -39,29 +41,45 @@ class Program
 
     partial abstract struct S {}
     partial abstract struct S {}
-}");
-            comp.VerifyDiagnostics(
-                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                //     partial abstract class A {}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
-                // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                //     partial abstract class A {}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
-                // (7,13): error CS1004: Duplicate 'partial' modifier
-                //     partial partial class B {}
-                Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(7, 13),
-                // (8,13): error CS1004: Duplicate 'partial' modifier
-                //     partial partial class B {}
-                Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(8, 13),
-                // (10,29): error CS0106: The modifier 'abstract' is not valid for this item
-                //     partial abstract struct S {}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "S").WithArguments("abstract").WithLocation(10, 29),
-                // (10,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                //     partial abstract struct S {}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(10, 5),
-                // (11,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                //     partial abstract struct S {}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(11, 5));
+}", parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion == LanguageVersion.CSharp14)
+            {
+                compilation.VerifyDiagnostics(
+                    // (4,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
+                    //     partial abstract class A {}
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(4, 5),
+                    // (5,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
+                    //     partial abstract class A {}
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(5, 5),
+                    // (7,13): error CS1004: Duplicate 'partial' modifier
+                    //     partial partial class B {}
+                    Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(7, 13),
+                    // (8,13): error CS1004: Duplicate 'partial' modifier
+                    //     partial partial class B {}
+                    Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(8, 13),
+                    // (10,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
+                    //     partial abstract struct S {}
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(10, 5),
+                    // (10,29): error CS0106: The modifier 'abstract' is not valid for this item
+                    //     partial abstract struct S {}
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "S").WithArguments("abstract").WithLocation(10, 29),
+                    // (11,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
+                    //     partial abstract struct S {}
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(11, 5));
+            }
+            else
+            {
+                compilation.VerifyDiagnostics(
+                    // (7,13): error CS1004: Duplicate 'partial' modifier
+                    //     partial partial class B {}
+                    Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(7, 13),
+                    // (8,13): error CS1004: Duplicate 'partial' modifier
+                    //     partial partial class B {}
+                    Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(8, 13),
+                    // (10,29): error CS0106: The modifier 'abstract' is not valid for this item
+                    //     partial abstract struct S {}
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "S").WithArguments("abstract").WithLocation(10, 29));
+            }
         }
 
         [Fact]

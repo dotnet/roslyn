@@ -2116,8 +2116,10 @@ class Program
             CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics();
         }
 
-        [Fact]
-        public void PartialRefStruct()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp14)]
+        [InlineData(LanguageVersion.Preview)]
+        public void PartialRefStruct(LanguageVersion languageVersion)
         {
             const string text = @"
 class Program
@@ -2126,7 +2128,8 @@ class Program
     partial ref struct S {}
 }
 ";
-            UsingTree(text);
+            var options = TestOptions.Regular.WithLanguageVersion(languageVersion);
+            UsingTree(text, options);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2158,13 +2161,17 @@ class Program
             }
             EOF();
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                //     partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
-                // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                //     partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5));
+            CreateCompilation(text, parseOptions: options).VerifyDiagnostics(
+                languageVersion == LanguageVersion.CSharp14
+                ? [
+                    // (4,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
+                    //     partial ref struct S {}
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(4, 5),
+                    // (5,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
+                    //     partial ref struct S {}
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(5, 5)
+                ]
+                : []);
         }
 
         [Fact]
@@ -2575,8 +2582,10 @@ class C
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 13));
         }
 
-        [Fact]
-        public void ReadonlyPartialRefStruct()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp14)]
+        [InlineData(LanguageVersion.Preview)]
+        public void ReadonlyPartialRefStruct(LanguageVersion languageVersion)
         {
             const string text = @"
 class C
@@ -2584,7 +2593,8 @@ class C
     readonly partial ref struct S {}
     readonly partial ref struct S {}
 }";
-            UsingTree(text);
+            var options = TestOptions.Regular.WithLanguageVersion(languageVersion);
+            UsingTree(text, options);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2618,13 +2628,17 @@ class C
             }
             EOF();
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (4,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                //     readonly partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 14),
-                // (5,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                //     readonly partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 14));
+            CreateCompilation(text, parseOptions: options).VerifyDiagnostics(
+                languageVersion == LanguageVersion.CSharp14
+                ? [
+                    // (4,14): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
+                    //     readonly partial ref struct S {}
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(4, 14),
+                    // (5,14): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
+                    //     readonly partial ref struct S {}
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(5, 14)
+                ]
+                : []);
         }
 
         [Fact]

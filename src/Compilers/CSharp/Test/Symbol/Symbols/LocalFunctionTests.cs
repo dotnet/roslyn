@@ -104,8 +104,10 @@ class C
             Assert.False(staticLocal.RequiresInstanceReceiver);
         }
 
-        [Fact]
-        public void PartialStaticLocalFunction()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp14)]
+        [InlineData(LanguageVersion.Preview)]
+        public void PartialStaticLocalFunction(LanguageVersion languageVersion)
         {
             CreateCompilation("""
                 public class C
@@ -115,13 +117,18 @@ class C
                         partial static void local() { }
                     }
                 }
-                """).VerifyDiagnostics(
+                """, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics([
                 // (4,6): error CS1513: } expected
                 //     {
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 6),
-                // (5,9): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                //         partial static void local() { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 9),
+                .. (languageVersion == LanguageVersion.CSharp14
+                    ? new[]
+                    {
+                        // (5,9): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
+                        //         partial static void local() { }
+                        Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(5, 9)
+                    }
+                    : System.Array.Empty<DiagnosticDescription>()),
                 // (5,29): error CS0759: No defining declaration found for implementing declaration of partial method 'C.local()'
                 //         partial static void local() { }
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "local").WithArguments("C.local()").WithLocation(5, 29),
@@ -130,7 +137,8 @@ class C
                 Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "local").WithLocation(5, 29),
                 // (7,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(7, 1));
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(7, 1)
+            ]);
         }
 
         [Fact]

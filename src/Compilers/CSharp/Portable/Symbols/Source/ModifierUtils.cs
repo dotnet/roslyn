@@ -486,15 +486,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (!messageId.CheckFeatureAvailability(diagnostics, partialToken))
                         return true;
 
-                    // `partial` normally must be last. Preserve the historical exception for ordinary methods ending in
-                    // `partial async`. Ordinary methods are the only declarations that allow both modifiers; elsewhere,
-                    // either `partial` is rejected here or `async` is rejected by ModifierUtils.CheckModifiers.
+                    if (!allowsPartialModifier)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_PartialMisplaced, partialToken.GetLocation());
+                        return true;
+                    }
+
+                    // `partial` was historically required to be the last modifier. This restriction is lifted by the
+                    // relaxed-modifier-ordering feature. Preserve the historical exception for ordinary methods ending
+                    // in `partial async` on earlier language versions.
                     var isLegalLocation =
                         partialIndex == modifiers.Count - 1 ||
                         (partialIndex == modifiers.Count - 2 && modifiers[partialIndex + 1].ContextualKind() is SyntaxKind.AsyncKeyword);
-                    if (!allowsPartialModifier || !isLegalLocation)
+                    if (!isLegalLocation &&
+                        reportModifierOrderingDiagnostic(
+                            partialToken,
+                            MessageID.IDS_FeatureRelaxedPartialModifierOrdering,
+                            ErrorCode.ERR_PartialModifierOrdering))
                     {
-                        diagnostics.Add(ErrorCode.ERR_PartialMisplaced, partialToken.GetLocation());
                         return true;
                     }
                 }
@@ -520,6 +529,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 return false;
+            }
+
+            bool reportModifierOrderingDiagnostic(SyntaxToken modifierToken, MessageID feature, ErrorCode errorCode)
+            {
+                if (modifierToken.Parent.IsFeatureEnabled(feature))
+                    return false;
+
+                var availableVersion = ((CSharpParseOptions)modifierToken.Parent.SyntaxTree.Options).LanguageVersion;
+                diagnostics.Add(
+                    errorCode,
+                    modifierToken.GetLocation(),
+                    availableVersion.ToDisplayString(),
+                    new CSharpRequiredLanguageVersion(feature.RequiredVersion()));
+                return true;
             }
         }
 

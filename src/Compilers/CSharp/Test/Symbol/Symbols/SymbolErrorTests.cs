@@ -22205,8 +22205,10 @@ using System.Runtime.CompilerServices;
                 );
         }
 
-        [Fact]
-        public void PartialConstructor()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp14)]
+        [InlineData(LanguageVersion.Preview)]
+        public void PartialConstructor(LanguageVersion languageVersion)
         {
             CreateCompilation(new[]
             {
@@ -22228,10 +22230,15 @@ using System.Runtime.CompilerServices;
                     partial public PartialPublicCtor() { }
                 }
                 """
-            }).VerifyDiagnostics(
-                // 2.cs(3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                //     partial public PartialPublicCtor() { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+            }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics([
+                .. (languageVersion == LanguageVersion.CSharp14
+                    ? new[]
+                    {
+                        // 2.cs(3,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
+                        //     partial public PartialPublicCtor() { }
+                        Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(3, 5)
+                    }
+                    : System.Array.Empty<DiagnosticDescription>()),
                 // 0.cs(3,13): error CS0751: A partial member must be declared within a partial type
                 //     partial PartialCtor() { }
                 Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "PartialCtor").WithLocation(3, 13),
@@ -22249,7 +22256,8 @@ using System.Runtime.CompilerServices;
                 Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "PublicPartialCtor").WithArguments("PublicPartialCtor.PublicPartialCtor()").WithLocation(3, 20),
                 // 2.cs(3,20): error CS9276: Partial member 'PartialPublicCtor.PartialPublicCtor()' must have a definition part.
                 //     partial public PartialPublicCtor() { }
-                Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "PartialPublicCtor").WithArguments("PartialPublicCtor.PartialPublicCtor()").WithLocation(3, 20));
+                Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "PartialPublicCtor").WithArguments("PartialPublicCtor.PartialPublicCtor()").WithLocation(3, 20)
+            ]);
         }
 
         [Fact]

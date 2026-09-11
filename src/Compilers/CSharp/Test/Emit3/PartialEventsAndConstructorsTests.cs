@@ -268,7 +268,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
     }
 
     [Fact]
-    public void PartialNotLast()
+    public void PartialNotLast_CSharp14()
     {
         var source = """
             partial class C
@@ -279,19 +279,36 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
                 partial public C() { }
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics(
-            // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            // (3,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
             //     partial public event System.Action E;
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-            // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(3, 5),
+            // (4,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
             //     partial public event System.Action E { add { } remove { } }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
-            // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(4, 5),
+            // (5,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
             //     partial public C();
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
-            // (6,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(5, 5),
+            // (6,5): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
             //     partial public C() { }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(6, 5));
+            Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(6, 5));
+    }
+
+    [Fact]
+    public void PartialNotLast_Preview()
+    {
+        var source = """
+            partial class C
+            {
+                partial public event System.Action E;
+                partial public event System.Action E { add { } remove { } }
+                partial public C();
+                partial public C() { }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
     }
 
     [Fact]

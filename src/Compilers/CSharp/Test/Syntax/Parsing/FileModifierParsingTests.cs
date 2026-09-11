@@ -120,20 +120,24 @@ public sealed class FileModifierParsingTests : ParsingTests
     }
 
     [Theory]
-    [InlineData(SyntaxKind.ClassKeyword)]
-    [InlineData(SyntaxKind.StructKeyword)]
-    [InlineData(SyntaxKind.InterfaceKeyword)]
-    public void FileModifier_03(SyntaxKind typeKeyword)
+    [InlineData(SyntaxKind.ClassKeyword, LanguageVersion.CSharp14)]
+    [InlineData(SyntaxKind.ClassKeyword, LanguageVersion.Preview)]
+    [InlineData(SyntaxKind.StructKeyword, LanguageVersion.CSharp14)]
+    [InlineData(SyntaxKind.StructKeyword, LanguageVersion.Preview)]
+    [InlineData(SyntaxKind.InterfaceKeyword, LanguageVersion.CSharp14)]
+    [InlineData(SyntaxKind.InterfaceKeyword, LanguageVersion.Preview)]
+    public void FileModifier_03(SyntaxKind typeKeyword, LanguageVersion languageVersion)
     {
         UsingNode($$"""
             partial file {{SyntaxFacts.GetText(typeKeyword)}} C { }
             """,
-            expectedBindingDiagnostics: new[]
-            {
-                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                // partial file {{SyntaxFacts.GetText(typeKeyword)}} C { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1)
-            });
+            options: TestOptions.Regular.WithLanguageVersion(languageVersion),
+            expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
+                ? [
+                    // (1,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(1, 1)
+                ]
+                : []);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxFacts.GetBaseTypeDeclarationKind(typeKeyword));
@@ -150,18 +154,22 @@ public sealed class FileModifierParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void FileModifier_04()
+    [Theory]
+    [InlineData(LanguageVersion.CSharp14)]
+    [InlineData(LanguageVersion.Preview)]
+    public void FileModifier_04(LanguageVersion languageVersion)
     {
         UsingNode("""
             partial file record C { }
             """,
-            expectedBindingDiagnostics: new DiagnosticDescription[]
-            {
-                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                // partial file record C { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1)
-            });
+            options: TestOptions.Regular.WithLanguageVersion(languageVersion),
+            expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
+                ? [
+                    // (1,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
+                    // partial file record C { }
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(1, 1)
+                ]
+                : []);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.RecordDeclaration);
@@ -201,18 +209,22 @@ public sealed class FileModifierParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void FileModifier_06()
+    [Theory]
+    [InlineData(LanguageVersion.CSharp14)]
+    [InlineData(LanguageVersion.Preview)]
+    public void FileModifier_06(LanguageVersion languageVersion)
     {
         UsingNode($$"""
             partial file record struct C { }
             """,
-            expectedBindingDiagnostics: new DiagnosticDescription[]
-            {
-                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                // partial file record struct C { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1)
-            });
+            options: TestOptions.Regular.WithLanguageVersion(languageVersion),
+            expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
+                ? [
+                    // (1,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
+                    // partial file record struct C { }
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(1, 1)
+                ]
+                : []);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.RecordStructDeclaration);
@@ -239,9 +251,9 @@ public sealed class FileModifierParsingTests : ParsingTests
             options: TestOptions.Regular10,
             expectedBindingDiagnostics: new[]
             {
-                // (1,6): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                // (1,6): error CS9401: In C# 10.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                 // file partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 6),
+                Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("10.0", "15.0").WithLocation(1, 6),
                 // (1,25): error CS8936: Feature 'file types' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // file partial ref struct C { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "C").WithArguments("file types", "11.0").WithLocation(1, 25)
@@ -263,18 +275,22 @@ public sealed class FileModifierParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void FileModifier_07()
+    [Theory]
+    [InlineData(LanguageVersion.CSharp14)]
+    [InlineData(LanguageVersion.Preview)]
+    public void FileModifier_07(LanguageVersion languageVersion)
     {
         UsingNode($$"""
             file partial ref struct C { }
             """,
-            expectedBindingDiagnostics: new[]
-            {
-                // (1,6): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                // file partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 6)
-            });
+            options: TestOptions.Regular.WithLanguageVersion(languageVersion),
+            expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
+                ? [
+                    // (1,6): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
+                    // file partial ref struct C { }
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(1, 6)
+                ]
+                : []);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -293,18 +309,22 @@ public sealed class FileModifierParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void FileModifier_08()
+    [Theory]
+    [InlineData(LanguageVersion.CSharp14)]
+    [InlineData(LanguageVersion.Preview)]
+    public void FileModifier_08(LanguageVersion languageVersion)
     {
         UsingNode($$"""
             partial file ref struct C { }
             """,
-            expectedBindingDiagnostics: new[]
-            {
-                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                // partial file ref struct C { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1)
-            });
+            options: TestOptions.Regular.WithLanguageVersion(languageVersion),
+            expectedBindingDiagnostics: languageVersion == LanguageVersion.CSharp14
+                ? [
+                    // (1,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
+                    // partial file ref struct C { }
+                    Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(1, 1)
+                ]
+                : []);
 
         N(SyntaxKind.CompilationUnit);
         {

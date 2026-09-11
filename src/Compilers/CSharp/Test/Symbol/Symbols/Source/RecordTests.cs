@@ -1189,18 +1189,30 @@ partial record C
         }
 
         [Fact]
-        public void PartialTypes_04_PartialBeforeModifiers()
+        public void PartialTypes_04_PartialBeforeModifiers_CSharp14()
         {
             var src = @"
 partial public record C
 {
 }
 ";
-            CreateCompilation(src).VerifyDiagnostics(
-                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+                // (2,1): error CS9401: In C# 14.0, 'partial' must be the last modifier. Move it after the other modifiers, or use language version 15.0 or later.
                 // partial public record C
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1)
-                );
+                Diagnostic(ErrorCode.ERR_PartialModifierOrdering, "partial").WithArguments("14.0", "15.0").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void PartialTypes_04_PartialBeforeModifiers_Preview()
+        {
+            var src = """
+                partial public record C
+                {
+                }
+                """;
+
+            CreateCompilation(src, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [Fact]
