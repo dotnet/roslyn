@@ -120,6 +120,9 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         LspTextChanged?.Invoke(this, EventArgs.Empty);
 
+        if (_lspMiscellaneousFilesWorkspaceProvider is not null)
+            await _lspMiscellaneousFilesWorkspaceProvider.OpenDocumentAsync(uri, _trackedDocuments[uri]).ConfigureAwait(false);
+
         // Attempt to open the doc if we find it in a workspace.  Note: if we don't (because we've heard from lsp about
         // the doc before we've heard from the project system), that's ok.  We'll still attempt to open it later in
         // GetLspSolutionForWorkspaceAsync

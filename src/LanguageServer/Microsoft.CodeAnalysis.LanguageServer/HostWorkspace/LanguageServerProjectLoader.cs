@@ -191,6 +191,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
 
             // This request blocks to ensure we aren't trying to run a design time build at the same time as a restore.
             await ProjectDependencyHelper.RestoreProjectsAsync(_workDoneProgressManager, pathsToRestore, EnableProgressReporting, _dotnetCliHelper, _logger, cancellationToken);
+            await OnProjectsRestoredAsync(projectsThatNeedRestore, cancellationToken);
         }
     }
 
@@ -206,12 +207,21 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
         public required bool HasAllInformation { get; init; }
         public required BuildHostProcessKind PreferredBuildHostKind { get; init; }
         public required BuildHostProcessKind ActualBuildHostKind { get; init; }
+        public ImmutableArray<FileBasedProgramsProjectLoader.ProjectLoadResult> PreparedProjectLoads { get; init; }
     }
 
     /// <summary>Loads a project in the MSBuild host.</summary>
     /// <remarks>Caller needs to catch exceptions to avoid bringing down the project loader queue.</remarks>
     protected abstract Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken);
+
+    protected virtual ValueTask OnProjectLoadedAsync(
+        string projectPath, RemoteProjectLoadResult projectLoadResult, bool needsRestore, CancellationToken cancellationToken)
+        => ValueTask.CompletedTask;
+
+    protected virtual ValueTask OnProjectsRestoredAsync(
+        ImmutableArray<string> restoredProjectPaths, CancellationToken cancellationToken)
+        => ValueTask.CompletedTask;
 
     protected virtual async Task<(ImmutableArray<ProjectFileInfo>, ProjectSystemProjectFactory)?> TryLoadProjectFromCacheAsync(string projectPath, CancellationToken cancellationToken)
         => null;
@@ -286,6 +296,9 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
                 isFileBasedProgram: remoteProjectLoadResult.IsFileBasedProgram,
                 hasFileBasedAppDirectives: remoteProjectLoadResult.HasFileBasedAppDirectives);
 
+            var needsRestore = await loadedProject.NeedsRestoreAsync();
+            await OnProjectLoadedAsync(projectPath, remoteProjectLoadResult, needsRestore, cancellationToken);
+
             if (diagnosticLogItems.Any())
             {
                 await LogDiagnosticsAsync(diagnosticLogItems);
@@ -295,7 +308,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
                 _logger.LogInformation(string.Format(LanguageServerResources.Successfully_completed_load_of_0, projectPath));
             }
 
-            return await loadedProject.NeedsRestoreAsync() ? remoteProjectLoadResult.ProjectRestorePath : null;
+            return needsRestore ? remoteProjectLoadResult.ProjectRestorePath : null;
         }
         catch (Exception e) when (!ExceptionUtilities.IsCurrentOperationBeingCancelled(e, cancellationToken)) // Cancellation is only expected when we're shutting down, in which case there's no reason to do a report.
         {
@@ -365,9 +378,9 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
     }
 
     /// <summary>
-    /// Begins loading a project. If the project has already begun loading, returns without doing any additional work.
+    /// Begins loading a project. If the project has already begun loading, optionally queues a reload.
     /// </summary>
-    internal async Task<LoadedProject> BeginLoadingProjectAsync(string projectPath)
+    internal async Task<LoadedProject> BeginLoadingProjectAsync(string projectPath, bool reloadIfAlreadyLoaded = false)
     {
         projectPath = NormalizeProjectPath(projectPath);
         LoadedProject? loadedProject;
@@ -383,6 +396,10 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
                 _loadedProjects.Add(projectPath, loadedProject);
 
                 loadedProject.NeedsReload += LoadedProject_NeedsReload;
+                _projectsToReload.AddWork(loadedProject.ProjectFilePath);
+            }
+            else if (reloadIfAlreadyLoaded)
+            {
                 _projectsToReload.AddWork(loadedProject.ProjectFilePath);
             }
         }
