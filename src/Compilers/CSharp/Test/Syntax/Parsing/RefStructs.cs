@@ -388,18 +388,18 @@ class Program
         }
 
         [Theory]
-        [InlineData("record", LanguageVersion.CSharp9, SyntaxKind.RecordDeclaration)]
-        [InlineData("union", LanguageVersion.CSharp15, SyntaxKind.UnionDeclaration)]
-        [InlineData("extension", LanguageVersion.CSharp14, SyntaxKind.ExtensionBlockDeclaration)]
-        public void RefReadonlyContextualKeywordParsingEnabled(
-            string contextualKeyword, LanguageVersion languageVersion, SyntaxKind expectedMemberKind)
+        [InlineData("record", LanguageVersion.CSharp9)]
+        [InlineData("union", LanguageVersion.CSharp15)]
+        [InlineData("extension", LanguageVersion.CSharp14)]
+        public void RefReadonlyContextualKeywordRemainsReturnTypeWhenFeatureEnabled(
+            string contextualKeyword, LanguageVersion languageVersion)
         {
             var source = $"class C {{ ref readonly {contextualKeyword} M(); }}";
             var tree = ParseTree(source, TestOptions.Regular.WithLanguageVersion(languageVersion));
 
             var root = tree.GetCompilationUnitRoot();
             var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
-            Assert.Equal(expectedMemberKind, Assert.Single(containingType.Members).Kind());
+            Assert.Equal(SyntaxKind.MethodDeclaration, Assert.Single(containingType.Members).Kind());
             Assert.Contains(
                 CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).GetDiagnostics(),
                 diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
@@ -570,18 +570,18 @@ class Program
         }
 
         [Theory]
-        [InlineData("record", LanguageVersion.CSharp9, SyntaxKind.RecordDeclaration)]
-        [InlineData("union", LanguageVersion.CSharp15, SyntaxKind.UnionDeclaration)]
-        [InlineData("extension", LanguageVersion.CSharp14, SyntaxKind.ExtensionBlockDeclaration)]
-        public void RefReadonlyContextualKeywordPropertyParsingEnabled(
-            string contextualKeyword, LanguageVersion languageVersion, SyntaxKind expectedMemberKind)
+        [InlineData("record", LanguageVersion.CSharp9)]
+        [InlineData("union", LanguageVersion.CSharp15)]
+        [InlineData("extension", LanguageVersion.CSharp14)]
+        public void RefReadonlyContextualKeywordRemainsPropertyTypeWhenFeatureEnabled(
+            string contextualKeyword, LanguageVersion languageVersion)
         {
             var source = $"class C {{ ref readonly {contextualKeyword} A {{ get; }} }}";
             var tree = ParseTree(source, TestOptions.Regular.WithLanguageVersion(languageVersion));
 
             var root = tree.GetCompilationUnitRoot();
             var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
-            Assert.Equal(expectedMemberKind, Assert.Single(containingType.Members).Kind());
+            Assert.Equal(SyntaxKind.PropertyDeclaration, Assert.Single(containingType.Members).Kind());
             Assert.Contains(
                 CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).GetDiagnostics(),
                 diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
@@ -1548,35 +1548,64 @@ class Program
             const string source = "ref readonly record R { } class C { ref readonly record R { } }";
 
             CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 21),
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 21),
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 57),
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 57));
+                // (1,14): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                // ref readonly record R { } class C { ref readonly record R { } }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 14),
+                // (1,21): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
+                // ref readonly record R { } class C { ref readonly record R { } }
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "R").WithLocation(1, 21),
+                // (1,21): error CS0548: '<invalid-global-code>.R': property or indexer must have at least one accessor
+                // ref readonly record R { } class C { ref readonly record R { } }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("<invalid-global-code>.R").WithLocation(1, 21),
+                // (1,50): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                // ref readonly record R { } class C { ref readonly record R { } }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 50),
+                // (1,57): error CS0548: 'C.R': property or indexer must have at least one accessor
+                // ref readonly record R { } class C { ref readonly record R { } }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("C.R").WithLocation(1, 57));
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.RecordDeclaration);
+                N(SyntaxKind.PropertyDeclaration);
                 {
-                    N(SyntaxKind.RefKeyword);
-                    N(SyntaxKind.ReadOnlyKeyword);
-                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "record");
+                        }
+                    }
                     N(SyntaxKind.IdentifierToken, "R");
-                    N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.AccessorList);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
                 }
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.RecordDeclaration);
+                    N(SyntaxKind.PropertyDeclaration);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        N(SyntaxKind.RecordKeyword);
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "record");
+                            }
+                        }
                         N(SyntaxKind.IdentifierToken, "R");
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
@@ -1857,39 +1886,64 @@ class Program
             const string source = "ref readonly union R { } class C { ref readonly union R { } }";
 
             CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp15)).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 20),
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "R").WithArguments("System.Runtime.CompilerServices.IUnion").WithLocation(1, 20),
-                Diagnostic(ErrorCode.ERR_UnionDeclarationNeedsCaseTypes, "R").WithLocation(1, 20),
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "R").WithArguments("System.Runtime.CompilerServices.UnionAttribute", ".ctor").WithLocation(1, 20),
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 55),
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "R").WithArguments("System.Runtime.CompilerServices.IUnion").WithLocation(1, 55),
-                Diagnostic(ErrorCode.ERR_UnionDeclarationNeedsCaseTypes, "R").WithLocation(1, 55),
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "R").WithArguments("System.Runtime.CompilerServices.UnionAttribute", ".ctor").WithLocation(1, 55));
+                // (1,14): error CS0246: The type or namespace name 'union' could not be found (are you missing a using directive or an assembly reference?)
+                // ref readonly union R { } class C { ref readonly union R { } }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "union").WithArguments("union").WithLocation(1, 14),
+                // (1,20): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
+                // ref readonly union R { } class C { ref readonly union R { } }
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "R").WithLocation(1, 20),
+                // (1,20): error CS0548: '<invalid-global-code>.R': property or indexer must have at least one accessor
+                // ref readonly union R { } class C { ref readonly union R { } }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("<invalid-global-code>.R").WithLocation(1, 20),
+                // (1,49): error CS0246: The type or namespace name 'union' could not be found (are you missing a using directive or an assembly reference?)
+                // ref readonly union R { } class C { ref readonly union R { } }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "union").WithArguments("union").WithLocation(1, 49),
+                // (1,55): error CS0548: 'C.R': property or indexer must have at least one accessor
+                // ref readonly union R { } class C { ref readonly union R { } }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("C.R").WithLocation(1, 55));
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp15));
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.UnionDeclaration);
+                N(SyntaxKind.PropertyDeclaration);
                 {
-                    N(SyntaxKind.RefKeyword);
-                    N(SyntaxKind.ReadOnlyKeyword);
-                    N(SyntaxKind.UnionKeyword);
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "union");
+                        }
+                    }
                     N(SyntaxKind.IdentifierToken, "R");
-                    N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.AccessorList);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
                 }
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.UnionDeclaration);
+                    N(SyntaxKind.PropertyDeclaration);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        N(SyntaxKind.UnionKeyword);
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "union");
+                            }
+                        }
                         N(SyntaxKind.IdentifierToken, "R");
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
@@ -1899,7 +1953,7 @@ class Program
         }
 
         [Fact]
-        public void RefReadonlyRecordReturnType_BreakingParsingChange()
+        public void RefReadonlyRecordReturnType_BindsAsBefore()
         {
             var source = """
                 #pragma warning disable CS8860
@@ -1911,12 +1965,60 @@ class Program
                 }
                 """;
 
-            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("readonly").WithLocation(6, 32),
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("ref").WithLocation(6, 32),
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "=>").WithLocation(6, 36),
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(6, 36),
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 36));
+            UsingTree(source, TestOptions.Regular9);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "record");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "record");
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.ThrowExpression);
+                            {
+                                N(SyntaxKind.ThrowKeyword);
+                                N(SyntaxKind.NullLiteralExpression);
+                                {
+                                    N(SyntaxKind.NullKeyword);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics();
         }
 
         [Fact]

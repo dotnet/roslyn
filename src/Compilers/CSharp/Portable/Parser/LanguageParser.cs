@@ -1449,17 +1449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 Debug.Assert(this.CurrentToken.Kind == SyntaxKind.RefKeyword);
 
-                var peekIndex = 1;
-
-                // Skip ordinary modifiers while looking for the type declaration. 'scoped' is
-                // intentionally excluded: it is contextual and may instead be the type in a
-                // 'ref scoped ...' return-type prefix.
-                while (GetModifierExcludingScoped(this.PeekToken(peekIndex)) != DeclarationModifiers.None)
-                {
-                    peekIndex++;
-                }
-
-                if (this.IsTypeDeclarationStart(peekIndex))
+                if (this.IsTypeDeclarationStart(peekIndex: 1))
                 {
                     return false;
                 }
@@ -1621,20 +1611,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private static bool IsNonContextualModifier(SyntaxToken nextToken)
         {
             return !SyntaxFacts.IsContextualKeyword(nextToken.ContextualKind) && GetModifierExcludingScoped(nextToken) != DeclarationModifiers.None;
-        }
-
-        private bool IsEnabledRecordOrUnionKeyword(SyntaxToken token)
-        {
-            // Normally the parser recognizes unsupported features and binding reports a language-version
-            // diagnostic. Record and union are contextual keywords, however, so treating them as type
-            // declarations in every ambiguous context would break older code. Only recognize them here
-            // when the corresponding feature is enabled.
-            return token.ContextualKind switch
-            {
-                SyntaxKind.RecordKeyword => IsFeatureEnabled(MessageID.IDS_FeatureRecords),
-                SyntaxKind.UnionKeyword => IsFeatureEnabled(MessageID.IDS_FeatureUnions),
-                _ => false,
-            };
         }
 
         /// <summary>
@@ -2500,7 +2476,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 case SyntaxKind.IdentifierToken:
 
-                    if (this.IsEnabledRecordOrUnionKeyword(this.CurrentToken))
+                    // Normally the parser recognizes unsupported features and binding reports a language-version
+                    // diagnostic. Record and union are contextual keywords, however, so treating them as type
+                    // declarations in every ambiguous context would break older code. Only recognize them here
+                    // when the corresponding feature is enabled.
+                    if (this.CurrentToken.ContextualKind switch
+                        {
+                            SyntaxKind.RecordKeyword => IsFeatureEnabled(MessageID.IDS_FeatureRecords),
+                            SyntaxKind.UnionKeyword => IsFeatureEnabled(MessageID.IDS_FeatureUnions),
+                            _ => false,
+                        })
                     {
                         return true;
                     }
