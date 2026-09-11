@@ -29,8 +29,8 @@ public sealed class LocalizationInfraTests : CSharpTestBase
 
             Console.WriteLine(CultureInfo.CurrentCulture.Name);
             Console.WriteLine(CultureInfo.CurrentUICulture.Name);
-            Console.WriteLine((double)2.1);
-            Console.WriteLine((decimal)2.1);
+            Console.WriteLine(2.1);
+            Console.WriteLine(2.1m);
             """;
 
         // Our tests should be forcing the UI culture to the current culture if they 
@@ -39,12 +39,11 @@ public sealed class LocalizationInfraTests : CSharpTestBase
         var uiCulture = CultureInfo.CurrentUICulture.Name == CultureInfo.CurrentCulture.Name
             ? CultureInfo.CurrentUICulture
             : CultureInfo.CurrentCulture;
-        // https://github.com/dotnet/roslyn/issues/85043: decimal representation changed in .NET 11
         var expectedOutput = $"""
             {CultureInfo.CurrentCulture}
             {CultureInfo.CurrentCulture}
-            {((double)2.1).ToString(CultureInfo.CurrentCulture)}
-            {(Environment.Version.Major >= 11 ? 2.1000000000000000888178419700m : 2.1m).ToString(CultureInfo.CurrentCulture)}
+            {2.1.ToString(CultureInfo.CurrentCulture)}
+            {2.1m.ToString(CultureInfo.CurrentCulture)}
             """;
         _ = CompileAndVerify(source, expectedOutput: expectedOutput);
     }

@@ -4908,8 +4908,8 @@ class Outer
             Assert.Equal("1.1", SymbolDisplay.FormatPrimitive(CSng(1.1), quoteStrings:=False, useHexadecimalNumbers:=False))
             Assert.Equal("1.1", SymbolDisplay.FormatPrimitive(CSng(1.1), quoteStrings:=False, useHexadecimalNumbers:=True))
 
-            Assert.Equal("1.1000000000000000888178419700", SymbolDisplay.FormatPrimitive(CDec(1.1), quoteStrings:=False, useHexadecimalNumbers:=False))
-            Assert.Equal("1.1000000000000000888178419700", SymbolDisplay.FormatPrimitive(CDec(1.1), quoteStrings:=False, useHexadecimalNumbers:=True))
+            Assert.Equal("1.1", SymbolDisplay.FormatPrimitive(1.1D, quoteStrings:=False, useHexadecimalNumbers:=False))
+            Assert.Equal("1.1", SymbolDisplay.FormatPrimitive(1.1D, quoteStrings:=False, useHexadecimalNumbers:=True))
 
             Assert.Equal("#1/1/2000 12:00:00 AM#", SymbolDisplay.FormatPrimitive(#1/1/2000#, quoteStrings:=False, useHexadecimalNumbers:=False))
             Assert.Equal("#1/1/2000 12:00:00 AM#", SymbolDisplay.FormatPrimitive(#1/1/2000#, quoteStrings:=False, useHexadecimalNumbers:=True))

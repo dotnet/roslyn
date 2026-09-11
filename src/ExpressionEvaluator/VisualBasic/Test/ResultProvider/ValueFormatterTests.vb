@@ -59,9 +59,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
         <Fact>
         Public Sub Decimals()
             Assert.Equal("-79228162514264337593543950335", FormatValue(Decimal.MinValue))
-            Assert.Equal("-1.1000000000000000888178419700", FormatValue(CDec(-1.1)))
-            Assert.Equal("0", FormatValue(CDec(0)))
-            Assert.Equal("1.1000000000000000888178419700", FormatValue(CDec(1.1)))
+            Assert.Equal("-1.1", FormatValue(-1.1D))
+            Assert.Equal("0", FormatValue(0D))
+            Assert.Equal("1.1", FormatValue(1.1D))
             Assert.Equal("79228162514264337593543950335", FormatValue(Decimal.MaxValue))
         End Sub
 
