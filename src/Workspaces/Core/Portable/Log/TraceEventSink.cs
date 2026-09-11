@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.Internal.Log;
 
@@ -16,6 +17,10 @@ internal sealed class TraceEventSink(Func<FunctionId, bool> isEnabledPredicate) 
 {
     public bool IsEnabled(FunctionId functionId)
         => isEnabledPredicate(functionId);
+
+    public void ReportFault(Exception exception, ErrorSeverity severity, bool forceDump)
+    {
+    }
 
     public void Log(FunctionId functionId, LogMessage logMessage)
         => Trace.WriteLine(string.Format("[{0}] {1} - {2}", Environment.CurrentManagedThreadId, functionId.ToString(), logMessage.GetMessage()));

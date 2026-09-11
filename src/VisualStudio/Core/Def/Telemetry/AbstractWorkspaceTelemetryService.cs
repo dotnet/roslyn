@@ -40,8 +40,6 @@ internal abstract class AbstractWorkspaceTelemetryService : IWorkspaceTelemetryS
             metricSink,
         ];
 
-        FaultReporter.RegisterTelemetrySesssion(telemetrySession);
-
         CurrentSession = telemetrySession;
 
         TelemetrySessionInitialized();

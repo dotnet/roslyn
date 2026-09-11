@@ -126,8 +126,7 @@ internal sealed class LanguageServerTelemetry : IDisposable
         ];
 
         FaultReporter.InitializeFatalErrorHandlers();
-        FaultReporter.IncludeServiceHubLogFiles = false;
-        FaultReporter.RegisterTelemetrySesssion(session);
+        TelemetryEventSink.IncludeServiceHubLogFiles = false;
     }
 
     internal static bool IsCopilotCliTelemetryEnabled(string? telemetryLevel)
@@ -149,7 +148,6 @@ internal sealed class LanguageServerTelemetry : IDisposable
 
                 _registrations = [];
 
-                FaultReporter.UnregisterTelemetrySesssion(session);
                 session.Dispose();
                 _telemetrySession = null;
             }

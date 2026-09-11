@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics.Tracing;
 using System.Threading;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.Internal.Log;
 
@@ -20,6 +21,10 @@ internal sealed class EtwEventSink(Func<FunctionId, bool> isEnabledPredicate) : 
 
     public bool IsEnabled(FunctionId functionId)
         => _source.IsEnabled() && isEnabledPredicate(functionId);
+
+    public void ReportFault(Exception exception, ErrorSeverity severity, bool forceDump)
+    {
+    }
 
     public void Log(FunctionId functionId, LogMessage logMessage)
         => _source.Log(GetMessage(logMessage), functionId);
