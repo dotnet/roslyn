@@ -3296,6 +3296,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Given a foreach variable statement, get the symbol for the (first) iteration variable.
+        /// </summary>
+        /// <param name="forEachVariableStatement">The foreach variable statement.</param>
+        public ILocalSymbol GetDeclaredSymbol(ForEachVariableStatementSyntax forEachVariableStatement)
+        {
+            Binder enclosingBinder = this.GetEnclosingBinder(GetAdjustedNodePosition(forEachVariableStatement));
+
+            if (enclosingBinder == null)
+            {
+                return null;
+            }
+
+            Binder foreachBinder = enclosingBinder.GetBinder(forEachVariableStatement);
+
+            // Binder.GetBinder can fail in the presence of syntax errors.
+            if (foreachBinder == null)
+            {
+                return null;
+            }
+
+            LocalSymbol local = foreachBinder.GetDeclaredLocalsForScope(forEachVariableStatement).FirstOrDefault();
+            return (local is SourceLocalSymbol { DeclarationKind: LocalDeclarationKind.ForEachIterationVariable } sourceLocal
+                ? GetAdjustedLocalSymbol(sourceLocal)
+                : local).GetPublicSymbol();
+        }
+
+        /// <summary>
         /// Given a local symbol, gets an updated version of that local symbol adjusted for nullability analysis
         /// if the analysis affects the local.
         /// </summary>
@@ -5191,6 +5218,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetDeclaredSymbol(usingDirective, cancellationToken);
                 case SyntaxKind.ForEachStatement:
                     return this.GetDeclaredSymbol((ForEachStatementSyntax)node);
+                case SyntaxKind.ForEachVariableStatement:
+                    return this.GetDeclaredSymbol((ForEachVariableStatementSyntax)node);
                 case SyntaxKind.CatchDeclaration:
                     return this.GetDeclaredSymbol((CatchDeclarationSyntax)node);
                 case SyntaxKind.JoinIntoClause:
