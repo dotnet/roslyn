@@ -32,7 +32,7 @@ public sealed class ConditionalFactAttribute : FactAttribute
     ///  Setting <see cref="Skip"/> would cause the test to be unconditionally skip.
     /// </summary>
     [Obsolete($"{nameof(ConditionalFactAttribute)} should always use {nameof(Reason)} or {nameof(AlwaysSkip)}", error: true)]
-    public new string Skip
+    public new string? Skip
     {
         get { return base.Skip; }
         set { base.Skip = value; }
@@ -45,7 +45,7 @@ public sealed class ConditionalFactAttribute : FactAttribute
     ///  This is useful in the rare occasion when a conditional test needs to be skipped unconditionally.
     ///  Typically, this is for a short term reason, such as working on a bug fix.
     /// </remarks>
-    public string AlwaysSkip
+    public string? AlwaysSkip
     {
         get { return base.Skip; }
         set { base.Skip = value; }
@@ -77,7 +77,7 @@ public sealed class ConditionalTheoryAttribute : TheoryAttribute
     ///  Setting <see cref="Skip"/> would cause the test to be unconditionally skip.
     /// </summary>
     [Obsolete($"{nameof(ConditionalFactAttribute)} should always use {nameof(Reason)} or {nameof(AlwaysSkip)}", error: true)]
-    public new string Skip
+    public new string? Skip
     {
         get { return base.Skip; }
         set { base.Skip = value; }
@@ -90,7 +90,7 @@ public sealed class ConditionalTheoryAttribute : TheoryAttribute
     ///  This is useful in the rare occasion when a conditional test needs to be skipped unconditionally.
     ///  Typically, this is for a short term reason, such as working on a bug fix.
     /// </remarks>
-    public string AlwaysSkip
+    public string? AlwaysSkip
     {
         get { return base.Skip; }
         set { base.Skip = value; }

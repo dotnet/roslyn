@@ -14,9 +14,6 @@
 
   <ItemGroup Condition="'$(IsUnitTestProject)' == 'true' OR '$(IsIntegrationTestProject)' == 'true'">
     <Compile Include="$(MSBuildThisFileDirectory)src\Shared\Microsoft.AspNetCore.Razor.Test.Common\XunitGlobalUsings.cs" Link="XunitGlobalUsings.cs" />
-    <PackageReference Include="xunit.v3">
-      <Aliases>XunitV3</Aliases>
-    </PackageReference>
     <PackageReference Include="xunit.v3.assert">
       <Aliases>XunitV3</Aliases>
     </PackageReference>

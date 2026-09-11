@@ -305,6 +305,7 @@
     <PackageVersion Include="xunit.v3" Version="$(_xunitVersion)" />
     <PackageVersion Include="xunit.analyzers" Version="2.0.0" />
     <PackageVersion Include="xunit.v3.assert" Version="$(_xunitVersion)" />
+    <PackageVersion Include="xunit.v3.common" Version="$(_xunitVersion)" />
     <PackageVersion Include="Xunit.Combinatorial" Version="2.1.41" />
     <PackageVersion Include="Xunit.StaFact" Version="4.0.23" />
     <PackageVersion Include="xunit.v3.extensibility.core" Version="$(_xunitVersion)" />

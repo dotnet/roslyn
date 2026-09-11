@@ -31,7 +31,7 @@ public sealed class FormattingTheoryDiscoverer : TheoryDiscoverer
         ITheoryAttribute theoryAttribute,
         ITheoryDataRow dataRow,
         object?[] testMethodArguments,
-        string testCaseDisplayName)
+        string? testCaseDisplayName)
     {
         var details = TestIntrospectionHelper.GetTestCaseDetailsForTheoryDataRow(
             discoveryOptions,

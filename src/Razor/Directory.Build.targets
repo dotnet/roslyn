@@ -3,6 +3,12 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)../'))" />
   <Import Project="$(MSBuildThisFileDirectory)eng\targets\RewriteRazorVsixManifest.targets" />
 
+  <ItemGroup Condition="'$(IsUnitTestProject)' == 'true' OR '$(IsIntegrationTestProject)' == 'true'">
+    <PackageReference Update="xunit.v3">
+      <Aliases>XunitV3</Aliases>
+    </PackageReference>
+  </ItemGroup>
+
   <PropertyGroup>
     <PackageVersion Condition=" '$(PackageVersion)' == '' ">$(Version)</PackageVersion>
   </PropertyGroup>
