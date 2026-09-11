@@ -195,6 +195,19 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
         await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync(_clientLanguageServerManager);
     }
 
+    internal async ValueTask<ImmutableArray<string>> GetSupportedProjectReferencesAsync(LoadedProject loadedProject)
+    {
+        var references = await loadedProject.GetProjectReferencePathsAsync();
+        var supportedLanguages = _hostProjectFactory.Workspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>();
+
+        return references.WhereAsArray(
+            static (path, arg) =>
+                PathUtilities.IsAbsolute(path) &&
+                arg.registry.TryGetLanguageNameFromProjectPath(path, DiagnosticReportingMode.Ignore, out var languageName) &&
+                arg.supportedLanguages.Contains(languageName),
+            (registry: _projectFileExtensionRegistry, supportedLanguages));
+    }
+
     internal ImmutableArray<string> GetSupportedProjectFileExtensions()
     {
         var supportedLanguages = _hostProjectFactory.Workspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>();

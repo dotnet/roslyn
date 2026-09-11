@@ -76,12 +76,12 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         var firstLoadedProject = await loader.BeginLoadAsync(projectPath);
         await designTimeBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
         designTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
-        var firstStatus = await firstLoadedProject.WaitForLoadAsync(CancellationToken.None).AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout);
+        var firstResult = await firstLoadedProject.WaitForLoadAsync(CancellationToken.None).AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout);
 
         var loadedProject = await loader.BeginLoadAsync(projectPath);
 
         Assert.Same(firstLoadedProject, loadedProject);
-        Assert.Equal(firstStatus, await loadedProject.WaitForLoadAsync(CancellationToken.None));
+        Assert.Equal(firstResult, await loadedProject.WaitForLoadAsync(CancellationToken.None));
         Assert.Equal(1, loader.DesignTimeBuildCount);
     }
 
@@ -107,6 +107,31 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         secondDesignTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
         await loader.WaitForCurrentBatchAsync();
 
+        Assert.Equal(2, loader.DesignTimeBuildCount);
+    }
+
+    [Fact]
+    public async Task UnsupportedReloadPreservesPreviouslyLoadedProject()
+    {
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var loader = server.GetRequiredLspService<TestProjectLoader>();
+        var initialDesignTimeBuild = loader.QueueDesignTimeBuild();
+        var unsupportedReload = loader.QueueDesignTimeBuild();
+        var projectPath = Path.Combine(TempRoot.Root, "Project.csproj");
+
+        var loadedProject = await loader.BeginLoadAsync(projectPath);
+        await initialDesignTimeBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        initialDesignTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
+        Assert.True(await loadedProject.WaitForLoadAsync(CancellationToken.None).AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout));
+        var projectId = loader.WorkspaceFactory.HostWorkspace.CurrentSolution.Projects.Single().Id;
+
+        loadedProject.GetTestAccessor().RaiseNeedsReload();
+        await unsupportedReload.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        unsupportedReload.CompleteAsUnsupported();
+        await loader.WaitForCurrentBatchAsync().WaitAsync(TestHelpers.HangMitigatingTimeout);
+
+        Assert.True(await loadedProject.WaitForLoadAsync(CancellationToken.None));
+        Assert.Equal(projectId, loader.WorkspaceFactory.HostWorkspace.CurrentSolution.Projects.Single().Id);
         Assert.Equal(2, loader.DesignTimeBuildCount);
     }
 
@@ -247,7 +272,7 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
     }
 
     [Fact]
-    public async Task UnsupportedProjectReturnsCanonicalCompletedStatus()
+    public async Task UnsupportedProjectReturnsCanonicalCompletedResult()
     {
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
         var loader = server.GetRequiredLspService<TestProjectLoader>();
