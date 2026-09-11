@@ -434,19 +434,11 @@ class Program
             EOF();
 
             CreateCompilation(source, parseOptions: options).VerifyDiagnostics(
-                // (1,24): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
-                // class C { ref readonly record M(); }
-                // (1,24): error CS0246: The type or namespace name 'union' could not be found (are you missing a using directive or an assembly reference?)
-                // class C { ref readonly union M(); }
-                // (1,24): error CS0246: The type or namespace name 'extension' could not be found (are you missing a using directive or an assembly reference?)
-                // class C { ref readonly extension M(); }
+                // (1,...): error CS0246: The type or namespace name '...' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { ref readonly ... M(); }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, contextualKeyword).WithArguments(contextualKeyword).WithLocation(1, 24),
-                // (1,31): error CS0501: 'C.M()' must declare a body because it is not marked abstract, extern, or partial
-                // class C { ref readonly record M(); }
-                // (1,30): error CS0501: 'C.M()' must declare a body because it is not marked abstract, extern, or partial
-                // class C { ref readonly union M(); }
-                // (1,34): error CS0501: 'C.M()' must declare a body because it is not marked abstract, extern, or partial
-                // class C { ref readonly extension M(); }
+                // (1,...): error CS0501: 'C.M()' must declare a body because it is not marked abstract, extern, or partial
+                // class C { ref readonly ... M(); }
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M").WithArguments("C.M()").WithLocation(1, 25 + contextualKeyword.Length));
         }
 
@@ -670,19 +662,11 @@ class Program
             EOF();
 
             CreateCompilation(source, parseOptions: options).VerifyDiagnostics(
-                // (1,24): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
-                // class C { ref readonly record A { get; } }
-                // (1,24): error CS0246: The type or namespace name 'union' could not be found (are you missing a using directive or an assembly reference?)
-                // class C { ref readonly union A { get; } }
-                // (1,24): error CS0246: The type or namespace name 'extension' could not be found (are you missing a using directive or an assembly reference?)
-                // class C { ref readonly extension A { get; } }
+                // (1,...): error CS0246: The type or namespace name '...' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { ref readonly ... A { get; } }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, contextualKeyword).WithArguments(contextualKeyword).WithLocation(1, 24),
-                // (1,31): error CS8145: Auto-implemented properties cannot return by reference
-                // class C { ref readonly record A { get; } }
-                // (1,30): error CS8145: Auto-implemented properties cannot return by reference
-                // class C { ref readonly union A { get; } }
-                // (1,34): error CS8145: Auto-implemented properties cannot return by reference
-                // class C { ref readonly extension A { get; } }
+                // (1,...): error CS8145: Auto-implemented properties cannot return by reference
+                // class C { ref readonly ... A { get; } }
                 Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "A").WithLocation(1, 25 + contextualKeyword.Length));
         }
 
