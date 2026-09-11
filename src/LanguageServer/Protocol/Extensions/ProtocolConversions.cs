@@ -550,6 +550,37 @@ internal static partial class ProtocolConversions
         return documentEdits;
     }
 
+    /// <summary>
+    /// Detects documents that were renamed (name changed) between <paramref name="oldSolution"/> and <paramref name="newSolution"/>
+    /// and returns the corresponding <see cref="RenameFile"/> operations for the LSP <c>WorkspaceEdit</c>.
+    /// </summary>
+    public static RenameFile[] GetDocumentRenames(Solution oldSolution, Solution newSolution)
+    {
+        var solutionChanges = newSolution.GetChanges(oldSolution);
+
+        using var _ = ArrayBuilder<RenameFile>.GetInstance(out var renameFiles);
+
+        foreach (var projectChange in solutionChanges.GetProjectChanges())
+        {
+            foreach (var documentId in projectChange.GetChangedDocuments(onlyGetDocumentsWithTextChanges: false))
+            {
+                var oldDocument = oldSolution.GetRequiredDocument(documentId);
+                var newDocument = newSolution.GetRequiredDocument(documentId);
+
+                if (oldDocument.Name != newDocument.Name)
+                {
+                    renameFiles.Add(new RenameFile
+                    {
+                        OldDocumentUri = oldDocument.GetURI(),
+                        NewDocumentUri = newDocument.GetUriForRenamedDocument()
+                    });
+                }
+            }
+        }
+
+        return renameFiles.ToArray();
+    }
+
     public static Task<LSP.Location?> TextSpanToLocationAsync(
         TextDocument document,
         TextSpan textSpan,

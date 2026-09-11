@@ -4,10 +4,10 @@
 
 using System;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -49,7 +49,7 @@ internal sealed class RenameHandler() : ILspServiceDocumentRequestHandler<LSP.Re
             RenameOverloads: false,
             RenameInStrings: false,
             RenameInComments: false,
-            RenameFile: false);
+            RenameFile: true);
 
         var renameLocationSet = await Renamer.FindRenameLocationsAsync(
             oldSolution,
@@ -76,6 +76,20 @@ internal sealed class RenameHandler() : ILspServiceDocumentRequestHandler<LSP.Re
 
         var documentEdits = await ProtocolConversions.ChangedDocumentsToTextDocumentEditsAsync(renamedSolution, oldSolution, cancellationToken).ConfigureAwait(false);
 
-        return new WorkspaceEdit { DocumentChanges = documentEdits };
+        // Detect document renames and add RenameFile operations
+        var renameFiles = ProtocolConversions.GetDocumentRenames(oldSolution, renamedSolution);
+
+        if (renameFiles.Length == 0)
+            return new WorkspaceEdit { DocumentChanges = documentEdits };
+
+        using var _ = ArrayBuilder<LSP.SumType<LSP.TextDocumentEdit, LSP.CreateFile, LSP.RenameFile, LSP.DeleteFile>>.GetInstance(out var allChanges);
+
+        foreach (var edit in documentEdits)
+            allChanges.Add(edit);
+
+        foreach (var rename in renameFiles)
+            allChanges.Add(rename);
+
+        return new WorkspaceEdit { DocumentChanges = allChanges.ToArray() };
     }
 }
