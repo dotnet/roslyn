@@ -26,6 +26,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Provision packages used by the materialized RunTests test projects without consuming them in this project. -->
+    <PackageReference Include="MSTest.TestAdapter" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="MSTest.TestFramework" ExcludeAssets="all" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!--
       These helpers are shared verbatim with Microsoft.CodeAnalysis.LanguageServer.UnitTests
       and live in the Microsoft.CodeAnalysis.LanguageServer.UnitTests namespace.
