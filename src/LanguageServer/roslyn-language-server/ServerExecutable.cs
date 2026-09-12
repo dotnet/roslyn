@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Client;
 
@@ -120,14 +121,14 @@ internal sealed class ServerExecutable
         if (!suppressStandardHandleInheritance)
             return StartCore();
 
-        DaemonHandleInheritance.SetStandardHandlesInheritable(false);
+        StandardHandleInheritance.SetStandardHandlesInheritable(false);
         try
         {
             return StartCore();
         }
         finally
         {
-            DaemonHandleInheritance.SetStandardHandlesInheritable(true);
+            StandardHandleInheritance.SetStandardHandlesInheritable(true);
         }
 
         Process StartCore()
