@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -76,6 +77,10 @@ internal sealed class FileEventSink : IEventSink
             str.StartsWith("WorkCoordinator") ||
             str.StartsWith("IncrementalAnalyzerProcessor") ||
             str.StartsWith("ExternalErrorDiagnosticUpdateSource");
+    }
+
+    public void ReportFault(Exception exception, ErrorSeverity severity, bool forceDump)
+    {
     }
 
     private void Log(FunctionId functionId, string message)
