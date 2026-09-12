@@ -228,8 +228,6 @@ namespace Xunit.Threading
                     {
                         result.Value = merge(value, result.Value);
                     }
-
-                    return value;
                 }
             }
 
