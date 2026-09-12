@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -86,6 +87,9 @@ internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvi
             {
                 if (state.MatchingConstructor.IsImplicitlyDeclared)
                 {
+                    if (state.DelegatedConstructor?.IsPrimaryConstructor() == true)
+                        return [];
+
                     var codeAction = new FieldDelegatingCodeAction(_service, _document, state, addNullChecks);
                     return await codeAction.GetOperationsAsync(solution, progressTracker, cancellationToken).ConfigureAwait(false);
                 }
@@ -94,8 +98,15 @@ internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvi
                 var constructorSyntax = await constructorReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
                 var constructorTree = constructorSyntax.SyntaxTree;
                 var constructorDocument = solution.GetRequiredDocument(constructorTree);
+                var navigationPosition = constructorSyntax.SpanStart;
+                if (state.MatchingConstructor.IsPrimaryConstructor())
+                {
+                    var syntaxFacts = constructorDocument.GetRequiredLanguageService<ISyntaxFactsService>();
+                    navigationPosition = syntaxFacts.GetParameterList(constructorSyntax)?.SpanStart ?? navigationPosition;
+                }
+
                 return [new DocumentNavigationOperation(
-                    constructorDocument.Id, constructorSyntax.SpanStart)];
+                    constructorDocument.Id, navigationPosition)];
             }
             else
             {
