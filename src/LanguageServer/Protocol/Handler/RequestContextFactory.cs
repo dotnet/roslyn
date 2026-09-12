@@ -19,7 +19,7 @@ internal sealed class RequestContextFactory : AbstractRequestContextFactory<Requ
         _lspServices = lspServices;
     }
 
-    public override Task<RequestContext> CreateRequestContextAsync<TRequestParam>(QueueItem<RequestContext> queueItem, IMethodHandler methodHandler, TRequestParam requestParam, CancellationToken cancellationToken)
+    public override async Task<RequestContext> CreateRequestContextAsync<TRequestParam>(QueueItem<RequestContext> queueItem, IMethodHandler methodHandler, TRequestParam requestParam, CancellationToken cancellationToken)
     {
         var clientCapabilitiesManager = _lspServices.GetRequiredService<IInitializeManager>();
         var clientCapabilities = clientCapabilitiesManager.TryGetClientCapabilities();
@@ -68,7 +68,24 @@ internal sealed class RequestContextFactory : AbstractRequestContextFactory<Requ
             throw new InvalidOperationException($"{nameof(IMethodHandler)} implementation {methodHandler.GetType()} does not implement {nameof(ISolutionRequiredHandler)}");
         }
 
-        return RequestContext.CreateAsync(
+        var onDemandProjectLoader = _lspServices.GetService<IOnDemandProjectLoader>();
+        Task projectLoadTask;
+        if (textDocumentIdentifier is not null)
+        {
+            projectLoadTask = onDemandProjectLoader?.StartLoadingAsync(textDocumentIdentifier.DocumentUri) ?? Task.CompletedTask;
+        }
+        else if (requiresLSPSolution && !methodHandler.MutatesSolutionState && onDemandProjectLoader is not null)
+        {
+            projectLoadTask = await onDemandProjectLoader.GetWorkspaceLoadTaskAsync().ConfigureAwait(false);
+        }
+        else
+        {
+            projectLoadTask = Task.CompletedTask;
+        }
+
+        var trackedDocuments = _lspServices.GetRequiredService<LspWorkspaceManager>().GetTrackedLspText();
+
+        return await RequestContext.CreateAsync(
             methodHandler.MutatesSolutionState,
             requiresLSPSolution,
             textDocumentIdentifier,
@@ -78,6 +95,8 @@ internal sealed class RequestContextFactory : AbstractRequestContextFactory<Requ
             _lspServices,
             logger,
             queueItem.MethodName,
-            cancellationToken);
+            projectLoadTask,
+            trackedDocuments,
+            cancellationToken).ConfigureAwait(false);
     }
 }

@@ -175,6 +175,28 @@ internal sealed partial class LoadedProject : IAsyncDisposable
         }
     }
 
+    public async ValueTask<ImmutableArray<string>> GetProjectReferencePathsAsync()
+    {
+        using (await _gate.DisposableWaitAsync())
+        {
+            if (_projectDirectory is null)
+                return [];
+
+            var references = ImmutableHashSet.CreateBuilder(PathUtilities.Comparer);
+            foreach (var target in _targets)
+            {
+                foreach (var projectReference in target.GetProjectReferences())
+                {
+                    var absolutePath = FileUtilities.ResolveRelativePath(projectReference.Path, _projectDirectory);
+                    if (absolutePath is not null)
+                        references.Add(absolutePath);
+                }
+            }
+
+            return [.. references];
+        }
+    }
+
     public async ValueTask<bool> UsesProjectFactoryAsync(ProjectSystemProjectFactory projectFactory)
     {
         using (await _gate.DisposableWaitAsync())

@@ -445,13 +445,19 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
 
     internal async Task WaitForAllProjectLoadsAsync(CancellationToken cancellationToken)
     {
+        var waitAllTask = await GetWaitForAllProjectLoadsTaskAsync(cancellationToken);
+        await waitAllTask;
+    }
+
+    internal async ValueTask<Task> GetWaitForAllProjectLoadsTaskAsync(CancellationToken cancellationToken)
+    {
         ImmutableArray<LoadedProject> loadedProjects;
         using (await _gate.DisposableWaitAsync(cancellationToken))
         {
             loadedProjects = [.. _loadedProjects.Values];
         }
 
-        await WaitForProjectLoadsAsync(loadedProjects, cancellationToken: cancellationToken);
+        return WaitForProjectLoadsAsync(loadedProjects, cancellationToken: cancellationToken);
     }
 
     /// <summary>Unloads all projects associated with this project loader.</summary>
