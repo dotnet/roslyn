@@ -24,6 +24,7 @@ internal sealed partial class MtpTestRunner(ILoggerFactory loggerFactory)
         bool attachDebugger,
         BufferedProgress<RunTestsPartialResult> progress,
         IClientLanguageServerManager clientLanguageServerManager,
+        bool useSemanticTestDiscovery,
         CancellationToken cancellationToken)
     {
         var matchedTestUids = await DiscoverTestsAsync(
@@ -31,6 +32,7 @@ internal sealed partial class MtpTestRunner(ILoggerFactory loggerFactory)
             document,
             projectOutputPath,
             progress,
+            useSemanticTestDiscovery,
             cancellationToken).ConfigureAwait(false);
 
         if (matchedTestUids.IsEmpty)

@@ -33,6 +33,7 @@ internal sealed partial class VsTestRunner(
         string? runSettings,
         BufferedProgress<RunTestsPartialResult> progress,
         IClientLanguageServerManager clientLanguageServerManager,
+        bool useSemanticTestDiscovery,
         CancellationToken cancellationToken)
     {
         var vsTestConsolePath = await dotnetCliHelper.GetVsTestConsolePathAsync(projectOutputDirectory, cancellationToken);
@@ -58,6 +59,7 @@ internal sealed partial class VsTestRunner(
             runSettings,
             progress,
             vsTestConsoleWrapper,
+            useSemanticTestDiscovery,
             cancellationToken).ConfigureAwait(false);
 
         if (!testCases.IsEmpty)

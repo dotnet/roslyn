@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.Extensions.Logging;
 using LSP = Roslyn.LanguageServer.Protocol;
 
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
 [ExportCSharpVisualBasicLspServiceFactory(typeof(RunTestsHandler)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class RunTestsHandlerFactory(ServerConfiguration serverConfiguration) : ILspServiceFactory
+internal sealed class RunTestsHandlerFactory(ServerConfiguration serverConfiguration, IGlobalOptionService globalOptionService) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
@@ -26,14 +27,16 @@ internal sealed class RunTestsHandlerFactory(ServerConfiguration serverConfigura
                 serverConfiguration,
                 lspServices.GetRequiredService<DotnetCliHelper>(),
                 lspServices.GetRequiredService<LspLoggerFactory>().LogConfiguration),
-            new MtpTestRunner(loggerFactory));
+            new MtpTestRunner(loggerFactory),
+            globalOptionService);
     }
 }
 
 [Method(RunTestsMethodName)]
 internal sealed class RunTestsHandler(
     VsTestRunner vsTestRunner,
-    MtpTestRunner mtpTestRunner)
+    MtpTestRunner mtpTestRunner,
+    IGlobalOptionService globalOptionService)
     : ILspServiceDocumentRequestHandler<RunTestsParams, RunTestsPartialResult[]>
 {
     private const string RunTestsMethodName = "textDocument/runTests";
@@ -66,6 +69,7 @@ internal sealed class RunTestsHandler(
         var runSettings = await GetRunSettingsAsync(runSettingsPath, progress, context, cancellationToken);
         var clientLanguageServerManager = context.GetRequiredLspService<IClientLanguageServerManager>();
         var projectCapabilityManager = context.GetRequiredService<ProjectCapabilityManager>();
+        var useSemanticTestDiscovery = globalOptionService.GetOption(LspOptionsStorage.LspUseSemanticTestDiscovery, document.Project.Language);
 
         if (ShouldUseMtp(runSettings, document.Project.Id, projectCapabilityManager))
         {
@@ -76,6 +80,7 @@ internal sealed class RunTestsHandler(
                 request.AttachDebugger,
                 progress,
                 clientLanguageServerManager,
+                useSemanticTestDiscovery,
                 cancellationToken).ConfigureAwait(false);
 
             return progress.GetValues() ?? [];
@@ -90,6 +95,7 @@ internal sealed class RunTestsHandler(
             runSettings,
             progress,
             clientLanguageServerManager,
+            useSemanticTestDiscovery,
             cancellationToken).ConfigureAwait(false);
 
         return progress.GetValues() ?? [];

@@ -25,10 +25,12 @@ internal sealed partial class MtpTestRunner
         Document document,
         string projectOutputPath,
         BufferedProgress<RunTestsPartialResult> progress,
+        bool useSemanticTestDiscovery,
         CancellationToken cancellationToken)
     {
         var testMethodFinder = document.GetRequiredLanguageService<ITestMethodFinder>();
-        var potentialTestMethods = await GetPotentialTestMethodsAsync(range, document, testMethodFinder, cancellationToken).ConfigureAwait(false);
+        var potentialTestMethods = await GetPotentialTestMethodsAsync(
+            range, document, testMethodFinder, useSemanticTestDiscovery, cancellationToken).ConfigureAwait(false);
         if (potentialTestMethods.IsEmpty)
         {
             progress.Report(new RunTestsPartialResult(
@@ -115,12 +117,14 @@ internal sealed partial class MtpTestRunner
         LSP.Range range,
         Document document,
         ITestMethodFinder testMethodFinder,
+        bool useSemanticTestDiscovery,
         CancellationToken cancellationToken)
     {
         var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         return await testMethodFinder.GetPotentialTestMethodsAsync(
             document,
             ProtocolConversions.RangeToTextSpan(range, text),
+            useSemanticTestDiscovery,
             cancellationToken).ConfigureAwait(false);
     }
 
