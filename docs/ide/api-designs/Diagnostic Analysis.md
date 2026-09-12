@@ -356,9 +356,13 @@ To enhance lightbulb performance, expensive analyzers are deprioritized from `Co
 
 ```csharp
 // Cached per analyzer - assumed stable across compilations
-ConditionalWeakTable<DiagnosticAnalyzer, ImmutableHashSet<string>?> 
+ConditionalWeakTable<DiagnosticAnalyzer, AsyncLazy<ImmutableHashSet<string>?>>
     s_analyzerToDeprioritizedDiagnosticIds;
 ```
+
+Each lazy wraps a single non-cancelable computation task. Individual requests can cancel their waits without
+canceling or restarting the shared analyzer initialization. Successful results remain cached; if initialization
+faults, the matching cache entry is removed so a later request can retry with a fresh task.
 
 **Deprioritized analyzers:**
 - Register `SymbolStartAnalysisContext`/`SymbolEndAnalysisContext` actions
