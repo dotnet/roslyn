@@ -1663,15 +1663,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private static bool IsDefinitePartialMemberNameContinuation(SyntaxKind kind)
             => kind switch
             {
-                SyntaxKind.CommaToken => true,               // partial, other;
-                SyntaxKind.EqualsToken => true,              // partial = value;
-                SyntaxKind.EqualsGreaterThanToken => true,   // partial => value;
-                SyntaxKind.LessThanToken => true,             // partial<T>()
-                SyntaxKind.OpenBraceToken => true,            // partial { get; }
-                SyntaxKind.SemicolonToken => true,            // partial;
+                // A field name: partial, other;
+                SyntaxKind.CommaToken => true,
 
-                // '(' is not sufficient because it may start either the parameter list for a
-                // member named 'partial' or a tuple return type following a 'partial' modifier.
+                // An initialized field name: partial = value;
+                SyntaxKind.EqualsToken => true,
+
+                // An expression-bodied property name: partial => value;
+                SyntaxKind.EqualsGreaterThanToken => true,
+
+                // A generic method name: partial<T>()
+                SyntaxKind.LessThanToken => true,
+
+                // A property name: partial { get; }
+                SyntaxKind.OpenBraceToken => true,
+
+                // A field name: partial;
+                SyntaxKind.SemicolonToken => true,
+
+                // Note: 'partial(' is not sufficient to prove that 'partial' is a method or constructor
+                // name because '(' may instead start a tuple return type following the modifier.
                 _ => false,
             };
 
