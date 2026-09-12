@@ -1661,13 +1661,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         private static bool IsDefinitePartialMemberNameContinuation(SyntaxKind kind)
-            => kind is
-                SyntaxKind.CommaToken or
-                SyntaxKind.EqualsToken or
-                SyntaxKind.EqualsGreaterThanToken or
-                SyntaxKind.LessThanToken or
-                SyntaxKind.OpenBraceToken or
-                SyntaxKind.SemicolonToken;
+            => kind switch
+            {
+                SyntaxKind.CommaToken => true,               // partial, other;
+                SyntaxKind.EqualsToken => true,              // partial = value;
+                SyntaxKind.EqualsGreaterThanToken => true,   // partial => value;
+                SyntaxKind.LessThanToken => true,             // partial<T>()
+                SyntaxKind.OpenBraceToken => true,            // partial { get; }
+                SyntaxKind.SemicolonToken => true,            // partial;
+
+                // '(' is not sufficient because it may start either the parameter list for a
+                // member named 'partial' or a tuple return type following a 'partial' modifier.
+                _ => false,
+            };
 
         /// <summary>
         /// Checks for a type followed by a possible member name without advancing the parser.
@@ -3688,16 +3694,20 @@ parse_member_name:;
             return type;
         }
 
+        /// <summary>
+        /// Leaves <c>partial</c> for member-name parsing when the following token proves it is the
+        /// member name. The missing return type lets the member parser retain the intended shape.
+        /// </summary>
         private TypeSyntax ParseReturnTypeOrMissingTypeForPartialMemberName()
         {
-            if (this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword ||
-                !IsDefinitePartialMemberNameContinuation(this.PeekToken(1).Kind))
+            if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword &&
+                IsDefinitePartialMemberNameContinuation(this.PeekToken(1).Kind))
             {
-                return ParseReturnType();
+                return _syntaxFactory.PredefinedType(
+                    this.AddError(SyntaxFactory.MissingToken(SyntaxKind.VoidKeyword), ErrorCode.ERR_MemberNeedsType));
             }
 
-            return _syntaxFactory.PredefinedType(
-                this.AddError(SyntaxFactory.MissingToken(SyntaxKind.VoidKeyword), ErrorCode.ERR_MemberNeedsType));
+            return ParseReturnType();
         }
 
         private bool IsEndOfReturnType()
