@@ -23,7 +23,6 @@ using Roslyn.Test.Utilities;
 using Roslyn.Text.Adornments;
 using Roslyn.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.References;
@@ -356,7 +355,7 @@ public sealed class FindAllReferencesHandlerTests(ITestOutputHelper testOutputHe
         AssertHighlightCount(results, expectedDefinitionCount: 0, expectedWrittenReferenceCount: 0, expectedReferenceCount: 3);
     }
 
-    [ConditionalTheory(typeof(WindowsOnly)), CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/83187")]
+    [ConditionalTheory(skipConditions: typeof(WindowsOnly)), CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/83187")]
     public async Task TestFindReferencesAsync_UsingAlias(bool mutatingLspWorkspace)
     {
         var markup =

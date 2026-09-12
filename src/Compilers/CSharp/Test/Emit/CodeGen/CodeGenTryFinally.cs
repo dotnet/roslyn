@@ -1025,7 +1025,7 @@ Exception: i != 0");
 ");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly))]
         public void NestedExceptionHandlersThreadAbort01()
         {
             var source =
@@ -1107,7 +1107,7 @@ catch2
 ");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly))]
         public void NestedExceptionHandlersThreadAbort02()
         {
             var source =
@@ -1207,7 +1207,7 @@ catch2
 ");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly))]
         public void NestedExceptionHandlersThreadAbort03()
         {
             var source =
@@ -1326,7 +1326,7 @@ finally2
 ");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly))]
         public void NestedExceptionHandlersThreadAbort04()
         {
             var source =
@@ -1458,7 +1458,7 @@ finally2
 ");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void NestedExceptionHandlersThreadAbort05()
         {
             var source =
@@ -1591,7 +1591,7 @@ catch3
 }");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly))]
         public void NestedExceptionHandlersThreadAbort06()
         {
             var source =
@@ -1730,7 +1730,7 @@ catch3
 ");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly))]
         public void NestedExceptionHandlersThreadAbort07()
         {
             var source =
@@ -3760,7 +3760,7 @@ public class Program
 ");
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/67494")]
         public void WhenWithAlwaysThrowingExpression_01()
         {

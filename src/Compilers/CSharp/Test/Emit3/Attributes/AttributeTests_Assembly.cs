@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [WorkItem(1032718, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032718")]
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10839")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10839")]
         public void MismatchedSurrogateInAssemblyCultureAttribute()
         {
             string s = @"[assembly: System.Reflection.AssemblyCultureAttribute(""\uD800"")]";
@@ -1772,7 +1772,7 @@ class Program
                attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/39969
+        [ConditionalFact(skipConditions: typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/39969
         [WorkItem(546825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546825")]
         [WorkItem(39969, "https://github.com/dotnet/roslyn/issues/39969")]
         public void Bug16910()
@@ -1800,7 +1800,7 @@ class Program
             appCompilation.VerifyEmitDiagnostics();
         }
 
-        [ConditionalFact(typeof(DesktopOnly)), WorkItem(530585, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530585")]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly)), WorkItem(530585, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530585")]
         public void Bug16465()
         {
             string mod =

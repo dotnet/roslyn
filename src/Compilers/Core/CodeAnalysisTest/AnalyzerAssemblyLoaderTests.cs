@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.Text;
 using Basic.Reference.Assemblies;
@@ -366,7 +365,7 @@ Delta: Gamma: Beta: Test B
             });
         }
 
-        [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/66621")]
+        [ConditionalTheory(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/66621")]
         [CombinatorialData]
         public void AssemblyLoading_AssemblyLocationNotAdded([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
@@ -583,7 +582,7 @@ Delta: Gamma: Beta: Test B
             });
         }
 
-        [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/runtime/issues/81108")]
+        [ConditionalTheory(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/runtime/issues/81108")]
         [CombinatorialData]
         public void AssemblyLoading_DependencyInDifferentDirectory([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
@@ -769,7 +768,7 @@ Delta: Gamma: Beta: Test B
             });
         }
 
-        [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/66626")]
+        [ConditionalTheory(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/66626")]
         [CombinatorialData]
         [WorkItem(32226, "https://github.com/dotnet/roslyn/issues/32226")]
         public void AssemblyLoading_DependencyInDifferentDirectory4([AnalyzerTestKindValues] AnalyzerTestKind kind)
@@ -1452,7 +1451,7 @@ Delta.2: Test D2
             });
         }
 
-        [ConditionalTheory(typeof(WindowsOnly))]
+        [ConditionalTheory(skipConditions: typeof(WindowsOnly))]
         [CombinatorialData]
         public void AssemblyLoading_NativeDependency([AnalyzerTestKindValues] AnalyzerTestKind kind)
         {
@@ -1664,7 +1663,7 @@ Delta.2: Test D2
             });
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void AssemblyLoading_CacheStressTest()
         {
             Debug.Assert(PlatformInformation.IsWindows);
@@ -1769,7 +1768,7 @@ Delta.2: Test D2
                 });
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void AssemblyLoading_NoCacheStressTest()
         {
             // Verify that loader functions properly even when caching is disabled (EnableHardLinks = false).

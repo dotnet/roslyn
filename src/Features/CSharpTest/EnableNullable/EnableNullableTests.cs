@@ -518,7 +518,7 @@ public sealed class EnableNullableTests
         }.RunAsync();
     }
 
-    [ConditionalFact(typeof(IsEnglishLocal))]
+    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
     public async Task IgnoreGeneratedCode()
     {
         var code1 = """

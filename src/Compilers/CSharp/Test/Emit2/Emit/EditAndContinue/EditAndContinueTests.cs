@@ -4628,7 +4628,7 @@ class C
                 .Verify();
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public void Property_DeleteAndAdd_WithAccessorBodies()
         {
             using var _ = new EditAndContinueTest()
@@ -4787,7 +4787,7 @@ class C
                 .Verify();
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public void Property_DeleteAndAdd_OneAccessor()
         {
             using var _ = new EditAndContinueTest()
@@ -5199,7 +5199,7 @@ class C
                 .Verify();
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public void Property_ChangeReturnType()
         {
             using var _ = new EditAndContinueTest()
@@ -5442,7 +5442,7 @@ class C
                 .Verify();
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public void Property_Rename()
         {
             using var _ = new EditAndContinueTest()
@@ -5812,7 +5812,7 @@ class C
                 .Verify();
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public void Indexer_ChangeParameterType()
         {
             using var _ = new EditAndContinueTest()
@@ -6495,7 +6495,7 @@ class C
                 .Verify();
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public void Event_Rename()
         {
             using var _ = new EditAndContinueTest()
@@ -10734,7 +10734,7 @@ class C
         /// Anonymous type names with module ids
         /// and gaps in indices.
         /// </summary>
-        [ConditionalFact(typeof(WindowsOnly), Reason = "ILASM doesn't support Portable PDBs")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "ILASM doesn't support Portable PDBs")]
         [WorkItem(2982, "https://github.com/dotnet/coreclr/issues/2982")]
         public void AnonymousTypes_OtherTypeNames()
         {
@@ -12675,7 +12675,7 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
         public void MethodSignatureWithNoPIAType()
         {
             var sourcePIA = @"
@@ -12726,7 +12726,7 @@ class C
         }
 
         [WorkItem(844472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844472")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
         public void LocalSignatureWithNoPIAType()
         {
             var sourcePIA = @"
@@ -12783,7 +12783,7 @@ class C
         /// <summary>
         /// Disallow edits that require NoPIA references.
         /// </summary>
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
         public void NoPIAReferences()
         {
             var sourcePIA =
@@ -12900,7 +12900,7 @@ public struct S
         }
 
         [WorkItem(844536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844536")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
         public void NoPIATypeInNamespace()
         {
             var sourcePIA =
@@ -13391,7 +13391,7 @@ class C
         }
 
         [WorkItem(923492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923492")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void SymWriterErrors()
         {
             var source0 =
@@ -13672,7 +13672,7 @@ public class B
 ");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void UniqueSynthesizedNames_DynamicSiteContainer()
         {
             var source0 = @"
@@ -17297,7 +17297,7 @@ class C
                 .Verify();
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public void Method_Delete_PredefinedHotReloadException()
         {
             var exceptionSource = """
@@ -17381,7 +17381,7 @@ class C
                 .Verify();
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public void Method_Delete_PredefinedHotReloadException_Inserted()
         {
             var exceptionSource = """
@@ -17520,7 +17520,7 @@ class C
                 .Verify();
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public void Method_Delete_PredefinedHotReloadException_DataSectionLiterals()
         {
             var parseOptions = TestOptions.Regular.WithFeature(Feature.ExperimentalDataSectionStringLiterals, "0");
@@ -18432,7 +18432,7 @@ class C
                 .Verify();
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public void Method_Delete_WithLambda()
         {
             using var _ = new EditAndContinueTest()
@@ -18681,7 +18681,7 @@ class C
                 .Verify();
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public void Method_Delete_WithLambda_AddedMethod()
         {
             using var _ = new EditAndContinueTest()
@@ -18818,7 +18818,7 @@ class C
                 .Verify();
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public void Method_Delete_WithLambda_MultipleGenerations()
         {
             var common = """
@@ -19148,7 +19148,7 @@ class C
                 .Verify();
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public void Method_Delete_WithLocalFunction_MultipleGenerations()
         {
             var common = """
@@ -19558,7 +19558,7 @@ class C
             test.Verify();
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public void Method_ChangeParameterType()
         {
             using var _ = new EditAndContinueTest()
@@ -19722,7 +19722,7 @@ class C
                 .Verify();
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public void Method_ChangeReturnType()
         {
             using var _ = new EditAndContinueTest()
@@ -19894,7 +19894,7 @@ class C
                 .Verify();
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public void Method_InsertAndDeleteParameter()
         {
             using var _ = new EditAndContinueTest()
@@ -21601,7 +21601,7 @@ file class C
                 .Verify();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69398")]
         public void PrivateImplDetails_InlineArray()
         {
@@ -21706,7 +21706,7 @@ file class C
                 .Verify();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69398")]
         public void PrivateImplDetails_CollectionExpressions_InlineArrays()
         {

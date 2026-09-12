@@ -4,15 +4,25 @@
 
   <PropertyGroup>
     <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);AddDefaultTestAppConfig</PrepareForBuildDependsOn>
+
+    <!--
+      xunit.v3 test projects build an executable capable of running under either VSTest or
+      Microsoft.Testing.Platform (MTP). Roslyn's test infrastructure (CI harnesses, custom
+      runners, xunit.runner.visualstudio) still targets VSTest, so opt out of MTP for now.
+    -->
+    <IsTestingPlatformApplication>false</IsTestingPlatformApplication>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="XunitXml.TestLogger" />
-    <PackageReference Include="xunit.extensibility.execution" />
     <PackageReference Include="xunit.runner.visualstudio" />
-    <PackageReference Include="xunit.core" />
+    <PackageReference Include="xunit.v3.mtp-off" />
     <PackageReference Include="xunit.analyzers" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
   </ItemGroup>
+
+  <!-- VSTest and direct runner references copy the required runner files. -->
+  <Target Name="_XunitCopyRunnerDependencies" />
 
   <ItemGroup>
     <!-- Include BannedSymbols covering all test projects -->
@@ -60,5 +70,23 @@
         <Link>app.config</Link>
       </None>
     </ItemGroup>
+  </Target>
+
+  <!--
+    xunit.v3's VSTest adapter launches .NET Framework test assemblies through an app host.
+    Roslyn test projects use a .dll target extension to satisfy test naming checks, so provide
+    a matching .exe host without changing the primary test artifact.
+  -->
+  <Target Name="CreateXunitV3AppHost"
+          AfterTargets="Build"
+          Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' and '$(OutputType)' == 'Exe' and '$(TargetExt)' == '.dll' and '$(DotNetBuildSourceOnly)' != 'true'">
+    <PropertyGroup>
+      <_XunitV3AppHost>$(TargetDir)$(TargetName).exe</_XunitV3AppHost>
+      <_TargetConfigPath>$(TargetPath).config</_TargetConfigPath>
+      <_XunitV3AppHostConfig>$(_XunitV3AppHost).config</_XunitV3AppHostConfig>
+    </PropertyGroup>
+
+    <Copy SourceFiles="$(TargetPath)" DestinationFiles="$(_XunitV3AppHost)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(_TargetConfigPath)" DestinationFiles="$(_XunitV3AppHostConfig)" SkipUnchangedFiles="true" Condition="Exists('$(_TargetConfigPath)')" />
   </Target>
 </Project>

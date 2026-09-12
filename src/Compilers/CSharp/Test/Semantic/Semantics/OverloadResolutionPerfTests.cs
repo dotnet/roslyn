@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class OverloadResolutionPerfTests : CSharpTestBase
     {
         [WorkItem(13685, "https://github.com/dotnet/roslyn/issues/13685")]
-        [ConditionalFact(typeof(IsRelease), typeof(NoIOperationValidation))]
+        [ConditionalFact(skipConditions: [typeof(IsRelease), typeof(NoIOperationValidation)])]
         public void Overloads()
         {
             const int n = 3000;
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [WorkItem(13685, "https://github.com/dotnet/roslyn/issues/13685")]
-        [ConditionalFact(typeof(IsRelease), typeof(NoIOperationValidation))]
+        [ConditionalFact(skipConditions: [typeof(IsRelease), typeof(NoIOperationValidation)])]
         public void BinaryOperatorOverloads()
         {
             const int n = 3000;
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("C.operator +(C, C0)", "C.operator +(C, C1)").WithLocation(3, 31));
         }
 
-        [ConditionalFact(typeof(IsRelease))]
+        [ConditionalFact(skipConditions: typeof(IsRelease))]
         public void StaticMethodsWithLambda()
         {
             const int n = 100;
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(IsRelease))]
+        [ConditionalFact(skipConditions: typeof(IsRelease))]
         public void ConstructorsWithLambdaAndParams()
         {
             const int n = 100;
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(IsRelease))]
+        [ConditionalFact(skipConditions: typeof(IsRelease))]
         public void ExtensionMethodsWithLambda()
         {
             const int n = 100;
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(IsRelease))]
+        [ConditionalFact(skipConditions: typeof(IsRelease))]
         public void ExtensionMethodsWithLambdaAndParams()
         {
             const int n = 100;
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(IsRelease), typeof(NoIOperationValidation))]
+        [ConditionalFact(skipConditions: [typeof(IsRelease), typeof(NoIOperationValidation)])]
         public void ExtensionMethodsWithLambdaAndErrors()
         {
             const int n = 200;
@@ -237,7 +237,7 @@ public static class Class
         }
 
         [WorkItem(35949, "https://github.com/dotnet/roslyn/issues/35949")]
-        [ConditionalFact(typeof(IsRelease))]
+        [ConditionalFact(skipConditions: typeof(IsRelease))]
         public void NotNull_Complexity()
         {
             var source = @"
@@ -288,7 +288,7 @@ static class Ext
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(IsRelease))]
+        [ConditionalFact(skipConditions: typeof(IsRelease))]
         [WorkItem(40495, "https://github.com/dotnet/roslyn/issues/40495")]
         public void NestedLambdas_01()
         {
@@ -317,7 +317,7 @@ class Program
         /// A variation of <see cref="NestedLambdas_01"/> but with
         /// explicit parameter types and return type for the lambdas.
         /// </summary>
-        [ConditionalFact(typeof(IsRelease))]
+        [ConditionalFact(skipConditions: typeof(IsRelease))]
         public void NestedLambdas_WithParameterAndReturnTypes()
         {
             var source =
@@ -347,7 +347,7 @@ class Program
 
         // Test should complete in several seconds if UnboundLambda.ReallyBind
         // uses results from _returnInferenceCache.
-        [ConditionalFact(typeof(IsRelease))]
+        [ConditionalFact(skipConditions: typeof(IsRelease))]
         [WorkItem(1083969, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1083969")]
         public void NestedLambdas_02()
         {
@@ -451,7 +451,7 @@ class Program
                 Diagnostic(ErrorCode.INF_TooManyBoundLambdas, "=>").WithArguments("1300").WithLocation(14, 19));
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation), Reason = "Timeouts")]
+        [ConditionalFact(skipConditions: typeof(NoIOperationValidation), Reason = "Timeouts")]
         [WorkItem(48886, "https://github.com/dotnet/roslyn/issues/48886")]
         public void ArrayInitializationAnonymousTypes()
         {
@@ -564,7 +564,7 @@ class Program
             Assert.Equal(1, nullableAnalysisData.Data[method].TrackedEntries);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [ConditionalFact(skipConditions: typeof(NoIOperationValidation))]
         public void NullableStateTooManyLocals_01()
         {
             const int nLocals = 65536;
@@ -592,7 +592,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation), typeof(IsRelease))]
+        [ConditionalFact(skipConditions: [typeof(NoIOperationValidation), typeof(IsRelease)])]
         public void NullableStateTooManyLocals_02()
         {
             const int nLocals = 65536;
@@ -624,7 +624,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "i65535").WithLocation(65542, 16));
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation), typeof(IsRelease))]
+        [ConditionalFact(skipConditions: [typeof(NoIOperationValidation), typeof(IsRelease)])]
         public void NullableStateManyNestedFunctions()
         {
             const int nFunctions = 32768;
@@ -657,7 +657,7 @@ class Program
         }
 
         [WorkItem(51739, "https://github.com/dotnet/roslyn/issues/51739")]
-        [ConditionalFact(typeof(IsRelease))]
+        [ConditionalFact(skipConditions: typeof(IsRelease))]
         public void NullableAnalysisNestedExpressionsInMethod()
         {
             const int nestingLevel = 400;
@@ -685,7 +685,7 @@ class Program
         }
 
         [WorkItem(51739, "https://github.com/dotnet/roslyn/issues/51739")]
-        [ConditionalFact(typeof(IsRelease))]
+        [ConditionalFact(skipConditions: typeof(IsRelease))]
         public void NullableAnalysisNestedExpressionsInLocalFunction()
         {
             const int nestingLevel = 400;
@@ -717,7 +717,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation), typeof(IsRelease))]
+        [ConditionalFact(skipConditions: [typeof(NoIOperationValidation), typeof(IsRelease)])]
         public void NullableAnalysis_CondAccess_ComplexRightSide()
         {
             var source1 = @"
@@ -756,7 +756,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(IsRelease))]
+        [ConditionalFact(skipConditions: typeof(IsRelease))]
         public void DefiniteAssignment_ManySwitchCasesAndLabels()
         {
             const int nLabels = 1500;
@@ -850,7 +850,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "tmp2").WithArguments("tmp2").WithLocation(9, 13));
         }
 
-        [ConditionalFact(typeof(IsRelease))]
+        [ConditionalFact(skipConditions: typeof(IsRelease))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/67926")]
         public void ExtensionOverloadsDistinctClasses_01()
         {
@@ -887,7 +887,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(IsRelease))]
+        [ConditionalFact(skipConditions: typeof(IsRelease))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/67926")]
         public void ExtensionOverloadsDistinctClasses_02()
         {
@@ -929,7 +929,7 @@ class C
                 Diagnostic(ErrorCode.INF_TooManyBoundLambdas, "=>").WithArguments("1000").WithLocation(6, 21));
         }
 
-        [ConditionalFact(typeof(IsRelease))]
+        [ConditionalFact(skipConditions: typeof(IsRelease))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/67926")]
         public void ExtensionOverloadsDistinctClasses_03()
         {
@@ -1062,7 +1062,7 @@ class C
             Assert.Equal(new[] { "A", "B", "B", "A", "B", "B" }, containingTypes);
         }
 
-        [ConditionalFact(typeof(IsRelease))]
+        [ConditionalFact(skipConditions: typeof(IsRelease))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/76568")]
         public void NullableAnalysis_ObjectCreationExpression()
         {

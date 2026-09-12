@@ -11735,7 +11735,7 @@ class Program
         }
 
         [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void SynthesizedDelegateTypes_12()
         {
             var source =
@@ -14144,7 +14144,7 @@ class Program
             CompileAndVerify(comp, expectedOutput: "System.Action`2[System.Int32[],System.Int32]");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
         public void SynthesizedDelegateTypes_UnscopedRefAttribute_01()
         {
@@ -14197,7 +14197,7 @@ class Program
                 """);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
         public void SynthesizedDelegateTypes_UnscopedRefAttribute_02()
         {
@@ -14249,7 +14249,7 @@ class Program
                 """);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
         public void SynthesizedDelegateTypes_UnscopedRefAttribute_03()
         {
@@ -14290,7 +14290,7 @@ class Program
                 """);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
         public void SynthesizedDelegateTypes_UnscopedRefAttribute_MissingType()
         {
@@ -14359,7 +14359,7 @@ class Program
                     """);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
         public void SynthesizedDelegateTypes_UnscopedRefAttribute_MissingConstructor_01()
         {
@@ -14392,7 +14392,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "A.F").WithArguments("System.Diagnostics.CodeAnalysis.UnscopedRefAttribute", ".ctor").WithLocation(6, 17));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         [WorkItem(63565, "https://github.com/dotnet/roslyn/issues/63565")]
         public void SynthesizedDelegateTypes_UnscopedRefAttribute_MissingConstructor_02()
         {
@@ -15593,7 +15593,7 @@ class Program
             Assert.Equal(0, data.InferredDelegateCount);
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "GetEmitDiagnostics affects result")]
+        [ConditionalFact(skipConditions: typeof(NoUsedAssembliesValidation), Reason = "GetEmitDiagnostics affects result")]
         public void InferDelegateType_03()
         {
             var source =
@@ -15617,7 +15617,7 @@ class Program
             Assert.Equal(2, data.InferredDelegateCount);
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "GetEmitDiagnostics affects result")]
+        [ConditionalFact(skipConditions: typeof(NoUsedAssembliesValidation), Reason = "GetEmitDiagnostics affects result")]
         public void InferDelegateType_04()
         {
             var source =

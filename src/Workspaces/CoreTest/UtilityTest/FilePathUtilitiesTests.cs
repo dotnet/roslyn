@@ -77,7 +77,7 @@ public sealed class FilePathUtilitiesTests
         Assert.Equal(expected: Path.Combine("..", "..", "Phi", "Omega", "Doc.txt"), actual: result);
     }
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "Tests drive letter behavior, which is Windows-specific"), WorkItem("https://github.com/dotnet/roslyn/issues/1579")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "Tests drive letter behavior, which is Windows-specific"), WorkItem("https://github.com/dotnet/roslyn/issues/1579")]
     public void GetRelativePath_OnADifferentDrive()
     {
         var baseDirectory = @"C:\Alpha\Beta\Gamma";
@@ -99,7 +99,7 @@ public sealed class FilePathUtilitiesTests
         Assert.Equal(expected: Path.Combine("..", "Beta2", "Gamma"), actual: result);
     }
 
-    [ConditionalTheory(typeof(WindowsOnly)), WorkItem(72043, "https://github.com/dotnet/roslyn/issues/72043")]
+    [ConditionalTheory(skipConditions: typeof(WindowsOnly)), WorkItem(72043, "https://github.com/dotnet/roslyn/issues/72043")]
     [InlineData(@"C:\Alpha", @"C:\", @"..")]
     [InlineData(@"C:\Alpha\Beta", @"C:\", @"..\..")]
     [InlineData(@"C:\Alpha\Beta", @"C:\Gamma", @"..\..\Gamma")]
@@ -110,7 +110,7 @@ public sealed class FilePathUtilitiesTests
         Assert.Equal(expected, result);
     }
 
-    [ConditionalTheory(typeof(UnixLikeOnly)), WorkItem(72043, "https://github.com/dotnet/roslyn/issues/72043")]
+    [ConditionalTheory(skipConditions: typeof(UnixLikeOnly)), WorkItem(72043, "https://github.com/dotnet/roslyn/issues/72043")]
     [InlineData("/Alpha", "/", "..")]
     [InlineData("/Alpha/Beta", "/", "../..")]
     [InlineData("/Alpha/Beta", "/Gamma", "../../Gamma")]

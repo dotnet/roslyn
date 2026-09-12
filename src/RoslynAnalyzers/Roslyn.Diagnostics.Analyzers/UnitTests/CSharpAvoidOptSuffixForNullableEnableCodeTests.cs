@@ -54,7 +54,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 }
                 """,
 
-            }.RunAsync();
+            }.RunAsync(TestContext.Current.CancellationToken);
 
         [Fact]
         public Task RS0046_CSharp8_NullableEnabledCodeNonNullableType_NoDiagnosticAsync()
@@ -77,7 +77,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 }
                 """,
 
-            }.RunAsync();
+            }.RunAsync(TestContext.Current.CancellationToken);
 
         [Fact]
         public Task RS0046_CSharp8_NullableEnabledCodeValueType_DiagnosticAsync()
@@ -123,7 +123,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 }
                 """,
 
-            }.RunAsync();
+            }.RunAsync(TestContext.Current.CancellationToken);
 
         [Fact]
         public Task RS0046_CSharp8_NullableEnabledCodeNonNullableValueType_NoDiagnosticAsync()
@@ -148,7 +148,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 }
                 """,
 
-            }.RunAsync();
+            }.RunAsync(TestContext.Current.CancellationToken);
 
         [Fact]
         public Task RS0046_CSharp8_NonNullableEnabledCode_NoDiagnosticAsync()
@@ -169,7 +169,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                             }
                         }
                         """,
-            }.RunAsync();
+            }.RunAsync(TestContext.Current.CancellationToken);
 
         [Fact]
         public Task RS0046_CSharp8_NullableDisabledCode_NoDiagnosticAsync()
@@ -192,7 +192,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     }
                 }
                 """,
-            }.RunAsync();
+            }.RunAsync(TestContext.Current.CancellationToken);
 
         [Fact]
         public Task RS0046_PriorToCSharp8_NoDiagnosticAsync()
@@ -213,7 +213,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                             }
                         }
                         """,
-            }.RunAsync();
+            }.RunAsync(TestContext.Current.CancellationToken);
 
         [Fact(Skip = "https://github.com/dotnet/roslyn-analyzers/issues/3707")]
         public Task RS0046_CSharp8_VariableWithoutOptAlreadyExists_DiagnosticButNoCodeFixAsync()
@@ -252,7 +252,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     }
                 }
                 """,
-            }.RunAsync();
+            }.RunAsync(TestContext.Current.CancellationToken);
 
         [Fact]
         public Task RS0046_CSharp8_UnknownType_DiagnosticAndCodeFixAsync()
@@ -289,7 +289,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     }
                 }
                 """,
-            }.RunAsync();
+            }.RunAsync(TestContext.Current.CancellationToken);
 
         [Fact, WorkItem(3813, "https://github.com/dotnet/roslyn-analyzers/issues/3813")]
         public Task RS0046_CSharp8_NullableEnabledCode_InterfaceImplementation_NoDiagnosticAsync()
@@ -339,7 +339,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 }
                 """,
 
-            }.RunAsync();
+            }.RunAsync(TestContext.Current.CancellationToken);
 
         [Fact, WorkItem(3813, "https://github.com/dotnet/roslyn-analyzers/issues/3813")]
         public Task RS0046_CSharp8_NullableEnabledCode_Override_NoDiagnosticAsync()
@@ -397,6 +397,6 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 }
                 """,
 
-            }.RunAsync();
+            }.RunAsync(TestContext.Current.CancellationToken);
     }
 }

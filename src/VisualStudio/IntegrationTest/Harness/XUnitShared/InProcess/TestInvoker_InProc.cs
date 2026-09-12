@@ -5,16 +5,10 @@
 namespace Xunit.InProcess
 {
     using System;
-    using System.Diagnostics;
-    using System.Reflection;
-    using System.Threading;
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Threading;
-    using Xunit.Abstractions;
     using Xunit.Harness;
-    using Xunit.Sdk;
-    using Xunit.Threading;
 
     internal class TestInvoker_InProc : InProcComponent
     {
@@ -27,9 +21,22 @@ namespace Xunit.InProcess
         public static TestInvoker_InProc Create()
             => new TestInvoker_InProc();
 
-        public InProcessIdeTestAssemblyRunner CreateTestAssemblyRunner(ITestAssembly testAssembly, IXunitTestCase[] testCases, IMessageSink diagnosticMessageSink, IMessageSink executionMessageSink, ITestFrameworkExecutionOptions executionOptions)
+        public TestExecutionResult RunTests(TestExecutionRequest request, TestExecutionMessageSink messageSink)
         {
-            return new InProcessIdeTestAssemblyRunner(testAssembly, testCases, diagnosticMessageSink, executionMessageSink, executionOptions);
+            var dispatcher = Application.Current?.Dispatcher
+                ?? throw new InvalidOperationException("The Visual Studio WPF dispatcher is unavailable.");
+
+#pragma warning disable VSTHRD001 // The remote component's synchronous API requires waiting for the dispatcher operation.
+            var result = dispatcher
+                .InvokeAsync(
+                    () => InProcessIdeTestAssemblyRunner.RunAsync(request, messageSink),
+                    DispatcherPriority.Background)
+                .Task
+                .Unwrap()
+                .GetAwaiter()
+                .GetResult();
+#pragma warning restore VSTHRD001 // Await JoinableTaskFactory.SwitchToMainThreadAsync
+            return result;
         }
     }
 }

@@ -52,7 +52,7 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
 
         protected override int CodeActionIndex => 0;
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_Empty_True()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -176,7 +176,7 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_InvalidHeader_True()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -261,7 +261,7 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_InvalidRule_True()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -312,7 +312,7 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
 
         protected override int CodeActionIndex => 1;
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_Empty_False()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -432,7 +432,7 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_InvalidHeader_False()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -517,7 +517,7 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_InvalidRule_False()
             => TestInRegularAndScriptAsync("""
                 <Workspace>

@@ -7,8 +7,8 @@ using System.IO;
 using System.Runtime.InteropServices;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
-using Xunit.Abstractions;
 using Xunit;
+using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
@@ -30,12 +30,12 @@ public sealed class ParsedUriTests
     public void File_Cases(UriCase testCase)
         => AssertCase(ParsedUri.File(testCase.Input), testCase);
 
-    [ConditionalTheory(typeof(WindowsOnly))]
+    [ConditionalTheory(skipConditions: typeof(WindowsOnly))]
     [MemberData(nameof(FileWindowsCases))]
     public void File_Windows_Cases(UriCase testCase)
         => AssertCase(ParsedUri.File(testCase.Input), testCase);
 
-    [ConditionalTheory(typeof(UnixLikeOnly))]
+    [ConditionalTheory(skipConditions: typeof(UnixLikeOnly))]
     [MemberData(nameof(FileUnixLikeCases))]
     public void File_UnixLike_Cases(UriCase testCase)
         => AssertCase(ParsedUri.File(testCase.Input), testCase);
@@ -272,13 +272,13 @@ public sealed class ParsedUriTests
 
     public static TheoryData<UriCase> ParseCases => new()
     {
-        new("/relative/path")
+        new UriCase("/relative/path")
         {
             Scheme = "file",
             Path = "/relative/path",
             ExpectedToString = "file:///relative/path",
         },
-        new("?query")
+        new UriCase("?query")
         {
             Scheme = "file",
             Path = "/",
@@ -286,7 +286,7 @@ public sealed class ParsedUriTests
             ExpectedToString = "file:///?query",
             SkipFsPathRoundTrip = true,
         },
-        new("#fragment")
+        new UriCase("#fragment")
         {
             Scheme = "file",
             Path = "/",
@@ -294,77 +294,77 @@ public sealed class ParsedUriTests
             ExpectedToString = "file:///#fragment",
             SkipFsPathRoundTrip = true,
         },
-        new("custom:/path?%2F%3F%2A")
+        new UriCase("custom:/path?%2F%3F%2A")
         {
             Scheme = "custom",
             Path = "/path",
             Query = "/?*",
             ExpectedToString = "custom:/path?%2F%3F%2A",
         },
-        new("custom:/path?%41%GG")
+        new UriCase("custom:/path?%41%GG")
         {
             Scheme = "custom",
             Path = "/path",
             Query = "A%GG",
             ExpectedToString = "custom:/path?A%25GG",
         },
-        new("custom:/path?%GG")
+        new UriCase("custom:/path?%GG")
         {
             Scheme = "custom",
             Path = "/path",
             Query = "%GG",
             ExpectedToString = "custom:/path?%25GG",
         },
-        new("custom:/path?%G0%g0")
+        new UriCase("custom:/path?%G0%g0")
         {
             Scheme = "custom",
             Path = "/path",
             Query = "%G0%g0",
             ExpectedToString = "custom:/path?%25G0%25g0",
         },
-        new("custom:/path?%@0")
+        new UriCase("custom:/path?%@0")
         {
             Scheme = "custom",
             Path = "/path",
             Query = "%@0",
             ExpectedToString = "custom:/path?%25%400",
         },
-        new("custom:/path?%[0")
+        new UriCase("custom:/path?%[0")
         {
             Scheme = "custom",
             Path = "/path",
             Query = "%[0",
             ExpectedToString = "custom:/path?%25%5B0",
         },
-        new("custom:/path?%/0")
+        new UriCase("custom:/path?%/0")
         {
             Scheme = "custom",
             Path = "/path",
             Query = "%/0",
             ExpectedToString = "custom:/path?%25%2F0",
         },
-        new("custom:/path?%{0")
+        new UriCase("custom:/path?%{0")
         {
             Scheme = "custom",
             Path = "/path",
             Query = "%{0",
             ExpectedToString = "custom:/path?%25%7B0",
         },
-        new("custom:/path?%A0%41")
+        new UriCase("custom:/path?%A0%41")
         {
             Scheme = "custom",
             Path = "/path",
             Query = "%A0A",
             ExpectedToString = "custom:/path?%25A0A",
         },
-        new("http:/api/files/test.me?t=1234")
+        new UriCase("http:/api/files/test.me?t=1234")
         {
             Scheme = "http",
             Path = "/api/files/test.me",
             Query = "t=1234",
             ExpectedToString = "http:/api/files/test.me?t%3D1234",
         },
-        new("http://api/files/test.me?t=1234")
+        new UriCase("http://api/files/test.me?t=1234")
         {
             Scheme = "http",
             Authority = "api",
@@ -372,13 +372,13 @@ public sealed class ParsedUriTests
             Query = "t=1234",
             ExpectedToString = "http://api/files/test.me?t%3D1234",
         },
-        new("http:my/path")
+        new UriCase("http:my/path")
         {
             Scheme = "http",
             Path = "/my/path",
             ExpectedToString = "http:/my/path",
         },
-        new("file:///c:/test/me")
+        new UriCase("file:///c:/test/me")
         {
             Scheme = "file",
             Path = "/c:/test/me",
@@ -386,7 +386,7 @@ public sealed class ParsedUriTests
             UnixFsPath = "c:/test/me",
             ExpectedToString = "file:///c%3A/test/me",
         },
-        new("file:///c%3A/test/me")
+        new UriCase("file:///c%3A/test/me")
         {
             // The encoded drive-letter colon (%3A) decodes to ':' in both Path and FsPath.
             Scheme = "file",
@@ -395,7 +395,7 @@ public sealed class ParsedUriTests
             UnixFsPath = "c:/test/me",
             ExpectedToString = "file:///c%3A/test/me",
         },
-        new("file://shares/files/c%23/p.cs")
+        new UriCase("file://shares/files/c%23/p.cs")
         {
             Scheme = "file",
             Authority = "shares",
@@ -404,7 +404,7 @@ public sealed class ParsedUriTests
             UnixFsPath = "//shares/files/c#/p.cs",
             ExpectedToString = "file://shares/files/c%23/p.cs",
         },
-        new("file:///c:/Source/Z%C3%BCrich%20or%20Zurich%20(%CB%88zj%CA%8A%C9%99r%C9%AAk,/Code/resources/app/plugins/c%23/plugin.json")
+        new UriCase("file:///c:/Source/Z%C3%BCrich%20or%20Zurich%20(%CB%88zj%CA%8A%C9%99r%C9%AAk,/Code/resources/app/plugins/c%23/plugin.json")
         {
             Scheme = "file",
             Path = "/c:/Source/Zürich or Zurich (ˈzjʊərɪk,/Code/resources/app/plugins/c#/plugin.json",
@@ -414,7 +414,7 @@ public sealed class ParsedUriTests
             // Recreating from FsPath is lossy here; the decoded file-system form does not preserve this URI's exact canonical encoding.
             SkipFsPathRoundTrip = true,
         },
-        new("file:///c:/test %25/path")
+        new UriCase("file:///c:/test %25/path")
         {
             Scheme = "file",
             Path = "/c:/test %/path",
@@ -422,18 +422,18 @@ public sealed class ParsedUriTests
             UnixFsPath = "c:/test %/path",
             ExpectedToString = "file:///c%3A/test%20%25/path",
         },
-        new("inmemory:")
+        new UriCase("inmemory:")
         {
             Scheme = "inmemory",
             ExpectedToString = "inmemory:",
         },
-        new("foo:api/files/test")
+        new UriCase("foo:api/files/test")
         {
             Scheme = "foo",
             Path = "api/files/test",
             ExpectedToString = "foo:api/files/test",
         },
-        new("file:?q")
+        new UriCase("file:?q")
         {
             Scheme = "file",
             Path = "/",
@@ -444,7 +444,7 @@ public sealed class ParsedUriTests
             // FsPath only carries the file-system path, so it drops the query when rebuilt via ParsedUri.File(...).
             SkipFsPathRoundTrip = true,
         },
-        new("file:#d")
+        new UriCase("file:#d")
         {
             Scheme = "file",
             Path = "/",
@@ -455,83 +455,83 @@ public sealed class ParsedUriTests
             // FsPath only carries the file-system path, so it drops the fragment when rebuilt via ParsedUri.File(...).
             SkipFsPathRoundTrip = true,
         },
-        new("f3ile:#d")
+        new UriCase("f3ile:#d")
         {
             Scheme = "f3ile",
             Fragment = "d",
             ExpectedToString = "f3ile:#d",
         },
-        new("3d:path")
+        new UriCase("3d:path")
         {
             Scheme = "3d",
             Path = "path",
             ExpectedToString = "3d:path",
         },
-        new("foo+bar:path")
+        new UriCase("foo+bar:path")
         {
             Scheme = "foo+bar",
             Path = "path",
             ExpectedToString = "foo+bar:path",
         },
-        new("foo-bar:path")
+        new UriCase("foo-bar:path")
         {
             Scheme = "foo-bar",
             Path = "path",
             ExpectedToString = "foo-bar:path",
         },
-        new("foo.bar:path")
+        new UriCase("foo.bar:path")
         {
             Scheme = "foo.bar",
             Path = "path",
             ExpectedToString = "foo.bar:path",
         },
-        new("after:some/file/path")
+        new UriCase("after:some/file/path")
         {
             Scheme = "after",
             Path = "some/file/path",
             ExpectedToString = "after:some/file/path",
         },
-        new("scheme:/path")
+        new UriCase("scheme:/path")
         {
             Scheme = "scheme",
             Path = "/path",
             ExpectedToString = "scheme:/path",
         },
-        new("scheme://authority")
+        new UriCase("scheme://authority")
         {
             Scheme = "scheme",
             Authority = "authority",
             ExpectedToString = "scheme://authority",
         },
-        new("https:api/files/test.me?t=1234")
+        new UriCase("https:api/files/test.me?t=1234")
         {
             Scheme = "https",
             Path = "/api/files/test.me",
             Query = "t=1234",
             ExpectedToString = "https:/api/files/test.me?t%3D1234",
         },
-        new("HTTP:/api/files/test.me?t=1234")
+        new UriCase("HTTP:/api/files/test.me?t=1234")
         {
             Scheme = "http",
             Path = "/api/files/test.me",
             Query = "t=1234",
             ExpectedToString = "http:/api/files/test.me?t%3D1234",
         },
-        new("https:/api/files/test.me?t=1234")
+        new UriCase("https:/api/files/test.me?t=1234")
         {
             Scheme = "https",
             Path = "/api/files/test.me",
             Query = "t=1234",
             ExpectedToString = "https:/api/files/test.me?t%3D1234",
         },
-        new("boo:/api/files/test.me?t=1234")
+        new UriCase("boo:/api/files/test.me?t=1234")
         {
             Scheme = "boo",
             Path = "/api/files/test.me",
             Query = "t=1234",
             ExpectedToString = "boo:/api/files/test.me?t%3D1234",
         },
-        new("http://a-test-site.com/?test=true")
+        new UriCase("http://a-test-site.com/?test=true")
         {
             Scheme = "http",
             Authority = "a-test-site.com",
@@ -539,7 +539,7 @@ public sealed class ParsedUriTests
             Query = "test=true",
             ExpectedToString = "http://a-test-site.com/?test%3Dtrue",
         },
-        new("http://a-test-site.com/#test=true")
+        new UriCase("http://a-test-site.com/#test=true")
         {
             Scheme = "http",
             Authority = "a-test-site.com",
@@ -547,7 +547,7 @@ public sealed class ParsedUriTests
             Fragment = "test=true",
             ExpectedToString = "http://a-test-site.com/#test%3Dtrue",
         },
-        new("https://go.microsoft.com/fwlink/?LinkId=518008")
+        new UriCase("https://go.microsoft.com/fwlink/?LinkId=518008")
         {
             Scheme = "https",
             Authority = "go.microsoft.com",
@@ -555,7 +555,7 @@ public sealed class ParsedUriTests
             Query = "LinkId=518008",
             ExpectedToString = "https://go.microsoft.com/fwlink/?LinkId%3D518008",
         },
-        new("https://go.microsoft.com/fwlink/?LinkId=518008&foö&ké¥=üü")
+        new UriCase("https://go.microsoft.com/fwlink/?LinkId=518008&foö&ké¥=üü")
         {
             Scheme = "https",
             Authority = "go.microsoft.com",
@@ -563,28 +563,28 @@ public sealed class ParsedUriTests
             Query = "LinkId=518008&foö&ké¥=üü",
             ExpectedToString = "https://go.microsoft.com/fwlink/?LinkId%3D518008%26fo%C3%B6%26k%C3%A9%C2%A5%3D%C3%BC%C3%BC",
         },
-        new("git:/x:/%2525%EE%89%9B/%C2%89%EC%9E%BD?abc")
+        new UriCase("git:/x:/%2525%EE%89%9B/%C2%89%EC%9E%BD?abc")
         {
             Scheme = "git",
             Path = "/x:/%25/잽",
             Query = "abc",
             ExpectedToString = "git:/x%3A/%2525%EE%89%9B/%C2%89%EC%9E%BD?abc",
         },
-        new("git://host/%2525%EE%89%9B/%C2%89%EC%9E%BD")
+        new UriCase("git://host/%2525%EE%89%9B/%C2%89%EC%9E%BD")
         {
             Scheme = "git",
             Authority = "host",
             Path = "/%25/잽",
             ExpectedToString = "git://host/%2525%EE%89%9B/%C2%89%EC%9E%BD",
         },
-        new("xy://host/%2525%EE%89%9B/%C2%89%EC%9E%BD")
+        new UriCase("xy://host/%2525%EE%89%9B/%C2%89%EC%9E%BD")
         {
             Scheme = "xy",
             Authority = "host",
             Path = "/%25/잽",
             ExpectedToString = "xy://host/%2525%EE%89%9B/%C2%89%EC%9E%BD",
         },
-        new("https://twitter.com/search?src=typd&q=%23tag")
+        new UriCase("https://twitter.com/search?src=typd&q=%23tag")
         {
             Scheme = "https",
             Authority = "twitter.com",
@@ -595,7 +595,7 @@ public sealed class ParsedUriTests
 
     public static TheoryData<UriCase> FileCases => new()
     {
-        new("")
+        new UriCase("")
         {
             Scheme = "file",
             Path = "/",
@@ -603,7 +603,7 @@ public sealed class ParsedUriTests
             WindowsFsPath = @"\",
             UnixFsPath = "/",
         },
-        new("/1:/Path")
+        new UriCase("/1:/Path")
         {
             Scheme = "file",
             Path = "/1:/Path",
@@ -611,7 +611,7 @@ public sealed class ParsedUriTests
             WindowsFsPath = @"\1:\Path",
             UnixFsPath = "/1:/Path",
         },
-        new("/[:/Path")
+        new UriCase("/[:/Path")
         {
             Scheme = "file",
             Path = "/[:/Path",
@@ -619,7 +619,7 @@ public sealed class ParsedUriTests
             WindowsFsPath = @"\[:\Path",
             UnixFsPath = "/[:/Path",
         },
-        new("/C:/Path")
+        new UriCase("/C:/Path")
         {
             Scheme = "file",
             Path = "/c:/Path",
@@ -627,7 +627,7 @@ public sealed class ParsedUriTests
             WindowsFsPath = @"c:\Path",
             UnixFsPath = "c:/Path",
         },
-        new("c:/win/path")
+        new UriCase("c:/win/path")
         {
             Scheme = "file",
             Path = "/c:/win/path",
@@ -635,7 +635,7 @@ public sealed class ParsedUriTests
             WindowsFsPath = @"c:\win\path",
             UnixFsPath = "c:/win/path",
         },
-        new("C:/win/path")
+        new UriCase("C:/win/path")
         {
             Scheme = "file",
             Path = "/c:/win/path",
@@ -643,7 +643,7 @@ public sealed class ParsedUriTests
             WindowsFsPath = @"c:\win\path",
             UnixFsPath = "c:/win/path",
         },
-        new("c:/win/path/")
+        new UriCase("c:/win/path/")
         {
             Scheme = "file",
             Path = "/c:/win/path/",
@@ -651,7 +651,7 @@ public sealed class ParsedUriTests
             WindowsFsPath = @"c:\win\path\",
             UnixFsPath = "c:/win/path/",
         },
-        new("/c:/win/path")
+        new UriCase("/c:/win/path")
         {
             Scheme = "file",
             Path = "/c:/win/path",
@@ -659,7 +659,7 @@ public sealed class ParsedUriTests
             WindowsFsPath = @"c:\win\path",
             UnixFsPath = "c:/win/path",
         },
-        new("/foo/bar")
+        new UriCase("/foo/bar")
         {
             Scheme = "file",
             Path = "/foo/bar",
@@ -667,7 +667,7 @@ public sealed class ParsedUriTests
             WindowsFsPath = @"\foo\bar",
             UnixFsPath = "/foo/bar",
         },
-        new("foo/bar")
+        new UriCase("foo/bar")
         {
             Scheme = "file",
             Path = "/foo/bar",
@@ -675,7 +675,7 @@ public sealed class ParsedUriTests
             WindowsFsPath = @"\foo\bar",
             UnixFsPath = "/foo/bar",
         },
-        new("./foo/bar")
+        new UriCase("./foo/bar")
         {
             Scheme = "file",
             Path = "/./foo/bar",
@@ -683,7 +683,7 @@ public sealed class ParsedUriTests
             WindowsFsPath = @"\.\foo\bar",
             UnixFsPath = "/./foo/bar",
         },
-        new("a.file")
+        new UriCase("a.file")
         {
             Scheme = "file",
             Path = "/a.file",
@@ -691,7 +691,7 @@ public sealed class ParsedUriTests
             WindowsFsPath = @"\a.file",
             UnixFsPath = "/a.file",
         },
-        new("/Users/jrieken/Code/_samples/18500/Mödel + Other Thîngß/model.js")
+        new UriCase("/Users/jrieken/Code/_samples/18500/Mödel + Other Thîngß/model.js")
         {
             Scheme = "file",
             Path = "/Users/jrieken/Code/_samples/18500/Mödel + Other Thîngß/model.js",
@@ -699,7 +699,7 @@ public sealed class ParsedUriTests
             WindowsFsPath = @"\Users\jrieken\Code\_samples\18500\Mödel + Other Thîngß\model.js",
             UnixFsPath = "/Users/jrieken/Code/_samples/18500/Mödel + Other Thîngß/model.js",
         },
-        new("/emoji/😀.cs")
+        new UriCase("/emoji/😀.cs")
         {
             Scheme = "file",
             Path = "/emoji/😀.cs",
@@ -711,21 +711,21 @@ public sealed class ParsedUriTests
 
     public static TheoryData<UriCase> FileWindowsCases => new()
     {
-        new(@"c:\win\path")
+        new UriCase(@"c:\win\path")
         {
             Scheme = "file",
             Path = "/c:/win/path",
             ExpectedToString = "file:///c%3A/win/path",
             WindowsFsPath = @"c:\win\path",
         },
-        new(@"c:\win/path")
+        new UriCase(@"c:\win/path")
         {
             Scheme = "file",
             Path = "/c:/win/path",
             ExpectedToString = "file:///c%3A/win/path",
             WindowsFsPath = @"c:\win\path",
         },
-        new(@"\\shäres\path\c#\plugin.json")
+        new UriCase(@"\\shäres\path\c#\plugin.json")
         {
             Scheme = "file",
             Authority = "shäres",
@@ -733,7 +733,7 @@ public sealed class ParsedUriTests
             ExpectedToString = "file://sh%C3%A4res/path/c%23/plugin.json",
             WindowsFsPath = @"\\shäres\path\c#\plugin.json",
         },
-        new(@"\\localhost\c$\GitDevelopment\express")
+        new UriCase(@"\\localhost\c$\GitDevelopment\express")
         {
             Scheme = "file",
             Authority = "localhost",
@@ -741,7 +741,7 @@ public sealed class ParsedUriTests
             ExpectedToString = "file://localhost/c%24/GitDevelopment/express",
             WindowsFsPath = @"\\localhost\c$\GitDevelopment\express",
         },
-        new(@"\\SERVER\Share\Path")
+        new UriCase(@"\\SERVER\Share\Path")
         {
             Scheme = "file",
             Authority = "server",
@@ -749,7 +749,7 @@ public sealed class ParsedUriTests
             ExpectedToString = "file://server/Share/Path",
             WindowsFsPath = @"\\server\Share\Path",
         },
-        new(@"\\𐐀\Share")
+        new UriCase(@"\\𐐀\Share")
         {
             Scheme = "file",
             Authority = "𐐨",
@@ -757,77 +757,77 @@ public sealed class ParsedUriTests
             ExpectedToString = "file://%F0%90%90%A8/Share",
             WindowsFsPath = @"\\𐐨\Share",
         },
-        new(@"c:\test with %\path")
+        new UriCase(@"c:\test with %\path")
         {
             Scheme = "file",
             Path = "/c:/test with %/path",
             ExpectedToString = "file:///c%3A/test%20with%20%25/path",
             WindowsFsPath = @"c:\test with %\path",
         },
-        new(@"c:\test with %25\path")
+        new UriCase(@"c:\test with %25\path")
         {
             Scheme = "file",
             Path = "/c:/test with %25/path",
             ExpectedToString = "file:///c%3A/test%20with%20%2525/path",
             WindowsFsPath = @"c:\test with %25\path",
         },
-        new(@"c:\test with %25\c#code")
+        new UriCase(@"c:\test with %25\c#code")
         {
             Scheme = "file",
             Path = "/c:/test with %25/c#code",
             ExpectedToString = "file:///c%3A/test%20with%20%2525/c%23code",
             WindowsFsPath = @"c:\test with %25\c#code",
         },
-        new("C:/")
+        new UriCase("C:/")
         {
             Scheme = "file",
             Path = "/c:/",
             ExpectedToString = "file:///c%3A/",
             WindowsFsPath = @"c:\",
         },
-        new(@"C:\")
+        new UriCase(@"C:\")
         {
             Scheme = "file",
             Path = "/c:/",
             ExpectedToString = "file:///c%3A/",
             WindowsFsPath = @"c:\",
         },
-        new(@"C:\a\b")
+        new UriCase(@"C:\a\b")
         {
             Scheme = "file",
             Path = "/c:/a/b",
             ExpectedToString = "file:///c%3A/a/b",
             WindowsFsPath = @"c:\a\b",
         },
-        new(@"C:\a\\b")
+        new UriCase(@"C:\a\\b")
         {
             Scheme = "file",
             Path = "/c:/a//b",
             ExpectedToString = "file:///c%3A/a//b",
             WindowsFsPath = @"c:\a\\b",
         },
-        new("C:\\%25\ue25b/a\\b")
+        new UriCase("C:\\%25\ue25b/a\\b")
         {
             Scheme = "file",
             Path = "/c:/%25/a/b",
             ExpectedToString = "file:///c%3A/%2525%EE%89%9B/a/b",
             WindowsFsPath = @"c:\%25\a\b",
         },
-        new("C:\\%25\ue25b/a\\\\b")
+        new UriCase("C:\\%25\ue25b/a\\\\b")
         {
             Scheme = "file",
             Path = "/c:/%25/a//b",
             ExpectedToString = "file:///c%3A/%2525%EE%89%9B/a//b",
             WindowsFsPath = @"c:\%25\a\\b",
         },
-        new("C:\\\u0089\uC7BD")
+        new UriCase("C:\\\u0089\uC7BD")
         {
             Scheme = "file",
             Path = "/c:/잽",
             ExpectedToString = "file:///c%3A/%C2%89%EC%9E%BD",
             WindowsFsPath = @"c:\잽",
         },
-        new("/\\server\ue25b\\%25\ue25b\\b")
+        new UriCase("/\\server\ue25b\\%25\ue25b\\b")
         {
             Scheme = "file",
             Authority = "server",
@@ -835,7 +835,7 @@ public sealed class ParsedUriTests
             ExpectedToString = "file://server%EE%89%9B/%2525%EE%89%9B/b",
             WindowsFsPath = @"\\server\%25\b",
         },
-        new("\\\\server\ue25b\\%25\ue25b\\b")
+        new UriCase("\\\\server\ue25b\\%25\ue25b\\b")
         {
             Scheme = "file",
             Authority = "server",
@@ -843,56 +843,56 @@ public sealed class ParsedUriTests
             ExpectedToString = "file://server%EE%89%9B/%2525%EE%89%9B/b",
             WindowsFsPath = @"\\server\%25\b",
         },
-        new("C:\\ !$&'()+,-;=@[]_~#")
+        new UriCase("C:\\ !$&'()+,-;=@[]_~#")
         {
             Scheme = "file",
             Path = "/c:/ !$&'()+,-;=@[]_~#",
             ExpectedToString = "file:///c%3A/%20%21%24%26%27%28%29%2B%2C-%3B%3D%40%5B%5D_~%23",
             WindowsFsPath = @"c:\ !$&'()+,-;=@[]_~#",
         },
-        new("C:\\ !$&'()+,-;=@[]_~#\ue25b")
+        new UriCase("C:\\ !$&'()+,-;=@[]_~#\ue25b")
         {
             Scheme = "file",
             Path = "/c:/ !$&'()+,-;=@[]_~#",
             ExpectedToString = "file:///c%3A/%20%21%24%26%27%28%29%2B%2C-%3B%3D%40%5B%5D_~%23%EE%89%9B",
             WindowsFsPath = @"c:\ !$&'()+,-;=@[]_~#",
         },
-        new("C:\\\u0073\u0323\u0307")
+        new UriCase("C:\\\u0073\u0323\u0307")
         {
             Scheme = "file",
             Path = "/c:/ṩ",
             ExpectedToString = "file:///c%3A/s%CC%A3%CC%87",
             WindowsFsPath = @"c:\ṩ",
         },
-        new("A:/\\\u200e//")
+        new UriCase("A:/\\\u200e//")
         {
             Scheme = "file",
             Path = "/a://‎//",
             ExpectedToString = "file:///a%3A//%E2%80%8E//",
             WindowsFsPath = @"a:\\‎\\",
         },
-        new("B:\\/\u200e")
+        new UriCase("B:\\/\u200e")
         {
             Scheme = "file",
             Path = "/b://‎",
             ExpectedToString = "file:///b%3A//%E2%80%8E",
             WindowsFsPath = @"b:\\‎",
         },
-        new("C:/\\\\-Ā\r")
+        new UriCase("C:/\\\\-Ā\r")
         {
             Scheme = "file",
             Path = "/c:///-Ā\r",
             ExpectedToString = "file:///c%3A///-%C4%80%0D",
             WindowsFsPath = @"c:\\\-Ā" + "\r",
         },
-        new("D:\\\\\\\\\u200e")
+        new UriCase("D:\\\\\\\\\u200e")
         {
             Scheme = "file",
             Path = "/d:////‎",
             ExpectedToString = "file:///d%3A////%E2%80%8E",
             WindowsFsPath = @"d:\\\\‎",
         },
-        new(@"\\shares")
+        new UriCase(@"\\shares")
         {
             Scheme = "file",
             Authority = "shares",
@@ -902,7 +902,7 @@ public sealed class ParsedUriTests
             // FsPath for a UNC share root collapses to "\", so rebuilding loses the original share authority.
             SkipFsPathRoundTrip = true,
         },
-        new(@"\\shares\")
+        new UriCase(@"\\shares\")
         {
             Scheme = "file",
             Authority = "shares",
@@ -916,70 +916,70 @@ public sealed class ParsedUriTests
 
     public static TheoryData<UriCase> FileUnixLikeCases => new()
     {
-        new(@"c:\win\path")
+        new UriCase(@"c:\win\path")
         {
             Scheme = "file",
             Path = @"/c:\win\path",
             ExpectedToString = "file:///c%3A%5Cwin%5Cpath",
             UnixFsPath = @"c:\win\path",
         },
-        new(@"c:\win/path")
+        new UriCase(@"c:\win/path")
         {
             Scheme = "file",
             Path = @"/c:\win/path",
             ExpectedToString = "file:///c%3A%5Cwin/path",
             UnixFsPath = @"c:\win/path",
         },
-        new("/")
+        new UriCase("/")
         {
             Scheme = "file",
             Path = "/",
             ExpectedToString = "file:///",
             UnixFsPath = "/",
         },
-        new("/u")
+        new UriCase("/u")
         {
             Scheme = "file",
             Path = "/u",
             ExpectedToString = "file:///u",
             UnixFsPath = "/u",
         },
-        new("/unix/path")
+        new UriCase("/unix/path")
         {
             Scheme = "file",
             Path = "/unix/path",
             ExpectedToString = "file:///unix/path",
             UnixFsPath = "/unix/path",
         },
-        new("/%25\ue25b/\u0089\uC7BD")
+        new UriCase("/%25\ue25b/\u0089\uC7BD")
         {
             Scheme = "file",
             Path = "/%25/잽",
             ExpectedToString = "file:///%2525%EE%89%9B/%C2%89%EC%9E%BD",
             UnixFsPath = "/%25/잽",
         },
-        new("/!$&'()+,-;=@[]_~#")
+        new UriCase("/!$&'()+,-;=@[]_~#")
         {
             Scheme = "file",
             Path = "/!$&'()+,-;=@[]_~#",
             ExpectedToString = "file:///%21%24%26%27%28%29%2B%2C-%3B%3D%40%5B%5D_~%23",
             UnixFsPath = "/!$&'()+,-;=@[]_~#",
         },
-        new("/!$&'()+,-;=@[]_~#")
+        new UriCase("/!$&'()+,-;=@[]_~#")
         {
             Scheme = "file",
             Path = "/!$&'()+,-;=@[]_~#",
             ExpectedToString = "file:///%21%24%26%27%28%29%2B%2C-%3B%3D%40%5B%5D_~%23%EE%89%9B",
             UnixFsPath = "/!$&'()+,-;=@[]_~#",
         },
-        new("/\\\u200e//")
+        new UriCase("/\\\u200e//")
         {
             Scheme = "file",
             Path = "/\\‎//",
             ExpectedToString = "file:///%5C%E2%80%8E//",
             UnixFsPath = "/\\‎//",
         },
-        new("/\\\\-Ā\r")
+        new UriCase("/\\\\-Ā\r")
         {
             Scheme = "file",
             Path = "/\\\\-Ā\r",
@@ -990,71 +990,71 @@ public sealed class ParsedUriTests
 
     public static TheoryData<FormattingCase> FormattingCases => new()
     {
-        new("http:/api/files/test.me?t=1234", "http:/api/files/test.me?t%3D1234", "http:/api/files/test.me?t=1234"),
-        new("http:my/path", "http:/my/path", "http:/my/path"),
-        new("https:api/files/test.me?t=1234", "https:/api/files/test.me?t%3D1234", "https:/api/files/test.me?t=1234"),
-        new("HTTP:/api/files/test.me?t=1234", "http:/api/files/test.me?t%3D1234", "http:/api/files/test.me?t=1234"),
-        new("HTTPS:/api/files/test.me?t=1234", "https:/api/files/test.me?t%3D1234", "https:/api/files/test.me?t=1234"),
-        new("http://a-test-site.com/?test=true", "http://a-test-site.com/?test%3Dtrue", "http://a-test-site.com/?test=true"),
-        new("http://a-test-site.com/#test=true", "http://a-test-site.com/#test%3Dtrue", "http://a-test-site.com/#test=true"),
-        new("https://go.microsoft.com/fwlink/?LinkId=518008", "https://go.microsoft.com/fwlink/?LinkId%3D518008", "https://go.microsoft.com/fwlink/?LinkId=518008"),
-        new("https://go.microsoft.com/fwlink/?LinkId=518008&foö&ké¥=üü", "https://go.microsoft.com/fwlink/?LinkId%3D518008%26fo%C3%B6%26k%C3%A9%C2%A5%3D%C3%BC%C3%BC", "https://go.microsoft.com/fwlink/?LinkId=518008&foö&ké¥=üü"),
-        new("https://twitter.com/search?src=typd&q=%23tag", "https://twitter.com/search?src%3Dtypd%26q%3D%23tag", "https://twitter.com/search?src=typd&q=%23tag"),
-        new("http://www.MSFT.com/my/path", "http://www.msft.com/my/path"),
-        new("untitled:c:/Users/jrieken/Code/abc.txt", "untitled:c%3A/Users/jrieken/Code/abc.txt"),
-        new("untitled:C:/Users/jrieken/Code/abc.txt", "untitled:c%3A/Users/jrieken/Code/abc.txt"),
-        new("http://localhost:8080/far", "http://localhost:8080/far"),
-        new("http://löcalhost:8080/far", "http://l%C3%B6calhost:8080/far"),
-        new("http://foo:bar@localhost/far", "http://foo:bar@localhost/far"),
-        new("http://foo@localhost/far", "http://foo@localhost/far"),
-        new("http://foo:bAr@localhost:8080/far", "http://foo:bAr@localhost:8080/far"),
-        new("http://foo@localhost:8080/far", "http://foo@localhost:8080/far"),
-        new("http://föö:bör@löcalhost:8080/far", "http://f%C3%B6%C3%B6:b%C3%B6r@l%C3%B6calhost:8080/far"),
-        new("stuff:?qüery", "stuff:?q%C3%BCery"),
-        new("file://sh%c3%a4res/path", "file://sh%C3%A4res/path"),
-        new("file://some/%.txt", "file://some/%25.txt"),
-        new("file://some/%A0.txt", "file://some/%25A0.txt"),
-        new("custom:/1:/Path", "custom:/1%3A/Path"),
-        new("custom:1:/Path", "custom:1%3A/Path"),
+        new FormattingCase("http:/api/files/test.me?t=1234", "http:/api/files/test.me?t%3D1234", "http:/api/files/test.me?t=1234"),
+        new FormattingCase("http:my/path", "http:/my/path", "http:/my/path"),
+        new FormattingCase("https:api/files/test.me?t=1234", "https:/api/files/test.me?t%3D1234", "https:/api/files/test.me?t=1234"),
+        new FormattingCase("HTTP:/api/files/test.me?t=1234", "http:/api/files/test.me?t%3D1234", "http:/api/files/test.me?t=1234"),
+        new FormattingCase("HTTPS:/api/files/test.me?t=1234", "https:/api/files/test.me?t%3D1234", "https:/api/files/test.me?t=1234"),
+        new FormattingCase("http://a-test-site.com/?test=true", "http://a-test-site.com/?test%3Dtrue", "http://a-test-site.com/?test=true"),
+        new FormattingCase("http://a-test-site.com/#test=true", "http://a-test-site.com/#test%3Dtrue", "http://a-test-site.com/#test=true"),
+        new FormattingCase("https://go.microsoft.com/fwlink/?LinkId=518008", "https://go.microsoft.com/fwlink/?LinkId%3D518008", "https://go.microsoft.com/fwlink/?LinkId=518008"),
+        new FormattingCase("https://go.microsoft.com/fwlink/?LinkId=518008&foö&ké¥=üü", "https://go.microsoft.com/fwlink/?LinkId%3D518008%26fo%C3%B6%26k%C3%A9%C2%A5%3D%C3%BC%C3%BC", "https://go.microsoft.com/fwlink/?LinkId=518008&foö&ké¥=üü"),
+        new FormattingCase("https://twitter.com/search?src=typd&q=%23tag", "https://twitter.com/search?src%3Dtypd%26q%3D%23tag", "https://twitter.com/search?src=typd&q=%23tag"),
+        new FormattingCase("http://www.MSFT.com/my/path", "http://www.msft.com/my/path"),
+        new FormattingCase("untitled:c:/Users/jrieken/Code/abc.txt", "untitled:c%3A/Users/jrieken/Code/abc.txt"),
+        new FormattingCase("untitled:C:/Users/jrieken/Code/abc.txt", "untitled:c%3A/Users/jrieken/Code/abc.txt"),
+        new FormattingCase("http://localhost:8080/far", "http://localhost:8080/far"),
+        new FormattingCase("http://löcalhost:8080/far", "http://l%C3%B6calhost:8080/far"),
+        new FormattingCase("http://foo:bar@localhost/far", "http://foo:bar@localhost/far"),
+        new FormattingCase("http://foo@localhost/far", "http://foo@localhost/far"),
+        new FormattingCase("http://foo:bAr@localhost:8080/far", "http://foo:bAr@localhost:8080/far"),
+        new FormattingCase("http://foo@localhost:8080/far", "http://foo@localhost:8080/far"),
+        new FormattingCase("http://föö:bör@löcalhost:8080/far", "http://f%C3%B6%C3%B6:b%C3%B6r@l%C3%B6calhost:8080/far"),
+        new FormattingCase("stuff:?qüery", "stuff:?q%C3%BCery"),
+        new FormattingCase("file://sh%c3%a4res/path", "file://sh%C3%A4res/path"),
+        new FormattingCase("file://some/%.txt", "file://some/%25.txt"),
+        new FormattingCase("file://some/%A0.txt", "file://some/%25A0.txt"),
+        new FormattingCase("custom:/1:/Path", "custom:/1%3A/Path"),
+        new FormattingCase("custom:1:/Path", "custom:1%3A/Path"),
     };
 
     public static TheoryData<EqualityCase> EqualityCases => new()
     {
-        new("file:///c:/test/me", "file:///c:/test/me", true),
-        new("file:///c:/test/me", "file:///c:/test/other", false),
+        new EqualityCase("file:///c:/test/me", "file:///c:/test/me", true),
+        new EqualityCase("file:///c:/test/me", "file:///c:/test/other", false),
         // Under vscode-uri semantics, backslash vs forward-slash URIs parse to different components
         // (backslashes are only normalized in ParsedUri.File(), not in Parse()), so these are not equal.
-        new("file://c:\\valid", "file:///c:/valid", false),
+        new EqualityCase("file://c:\\valid", "file:///c:/valid", false),
         // File URIs with UNC/DOS paths use case-insensitive comparison, matching System.Uri's IsUncOrDosPath behavior.
-        new("file://c:\\valid", "file://c:\\valid", true),
-        new("file://c:\\valid", "file://c:\\VALID", true),
-        new("file://c:\\valid", "file://c:\\valid2", false),
-        new("file:///C:/test/me", "file:///c:/test/me", true),
-        new("FILE:///c:/Path/File.txt", "file:///c:/path/file.txt", true),
-        new("file://server/Share/Path", "file://server/share/path", true),
-        new("file:///c:/test%20file.txt", "file:///c:/test file.txt", true),
+        new EqualityCase("file://c:\\valid", "file://c:\\valid", true),
+        new EqualityCase("file://c:\\valid", "file://c:\\VALID", true),
+        new EqualityCase("file://c:\\valid", "file://c:\\valid2", false),
+        new EqualityCase("file:///C:/test/me", "file:///c:/test/me", true),
+        new EqualityCase("FILE:///c:/Path/File.txt", "file:///c:/path/file.txt", true),
+        new EqualityCase("file://server/Share/Path", "file://server/share/path", true),
+        new EqualityCase("file:///c:/test%20file.txt", "file:///c:/test file.txt", true),
         // Hash character %23: unencoded # starts a fragment, so these parse to different components (not equal).
-        new("file:///c:/code/c%23/project", "file:///c:/code/c#/project", false),
+        new EqualityCase("file:///c:/code/c%23/project", "file:///c:/code/c#/project", false),
         // Unicode characters encoded as UTF-8 percent sequences.
-        new("file:///c:/Source/Z%C3%BCrich", "file:///c:/Source/Zürich", true),
+        new EqualityCase("file:///c:/Source/Z%C3%BCrich", "file:///c:/Source/Zürich", true),
         // Mixed encoding in authority (UNC path).
-        new("file://sh%C3%A4res/path", "file://shäres/path", true),
-        new("http://example.com/path?q%3D1", "http://example.com/path?q=1", true),
-        new("http://Example.com/path", "http://example.com/path", true),
-        new("http://User@Example.com/path", "http://User@example.com/path", true),
-        new("http://User@example.com/path", "http://user@example.com/path", false),
-        new("http://user@example.com/path", "http://example.com/path", false),
-        new("http://user@example.com/path", "http://user@example.com:80/path", false),
+        new EqualityCase("file://sh%C3%A4res/path", "file://shäres/path", true),
+        new EqualityCase("http://example.com/path?q%3D1", "http://example.com/path?q=1", true),
+        new EqualityCase("http://Example.com/path", "http://example.com/path", true),
+        new EqualityCase("http://User@Example.com/path", "http://User@example.com/path", true),
+        new EqualityCase("http://User@example.com/path", "http://user@example.com/path", false),
+        new EqualityCase("http://user@example.com/path", "http://example.com/path", false),
+        new EqualityCase("http://user@example.com/path", "http://user@example.com:80/path", false),
         // Encoded vs unencoded in fragments.
-        new("http://example.com/path#frag%20ment", "http://example.com/path#frag ment", true),
+        new EqualityCase("http://example.com/path#frag%20ment", "http://example.com/path#frag ment", true),
         // Double-encoded percent: %25 decodes to %, which is different from a literal %.
-        new("file:///c:/test%2520file.txt", "file:///c:/test%20file.txt", false),
+        new EqualityCase("file:///c:/test%2520file.txt", "file:///c:/test%20file.txt", false),
         // Encoded colon in path (vscode-uri encodes drive letter colons).
-        new("file:///c%3A/test", "file:///c:/test", true),
+        new EqualityCase("file:///c%3A/test", "file:///c:/test", true),
         // Encoded slash %2F in query (not a path separator in query context).
-        new("http://example.com/path?url%3Dhttp%3A%2F%2Fother", "http://example.com/path?url=http://other", true),
-        new("git:/blah", "git:/Blah", false),
-        new("file:///usr/Home", "file:///usr/home", false),
+        new EqualityCase("http://example.com/path?url%3Dhttp%3A%2F%2Fother", "http://example.com/path?url=http://other", true),
+        new EqualityCase("git:/blah", "git:/Blah", false),
+        new EqualityCase("file:///usr/Home", "file:///usr/home", false),
     };
 
     private static void AssertCase(ParsedUri value, UriCase testCase)
@@ -1174,12 +1174,12 @@ public sealed class ParsedUriTests
 
         public void Deserialize(IXunitSerializationInfo info)
         {
-            Input = info.GetValue<string>(nameof(Input));
-            Scheme = info.GetValue<string>(nameof(Scheme));
-            Authority = info.GetValue<string>(nameof(Authority));
-            Path = info.GetValue<string>(nameof(Path));
-            Query = info.GetValue<string>(nameof(Query));
-            Fragment = info.GetValue<string>(nameof(Fragment));
+            Input = info.GetValue<string>(nameof(Input)) ?? throw new InvalidOperationException();
+            Scheme = info.GetValue<string>(nameof(Scheme)) ?? throw new InvalidOperationException();
+            Authority = info.GetValue<string>(nameof(Authority)) ?? throw new InvalidOperationException();
+            Path = info.GetValue<string>(nameof(Path)) ?? throw new InvalidOperationException();
+            Query = info.GetValue<string>(nameof(Query)) ?? throw new InvalidOperationException();
+            Fragment = info.GetValue<string>(nameof(Fragment)) ?? throw new InvalidOperationException();
             WindowsFsPath = info.GetValue<string?>(nameof(WindowsFsPath));
             UnixFsPath = info.GetValue<string?>(nameof(UnixFsPath));
             ExpectedToString = info.GetValue<string?>(nameof(ExpectedToString));
@@ -1215,8 +1215,8 @@ public sealed class ParsedUriTests
 
         public void Deserialize(IXunitSerializationInfo info)
         {
-            UriString = info.GetValue<string>(nameof(UriString));
-            ExpectedToString = info.GetValue<string>(nameof(ExpectedToString));
+            UriString = info.GetValue<string>(nameof(UriString)) ?? throw new InvalidOperationException();
+            ExpectedToString = info.GetValue<string>(nameof(ExpectedToString)) ?? throw new InvalidOperationException();
             ExpectedToStringSkipEncoding = info.GetValue<string?>(nameof(ExpectedToStringSkipEncoding));
         }
     }
@@ -1249,8 +1249,8 @@ public sealed class ParsedUriTests
 
         public void Deserialize(IXunitSerializationInfo info)
         {
-            Left = info.GetValue<string>(nameof(Left));
-            Right = info.GetValue<string>(nameof(Right));
+            Left = info.GetValue<string>(nameof(Left)) ?? throw new InvalidOperationException();
+            Right = info.GetValue<string>(nameof(Right)) ?? throw new InvalidOperationException();
             AreEqual = info.GetValue<bool>(nameof(AreEqual));
         }
     }

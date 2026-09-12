@@ -26,7 +26,6 @@ using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts;
 using static Microsoft.CodeAnalysis.MSBuild.UnitTests.SolutionGeneration;
 using CS = Microsoft.CodeAnalysis.CSharp;
@@ -41,7 +40,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
     {
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public void TestCreateMSBuildWorkspace()
     {
         using var workspace = CreateMSBuildWorkspace();
@@ -53,7 +52,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.NotNull(workspace.Services.TextFactory);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenSolution_SingleProjectSolution()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -70,7 +69,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.StartsWith("public class CSharpClass", type.ToString(), StringComparison.Ordinal);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenSolution_MultiProjectSolution()
     {
         CreateFiles(GetMultiProjectSolutionFiles());
@@ -95,7 +94,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(5, compReferences.Count);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestDirectUseOfMSBuildProjectLoader()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -109,7 +108,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Single(projectInfo.Documents, d => d.Name == "CSharpClass.cs");
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task Test_SharedMetadataReferences()
     {
         CreateFiles(GetMultiProjectSolutionFiles());
@@ -132,7 +131,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Same(p0mscorlib, p1mscorlib);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546171")]
     public async Task Test_SharedMetadataReferencesWithAliases()
     {
@@ -200,7 +199,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
     private static Metadata GetMetadata(MetadataReference metadataReference)
         => ((PortableExecutableReference)metadataReference).GetMetadata();
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/microsoft/vs-solutionpersistence/issues/95")]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/microsoft/vs-solutionpersistence/issues/95")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552981")]
     public async Task TestOpenSolution_DuplicateProjectGuids()
     {
@@ -212,7 +211,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         var solution = await workspace.OpenSolutionAsync(solutionFilePath);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831379")]
     public async Task GetCompilationWithCircularProjectReferences()
     {
@@ -238,7 +237,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
                     compilation2.References.OfType<CompilationReference>().Any(c => c.Compilation == compilation1));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOutputFilePaths()
     {
         CreateFiles(GetMultiProjectSolutionFiles());
@@ -253,7 +252,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal("VisualBasicProject.dll", Path.GetFileName(p2.OutputFilePath));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOutputInfo()
     {
         CreateFiles(GetMultiProjectSolutionFiles());
@@ -268,7 +267,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal("VisualBasicProject.dll", Path.GetFileName(p2.CompilationOutputInfo.AssemblyPath));
     }
 
-    [ConditionalTheory(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalTheory(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [InlineData(LanguageNames.CSharp)]
     [InlineData(LanguageNames.VisualBasic)]
     public async Task TestChecksumAlgorithm_NonDefault(string language)
@@ -290,7 +289,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.All(project.AdditionalDocuments, d => Assert.Equal(SourceHashAlgorithm.Sha1, d.GetTextSynchronously(default).ChecksumAlgorithm));
     }
 
-    [ConditionalTheory(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalTheory(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [InlineData(LanguageNames.CSharp)]
     [InlineData(LanguageNames.VisualBasic)]
     public async Task TestChecksumAlgorithm_Default(string language)
@@ -307,7 +306,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.All(project.Documents, d => Assert.Equal(SourceHashAlgorithms.Default, d.GetTextSynchronously(default).ChecksumAlgorithm));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCrossLanguageReferencesUsesInMemoryGeneratedMetadata()
     {
         CreateFiles(GetMultiProjectSolutionFiles());
@@ -329,7 +328,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.NotNull(pref);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCrossLanguageReferencesWithOutOfDateMetadataOnDiskUsesInMemoryGeneratedMetadata()
     {
         await PrepareCrossLanguageProjectWithEmittedMetadataAsync();
@@ -356,7 +355,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.NotNull(pref);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/54818")]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/54818")]
     public async Task TestInternalsVisibleToSigned()
     {
         var solution = await SolutionAsync(
@@ -386,7 +385,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Empty(diagnostics);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestVersions()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -431,7 +430,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.True(solution3.Version.GetTestAccessor().IsNewerThan(solution2.Version));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenSolution_LoadMetadataForReferencedProjects()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -450,7 +449,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.StartsWith("public class CSharpClass", type.ToString(), StringComparison.Ordinal);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("https://github.com/dotnet/roslyn/issues/33047")]
     public async Task TestOpenProject_CSharp_GlobalPropertyShouldUnsetParentConfigurationAndPlatformDefault()
     {
@@ -468,7 +467,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(expectedFileName, tree.FilePath);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("https://github.com/dotnet/roslyn/issues/33047")]
     public async Task TestOpenProject_CSharp_GlobalPropertyShouldUnsetParentConfigurationAndPlatformTrue()
     {
@@ -486,7 +485,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(expectedFileName, tree.FilePath);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
     public async Task TestOpenProject_CSharp_WithoutPrefer32BitAndConsoleApplication()
     {
@@ -500,7 +499,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(Platform.AnyCpu, compilation.Options.Platform);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
     public async Task TestOpenProject_CSharp_WithoutPrefer32BitAndLibrary()
     {
@@ -515,7 +514,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(Platform.AnyCpu, compilation.Options.Platform);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
     public async Task TestOpenProject_CSharp_WithPrefer32BitAndConsoleApplication()
     {
@@ -529,7 +528,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(Platform.AnyCpu32BitPreferred, compilation.Options.Platform);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
     public async Task TestOpenProject_CSharp_WithPrefer32BitAndLibrary()
     {
@@ -544,7 +543,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(Platform.AnyCpu, compilation.Options.Platform);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
     public async Task TestOpenProject_CSharp_WithPrefer32BitAndWinMDObj()
     {
@@ -559,7 +558,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(Platform.AnyCpu, compilation.Options.Platform);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_CSharp_WithoutOutputPath()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -571,7 +570,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.NotEmpty(project.OutputFilePath);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_CSharp_WithoutAssemblyName()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -583,7 +582,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.NotEmpty(project.OutputFilePath);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenSolution_CSharp_WithoutCSharpTargetsImported_DocumentsArePickedUp()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -597,7 +596,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.NotEmpty(project.Documents);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_VisualBasic_WithoutVBTargetsImported_DocumentsArePickedUp()
     {
         CreateFiles(GetMultiProjectSolutionFiles()
@@ -610,7 +609,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.NotEmpty(project.Documents);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
     public async Task TestOpenProject_VisualBasic_WithoutPrefer32BitAndConsoleApplication()
     {
@@ -624,7 +623,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(Platform.AnyCpu, compilation.Options.Platform);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
     public async Task TestOpenProject_VisualBasic_WithoutPrefer32BitAndLibrary()
     {
@@ -639,7 +638,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(Platform.AnyCpu, compilation.Options.Platform);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
     public async Task TestOpenProject_VisualBasic_WithPrefer32BitAndConsoleApplication()
     {
@@ -653,7 +652,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(Platform.AnyCpu32BitPreferred, compilation.Options.Platform);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
     public async Task TestOpenProject_VisualBasic_WithPrefer32BitAndLibrary()
     {
@@ -668,7 +667,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(Platform.AnyCpu, compilation.Options.Platform);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
     public async Task TestOpenProject_VisualBasic_WithPrefer32BitAndWinMDObj()
     {
@@ -683,7 +682,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(Platform.AnyCpu, compilation.Options.Platform);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_VisualBasic_WithoutOutputPath()
     {
         CreateFiles(GetMultiProjectSolutionFiles()
@@ -696,7 +695,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.NotEmpty(project.OutputFilePath);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_VisualBasic_WithLanguageVersion15_3()
     {
         CreateFiles(GetMultiProjectSolutionFiles()
@@ -709,7 +708,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(VB.LanguageVersion.VisualBasic15_3, ((VB.VisualBasicParseOptions)project.ParseOptions).LanguageVersion);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_VisualBasic_WithLatestLanguageVersion()
     {
         CreateFiles(GetMultiProjectSolutionFiles()
@@ -723,7 +722,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(VB.LanguageVersion.Latest, ((VB.VisualBasicParseOptions)project.ParseOptions).SpecifiedLanguageVersion);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_VisualBasic_WithoutAssemblyName()
     {
         CreateFiles(GetMultiProjectSolutionFiles()
@@ -737,7 +736,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.NotEmpty(project.OutputFilePath);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task Test_Respect_ReferenceOutputassembly_Flag()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -751,7 +750,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Empty(project.ProjectReferences);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_WithXaml()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -783,7 +782,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Contains(documents, d => d.Name == "MainWindow.g.cs");
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestMetadataReferenceHasBadHintPath()
     {
         // prove that even with bad hint path for metadata reference the workspace can succeed at finding the correct metadata reference.
@@ -799,7 +798,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.NotNull(csharpLib);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531631")]
     public async Task TestOpenProject_AssemblyNameIsPath()
     {
@@ -818,7 +817,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(expectedOutputPath, Path.GetDirectoryName(project.OutputFilePath));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531631")]
     public async Task TestOpenProject_AssemblyNameIsPath2()
     {
@@ -836,7 +835,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(expectedOutputPath, Path.GetDirectoryName(Path.GetFullPath(project.OutputFilePath)));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_WithDuplicateFile()
     {
         // Verify that we don't throw in this case
@@ -852,7 +851,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(2, documents.Count);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_WithInvalidFileExtensionAsync()
     {
         // make sure the file does in fact exist, but with an unrecognized extension
@@ -869,7 +868,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(expected, e.Message);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_ProjectFileExtensionAssociatedWithUnknownLanguageAsync()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -902,7 +901,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         ], project.MetadataReferences.Select(r => Path.GetFileName(((PortableExecutableReference)r).FilePath)));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_WithAssociatedLanguageExtension1()
     {
         // make a CSharp solution with a project file having the incorrect extension 'vbproj', and then load it using the overload the lets us
@@ -920,7 +919,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Empty(diagnostics);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_WithAssociatedLanguageExtension2_IgnoreCase()
     {
         // make a CSharp solution with a project file having the incorrect extension 'anyproj', and then load it using the overload the lets us
@@ -939,7 +938,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Empty(diagnostics);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenSolution_WithNonExistentSolutionFile_FailsAsync()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -950,7 +949,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         await Assert.ThrowsAsync<FileNotFoundException>(() => workspace.OpenSolutionAsync(solutionFilePath));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenSolution_WithInvalidSolutionFile_FailsAsync()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -961,7 +960,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         await AssertThrowsExceptionForInvalidPath(() => workspace.OpenSolutionAsync(solutionFilePath));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenSolution_WithTemporaryLockedFile_SucceedsWithoutFailureEvent()
     {
         // when skipped we should see a diagnostic for the invalid project
@@ -996,7 +995,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Empty(ws.Diagnostics);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenSolution_WithLockedFile_LoadsWithEmptyText()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -1015,7 +1014,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.NotNull(await doc.State.GetFailedToLoadExceptionMessageAsync(CancellationToken.None));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenSolution_WithInvalidProjectPath_SkipTrue_SucceedsWithFailureEvent()
     {
         // when skipped we should see a diagnostic for the invalid project
@@ -1029,7 +1028,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
     }
 
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/985906")]
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task HandleSolutionProjectTypeSolutionFolder()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -1041,7 +1040,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Empty(workspace.Diagnostics);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenSolution_WithInvalidProjectPath_SkipFalse_Fails()
     {
         // when not skipped we should get an exception for the invalid project
@@ -1056,7 +1055,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         await AssertThrowsExceptionForInvalidPath(() => workspace.OpenSolutionAsync(solutionFilePath));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenSolution_WithNonExistentProject_SkipTrue_SucceedsWithFailureEvent()
     {
         // when skipped we should see a diagnostic for the non-existent project
@@ -1071,7 +1070,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Single(workspace.Diagnostics);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenSolution_WithNonExistentProject_SkipFalse_Fails()
     {
         // when skipped we should see an exception for the non-existent project
@@ -1086,7 +1085,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         await Assert.ThrowsAsync<FileNotFoundException>(() => workspace.OpenSolutionAsync(solutionFilePath));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenSolution_WithUnrecognizedProjectFileExtension_Fails()
     {
         // proves that for solution open, project type guid and extension are both necessary
@@ -1100,7 +1099,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Empty(solution.ProjectIds);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenSolution_WithUnrecognizedProjectTypeGuidButRecognizedExtension_Succeeds()
     {
         // proves that if project type guid is not recognized, a known project file extension is all we need.
@@ -1113,7 +1112,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Single(solution.ProjectIds);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenSolution_WithUnrecognizedProjectTypeGuidAndUnrecognizedExtension_WithSkipTrue_SucceedsWithFailureEvent()
     {
         // proves that if both project type guid and file extension are unrecognized, then project is skipped.
@@ -1130,7 +1129,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Empty(solution.ProjectIds);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenSolution_WithUnrecognizedProjectTypeGuidAndUnrecognizedExtension_WithSkipFalse_FailsAsync()
     {
         // proves that if both project type guid and file extension are unrecognized, then open project fails.
@@ -1155,7 +1154,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
 
     private static readonly IEnumerable<Assembly> _defaultAssembliesWithoutCSharp = MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp"));
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("https://github.com/dotnet/roslyn/issues/3931")]
     public async Task TestOpenProject_WithMissingLanguageLibraries()
     {
@@ -1189,7 +1188,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         ], project.MetadataReferences.Select(r => Path.GetFileName(((PortableExecutableReference)r).FilePath)));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_WithInvalidFilePath_Fails()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -1200,7 +1199,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         await AssertThrowsExceptionForInvalidPath(() => workspace.OpenProjectAsync(projectFilePath));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_WithNonExistentProjectFile_FailsAsync()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -1213,7 +1212,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         });
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_WithInvalidProjectReference_SkipTrue_SucceedsWithEvent()
     {
         CreateFiles(GetMultiProjectSolutionFiles()
@@ -1230,7 +1229,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.NotEmpty(workspace.Diagnostics);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_WithInvalidProjectReference_SkipFalse_Fails()
     {
         CreateFiles(GetMultiProjectSolutionFiles()
@@ -1242,7 +1241,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         await AssertThrowsExceptionForInvalidPath(() => workspace.OpenProjectAsync(projectFilePath));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_WithNonExistentProjectReference_SkipTrue_SucceedsWithEvent()
     {
         CreateFiles(GetMultiProjectSolutionFiles()
@@ -1259,7 +1258,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.NotEmpty(workspace.Diagnostics);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_WithNonExistentProjectReference_SkipFalse_FailsAsync()
     {
         CreateFiles(GetMultiProjectSolutionFiles()
@@ -1274,7 +1273,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         });
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_WithUnrecognizedProjectReferenceFileExtension_SkipTrue_SucceedsWithEvent()
     {
         CreateFiles(GetMultiProjectSolutionFiles()
@@ -1292,7 +1291,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.NotEmpty(workspace.Diagnostics);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_WithUnrecognizedProjectReferenceFileExtension_SkipFalse_Fails()
     {
         CreateFiles(GetMultiProjectSolutionFiles()
@@ -1306,7 +1305,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         await Assert.ThrowsAsync<InvalidOperationException>(() => workspace.OpenProjectAsync(projectFilePath));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_WithUnrecognizedProjectReferenceFileExtension_WithMetadata_SkipTrue_SucceedsByLoadingMetadata()
     {
         CreateFiles(GetMultiProjectSolutionFiles()
@@ -1326,7 +1325,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Contains(metaRefs, r => r is PortableExecutableReference reference && reference.Display.Contains("CSharpProject.dll"));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_WithUnrecognizedProjectReferenceFileExtension_WithMetadata_SkipFalse_SucceedsByLoadingMetadata()
     {
         CreateFiles(GetMultiProjectSolutionFiles()
@@ -1345,7 +1344,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Contains(project.MetadataReferences, r => r is PortableExecutableReference reference && reference.Display.Contains("CSharpProject.dll"));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_WithUnrecognizedProjectReferenceFileExtension_BadMsbuildProject_SkipTrue_SucceedsWithDanglingProjectReference()
     {
         CreateFiles(GetMultiProjectSolutionFiles()
@@ -1366,7 +1365,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.InRange(workspace.Diagnostics.Count, 2, 3);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_WithReferencedProject_LoadMetadata_ExistingMetadata_Succeeds()
     {
         CreateFiles(GetMultiProjectSolutionFiles()
@@ -1385,7 +1384,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Contains(metaRefs, r => r is PortableExecutableReference reference && reference.Display.Contains("CSharpProject.dll"));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_WithReferencedProject_LoadMetadata_NonExistentMetadata_LoadsProjectInstead()
     {
         CreateFiles(GetMultiProjectSolutionFiles());
@@ -1403,7 +1402,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.DoesNotContain(metaRefs, r => r.Properties.Aliases.Contains("CSharpProject"));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_UpdateExistingReferences()
     {
         CreateFiles(GetMultiProjectSolutionFiles()
@@ -1429,7 +1428,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.DoesNotContain(vbProject.MetadataReferences, r => r.Properties.Aliases.Contains("CSharpProject"));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(Framework35Installed))]
+    [ConditionalFact(skipConditions: [typeof(VisualStudioMSBuildInstalled), typeof(Framework35Installed)])]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528984")]
     public async Task TestOpenProject_AddVBDefaultReferences()
     {
@@ -1448,182 +1447,182 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         var diagnostics = compilation.GetDiagnostics();
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_CSharp_DebugType_Full()
     {
         CreateCSharpFilesWith("DebugType", "full");
         await AssertCSParseOptionsAsync(0, options => options.Errors.Length);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_CSharp_DebugType_None()
     {
         CreateCSharpFilesWith("DebugType", "none");
         await AssertCSParseOptionsAsync(0, options => options.Errors.Length);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_CSharp_DebugType_PDBOnly()
     {
         CreateCSharpFilesWith("DebugType", "pdbonly");
         await AssertCSParseOptionsAsync(0, options => options.Errors.Length);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_CSharp_DebugType_Portable()
     {
         CreateCSharpFilesWith("DebugType", "portable");
         await AssertCSParseOptionsAsync(0, options => options.Errors.Length);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_CSharp_DebugType_Embedded()
     {
         CreateCSharpFilesWith("DebugType", "embedded");
         await AssertCSParseOptionsAsync(0, options => options.Errors.Length);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_CSharp_OutputKind_DynamicallyLinkedLibrary()
     {
         CreateCSharpFilesWith("OutputType", "Library");
         await AssertCSCompilationOptionsAsync(OutputKind.DynamicallyLinkedLibrary, options => options.OutputKind);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_CSharp_OutputKind_ConsoleApplication()
     {
         CreateCSharpFilesWith("OutputType", "Exe");
         await AssertCSCompilationOptionsAsync(OutputKind.ConsoleApplication, options => options.OutputKind);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_CSharp_OutputKind_WindowsApplication()
     {
         CreateCSharpFilesWith("OutputType", "WinExe");
         await AssertCSCompilationOptionsAsync(OutputKind.WindowsApplication, options => options.OutputKind);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_CSharp_OutputKind_NetModule()
     {
         CreateCSharpFilesWith("OutputType", "Module");
         await AssertCSCompilationOptionsAsync(OutputKind.NetModule, options => options.OutputKind);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_CSharp_OptimizationLevel_Release()
     {
         CreateCSharpFilesWith("Optimize", "True");
         await AssertCSCompilationOptionsAsync(OptimizationLevel.Release, options => options.OptimizationLevel);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_CSharp_OptimizationLevel_Debug()
     {
         CreateCSharpFilesWith("Optimize", "False");
         await AssertCSCompilationOptionsAsync(OptimizationLevel.Debug, options => options.OptimizationLevel);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_CSharp_MainFileName()
     {
         CreateCSharpFilesWith("StartupObject", "Foo");
         await AssertCSCompilationOptionsAsync("Foo", options => options.MainTypeName);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_CSharp_AssemblyOriginatorKeyFile_SignAssembly_Missing()
     {
         CreateCSharpFiles();
         await AssertCSCompilationOptionsAsync(null, options => options.CryptoKeyFile);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_CSharp_AssemblyOriginatorKeyFile_SignAssembly_False()
     {
         CreateCSharpFilesWith("SignAssembly", "false");
         await AssertCSCompilationOptionsAsync(null, options => options.CryptoKeyFile);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_CSharp_AssemblyOriginatorKeyFile_SignAssembly_True()
     {
         CreateCSharpFilesWith("SignAssembly", "true");
         await AssertCSCompilationOptionsAsync("snKey.snk", options => Path.GetFileName(options.CryptoKeyFile));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_CSharp_AssemblyOriginatorKeyFile_DelaySign_False()
     {
         CreateCSharpFilesWith("DelaySign", "false");
         await AssertCSCompilationOptionsAsync(null, options => options.DelaySign);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_CSharp_AssemblyOriginatorKeyFile_DelaySign_True()
     {
         CreateCSharpFilesWith("DelaySign", "true");
         await AssertCSCompilationOptionsAsync(true, options => options.DelaySign);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_CSharp_CheckOverflow_True()
     {
         CreateCSharpFilesWith("CheckForOverflowUnderflow", "true");
         await AssertCSCompilationOptionsAsync(true, options => options.CheckOverflow);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_CSharp_CheckOverflow_False()
     {
         CreateCSharpFilesWith("CheckForOverflowUnderflow", "false");
         await AssertCSCompilationOptionsAsync(false, options => options.CheckOverflow);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestParseOptions_CSharp_Compatibility_ECMA1()
     {
         CreateCSharpFilesWith("LangVersion", "ISO-1");
         await AssertCSParseOptionsAsync(CS.LanguageVersion.CSharp1, options => options.LanguageVersion);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestParseOptions_CSharp_Compatibility_ECMA2()
     {
         CreateCSharpFilesWith("LangVersion", "ISO-2");
         await AssertCSParseOptionsAsync(CS.LanguageVersion.CSharp2, options => options.LanguageVersion);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestParseOptions_CSharp_Compatibility_None()
     {
         CreateCSharpFilesWith("LangVersion", "3");
         await AssertCSParseOptionsAsync(CS.LanguageVersion.CSharp3, options => options.LanguageVersion);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestParseOptions_CSharp_LanguageVersion_Default()
     {
         CreateCSharpFiles();
         await AssertCSParseOptionsAsync(CS.LanguageVersion.CSharp7_3.MapSpecifiedToEffectiveVersion(), options => options.LanguageVersion);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestParseOptions_CSharp_PreprocessorSymbols()
     {
         CreateCSharpFilesWith("DefineConstants", "DEBUG;TRACE;X;Y");
         await AssertCSParseOptionsAsync("DEBUG,TRACE,X,Y", options => string.Join(",", options.PreprocessorSymbolNames));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestConfigurationDebug()
     {
         CreateCSharpFiles();
         await AssertCSParseOptionsAsync("DEBUG,TRACE", options => string.Join(",", options.PreprocessorSymbolNames));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestConfigurationRelease()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -1638,42 +1637,42 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Contains("TRACE", options.PreprocessorSymbolNames);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_VisualBasic_DebugType_Full()
     {
         CreateVBFilesWith("DebugType", "full");
         await AssertVBParseOptionsAsync(0, options => options.Errors.Length);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_VisualBasic_DebugType_None()
     {
         CreateVBFilesWith("DebugType", "none");
         await AssertVBParseOptionsAsync(0, options => options.Errors.Length);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_VisualBasic_DebugType_PDBOnly()
     {
         CreateVBFilesWith("DebugType", "pdbonly");
         await AssertVBParseOptionsAsync(0, options => options.Errors.Length);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_VisualBasic_DebugType_Portable()
     {
         CreateVBFilesWith("DebugType", "portable");
         await AssertVBParseOptionsAsync(0, options => options.Errors.Length);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_VisualBasic_DebugType_Embedded()
     {
         CreateVBFilesWith("DebugType", "embedded");
         await AssertVBParseOptionsAsync(0, options => options.Errors.Length);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_VisualBasic_VBRuntime_Embed()
     {
         CreateFiles(GetMultiProjectSolutionFiles()
@@ -1681,49 +1680,49 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         await AssertVBCompilationOptionsAsync(true, options => options.EmbedVbCoreRuntime);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_VisualBasic_OutputKind_DynamicallyLinkedLibrary()
     {
         CreateVBFilesWith("OutputType", "Library");
         await AssertVBCompilationOptionsAsync(OutputKind.DynamicallyLinkedLibrary, options => options.OutputKind);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_VisualBasic_OutputKind_ConsoleApplication()
     {
         CreateVBFilesWith("OutputType", "Exe");
         await AssertVBCompilationOptionsAsync(OutputKind.ConsoleApplication, options => options.OutputKind);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_VisualBasic_OutputKind_WindowsApplication()
     {
         CreateVBFilesWith("OutputType", "WinExe");
         await AssertVBCompilationOptionsAsync(OutputKind.WindowsApplication, options => options.OutputKind);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_VisualBasic_OutputKind_NetModule()
     {
         CreateVBFilesWith("OutputType", "Module");
         await AssertVBCompilationOptionsAsync(OutputKind.NetModule, options => options.OutputKind);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_VisualBasic_RootNamespace()
     {
         CreateVBFilesWith("RootNamespace", "Foo.Bar");
         await AssertVBCompilationOptionsAsync("Foo.Bar", options => options.RootNamespace);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_VisualBasic_OptionStrict_On()
     {
         CreateVBFilesWith("OptionStrict", "On");
         await AssertVBCompilationOptionsAsync(VB.OptionStrict.On, options => options.OptionStrict);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_VisualBasic_OptionStrict_Off()
     {
         CreateVBFilesWith("OptionStrict", "Off");
@@ -1734,77 +1733,77 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         await AssertVBCompilationOptionsAsync(VB.OptionStrict.Custom, options => options.OptionStrict);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_VisualBasic_OptionStrict_Custom()
     {
         CreateVBFilesWith("OptionStrictType", "Custom");
         await AssertVBCompilationOptionsAsync(VB.OptionStrict.Custom, options => options.OptionStrict);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_VisualBasic_OptionInfer_True()
     {
         CreateVBFilesWith("OptionInfer", "On");
         await AssertVBCompilationOptionsAsync(true, options => options.OptionInfer);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_VisualBasic_OptionInfer_False()
     {
         CreateVBFilesWith("OptionInfer", "Off");
         await AssertVBCompilationOptionsAsync(false, options => options.OptionInfer);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_VisualBasic_OptionExplicit_True()
     {
         CreateVBFilesWith("OptionExplicit", "On");
         await AssertVBCompilationOptionsAsync(true, options => options.OptionExplicit);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_VisualBasic_OptionExplicit_False()
     {
         CreateVBFilesWith("OptionExplicit", "Off");
         await AssertVBCompilationOptionsAsync(false, options => options.OptionExplicit);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_VisualBasic_OptionCompareText_True()
     {
         CreateVBFilesWith("OptionCompare", "Text");
         await AssertVBCompilationOptionsAsync(true, options => options.OptionCompareText);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_VisualBasic_OptionCompareText_False()
     {
         CreateVBFilesWith("OptionCompare", "Binary");
         await AssertVBCompilationOptionsAsync(false, options => options.OptionCompareText);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_VisualBasic_OptionRemoveIntegerOverflowChecks_True()
     {
         CreateVBFilesWith("RemoveIntegerChecks", "true");
         await AssertVBCompilationOptionsAsync(false, options => options.CheckOverflow);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_VisualBasic_OptionRemoveIntegerOverflowChecks_False()
     {
         CreateVBFilesWith("RemoveIntegerChecks", "false");
         await AssertVBCompilationOptionsAsync(true, options => options.CheckOverflow);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_VisualBasic_OptionAssemblyOriginatorKeyFile_SignAssemblyFalse()
     {
         CreateVBFilesWith("SignAssembly", "false");
         await AssertVBCompilationOptionsAsync(null, options => options.CryptoKeyFile);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestCompilationOptions_VisualBasic_GlobalImports()
     {
         CreateFiles(GetMultiProjectSolutionFiles());
@@ -1829,7 +1828,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
             actual: imports.Select(i => i.Name));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestParseOptions_VisualBasic_PreprocessorSymbols()
     {
         CreateFiles(GetMultiProjectSolutionFiles()
@@ -1862,7 +1861,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
             actual: defines);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task Test_VisualBasic_ConditionalAttributeEmitted()
     {
         CreateFiles(GetMultiProjectSolutionFiles()
@@ -1886,7 +1885,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Contains(attrs, ad => ad.AttributeClass.Name == "MyAttribute");
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task Test_VisualBasic_ConditionalAttributeNotEmitted()
     {
         CreateFiles(GetMultiProjectSolutionFiles()
@@ -1909,7 +1908,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.DoesNotContain(attrs, ad => ad.AttributeClass.Name == "MyAttribute");
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task Test_CSharp_ConditionalAttributeEmitted()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -1933,7 +1932,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Contains(attrs, ad => ad.AttributeClass.Name == "MyAttr");
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task Test_CSharp_ConditionalAttributeNotEmitted()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -1956,7 +1955,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.DoesNotContain(attrs, ad => ad.AttributeClass.Name == "MyAttr");
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_CSharp_WithLinkedDocument()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -1980,7 +1979,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(Resources.SourceFiles.CSharp.OtherStuff_Foo, text);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestAddDocumentAsync()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2021,7 +2020,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Single(documentB.Folders);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestUpdateDocumentAsync()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2055,7 +2054,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(originalText.ToString(), text.ToString());
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestRemoveDocumentAsync()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2082,7 +2081,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(originalText.ToString(), text.ToString());
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestApplyChanges_UpdateDocumentText()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2109,7 +2108,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(newText.ToString(), textOnDisk);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestApplyChanges_UpdateAdditionalDocumentText()
     {
         CreateFiles(GetSimpleCSharpSolutionWithAdditionaFile());
@@ -2136,7 +2135,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(newText.ToString(), textOnDisk);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestApplyChanges_AddDocument()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2162,7 +2161,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(newText.ToString(), textOnDisk);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestApplyChanges_NotSupportedChangesFail()
     {
         var csharpProjPath = @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj";
@@ -2196,7 +2195,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         });
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestWorkspaceChangedEvent()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2226,7 +2225,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
             AsyncEventTimeout));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestWorkspaceChangedWeakEvent()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2262,7 +2261,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
             AsyncEventTimeout));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529276"), WorkItem(12086, "DevDiv_Projects/Roslyn")]
     public async Task TestOpenProject_LoadMetadataForReferenceProjects_NoMetadata()
     {
@@ -2288,7 +2287,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Empty(errs);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/918072")]
     public async Task TestAnalyzerReferenceLoadStandalone()
     {
@@ -2313,7 +2312,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(2, workspace.CurrentSolution.Projects.Count());
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestAdditionalFilesStandalone()
     {
         var projPaths = new[] { @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj", @"AnalyzerSolution\VisualBasicProject_AnalyzerReference.vbproj" };
@@ -2334,7 +2333,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         }
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestLoadTextSync()
     {
         var files = GetAnalyzerReferenceSolutionFiles();
@@ -2355,7 +2354,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Contains("Window", additionalDocumentText.ToString(), StringComparison.Ordinal);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestGetTextSynchronously()
     {
         var files = GetAnalyzerReferenceSolutionFiles();
@@ -2374,7 +2373,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Contains("Window", atext.ToString(), StringComparison.Ordinal);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546171")]
     public async Task TestCSharpExternAlias()
     {
@@ -2392,7 +2391,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530337")]
     public async Task TestProjectReferenceWithExternAlias()
     {
@@ -2409,7 +2408,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestProjectReferenceWithReferenceOutputAssemblyFalse_SolutionRoot()
     {
         var files = GetProjectReferenceSolutionFiles();
@@ -2429,7 +2428,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         }
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestProjectReferenceWithReferenceOutputAssemblyFalse_ProjectRoot()
     {
         var files = GetProjectReferenceSolutionFiles();
@@ -2481,7 +2480,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         return document.ToString();
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestProjectReferenceWithNoGuid()
     {
         var files = GetProjectReferenceSolutionFiles();
@@ -2502,7 +2501,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         }
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("https://github.com/dotnet/roslyn/issues/5668")]
     public async Task TestOpenProject_MetadataReferenceHasDocComments()
     {
@@ -2519,7 +2518,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.NotEmpty(docComment);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_CSharp_HasSourceDocComments()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2537,7 +2536,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.NotEmpty(docComment);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_VisualBasic_HasSourceDocComments()
     {
         CreateFiles(GetMultiProjectSolutionFiles());
@@ -2555,7 +2554,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.NotEmpty(docComment);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_CrossLanguageSkeletonReferenceHasDocComments()
     {
         CreateFiles(GetMultiProjectSolutionFiles());
@@ -2582,7 +2581,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(cscomment, vbcomment);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(IsEnglishLocal))]
+    [ConditionalFact(skipConditions: [typeof(VisualStudioMSBuildInstalled), typeof(IsEnglishLocal)])]
     public async Task TestOpenProject_WithProjectFileLockedAsync()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2598,7 +2597,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         }
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_WithNonExistentProjectFileAsync()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2610,7 +2609,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         await Assert.ThrowsAsync<FileNotFoundException>(() => workspace.OpenProjectAsync(projectFile));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenSolution_WithNonExistentSolutionFileAsync()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2622,7 +2621,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         await Assert.ThrowsAsync<FileNotFoundException>(() => workspace.OpenSolutionAsync(solutionFile));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenSolution_SolutionFileHasEmptyLinesAndWhitespaceOnlyLines()
     {
         var files = new FileSet(
@@ -2639,7 +2638,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         var project = solution.Projects.First();
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531543")]
     public async Task TestOpenSolution_SolutionFileHasEmptyLineBetweenProjectBlock()
     {
@@ -2654,7 +2653,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         var solution = await workspace.OpenSolutionAsync(solutionFilePath);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "MSBuild parsing API throws InvalidProjectFileException")]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "MSBuild parsing API throws InvalidProjectFileException")]
     [WorkItem(531283, "DevDiv")]
     public async Task TestOpenSolution_SolutionFileHasMissingEndProject()
     {
@@ -2684,7 +2683,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         }
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/microsoft/vs-solutionpersistence/issues/95")]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/microsoft/vs-solutionpersistence/issues/95")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792912")]
     public async Task TestOpenSolution_WithDuplicatedGuidsBecomeSelfReferential()
     {
@@ -2710,7 +2709,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Empty(libraryProject.AllProjectReferences);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/microsoft/vs-solutionpersistence/issues/95")]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/microsoft/vs-solutionpersistence/issues/95")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792912")]
     public async Task TestOpenSolution_WithDuplicatedGuidsBecomeCircularReferential()
     {
@@ -2740,7 +2739,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Empty(library2Project.AllProjectReferences);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_CSharp_WithMissingDebugType()
     {
         CreateFiles(new FileSet(
@@ -2752,7 +2751,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         await workspace.OpenSolutionAsync(solutionFilePath);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
     public async Task MSBuildProjectShouldHandleInvalidCodePageProperty()
     {
@@ -2771,7 +2770,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true), text.Encoding);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
     public async Task MSBuildProjectShouldHandleInvalidCodePageProperty2()
     {
@@ -2790,7 +2789,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true), text.Encoding);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
     public async Task MSBuildProjectShouldHandleDefaultCodePageProperty()
     {
@@ -2810,7 +2809,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal("//\u201C", text.ToString());
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981208")]
     public void DisposeMSBuildWorkspaceAndServicesCollected()
     {
@@ -2836,7 +2835,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         sol.AssertReleased();
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1088127")]
     public async Task MSBuildWorkspacePreservesEncoding()
     {
@@ -2897,7 +2896,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(encoding.EncodingName, reloadedText.Encoding.EncodingName);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestAddRemoveAnalyzerReference()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -2926,7 +2925,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.DoesNotContain(@"<Analyzer Include=""..\Analyzers\MyAnalyzer.dll", projFileText);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestAddRemoveProjectReference()
     {
         CreateFiles(GetMultiProjectSolutionFiles());
@@ -2956,7 +2955,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Contains(@"<ProjectReference Include=""..\CSharpProject\CSharpProject.csproj"">", projFileText);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101040")]
     public async Task TestOpenProject_BadLink()
     {
@@ -2971,7 +2970,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(3, docs.Count);
     }
 
-    [ConditionalFact(typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: [typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled)])]
     public async Task TestOpenProject_BadElement()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -2988,7 +2987,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Empty(proj.DocumentIds);
     }
 
-    [ConditionalFact(typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: [typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled)])]
     public async Task TestOpenProject_BadTaskImport()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -3005,7 +3004,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(2, proj.DocumentIds.Count);
     }
 
-    [ConditionalFact(typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: [typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled)])]
     public async Task TestOpenSolution_BadTaskImport()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -3023,7 +3022,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(2, project.DocumentIds.Count);
     }
 
-    [ConditionalFact(typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: [typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled)])]
     public async Task TestOpenProject_MSBuildExecutionError()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -3038,7 +3037,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.StartsWith("Msbuild failed", diagnostic.Message);
     }
 
-    [ConditionalFact(typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: [typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled)])]
     public async Task TestOpenProject_MSBuildEvaluationErrorWithExpressionInputs()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -3055,7 +3054,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Contains("[MSBuild]::VersionEquals('', 6.0)", diagnostic.Message);
     }
 
-    [ConditionalFact(typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: [typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled)])]
     public async Task TestOpenProject_MSBuildEvaluationErrorWithSyntax()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -3072,7 +3071,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Contains("'$(Configuration)|$(Platform)' == 'Debug|AnyCPU", diagnostic.Message);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_WildcardsWithLink()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -3087,7 +3086,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Contains(proj.Documents, d => d.Name == "AssemblyInfo.cs");
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestOpenProject_CommandLineArgsHaveNoErrors()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -3116,7 +3115,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Empty(commandLineArgs.Errors);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("https://github.com/dotnet/roslyn/issues/29122")]
     public async Task TestOpenSolution_ProjectReferencesWithUnconventionalOutputPaths()
     {
@@ -3154,7 +3153,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         }
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("https://github.com/dotnet/roslyn/issues/29494")]
     public async Task TestOpenProjectAsync_MalformedAdditionalFilePath()
     {
@@ -3176,7 +3175,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Contains(project.AdditionalDocuments, doc => doc.Name == "TEST::");
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("https://github.com/dotnet/roslyn/issues/31390")]
     public async Task TestDuplicateProjectAndMetadataReferences()
     {
@@ -3201,7 +3200,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Single(compilation.References.OfType<CompilationReference>());
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestEditorConfigDiscovery()
     {
         var files = GetSimpleCSharpSolutionFiles()
@@ -3225,7 +3224,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal("root = true", text.ToString());
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestEditorConfigDiscoveryDisabled()
     {
         var files = GetSimpleCSharpSolutionFiles()
@@ -3242,7 +3241,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Empty(project.AnalyzerConfigDocuments);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestSolutionFilterSupport()
     {
         CreateFiles(GetMultiProjectSolutionFiles()
@@ -3256,7 +3255,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(LanguageNames.CSharp, csharpProject.Language);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestInvalidSolutionFilterDoesNotLoad()
     {
         CreateFiles(GetMultiProjectSolutionFiles()
@@ -3269,7 +3268,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(0, workspace.CurrentSolution.ProjectIds.Count);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestValidXmlSolutionSupport()
     {
         CreateFiles(GetMultiProjectSolutionFiles()
@@ -3284,7 +3283,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal("CSharpProject.csproj", Path.GetFileName(csharpProject.FilePath));
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task TestInvalidXmlSolutionSupport()
     {
         CreateFiles(GetMultiProjectSolutionFiles()
@@ -3298,7 +3297,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
     }
 
     // On .NET Core this tests fails with "CodePage Not Found"
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(DesktopClrOnly))]
+    [ConditionalFact(skipConditions: [typeof(VisualStudioMSBuildInstalled), typeof(DesktopClrOnly)])]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
     public async Task MSBuildProjectShouldHandleCodePageProperty()
     {
@@ -3322,7 +3321,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal("//\u00E2\u20AC\u0153".Length, text.Length);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task MSBuildWorkspaceDocumentsFoldersProperty()
     {
         CreateFiles(GetNetCoreAppFiles()
@@ -3334,7 +3333,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(["dir1", "dir2", "dir3"], document.Folders);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task MSBuildWorkspaceLinkedDocumentHasFolders()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -3347,7 +3346,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         Assert.Equal(["Blah"], linkedDocument.Folders);
     }
 
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    [ConditionalFact(skipConditions: typeof(VisualStudioMSBuildInstalled))]
     public async Task MSBuildWorkspaceWithDocumentInParentFolders()
     {
         CreateFiles(GetSimpleCSharpSolutionFiles()

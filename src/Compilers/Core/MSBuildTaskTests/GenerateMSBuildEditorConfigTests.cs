@@ -332,7 +332,7 @@ build_property.Property2 = def456
 ", result);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void ItemMetadataPathIsAdjustedOnWindows()
         {
             ITaskItem item1 = MSBuildUtil.CreateTaskItem("c:\\file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });

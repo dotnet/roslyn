@@ -151,7 +151,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
     }
 
     // We only run this test on Release, as the compiler has asserts that trigger in Debug that the type names probably shouldn't be the same.
-    [ConditionalTheory(typeof(IsRelease)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(IsRelease)), CombinatorialData]
     public async Task GeneratorAddedWithDifferentFilePathsProducesDistinctDocumentIds(TestHost testHost)
     {
         using var workspace = CreateWorkspace(testHost: testHost);

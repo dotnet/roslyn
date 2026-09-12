@@ -439,7 +439,7 @@ public sealed class GenerateComparisonOperatorsTests
 
     // TODO: Enable test on .NET Core
     // https://github.com/dotnet/roslyn/issues/71625
-    [ConditionalFact(typeof(DesktopOnly))]
+    [ConditionalFact(skipConditions: typeof(DesktopOnly))]
     public Task TestInInterfaceWithDefaultImpl()
         => new VerifyCS.Test
         {

@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 

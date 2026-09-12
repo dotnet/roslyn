@@ -22,9 +22,9 @@ Imports Microsoft.VisualStudio.Text
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     <[UseExportProvider]>
     Public Class InlineRenameTests
-        Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
+        Private ReadOnly _outputHelper As ITestOutputHelper
 
-        Public Sub New(outputHelper As Abstractions.ITestOutputHelper)
+        Public Sub New(outputHelper As ITestOutputHelper)
             _outputHelper = outputHelper
         End Sub
 

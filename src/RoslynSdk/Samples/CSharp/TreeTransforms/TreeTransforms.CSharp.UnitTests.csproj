@@ -1,6 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <!-- xUnit v3 test projects must build an executable; keep the .dll extension for VSTest discovery. -->
+    <OutputType>Exe</OutputType>
+    <TargetExt>.dll</TargetExt>
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
 

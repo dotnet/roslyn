@@ -5,6 +5,7 @@
     <IsShipping>false</IsShipping>
     <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
     <TargetFramework>$(NetFxVS)</TargetFramework>
+    <OutputType>Exe</OutputType>
     <PreserveCompilationContext>true</PreserveCompilationContext>
 
     <!-- The binding redirects are needed due to a conflict between the test host and Roslyn regarding System.Collections.Immutable -->

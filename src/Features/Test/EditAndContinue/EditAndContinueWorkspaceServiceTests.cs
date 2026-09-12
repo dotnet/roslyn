@@ -5778,7 +5778,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
     public Task Disposal_PortablePdbReader()
         => Disposal_PdbReader(DebugInformationFormat.PortablePdb);
 
-    [ConditionalFact(typeof(WindowsOnly))]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly))]
     public Task Disposal_WindowsPdbReader()
         => Disposal_PdbReader(DebugInformationFormat.Pdb);
 

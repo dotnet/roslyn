@@ -545,7 +545,7 @@ class C
         }
 
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")]
-        [ConditionalFact(typeof(OSVersionWin8))]
+        [ConditionalFact(skipConditions: typeof(OSVersionWin8))]
         public void NotYetLoadedWinMds()
         {
             var source =
@@ -588,7 +588,7 @@ class C
         /// Windows.UI.Xaml is the only (win8) winmd with more than two parts.
         /// </remarks>
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")]
-        [ConditionalFact(typeof(OSVersionWin8))]
+        [ConditionalFact(skipConditions: typeof(OSVersionWin8))]
         public void NotYetLoadedWinMds_MultipleParts()
         {
             var source =

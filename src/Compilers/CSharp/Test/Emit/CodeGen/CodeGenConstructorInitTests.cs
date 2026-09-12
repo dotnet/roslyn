@@ -1167,7 +1167,7 @@ unsafe class C
         }
 
         [WorkItem(543606, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543606")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void StaticNullInitializerHasNoEffectOnTypeIL()
         {
             var source1 = @"

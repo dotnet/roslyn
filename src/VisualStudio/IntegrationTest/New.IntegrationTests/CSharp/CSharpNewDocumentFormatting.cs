@@ -21,7 +21,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 [Trait(Traits.Feature, Traits.Features.Formatting)]
 public class CSharpNewDocumentFormatting : AbstractIntegrationTest
 {
-    public override async Task InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync().ConfigureAwait(true);
         await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CSharpNewDocumentFormatting), HangMitigatingCancellationToken);

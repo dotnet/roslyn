@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class Win32ResTests
     {
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         public void BasicResources2()
         {
             //confirm that we can read resources produced by RC.EXE. 
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(3, list.Count);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         public void BasicResourcesWithStringTypes()
         {
             //confirm that we can read resources produced by RC.EXE. 
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             yield return new Win32Resource(null, 0, 0, 1, null, -1, "A");//2
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         public void EnsureResourceSorting()
         {
             //confirm that we sort the resources in the order required by the serialization format.
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("b", elem.Name);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         public void BasicResources()
         {
             System.IO.MemoryStream strm = new System.IO.MemoryStream();

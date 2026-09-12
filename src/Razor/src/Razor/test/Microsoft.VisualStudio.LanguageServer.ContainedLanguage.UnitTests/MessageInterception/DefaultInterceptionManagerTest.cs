@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -10,8 +10,6 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception;
 using Moq;
 using Newtonsoft.Json.Linq;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.MessageInterception;
 

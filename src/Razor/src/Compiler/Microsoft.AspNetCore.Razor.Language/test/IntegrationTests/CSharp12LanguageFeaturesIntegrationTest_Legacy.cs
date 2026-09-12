@@ -4,7 +4,6 @@
 using System.IO;
 using System.Runtime.CompilerServices;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 

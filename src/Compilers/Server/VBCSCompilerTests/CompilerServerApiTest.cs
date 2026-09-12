@@ -19,7 +19,6 @@ using System.Diagnostics;
 using System.IO;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using static Microsoft.CodeAnalysis.CommandLine.BuildResponse;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
