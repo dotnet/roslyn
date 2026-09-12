@@ -3546,18 +3546,12 @@ struct S { }
 partial ext X
 """;
             UsingTree(text,
-                // (1,13): error CS1031: Type expected
-                // struct S { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 13),
-                // (1,13): error CS1525: Invalid expression term 'partial'
-                // struct S { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("partial").WithLocation(1, 13),
-                // (1,13): error CS1003: Syntax error, ',' expected
-                // struct S { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 13),
                 // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // partial ext X
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "partial").WithLocation(2, 1),
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "partial ext X").WithLocation(2, 1),
+                // (2,13): error CS1003: Syntax error, ',' expected
+                // partial ext X
+                Diagnostic(ErrorCode.ERR_SyntaxError, "X").WithArguments(",").WithLocation(2, 13),
                 // (2,14): error CS1002: ; expected
                 // partial ext X
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 14));
@@ -3571,19 +3565,19 @@ partial ext X
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
                 }
-                M(SyntaxKind.GlobalStatement);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    M(SyntaxKind.LocalDeclarationStatement);
+                    N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        M(SyntaxKind.VariableDeclaration);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            M(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "partial");
                             }
-                            M(SyntaxKind.VariableDeclarator);
+                            N(SyntaxKind.VariableDeclarator);
                             {
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "ext");
                             }
                         }
                         M(SyntaxKind.SemicolonToken);
