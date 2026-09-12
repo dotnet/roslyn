@@ -462,6 +462,9 @@ Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.SignatureHelp.FSha
 Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.SignatureHelp.FSharpSignatureHelpProvider.RetriggerCharacters.get -> System.Collections.Immutable.ImmutableArray<char>
 Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.SignatureHelp.FSharpSignatureHelpProvider.TriggerCharacters.get -> System.Collections.Immutable.ImmutableArray<char>
 Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.SignatureHelp.FSharpSignatureHelpTriggerReasonHelpers
+Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.Storage.FSharpChecksummedPersistentStorageService
+Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.Storage.FSharpChecksummedPersistentStorageService.FSharpChecksummedPersistentStorageService() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.Storage.FSharpChecksummedPersistentStorageService.GetStorageAsync(Microsoft.CodeAnalysis.Solution! solution, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Storage.IFSharpChecksummedPersistentStorage!>
 Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.Structure.FSharpBlockStructureService
 Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.VisualStudio.Text.Classification.FSharpSignatureHelpClassifierProvider
 Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.LanguageServices.FSharpVisualStudioWorkspaceExtensions
@@ -534,6 +537,12 @@ Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.SignatureHelp.FSharpSignatu
 Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.SignatureHelp.IFSharpSignatureHelpProvider
 Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.SignatureHelp.IFSharpSignatureHelpProvider.IsRetriggerCharacter(char ch) -> bool
 Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.SignatureHelp.IFSharpSignatureHelpProvider.IsTriggerCharacter(char ch) -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Storage.IFSharpChecksummedPersistentStorage
+Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Storage.IFSharpChecksummedPersistentStorage.ChecksumMatchesAsync(Microsoft.CodeAnalysis.Document! document, string! name, System.Collections.Immutable.ImmutableArray<byte> checksum, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<bool>!
+Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Storage.IFSharpChecksummedPersistentStorage.ReadStreamAsync(Microsoft.CodeAnalysis.Document! document, string! name, System.Collections.Immutable.ImmutableArray<byte> checksum, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.IO.Stream?>!
+Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Storage.IFSharpChecksummedPersistentStorage.WriteStreamAsync(Microsoft.CodeAnalysis.Document! document, string! name, System.IO.Stream! stream, System.Collections.Immutable.ImmutableArray<byte> checksum, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<bool>!
+Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Storage.IFSharpChecksummedPersistentStorageService
+Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Storage.IFSharpChecksummedPersistentStorageService.GetStorageAsync(Microsoft.CodeAnalysis.Solution! solution, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Storage.IFSharpChecksummedPersistentStorage!>
 Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Structure.FSharpBlockSpan
 Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Structure.FSharpBlockSpan.AutoCollapse.get -> bool
 Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Structure.FSharpBlockSpan.FSharpBlockSpan() -> void
@@ -869,6 +878,9 @@ Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.SignatureHelp.FSharpSignat
 Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.SignatureHelp.FSharpSignatureHelpProvider.RetriggerCharacters.get -> System.Collections.Immutable.ImmutableArray<char>
 Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.SignatureHelp.FSharpSignatureHelpProvider.TriggerCharacters.get -> System.Collections.Immutable.ImmutableArray<char>
 Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.SignatureHelp.FSharpSignatureHelpTriggerReasonHelpers
+Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.Storage.FSharpChecksummedPersistentStorageService
+Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.Storage.FSharpChecksummedPersistentStorageService.FSharpChecksummedPersistentStorageService() -> void
+Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.Storage.FSharpChecksummedPersistentStorageService.GetStorageAsync(Microsoft.CodeAnalysis.Solution! solution, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.VisualStudio.ExternalAccess.FSharp.Storage.IFSharpChecksummedPersistentStorage!>
 Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.Structure.FSharpBlockStructureService
 Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.VisualStudio.Text.Classification.FSharpSignatureHelpClassifierProvider
 Microsoft.VisualStudio.ExternalAccess.FSharp.LanguageServices.FSharpVisualStudioWorkspaceExtensions
@@ -941,6 +953,12 @@ Microsoft.VisualStudio.ExternalAccess.FSharp.SignatureHelp.FSharpSignatureHelpTr
 Microsoft.VisualStudio.ExternalAccess.FSharp.SignatureHelp.IFSharpSignatureHelpProvider
 Microsoft.VisualStudio.ExternalAccess.FSharp.SignatureHelp.IFSharpSignatureHelpProvider.IsRetriggerCharacter(char ch) -> bool
 Microsoft.VisualStudio.ExternalAccess.FSharp.SignatureHelp.IFSharpSignatureHelpProvider.IsTriggerCharacter(char ch) -> bool
+Microsoft.VisualStudio.ExternalAccess.FSharp.Storage.IFSharpChecksummedPersistentStorage
+Microsoft.VisualStudio.ExternalAccess.FSharp.Storage.IFSharpChecksummedPersistentStorage.ChecksumMatchesAsync(Microsoft.CodeAnalysis.Document! document, string! name, System.Collections.Immutable.ImmutableArray<byte> checksum, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<bool>!
+Microsoft.VisualStudio.ExternalAccess.FSharp.Storage.IFSharpChecksummedPersistentStorage.ReadStreamAsync(Microsoft.CodeAnalysis.Document! document, string! name, System.Collections.Immutable.ImmutableArray<byte> checksum, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.IO.Stream?>!
+Microsoft.VisualStudio.ExternalAccess.FSharp.Storage.IFSharpChecksummedPersistentStorage.WriteStreamAsync(Microsoft.CodeAnalysis.Document! document, string! name, System.IO.Stream! stream, System.Collections.Immutable.ImmutableArray<byte> checksum, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<bool>!
+Microsoft.VisualStudio.ExternalAccess.FSharp.Storage.IFSharpChecksummedPersistentStorageService
+Microsoft.VisualStudio.ExternalAccess.FSharp.Storage.IFSharpChecksummedPersistentStorageService.GetStorageAsync(Microsoft.CodeAnalysis.Solution! solution, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.VisualStudio.ExternalAccess.FSharp.Storage.IFSharpChecksummedPersistentStorage!>
 Microsoft.VisualStudio.ExternalAccess.FSharp.Structure.FSharpBlockSpan
 Microsoft.VisualStudio.ExternalAccess.FSharp.Structure.FSharpBlockSpan.AutoCollapse.get -> bool
 Microsoft.VisualStudio.ExternalAccess.FSharp.Structure.FSharpBlockSpan.FSharpBlockSpan() -> void

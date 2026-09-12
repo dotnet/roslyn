@@ -369,6 +369,12 @@ Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp.FSharpSignatureHelpTr
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp.IFSharpSignatureHelpProvider
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp.IFSharpSignatureHelpProvider.IsRetriggerCharacter(char ch) -> bool
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp.IFSharpSignatureHelpProvider.IsTriggerCharacter(char ch) -> bool
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Storage.IFSharpChecksummedPersistentStorage
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Storage.IFSharpChecksummedPersistentStorage.ChecksumMatchesAsync(Microsoft.CodeAnalysis.Document! document, string! name, System.Collections.Immutable.ImmutableArray<byte> checksum, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<bool>!
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Storage.IFSharpChecksummedPersistentStorage.ReadStreamAsync(Microsoft.CodeAnalysis.Document! document, string! name, System.Collections.Immutable.ImmutableArray<byte> checksum, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.IO.Stream?>!
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Storage.IFSharpChecksummedPersistentStorage.WriteStreamAsync(Microsoft.CodeAnalysis.Document! document, string! name, System.IO.Stream! stream, System.Collections.Immutable.ImmutableArray<byte> checksum, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<bool>!
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Storage.IFSharpChecksummedPersistentStorageService
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Storage.IFSharpChecksummedPersistentStorageService.GetStorageAsync(Microsoft.CodeAnalysis.Solution! solution, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.ExternalAccess.FSharp.Storage.IFSharpChecksummedPersistentStorage!>
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure.FSharpBlockSpan
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure.FSharpBlockSpan.AutoCollapse.get -> bool
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure.FSharpBlockSpan.FSharpBlockSpan() -> void
