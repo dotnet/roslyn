@@ -1157,7 +1157,7 @@ class Program
     IL_0013:  ldc.i4.m1
     IL_0014:  stfld      ""int Program.test.<Goo>d__1.<>1__state""
     IL_0019:  ldarg.0
-    IL_001a:  ldc.i4.s   -3
+    IL_001a:  ldc.i4.s   -4
     IL_001c:  stfld      ""int Program.test.<Goo>d__1.<>1__state""
     IL_0021:  ldarg.0
     IL_0022:  ldnull
@@ -1169,7 +1169,7 @@ class Program
     IL_0030:  stloc.0
     IL_0031:  leave.s    IL_0063
     IL_0033:  ldarg.0
-    IL_0034:  ldc.i4.s   -3
+    IL_0034:  ldc.i4.s   -4
     IL_0036:  stfld      ""int Program.test.<Goo>d__1.<>1__state""
     .try
     {

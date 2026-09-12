@@ -39,6 +39,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _current = current
             End Sub
 
+            Protected Overrides ReadOnly Property FirstFinalizeState As StateMachineState
+                Get
+                    Return StateMachineState.FirstIteratorFinalizeState
+                End Get
+            End Property
+
             Protected Overrides ReadOnly Property FirstIncreasingResumableState As StateMachineState
                 Get
                     Return StateMachineState.FirstResumableIteratorState
@@ -111,12 +117,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         F.Assignment(F.Field(F.Me, Me.StateField, True), F.Literal(StateMachineState.NotStartedOrRunningState)),
                         F.Label(breakLabel),
                         F.ExpressionStatement(F.Call(F.Me, moveNextMethod)),
-                        F.Assignment(F.Field(F.Me, Me.StateField, True), F.Literal(StateMachineState.FinishedState)),
+                        F.Assignment(F.Field(F.Me, Me.StateField, True), F.Literal(StateMachineState.IteratorFinishedState)),
                         F.Return()
                         ))
                 Else
                     F.CloseMethod(F.Block(
-                        F.Assignment(F.Field(F.Me, Me.StateField, True), F.Literal(StateMachineState.FinishedState)),
+                        F.Assignment(F.Field(F.Me, Me.StateField, True), F.Literal(StateMachineState.IteratorFinishedState)),
                         F.Return()
                         ))
                 End If
