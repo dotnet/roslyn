@@ -117,9 +117,7 @@ public sealed class MetadataServiceTests : TestBase
         var invalidModuleName = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.Invalid.InvalidModuleName);
 
         var reference = metadataService.GetReference(invalidModuleName.Path, MetadataReferenceProperties.Assembly);
-        var metadata = Assert.IsType<AssemblyMetadata>(reference.GetMetadata());
-
-        Assert.Throws<BadImageFormatException>(() => metadata.GetModules());
+        Assert.Throws<BadImageFormatException>(() => reference.GetMetadata());
     }
 
     private sealed class RecordingMetadataService(IMetadataService underlyingService) : IMetadataService
