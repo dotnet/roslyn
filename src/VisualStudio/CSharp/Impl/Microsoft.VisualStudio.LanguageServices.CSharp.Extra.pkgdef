@@ -1,0 +1,42 @@
+﻿[$RootKey$\Languages\Language Services\CSharp]
+"ShowBraceCompletion"=dword:00000001
+"SupportsImageCaching"=dword:00000001
+// DesignerLoader is still set in the VS Repo since it contains a VS version number
+
+[$RootKey$\AutomationProperties\TextEditor\CSharp-Specific]
+@="#104"
+"Description"="#105"
+"Name"="CSharp-Specific"
+"Package"="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+"ProfileSave"=dword:00000001
+"VSSettingsMigration"=dword:00000001
+
+[$RootKey$\AutomationProperties\TextEditor\CSharp]
+@="#101"
+"Description"="#106"
+"Name"="CSharp"
+"Package"="{f5e7e720-1401-11d1-883b-0000f87579d2}"
+"ResourcePackage"="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+"ProfileSave"=dword:00000001
+"VSSettingsMigration"=dword:00000001
+
+[$RootKey$\Editors\{08467b34-b90f-4d91-bdca-eb8c8cf3033a}]
+"ExcludeDefTextEditor"=dword:00000001
+"LinkedEditorGuid"="{A6C744A8-0E4A-4FC6-886A-064283054674}"
+
+[$RootKey$\Editors\{08467b34-b90f-4d91-bdca-eb8c8cf3033a}\UntrustedLogicalViews]
+"{7651a702-06e5-11d1-8ebd-00a0c90f26ea}"="Form"
+
+[$RootKey$\Editors\{A6C744A8-0E4A-4FC6-886A-064283054674}]
+"ExcludeDefTextEditor"=dword:00000001
+
+[$RootKey$\Editors\{A6C744A8-0E4A-4FC6-886A-064283054674}\UntrustedLogicalViews]
+"{7651a702-06e5-11d1-8ebd-00a0c90f26ea}"="Form"
+
+[$RootKey$\FileExtensionMapping\{201669EE-A2F4-4B72-82C6-028810C22A40}]
+"DisplayName"="#113"
+"EditorGUID"="{A6C744A8-0E4A-4FC6-886A-064283054674}"
+"LogViewID"="{694DD9B6-B865-4C5B-AD85-86356E9C88DC}"
+"Package"="{13C3BBB4-F18F-4111-9F54-A0FB010D9194}"
+"SortPriority"=dword:00000064
+@="Microsoft Visual C#"

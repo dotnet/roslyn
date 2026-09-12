@@ -8,10 +8,13 @@ Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
+Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     <Guid(Guids.VisualBasicEditorFactoryIdString)>
+    <ProvideView(LogicalView.Designer, "Form")>
+    <ProvidePhysicalViewAttributes("Form", __VSPHYSICALVIEWATTRIBUTES.PVA_OpensSlowly Or __VSPHYSICALVIEWATTRIBUTES.PVA_SupportsPreview)>
     Friend Class VisualBasicEditorFactory
         Inherits AbstractEditorFactory
 

@@ -53,8 +53,7 @@
   </PropertyGroup>
 
   <Target Name="_IncludeNuGetResolvedAssets"
-          DependsOnTargets="ResolvePackageDependenciesForBuild"
-          BeforeTargets="GeneratePkgDef">
+          DependsOnTargets="ResolvePackageDependenciesForBuild">
     <!--
       We join PackageReference list with ReferenceCopyLocalPaths items to get the list of dlls to include in the VSIX.
     -->
@@ -142,7 +141,34 @@
            Condition="$([MSBuild]::ValueOrDefault('$(ExtensionsPath)', '').Contains('16.0'))"/>
   </Target>
 
-  <Import Project="GeneratePkgDef.targets" Condition="'$(MSBuildRuntimeType)' != 'Core' and '$(GeneratePkgDefFile)' == 'true' and '$(BuildingForLiveUnitTesting)' != 'true'" />
+  <PropertyGroup>
+    <_SupportsAdditionalPkgDefFiles Condition="'$(MSBuildRuntimeType)' != 'Core' and '$(BuildingForLiveUnitTesting)' != 'true'">true</_SupportsAdditionalPkgDefFiles>
+  </PropertyGroup>
+
+  <Import Project="GeneratePkgDef.targets" Condition="'$(_SupportsAdditionalPkgDefFiles)' == 'true'" />
+
+  <PropertyGroup>
+    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);_IncludeGeneratedRegistrationFiles</GetVsixSourceItemsDependsOn>
+  </PropertyGroup>
+
+  <!-- A VSIX manifest output-group token resolves to only the first file. Keep one group per generated pkgdef. -->
+  <Target Name="AssemblyRedirectsPkgdefOutputGroup"
+          Outputs="@(_AssemblyRedirectsOutput->'%(FullPath)')"
+          DependsOnTargets="GenerateAssemblyRedirectsPkgDef"
+          Condition="'$(_SupportsAdditionalPkgDefFiles)' == 'true'" />
+
+  <Target Name="BrokeredServicesPkgdefOutputGroup"
+          Outputs="@(_BrokeredServicesOutput->'%(FullPath)')"
+          DependsOnTargets="GenerateBrokeredServicesPkgDef"
+          Condition="'$(_SupportsAdditionalPkgDefFiles)' == 'true'" />
+
+  <Target Name="_IncludeGeneratedRegistrationFiles"
+          DependsOnTargets="GenerateAssemblyRedirectsPkgDef;GenerateBrokeredServicesPkgDef"
+          Condition="'$(_SupportsAdditionalPkgDefFiles)' == 'true' and '$(DesignTimeBuild)' != 'true'">
+    <ItemGroup Condition="'$(IncludePkgdefInVSIXContainer)' == 'true'">
+      <VSIXSourceItem Include="@(_GeneratedRegistrationFile)" VSIXSubPath="$(PkgdefVSIXSubPath)" />
+    </ItemGroup>
+  </Target>
 
   <!-- Import workarounds for the fast up to date check, but only if VsSdkTargetsImported is set which is set in the VS SDK targets themselves;
        if we don't have that condition, we might try to include it when we don't have some targets we depend on, and things will break -->
