@@ -220,6 +220,13 @@ namespace Microsoft.CodeAnalysis
         LocalStoreTracker = 36,
 
         /// <summary>
+        /// Variable that represents shared inline array space for transient inline arrays, see Microsoft.CodeAnalysis.CSharp.TransientInlineArrayAllocator
+        /// and Microsoft.CodeAnalysis.CSharp.TransientInlineArrayRewriter. These can either be an InlineArray type, or a single local in the event that
+        /// only one element is needed.
+        /// </summary>
+        SharedInlineArraySpace = 37,
+
+        /// <summary>
         /// All values have to be less than or equal to <see cref="MaxValidValueForLocalVariableSerializedToDebugInformation"/> 
         /// (<see cref="EditAndContinueMethodDebugInformation"/>)
         /// </summary>
