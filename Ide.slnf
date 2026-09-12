@@ -204,7 +204,6 @@
       "src\\VisualStudio\\EditorConfig\\Wizard\\Microsoft.VisualStudio.Templates.Editorconfig.Wizard.csproj",
       "src\\VisualStudio\\EditorConfig\\WizardSetup\\Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Setup.csproj",
       "src\\VisualStudio\\ExternalAccess\\Core\\Microsoft.VisualStudio.LanguageServices.ExternalAccess.csproj",
-      "src\\VisualStudio\\ExternalAccess\\EditorConfigGenerator\\Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.csproj",
       "src\\VisualStudio\\ExternalAccess\\Test\\Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTests.csproj",
       "src\\VisualStudio\\IntegrationTest\\New.IntegrationTests\\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.csproj",
       "src\\VisualStudio\\IntegrationTest\\TestSetup\\Microsoft.VisualStudio.IntegrationTest.Setup.csproj",

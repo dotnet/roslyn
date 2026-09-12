@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
@@ -26,6 +27,44 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.FileBasedPrograms;
 
 public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutputHelper) : AbstractLspMiscellaneousFilesWorkspaceTests(testOutputHelper)
 {
+    [Fact]
+    public async Task GetOrLoadEntryPointDocument_NormalizesPath()
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+        var projectSystem = (FileBasedProgramsProjectSystem)testLspServer.GetRequiredLspService<ILspMiscellaneousFilesWorkspaceProvider>();
+        var sourceFile = CreateTempDirectoryWithGlobalJson().CreateFile("SomeFile.cs");
+        var nonCanonicalPath = Path.Combine(Path.GetDirectoryName(sourceFile.Path)!, "directory", "..", Path.GetFileName(sourceFile.Path));
+        var sourceText = SourceText.From("Console.WriteLine(\"Hello World!\");");
+        var languageInformation = new LanguageInformation(LanguageNames.CSharp, "csx");
+
+        var documents = await projectSystem.GetOrLoadEntryPointDocumentAsync(
+            nonCanonicalPath, new SourceTextLoader(sourceText, nonCanonicalPath), languageInformation, SourceHashAlgorithms.Default, doDesignTimeBuild: false);
+        var document = Assert.Single(documents);
+        var documentsFromCanonicalPath = await projectSystem.GetOrLoadEntryPointDocumentAsync(
+            sourceFile.Path, new SourceTextLoader(sourceText, sourceFile.Path), languageInformation, SourceHashAlgorithms.Default, doDesignTimeBuild: false);
+
+        Assert.Equal(sourceFile.Path, document.FilePath);
+        Assert.Equal(document.Id, Assert.Single(documentsFromCanonicalPath).Id);
+    }
+
+    [ConditionalFact(typeof(WindowsOnly))]
+    public async Task GetOrLoadEntryPointDocument_MatchesPathCaseInsensitively()
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+        var projectSystem = (FileBasedProgramsProjectSystem)testLspServer.GetRequiredLspService<ILspMiscellaneousFilesWorkspaceProvider>();
+        var sourceFile = CreateTempDirectoryWithGlobalJson().CreateFile("SomeFile.cs");
+        var sourceText = SourceText.From("Console.WriteLine(\"Hello World!\");");
+        var languageInformation = new LanguageInformation(LanguageNames.CSharp, "csx");
+
+        var document = Assert.Single(await projectSystem.GetOrLoadEntryPointDocumentAsync(
+            sourceFile.Path, new SourceTextLoader(sourceText, sourceFile.Path), languageInformation, SourceHashAlgorithms.Default, doDesignTimeBuild: false));
+        var pathWithDifferentCasing = sourceFile.Path.ToUpperInvariant();
+        var documentsFromDifferentCasing = await projectSystem.GetOrLoadEntryPointDocumentAsync(
+            pathWithDifferentCasing, new SourceTextLoader(sourceText, pathWithDifferentCasing), languageInformation, SourceHashAlgorithms.Default, doDesignTimeBuild: false);
+
+        Assert.Equal(document.Id, Assert.Single(documentsFromDifferentCasing).Id);
+    }
+
     [Theory, CombinatorialData]
     public async Task TestFileBasedProgram_Simple(bool mutatingLspWorkspace)
     {

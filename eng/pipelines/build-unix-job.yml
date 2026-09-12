@@ -43,11 +43,16 @@ jobs:
     - script: ./eng/prepare-tests.sh
       displayName: Prepare Test Payload
 
+    - script: |
+        echo "##vso[task.setvariable variable=testArtifactName;isOutput=true]${{ parameters.testArtifactName }}-Attempt$(System.JobAttempt)"
+      name: SetTestArtifactName
+      displayName: Set Test Payload Artifact Name
+
     - task: PublishPipelineArtifact@1
       displayName: Publish Test Payload
       inputs:
         targetPath: '$(Build.SourcesDirectory)/artifacts/testPayload'
-        artifactName: ${{ parameters.testArtifactName }}
+        artifactName: $(SetTestArtifactName.testArtifactName)
 
     - template: publish-logs.yml
       parameters:

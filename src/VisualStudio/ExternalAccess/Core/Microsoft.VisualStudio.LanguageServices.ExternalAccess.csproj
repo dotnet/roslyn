@@ -16,8 +16,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator" />
-
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTests" />
 
     <!--
@@ -29,11 +27,6 @@
       ⚠ ONLY COPILOT ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
     <InternalsVisibleTo Include="Microsoft.VisualStudio.Copilot.Roslyn" Key="$(CopilotKey)" />
-
-    <!--
-      ⚠ ONLY TEMPLATE ASSEMBLIES MAY BE ADDED HERE ⚠
-    -->
-    <InternalsVisibleTo Include="Templates.Editorconfig.Wizard" Key="$(MicrosoftSharedPublicKey)" />
 
     <!--
       ⚠ ONLY F# ASSEMBLIES MAY BE ADDED HERE ⚠
