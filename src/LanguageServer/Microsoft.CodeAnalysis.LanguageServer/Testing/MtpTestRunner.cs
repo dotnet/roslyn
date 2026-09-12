@@ -15,6 +15,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
 
 internal sealed partial class MtpTestRunner(ILoggerFactory loggerFactory)
 {
+    // MTP also reports container nodes; action nodes are the executable tests used for discovery and progress.
+    private const string ActionNodeType = "action";
+
     private readonly ILogger _logger = loggerFactory.CreateLogger<MtpTestRunner>();
 
     public async Task RunTestsAsync(
@@ -27,28 +30,55 @@ internal sealed partial class MtpTestRunner(ILoggerFactory loggerFactory)
         bool useSemanticTestDiscovery,
         CancellationToken cancellationToken)
     {
+        using var client = await CreateClientAsync(projectOutputPath, cancellationToken).ConfigureAwait(false);
+        var capabilities = await client.InitializeAsync(cancellationToken).ConfigureAwait(false);
+        if (!capabilities.SupportsDiscovery)
+            throw new InvalidOperationException("The Microsoft.Testing.Platform application does not support test discovery.");
+
         var matchedTestUids = await DiscoverTestsAsync(
             range,
             document,
-            projectOutputPath,
+            client,
             progress,
             useSemanticTestDiscovery,
             cancellationToken).ConfigureAwait(false);
 
         if (matchedTestUids.IsEmpty)
+        {
+            await StopClientAsync(client, cancellationToken).ConfigureAwait(false);
             return;
+        }
 
+        if (capabilities.MultiRequestSupport)
+        {
+            await RunMatchedTestsAsync(
+                client,
+                matchedTestUids,
+                attachDebugger,
+                progress,
+                clientLanguageServerManager,
+                cancellationToken).ConfigureAwait(false);
+
+            await StopClientAsync(client, cancellationToken).ConfigureAwait(false);
+            return;
+        }
+
+        await StopClientAsync(client, cancellationToken).ConfigureAwait(false);
+
+        using var runClient = await CreateClientAsync(projectOutputPath, cancellationToken).ConfigureAwait(false);
+        await runClient.InitializeAsync(cancellationToken).ConfigureAwait(false);
         await RunMatchedTestsAsync(
-            projectOutputPath,
+            runClient,
             matchedTestUids,
             attachDebugger,
             progress,
             clientLanguageServerManager,
             cancellationToken).ConfigureAwait(false);
+        await StopClientAsync(runClient, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task RunMatchedTestsAsync(
-        string projectOutputPath,
+        MtpServerClient client,
         ImmutableArray<string> matchedTestUids,
         bool attachDebugger,
         BufferedProgress<RunTestsPartialResult> progress,
@@ -63,54 +93,70 @@ internal sealed partial class MtpTestRunner(ILoggerFactory loggerFactory)
 
         var stopwatch = Stopwatch.StartNew();
         var terminalStates = new Dictionary<string, string>(StringComparer.Ordinal);
+        var terminalStatesGate = new object();
 
-        using var client = await CreateClientAsync(projectOutputPath, cancellationToken).ConfigureAwait(false);
-        client.TestNodesUpdated += (_, args) =>
+        void OnTestNodesUpdated(object? sender, MtpTestNodeUpdateEventArgs args)
         {
             var message = new StringBuilder();
-            foreach (var change in args.Changes)
+            TestProgress? currentProgress = null;
+
+            lock (terminalStatesGate)
             {
-                if (change.NodeType != "action" ||
-                    change.Uid is not { } uid ||
-                    !IsTerminalState(change.ExecutionState))
+                foreach (var change in args.Changes)
                 {
-                    continue;
+                    if (!TryUpdateTerminalState(terminalStates, change))
+                        continue;
+
+                    AppendTestResult(message, change);
                 }
 
-                terminalStates[uid] = change.ExecutionState!;
-                AppendTestResult(message, change);
+                if (message.Length > 0)
+                    currentProgress = CreateProgress(matchedTestUids.Length, terminalStates.Values);
             }
 
-            if (message.Length > 0)
+            if (currentProgress is not null)
             {
                 progress.Report(new RunTestsPartialResult(
                     LanguageServerResources.Running_tests,
                     message.ToString(),
-                    CreateProgress(matchedTestUids.Length, terminalStates.Values)));
+                    currentProgress));
             }
-        };
-        client.LogReceived += (_, args) =>
-            progress.Report(new RunTestsPartialResult(LanguageServerResources.Running_tests, args.Message, Progress: null));
-
-        await client.InitializeAsync(cancellationToken).ConfigureAwait(false);
-
-        if (attachDebugger)
-        {
-            var didAttach = await TestDebugger.AttachAsync(
-                client.ProcessId,
-                progress,
-                clientLanguageServerManager,
-                cancellationToken).ConfigureAwait(false);
-            if (!didAttach)
-                return;
         }
 
-        await client.RunTestsAsync(matchedTestUids, cancellationToken).ConfigureAwait(false);
-        await client.ExitAsync(cancellationToken).ConfigureAwait(false);
-        await client.ShutdownAsync().ConfigureAwait(false);
+        void OnLogReceived(object? sender, MtpLogEventArgs args)
+        {
+            progress.Report(new RunTestsPartialResult(LanguageServerResources.Running_tests, args.Message, Progress: null));
+        }
 
-        var finalProgress = CreateProgress(matchedTestUids.Length, terminalStates.Values);
-        var state = terminalStates.Values.Contains("canceled")
+        client.TestNodesUpdated += OnTestNodesUpdated;
+        client.LogReceived += OnLogReceived;
+        try
+        {
+            if (attachDebugger)
+            {
+                var didAttach = await TestDebugger.AttachAsync(
+                    client.ProcessId,
+                    progress,
+                    clientLanguageServerManager,
+                    cancellationToken).ConfigureAwait(false);
+                if (!didAttach)
+                    return;
+            }
+
+            await client.RunTestsAsync(matchedTestUids, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            client.TestNodesUpdated -= OnTestNodesUpdated;
+            client.LogReceived -= OnLogReceived;
+        }
+
+        string[] finalStates;
+        lock (terminalStatesGate)
+            finalStates = [.. terminalStates.Values];
+
+        var finalProgress = CreateProgress(matchedTestUids.Length, finalStates);
+        var state = finalStates.Contains("canceled")
             ? LanguageServerResources.Canceled
             : finalProgress.TestsFailed == 0
                 ? LanguageServerResources.Passed
@@ -135,11 +181,16 @@ internal sealed partial class MtpTestRunner(ILoggerFactory loggerFactory)
             Logger = new DelegateMtpClientLogger((level, message) => LogClientMessage(level, message)),
         };
 
-        var dotnetRootUser = Environment.GetEnvironmentVariable("DOTNET_ROOT_USER");
-        options.EnvironmentVariables[DotnetCliHelper.DotnetRootEnvVar] =
-            string.IsNullOrEmpty(dotnetRootUser) || dotnetRootUser == "EMPTY" ? string.Empty : dotnetRootUser;
+        foreach (var (name, value) in TestRunnerEnvironment.CreateEnvironmentVariables())
+            options.EnvironmentVariables[name] = value;
 
         return await MtpServerClient.LaunchAsync(projectOutputPath, options, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task StopClientAsync(MtpServerClient client, CancellationToken cancellationToken)
+    {
+        await client.ExitAsync(cancellationToken).ConfigureAwait(false);
+        await client.ShutdownAsync().ConfigureAwait(false);
     }
 
     private void LogClientMessage(MtpClientLogLevel level, string message)
@@ -147,19 +198,19 @@ internal sealed partial class MtpTestRunner(ILoggerFactory loggerFactory)
         switch (level)
         {
             case MtpClientLogLevel.Trace:
-                _logger.LogTrace("{Message}", message);
+                _logger.LogTrace("[MTP] {Message}", message);
                 break;
             case MtpClientLogLevel.Debug:
-                _logger.LogDebug("{Message}", message);
+                _logger.LogDebug("[MTP] {Message}", message);
                 break;
             case MtpClientLogLevel.Information:
-                _logger.LogInformation("{Message}", message);
+                _logger.LogInformation("[MTP] {Message}", message);
                 break;
             case MtpClientLogLevel.Warning:
-                _logger.LogWarning("{Message}", message);
+                _logger.LogWarning("[MTP] {Message}", message);
                 break;
             case MtpClientLogLevel.Error:
-                _logger.LogError("{Message}", message);
+                _logger.LogError("[MTP] {Message}", message);
                 break;
             default:
                 throw ExceptionUtilities.UnexpectedValue(level);
@@ -195,6 +246,21 @@ internal sealed partial class MtpTestRunner(ILoggerFactory loggerFactory)
 
     private static bool IsTerminalState(string? state)
         => state is "passed" or "skipped" or "failed" or "timed-out" or "error" or "canceled";
+
+    internal static bool TryUpdateTerminalState(Dictionary<string, string> terminalStates, MtpTestNodeUpdate change)
+    {
+        if (change.NodeType != ActionNodeType ||
+            change.Uid is not { } uid ||
+            change.ExecutionState is not { } executionState ||
+            !IsTerminalState(executionState) ||
+            terminalStates.TryGetValue(uid, out var previousState) && previousState == executionState)
+        {
+            return false;
+        }
+
+        terminalStates[uid] = executionState;
+        return true;
+    }
 
     private static void AppendTestResult(StringBuilder builder, MtpTestNodeUpdate test)
     {

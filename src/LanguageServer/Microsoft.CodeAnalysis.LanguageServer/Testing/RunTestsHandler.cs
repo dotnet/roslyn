@@ -71,7 +71,7 @@ internal sealed class RunTestsHandler(
         var projectCapabilityManager = context.GetRequiredService<ProjectCapabilityManager>();
         var useSemanticTestDiscovery = globalOptionService.GetOption(LspOptionsStorage.LspUseSemanticTestDiscovery, document.Project.Language);
 
-        if (ShouldUseMtp(runSettings, document.Project.Id, projectCapabilityManager))
+        if (ShouldUseMtp(runSettingsPath, document.Project.Id, projectCapabilityManager))
         {
             await mtpTestRunner.RunTestsAsync(
                 request.Range,
@@ -102,10 +102,10 @@ internal sealed class RunTestsHandler(
     }
 
     internal static bool ShouldUseMtp(
-        string? runSettings,
+        string? runSettingsPath,
         ProjectId projectId,
         ProjectCapabilityManager projectCapabilityManager)
-        => runSettings is null && projectCapabilityManager.HasCapability(projectId, TestingPlatformServerCapability);
+        => string.IsNullOrEmpty(runSettingsPath) && projectCapabilityManager.HasCapability(projectId, TestingPlatformServerCapability);
 
     /// <summary>
     /// Format a timespan as a string similar to '5m 2s', omitting any value that is not present.

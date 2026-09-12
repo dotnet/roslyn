@@ -228,9 +228,10 @@ internal sealed partial class LoadedProject : IAsyncDisposable
 
             foreach (var loadedProjectInfo in loadedProjectInfos)
             {
-                var target = await GetOrCreateProjectTargetAsync(loadedProjectInfo, projectFactory, workspaceFactory, cancellationToken);
+                var target = await GetOrCreateProjectTargetAsync(
+                    loadedProjectInfo, projectFactory, projectCapabilityManager, workspaceFactory, cancellationToken);
                 staleTargets.Remove(target);
-                await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, isMiscellaneousFile, hasAllInformation, targetFrameworkManager, projectCapabilityManager, logger);
+                await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, isMiscellaneousFile, hasAllInformation, targetFrameworkManager, logger);
             }
 
             // Now that we've created or updated projects, we can now remove any old projects that went away
@@ -254,7 +255,12 @@ internal sealed partial class LoadedProject : IAsyncDisposable
         }
     }
 
-    private async Task<Target> GetOrCreateProjectTargetAsync(ProjectFileInfo loadedProjectInfo, ProjectSystemProjectFactory projectFactory, LanguageServerWorkspaceFactory workspaceFactory, CancellationToken cancellationToken)
+    private async Task<Target> GetOrCreateProjectTargetAsync(
+        ProjectFileInfo loadedProjectInfo,
+        ProjectSystemProjectFactory projectFactory,
+        ProjectCapabilityManager projectCapabilityManager,
+        LanguageServerWorkspaceFactory workspaceFactory,
+        CancellationToken cancellationToken)
     {
         Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
@@ -279,7 +285,7 @@ internal sealed partial class LoadedProject : IAsyncDisposable
             workspaceFactory.ProjectSystemHostInfo,
             cancellationToken).ConfigureAwait(false);
 
-        var target = new Target(this, projectSystemProject, projectFactory);
+        var target = new Target(this, projectSystemProject, projectFactory, projectCapabilityManager);
         _targets.Add(target);
         return target;
     }

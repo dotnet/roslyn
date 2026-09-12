@@ -40,6 +40,27 @@ public sealed class MtpTestRunnerTests
         Assert.Equal(6, progress.TotalTests);
     }
 
+    [Fact]
+    public void TryUpdateTerminalStateIgnoresDuplicatesAndKeepsLatestState()
+    {
+        var terminalStates = new Dictionary<string, string>();
+
+        Assert.True(MtpTestRunner.TryUpdateTerminalState(
+            terminalStates,
+            CreateTestNode(("execution-state", "failed"))));
+        Assert.False(MtpTestRunner.TryUpdateTerminalState(
+            terminalStates,
+            CreateTestNode(("execution-state", "failed"))));
+        Assert.True(MtpTestRunner.TryUpdateTerminalState(
+            terminalStates,
+            CreateTestNode(("execution-state", "passed"))));
+        Assert.False(MtpTestRunner.TryUpdateTerminalState(
+            terminalStates,
+            CreateTestNode(("execution-state", "running"))));
+
+        Assert.Equal("passed", terminalStates["test-id"]);
+    }
+
     private static MtpTestNodeUpdate CreateTestNode(params (string Name, object? Value)[] properties)
     {
         var node = new Dictionary<string, object?>

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Features.Testing;
@@ -23,14 +24,18 @@ internal sealed partial class MtpTestRunner
     private async Task<ImmutableArray<string>> DiscoverTestsAsync(
         LSP.Range range,
         Document document,
-        string projectOutputPath,
+        MtpServerClient client,
         BufferedProgress<RunTestsPartialResult> progress,
         bool useSemanticTestDiscovery,
         CancellationToken cancellationToken)
     {
         var testMethodFinder = document.GetRequiredLanguageService<ITestMethodFinder>();
-        var potentialTestMethods = await GetPotentialTestMethodsAsync(
-            range, document, testMethodFinder, useSemanticTestDiscovery, cancellationToken).ConfigureAwait(false);
+        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var potentialTestMethods = await testMethodFinder.GetPotentialTestMethodsAsync(
+            document,
+            ProtocolConversions.RangeToTextSpan(range, text),
+            useSemanticTestDiscovery,
+            cancellationToken).ConfigureAwait(false);
         if (potentialTestMethods.IsEmpty)
         {
             progress.Report(new RunTestsPartialResult(
@@ -47,29 +52,35 @@ internal sealed partial class MtpTestRunner
         progress.Report(partialResult);
 
         var stopwatch = Stopwatch.StartNew();
-        var discoveredTests = new Dictionary<string, MtpTestNodeUpdate>(StringComparer.Ordinal);
+        var discoveredTests = new ConcurrentDictionary<string, MtpTestNodeUpdate>(StringComparer.Ordinal);
 
-        using var client = await CreateClientAsync(projectOutputPath, cancellationToken).ConfigureAwait(false);
-        client.TestNodesUpdated += (_, args) =>
+        void OnTestNodesUpdated(object? sender, MtpTestNodeUpdateEventArgs args)
         {
             foreach (var change in args.Changes)
             {
                 if (change.Uid is { } uid)
                     discoveredTests[uid] = change;
             }
-        };
-        client.LogReceived += (_, args) =>
+        }
+
+        void OnLogReceived(object? sender, MtpLogEventArgs args)
+        {
             progress.Report(new RunTestsPartialResult(LanguageServerResources.Discovering_tests, args.Message, Progress: null));
+        }
 
-        var capabilities = await client.InitializeAsync(cancellationToken).ConfigureAwait(false);
-        if (!capabilities.SupportsDiscovery)
-            throw new InvalidOperationException("The Microsoft.Testing.Platform application does not support test discovery.");
+        client.TestNodesUpdated += OnTestNodesUpdated;
+        client.LogReceived += OnLogReceived;
+        try
+        {
+            await client.DiscoverTestsAsync(cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            client.TestNodesUpdated -= OnTestNodesUpdated;
+            client.LogReceived -= OnLogReceived;
+        }
 
-        await client.DiscoverTestsAsync(cancellationToken).ConfigureAwait(false);
-        await client.ExitAsync(cancellationToken).ConfigureAwait(false);
-        await client.ShutdownAsync().ConfigureAwait(false);
-
-        ImmutableArray<MtpTestNodeUpdate> tests = [.. discoveredTests.Values.Where(static test => test.NodeType == "action")];
+        ImmutableArray<MtpTestNodeUpdate> tests = [.. discoveredTests.Values.Where(static test => test.NodeType == ActionNodeType)];
         var discoveryElapsed = stopwatch.Elapsed;
         var matchedTestUids = await MatchDiscoveredTestsAsync(
             tests,
@@ -111,21 +122,6 @@ internal sealed partial class MtpTestRunner
 
         _logger.LogDebug("Filtered {DiscoveredTestCount} to {MatchedTestCount} MTP tests", discoveredTests.Length, matchedTests.Count);
         return matchedTests.ToImmutable();
-    }
-
-    private static async Task<ImmutableArray<SyntaxNode>> GetPotentialTestMethodsAsync(
-        LSP.Range range,
-        Document document,
-        ITestMethodFinder testMethodFinder,
-        bool useSemanticTestDiscovery,
-        CancellationToken cancellationToken)
-    {
-        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        return await testMethodFinder.GetPotentialTestMethodsAsync(
-            document,
-            ProtocolConversions.RangeToTextSpan(range, text),
-            useSemanticTestDiscovery,
-            cancellationToken).ConfigureAwait(false);
     }
 
     internal static string? TryGetFullyQualifiedName(MtpTestNodeUpdate test)

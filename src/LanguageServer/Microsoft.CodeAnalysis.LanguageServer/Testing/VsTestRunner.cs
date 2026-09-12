@@ -37,7 +37,6 @@ internal sealed partial class VsTestRunner(
         CancellationToken cancellationToken)
     {
         var vsTestConsolePath = await dotnetCliHelper.GetVsTestConsolePathAsync(projectOutputDirectory, cancellationToken);
-        var dotnetRootUser = Environment.GetEnvironmentVariable("DOTNET_ROOT_USER");
         var testLogPath = serverConfiguration.ExtensionLogDirectory is not null
             ? Path.Combine(serverConfiguration.ExtensionLogDirectory, "testLogs", "vsTestLogs.txt")
             : null;
@@ -45,11 +44,7 @@ internal sealed partial class VsTestRunner(
         {
             LogFilePath = testLogPath,
             TraceLevel = GetTraceLevel(logConfiguration),
-            EnvironmentVariables = new()
-            {
-                // Reset dotnet root so that vs test console can find the right runtimes.
-                { DotnetCliHelper.DotnetRootEnvVar, string.IsNullOrEmpty(dotnetRootUser) || dotnetRootUser == "EMPTY" ? string.Empty : dotnetRootUser }
-            }
+            EnvironmentVariables = TestRunnerEnvironment.CreateEnvironmentVariables()
         });
 
         var testCases = await DiscoverTestsAsync(

@@ -13,7 +13,6 @@ Roslyn uses a **layered service architecture** built on MEF (Managed Extensibili
 - **Analyzers** (`src/Analyzers/`): IDE diagnostic analyzers and code fixes (IDE0xxx diagnostics)
 - **CodeStyle** (`src/CodeStyle/`): Code-style analyzer packaging shared with the command-line
 - **LanguageServer** (`src/LanguageServer/`): Shared LSP protocol implementation and Roslyn LSP executable (`roslyn-language-server`)
-  - `textDocument/runTests` uses MTP server mode for projects with the `TestingPlatformServer` capability and otherwise uses the SDK's `vstest.console.dll`. Requests with `.runsettings` remain on the VSTest path because MTP server mode does not forward VSTest runsettings.
 - **EditorFeatures** (`src/EditorFeatures/`): VS Editor integration and text manipulation
 - **VisualStudio** (`src/VisualStudio/`): Visual Studio-specific implementations
 - **VisualStudio integration-test harness** (`src/VisualStudio/IntegrationTest/Harness/`): shared integration-test infrastructure

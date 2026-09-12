@@ -11,10 +11,12 @@ public sealed class RunTestsHandlerTests
 {
     [Theory]
     [InlineData(null, true, true)]
+    [InlineData("", true, true)]
     [InlineData(null, false, false)]
-    [InlineData("<RunSettings/>", true, false)]
-    [InlineData("<RunSettings/>", false, false)]
-    public void ShouldUseMtp(string? runSettings, bool hasCapability, bool expected)
+    [InlineData("test.runsettings", true, false)]
+    [InlineData("missing.runsettings", true, false)]
+    [InlineData("test.runsettings", false, false)]
+    public void ShouldUseMtp(string? runSettingsPath, bool hasCapability, bool expected)
     {
         var projectId = ProjectId.CreateNewId();
         var projectCapabilityManager = new ProjectCapabilityManager();
@@ -22,13 +24,13 @@ public sealed class RunTestsHandlerTests
             projectId,
             hasCapability ? ["TestingPlatformServer"] : ["Unrelated"]);
 
-        Assert.Equal(expected, RunTestsHandler.ShouldUseMtp(runSettings, projectId, projectCapabilityManager));
+        Assert.Equal(expected, RunTestsHandler.ShouldUseMtp(runSettingsPath, projectId, projectCapabilityManager));
     }
 
     [Fact]
     public void ShouldNotUseMtpWhenCapabilitiesAreUnavailable()
         => Assert.False(RunTestsHandler.ShouldUseMtp(
-            runSettings: null,
+            runSettingsPath: null,
             ProjectId.CreateNewId(),
             new ProjectCapabilityManager()));
 }
