@@ -2,11 +2,16 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Composition
 Imports System.IO
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Peek
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.FindUsages
+Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Navigation
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Imaging.Interop
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Text
@@ -286,8 +291,101 @@ public partial class D
             End Using
         End Sub
 
-        Private Shared Function CreateTestWorkspace(element As XElement) As EditorTestWorkspace
-            Return EditorTestWorkspace.Create(element, composition:=EditorTestCompositions.EditorFeatures)
+        <WpfTheory>
+        <InlineData("$$Counter c;", "T:Counter")>
+        <InlineData("void M() => new Box<int>().$$Set(1);", "M:Box`1.Set(`0)")>
+        <InlineData("void M() => new Counter().$$Increment();", "M:Counter.Increment")>
+        Public Sub TestPeekDefinitionShowsTheFileAnotherLanguageOwnsForAMetadataSymbol(member As String, documentationCommentId As String)
+            Using workspace = CreateTestWorkspace(WorkspaceReferencingOtherLanguageLibrary(member), s_crossLanguageComposition)
+                Dim result = GetPeekResultCollection(workspace)
+
+                Assert.Equal({$"{CrossLanguageSymbolNavigationService.OwnedAssemblyName}:{documentationCommentId}"}, GetCrossLanguageService(workspace).Requests)
+                Assert.Equal(1, result.Items.Count)
+                result.AssertShowsFile(index:=0, CrossLanguageSymbolNavigationService.FilePath, CrossLanguageSymbolNavigationService.Position)
+            End Using
+        End Sub
+
+        <WpfFact>
+        Public Sub TestPeekDefinitionShowsMetadataAsSourceWhenNoOtherLanguageOwnsTheSymbol()
+            Using workspace = CreateTestWorkspace(<Workspace>
+                                                      <Project Language="C#" CommonReferences="true">
+                                                          <Document>class C { string s = $$"Goo"; }</Document>
+                                                      </Project>
+                                                  </Workspace>, s_crossLanguageComposition)
+                Dim result = GetPeekResultCollection(workspace)
+
+                Assert.EndsWith(":T:System.String", Assert.Single(GetCrossLanguageService(workspace).Requests))
+                Assert.Equal(1, result.Items.Count)
+                Assert.Equal($"String [{FeaturesResources.Decompiled}]", result(0).DisplayInfo.Label)
+            End Using
+        End Sub
+
+        <WpfFact>
+        Public Sub TestPeekDefinitionDoesNotAskAnotherLanguageForASourceSymbol()
+            Using workspace = CreateTestWorkspace(<Workspace>
+                                                      <Project Language="C#" CommonReferences="true">
+                                                          <Document>public class {|Identifier:D|} { } class C { $$D d; }</Document>
+                                                      </Project>
+                                                  </Workspace>, s_crossLanguageComposition)
+                Dim result = GetPeekResultCollection(workspace)
+
+                Assert.Empty(GetCrossLanguageService(workspace).Requests)
+                Assert.Equal(1, result.Items.Count)
+                result.AssertNavigatesToIdentifier(index:=0, name:="Identifier")
+            End Using
+        End Sub
+
+        <WpfFact>
+        Public Sub TestPeekDefinitionDoesNotAskAnotherLanguageForAMetadataSymbolItCannotShow()
+            Using workspace = CreateTestWorkspace(<Workspace>
+                                                      <Project Language="C#" CommonReferences="true">
+                                                          <Document>using $$System; class C { }</Document>
+                                                      </Project>
+                                                  </Workspace>, s_crossLanguageComposition)
+                Dim result = GetPeekResultCollection(workspace)
+
+                Assert.Empty(GetCrossLanguageService(workspace).Requests)
+                Assert.Null(result)
+            End Using
+        End Sub
+
+        <WpfFact>
+        Public Sub TestPeekDefinitionPrefersTheExternalNavigationLocationToAnotherLanguage()
+            Using workspace = CreateTestWorkspace(
+                    WorkspaceReferencingOtherLanguageLibrary("$$Counter c;"),
+                    s_crossLanguageComposition.AddParts(GetType(ExternalNavigationSymbolNavigationService)))
+                Dim result = GetPeekResultCollection(workspace)
+
+                Assert.Empty(GetCrossLanguageService(workspace).Requests)
+                Assert.Equal(1, result.Items.Count)
+                result.AssertShowsFile(index:=0, ExternalNavigationSymbolNavigationService.FilePath, ExternalNavigationSymbolNavigationService.Position)
+            End Using
+        End Sub
+
+        Private Shared ReadOnly s_crossLanguageComposition As TestComposition =
+            EditorTestCompositions.EditorFeatures.AddParts(GetType(CrossLanguageSymbolNavigationService))
+
+        ''' <summary>
+        ''' A C# project referencing, as metadata, an assembly <see cref="CrossLanguageSymbolNavigationService"/> owns
+        ''' the source of, the way F# owns the source of the F# assemblies a C# project references.
+        ''' </summary>
+        Private Shared Function WorkspaceReferencingOtherLanguageLibrary(member As String) As XElement
+            Return <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <MetadataReferenceFromSource Language="C#" AssemblyName=<%= CrossLanguageSymbolNavigationService.OwnedAssemblyName %> CommonReferences="true">
+                               <Document>public class Counter { public void Increment() { } } public class Box&lt;T&gt; { public void Set(T value) { } }</Document>
+                           </MetadataReferenceFromSource>
+                           <Document>class C { <%= member %> }</Document>
+                       </Project>
+                   </Workspace>
+        End Function
+
+        Private Shared Function GetCrossLanguageService(workspace As EditorTestWorkspace) As CrossLanguageSymbolNavigationService
+            Return DirectCast(workspace.ExportProvider.GetExportedValue(Of ICrossLanguageSymbolNavigationService)(), CrossLanguageSymbolNavigationService)
+        End Function
+
+        Private Shared Function CreateTestWorkspace(element As XElement, Optional composition As TestComposition = Nothing) As EditorTestWorkspace
+            Return EditorTestWorkspace.Create(element, composition:=If(composition, EditorTestCompositions.EditorFeatures))
         End Function
 
         Private Shared Function GetPeekResultCollection(element As XElement) As PeekResultCollection
@@ -341,6 +439,62 @@ public partial class D
 
             Return peekResult
         End Function
+
+        <Export(GetType(ICrossLanguageSymbolNavigationService)), [Shared], PartNotDiscoverable>
+        Private NotInheritable Class CrossLanguageSymbolNavigationService
+            Implements ICrossLanguageSymbolNavigationService
+
+            Public Const OwnedAssemblyName = "OtherLanguageLibrary"
+            Public Shared ReadOnly FilePath As String = Path.Combine(TestWorkspace.RootDirectory, "Library.fs")
+            Public Shared ReadOnly Position As New LinePosition(2, 4)
+
+            Public ReadOnly Property Requests As New List(Of String)
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+            End Sub
+
+            Public Function TryGetNavigableLocationAsync(assemblyName As String, documentationCommentId As String, cancellationToken As CancellationToken) As Task(Of INavigableLocation) Implements ICrossLanguageSymbolNavigationService.TryGetNavigableLocationAsync
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function TryGetNavigableFileLocationAsync(assemblyName As String, documentationCommentId As String, cancellationToken As CancellationToken) As Task(Of (filePath As String, linePosition As LinePosition)?) Implements ICrossLanguageSymbolNavigationService.TryGetNavigableFileLocationAsync
+                Requests.Add($"{assemblyName}:{documentationCommentId}")
+
+                Dim location As (filePath As String, linePosition As LinePosition)? = Nothing
+                If assemblyName = OwnedAssemblyName Then
+                    location = (FilePath, Position)
+                End If
+
+                Return Task.FromResult(location)
+            End Function
+        End Class
+
+        <ExportWorkspaceService(GetType(ISymbolNavigationService), ServiceLayer.Test), [Shared], PartNotDiscoverable>
+        Private NotInheritable Class ExternalNavigationSymbolNavigationService
+            Implements ISymbolNavigationService
+
+            Public Shared ReadOnly FilePath As String = Path.Combine(TestWorkspace.RootDirectory, "External.cs")
+            Public Shared ReadOnly Position As New LinePosition(5, 1)
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+            End Sub
+
+            Public Function GetNavigableLocationAsync(symbol As ISymbol, project As Project, cancellationToken As CancellationToken) As Task(Of INavigableLocation) Implements ISymbolNavigationService.GetNavigableLocationAsync
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function TrySymbolNavigationNotifyAsync(symbol As ISymbol, project As Project, cancellationToken As CancellationToken) As Task(Of Boolean) Implements ISymbolNavigationService.TrySymbolNavigationNotifyAsync
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function GetExternalNavigationSymbolLocationAsync(definitionItem As DefinitionItem, cancellationToken As CancellationToken) As Task(Of (filePath As String, linePosition As LinePosition)?) Implements ISymbolNavigationService.GetExternalNavigationSymbolLocationAsync
+                Return Task.FromResult(Of (filePath As String, linePosition As LinePosition)?)((FilePath, Position))
+            End Function
+        End Class
 
         Private Class MockPeekResultFactory
             Implements IPeekResultFactory
@@ -475,6 +629,16 @@ public partial class D
 
                 Return buffer.CurrentSnapshot.GetText(line.Start + startIndex, line.Length - startIndex)
             End Function
+
+            Friend Sub AssertShowsFile(index As Integer, filePath As String, position As LinePosition)
+                Dim documentResult = DirectCast(Items(index), IDocumentPeekResult)
+                Assert.Equal(filePath, documentResult.FilePath)
+
+                Dim startLine As Integer
+                Dim startIndex As Integer
+                Assert.True(documentResult.IdentifyingSpan.TryGetStartLineIndex(startLine, startIndex), "Unable to get span for the file.")
+                Assert.Equal(position, New LinePosition(startLine, startIndex))
+            End Sub
 
             Friend Sub AssertNavigatesToIdentifier(index As Integer, name As String)
                 Dim documentResult = DirectCast(Items(index), IDocumentPeekResult)
