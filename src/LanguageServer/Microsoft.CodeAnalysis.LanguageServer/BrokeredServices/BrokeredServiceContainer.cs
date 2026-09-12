@@ -59,7 +59,7 @@ internal sealed class BrokeredServiceContainer : GlobalBrokeredServiceContainer
         var servicesToRegister = serviceBrokerInitializers.SelectMany(s => s.ServicesToRegister).ToDictionary(a => a.Key, a => a.Value);
         container.RegisterServices(servicesToRegister);
         foreach (var onInitialized in serviceBrokerInitializers)
-            onInitialized.Proffer(container);
+            await onInitialized.ProfferAsync(container, cancellationToken).ConfigureAwait(false);
 
         // Register the desired remote services
         container.RegisterServices(Descriptors.RemoteServicesToRegister);

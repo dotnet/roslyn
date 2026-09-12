@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
+using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
+using Microsoft.VisualStudio.HotReload;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTesting;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
@@ -124,6 +126,7 @@ internal sealed class RoslynPackage : AbstractPackage
     {
         // Proffer in-process service broker services
         var serviceBrokerContainer = await this.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(cancellationToken).ConfigureAwait(false);
+        var serviceBroker = serviceBrokerContainer.GetFullAccessServiceBroker();
 
         serviceBrokerContainer.Proffer(
             WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor,
@@ -134,13 +137,9 @@ internal sealed class RoslynPackage : AbstractPackage
         var hostWorkspaceProvider = ComponentModel.GetService<IHostWorkspaceProvider>();
 
         _sourceTextProvider = new PdbMatchingSourceTextProvider(hostWorkspaceProvider.Workspace);
-        serviceBrokerContainer.Proffer(
-            ManagedHotReloadLanguageServiceDescriptor.Descriptor,
-            (_, _, serviceBroker, _) =>
-            {
-                var service = hotReloadFactory.Create(serviceBroker, solutionSnapshotProvider, hostWorkspaceProvider, _sourceTextProvider);
-                return ValueTask.FromResult<object?>(service);
-            });
+        var hotReloadService = await hotReloadFactory.CreateAsync(serviceBroker, solutionSnapshotProvider, hostWorkspaceProvider, _sourceTextProvider, cancellationToken).ConfigureAwait(false);
+
+        serviceBrokerContainer.Proffer(ManagedHotReloadLanguageServiceFactory.ServiceDescriptor, async (_, _, _, _) => hotReloadService);
     }
 
     protected override async Task LoadComponentsInBackgroundAfterSolutionFullyLoadedAsync(CancellationToken cancellationToken)
