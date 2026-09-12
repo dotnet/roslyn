@@ -1639,6 +1639,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (this.IsUnambiguousAnonymousFunctionModifierListFollowedByOpenParen())
                 return false;
 
+            if (this.IsCurrentTokenDefinitelyPartialMemberName())
+                return false;
+
             using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
 
             this.EatToken();
@@ -1648,12 +1651,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
                 return this.IsTypeFollowedByMemberName();
 
-            // If the next token does not prove that 'partial' is the member name, it is a modifier.
-            return !IsDefinitePartialMemberNameContinuation(this.CurrentToken.Kind);
+            return true;
         }
 
-        private static bool IsDefinitePartialMemberNameContinuation(SyntaxKind kind)
-            => kind switch
+        private bool IsCurrentTokenDefinitelyPartialMemberName()
+        {
+            if (this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword)
+                return false;
+
+            return this.PeekToken(1).Kind switch
             {
                 // A field name: partial, other;
                 SyntaxKind.CommaToken => true,
@@ -1677,6 +1683,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // name because '(' may instead start a tuple return type following the modifier.
                 _ => false,
             };
+        }
 
         /// <summary>
         /// Checks for a type followed by a possible member name without advancing the parser.
@@ -3703,8 +3710,7 @@ parse_member_name:;
         /// </summary>
         private TypeSyntax ParseReturnTypeOrMissingTypeForPartialMemberName()
         {
-            if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword &&
-                IsDefinitePartialMemberNameContinuation(this.PeekToken(1).Kind))
+            if (this.IsCurrentTokenDefinitelyPartialMemberName())
             {
                 return _syntaxFactory.PredefinedType(
                     this.AddError(SyntaxFactory.MissingToken(SyntaxKind.VoidKeyword), ErrorCode.ERR_MemberNeedsType));
