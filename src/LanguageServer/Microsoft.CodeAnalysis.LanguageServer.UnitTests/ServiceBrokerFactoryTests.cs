@@ -87,7 +87,7 @@ public sealed class ServiceBrokerFactoryTests(ITestOutputHelper testOutputHelper
     }
 
     [Fact]
-    public async Task ManagedHotReloadLanguageServiceIsAvailableAsync()
+    public async Task ManagedHotReloadLanguageServiceIsAdvertisedAsync()
     {
         await using var server = await CreateLanguageServerAsync();
         await using var brokeredServiceClient = new TestBrokeredServiceClient();
@@ -95,13 +95,7 @@ public sealed class ServiceBrokerFactoryTests(ITestOutputHelper testOutputHelper
         await brokeredServiceClient.ConnectAsync(server);
 
         var serverServices = await GetAvailableServerServicesAsync(brokeredServiceClient.ServiceBroker, CancellationToken.None);
-        Assert.Contains(ManagedHotReloadLanguageServiceDescriptor.Descriptor.Moniker, serverServices);
-
-        var languageService = await GetRequiredServiceAsync<DebuggerContracts.IManagedHotReloadLanguageService3>(
-            brokeredServiceClient.ServiceBroker,
-            ManagedHotReloadLanguageServiceDescriptor.Descriptor,
-            CancellationToken.None);
-        Assert.NotNull(languageService);
+        Assert.Contains(ManagedHotReloadUpdatesProviderDescriptor.Moniker, serverServices);
     }
 
     [Fact]
@@ -139,7 +133,7 @@ public sealed class ServiceBrokerFactoryTests(ITestOutputHelper testOutputHelper
         var contributor = new TestDiscoveryServiceContributor(() => null);
 
         // Should be a no-op (and must not throw) when there is no implementation to proffer.
-        contributor.Proffer(container);
+        contributor.ProfferAsync(container);
     }
 
     [Fact]
@@ -153,7 +147,7 @@ public sealed class ServiceBrokerFactoryTests(ITestOutputHelper testOutputHelper
         // Mirror the production ordering performed by BrokeredServiceContainer.CreateAsync /
         // ServiceBrokerFactory.CreateAsync: register the advertised monikers, then proffer.
         container.RegisterServices(contributor.ServicesToRegister);
-        contributor.Proffer(container);
+        contributor.ProfferAsync(container);
 
         // The proffered moniker is advertised and serviceable: acquiring a proxy via the implementation's
         // descriptor runs the proffer factory callback, which invokes InitializeAsync before handing back

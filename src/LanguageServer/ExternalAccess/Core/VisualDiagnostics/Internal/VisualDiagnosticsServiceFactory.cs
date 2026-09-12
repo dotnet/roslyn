@@ -50,9 +50,8 @@ internal sealed class VisualDiagnosticsServiceFactory() : ILspServiceFactory
             _ = OnInitializeVisualDiagnosticsLanguageServiceAsync(serviceBroker, cancellationToken);
         }
 
-        public void Proffer(GlobalBrokeredServiceContainer container)
-        {
-        }
+        public ValueTask ProfferAsync(GlobalBrokeredServiceContainer container, CancellationToken cancellationToken)
+            => default;
 
         private async Task OnInitializeVisualDiagnosticsLanguageServiceAsync(IServiceBroker serviceBroker, CancellationToken cancellationToken)
         {

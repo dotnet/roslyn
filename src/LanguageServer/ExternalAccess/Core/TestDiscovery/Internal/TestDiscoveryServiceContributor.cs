@@ -82,7 +82,7 @@ internal sealed class TestDiscoveryServiceContributor : ILspService, IServiceBro
         }
     }
 
-    public void Proffer(GlobalBrokeredServiceContainer container)
+    public async ValueTask ProfferAsync(GlobalBrokeredServiceContainer container, CancellationToken cancellationToken)
     {
         var service = _getTestDiscoveryLanguageService();
         if (service is null)

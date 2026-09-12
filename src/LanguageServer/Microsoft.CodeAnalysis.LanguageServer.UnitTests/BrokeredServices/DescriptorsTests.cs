@@ -17,6 +17,13 @@ public sealed class DescriptorsTests
     }
 
     [Fact]
+    public void RemoteServicesToRegister_IncludesManagedHotReloadServices()
+    {
+        Assert.Contains(new ServiceMoniker("Microsoft.VisualStudio.HotReload.HotReloadEventSubscriber", new(3, 0)), Descriptors.RemoteServicesToRegister.Keys);
+        Assert.Contains(new ServiceMoniker("Microsoft.VisualStudio.HotReload.ManagedHotReloadUpdatesProviderRegistration", new(3, 0)), Descriptors.RemoteServicesToRegister.Keys);
+    }
+
+    [Fact]
     public void RemoteServicesToRegister_IncludesHotReloadAgentServices()
     {
         Assert.Contains(new ServiceMoniker("Microsoft.VisualStudio.Debugger.HotReloadSessionNotificationService", new(0, 1)), Descriptors.RemoteServicesToRegister.Keys);

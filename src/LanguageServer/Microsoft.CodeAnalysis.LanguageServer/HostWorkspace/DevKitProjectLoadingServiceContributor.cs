@@ -39,7 +39,7 @@ internal sealed class DevKitProjectLoadingServiceContributor(
         { WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) }
     }.ToImmutableDictionary();
 
-    public void Proffer(GlobalBrokeredServiceContainer container)
+    public async ValueTask ProfferAsync(GlobalBrokeredServiceContainer container, CancellationToken cancellationToken)
     {
         container.Proffer(
             WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor,
