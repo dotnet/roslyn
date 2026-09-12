@@ -57,11 +57,6 @@
         <target state="translated">Zastosuj „{0}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_Copilot_suggestion">
-        <source>Apply Copilot suggestion</source>
-        <target state="translated">Zastosuj sugestię funkcji Copilot</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">Zastosuj pusty wiersz po dwukropku w preferencjach inicjatora konstruktora (eksperymentalne)</target>
@@ -100,11 +95,6 @@
       <trans-unit id="Apply_expression_block_body_preferences">
         <source>Apply expression/block body preferences</source>
         <target state="translated">Zastosuj preferencje treści wyrażenia/bloku</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Apply_fix_from">
-        <source>Apply fix from</source>
-        <target state="translated">Zastosuj poprawkę z</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_inline_out_variable_preferences">

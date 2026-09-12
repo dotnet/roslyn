@@ -15,7 +15,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
-using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -113,9 +112,6 @@ internal sealed partial class CodeFixService : ICodeFixService
             allDiagnostics = allDiagnostics.WhereAsArray(d => !d.IsSuppressed);
         }
 
-        var copilotDiagnostics = await GetCopilotDiagnosticsAsync(document, range, priority, cancellationToken).ConfigureAwait(false);
-        allDiagnostics = allDiagnostics.AddRange(copilotDiagnostics);
-
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var spanToDiagnostics = ConvertToMap(text, allDiagnostics);
 
@@ -202,9 +198,6 @@ internal sealed partial class CodeFixService : ICodeFixService
                 diagnostics = diagnostics.WhereAsArray(d => !d.IsSuppressed);
         }
 
-        var copilotDiagnostics = await GetCopilotDiagnosticsAsync(document, range, priority, cancellationToken).ConfigureAwait(false);
-        diagnostics = diagnostics.AddRange(copilotDiagnostics);
-
         if (diagnostics.IsEmpty)
             yield break;
 
@@ -243,18 +236,6 @@ internal sealed partial class CodeFixService : ICodeFixService
                 }
             }
         }
-    }
-
-    private static async Task<ImmutableArray<DiagnosticData>> GetCopilotDiagnosticsAsync(
-        TextDocument document,
-        TextSpan range,
-        CodeActionRequestPriority? priority,
-        CancellationToken cancellationToken)
-    {
-        if (priority is null or CodeActionRequestPriority.Low)
-            return await document.GetCachedCopilotDiagnosticsAsync(range, cancellationToken).ConfigureAwait(false);
-
-        return [];
     }
 
     private static SortedDictionary<TextSpan, List<DiagnosticData>> ConvertToMap(
