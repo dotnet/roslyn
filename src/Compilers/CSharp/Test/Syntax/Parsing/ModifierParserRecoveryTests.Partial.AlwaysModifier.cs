@@ -1513,9 +1513,9 @@ public sealed partial class ModifierParserRecoveryTests
             Diagnostic(ErrorCode.ERR_MemberNeedsType, "partial").WithLocation(1, 1));
         N(SyntaxKind.MethodDeclaration);
         {
-            M(SyntaxKind.PredefinedType);
+            M(SyntaxKind.IdentifierName);
             {
-                M(SyntaxKind.VoidKeyword);
+                M(SyntaxKind.IdentifierToken);
             }
             N(SyntaxKind.IdentifierToken, "partial");
             N(SyntaxKind.TypeParameterList);
@@ -1570,9 +1570,9 @@ public sealed partial class ModifierParserRecoveryTests
             Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 15));
         N(SyntaxKind.MethodDeclaration);
         {
-            M(SyntaxKind.PredefinedType);
+            M(SyntaxKind.IdentifierName);
             {
-                M(SyntaxKind.VoidKeyword);
+                M(SyntaxKind.IdentifierToken);
             }
             N(SyntaxKind.IdentifierToken, "partial");
             N(SyntaxKind.TypeParameterList);
@@ -1640,9 +1640,9 @@ public sealed partial class ModifierParserRecoveryTests
         {
             N(SyntaxKind.VariableDeclaration);
             {
-                M(SyntaxKind.PredefinedType);
+                M(SyntaxKind.IdentifierName);
                 {
-                    M(SyntaxKind.VoidKeyword);
+                    M(SyntaxKind.IdentifierToken);
                 }
                 N(SyntaxKind.VariableDeclarator);
                 {
@@ -1667,9 +1667,9 @@ public sealed partial class ModifierParserRecoveryTests
         {
             N(SyntaxKind.VariableDeclaration);
             {
-                M(SyntaxKind.PredefinedType);
+                M(SyntaxKind.IdentifierName);
                 {
-                    M(SyntaxKind.VoidKeyword);
+                    M(SyntaxKind.IdentifierToken);
                 }
                 N(SyntaxKind.VariableDeclarator);
                 {
@@ -1700,9 +1700,9 @@ public sealed partial class ModifierParserRecoveryTests
             Diagnostic(ErrorCode.ERR_MemberNeedsType, "partial").WithLocation(1, 1));
         N(SyntaxKind.PropertyDeclaration);
         {
-            M(SyntaxKind.PredefinedType);
+            M(SyntaxKind.IdentifierName);
             {
-                M(SyntaxKind.VoidKeyword);
+                M(SyntaxKind.IdentifierToken);
             }
             N(SyntaxKind.IdentifierToken, "partial");
             N(SyntaxKind.ArrowExpressionClause);
@@ -1729,9 +1729,9 @@ public sealed partial class ModifierParserRecoveryTests
             Diagnostic(ErrorCode.ERR_MemberNeedsType, "partial").WithLocation(1, 1));
         N(SyntaxKind.PropertyDeclaration);
         {
-            M(SyntaxKind.PredefinedType);
+            M(SyntaxKind.IdentifierName);
             {
-                M(SyntaxKind.VoidKeyword);
+                M(SyntaxKind.IdentifierToken);
             }
             N(SyntaxKind.IdentifierToken, "partial");
             N(SyntaxKind.AccessorList);
@@ -1761,9 +1761,9 @@ public sealed partial class ModifierParserRecoveryTests
         {
             N(SyntaxKind.VariableDeclaration);
             {
-                M(SyntaxKind.PredefinedType);
+                M(SyntaxKind.IdentifierName);
                 {
-                    M(SyntaxKind.VoidKeyword);
+                    M(SyntaxKind.IdentifierToken);
                 }
                 N(SyntaxKind.VariableDeclarator);
                 {

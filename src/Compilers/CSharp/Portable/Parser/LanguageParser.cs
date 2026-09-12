@@ -3713,8 +3713,7 @@ parse_member_name:;
         {
             if (this.IsCurrentTokenDefinitelyPartialMemberName())
             {
-                return _syntaxFactory.PredefinedType(
-                    this.AddError(SyntaxFactory.MissingToken(SyntaxKind.VoidKeyword), ErrorCode.ERR_MemberNeedsType));
+                return this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_MemberNeedsType);
             }
 
             return ParseReturnType();
