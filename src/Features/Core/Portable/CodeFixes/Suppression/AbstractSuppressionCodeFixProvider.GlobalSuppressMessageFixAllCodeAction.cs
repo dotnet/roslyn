@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -40,28 +39,18 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
 
         internal static CodeAction Create(string title, AbstractSuppressionCodeFixProvider fixer, Document triggerDocument, ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsByDocument)
         {
-            return new GlobalSuppressionSolutionChangeAction(title,
+            return new LineEndingSolutionChangeAction(title,
                 (_, ct) => CreateChangedSolutionAsync(fixer, triggerDocument, diagnosticsByDocument, ct),
+                triggerDocument.Project.Solution,
                 equivalenceKey: title);
         }
 
         internal static CodeAction Create(string title, AbstractSuppressionCodeFixProvider fixer, Project triggerProject, ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsByProject)
         {
-            return new GlobalSuppressionSolutionChangeAction(title,
+            return new LineEndingSolutionChangeAction(title,
                 (_, ct) => CreateChangedSolutionAsync(fixer, triggerProject, diagnosticsByProject, ct),
+                triggerProject.Solution,
                 equivalenceKey: title);
-        }
-
-        private sealed class GlobalSuppressionSolutionChangeAction(
-            string title,
-            Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution,
-            string equivalenceKey) : SolutionChangeAction(title, createChangedSolution, equivalenceKey, CodeActionPriority.Default, CodeActionCleanup.Default)
-        {
-            protected override Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
-            {
-                // PERF: We don't to formatting on the entire global suppressions document, but instead do it for each attribute individual in the fixer.
-                return Task.FromResult(document);
-            }
         }
 
         private static async Task<Solution> CreateChangedSolutionAsync(
@@ -132,6 +121,10 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
             var suppressionsRoot = await suppressionsDoc.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var addImportsService = suppressionsDoc.GetRequiredLanguageService<IAddImportsService>();
             var cleanupOptions = await suppressionsDoc.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var fallbackLineEnding = await LineEndingUtilities.GetProjectLineEndingAsync(
+                suppressionsDoc.Project, cleanupOptions.FormattingOptions.NewLine, cancellationToken).ConfigureAwait(false);
+            var lineEnding = await GetLineEndingAsync(suppressionsDoc, fallbackLineEnding, cancellationToken).ConfigureAwait(false);
+            cleanupOptions = cleanupOptions with { FormattingOptions = WithLineEnding(cleanupOptions.FormattingOptions, lineEnding) };
 
             foreach (var (targetSymbol, diagnostics) in _diagnosticsBySymbol)
             {
