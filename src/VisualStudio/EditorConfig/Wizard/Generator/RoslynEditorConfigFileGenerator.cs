@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator;
-using Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.Api;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using static Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Logging.Logger;
+using RoslynEditorConfigGenerator = Microsoft.CodeAnalysis.Options.EditorConfigFileGenerator;
 
 namespace Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Generator;
 
@@ -22,8 +22,11 @@ public class RoslynEditorConfigFileGenerator
         try
         {
             var componentModel = (IComponentModel)ServiceProvider.GlobalProvider.GetService(typeof(SComponentModel));
-            var editorConfigGenerator = componentModel?.GetService<IEditorConfigGenerator>();
-            return editorConfigGenerator?.Generate(language);
+            Assumes.Present(componentModel);
+
+            var globalOptions = componentModel.GetService<IGlobalOptionService>();
+            var optionsEnumerator = componentModel.GetService<EditorConfigOptionsEnumerator>();
+            return RoslynEditorConfigGenerator.Generate(optionsEnumerator.GetOptions(language), globalOptions, language);
         }
         catch (Exception ex)
         {
