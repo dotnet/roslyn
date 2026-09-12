@@ -1639,19 +1639,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (this.IsUnambiguousAnonymousFunctionModifierListFollowedByOpenParen())
                 return false;
 
+            // A leading 'partial' followed by a definite member-name continuation, such as
+            // 'partial;', 'partial =>', or 'partial<T>', names the member.
             if (this.IsCurrentTokenDefinitelyPartialMemberName())
                 return false;
+
+            // '(' may start either the parameter list for a member named 'partial' or a tuple
+            // return type. A tuple type followed by a member name proves that 'partial' is a modifier.
+            if (this.PeekToken(1).Kind != SyntaxKind.OpenParenToken)
+                return true;
 
             using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
 
             this.EatToken();
-
-            // '(' may start either the parameter list for a member named 'partial' or a tuple
-            // return type. A tuple type followed by a member name proves that 'partial' is a modifier.
-            if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
-                return this.IsTypeFollowedByMemberName();
-
-            return true;
+            return this.IsTypeFollowedByMemberName();
         }
 
         private bool IsCurrentTokenDefinitelyPartialMemberName()
