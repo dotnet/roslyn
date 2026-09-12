@@ -385,63 +385,112 @@ ref union U1(E1);
 ref partial union U1(E1);
 """;
         UsingTree(src, TestOptions.Regular14,
-            // (1,24): error CS1001: Identifier expected
+            // (1,19): error CS1003: Syntax error, '=' expected
             // ref partial union U1(E1);
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 24));
+            Diagnostic(ErrorCode.ERR_SyntaxError, "U1").WithArguments("=").WithLocation(1, 19));
 
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.MethodDeclaration);
+            N(SyntaxKind.GlobalStatement);
             {
-                N(SyntaxKind.RefKeyword);
-                N(SyntaxKind.PartialKeyword);
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.LocalDeclarationStatement);
                 {
-                    N(SyntaxKind.IdentifierToken, "union");
-                }
-                N(SyntaxKind.IdentifierToken, "U1");
-                N(SyntaxKind.ParameterList);
-                {
-                    N(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.RefType);
                         {
-                            N(SyntaxKind.IdentifierToken, "E1");
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "partial");
+                            }
                         }
-                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "union");
+                            N(SyntaxKind.EqualsValueClause);
+                            {
+                                M(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.InvocationExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "U1");
+                                    }
+                                    N(SyntaxKind.ArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "E1");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                            }
+                        }
                     }
-                    N(SyntaxKind.CloseParenToken);
+                    N(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.SemicolonToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
         EOF();
 
-        UsingTree(src, useCSharp15 ? TestOptions.Regular15 : TestOptions.RegularPreview);
+        UsingTree(src, useCSharp15 ? TestOptions.Regular15 : TestOptions.RegularPreview,
+            // (1,19): error CS1003: Syntax error, '=' expected
+            // ref partial union U1(E1);
+            Diagnostic(ErrorCode.ERR_SyntaxError, "U1").WithArguments("=").WithLocation(1, 19));
 
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.UnionDeclaration);
+            N(SyntaxKind.GlobalStatement);
             {
-                N(SyntaxKind.RefKeyword);
-                N(SyntaxKind.PartialKeyword);
-                N(SyntaxKind.UnionKeyword);
-                N(SyntaxKind.IdentifierToken, "U1");
-                N(SyntaxKind.ParameterList);
+                N(SyntaxKind.LocalDeclarationStatement);
                 {
-                    N(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.RefType);
                         {
-                            N(SyntaxKind.IdentifierToken, "E1");
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "partial");
+                            }
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "union");
+                            N(SyntaxKind.EqualsValueClause);
+                            {
+                                M(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.InvocationExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "U1");
+                                    }
+                                    N(SyntaxKind.ArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "E1");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                            }
                         }
                     }
-                    N(SyntaxKind.CloseParenToken);
+                    N(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.SemicolonToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
@@ -450,9 +499,21 @@ ref partial union U1(E1);
         CreateCompilation(
             [src, "struct E1;", UnionAttributeSource, IUnionSource],
             parseOptions: useCSharp15 ? TestOptions.Regular15 : TestOptions.RegularPreview).VerifyDiagnostics(
-                // (1,19): error CS0106: The modifier 'ref' is not valid for this item
+                // (1,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
                 // ref partial union U1(E1);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "U1").WithArguments("ref").WithLocation(1, 19));
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(1, 5),
+                // (1,13): error CS8172: Cannot initialize a by-reference variable with a value
+                // ref partial union U1(E1);
+                Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "union U1(E1)").WithLocation(1, 13),
+                // (1,19): error CS1003: Syntax error, '=' expected
+                // ref partial union U1(E1);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "U1").WithArguments("=").WithLocation(1, 19),
+                // (1,19): error CS0103: The name 'U1' does not exist in the current context
+                // ref partial union U1(E1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "U1").WithArguments("U1").WithLocation(1, 19),
+                // (1,22): error CS0119: 'E1' is a type, which is not valid in the given context
+                // ref partial union U1(E1);
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "E1").WithArguments("E1", "type").WithLocation(1, 22));
     }
 
     [Fact]
