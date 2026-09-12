@@ -391,6 +391,58 @@ class Program
         }
 
         [Theory]
+        [InlineData("record", LanguageVersion.CSharp9)]
+        [InlineData("union", LanguageVersion.CSharp15)]
+        [InlineData("extension", LanguageVersion.CSharp14)]
+        public void RefReadonlyContextualKeywordRemainsReturnTypeWhenFeatureEnabled(
+            string contextualKeyword, LanguageVersion languageVersion)
+        {
+            var source = $$"""class C { ref readonly {{contextualKeyword}} M(); }""";
+            var options = TestOptions.Regular.WithLanguageVersion(languageVersion);
+
+            UsingTree(source, options);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, contextualKeyword);
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            CreateCompilation(source, parseOptions: options).VerifyDiagnostics(
+                // (1,...): error CS0246: The type or namespace name '...' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { ref readonly ... M(); }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, contextualKeyword).WithArguments(contextualKeyword).WithLocation(1, 24),
+                // (1,...): error CS0501: 'C.M()' must declare a body because it is not marked abstract, extern, or partial
+                // class C { ref readonly ... M(); }
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M").WithArguments("C.M()").WithLocation(1, 25 + contextualKeyword.Length));
+        }
+
+        [Theory]
         [InlineData("record", LanguageVersion.CSharp8)]
         [InlineData("union", LanguageVersion.CSharp14)]
         [InlineData("extension", LanguageVersion.CSharp13)]
@@ -560,6 +612,62 @@ class Program
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
+        }
+
+        [Theory]
+        [InlineData("record", LanguageVersion.CSharp9)]
+        [InlineData("union", LanguageVersion.CSharp15)]
+        [InlineData("extension", LanguageVersion.CSharp14)]
+        public void RefReadonlyContextualKeywordRemainsPropertyTypeWhenFeatureEnabled(
+            string contextualKeyword, LanguageVersion languageVersion)
+        {
+            var source = $$"""class C { ref readonly {{contextualKeyword}} A { get; } }""";
+            var options = TestOptions.Regular.WithLanguageVersion(languageVersion);
+
+            UsingTree(source, options);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, contextualKeyword);
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "A");
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.GetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.GetKeyword);
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            CreateCompilation(source, parseOptions: options).VerifyDiagnostics(
+                // (1,...): error CS0246: The type or namespace name '...' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { ref readonly ... A { get; } }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, contextualKeyword).WithArguments(contextualKeyword).WithLocation(1, 24),
+                // (1,...): error CS8145: Auto-implemented properties cannot return by reference
+                // class C { ref readonly ... A { get; } }
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "A").WithLocation(1, 25 + contextualKeyword.Length));
         }
 
         [Fact]
