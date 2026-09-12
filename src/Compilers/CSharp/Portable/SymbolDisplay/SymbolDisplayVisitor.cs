@@ -365,10 +365,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddAccessibilityIfNeeded(ISymbol symbol)
         {
-            INamedTypeSymbol containingType = symbol.ContainingType;
+            INamedTypeSymbol? containingType = symbol.ContainingType;
 
             // this method is only called for members and they should have a containingType or a containing symbol should be a TypeSymbol.
-            Debug.Assert((object)containingType != null || (symbol.ContainingSymbol is ITypeSymbol));
+            Debug.Assert(containingType != null || (symbol.ContainingSymbol is ITypeSymbol));
 
             if (Format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeAccessibility) &&
                 (containingType == null ||
@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddSpace();
         }
 
-        private bool ShouldVisitNamespace(ISymbol containingSymbol)
+        private bool ShouldVisitNamespace(ISymbol? containingSymbol)
         {
             var namespaceSymbol = containingSymbol as INamespaceSymbol;
             if (namespaceSymbol == null)

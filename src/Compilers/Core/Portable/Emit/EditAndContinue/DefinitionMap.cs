@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Emit
                         method.GetFirstLocation(),
                         method,
                         MetadataTokens.GetToken(methodHandle),
-                        method.ContainingAssembly,
+                        method.ContainingAssembly!,
                         e.Message
                     ));
 
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.Emit
                             method.GetFirstLocation(),
                             method,
                             MetadataTokens.GetToken(localSignature),
-                            method.ContainingAssembly,
+                            method.ContainingAssembly!,
                             e.Message
                         ));
 
@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.Emit
             out IReadOnlyDictionary<int, EncLambdaMapValue> lambdaMap,
             out IReadOnlyDictionary<int, EncClosureMapValue> closureMap)
         {
-            var map = GetMetadataLambdaAndClosureMap(method.ContainingType, methodId);
+            var map = GetMetadataLambdaAndClosureMap(method.ContainingType!, methodId);
 
             lambdaMap = debugInfo.Lambdas.ToImmutableSegmentedDictionary(
                 keySelector: static info => info.SyntaxOffset,
@@ -733,7 +733,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 // If a method has been added or updated then all synthesized members it produced are stored on the baseline.
                 // This includes all lambdas regardless of whether they were mapped to previous generation or not.
                 if (!addedOrChangedMethod.LambdaDebugInfo.IsDefaultOrEmpty &&
-                    Baseline.SynthesizedMembers.TryGetValue(oldMethod.ContainingType, out var synthesizedSiblingSymbols))
+                    Baseline.SynthesizedMembers.TryGetValue(oldMethod.ContainingType!, out var synthesizedSiblingSymbols))
                 {
                     return getDeletedLambdas(
                         CreateLambdaAndClosureMap(synthesizedSiblingSymbols, Baseline.SynthesizedMembers, addedOrChangedMethod.MethodId),
@@ -761,7 +761,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             return getDeletedLambdas(
-                GetMetadataLambdaAndClosureMap(peMethod.ContainingType, methodId: new DebugId(provider.MethodOrdinal, generation: 0)),
+                GetMetadataLambdaAndClosureMap(peMethod.ContainingType!, methodId: new DebugId(provider.MethodOrdinal, generation: 0)),
                 metadataLambdasToInclude: provider.Lambdas);
 
             IEnumerable<(DebugId id, IMethodSymbolInternal symbol)> getDeletedLambdas(
