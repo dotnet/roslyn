@@ -40,6 +40,7 @@ param (
   [switch][Alias('a')]$runAnalyzers,
   [switch]$skipDocumentation = $false,
   [switch][Alias('d')]$deployExtensions,
+  [string][Alias('hive')]$rootSuffix = "",
   [switch]$prepareMachine,
   [bool][Alias('mt')]$msbuildMultiThreaded = $false,
   [bool]$nodeReuse = $true,
@@ -92,6 +93,7 @@ function Print-Usage() {
   Write-Host "  -configuration <value>    Build configuration: 'Debug' or 'Release' (short: -c)"
   Write-Host "  -verbosity <value>        Msbuild verbosity: q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]"
   Write-Host "  -deployExtensions         Deploy built vsixes (short: -d)"
+  Write-Host "  -rootSuffix <value>       Visual Studio root suffix for deployment and launch (alias: -hive)"
   Write-Host "  -binaryLog                Create MSBuild binary log (short: -bl)"
   Write-Host "  -binaryLogName            Name of the binary log (default Build.binlog)"
   Write-Host ""
@@ -286,6 +288,7 @@ function BuildSolution() {
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
   $dotnetBuildTests = if ($buildTests -ne $null -and !$buildTests) { "/p:DotNetBuildTests=false" } else { "" }
+  $rootSuffixArg = if ($rootSuffix -ne "") { "/p:VSSDKTargetPlatformRegRootSuffix=$rootSuffix" } else { "" }
   # Ensure -testVsi builds also produce Razor's dependency VSIX for Deploy-VsixViaTool.
   $buildDependencyVsix = if ($testVsi) { "/p:BuildDependencyVsix=true" } else { "" }
 
@@ -318,6 +321,7 @@ function BuildSolution() {
       $generateDocumentationFile `
       $roslynUseHardLinks `
       $dotnetBuildTests `
+      $rootSuffixArg `
       $buildDependencyVsix `
       @properties
   }
@@ -855,7 +859,8 @@ try {
     }
 
     $devenvExe = Join-Path $env:VSINSTALLDIR 'Common7\IDE\devenv.exe'
-    &$devenvExe /rootSuffix RoslynDev
+    $launchRootSuffix = if ($rootSuffix -ne "") { $rootSuffix } else { "RoslynDev" }
+    &$devenvExe /rootSuffix $launchRootSuffix
   }
 
   ExitWithExitCode 0
