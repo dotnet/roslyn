@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // However, such behavior isn't much desirable when parsing pattern of a case label in a switch statement. For instance, consider the following example: `case { Prop: { }: case ...`.
             // Normally we would skip second `:` and `case` keyword after it as bad tokens and continue parsing pattern, which produces a lot of noise errors.
             // In order to avoid that and produce single error of missing `}` we exit on unexpected `:` in such cases.
-            if (@this._termState.HasFlag(TerminatorState.IsExpressionOrPatternInCaseLabelOfSwitchStatement) && @this.CurrentToken.Kind is SyntaxKind.ColonToken)
+            if ((@this._termState & TerminatorState.IsExpressionOrPatternInCaseLabelOfSwitchStatement) != 0 && @this.CurrentToken.Kind is SyntaxKind.ColonToken)
                 return PostSkipAction.Abort;
 
             // This is pretty much the same as above, but for switch expressions and `=>` and `:` tokens.
@@ -581,7 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // However, if we treated `=>` as "exit" token, parsing wouldn't consume full case label properly and would produce a lot of noise errors.
             // We can afford `:` to be the exit token for switch expressions because error recovery is already good enough and treats `:` as bad `=>`,
             // meaning that switch expression arm `{ : 1` can be recovered to `{ } => 1` where the closing `}` is missing and instead of `=>` we have `:`.
-            if (@this._termState.HasFlag(TerminatorState.IsPatternInSwitchExpressionArm) && @this.CurrentToken.Kind is SyntaxKind.EqualsGreaterThanToken or SyntaxKind.ColonToken)
+            if ((@this._termState & TerminatorState.IsPatternInSwitchExpressionArm) != 0 && @this.CurrentToken.Kind is SyntaxKind.EqualsGreaterThanToken or SyntaxKind.ColonToken)
                 return PostSkipAction.Abort;
 
             return @this.SkipBadSeparatedListTokensWithExpectedKind(ref open, list,

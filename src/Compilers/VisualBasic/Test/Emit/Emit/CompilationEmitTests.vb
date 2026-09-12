@@ -2119,7 +2119,7 @@ End Module
             Assert.False(peHeaders.Requires64Bits)
             Assert.True(peHeaders.IsDll)
             Assert.False(peHeaders.IsExe)
-            Assert.True(peHeaders.CoffHeader.Characteristics.HasFlag(Characteristics.LargeAddressAware))
+            Assert.True((peHeaders.CoffHeader.Characteristics And Characteristics.LargeAddressAware) <> 0)
 
             'interesting Optional PE header bits
             'We will use a range beginning with &H50 to identify the Roslyn VB compiler family.
@@ -2180,7 +2180,7 @@ End Module
             Assert.False(peHeaders.Requires64Bits)
             Assert.True(peHeaders.IsDll)
             Assert.False(peHeaders.IsExe)
-            Assert.True(peHeaders.CoffHeader.Characteristics.HasFlag(Characteristics.LargeAddressAware))
+            Assert.True((peHeaders.CoffHeader.Characteristics And Characteristics.LargeAddressAware) <> 0)
 
             'interesting Optional PE header bits
             'We will use a range beginning with &H50 to identify the Roslyn VB compiler family.
@@ -2241,7 +2241,7 @@ End Module
             Assert.True(peHeaders.Requires64Bits)
             Assert.True(peHeaders.IsDll)
             Assert.False(peHeaders.IsExe)
-            Assert.True(peHeaders.CoffHeader.Characteristics.HasFlag(Characteristics.LargeAddressAware))
+            Assert.True((peHeaders.CoffHeader.Characteristics And Characteristics.LargeAddressAware) <> 0)
 
             'interesting Optional PE header bits
             'We will use a range beginning with &H50 to identify the Roslyn VB compiler family.

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -3105,7 +3106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string parameterName = parameter.Name;
             if (string.IsNullOrEmpty(parameterName))
             {
-                parameterName = parameter.Ordinal.ToString();
+                parameterName = parameter.Ordinal.ToString(CultureInfo.InvariantCulture);
             }
             return parameterName;
         }

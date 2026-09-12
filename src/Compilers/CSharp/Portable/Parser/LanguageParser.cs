@@ -5340,7 +5340,7 @@ parse_member_name:;
                     // We also accept: `for (int i = 0, ;` as that's likely an intermediary state prior to writing the
                     // next variable. Anything else we'll treat as as more likely to be the following conditional.
 
-                    if (flags.HasFlag(VariableFlags.ForStatement) && this.PeekToken(1).Kind != SyntaxKind.SemicolonToken)
+                    if ((flags & VariableFlags.ForStatement) != 0 && this.PeekToken(1).Kind != SyntaxKind.SemicolonToken)
                     {
                         var isLegalVariableDeclaratorStart =
                             IsTrueIdentifier(this.PeekToken(1)) &&

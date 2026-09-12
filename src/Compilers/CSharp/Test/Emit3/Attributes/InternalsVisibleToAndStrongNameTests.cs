@@ -594,7 +594,7 @@ public class C {}
                 using (var reader = new PEReader(outStream))
                 {
                     var flags = reader.PEHeaders.CorHeader.Flags;
-                    Assert.Equal(expectedToBeSigned, flags.HasFlag(CorFlags.StrongNameSigned));
+                    Assert.Equal(expectedToBeSigned, (flags & CorFlags.StrongNameSigned) != 0);
                 }
             }
         }
