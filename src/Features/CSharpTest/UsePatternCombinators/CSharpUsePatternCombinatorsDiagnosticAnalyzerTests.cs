@@ -404,7 +404,7 @@ public sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzerTests(ITestOutp
             {
                 void M0(Int128 i)
                 {
-                    if (i == int.MaxValue [||] i == int.MinValue)
+                    if (i == int.MaxValue [||]|| i == int.MinValue)
                     {
                     }
                 }
@@ -420,7 +420,55 @@ public sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzerTests(ITestOutp
             {
                 void M0(Int128 i)
                 {
-                    if (i > int.MaxValue [||] i < int.MinValue)
+                    if (i > int.MaxValue [||]|| i < int.MinValue)
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66787")]
+    public Task TestMissingForOperatorOverloadWithBuiltInParameterType_Relational()
+        => TestMissingAsync(
+            """
+            struct S
+            {
+                public static bool operator >(S a, long b) => true;
+                public static bool operator <(S a, long b) => true;
+                public static bool operator >=(S a, long b) => true;
+                public static bool operator <=(S a, long b) => true;
+                public static implicit operator S(long v) => default;
+            }
+
+            class C
+            {
+                void M0(S s)
+                {
+                    if (s >= 0 [||]&& s <= 10)
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66787")]
+    public Task TestMissingForOperatorOverloadWithBuiltInParameterType_Equality()
+        => TestMissingAsync(
+            """
+            struct S
+            {
+                public static bool operator ==(S a, long b) => true;
+                public static bool operator !=(S a, long b) => true;
+                public static implicit operator S(long v) => default;
+                public override bool Equals(object o) => true;
+                public override int GetHashCode() => 0;
+            }
+
+            class C
+            {
+                void M0(S s)
+                {
+                    if (s == 0 [||]|| s == 10)
                     {
                     }
                 }
