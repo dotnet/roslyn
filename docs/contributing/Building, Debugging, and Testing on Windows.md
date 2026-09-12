@@ -240,6 +240,48 @@ Before pushing a relevant fix to CI, you can validate locally using the `-testUs
    C:\Source> dotnet format analyzers .\roslyn\Compilers.slnf --diagnostics=RS0016 --no-restore --include-generated -v diag
    ```
 
+## Troubleshooting
+
+### Build fails with "MSB3103: Invalid Resx file ... Could not find a part of the path"
+
+If `Build.cmd` fails with errors like:
+
+```
+error MSB3103: Invalid Resx file. Could not find a part of the path
+'<OLD-PATH>\src\RoslynAnalyzers\Text.Analyzers\Core\Dictionary.dic'. [Text.Analyzers.csproj]
+error MSB3103: Invalid Resx file. Could not find a part of the path
+'<OLD-PATH>\src\Razor\...\Microsoft.VisualStudio.RazorExtension\Resources\RazorPackage.ico'. [Microsoft.VisualStudio.RazorExtension.csproj]
+```
+
+where `<OLD-PATH>` is not the current location of your clone, the source `.resx` files are
+fine. The failing files are generated localized resources under `artifacts\obj\...\*.xlf\`.
+
+This happens because the [XliffTasks](https://github.com/dotnet/xliff-tasks) MSBuild tasks
+bake the **absolute** path of `ResXFileRef` entries into the cached translated `.resx` files
+placed in `artifacts\obj`. When you rename or move the repository root, those paths become
+stale. MSBuild's incremental-build check doesn't detect the rename because the file timestamps
+and contents haven't changed, so the cached files are never regenerated.
+
+**Fix (cheapest first):**
+
+- Delete only the stale generated resources and rebuild:
+  ```pwsh
+  Remove-Item -Recurse -Force artifacts\obj\Text.Analyzers\*\*\Text.Analyzers.xlf
+  Remove-Item -Recurse -Force artifacts\obj\Microsoft.VisualStudio.RazorExtension\*\*\Microsoft.VisualStudio.RazorExtension.xlf
+  ```
+  XliffTasks regenerates them with the correct path on the next build.
+- Or, the bigger hammer, `git clean -xdfn` (dry run) then `git clean -xdf`. Note this also
+  deletes the locally-provisioned `.dotnet` SDK and the entire `artifacts\` tree, forcing a
+  full restore + rebuild, so prefer the targeted delete above.
+
+**To avoid it:** When renaming your clone, delete `artifacts\obj` (or the two `*.xlf` folders
+above) afterwards.
+
+> **Upstream fix:** The root cause is being tracked in
+> [dotnet/xliff-tasks](https://github.com/dotnet/xliff-tasks). The fix is to store paths in
+> the cached translated `.resx` files as relative (relative to the output file) rather than
+> absolute, so the cached artifacts survive a repository rename.
+
 ## Contributing
 
 Please see [Contributing Code](https://github.com/dotnet/roslyn/blob/main/CONTRIBUTING.md) for details on contributing changes back to the code.
