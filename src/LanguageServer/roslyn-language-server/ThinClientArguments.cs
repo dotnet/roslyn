@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -16,6 +16,7 @@ internal sealed class ThinClientArguments
     public EditorTransportKind EditorTransportKind { get; }
     public string? EditorPipeName { get; }
     public int? ClientProcessId { get; }
+    public string? TelemetryLevel { get; }
     public string[] ServerArguments { get; }
 
     private ThinClientArguments(
@@ -23,12 +24,14 @@ internal sealed class ThinClientArguments
         EditorTransportKind editorTransportKind,
         string? editorPipeName,
         int? clientProcessId,
+        string? telemetryLevel,
         string[] serverArguments)
     {
         DaemonMode = daemonMode;
         EditorTransportKind = editorTransportKind;
         EditorPipeName = editorPipeName;
         ClientProcessId = clientProcessId;
+        TelemetryLevel = telemetryLevel;
         ServerArguments = serverArguments;
     }
 
@@ -38,6 +41,7 @@ internal sealed class ThinClientArguments
         EditorTransportKind? editorTransportKind = null;
         string? editorPipeName = null;
         int? clientProcessId = null;
+        string? telemetryLevel = null;
         var serverArguments = new List<string>(args.Length);
 
         for (var i = 0; i < args.Length; i++)
@@ -81,6 +85,22 @@ internal sealed class ThinClientArguments
                 continue;
             }
 
+            if (TryGetInlineOptionValue(arg, "--telemetryLevel", out var inlineTelemetryLevel))
+            {
+                telemetryLevel = inlineTelemetryLevel;
+                serverArguments.Add(arg);
+                continue;
+            }
+
+            if (arg == "--telemetryLevel")
+            {
+                var value = GetRequiredNextValue(args, ref i, arg);
+                telemetryLevel = value;
+                serverArguments.Add(arg);
+                serverArguments.Add(value);
+                continue;
+            }
+
             serverArguments.Add(arg);
         }
 
@@ -92,6 +112,7 @@ internal sealed class ThinClientArguments
             editorTransportKind.Value,
             editorPipeName,
             clientProcessId,
+            telemetryLevel,
             serverArguments.ToArray());
     }
 

@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -25,12 +26,14 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
     private readonly LspDidChangeWatchedFilesHandler _didChangeWatchedFilesHandler;
     private readonly IClientLanguageServerManager _clientLanguageServerManager;
     private readonly IAsynchronousOperationListener _asynchronousOperationListener;
+    private readonly RoslynTelemetry _telemetry;
 
     private LspFileChangeWatcher(ILspServices lspServices, IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
     {
         _didChangeWatchedFilesHandler = lspServices.GetRequiredService<LspDidChangeWatchedFilesHandler>();
         _clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
         _asynchronousOperationListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Workspace);
+        _telemetry = RoslynTelemetry.Current;
     }
 
     public static bool TryCreate(ILspServices lspServices, IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider, [NotNullWhen(true)] out LspFileChangeWatcher? fileChangeWatcher)
@@ -260,6 +263,11 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
 
             _registrationTask.ContinueWith(async _ =>
             {
+                // Dispose runs on whatever context released the last watch (often a project-system callback with
+                // no ambient of its own), and ContinueWith captures that context, so re-establish the owning
+                // server's instance for the unregistration request.
+                using var telemetryScope = RoslynTelemetry.SetCurrent(_changeWatcher._telemetry);
+
                 var unregistrationParams = new UnregistrationParams()
                 {
                     Unregistrations =

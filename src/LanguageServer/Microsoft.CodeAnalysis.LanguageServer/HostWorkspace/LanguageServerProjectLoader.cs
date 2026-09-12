@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Threading;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
+using RoslynTelemetry = Microsoft.CodeAnalysis.Internal.Log.RoslynTelemetry;
 using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
@@ -37,6 +38,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
     protected readonly IGlobalOptionService GlobalOptionService;
     protected readonly ILoggerFactory LoggerFactory;
     protected readonly IAsynchronousOperationListener Listener;
+    protected readonly RoslynTelemetry Telemetry;
     private readonly ILogger _logger;
     private readonly ProjectLoadTelemetryReporter _projectLoadTelemetryReporter;
     private readonly IBinLogPathProvider _binLogPathProvider;
@@ -97,6 +99,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
         GlobalOptionService = globalOptionService;
         LoggerFactory = loggerFactory;
         Listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
+        Telemetry = RoslynTelemetry.Current;
         _logger = loggerFactory.CreateLogger(this.GetTypeDisplayName());
         _projectLoadTelemetryReporter = lspServices.GetRequiredService<ProjectLoadTelemetryReporter>();
         _binLogPathProvider = binLogPathProvider;
@@ -147,6 +150,10 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
 
     private async ValueTask ReloadProjectsAsync(ImmutableSegmentedList<string> projectsToLoadOrReload, CancellationToken cancellationToken)
     {
+        // A batch runs on the context of whichever AddWork caller started it, which may be a file-change
+        // notification or other non-request caller that carries no ambient instance of its own.
+        using var _ = RoslynTelemetry.SetCurrent(Telemetry);
+
         // TODO: support configuration switching
         var stopwatch = Stopwatch.StartNew();
         ImmutableArray<string> projectsThatNeedRestore;
