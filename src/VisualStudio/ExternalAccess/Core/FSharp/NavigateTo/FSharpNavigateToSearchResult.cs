@@ -21,8 +21,8 @@ internal class FSharpNavigateToSearchResult
 
     /// <param name="parameterCount">The number of parameters the declaration takes, if any.  Results that are
     /// otherwise equal are sorted by it, as they are for a C# or VB declaration.</param>
-    /// <param name="typeParameterCount">The number of type parameters the declaration takes, if any.  Sorted by
-    /// after <paramref name="parameterCount"/>.</param>
+    /// <param name="typeParameterCount">The number of type parameters the declaration takes, if any.  Results that
+    /// are otherwise equal, including in <paramref name="parameterCount"/>, are sorted by it.</param>
     public FSharpNavigateToSearchResult(
         string additionalInformation,
         string kind,
