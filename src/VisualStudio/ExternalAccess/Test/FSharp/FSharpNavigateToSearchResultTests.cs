@@ -53,12 +53,30 @@ public sealed class FSharpNavigateToSearchResultTests
             activeDocument: null);
 
         Assert.Equal("0000 0000 0000 M Other", result.SecondarySort);
+        Assert.False(result.IsCaseSensitive);
+        Assert.Empty(result.NameMatchSpans);
+    }
+
+    [Fact]
+    public void ResultMatchesWithTheCaseAndSpansOfTheName()
+    {
+        using var workspace = new AdhocWorkspace();
+        var projectId = workspace.AddProject("Project", LanguageNames.CSharp).Id;
+        var document = AddDocument(workspace, projectId, "Other", []);
+
+        INavigateToSearchResult result = new InternalFSharpNavigateToSearchResult(
+            new FSharpNavigateToSearchResult("", FSharpNavigateToItemKind.Method, FSharpNavigateToMatchKind.Prefix, isCaseSensitive: true, "Program", [new TextSpan(0, 3)], NavigableItem(document), parameterCount: 0, typeParameterCount: 0),
+            activeDocument: null);
+
+        var match = Assert.Single(result.Matches);
+        Assert.True(match.IsCaseSensitive);
+        Assert.Equal<TextSpan>([new TextSpan(0, 3)], match.MatchedSpans);
     }
 
     private static string SecondarySort(Document document, Document activeDocument)
     {
         INavigateToSearchResult result = new InternalFSharpNavigateToSearchResult(
-            new FSharpNavigateToSearchResult("", FSharpNavigateToItemKind.Method, FSharpNavigateToMatchKind.Exact, "M", NavigableItem(document), parameterCount: 2, typeParameterCount: 1),
+            new FSharpNavigateToSearchResult("", FSharpNavigateToItemKind.Method, FSharpNavigateToMatchKind.Exact, isCaseSensitive: false, "M", [], NavigableItem(document), parameterCount: 2, typeParameterCount: 1),
             activeDocument);
 
         return result.SecondarySort;
