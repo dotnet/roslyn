@@ -13726,7 +13726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Compat: report nullability warning for `lock (null)` in legacy mode
             // that would normally be reported if `null` was converted to a non-nullable reference type
-            if (argument is { Kind: BoundKind.Literal, ConstantValueOpt.IsNull: true, IsSuppressed: false } && !compilation.FeatureStrictEnabled)
+            if (argument is { Type: null, ConstantValueOpt.IsNull: true, IsSuppressed: false } && !compilation.FeatureStrictEnabled)
             {
                 ReportDiagnostic(ErrorCode.WRN_NullReferenceReceiver, argument.Syntax);
             }
