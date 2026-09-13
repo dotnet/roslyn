@@ -479,7 +479,9 @@ Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo.FSharpNavigateTo
 Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo.FSharpNavigateToMatchKind.Regular = 3 -> Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo.FSharpNavigateToMatchKind
 Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo.FSharpNavigateToMatchKind.Substring = 2 -> Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo.FSharpNavigateToMatchKind
 Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo.FSharpNavigateToSearchResult
+Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo.FSharpNavigateToSearchResult.IsCaseSensitive.get -> bool
 Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo.FSharpNavigateToSearchResult.MatchKind.get -> Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo.FSharpNavigateToMatchKind
+Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo.FSharpNavigateToSearchResult.NameMatchSpans.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan>
 Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo.FSharpNavigateToSearchResult.ParameterCount.get -> int
 Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo.FSharpNavigateToSearchResult.TypeParameterCount.get -> int
 Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo.IFSharpAdvancedNavigateToSearchService
@@ -888,7 +890,9 @@ Microsoft.VisualStudio.ExternalAccess.FSharp.NavigateTo.FSharpNavigateToMatchKin
 Microsoft.VisualStudio.ExternalAccess.FSharp.NavigateTo.FSharpNavigateToMatchKind.Regular = 3 ->Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo.FSharpNavigateToMatchKind
 Microsoft.VisualStudio.ExternalAccess.FSharp.NavigateTo.FSharpNavigateToMatchKind.Substring = 2 ->Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo.FSharpNavigateToMatchKind
 Microsoft.VisualStudio.ExternalAccess.FSharp.NavigateTo.FSharpNavigateToSearchResult
+Microsoft.VisualStudio.ExternalAccess.FSharp.NavigateTo.FSharpNavigateToSearchResult.IsCaseSensitive.get -> bool
 Microsoft.VisualStudio.ExternalAccess.FSharp.NavigateTo.FSharpNavigateToSearchResult.MatchKind.get ->Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo.FSharpNavigateToMatchKind
+Microsoft.VisualStudio.ExternalAccess.FSharp.NavigateTo.FSharpNavigateToSearchResult.NameMatchSpans.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan>
 Microsoft.VisualStudio.ExternalAccess.FSharp.NavigateTo.FSharpNavigateToSearchResult.ParameterCount.get -> int
 Microsoft.VisualStudio.ExternalAccess.FSharp.NavigateTo.FSharpNavigateToSearchResult.TypeParameterCount.get -> int
 Microsoft.VisualStudio.ExternalAccess.FSharp.NavigateTo.IFSharpAdvancedNavigateToSearchService
@@ -1200,8 +1204,8 @@ staticMicrosoft.CodeAnalysis.ExternalAccess.Unified.FSharp.TaskList.FSharpTaskLi
 ~Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.VisualStudio.Text.Classification.FSharpSignatureHelpClassifierProvider.FSharpSignatureHelpClassifierProvider(Microsoft.CodeAnalysis.Editor.Shared.Utilities.ClassificationTypeMap typeMap) -> void
 ~Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Internal.VisualStudio.Text.Classification.FSharpSignatureHelpClassifierProvider.GetClassifier(Microsoft.VisualStudio.Text.ITextBuffer textBuffer) -> Microsoft.VisualStudio.Text.Classification.IClassifier
 ~Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo.FSharpNavigateToSearchResult.AdditionalInformation.get -> string
+~Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo.FSharpNavigateToSearchResult.FSharpNavigateToSearchResult(string additionalInformation, string kind, Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo.FSharpNavigateToMatchKind matchKind, bool isCaseSensitive, string name, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan> nameMatchSpans, Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Navigation.FSharpNavigableItem navigateItem, int parameterCount, int typeParameterCount) -> void
 ~Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo.FSharpNavigateToSearchResult.FSharpNavigateToSearchResult(string additionalInformation, string kind, Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo.FSharpNavigateToMatchKind matchKind, string name, Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Navigation.FSharpNavigableItem navigateItem) -> void
-~Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo.FSharpNavigateToSearchResult.FSharpNavigateToSearchResult(string additionalInformation, string kind, Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo.FSharpNavigateToMatchKind matchKind, string name, Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Navigation.FSharpNavigableItem navigateItem, int parameterCount, int typeParameterCount) -> void
 ~Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo.FSharpNavigateToSearchResult.Kind.get -> string
 ~Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo.FSharpNavigateToSearchResult.Name.get -> string
 ~Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo.FSharpNavigateToSearchResult.NavigableItem.get -> Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Navigation.FSharpNavigableItem
@@ -1344,8 +1348,8 @@ staticMicrosoft.CodeAnalysis.ExternalAccess.Unified.FSharp.TaskList.FSharpTaskLi
 ~Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.VisualStudio.Text.Classification.FSharpSignatureHelpClassifierProvider.FSharpSignatureHelpClassifierProvider(Microsoft.CodeAnalysis.Editor.Shared.Utilities.ClassificationTypeMap typeMap) -> void
 ~Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.VisualStudio.Text.Classification.FSharpSignatureHelpClassifierProvider.GetClassifier(Microsoft.VisualStudio.Text.ITextBuffer textBuffer) -> Microsoft.VisualStudio.Text.Classification.IClassifier
 ~Microsoft.VisualStudio.ExternalAccess.FSharp.NavigateTo.FSharpNavigateToSearchResult.AdditionalInformation.get -> string
+~Microsoft.VisualStudio.ExternalAccess.FSharp.NavigateTo.FSharpNavigateToSearchResult.FSharpNavigateToSearchResult(string additionalInformation, string kind, Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo.FSharpNavigateToMatchKind matchKind, bool isCaseSensitive, string name, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan> nameMatchSpans, Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Navigation.FSharpNavigableItem navigateItem, int parameterCount, int typeParameterCount) -> void
 ~Microsoft.VisualStudio.ExternalAccess.FSharp.NavigateTo.FSharpNavigateToSearchResult.FSharpNavigateToSearchResult(string additionalInformation, string kind,Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo.FSharpNavigateToMatchKind matchKind, string name,Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Navigation.FSharpNavigableItem navigateItem) -> void
-~Microsoft.VisualStudio.ExternalAccess.FSharp.NavigateTo.FSharpNavigateToSearchResult.FSharpNavigateToSearchResult(string additionalInformation, string kind, Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.NavigateTo.FSharpNavigateToMatchKind matchKind, string name, Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Navigation.FSharpNavigableItem navigateItem, int parameterCount, int typeParameterCount) -> void
 ~Microsoft.VisualStudio.ExternalAccess.FSharp.NavigateTo.FSharpNavigateToSearchResult.Kind.get -> string
 ~Microsoft.VisualStudio.ExternalAccess.FSharp.NavigateTo.FSharpNavigateToSearchResult.Name.get -> string
 ~Microsoft.VisualStudio.ExternalAccess.FSharp.NavigateTo.FSharpNavigateToSearchResult.NavigableItem.get ->Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Navigation.FSharpNavigableItem
