@@ -15,12 +15,30 @@ internal class FSharpNavigateToSearchResult
         FSharpNavigateToMatchKind matchKind,
         string name,
         FSharpNavigableItem navigateItem)
+        : this(additionalInformation, kind, matchKind, name, navigateItem, parameterCount: 0, typeParameterCount: 0)
+    {
+    }
+
+    /// <param name="parameterCount">The number of parameters the declaration takes, if any.  Results that are
+    /// otherwise equal are sorted by it, as they are for a C# or VB declaration.</param>
+    /// <param name="typeParameterCount">The number of type parameters the declaration takes, if any.  Sorted by
+    /// after <paramref name="parameterCount"/>.</param>
+    public FSharpNavigateToSearchResult(
+        string additionalInformation,
+        string kind,
+        FSharpNavigateToMatchKind matchKind,
+        string name,
+        FSharpNavigableItem navigateItem,
+        int parameterCount,
+        int typeParameterCount)
     {
         AdditionalInformation = additionalInformation;
         Kind = kind;
         Name = name;
         MatchKind = matchKind;
         NavigableItem = navigateItem;
+        ParameterCount = parameterCount;
+        TypeParameterCount = typeParameterCount;
     }
 
     public string AdditionalInformation { get; }
@@ -32,4 +50,8 @@ internal class FSharpNavigateToSearchResult
     public string Name { get; }
 
     public FSharpNavigableItem NavigableItem { get; }
+
+    public int ParameterCount { get; }
+
+    public int TypeParameterCount { get; }
 }
