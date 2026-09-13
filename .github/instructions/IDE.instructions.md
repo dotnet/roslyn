@@ -19,6 +19,17 @@ Roslyn uses a **layered service architecture** built on MEF (Managed Extensibili
 - **EditorConfig templates** (`src/VisualStudio/EditorConfig/`): item templates, generation wizard, context-menu command, VSIX projects, and Visual Studio insertion setup
   - The setup insertion component is `Templates.Editorconfig.Setup`, but its SWR package identity must remain `Templates.Editorconfig.SolutionFile.Setup` because existing Visual Studio template packages depend on that ID.
 
+### External Access assemblies
+
+Partner APIs that depend on IDE layers are grouped into one ExternalAccess assembly per layer:
+
+- `src/Features/ExternalAccess/Core/`
+- `src/EditorFeatures/ExternalAccess/Core/`
+- `src/LanguageServer/ExternalAccess/Core/`
+- `src/VisualStudio/ExternalAccess/Core/`
+
+Partner-specific source remains organized in subdirectories of those projects. Compatibility assemblies remain for ASP.NET under `src/Features/ExternalAccess/AspNetCore/` and EditorConfigGenerator under `src/VisualStudio/ExternalAccess/EditorConfigGenerator/`; ExternalAccess projects for APIs that are not part of the unified layer assemblies remain separate.
+
 ### Service Resolution
 ```csharp
 // Workspace services
