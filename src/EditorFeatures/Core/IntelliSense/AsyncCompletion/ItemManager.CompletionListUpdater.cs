@@ -186,6 +186,7 @@ internal partial class ItemManager
             {
                 cancellationTokenSource.Cancel();
 
+                // Cancellation is cooperative, so wait for the task to stop using pooled state before releasing it.
                 if (highlightAndFilterTask is not null)
                     await highlightAndFilterTask.NoThrowAwaitable(captureContext: false);
 
