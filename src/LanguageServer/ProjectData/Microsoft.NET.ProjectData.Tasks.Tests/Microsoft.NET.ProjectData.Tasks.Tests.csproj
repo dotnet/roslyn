@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- Roslyn expects all unit test assemblies to end with "UnitTests". -->
+    <AssemblyName>Microsoft.NET.ProjectData.Tasks.UnitTests</AssemblyName>
+    <RootNamespace>Microsoft.NET.ProjectData.Tasks.Tests</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <!-- Mirrored tests preserve Moq's loose default behavior; changing them to Strict would
+         alter test semantics solely to satisfy Roslyn's repository-specific banned API list. -->
+    <NoWarn>$(NoWarn);RS0030</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
+    <ProjectReference Include="..\Microsoft.NET.ProjectData.Tasks\Microsoft.NET.ProjectData.Tasks.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Utilities.Core" />
+    <PackageReference Include="Moq" />
+  </ItemGroup>
+
+</Project>

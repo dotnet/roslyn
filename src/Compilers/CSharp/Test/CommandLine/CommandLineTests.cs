@@ -12045,6 +12045,30 @@ class C
         }
 
         [Fact]
+        public void RefOnly_EmbeddedDebugInformation()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("a.cs");
+            src.WriteAllText("public class C { }");
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = CreateCSharpCompiler(null, dir.Path,
+                new[] { "/nologo", "/target:library", "/out:a.dll", "/refonly", "/debug:embedded", "/deterministic", "a.cs" });
+
+            Assert.Equal(0, csc.Run(outWriter));
+            Assert.Equal("", outWriter.ToString());
+
+            using (var peReader = new PEReader(File.OpenRead(Path.Combine(dir.Path, "a.dll"))))
+            {
+                AssertEx.Equal(
+                    new[] { DebugDirectoryEntryType.Reproducible },
+                    peReader.ReadDebugDirectory().Select(entry => entry.Type));
+            }
+
+            CleanupAllGeneratedFiles(dir.Path);
+        }
+
+        [Fact]
         public void CompilingCodeWithInvalidPreProcessorSymbolsShouldProvideDiagnostics()
         {
             var parsedArgs = DefaultParse(new[] { "/define:1", "a.cs" }, WorkingDirectory);

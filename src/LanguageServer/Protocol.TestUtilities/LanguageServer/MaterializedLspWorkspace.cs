@@ -60,7 +60,7 @@ internal sealed class MaterializedLspWorkspace
         if (content.ShouldRestore)
         {
             foreach (var projectPath in content.Files.Keys.Where(static path => PathUtilities.GetExtension(path) == ".csproj"))
-                ProcessUtilities.Run("dotnet", $"restore --project \"{GetFullPath(rootPath, projectPath)}\"");
+                ProcessUtilities.Run("dotnet", $"restore \"{GetFullPath(rootPath, projectPath)}\"");
         }
 
         return new MaterializedLspWorkspace(content, rootPath, annotatedLocations);

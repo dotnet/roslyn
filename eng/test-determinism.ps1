@@ -28,9 +28,6 @@ $script:skipList = @(
   # Added to work around https://github.com/dotnet/roslyn/issues/48417
   "Microsoft.CodeAnalysis.EditorFeatures2.UnitTests.dll",
 
-  # Work around XLF issues https://github.com/dotnet/roslyn/issues/58840
-  "Roslyn.VisualStudio.DiagnosticsWindow.dll.key",
-
   # Work around the same XLF ResXFileRef determinism issue in Razor's VSIX package resources.
   "Microsoft.VisualStudio.RazorExtension.dll.key",
 
@@ -319,4 +316,3 @@ catch {
 finally {
   Pop-Location
 }
-

@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private RefSafetyRulesAttributeVersion _lazyRefSafetyRulesAttributeVersion;
 
-        private MemorySafetyRulesVersion? _lazyMemorySafetyRulesVersion;
+        private SingleInitNullable<MemorySafetyRulesVersion> _lazyMemorySafetyRulesVersion;
 
 #nullable enable
         private DiagnosticInfo? _lazyCachedCompilerFeatureRequiredDiagnosticInfo = CSDiagnosticInfo.EmptyErrorInfo;
@@ -753,16 +753,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return _lazyMemorySafetyRulesVersion ??= getAttributeVersion();
-
-                // Returns
-                // * recognized: 1 if the attribute is not present,
-                // * recognized: 2 if the attribute is present and has the value 2,
-                // * unrecognized: -1 if the attribute is present and has the value 1 or some non-integer value,
-                // * unrecognized: the attribute's value (which is other than 1 or 2).
-                MemorySafetyRulesVersion getAttributeVersion()
+                return _lazyMemorySafetyRulesVersion.Initialize(static @this =>
                 {
-                    if (_module.HasMemorySafetyRulesAttribute(Token, out int version, out bool foundAttributeType) &&
+                    // Returns
+                    // * recognized: 1 if the attribute is not present,
+                    // * recognized: 2 if the attribute is present and has the value 2,
+                    // * unrecognized: -1 if the attribute is present and has the value 1 or some non-integer value,
+                    // * unrecognized: the attribute's value (which is other than 1 or 2).
+                    if (@this._module.HasMemorySafetyRulesAttribute(Token, out int version, out bool foundAttributeType) &&
                         version != (int)MemorySafetyRulesVersion.Version1)
                     {
                         return (MemorySafetyRulesVersion)version;
@@ -771,7 +769,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return foundAttributeType
                         ? (MemorySafetyRulesVersion)(-1)
                         : MemorySafetyRulesVersion.Version1;
-                }
+                }, this);
             }
         }
 

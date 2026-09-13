@@ -49,6 +49,7 @@ internal sealed partial class LoadedProject : IAsyncDisposable
 
     private readonly List<Target> _targets = [];
     private (ProjectSystemProjectFactory ProjectFactory, ProjectId Id)? _primordialProjectInfo;
+    private readonly TaskCompletionSource _initialLoadCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     private bool _reportedTelemetry = false;
     private Guid? _projectGuidForTelemetry = null;
@@ -65,13 +66,11 @@ internal sealed partial class LoadedProject : IAsyncDisposable
         {
             _projectFileChangeContext.EnqueueWatchingFile(absoluteFilePath);
             _projectDirectory = Path.GetDirectoryName(absoluteFilePath);
+            Contract.ThrowIfNull(_projectDirectory, "If the project has an absolute path, then the project directory should exist.");
 
-            if (_projectDirectory is not null)
-            {
-                // We'll watch the directory for all source file changes
-                _sourceFileCreatedOrDeletedChangeContext = fileWatcher.CreateContext([new(_projectDirectory, [".cs", ".cshtml", ".razor"])]);
-                _sourceFileCreatedOrDeletedChangeContext.FileChanged += SourceFileCreatedOrDeletedChangeContext_FileChanged;
-            }
+            // We'll watch the directory for all source file changes
+            _sourceFileCreatedOrDeletedChangeContext = fileWatcher.CreateContext([new(_projectDirectory, [".cs", ".cshtml", ".razor"])]);
+            _sourceFileCreatedOrDeletedChangeContext.FileChanged += SourceFileCreatedOrDeletedChangeContext_FileChanged;
         }
     }
 
@@ -79,6 +78,26 @@ internal sealed partial class LoadedProject : IAsyncDisposable
     /// Raised any time this project (or any of its targets) needs a reload. The parameter includes the file path that triggered a reload.
     /// </summary>
     public event EventHandler<string>? NeedsReload;
+
+    /// <summary>
+    /// Waits for the initial project load to settle.
+    /// </summary>
+    /// <returns>
+    /// <see langword="true"/> if the project remains loaded and contains a primordial project or at least one evaluated
+    /// target; otherwise, <see langword="false"/>.
+    /// </returns>
+    public async ValueTask<bool> WaitForLoadAsync(CancellationToken cancellationToken)
+    {
+        await _initialLoadCompletionSource.Task.WaitAsync(cancellationToken);
+
+        using (await _gate.DisposableWaitAsync(cancellationToken))
+        {
+            return !_disposed && (_primordialProjectInfo.HasValue || _targets.Count > 0);
+        }
+    }
+
+    public void CompleteInitialLoad()
+        => _initialLoadCompletionSource.TrySetResult();
 
     private void ProjectFileChangeContext_FileChanged(object? sender, FileChangedEventArgs e)
     {
@@ -324,6 +343,8 @@ internal sealed partial class LoadedProject : IAsyncDisposable
             if (_disposed)
                 return;
 
+            _initialLoadCompletionSource.TrySetResult();
+
             _sourceFileCreatedOrDeletedChangeContext?.Dispose();
             _projectFileChangeContext.Dispose();
 
@@ -340,6 +361,13 @@ internal sealed partial class LoadedProject : IAsyncDisposable
 
             _disposed = true;
         }
+    }
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(LoadedProject loadedProject)
+    {
+        public void RaiseNeedsReload() => loadedProject.NeedsReload?.Invoke(loadedProject, loadedProject.ProjectFilePath);
     }
 
     private sealed class DocumentFileInfoComparer : IEqualityComparer<DocumentFileInfo>

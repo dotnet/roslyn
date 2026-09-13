@@ -3,6 +3,7 @@
 <Project>
   <Import Project="VisualStudio.targets" Condition="'$(UsingToolVSSDK)' == 'true'"/>
   <Import Project="XUnit.targets" Condition="'$(IsTestProject)' == 'true'" />
+  <Import Project="DeveloperSettings.targets" />
 
   <!--
     Work around .editorconfig evaluation bugs in command line builds.
@@ -15,6 +16,17 @@
       <Compile Include="@(_AbsoluteCompile)" />
     </ItemGroup>
   </Target>
+
+  <!-- Keep builds fast by default, unless explicitly running the "Run Code Analysis" command. -->
+  <PropertyGroup Condition="'$(RunAnalyzersDuringBuild)' == ''">
+    <RunAnalyzersDuringBuild Condition="'$(RunCodeAnalysis)' == 'true'">true</RunAnalyzersDuringBuild>
+    <RunAnalyzersDuringBuild Condition="'$(RunAnalyzersDuringBuild)' == ''">false</RunAnalyzersDuringBuild>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(RunAnalyzersDuringBuild)' != 'true'">
+    <!-- Don't treat FormattingAnalyzer as an error unless build analysis is enabled. -->
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);IDE0055</WarningsNotAsErrors>
+  </PropertyGroup>
 
   <PropertyGroup>
     <FileAlignment>512</FileAlignment>
@@ -45,21 +57,9 @@
       impact the correctness of the output, so we avoid the performance overhead where it's easy to do so.
     -->
     <RoslynCheckCodeStyle Condition="'$(RoslynCheckCodeStyle)' == '' AND '$(DisableNullableWarnings)' == 'true'">false</RoslynCheckCodeStyle>
-    <RoslynCheckCodeStyle Condition="'$(RoslynCheckCodeStyle)' == '' AND ('$(ContinuousIntegrationBuild)' != 'true' OR '$(RoslynEnforceCodeStyle)' == 'true')">true</RoslynCheckCodeStyle>
+    <RoslynCheckCodeStyle Condition="'$(RoslynCheckCodeStyle)' == '' AND ('$(ContinuousIntegrationBuild)' != 'true' OR '$(RunAnalyzersDuringBuild)' == 'true')">true</RoslynCheckCodeStyle>
 
     <EnforceCodeStyleInBuild Condition="'$(EnforceCodeStyleInBuild)' == '' AND '$(RoslynCheckCodeStyle)' == 'true'">true</EnforceCodeStyleInBuild>
-  </PropertyGroup>
-
-  <!--
-    PERF: Set default value for 'RunAnalyzersDuringBuild' to determine if analyzers should be executed.
-          Default to 'false' in all non-CI builds to improve local build time (i.e. csc/vbc invocations both inside Visual Studio and from command line prompt), except if:
-            1. We are enforcing code style, i.e. '$(RoslynEnforceCodeStyle)' == 'true' OR
-            2. We are explicitly running code analysis via "Run Code Analysis" command, i.e. '$(RunCodeAnalysis)' == 'true'.
-          Otherwise, default to 'true'.
-  -->
-  <PropertyGroup Condition="'$(RunAnalyzersDuringBuild)' == ''">
-    <RunAnalyzersDuringBuild Condition="'$(RoslynEnforceCodeStyle)' != 'true' AND '$(RunCodeAnalysis)' != 'true'">false</RunAnalyzersDuringBuild>
-    <RunAnalyzersDuringBuild Condition="'$(RunAnalyzersDuringBuild)' == ''">true</RunAnalyzersDuringBuild>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(DisableNullableWarnings)' == 'true'">
@@ -183,15 +183,7 @@
   
     <SingleError Text="The msbuild version $(MSBuildVersion) is below the minimum required version $(MinimumMSBuildVersion)"
                  Condition="$(_VersionComparisonResult) &lt; 0"/>
-  </Target> 
-
-  <Target Name="_CheckLongPathSupport" BeforeTargets="BeforeBuild" Condition="'$(MSBuildRuntimeType)' == 'Full'">
-    <PropertyGroup>
-      <_RoslynLongPathsEnabled>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\FileSystem', 'LongPathsEnabled', null, RegistryView.Registry64, RegistryView.Registry32))</_RoslynLongPathsEnabled>
-    </PropertyGroup>
-    
-    <Warning Condition="'$(_RoslynLongPathsEnabled)' != '1'" Text="Long paths are required for this project. Please run eng\enable-long-paths.reg" />
-  </Target> 
+  </Target>
 
   <!-- 
     This target is used to copy referenced projects to a sub-directory vs. the direct output 

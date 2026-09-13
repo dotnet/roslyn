@@ -8,6 +8,7 @@
     <Nullable>enable</Nullable>
     <UseWpf>true</UseWpf>
     <NoWarn>$(NoWarn);NU1603;NU1605</NoWarn>
+    <PublishWindowsPdb>true</PublishWindowsPdb>
   </PropertyGroup>
   <ItemGroup>
     <Page Remove="ComponentDebuggerLaunchProfile.xaml" />
