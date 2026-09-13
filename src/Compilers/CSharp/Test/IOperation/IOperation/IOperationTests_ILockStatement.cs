@@ -105,10 +105,7 @@ public class C1
             string expectedOperationTree = @"
 ILockOperation (OperationKind.Lock, Type: null) (Syntax: 'lock (null) ... }')
   Expression:
-    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
-      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand:
-        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+    ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
   Body:
     IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
 ";

@@ -1113,18 +1113,25 @@ class C
                 // (5,15): warning CS8602: Dereference of a possibly null reference.
                 //         lock (null)
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "null").WithLocation(5, 15));
+        }
 
-            var tree = comp.SyntaxTrees.Single();
-            var semanticModel = comp.GetSemanticModel(tree);
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76597")]
+        public void LockStatement_NullConstant_LegacyBehavior_Suppressed()
+        {
+            var comp = CreateCompilation("""
+                class C
+                {
+                    private const object? Null = null;
 
-            var lockNode = tree.GetRoot().DescendantNodes().OfType<LockStatementSyntax>().Single();
-
-            var lockExpressionTypeInfo = semanticModel.GetTypeInfo(lockNode.Expression);
-            Assert.Null(lockExpressionTypeInfo.Type);
-            Assert.Equal("System.Object?", lockExpressionTypeInfo.ConvertedType.ToTestDisplayString());
-
-            var lockExpressionConversion = semanticModel.GetConversion(lockNode.Expression);
-            Assert.Equal(Conversion.ImplicitReference, lockExpressionConversion);
+                    void M()
+                    {
+                        lock (Null!)
+                        {
+                        }
+                    }
+                }
+                """, options: WithNullableEnable());
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76597")]
@@ -1145,18 +1152,51 @@ class C
                 // (5,15): error CS0185: '<null>' is not a reference type as required by the lock statement
                 //         lock (null)
                 Diagnostic(ErrorCode.ERR_LockNeedsReference, "null").WithArguments("<null>").WithLocation(5, 15));
+        }
 
-            var tree = comp.SyntaxTrees.Single();
-            var semanticModel = comp.GetSemanticModel(tree);
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/76597")]
+        public void LockStatement_NullConstant(bool strict)
+        {
+            var comp = CreateCompilation("""
+                class C
+                {
+                    private const object? Null = null;
 
-            var lockNode = tree.GetRoot().DescendantNodes().OfType<LockStatementSyntax>().Single();
+                    void M()
+                    {
+                        lock (Null)
+                        {
+                        }
+                    }
+                }
+                """, parseOptions: strict ? TestOptions.Regular.WithStrictFeature() : TestOptions.Regular,
+                     options: WithNullableEnable());
+            comp.VerifyDiagnostics(
+                // (7,15): warning CS8602: Dereference of a possibly null reference.
+                //         lock (Null)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Null").WithLocation(7, 15));
+        }
 
-            var lockExpressionTypeInfo = semanticModel.GetTypeInfo(lockNode.Expression);
-            Assert.Null(lockExpressionTypeInfo.Type);
-            Assert.Null(lockExpressionTypeInfo.ConvertedType);
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/76597")]
+        public void LockStatement_NullConstant_Suppressed(bool strict)
+        {
+            var comp = CreateCompilation("""
+                class C
+                {
+                    private const object? Null = null;
 
-            var lockExpressionConversion = semanticModel.GetConversion(lockNode.Expression);
-            Assert.Equal(Conversion.Identity, lockExpressionConversion);
+                    void M()
+                    {
+                        lock (Null!)
+                        {
+                        }
+                    }
+                }
+                """, parseOptions: strict ? TestOptions.Regular.WithStrictFeature() : TestOptions.Regular,
+                     options: WithNullableEnable());
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(33537, "https://github.com/dotnet/roslyn/issues/33537")]
