@@ -33,7 +33,9 @@ internal class InternalFSharpNavigateToSearchResult : INavigateToSearchResult
         AdditionalInformation = result.AdditionalInformation;
         Kind = result.Kind;
         MatchKind = FSharpNavigateToMatchKindHelpers.ConvertTo(result.MatchKind);
+        IsCaseSensitive = result.IsCaseSensitive;
         Name = result.Name;
+        NameMatchSpans = result.NameMatchSpans;
         NavigableItem = new InternalFSharpNavigableItem(result.NavigableItem);
 
         (DocumentId id, IReadOnlyList<string> folders)? active = activeDocument is null ? null : (activeDocument.Id, activeDocument.Folders);
@@ -41,9 +43,9 @@ internal class InternalFSharpNavigateToSearchResult : INavigateToSearchResult
             active, NavigableItem.Document, result.ParameterCount, result.TypeParameterCount, result.Name));
     }
 
-    public bool IsCaseSensitive => false;
+    public bool IsCaseSensitive { get; }
 
-    public ImmutableArray<TextSpan> NameMatchSpans => [];
+    public ImmutableArray<TextSpan> NameMatchSpans { get; }
 
     public string SecondarySort => _secondarySort.Value;
 
