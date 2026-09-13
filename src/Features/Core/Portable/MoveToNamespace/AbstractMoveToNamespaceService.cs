@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -14,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -102,7 +102,7 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
                 var namespaceName = GetNamespaceName(declarationSyntax);
                 var namespaces = await GetNamespacesAsync(document, cancellationToken).ConfigureAwait(false);
 
-                return new MoveToNamespaceAnalysisResult(document, declarationSyntax, namespaceName, [.. namespaces], MoveToNamespaceAnalysisResult.ContainerType.Namespace);
+                return new MoveToNamespaceAnalysisResult(document, declarationSyntax, namespaceName, namespaces, MoveToNamespaceAnalysisResult.ContainerType.Namespace);
             }
         }
 
@@ -112,7 +112,10 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
     private async Task<MoveToNamespaceAnalysisResult> TryAnalyzeNamedTypeAsync(
         Document document, SyntaxNode node, CancellationToken cancellationToken)
     {
-        var namespaceInSpineCount = GetNamespaceInSpineCount(node);
+        // Only count ancestor namespaces. Namespace declarations cannot appear inside type
+        // declarations, so there is no need to traverse descendants (which is very expensive
+        // for large types).
+        var namespaceInSpineCount = GetAncestorNamespaceCount(node);
 
         // Nested namespaces are currently not supported by the underlying ChangeNamespace service
         if (namespaceInSpineCount > 1 || ContainsMultipleTypesInSpine(node))
@@ -152,7 +155,7 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
         if (await changeNamespaceService.CanChangeNamespaceAsync(document, container, cancellationToken).ConfigureAwait(false))
         {
             var namespaces = await GetNamespacesAsync(document, cancellationToken).ConfigureAwait(false);
-            return new MoveToNamespaceAnalysisResult(document, namedTypeDeclarationSyntax, GetNamespaceName(container), [.. namespaces], MoveToNamespaceAnalysisResult.ContainerType.NamedType);
+            return new MoveToNamespaceAnalysisResult(document, namedTypeDeclarationSyntax, GetNamespaceName(container), namespaces, MoveToNamespaceAnalysisResult.ContainerType.NamedType);
         }
 
         return MoveToNamespaceAnalysisResult.Invalid;
@@ -161,11 +164,54 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
     private static TNamespaceDeclarationSyntax? GetContainingNamespace(TNamedTypeDeclarationSyntax namedTypeSyntax)
         => namedTypeSyntax.FirstAncestorOrSelf<TNamespaceDeclarationSyntax>();
 
+    /// <summary>
+    /// Counts namespace declarations in ancestor nodes (including self) and descendant nodes.
+    /// Used for namespace analysis where both directions matter.
+    /// </summary>
     private static int GetNamespaceInSpineCount(SyntaxNode node)
-        => node.AncestorsAndSelf().OfType<TNamespaceDeclarationSyntax>().Count() + node.DescendantNodes().OfType<TNamespaceDeclarationSyntax>().Count();
+    {
+        var count = GetAncestorNamespaceCount(node);
+        foreach (var descendant in node.DescendantNodes())
+        {
+            if (descendant is TNamespaceDeclarationSyntax)
+                count++;
+        }
+
+        return count;
+    }
+
+    /// <summary>
+    /// Counts namespace declarations in ancestor nodes (including self) only.
+    /// This avoids the expensive descendant traversal when the node is inside a type
+    /// declaration (which cannot contain namespace declarations).
+    /// </summary>
+    private static int GetAncestorNamespaceCount(SyntaxNode node)
+    {
+        var count = 0;
+        foreach (var ancestor in node.AncestorsAndSelf())
+        {
+            if (ancestor is TNamespaceDeclarationSyntax)
+                count++;
+        }
+
+        return count;
+    }
 
     private static bool ContainsMultipleTypesInSpine(SyntaxNode node)
-        => node.AncestorsAndSelf().OfType<TNamedTypeDeclarationSyntax>().Count() > 1;
+    {
+        var found = false;
+        foreach (var ancestor in node.AncestorsAndSelf())
+        {
+            if (ancestor is TNamedTypeDeclarationSyntax)
+            {
+                if (found)
+                    return true;
+                found = true;
+            }
+        }
+
+        return false;
+    }
 
     public Task<MoveToNamespaceResult> MoveToNamespaceAsync(
         MoveToNamespaceAnalysisResult analysisResult,
@@ -302,13 +348,18 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
     protected static string GetQualifiedName(INamespaceSymbol namespaceSymbol)
         => namespaceSymbol.ToDisplayString(QualifiedNamespaceFormat);
 
-    private static async Task<IEnumerable<string>> GetNamespacesAsync(Document document, CancellationToken cancellationToken)
+    private static async Task<ImmutableArray<string>> GetNamespacesAsync(Document document, CancellationToken cancellationToken)
     {
         var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-        return compilation.GlobalNamespace.GetAllNamespaces(cancellationToken)
-            .Where(n => n.NamespaceKind == NamespaceKind.Module && n.ContainingAssembly == compilation.Assembly)
-            .Select(GetQualifiedName);
+        using var _ = ArrayBuilder<string>.GetInstance(out var result);
+        foreach (var ns in compilation.GlobalNamespace.GetAllNamespaces(cancellationToken))
+        {
+            if (ns.NamespaceKind == NamespaceKind.Module && ns.ContainingAssembly == compilation.Assembly)
+                result.Add(GetQualifiedName(ns));
+        }
+
+        return result.ToImmutableAndClear();
     }
 
     public MoveToNamespaceOptionsResult GetChangeNamespaceOptions(
