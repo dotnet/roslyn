@@ -6,6 +6,8 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.Remote.Testing
+Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.TestGenerators
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToImplementation
     <[UseExportProvider]>
@@ -22,6 +24,36 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToImplementation
                 End Function,
                 shouldSucceed,
                 metadataDefinitions)
+        End Function
+
+        Private Shared Async Function TestSourceGeneratedPartialMethodAsync(
+                workspaceDefinition As XElement,
+                generatedMarkup As String,
+                host As TestHost) As Task
+
+            Using workspace = EditorTestWorkspace.Create(
+                    workspaceDefinition,
+                    composition:=EditorTestCompositions.EditorFeatures.WithTestHostParts(host))
+
+                Dim documentWithCursor = workspace.DocumentWithCursor
+                Dim position = documentWithCursor.CursorPosition.Value
+                Dim document = workspace.CurrentSolution.GetRequiredDocument(documentWithCursor.Id)
+                Dim project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(
+                    New TestGeneratorReference(New SingleFileTestGenerator(generatedMarkup)))
+
+                workspace.TryApplyChanges(project.Solution)
+
+                Dim context = New SimpleFindUsagesContext()
+                Dim findUsagesService = document.GetRequiredLanguageService(Of IFindUsagesService)()
+                Dim options = TestOptionsProvider.Create(ClassificationOptions.Default)
+
+                Await findUsagesService.FindImplementationsAsync(
+                    context, document, position, options, CancellationToken.None).ConfigureAwait(False)
+
+                Dim definition = Assert.Single(context.GetDefinitions())
+                Dim sourceSpan = Assert.Single(definition.SourceSpans)
+                Assert.IsType(Of SourceGeneratedDocument)(sourceSpan.Document)
+            End Using
         End Function
 
         <Theory, CombinatorialData>
@@ -1064,6 +1096,61 @@ class D : C
 </Workspace>
 
             Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/82891")>
+        Public Async Function TestSourceGeneratedPartialMethod_FromCallSite(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            partial class Test
+            {
+                public static partial int M();
+
+                void Goo()
+                {
+                    _ = M$$();
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestSourceGeneratedPartialMethodAsync(
+                workspace,
+                "
+partial class Test
+{
+    public static partial int M() => 0;
+}",
+                host)
+        End Function
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/82891")>
+        Public Async Function TestSourceGeneratedPartialMethod_FromDefinition(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            partial class Test
+            {
+                public static partial int M$$();
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestSourceGeneratedPartialMethodAsync(
+                workspace,
+                "
+partial class Test
+{
+    public static partial int M() => 0;
+}",
+                host)
         End Function
 
         <Theory, CombinatorialData>

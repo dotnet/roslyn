@@ -24,6 +24,10 @@ internal abstract partial class AbstractFindUsagesService
     public async Task FindImplementationsAsync(
         IFindUsagesContext context, Document document, int position, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
     {
+        // The document may come from a solution snapshot created before source generator results were observed.
+        document = await document.Project.Solution.Workspace.CurrentSolution.GetDocumentAsync(
+            document.Id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false) ?? document;
+
         // If this is a symbol from a metadata-as-source project, then map that symbol back to a symbol in the primary workspace.
         var symbolAndProject = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
             document, position, cancellationToken).ConfigureAwait(false);
