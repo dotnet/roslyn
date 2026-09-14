@@ -158,7 +158,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         {
             try
             {
-                await _miscellaneousFilesWorkspaceGate.WaitAsync().ConfigureAwait(false);
+                await _miscellaneousFilesWorkspaceGate.WaitAsync(CancellationToken.None).ConfigureAwait(false);
                 try
                 {
                     await _lspMiscellaneousFilesWorkspaceProvider.CloseDocumentAsync(uri).ConfigureAwait(false);
@@ -317,12 +317,15 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         if (includeMiscellaneousFallback &&
             documentContext is null &&
-            _lspMiscellaneousFilesWorkspaceProvider is not null &&
-            trackedDocuments.TryGetValue(uri, out var trackedDocument))
+            _lspMiscellaneousFilesWorkspaceProvider is not null)
         {
+            TrackedDocumentInfo? trackedDocument = trackedDocuments.TryGetValue(uri, out var documentInfo)
+                ? documentInfo
+                : null;
+
             try
             {
-                await _miscellaneousFilesWorkspaceGate.WaitAsync().ConfigureAwait(false);
+                await _miscellaneousFilesWorkspaceGate.WaitAsync(cancellationToken).ConfigureAwait(false);
                 TextDocument? document;
                 try
                 {
@@ -348,7 +351,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             {
                 try
                 {
-                    await _miscellaneousFilesWorkspaceGate.WaitAsync().ConfigureAwait(false);
+                    await _miscellaneousFilesWorkspaceGate.WaitAsync(cancellationToken).ConfigureAwait(false);
                     try
                     {
                         await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri).ConfigureAwait(false);

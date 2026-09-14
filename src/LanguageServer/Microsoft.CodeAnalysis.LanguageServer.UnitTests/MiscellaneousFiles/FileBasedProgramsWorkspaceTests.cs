@@ -435,6 +435,12 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         // Project is unloaded because automatic discovery is disabled.
         Assert.Empty(GetHostWorkspace(testLspServer).CurrentSolution.GetDocumentIds(looseFileUri));
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+
+        // A request for the closed file should still return a transient miscellaneous document.
+        (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
+        Assert.Equal(sourceText, (await document.GetTextAsync(CancellationToken.None)).ToString());
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
     }
 
     /// <summary>Test that a document which does not have an on-disk path, is never treated as a file-based program.</summary>

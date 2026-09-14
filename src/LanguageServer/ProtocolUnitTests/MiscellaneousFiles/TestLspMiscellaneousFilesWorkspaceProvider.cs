@@ -33,7 +33,7 @@ internal sealed class TestLspMiscellaneousFilesWorkspaceProviderFactory() : ILsp
 
     internal sealed class TestLspMiscellaneousFilesWorkspaceProvider(HostServices host) : Workspace(host, WorkspaceKind.MiscellaneousFiles), ILspMiscellaneousFilesWorkspaceProvider
     {
-        private (TaskCompletionSource started, TaskCompletionSource release)? _nextRemoval;
+        private (TaskCompletionSource<bool> started, TaskCompletionSource<bool> release)? _nextRemoval;
 
         public ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo? trackedDocumentInfo)
         {
@@ -57,7 +57,7 @@ internal sealed class TestLspMiscellaneousFilesWorkspaceProviderFactory() : ILsp
 
         public async ValueTask<bool> TryRemoveMiscellaneousDocumentAsync(DocumentUri uri)
         {
-            (TaskCompletionSource started, TaskCompletionSource release)? removal;
+            (TaskCompletionSource<bool> started, TaskCompletionSource<bool> release)? removal;
             lock (this)
             {
                 removal = _nextRemoval;
@@ -66,7 +66,7 @@ internal sealed class TestLspMiscellaneousFilesWorkspaceProviderFactory() : ILsp
 
             if (removal is { } value)
             {
-                value.started.SetResult();
+                value.started.SetResult(true);
                 await value.release.Task;
             }
 
@@ -88,10 +88,10 @@ internal sealed class TestLspMiscellaneousFilesWorkspaceProviderFactory() : ILsp
             lock (this)
             {
                 RoslynDebug.Assert(_nextRemoval is null);
-                var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-                var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                var started = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                var release = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 _nextRemoval = (started, release);
-                return (started.Task, release.SetResult);
+                return (started.Task, () => release.SetResult(true));
             }
         }
     }

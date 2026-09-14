@@ -137,7 +137,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(documentPath);
         await server.OpenDocumentAsync(documentUri, "request text");
 
-        var loadSource = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var loadSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         var context = await CreateRequestContextAsync(
             server,
             new TextDocumentIdentifier { DocumentUri = documentUri },
@@ -155,7 +155,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         var (removalStarted, releaseRemoval) =
             TestLspMiscellaneousFilesWorkspaceProviderFactory.GetTestAccessor(provider).BlockNextRemoval();
         var requestDocumentTask = context.GetRequiredDocumentAsync(CancellationToken.None).AsTask();
-        loadSource.SetResult();
+        loadSource.SetResult(true);
         await removalStarted.WithTimeout(TestHelpers.HangMitigatingTimeout);
 
         var closeTask = server.CloseDocumentAsync(documentUri);
