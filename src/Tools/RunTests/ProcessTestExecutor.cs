@@ -127,6 +127,13 @@ namespace RunTests
                 // Define environment variables for processes started via ProcessRunner.
                 var environmentVariables = new Dictionary<string, string>();
 
+                // xUnit launches the test app host, which needs the private SDK root on Unix CI agents.
+                var dotnetDir = Path.GetDirectoryName(options.DotnetFilePath);
+                if (!string.IsNullOrEmpty(dotnetDir))
+                {
+                    environmentVariables["DOTNET_ROOT"] = dotnetDir;
+                }
+
                 // NOTE: xUnit seems to have an occasional issue creating logs create
                 // an empty log just in case, so our runner will still fail.
                 File.Create(resultsFilePath).Close();
