@@ -2036,6 +2036,156 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task StyleBlock_InsideMultipleElements_PreservesHtmlFormatterIndentation()
+    {
+        const string expected = """
+            <main>
+                <section>
+                    <style>
+                        .card {
+                            color: red;
+                        }
+                    </style>
+                </section>
+            </main>
+            """;
+
+        return RunFormattingTestAsync(
+            input: expected,
+            htmlFormatted: expected,
+            expected: expected,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task StyleBlock_InsideMultipleElements_FormatsIncorrectCssIndentation()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <main>
+                    <section>
+                        <style>
+                .card {
+                color: red;
+                }
+                        </style>
+                    </section>
+                </main>
+                """,
+            htmlFormatted: """
+                <main>
+                    <section>
+                        <style>
+                            .card {
+                                color: red;
+                            }
+                        </style>
+                    </section>
+                </main>
+                """,
+            expected: """
+                <main>
+                    <section>
+                        <style>
+                            .card {
+                                color: red;
+                            }
+                        </style>
+                    </section>
+                </main>
+                """,
+            fileKind: RazorFileKind.Legacy,
+            // The test WebTools host does not run the CSS formatter needed to produce these edits.
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task Section_StyleBlockInsideElement_PreservesHtmlFormatterIndentation()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @section Styles {
+                    <div>
+                        <style>
+                            .card {
+                                color: red;
+                            }
+                        </style>
+                    </div>
+                }
+                """,
+            htmlFormatted: """
+                @section Styles {
+                <div>
+                    <style>
+                        .card {
+                            color: red;
+                        }
+                    </style>
+                </div>
+                }
+                """,
+            expected: """
+                @section Styles {
+                    <div>
+                        <style>
+                            .card {
+                                color: red;
+                            }
+                        </style>
+                    </div>
+                }
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task Section_StyleBlockInsideElement_FormatsIncorrectCssIndentation()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @section Styles {
+                    <div>
+                        <style>
+                .card {
+                color: red;
+                }
+                        </style>
+                    </div>
+                }
+                """,
+            htmlFormatted: """
+                @section Styles {
+                <div>
+                    <style>
+                        .card {
+                            color: red;
+                        }
+                    </style>
+                </div>
+                }
+                """,
+            expected: """
+                @section Styles {
+                    <div>
+                        <style>
+                            .card {
+                                color: red;
+                            }
+                        </style>
+                    </div>
+                }
+                """,
+            fileKind: RazorFileKind.Legacy,
+            // The test WebTools host does not run the CSS formatter needed to produce these edits.
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
     public async Task Section_Scripts_ThreeScriptTags()
     {
         await RunFormattingTestAsync(
