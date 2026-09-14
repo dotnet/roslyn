@@ -225,6 +225,72 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
     #region LSP Solution Retrieval
 
+    internal DeferredLspContext CreateDeferredLspContext(
+        LspContext initialValue,
+        TextDocumentIdentifier? textDocumentIdentifier,
+        ImmutableDictionary<DocumentUri, TrackedDocumentInfo> trackedDocuments,
+        Task projectLoadTask,
+        string method,
+        bool mutatesSolutionState)
+    {
+        if (mutatesSolutionState)
+            return new(initialValue, Task.FromResult(initialValue));
+
+        var initialWorkspaceSolution = initialValue.Workspace.CurrentSolution;
+        return new(initialValue, ResolveAfterProjectLoadAsync());
+
+        async Task<LspContext> ResolveAfterProjectLoadAsync()
+        {
+            // Ensure that post-load resolution does not run in the serialized request queue when loading has already completed.
+            await Task.Yield();
+
+            try
+            {
+                try
+                {
+                    await projectLoadTask.ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    return initialValue;
+                }
+
+                if (initialValue.Workspace.Kind == WorkspaceKind.Host &&
+                    ReferenceEquals(initialValue.Workspace.CurrentSolution, initialWorkspaceSolution))
+                {
+                    return initialValue;
+                }
+
+                if (textDocumentIdentifier is not null)
+                {
+                    var documentContext = await GetLspDocumentInfoAsync(
+                        textDocumentIdentifier,
+                        trackedDocuments,
+                        useCache: false,
+                        includeMiscellaneousFallback: false,
+                        cancellationToken: CancellationToken.None).ConfigureAwait(false);
+                    if (documentContext is { Workspace: not null, Solution: not null })
+                        return new(documentContext.Workspace, documentContext.Solution, documentContext.Document);
+
+                    if (initialValue.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+                        return initialValue;
+                }
+
+                var solutionContext = await GetLspSolutionInfoAsync(
+                    trackedDocuments, useCache: false, cancellationToken: CancellationToken.None).ConfigureAwait(false);
+                if (solutionContext is { Workspace: not null, Solution: not null })
+                    return new(solutionContext.Workspace, solutionContext.Solution, Document: null);
+            }
+            catch (Exception exception) when (FatalError.ReportAndCatch(exception))
+            {
+                _logger.LogException(exception);
+                _logger.LogWarning($"Could not refresh solution context after project loading on {method}.");
+            }
+
+            return initialValue;
+        }
+    }
+
     /// <summary>
     /// Returns the LSP solution associated with the workspace with workspace kind <see cref="WorkspaceKind.Host"/>.
     /// This is the solution used for LSP requests that pertain to the entire workspace, for example code search or
@@ -234,11 +300,6 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// </summary>
     public Task<(Workspace? Workspace, Solution? Solution)> GetLspSolutionInfoAsync(CancellationToken cancellationToken)
         => GetLspSolutionInfoAsync(_trackedDocuments, useCache: true, cancellationToken);
-
-    internal Task<(Workspace? Workspace, Solution? Solution)> GetUncachedLspSolutionInfoAsync(
-        ImmutableDictionary<DocumentUri, TrackedDocumentInfo> trackedDocuments,
-        CancellationToken cancellationToken)
-        => GetLspSolutionInfoAsync(trackedDocuments, useCache: false, cancellationToken);
 
     private async Task<(Workspace? Workspace, Solution? Solution)> GetLspSolutionInfoAsync(
         ImmutableDictionary<DocumentUri, TrackedDocumentInfo> trackedDocuments,
@@ -269,13 +330,6 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         CancellationToken cancellationToken)
         => GetLspDocumentInfoAsync(
             textDocumentIdentifier, _trackedDocuments, useCache: true, includeMiscellaneousFallback: true, cancellationToken);
-
-    internal Task<(Workspace? Workspace, Solution? Solution, TextDocument? Document)> GetUncachedLspDocumentInfoAsync(
-        TextDocumentIdentifier textDocumentIdentifier,
-        ImmutableDictionary<DocumentUri, TrackedDocumentInfo> trackedDocuments,
-        CancellationToken cancellationToken)
-        => GetLspDocumentInfoAsync(
-            textDocumentIdentifier, trackedDocuments, useCache: false, includeMiscellaneousFallback: false, cancellationToken);
 
     private async Task<(Workspace? Workspace, Solution? Solution, TextDocument? Document)> GetLspDocumentInfoAsync(
         TextDocumentIdentifier textDocumentIdentifier,
@@ -338,10 +392,13 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         if (documentContext is { } result)
         {
-            if (result.Workspace.Kind != WorkspaceKind.MiscellaneousFiles && _lspMiscellaneousFilesWorkspaceProvider is not null)
+            if (result.Workspace.Kind != WorkspaceKind.MiscellaneousFiles &&
+                _lspMiscellaneousFilesWorkspaceProvider is not null &&
+                ReferenceEquals(_trackedDocuments, trackedDocuments))
             {
                 // Found the document in a non-miscellaneous files workspace. Unload it from the miscellaneous files
-                // workspace as best-effort cleanup.
+                // workspace as best-effort cleanup. Only mutate the miscellaneous workspace if no later text-sync
+                // notification has replaced the tracked-document snapshot used for this resolution.
                 try
                 {
                     await _miscellaneousFilesWorkspaceGate.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -659,6 +716,15 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         return documentsInSolution.ToImmutableDictionary();
     }
+
+    internal readonly record struct LspContext(
+        Workspace Workspace,
+        Solution Solution,
+        TextDocument? Document);
+
+    internal readonly record struct DeferredLspContext(
+        LspContext InitialValue,
+        Task<LspContext> ResolvedValue);
 
     internal TestAccessor GetTestAccessor()
             => new(this);

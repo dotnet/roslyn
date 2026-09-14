@@ -149,6 +149,52 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     }
 
     [Fact]
+    public async Task AsyncContextDoesNotRemoveReopenedMiscellaneousDocument()
+    {
+        var composition = Composition.AddParts(typeof(TestLspMiscellaneousFilesWorkspaceProviderFactory));
+        await using var server = await CreateTestLspServerAsync(
+            [],
+            mutatingLspWorkspace: false,
+            new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer },
+            composition);
+        var documentPath = TestHelpers.CreateAbsolutePath("Loose.cs");
+        var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(documentPath);
+        var identifier = new TextDocumentIdentifier { DocumentUri = documentUri };
+        await server.OpenDocumentAsync(documentUri, "request text");
+
+        var loadSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var context = await CreateRequestContextAsync(
+            server,
+            identifier,
+            mutatesSolutionState: false,
+            loadSource.Task);
+
+        await server.CloseDocumentAsync(documentUri);
+        await server.OpenDocumentAsync(documentUri, "later text");
+        var reopenedDocument = (await server.GetManager().GetLspDocumentInfoAsync(
+            identifier, CancellationToken.None)).Document;
+        Assert.NotNull(reopenedDocument);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, reopenedDocument.Project.Solution.WorkspaceKind);
+
+        var projectId = ProjectId.CreateNewId();
+        var documentId = DocumentId.CreateNewId(projectId);
+        await server.TestWorkspace.ChangeSolutionAsync(
+            server.TestWorkspace.CurrentSolution
+                .AddProject(projectId, "Loaded", "Loaded", LanguageNames.CSharp)
+                .AddDocument(documentId, "Loose.cs", SourceText.From("request text"), filePath: documentPath));
+        loadSource.SetResult(true);
+
+        var requestDocument = await context.GetRequiredDocumentAsync(CancellationToken.None)
+            .AsTask().WithTimeout(TestHelpers.HangMitigatingTimeout);
+        Assert.Equal(WorkspaceKind.Host, requestDocument.Project.Solution.WorkspaceKind);
+
+        var miscellaneousDocument = Assert.Single(await server.GetManagerAccessor()
+            .GetMiscellaneousDocumentsAsync(static project => project.Documents)
+            .ToImmutableArrayAsync(CancellationToken.None));
+        Assert.Equal("later text", (await miscellaneousDocument.GetTextAsync(CancellationToken.None)).ToString());
+    }
+
+    [Fact]
     public async Task AsyncContextSerializesMiscellaneousDocumentRemovalWithDidClose()
     {
         var composition = Composition.AddParts(typeof(TestLspMiscellaneousFilesWorkspaceProviderFactory));

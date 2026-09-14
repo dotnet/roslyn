@@ -75,44 +75,20 @@ internal readonly partial struct RequestContext
     public readonly CancellationToken QueueCancellationToken;
 
     public RequestContext(
-        Workspace? workspace,
-        Solution? solution,
+        LspWorkspaceManager.DeferredLspContext? deferredLspContext,
         ILspLogger logger,
         string method,
         ClientCapabilities? clientCapabilities,
         WellKnownLspServerKinds serverKind,
-        TextDocument? document,
         IDocumentChangeTracker documentChangeTracker,
         ImmutableDictionary<DocumentUri, TrackedDocumentInfo> trackedDocuments,
         ImmutableArray<string> supportedLanguages,
         ILspServices lspServices,
-        LspWorkspaceManager lspWorkspaceManager,
-        TextDocumentIdentifier? textDocumentIdentifier,
-        Task projectLoadTask,
-        bool mutatesSolutionState,
         CancellationToken queueCancellationToken)
     {
-        if (workspace is not null)
-        {
-            RoslynDebug.Assert(solution is not null);
-            _solutionContext = new SolutionContext(
-                workspace,
-                solution,
-                document,
-                lspWorkspaceManager,
-                textDocumentIdentifier,
-                trackedDocuments,
-                projectLoadTask,
-                logger,
-                method,
-                mutatesSolutionState);
-        }
-        else
-        {
-            RoslynDebug.Assert(solution is null);
-            RoslynDebug.Assert(document is null);
-            _solutionContext = null;
-        }
+        _solutionContext = deferredLspContext is { } context
+            ? new SolutionContext(context)
+            : null;
 
         _clientCapabilities = clientCapabilities;
         ServerKind = serverKind;
@@ -202,9 +178,8 @@ internal readonly partial struct RequestContext
         if (!requiresLSPSolution)
         {
             context = new RequestContext(
-                workspace: null, solution: null, logger: logger, method: method, clientCapabilities: clientCapabilities, serverKind: serverKind, document: null,
+                deferredLspContext: null, logger: logger, method: method, clientCapabilities: clientCapabilities, serverKind: serverKind,
                 documentChangeTracker: documentChangeTracker, trackedDocuments: trackedDocuments, supportedLanguages: supportedLanguages, lspServices: lspServices,
-                lspWorkspaceManager: lspWorkspaceManager, textDocumentIdentifier: textDocument, projectLoadTask: projectLoadTask, mutatesSolutionState: mutatesSolutionState,
                 queueCancellationToken: cancellationToken);
         }
         else
@@ -233,22 +208,26 @@ internal readonly partial struct RequestContext
                     $"Could not find appropriate workspace or solution on {method}"), ErrorSeverity.Critical);
             }
 
+            Contract.ThrowIfNull(workspace);
+            Contract.ThrowIfNull(solution);
+            var deferredLspContext = lspWorkspaceManager.CreateDeferredLspContext(
+                new(workspace, solution, document),
+                textDocument,
+                trackedDocuments,
+                projectLoadTask,
+                method,
+                mutatesSolutionState);
+
             context = new RequestContext(
-                workspace,
-                solution,
+                deferredLspContext,
                 logger,
                 method,
                 clientCapabilities,
                 serverKind,
-                document,
                 documentChangeTracker,
                 trackedDocuments,
                 supportedLanguages,
                 lspServices,
-                lspWorkspaceManager,
-                textDocument,
-                projectLoadTask,
-                mutatesSolutionState,
                 cancellationToken);
         }
 

@@ -3,13 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.Threading;
-using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
@@ -18,43 +14,18 @@ internal readonly partial struct RequestContext
     private sealed class SolutionContext
     {
         private readonly object _gate = new();
-        private readonly LspWorkspaceManager _lspWorkspaceManager;
-        private readonly TextDocumentIdentifier? _textDocumentIdentifier;
-        private readonly ImmutableDictionary<DocumentUri, TrackedDocumentInfo> _trackedDocuments;
-        private readonly Task _projectLoadTask;
-        private readonly ILspLogger _logger;
-        private readonly string _method;
-        private readonly bool _mutatesSolutionState;
 
-        private (Workspace Workspace, Solution Solution, TextDocument? Document) _initialValue;
-        private Solution? _initialWorkspaceSolution;
-        private Task<(Workspace Workspace, Solution Solution, TextDocument? Document)>? _resolutionTask;
+        private LspWorkspaceManager.LspContext _initialValue;
+        private Task<LspWorkspaceManager.LspContext>? _resolvedValue;
         private bool _isCleared;
 
-        public SolutionContext(
-            Workspace workspace,
-            Solution solution,
-            TextDocument? document,
-            LspWorkspaceManager lspWorkspaceManager,
-            TextDocumentIdentifier? textDocumentIdentifier,
-            ImmutableDictionary<DocumentUri, TrackedDocumentInfo> trackedDocuments,
-            Task projectLoadTask,
-            ILspLogger logger,
-            string method,
-            bool mutatesSolutionState)
+        public SolutionContext(LspWorkspaceManager.DeferredLspContext context)
         {
-            _initialValue = (workspace, solution, document);
-            _initialWorkspaceSolution = workspace.CurrentSolution;
-            _lspWorkspaceManager = lspWorkspaceManager;
-            _textDocumentIdentifier = textDocumentIdentifier;
-            _trackedDocuments = trackedDocuments;
-            _projectLoadTask = projectLoadTask;
-            _logger = logger;
-            _method = method;
-            _mutatesSolutionState = mutatesSolutionState;
+            _initialValue = context.InitialValue;
+            _resolvedValue = context.ResolvedValue;
         }
 
-        public (Workspace Workspace, Solution Solution, TextDocument? Document) GetInitialValue()
+        public LspWorkspaceManager.LspContext GetInitialValue()
         {
             lock (_gate)
             {
@@ -65,76 +36,27 @@ internal readonly partial struct RequestContext
             }
         }
 
-        public async ValueTask<(Workspace Workspace, Solution Solution, TextDocument? Document)> GetValueAsync(
+        public async ValueTask<LspWorkspaceManager.LspContext> GetValueAsync(
             CancellationToken cancellationToken)
         {
-            Task<(Workspace Workspace, Solution Solution, TextDocument? Document)> resolutionTask;
+            Task<LspWorkspaceManager.LspContext> resolvedValue;
             lock (_gate)
             {
                 if (_isCleared)
                     throw new InvalidOperationException();
 
-                if (_mutatesSolutionState)
-                    return _initialValue;
-
-                Contract.ThrowIfNull(_initialWorkspaceSolution);
-                resolutionTask = _resolutionTask ??= ResolveAsync(_initialValue, _initialWorkspaceSolution);
+                Contract.ThrowIfNull(_resolvedValue);
+                resolvedValue = _resolvedValue;
             }
 
-            var resolvedValue = await resolutionTask.WithCancellation(cancellationToken).ConfigureAwait(false);
+            var value = await resolvedValue.WithCancellation(cancellationToken).ConfigureAwait(false);
             lock (_gate)
             {
                 if (_isCleared)
                     throw new InvalidOperationException();
 
-                return resolvedValue;
+                return value;
             }
-        }
-
-        private async Task<(Workspace Workspace, Solution Solution, TextDocument? Document)> ResolveAsync(
-            (Workspace Workspace, Solution Solution, TextDocument? Document) initialValue,
-            Solution initialWorkspaceSolution)
-        {
-            try
-            {
-                try
-                {
-                    await _projectLoadTask.ConfigureAwait(false);
-                }
-                catch (OperationCanceledException)
-                {
-                    return initialValue;
-                }
-
-                if (initialValue.Workspace.Kind == WorkspaceKind.Host &&
-                    ReferenceEquals(initialValue.Workspace.CurrentSolution, initialWorkspaceSolution))
-                {
-                    return initialValue;
-                }
-
-                if (_textDocumentIdentifier is not null)
-                {
-                    var documentContext = await _lspWorkspaceManager.GetUncachedLspDocumentInfoAsync(
-                        _textDocumentIdentifier, _trackedDocuments, cancellationToken: CancellationToken.None).ConfigureAwait(false);
-                    if (documentContext is { Workspace: not null, Solution: not null })
-                        return (documentContext.Workspace, documentContext.Solution, documentContext.Document);
-
-                    if (initialValue.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
-                        return initialValue;
-                }
-
-                var solutionContext = await _lspWorkspaceManager.GetUncachedLspSolutionInfoAsync(
-                    _trackedDocuments, cancellationToken: CancellationToken.None).ConfigureAwait(false);
-                if (solutionContext is { Workspace: not null, Solution: not null })
-                    return (solutionContext.Workspace, solutionContext.Solution, Document: null);
-            }
-            catch (Exception exception) when (FatalError.ReportAndCatch(exception))
-            {
-                _logger.LogException(exception);
-                _logger.LogWarning($"Could not refresh solution context after project loading on {_method}.");
-            }
-
-            return initialValue;
         }
 
         public void Clear()
@@ -142,8 +64,7 @@ internal readonly partial struct RequestContext
             lock (_gate)
             {
                 _initialValue = default;
-                _initialWorkspaceSolution = null;
-                _resolutionTask = null;
+                _resolvedValue = null;
                 _isCleared = true;
             }
         }
