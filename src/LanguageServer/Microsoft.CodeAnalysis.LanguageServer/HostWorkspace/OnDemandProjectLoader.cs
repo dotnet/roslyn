@@ -72,7 +72,7 @@ internal sealed partial class OnDemandProjectLoader(
         var discoveryTask = Task.Run(
             () => discovery.DiscoverProjects(filePath, workspaceFolders, _shutdownSource.Token),
             _shutdownSource.Token);
-        return TrackLoad(LoadDiscoveredProjectsAsync(discoveryTask));
+        return TrackLoadAsync(LoadDiscoveredProjectsAsync(discoveryTask));
     }
 
     public async ValueTask<Task> GetWorkspaceLoadTaskAsync()
@@ -85,7 +85,7 @@ internal sealed partial class OnDemandProjectLoader(
         return Task.WhenAll([projectLoads, .. activeLoads]);
     }
 
-    private Task TrackLoad(Task loadTask)
+    private Task TrackLoadAsync(Task loadTask)
     {
         lock (_activeLoadsGate)
             _activeLoads.Add(loadTask);
@@ -180,6 +180,6 @@ internal sealed partial class OnDemandProjectLoader(
     internal readonly struct TestAccessor(OnDemandProjectLoader loader)
     {
         public void TrackLoad(Task loadTask)
-            => loader.TrackLoad(loadTask);
+            => loader.TrackLoadAsync(loadTask);
     }
 }
