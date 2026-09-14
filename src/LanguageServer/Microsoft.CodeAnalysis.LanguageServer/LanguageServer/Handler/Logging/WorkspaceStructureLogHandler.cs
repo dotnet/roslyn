@@ -24,8 +24,7 @@ internal sealed class WorkspaceStructureLogHandler() : ILspServiceRequestHandler
 
     public async Task<WorkspaceStructureLogResponse> HandleRequestAsync(WorkspaceStructureLogParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var solution = context.Solution;
-        Contract.ThrowIfNull(solution);
+var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
 
         var progressManager = context.GetRequiredLspService<WorkDoneProgressManager>();
         await using var progressReporter = await progressManager.CreateWorkDoneProgressAsync(
