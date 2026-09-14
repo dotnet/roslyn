@@ -10331,8 +10331,7 @@ using System.Reflection;
 var tcs = new System.Threading.Tasks.TaskCompletionSource();
 var task = C.ProduceAsync(true, tcs.Task);
 
-var callback = (System.Delegate)task.GetType().GetField("m_action", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(task);
-object stateMachineBox = callback.Target;
+object stateMachineBox = task;
 object stateMachine = stateMachineBox.GetType().GetField("StateMachine", BindingFlags.Public | BindingFlags.Instance).GetValue(stateMachineBox);
 
 System.Console.Write((string)stateMachine.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(stateMachine) is null);
@@ -10374,8 +10373,7 @@ using System.Reflection;
 var tcs = new System.Threading.Tasks.TaskCompletionSource();
 var task = C.ProduceAsync(true, tcs.Task);
 
-var callback = (System.Delegate)task.GetType().GetField("m_action", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(task);
-object stateMachineBox = callback.Target;
+object stateMachineBox = task;
 object stateMachine = stateMachineBox.GetType().GetField("StateMachine", BindingFlags.Public | BindingFlags.Instance).GetValue(stateMachineBox);
 
 System.Console.Write((S)stateMachine.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(stateMachine));
