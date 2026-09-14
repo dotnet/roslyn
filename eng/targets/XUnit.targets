@@ -29,12 +29,14 @@
           AfterTargets="Build"
           Condition="('$(TargetFrameworkIdentifier)' == '.NETFramework' or '$(TargetFrameworkIdentifier)' == '.NETCoreApp') and '$(DotNetBuildSourceOnly)' != 'true'">
     <ItemGroup>
+      <_XunitRunnerUtilityPackageReference Include="@(PackageReference)"
+                                           Condition="'%(PackageReference.Identity)' == 'xunit.v3.runner.utility'" />
       <_XunitRunnerUtility
           Include="$(NuGetPackageRoot)xunit.v3.core.mtp-off\$(_xunitVersion)\_content\runners\netfx\xunit.v3.runner.utility.netfx.dll"
-          Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" />
+          Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' and '@(_XunitRunnerUtilityPackageReference)' == ''" />
       <_XunitRunnerUtility
           Include="$(NuGetPackageRoot)xunit.v3.core.mtp-off\$(_xunitVersion)\_content\runners\netcore\xunit.v3.runner.utility.netcore.dll"
-          Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'" />
+          Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' and '@(_XunitRunnerUtilityPackageReference)' == ''" />
     </ItemGroup>
 
     <Copy SourceFiles="@(_XunitRunnerUtility)"
