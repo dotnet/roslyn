@@ -1577,6 +1577,64 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
 
     [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task ScriptBlock_RootLevel_PreservesHtmlFormatterIndentation()
+    {
+        const string expected = """
+            <script>
+                function initialize() {
+                    if (ready) {
+                        start();
+                    }
+                }
+            </script>
+            """;
+
+        return RunFormattingTestAsync(
+            input: expected,
+            htmlFormatted: expected,
+            expected: expected,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task ScriptBlock_RootLevel_FormatsIncorrectJavaScriptIndentation()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <script>
+                function initialize() {
+                if (ready) {
+                start();
+                }
+                }
+                </script>
+                """,
+            htmlFormatted: """
+                <script>
+                    function initialize() {
+                        if (ready) {
+                            start();
+                        }
+                    }
+                </script>
+                """,
+            expected: """
+                <script>
+                    function initialize() {
+                        if (ready) {
+                            start();
+                        }
+                    }
+                </script>
+                """,
+            fileKind: RazorFileKind.Legacy,
+            // The test WebTools host does not run the JavaScript formatter needed to produce these edits.
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
     public Task ScriptBlock_InsideElement_PreservesHtmlFormatterIndentation()
     {
         const string expected = """
@@ -1595,6 +1653,385 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             input: expected,
             htmlFormatted: expected,
             expected: expected,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task ScriptBlock_InsideElement_FormatsIncorrectJavaScriptIndentation()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    <script>
+                function initialize() {
+                if (ready) {
+                start();
+                }
+                }
+                    </script>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <script>
+                        function initialize() {
+                            if (ready) {
+                                start();
+                            }
+                        }
+                    </script>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <script>
+                        function initialize() {
+                            if (ready) {
+                                start();
+                            }
+                        }
+                    </script>
+                </div>
+                """,
+            fileKind: RazorFileKind.Legacy,
+            // The test WebTools host does not run the JavaScript formatter needed to produce these edits.
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task ScriptBlock_InsideMultipleElements_PreservesHtmlFormatterIndentation()
+    {
+        const string expected = """
+            <main>
+                <section>
+                    <div>
+                        <script>
+                            function initialize() {
+                                if (ready) {
+                                    start();
+                                }
+                            }
+                        </script>
+                    </div>
+                </section>
+            </main>
+            """;
+
+        return RunFormattingTestAsync(
+            input: expected,
+            htmlFormatted: expected,
+            expected: expected,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task ScriptBlock_InsideTwoElements_FormatsIncorrectJavaScriptIndentation()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <main>
+                    <section>
+                        <script>
+                function initialize() {
+                if (ready) {
+                start();
+                }
+                }
+                        </script>
+                    </section>
+                </main>
+                """,
+            htmlFormatted: """
+                <main>
+                    <section>
+                        <script>
+                            function initialize() {
+                                if (ready) {
+                                    start();
+                                }
+                            }
+                        </script>
+                    </section>
+                </main>
+                """,
+            expected: """
+                <main>
+                    <section>
+                        <script>
+                            function initialize() {
+                                if (ready) {
+                                    start();
+                                }
+                            }
+                        </script>
+                    </section>
+                </main>
+                """,
+            fileKind: RazorFileKind.Legacy,
+            // The test WebTools host does not run the JavaScript formatter needed to produce these edits.
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task ScriptBlocks_AtDifferentNestingLevels_PreservesHtmlFormatterIndentation()
+    {
+        const string expected = """
+            <script>
+                root();
+            </script>
+
+            <div>
+                <script>
+                    nested();
+                </script>
+            </div>
+
+            <script>
+                rootAgain();
+            </script>
+            """;
+
+        return RunFormattingTestAsync(
+            input: expected,
+            htmlFormatted: expected,
+            expected: expected,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task Section_ScriptBlock_PreservesHtmlFormatterIndentation()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @section Scripts {
+                    <script>
+                        function initialize() {
+                            if (ready) {
+                                start();
+                            }
+                        }
+                    </script>
+                }
+                """,
+            htmlFormatted: """
+                @section Scripts {
+                <script>
+                    function initialize() {
+                        if (ready) {
+                            start();
+                        }
+                    }
+                </script>
+                }
+                """,
+            expected: """
+                @section Scripts {
+                    <script>
+                        function initialize() {
+                            if (ready) {
+                                start();
+                            }
+                        }
+                    </script>
+                }
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task Section_ScriptBlock_FormatsIncorrectJavaScriptIndentation()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @section Scripts {
+                    <script>
+                function initialize() {
+                if (ready) {
+                start();
+                }
+                }
+                    </script>
+                }
+                """,
+            htmlFormatted: """
+                @section Scripts {
+                <script>
+                    function initialize() {
+                        if (ready) {
+                            start();
+                        }
+                    }
+                </script>
+                }
+                """,
+            expected: """
+                @section Scripts {
+                    <script>
+                        function initialize() {
+                            if (ready) {
+                                start();
+                            }
+                        }
+                    </script>
+                }
+                """,
+            fileKind: RazorFileKind.Legacy,
+            // The test WebTools host does not run the JavaScript formatter needed to produce these edits.
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task Section_ScriptBlockInsideElement_PreservesHtmlFormatterIndentation()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @section Scripts {
+                    <div>
+                        <script>
+                            function initialize() {
+                                if (ready) {
+                                    start();
+                                }
+                            }
+                        </script>
+                    </div>
+                }
+                """,
+            htmlFormatted: """
+                @section Scripts {
+                <div>
+                    <script>
+                        function initialize() {
+                            if (ready) {
+                                start();
+                            }
+                        }
+                    </script>
+                </div>
+                }
+                """,
+            expected: """
+                @section Scripts {
+                    <div>
+                        <script>
+                            function initialize() {
+                                if (ready) {
+                                    start();
+                                }
+                            }
+                        </script>
+                    </div>
+                }
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task Section_ScriptBlockInsideElement_FormatsIncorrectJavaScriptIndentation()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @section Scripts {
+                    <div>
+                        <script>
+                function initialize() {
+                if (ready) {
+                start();
+                }
+                }
+                        </script>
+                    </div>
+                }
+                """,
+            htmlFormatted: """
+                @section Scripts {
+                <div>
+                    <script>
+                        function initialize() {
+                            if (ready) {
+                                start();
+                            }
+                        }
+                    </script>
+                </div>
+                }
+                """,
+            expected: """
+                @section Scripts {
+                    <div>
+                        <script>
+                            function initialize() {
+                                if (ready) {
+                                    start();
+                                }
+                            }
+                        </script>
+                    </div>
+                }
+                """,
+            fileKind: RazorFileKind.Legacy,
+            // The test WebTools host does not run the JavaScript formatter needed to produce these edits.
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task Section_ScriptBlockInsideMultipleElements_PreservesHtmlFormatterIndentation()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @section Scripts {
+                    <main>
+                        <section>
+                            <script>
+                                function initialize() {
+                                    if (ready) {
+                                        start();
+                                    }
+                                }
+                            </script>
+                        </section>
+                    </main>
+                }
+                """,
+            htmlFormatted: """
+                @section Scripts {
+                <main>
+                    <section>
+                        <script>
+                            function initialize() {
+                                if (ready) {
+                                    start();
+                                }
+                            }
+                        </script>
+                    </section>
+                </main>
+                }
+                """,
+            expected: """
+                @section Scripts {
+                    <main>
+                        <section>
+                            <script>
+                                function initialize() {
+                                    if (ready) {
+                                        start();
+                                    }
+                                }
+                            </script>
+                        </section>
+                    </main>
+                }
+                """,
             fileKind: RazorFileKind.Legacy);
     }
 
