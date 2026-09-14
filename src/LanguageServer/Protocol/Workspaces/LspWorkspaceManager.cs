@@ -250,19 +250,11 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         if (hostWorkspace is null)
             return default;
 
-        try
-        {
-            var (solution, isForked) = await GetLspSolutionForWorkspaceAsync(
-                hostWorkspace, trackedDocuments, useCache, cancellationToken).ConfigureAwait(false);
-            _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
+        var (solution, isForked) = await GetLspSolutionForWorkspaceAsync(
+            hostWorkspace, trackedDocuments, useCache, cancellationToken).ConfigureAwait(false);
+        _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
 
-            return (hostWorkspace, solution);
-        }
-        catch (Exception exception) when (FatalError.ReportAndCatchUnlessCanceled(exception))
-        {
-            _logger.LogException(exception);
-            return default;
-        }
+        return (hostWorkspace, solution);
     }
 
     /// <summary>
@@ -295,26 +287,25 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         var uri = textDocumentIdentifier.DocumentUri;
         (Workspace Workspace, Solution Solution, TextDocument Document, bool IsForked)? documentContext = null;
 
-        try
-        {
-            var lspSolutions = await GetLspSolutionsAsync(trackedDocuments, useCache, cancellationToken).ConfigureAwait(false);
-            foreach (var (workspace, lspSolution, isForked) in lspSolutions)
-            {
-                var documents = await lspSolution.GetTextDocumentsAsync(uri, cancellationToken).ConfigureAwait(false);
-                if (documents.IsEmpty)
-                    continue;
+        // Get the LSP view of all the workspace solutions.
+        var lspSolutions = await GetLspSolutionsAsync(trackedDocuments, useCache, cancellationToken).ConfigureAwait(false);
 
-                var document = documents.FindDocumentInProjectContext(
-                    textDocumentIdentifier, (solution, documentId) => solution.GetRequiredTextDocument(documentId));
-                documentContext = (workspace, document.Project.Solution, document, isForked);
-                break;
-            }
-        }
-        catch (Exception exception) when (FatalError.ReportAndCatchUnlessCanceled(exception))
+        // Find the matching document from the LSP solutions.
+        foreach (var (workspace, lspSolution, isForked) in lspSolutions)
         {
-            _logger.LogException(exception);
+            var documents = await lspSolution.GetTextDocumentsAsync(uri, cancellationToken).ConfigureAwait(false);
+            if (documents.IsEmpty)
+                continue;
+
+            // We have at least one document, so find the one in the right project context.
+            var document = documents.FindDocumentInProjectContext(
+                textDocumentIdentifier, (solution, documentId) => solution.GetRequiredTextDocument(documentId));
+            documentContext = (workspace, document.Project.Solution, document, isForked);
+            break;
         }
 
+        // Ask the loose files provider for the document (if we have one). The provider may add tracked documents to
+        // a workspace or return an untracked file URI in a transient solution.
         if (includeMiscellaneousFallback &&
             documentContext is null &&
             _lspMiscellaneousFilesWorkspaceProvider is not null)
@@ -349,6 +340,8 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         {
             if (result.Workspace.Kind != WorkspaceKind.MiscellaneousFiles && _lspMiscellaneousFilesWorkspaceProvider is not null)
             {
+                // Found the document in a non-miscellaneous files workspace. Unload it from the miscellaneous files
+                // workspace as best-effort cleanup.
                 try
                 {
                     await _miscellaneousFilesWorkspaceGate.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -367,6 +360,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 }
             }
 
+            // Record metadata on how we got this document.
             var workspaceKind = result.Solution.WorkspaceKind;
             _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: true, workspaceKind);
             _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(result.IsForked);
@@ -375,7 +369,8 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             return (result.Workspace, result.Solution, result.Document);
         }
 
-        // Depending on the host, failing to find a document can be entirely normal (for example, a loose file).
+        // We didn't find the document in any workspace, record a telemetry notification that we did not find it.
+        // Depending on the host, this can be entirely normal (for example, opening a loose file).
         var searchedWorkspaceKinds = string.Join(
             ";", _lspWorkspaceRegistrationService.GetAllRegistrations().SelectAsArray(static workspace => workspace.Kind));
         _logger.LogDebug($"Could not find '{uri}'.  Searched {searchedWorkspaceKinds}");
@@ -407,19 +402,12 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             // underneath, it is either the job of the LSP client to poll us (diagnostics) or we send refresh
             // notifications (semantic tokens) to the client letting them know that our workspace has changed and they
             // need to re-query us.
-            try
-            {
-                var (lspSolution, isForked) = await GetLspSolutionForWorkspaceAsync(
-                    workspace, trackedDocuments, useCache, cancellationToken).ConfigureAwait(false);
-                solutions.Add((workspace, lspSolution, isForked));
-            }
-            catch (Exception exception) when (FatalError.ReportAndCatchUnlessCanceled(exception))
-            {
-                _logger.LogException(exception);
-            }
+            var (lspSolution, isForked) = await GetLspSolutionForWorkspaceAsync(
+                workspace, trackedDocuments, useCache, cancellationToken).ConfigureAwait(false);
+            solutions.Add((workspace, lspSolution, isForked));
         }
 
-        return solutions.ToImmutable();
+        return solutions.MoveToImmutable();
     }
 
     private async Task<(Solution Solution, bool IsForked)> GetLspSolutionForWorkspaceAsync(
