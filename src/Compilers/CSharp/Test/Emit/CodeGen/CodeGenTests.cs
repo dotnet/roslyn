@@ -8380,7 +8380,7 @@ public class Program
         Print(-9223372036854775808); // ldc.i8 - decimal..ctor(int64)
         Print(18446744073709551615); // decimal..ctor(uint64) [Note: Dev11 uses decimal..ctor(int32, int32, int32, bool, byte)]
         Print(-79228162514264337593543950335m); // decimal..ctor(int32, int32, int32, bool, byte)
-        Print((decimal)12345.679f); // ? ldc.r4 - decimal..ctor(Single)
+        Print((decimal)12345.75f); // ? ldc.r4 - decimal..ctor(Single)
     }
 
     public static void Print(decimal val)
@@ -8389,8 +8389,7 @@ public class Program
     }
 }
 ";
-            // https://github.com/dotnet/roslyn/issues/85043: decimal representation changed in .NET 11
-            var compilation = CompileAndVerify(source, expectedOutput: $@"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 0
 1
 8
@@ -8403,61 +8402,10 @@ public class Program
 -9223372036854775808
 18446744073709551615
 -79228162514264337593543950335
-{(Environment.Version.Major >= 11 ? "12345.6787109375" : "12345.68")}
+12345.75
 ");
 
-            compilation.VerifyIL("Program.Main", Environment.Version.Major >= 11 ? """
-{
-  // Code size      184 (0xb8)
-  .maxstack  5
-  IL_0000:  ldsfld     "decimal decimal.Zero"
-  IL_0005:  call       "void Program.Print(decimal)"
-  IL_000a:  ldsfld     "decimal decimal.One"
-  IL_000f:  call       "void Program.Print(decimal)"
-  IL_0014:  ldc.i4.8
-  IL_0015:  newobj     "decimal..ctor(int)"
-  IL_001a:  call       "void Program.Print(decimal)"
-  IL_001f:  ldsfld     "decimal decimal.MinusOne"
-  IL_0024:  call       "void Program.Print(decimal)"
-  IL_0029:  ldc.i4.s   -128
-  IL_002b:  newobj     "decimal..ctor(int)"
-  IL_0030:  call       "void Program.Print(decimal)"
-  IL_0035:  ldc.i4     0x7fffffff
-  IL_003a:  newobj     "decimal..ctor(int)"
-  IL_003f:  call       "void Program.Print(decimal)"
-  IL_0044:  ldc.i4     0x80000000
-  IL_0049:  newobj     "decimal..ctor(int)"
-  IL_004e:  call       "void Program.Print(decimal)"
-  IL_0053:  ldc.i4.m1
-  IL_0054:  newobj     "decimal..ctor(uint)"
-  IL_0059:  call       "void Program.Print(decimal)"
-  IL_005e:  ldc.i8     0x7fffffffffffffff
-  IL_0067:  newobj     "decimal..ctor(long)"
-  IL_006c:  call       "void Program.Print(decimal)"
-  IL_0071:  ldc.i8     0x8000000000000000
-  IL_007a:  newobj     "decimal..ctor(long)"
-  IL_007f:  call       "void Program.Print(decimal)"
-  IL_0084:  ldc.i4.m1
-  IL_0085:  conv.i8
-  IL_0086:  newobj     "decimal..ctor(ulong)"
-  IL_008b:  call       "void Program.Print(decimal)"
-  IL_0090:  ldc.i4.m1
-  IL_0091:  ldc.i4.m1
-  IL_0092:  ldc.i4.m1
-  IL_0093:  ldc.i4.1
-  IL_0094:  ldc.i4.0
-  IL_0095:  newobj     "decimal..ctor(int, int, int, bool, byte)"
-  IL_009a:  call       "void Program.Print(decimal)"
-  IL_009f:  ldc.i4     0x85f0d5ff
-  IL_00a4:  ldc.i4     0x7048
-  IL_00a9:  ldc.i4.0
-  IL_00aa:  ldc.i4.0
-  IL_00ab:  ldc.i4.s   10
-  IL_00ad:  newobj     "decimal..ctor(int, int, int, bool, byte)"
-  IL_00b2:  call       "void Program.Print(decimal)"
-  IL_00b7:  ret
-}
-""" : @"
+            compilation.VerifyIL("Program.Main", @"
 {
   // Code size      179 (0xb3)
   .maxstack  5
@@ -8499,7 +8447,7 @@ public class Program
   IL_0094:  ldc.i4.0
   IL_0095:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
   IL_009a:  call       ""void Program.Print(decimal)""
-  IL_009f:  ldc.i4     0x12d688
+  IL_009f:  ldc.i4     0x12d68f
   IL_00a4:  ldc.i4.0
   IL_00a5:  ldc.i4.0
   IL_00a6:  ldc.i4.0
@@ -11531,50 +11479,14 @@ class C
 
         static void Main(string[] args)
         {
-            M(new decimal(123.456), new decimal(1.2345600E+2));
-            M(new decimal(123.456), 123.4561M);
-            M(new decimal(123.456), 123.4559M);
-            M(new decimal(123.456), 123.456000M);
-            M(new decimal(123.456), new decimal(123456000, 0, 0, false, 6));
+            M(new decimal(123.625), new decimal(1.2362500E+2));
+            M(new decimal(123.625), 123.6251M);
+            M(new decimal(123.625), 123.6249M);
+            M(new decimal(123.625), 123.625000M);
+            M(new decimal(123.625), new decimal(123625000, 0, 0, false, 6));
         }
 }";
-            // https://github.com/dotnet/roslyn/issues/85043: decimal representation changed in .NET 11
-            var compilation = CompileAndVerify(source, expectedOutput: Environment.Version.Major >= 11 ? """
-True
-False
-True
-False
-True
-False
-
-False
-True
-False
-False
-True
-True
-
-False
-True
-True
-True
-False
-False
-
-False
-True
-True
-True
-False
-False
-
-False
-True
-True
-True
-False
-False
-""" : @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 True
 False
 True
@@ -12922,10 +12834,10 @@ public class C
 {
     static void Main()
     {
-        decimal d1 = 1.712m;
-        decimal d2 = (decimal)1.712f;
-        decimal d3 = (decimal)1.712;
-        decimal d4 = (decimal)(double)1.712f;
+        decimal d1 = 1.71875m;
+        decimal d2 = (decimal)1.71875f;
+        decimal d3 = (decimal)1.71875;
+        decimal d4 = (decimal)(double)1.71875f;
         Console.WriteLine(d1.ToString(CultureInfo.InvariantCulture));
         Console.WriteLine(d2.ToString(CultureInfo.InvariantCulture));
         Console.WriteLine(d3.ToString(CultureInfo.InvariantCulture));
@@ -12936,22 +12848,15 @@ public class C
     }
 }
 ";
-            // https://github.com/dotnet/roslyn/issues/85043: decimal representation changed in .NET 11
-            CompileAndVerify(source, expectedOutput: Environment.Version.Major >= 11 ? """
-1.712
-1.71200001239776611328125
-1.7119999999999999662492200514
-1.71200001239776611328125
-False
-False
-False
-""" : @"1.712
-1.712
-1.712
-1.71200001239777
+            CompileAndVerify(source, expectedOutput: """
+1.71875
+1.71875
+1.71875
+1.71875
 True
 True
-False");
+True
+""");
         }
 
         [WorkItem(529593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529593")]
