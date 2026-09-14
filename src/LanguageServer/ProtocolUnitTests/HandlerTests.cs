@@ -93,6 +93,30 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     }
 
     [Fact]
+    public async Task AsyncContextReusesInitialSolutionWhenLoadDoesNotChangeWorkspace()
+    {
+        await using var server = await CreateTestLspServerAsync(
+            "workspace text",
+            mutatingLspWorkspace: false,
+            new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+        var documentUri = server.GetCurrentSolution().Projects.Single().Documents.Single().GetURI();
+        await server.OpenDocumentAsync(documentUri, "request text");
+        var loadSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var context = await CreateRequestContextAsync(
+            server,
+            new TextDocumentIdentifier { DocumentUri = documentUri },
+            mutatesSolutionState: false,
+            loadSource.Task);
+        var initialSolution = context.GetTestAccessor().GetInitialSolution();
+
+        var solutionTask = context.GetRequiredSolutionAsync(CancellationToken.None).AsTask();
+        Assert.False(solutionTask.IsCompleted);
+        loadSource.SetResult(true);
+
+        Assert.Same(initialSolution, await solutionTask.WithTimeout(TestHelpers.HangMitigatingTimeout));
+    }
+
+    [Fact]
     public async Task AsyncContextRetainsRequestTimeMiscellaneousDocumentAfterDidClose()
     {
         var composition = Composition.AddParts(typeof(TestLspMiscellaneousFilesWorkspaceProviderFactory));

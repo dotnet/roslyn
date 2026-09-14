@@ -27,6 +27,7 @@ internal readonly partial struct RequestContext
         private readonly bool _mutatesSolutionState;
 
         private (Workspace Workspace, Solution Solution, TextDocument? Document) _initialValue;
+        private Solution? _initialWorkspaceSolution;
         private Task<(Workspace Workspace, Solution Solution, TextDocument? Document)>? _resolutionTask;
         private bool _isCleared;
 
@@ -43,6 +44,7 @@ internal readonly partial struct RequestContext
             bool mutatesSolutionState)
         {
             _initialValue = (workspace, solution, document);
+            _initialWorkspaceSolution = workspace.CurrentSolution;
             _lspWorkspaceManager = lspWorkspaceManager;
             _textDocumentIdentifier = textDocumentIdentifier;
             _trackedDocuments = trackedDocuments;
@@ -75,7 +77,8 @@ internal readonly partial struct RequestContext
                 if (_mutatesSolutionState)
                     return _initialValue;
 
-                resolutionTask = _resolutionTask ??= ResolveAsync(_initialValue);
+                Contract.ThrowIfNull(_initialWorkspaceSolution);
+                resolutionTask = _resolutionTask ??= ResolveAsync(_initialValue, _initialWorkspaceSolution);
             }
 
             var resolvedValue = await resolutionTask.WithCancellation(cancellationToken).ConfigureAwait(false);
@@ -89,7 +92,8 @@ internal readonly partial struct RequestContext
         }
 
         private async Task<(Workspace Workspace, Solution Solution, TextDocument? Document)> ResolveAsync(
-            (Workspace Workspace, Solution Solution, TextDocument? Document) initialValue)
+            (Workspace Workspace, Solution Solution, TextDocument? Document) initialValue,
+            Solution initialWorkspaceSolution)
         {
             try
             {
@@ -98,6 +102,12 @@ internal readonly partial struct RequestContext
                     await _projectLoadTask.ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
+                {
+                    return initialValue;
+                }
+
+                if (initialValue.Workspace.Kind == WorkspaceKind.Host &&
+                    ReferenceEquals(initialValue.Workspace.CurrentSolution, initialWorkspaceSolution))
                 {
                     return initialValue;
                 }
@@ -132,6 +142,7 @@ internal readonly partial struct RequestContext
             lock (_gate)
             {
                 _initialValue = default;
+                _initialWorkspaceSolution = null;
                 _resolutionTask = null;
                 _isCleared = true;
             }
