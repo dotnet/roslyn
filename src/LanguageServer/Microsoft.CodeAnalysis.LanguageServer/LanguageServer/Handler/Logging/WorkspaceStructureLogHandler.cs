@@ -5,8 +5,8 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Logging;
+using Microsoft.CodeAnalysis.Progress;
 using Roslyn.LanguageServer.Protocol;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Logging;
 
@@ -54,10 +54,5 @@ internal sealed class WorkspaceStructureLogHandler() : ILspServiceRequestHandler
             document.Save(stream);
 
         return new WorkspaceStructureLogResponse(ProtocolConversions.CreateAbsoluteDocumentUri(tempPath));
-    }
-
-    private sealed class SynchronousProgress<T>(Action<T> handler) : IProgress<T>
-    {
-        public void Report(T value) => handler(value);
     }
 }

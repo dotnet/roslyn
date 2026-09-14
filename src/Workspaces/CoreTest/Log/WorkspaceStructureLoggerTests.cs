@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Logging;
+using Microsoft.CodeAnalysis.Progress;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -220,11 +221,5 @@ public sealed class WorkspaceStructureLoggerTests
             return Task.FromResult<IEnumerable<XElement>>(
                 [new XElement("customElement", new XAttribute("key", "value"))]);
         }
-    }
-
-    // We use this implementation because Progress<T> posts callbacks asynchronously on net472.
-    private sealed class SynchronousProgress<T>(Action<T> handler) : IProgress<T>
-    {
-        public void Report(T value) => handler(value);
     }
 }
