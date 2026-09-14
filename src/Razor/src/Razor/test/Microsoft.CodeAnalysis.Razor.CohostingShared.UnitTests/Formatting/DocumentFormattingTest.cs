@@ -1576,6 +1576,29 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task ScriptBlock_InsideElement_PreservesHtmlFormatterIndentation()
+    {
+        const string expected = """
+            <div>
+                <script>
+                    function initialize() {
+                        if (ready) {
+                            start();
+                        }
+                    }
+                </script>
+            </div>
+            """;
+
+        return RunFormattingTestAsync(
+            input: expected,
+            htmlFormatted: expected,
+            expected: expected,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
     public async Task Section_Scripts_ThreeScriptTags()
     {
         await RunFormattingTestAsync(
