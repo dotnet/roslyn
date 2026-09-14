@@ -2,9 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Option Strict Off
+Option Strict On
 
 Imports Microsoft.CodeAnalysis
+Imports System.Xml.Linq
 Imports VisualBasicToCSharpConverter
 Imports Xunit
 Imports CS = Microsoft.CodeAnalysis.CSharp
@@ -1120,15 +1121,16 @@ void M()
             Dim actual = Converter.ConvertTree(VB.SyntaxFactory.ParseSyntaxTree(My.Resources.VBAllInOne))
         End Sub
 
-        Sub AssertConversion(ByVal source As String, ByVal expected As String)
+        Sub AssertConversion(ByVal source As XElement, ByVal expected As XElement)
 
-            Dim tree = VB.SyntaxFactory.ParseSyntaxTree(source)
+            Dim expectedText = expected.Value
+            Normalize(expectedText)
 
-            Normalize(expected)
+            Dim tree = VB.SyntaxFactory.ParseSyntaxTree(source.Value)
 
             Dim actual = Converter.ConvertTree(tree).ToFullString()
 
-            Assert.Equal(expected, actual)
+            Assert.Equal(expectedText, actual)
 
         End Sub
 

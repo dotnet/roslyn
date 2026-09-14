@@ -105,8 +105,8 @@ internal sealed partial class DefaultFileChangeWatcher
             {
                 var changeKind = e.ChangeType switch
                 {
-                    WatcherChangeTypes.Created or WatcherChangeTypes.Renamed => FileChangeKind.Added,
-                    WatcherChangeTypes.Deleted => FileChangeKind.Removed,
+                    WatcherChangeTypes.Created or WatcherChangeTypes.Renamed => FileChangeKind.Created,
+                    WatcherChangeTypes.Deleted => FileChangeKind.Deleted,
                     _ => FileChangeKind.Changed,
                 };
 
@@ -114,7 +114,7 @@ internal sealed partial class DefaultFileChangeWatcher
             }
 
             if (shouldRaiseForOldPath)
-                FileChanged?.Invoke(this, new(((RenamedEventArgs)e).OldFullPath, FileChangeKind.Removed));
+                FileChanged?.Invoke(this, new(((RenamedEventArgs)e).OldFullPath, FileChangeKind.Deleted));
         }
 
         /// <summary>

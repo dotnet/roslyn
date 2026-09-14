@@ -2,7 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Option Strict Off
+Option Strict On
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CSharp
@@ -38,7 +38,7 @@ Namespace VisualBasicToCSharpConverter
 
                     ' TODO: Implement call to .Cast or .Select with cast if type of As Clause doesn't match element type of source.
                     For Each crv In node.Variables
-                        Dim clause = FromClause(Parent.VisitIdentifier(crv.Identifier.Identifier), Parent.Visit(crv.Expression)).WithType(Parent.DeriveType(crv))
+                        Dim clause = FromClause(Parent.VisitIdentifier(crv.Identifier.Identifier), DirectCast(Parent.Visit(crv.Expression), CS.Syntax.ExpressionSyntax)).WithType(Parent.DeriveType(crv))
                         If (InitialClause Is Nothing) Then
                             InitialClause = clause
                         Else
@@ -54,7 +54,7 @@ Namespace VisualBasicToCSharpConverter
                 Public Overrides Function VisitLetClause(node As VB.Syntax.LetClauseSyntax) As Object
 
                     For Each erv In node.Variables
-                        Clauses.Add(LetClause(Parent.VisitIdentifier(erv.NameEquals.Identifier.Identifier), Parent.Visit(erv.Expression)))
+                        Clauses.Add(LetClause(Parent.VisitIdentifier(erv.NameEquals.Identifier.Identifier), DirectCast(Parent.Visit(erv.Expression), CS.Syntax.ExpressionSyntax)))
 
                         RangeVariablesInScope.Add(erv.NameEquals.Identifier.Identifier.ValueText)
                     Next
@@ -75,7 +75,7 @@ Namespace VisualBasicToCSharpConverter
 
                 Public Overrides Function VisitWhereClause(node As VB.Syntax.WhereClauseSyntax) As Object
 
-                    Clauses.Add(WhereClause(Parent.Visit(node.Condition)))
+                    Clauses.Add(WhereClause(DirectCast(Parent.Visit(node.Condition), CS.Syntax.ExpressionSyntax)))
 
                     Return Nothing
                 End Function
@@ -108,13 +108,13 @@ Namespace VisualBasicToCSharpConverter
 
                     Clauses.Add(JoinClause(
                                     Parent.VisitIdentifier(node.JoinedVariables(0).Identifier.Identifier),
-                                    Parent.Visit(node.JoinedVariables(0).Expression),
-                                    Parent.Visit(node.JoinConditions(0).Left),
-                                    Parent.Visit(node.JoinConditions(0).Right)
+                                    DirectCast(Parent.Visit(node.JoinedVariables(0).Expression), CS.Syntax.ExpressionSyntax),
+                                    DirectCast(Parent.Visit(node.JoinConditions(0).Left), CS.Syntax.ExpressionSyntax),
+                                    DirectCast(Parent.Visit(node.JoinConditions(0).Right), CS.Syntax.ExpressionSyntax)
                                 ).WithType(Parent.DeriveType(node.JoinedVariables(0)))
                             )
 
-                    RangeVariablesInScope.Add(node.JoinedVariables(0).Identifier.Identifier.Value)
+                    RangeVariablesInScope.Add(node.JoinedVariables(0).Identifier.Identifier.ValueText)
 
                     Return Nothing
                 End Function
@@ -135,9 +135,9 @@ Namespace VisualBasicToCSharpConverter
                 Protected Shadows Function VisitOrdering(node As VB.Syntax.OrderingSyntax) As CS.Syntax.OrderingSyntax
 
                     If node.IsKind(VB.SyntaxKind.AscendingOrdering) Then
-                        Return Ordering(CS.SyntaxKind.AscendingOrdering, Parent.Visit(node.Expression))
+                        Return Ordering(CS.SyntaxKind.AscendingOrdering, DirectCast(Parent.Visit(node.Expression), CS.Syntax.ExpressionSyntax))
                     Else
-                        Return Ordering(CS.SyntaxKind.DescendingOrdering, Parent.Visit(node.Expression))
+                        Return Ordering(CS.SyntaxKind.DescendingOrdering, DirectCast(Parent.Visit(node.Expression), CS.Syntax.ExpressionSyntax))
                     End If
 
                 End Function
@@ -155,7 +155,7 @@ Namespace VisualBasicToCSharpConverter
                     RangeVariablesInScope.Clear()
                     If node.Variables.Count = 1 Then
 
-                        SelectOrGroupClause = SelectClause(Parent.Visit(node.Variables(0).Expression))
+                        SelectOrGroupClause = SelectClause(DirectCast(Parent.Visit(node.Variables(0).Expression), CS.Syntax.ExpressionSyntax))
 
                         RangeVariablesInScope.Add(DeriveRangeVariableName(node.Variables(0)))
                     Else
@@ -163,9 +163,9 @@ Namespace VisualBasicToCSharpConverter
                         For Each v In node.Variables
 
                             If v.NameEquals IsNot Nothing Then
-                                variables.Add(AssignmentExpression(CS.SyntaxKind.SimpleAssignmentExpression, IdentifierName(Parent.VisitIdentifier(v.NameEquals.Identifier.Identifier)), Parent.Visit(v.Expression)))
+                                variables.Add(AssignmentExpression(CS.SyntaxKind.SimpleAssignmentExpression, IdentifierName(Parent.VisitIdentifier(v.NameEquals.Identifier.Identifier)), DirectCast(Parent.Visit(v.Expression), CS.Syntax.ExpressionSyntax)))
                             Else
-                                variables.Add(Parent.Visit(v.Expression))
+                                variables.Add(DirectCast(Parent.Visit(v.Expression), CS.Syntax.ExpressionSyntax))
                             End If
 
                             RangeVariablesInScope.Add(DeriveRangeVariableName(v))

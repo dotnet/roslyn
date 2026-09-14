@@ -37,6 +37,9 @@ stages:
 - stage: ${{ parameters.configuration }}_Integration
   dependsOn: Windows_${{ parameters.configuration }}_Build
   variables:
+  # Use the producer's artifact name even when only the test job is retried.
+  - name: testArtifactName
+    value: $[stageDependencies.Windows_${{ parameters.configuration }}_Build.Build_Windows_${{ parameters.configuration }}.outputs['SetTestArtifactName.testArtifactName']]
   - name: XUNIT_LOGS
     value: $(Build.SourcesDirectory)\artifacts\log\${{ parameters.configuration }}
   jobs:
@@ -51,7 +54,7 @@ stages:
       - task: DownloadPipelineArtifact@2
         displayName: Download Test Payload
         inputs:
-          artifact: Transport_Artifacts_Windows_${{ parameters.configuration }}
+          artifact: $(testArtifactName)
           path: '$(Build.SourcesDirectory)'
 
       - task: BatchScript@1

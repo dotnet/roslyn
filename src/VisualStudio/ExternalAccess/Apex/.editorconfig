@@ -1,4 +1,0 @@
-[**]
-
-# RS0057: Symbol uses some oblivious reference types
-dotnet_diagnostic.RS0057.severity = none

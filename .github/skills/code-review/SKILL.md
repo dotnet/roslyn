@@ -19,6 +19,12 @@ Use this skill when:
 
 ## Review Process
 
+### Review Progress Updates
+
+1. Print your plan before beginning
+2. After each step of your plan, print a quick result and your next step
+3. Print something at least every few minutes so humans can audit activity
+
 ### Step 0: Gather Code Context (No PR Narrative Yet)
 
 Before analyzing anything, collect as much relevant **code** context as you can. **Critically, do NOT read the PR description, linked issues, or existing review comments yet.** You must form your own independent assessment of what the code does, why it might be needed, what problems it has, and whether the approach is sound — before being exposed to the author's framing. Reading the author's narrative first anchors your judgment and makes you less likely to find real problems.

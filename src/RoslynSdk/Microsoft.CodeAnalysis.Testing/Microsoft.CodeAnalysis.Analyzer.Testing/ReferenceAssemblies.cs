@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Testing
 #elif NETCOREAPP3_1
                 return NetCore.NetCoreApp31;
 #elif NET10_0_OR_GREATER
-                return Net.Net100;
+                return NetCore.NetCoreApp31;
 #endif
             }
         }

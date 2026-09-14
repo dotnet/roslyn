@@ -182,7 +182,7 @@ U většiny moderních prohlížečů (včetně Firefoxu 38+, Google Chromu 34+ 
 * Deklarované kódování znaků musí odpovídat kódování, ve kterém byla stránka uložená, aby nedocházelo k poškození znaků a bezpečnostním mezerám.
 * Prvek [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "Prvek HTML &lt;meta&gt; představuje metadata, která nelze reprezentovat jinými prvky souvisejícími s metadaty HTML, například &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; nebo &lt;title&gt;.") deklarující kódování musí být uvnitř prvku [`&lt;head&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/head "Prvek HTML &lt;head&gt; poskytuje obecné informace (metadata) o dokumentu, včetně jeho názvu a odkazů na skripty a šablony stylů.") a **v prvních 1024 bajtech** HTML, protože některé prohlížeče se před výběrem kódování dívají jen na tyto bajty.
 * Tento prvek [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "Prvek HTML &lt;meta&gt; představuje metadata, která nelze reprezentovat jinými prvky souvisejícími s metadaty HTML, například &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; nebo &lt;title&gt;.") je jen jednou částí [algoritmu pro určení znakové sady stránky](https://www.whatwg.org/specs/web-apps/current-work/multipage/parsing.html#encoding-sniffing-algorithm "Algoritmus znakové sady stránky"). Hlavička [`Content-Type`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type) a případné [značky pořadí bajtů](https://developer.mozilla.org/en-US/docs/Glossary/Byte-Order_Mark "Definice tohoto termínu (značky pořadí bajtů) zatím nebyla napsaná. Zvažte prosím, jestli byste nepřispěli!") tento prvek přepíší.
-* Důrazně se doporučuje definovat kódování znaků. Pokud není kódování stránky definované, jsou možné techniky cross-scriptingu, například [záložní technika cross-scriptingu UTF-7](https://code.google.com/p/doctype-mirror/wiki/ArticleUtf7).
+* Důrazně se doporučuje definovat kódování znaků. Pokud není kódování stránky definované, jsou možné techniky cross-scriptingu, například [záložní technika cross-scriptingu `UTF-7`](https://code.google.com/p/doctype-mirror/wiki/ArticleUtf7).
 * Prvek [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "Prvek HTML &lt;meta&gt; představuje metadata, která nelze reprezentovat jinými prvky souvisejícími s metadaty HTML, například &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; nebo &lt;title&gt;.") s atributem `charset` je synonymem pro před-HTML5 zápis `&lt;meta http-equiv="Content-Type" content="text/html; charset=_IANAcharset_"&gt;`, kde _`IANAcharset`_ obsahuje hodnotu ekvivalentního atributu [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset). Tato syntaxe je pořád povolená, ale už se nedoporučuje.</target>
         <note />
       </trans-unit>
@@ -647,7 +647,7 @@ Definuje [cookie](https://developer.mozilla.org/en-US/docs/cookie) pro stránku.
 * `chapters`
 * Názvy kapitol jsou určené k použití při navigaci uživatele v mediálním prostředku.
 * `metadata`
-* Stopy používané skripty. Není viditelné pro uživatele.</target>
+* Stopy používané skripty. Uživateli se nezobrazuje.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_label">
@@ -1648,7 +1648,7 @@ Viz také: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewp
         <target state="translated">Tento atribut definuje velikosti ikon pro vizuální média obsažená v prostředku. Musí být přítomen jen v případě, že atribut [`rel`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link#attr-rel) obsahuje hodnotu `icon` nebo nestandardní typ, například `apple-touch-icon` od Apple. Může mít následující hodnoty:
 
 * `any`, což znamená, že ikonu lze škálovat na libovolnou velikost, protože je ve vektorovém formátu, například `image/svg+xml`.
-* seznam velikostí oddělených prázdnými znaky, kde každá má formát `_&lt;šířka v pixelech&gt;_x_&lt;výška v pixelech&gt;_` nebo `_&lt;šířka v pixelech&gt;_X_&lt;výška v pixelech&gt;_`. Každá z těchto velikostí musí být v prostředku obsažená.
+* seznam velikostí oddělených prázdnými znaky, kde každá má formát `_&lt;width in pixels&gt;_x_&lt;height in pixels&gt;_` nebo `_&lt;width in pixels&gt;_X_&lt;height in pixels&gt;_`. Každá z těchto velikostí musí být v prostředku obsažená.
 
 **Poznámka:** Většina formátů ikon dokáže uložit jen jednu ikonu, proto atribut [`sizes`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-sizes) většinou obsahuje jen jednu položku. Formát ICO od Microsoftu to umí, stejně jako ICNS od Apple. ICO je rozšířenější, proto byste ho měli rozhodně použít.</target>
         <note />

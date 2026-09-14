@@ -40,6 +40,8 @@ dotnet build Razor.slnf          # Razor compiler & tooling only
 dotnet build <path/to/Project.csproj>
 ```
 
+- In this repository, local `dotnet build` will not run analyzers by default. To include analyzers in the build, use the `-p:RunAnalyzersDuringBuild=true` flag to run them. Consider using this when searching for diagnostics you need to fix, or when you're doing a final build before creating a pull request.
+
 ### Run tests for modified code
 ```bash
 dotnet test <path/to/Specific.UnitTests.csproj>
@@ -53,6 +55,8 @@ Tests can take a while to build and run — monitor output and wait for completi
 ./build.sh   # Build.cmd on Windows
 ./test.sh    # Test.cmd on Windows
 ```
+
+- If you need build.sh to run analyzers, pass `--runAnalyzers`. If you need build.cmd to run analyzers, pass `-runAnalyzers`.
 
 Other entry points: `dotnet run --file eng/generate-compiler-code.cs` (regenerate Syntax/BoundNodes code), `dotnet msbuild <proj> /t:UpdateXlf` (refresh `.xlf` after `.resx` edits).
 
@@ -88,7 +92,6 @@ When starting any task or answering any question about this repo:
 ### Doc Update Obligation
 
 Every task that changes code must end with a doc pass:
-- Added or moved files? → Update `.github/memory/FILE_MAP.md` (top-level) and the matching `.github/instructions/<area>.instructions.md` (directory detail).
 - Changed a public interface, diagnostic ID, or API? → Update the relevant `.github/instructions/<area>.instructions.md` and `PublicAPI.Unshipped.txt`.
 - Hit something surprising or undocumented? → Ask the user how they want it documented.
 - Established a new pattern? → Repo-wide → `.github/memory/CONVENTIONS.md`; layer-specific → the matching `.github/instructions/<area>.instructions.md`.
@@ -119,6 +122,8 @@ Write the plan to `plan.md` in your session folder (see the session context) and
 ```
 
 **Post the plan and wait for approval before writing the implementing diff** — the plan is meant to be reviewed now, not after a large diff already exists.
+
+If a pull request already exists when work pauses for plan approval, update its description or add a comment that clearly states the implementation is **not complete**, summarizes what remains, and links to the Copilot session containing the plan and approval request so the user can provide further instructions.
 
 Then implement, keeping the diff **scoped and reviewable** — prefer the smallest change that fully addresses the task over a broad refactor. If the plan changes materially while implementing, update it rather than silently diverging. Only after the plan's **Acceptance** and **Validation** are satisfied (and the Definition of Done below passes) is the work "done."
 
