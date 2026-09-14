@@ -356,7 +356,7 @@ To enhance lightbulb performance, expensive analyzers are deprioritized from `Co
 
 ```csharp
 // Cached per analyzer - assumed stable across compilations
-ConditionalWeakTable<DiagnosticAnalyzer, AsyncLazy<ImmutableHashSet<string>?>>
+ConditionalWeakTable<DiagnosticAnalyzer, Lazy<Task<ImmutableHashSet<string>?>>>
     s_analyzerToDeprioritizedDiagnosticIds;
 ```
 

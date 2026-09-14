@@ -24,10 +24,10 @@ internal sealed partial class DiagnosticAnalyzerService
     /// like appearing in a different language's compilation, or a compilation with different references, etc.
     /// We accept that this cache may be inaccurate in such scenarios as they are likely rare, and this only
     /// serves as a simple heuristic to order analyzer execution.  If wrong, it's not a major deal.
-    /// Each AsyncLazy wraps a single non-cancelable computation task, so request cancellation only cancels that
+    /// Each Lazy wraps a single non-cancelable computation task, so request cancellation only cancels that
     /// request's wait and cannot restart the analyzer initialization.
     /// </summary>
-    private static readonly ConditionalWeakTable<DiagnosticAnalyzer, AsyncLazy<ImmutableHashSet<string>?>> s_analyzerToDeprioritizedDiagnosticIds = new();
+    private static readonly ConditionalWeakTable<DiagnosticAnalyzer, Lazy<Task<ImmutableHashSet<string>?>>> s_analyzerToDeprioritizedDiagnosticIds = new();
 
     private async Task<bool> IsDeprioritizedAnalyzerAsync(
         Project project, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
@@ -58,34 +58,41 @@ internal sealed partial class DiagnosticAnalyzerService
                         project, analyzers, GetOrCreateHostAnalyzerInfo_OnlyCallInProcess(project), this.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
                 }
 
-                // Concurrent cache misses can create multiple candidate lazies. Defer Task.Run so candidates that
-                // lose the ConditionalWeakTable race do not start duplicate analyzer work.
-                var computationTaskGate = new object();
-                Task<ImmutableHashSet<string>?>? computationTask = null;
-                var createdLazy = AsyncLazy.Create(_ =>
-                {
-                    lock (computationTaskGate)
-                    {
-                        // AsyncLazy can invoke its delegate again after all of its requesters cancel, even if the
-                        // previous computation ignored cancellation and is still running. Always return the same
-                        // one-shot task so cancellation cannot start duplicate analyzer work.
-                        return computationTask ??= Task.Run(
-                            () => ComputeDeprioritizedDiagnosticIdsAsync(analyzer, CancellationToken.None),
-                            CancellationToken.None);
-                    }
-                });
+                // Concurrent cache misses can create multiple candidate lazies, but only the lazy stored in the
+                // ConditionalWeakTable is evaluated. ExecutionAndPublication then ensures that every request through
+                // that lazy shares the same task.
+#pragma warning disable VSTHRD011 // The value factory only queues work; callers never synchronously wait on its task.
+                var createdLazy = new Lazy<Task<ImmutableHashSet<string>?>>(
+                    () => Task.Run(
+                        () => ComputeDeprioritizedDiagnosticIdsAsync(analyzer),
+                        CancellationToken.None),
+                    LazyThreadSafetyMode.ExecutionAndPublication);
+#pragma warning restore VSTHRD011 // The value factory only queues work; callers never synchronously wait on its task.
                 lazyDeprioritizedIds = s_analyzerToDeprioritizedDiagnosticIds.GetValue(analyzer, _ => createdLazy);
 
                 if (ReferenceEquals(lazyDeprioritizedIds, createdLazy))
                 {
-                    // AsyncLazy gives each caller an independently cancelable wait. The shared task itself is
-                    // non-cancelable, so all callers can cancel without discarding and restarting its work.
-                    var keepAliveTask = createdLazy.GetValueAsync(CancellationToken.None);
-                    _ = ObserveKeepAliveTaskAsync(analyzer, createdLazy, keepAliveTask);
+                    var createdComputationTask = GetLazyValueAsync(createdLazy, CancellationToken.None);
+                    _ = createdComputationTask.ContinueWith(
+                        task =>
+                        {
+                            // The exception was already reported inside the computation. If every caller canceled its
+                            // wait, nobody else will observe the shared task's fault, so observe it here before removing
+                            // this entry and allowing a later lookup to retry.
+                            _ = task.Exception;
+                            if (s_analyzerToDeprioritizedDiagnosticIds.TryGetValue(analyzer, out var currentLazy) &&
+                                ReferenceEquals(currentLazy, createdLazy))
+                            {
+                                s_analyzerToDeprioritizedDiagnosticIds.Remove(analyzer);
+                            }
+                        },
+                        CancellationToken.None,
+                        TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+                        TaskScheduler.Default);
                 }
             }
 
-            var deprioritizedIds = await lazyDeprioritizedIds.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            var deprioritizedIds = await GetLazyValueAsync(lazyDeprioritizedIds, cancellationToken).ConfigureAwait(false);
             if (deprioritizedIds != null)
             {
                 foreach (var id in diagnosticIds)
@@ -98,48 +105,34 @@ internal sealed partial class DiagnosticAnalyzerService
 
         return false;
 
-        async Task<ImmutableHashSet<string>?> ComputeDeprioritizedDiagnosticIdsAsync(
-            DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
+        async Task<ImmutableHashSet<string>?> ComputeDeprioritizedDiagnosticIdsAsync(DiagnosticAnalyzer analyzer)
         {
-            // We deprioritize SymbolStart/End and SemanticModel analyzers from 'Normal' to 'Low' priority bucket,
-            // as these are computationally more expensive.
-            // Note that we never de-prioritize compiler analyzer, even though it registers a SemanticModel action.
-            if (compilationWithAnalyzers == null ||
-                analyzer.IsWorkspaceDiagnosticAnalyzer() ||
-                analyzer.IsCompilerAnalyzer())
+            try
             {
-                return null;
+                // We deprioritize SymbolStart/End and SemanticModel analyzers from 'Normal' to 'Low' priority bucket,
+                // as these are computationally more expensive.
+                // Note that we never de-prioritize compiler analyzer, even though it registers a SemanticModel action.
+                if (compilationWithAnalyzers == null ||
+                    analyzer.IsWorkspaceDiagnosticAnalyzer() ||
+                    analyzer.IsCompilerAnalyzer())
+                {
+                    return null;
+                }
+
+                var telemetryInfo = await compilationWithAnalyzers.GetAnalyzerTelemetryInfoAsync(analyzer, CancellationToken.None).ConfigureAwait(false);
+                if (telemetryInfo == null)
+                    return null;
+
+                if (telemetryInfo is { SymbolStartActionsCount: 0, SemanticModelActionsCount: 0 })
+                    return null;
+
+                return [.. analyzer.SupportedDiagnostics.Select(d => d.Id)];
             }
-
-            var telemetryInfo = await compilationWithAnalyzers.GetAnalyzerTelemetryInfoAsync(analyzer, cancellationToken).ConfigureAwait(false);
-            if (telemetryInfo == null)
-                return null;
-
-            if (telemetryInfo is { SymbolStartActionsCount: 0, SemanticModelActionsCount: 0 })
-                return null;
-
-            return [.. analyzer.SupportedDiagnostics.Select(d => d.Id)];
-        }
-    }
-
-    private static async Task ObserveKeepAliveTaskAsync(
-        DiagnosticAnalyzer analyzer,
-        AsyncLazy<ImmutableHashSet<string>?> createdLazy,
-        Task<ImmutableHashSet<string>?> keepAliveTask)
-    {
-        try
-        {
-            await keepAliveTask.ConfigureAwait(false);
-        }
-        catch (Exception ex) when (FatalError.ReportAndCatch(ex))
-        {
-            // Every request through createdLazy resolves to this same one-shot task. Existing callers still observe
-            // this exception, but a stale reference cannot start a retry. Removing the matching cache entry allows
-            // a later lookup to create a fresh task instead.
-            if (s_analyzerToDeprioritizedDiagnosticIds.TryGetValue(analyzer, out var currentLazy) &&
-                ReferenceEquals(currentLazy, createdLazy))
+            // Report while the original stack is unwinding, then let the same exception fault the shared task so
+            // every caller already waiting on it observes the failure.
+            catch (Exception ex) when (FatalError.ReportAndPropagate(ex))
             {
-                s_analyzerToDeprioritizedDiagnosticIds.Remove(analyzer);
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }
@@ -149,8 +142,28 @@ internal sealed partial class DiagnosticAnalyzerService
     {
         Contract.ThrowIfFalse(s_analyzerToDeprioritizedDiagnosticIds.TryGetValue(analyzer, out var lazy));
 
-        // AsyncLazy only coordinates each caller's cancellation. Its delegate returns the same one-shot task even
-        // after a fault, so this await cannot start another computation through a stale cache entry.
-        return await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
+        return await GetLazyValueAsync(lazy, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static Task<T> GetLazyValueAsync<T>(Lazy<Task<T>> lazy, CancellationToken cancellationToken)
+    {
+#pragma warning disable VSTHRD011 // AsyncLazy can restart after cancellation; this lazy must own one shared task.
+        var task = lazy.Value;
+#pragma warning restore VSTHRD011 // AsyncLazy can restart after cancellation; this lazy must own one shared task.
+
+#if NET
+        return task.WaitAsync(cancellationToken);
+#else
+        // Compatibility implementation of Task.WaitAsync(CancellationToken), which is unavailable on netstandard2.0.
+        // The continuation is only a proxy for this caller: its token can cancel the wait without canceling or restarting
+        // the shared task. Returning and unwrapping the antecedent preserves its exact completion state.
+        return !cancellationToken.CanBeCanceled || task.IsCompleted
+            ? task
+            : task.ContinueWith(
+                static task => task,
+                cancellationToken,
+                TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default).Unwrap();
+#endif
     }
 }
