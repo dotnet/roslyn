@@ -5,7 +5,7 @@
 using System.Text.Json.Serialization;
 using Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.LanguageServer.Handler.Logging;
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Logging;
 
 internal sealed record WorkspaceStructureLogResponse(
     [property: JsonPropertyName("uri")] DocumentUri Uri);

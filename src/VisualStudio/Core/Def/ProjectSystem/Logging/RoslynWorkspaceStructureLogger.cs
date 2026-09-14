@@ -86,7 +86,7 @@ internal sealed class RoslynWorkspaceStructureLogger(IServiceProvider servicePro
 
         try
         {
-            var progress = new Progress<(int current, int total)>(value =>
+            var progress = new SynchronousProgress<(int current, int total)>(value =>
             {
                 session.Progress.Report(new ThreadedWaitDialogProgressData(
                     ServicesVSResources.Logging_Roslyn_Workspace_structure,
@@ -177,5 +177,10 @@ internal sealed class RoslynWorkspaceStructureLogger(IServiceProvider servicePro
         }
 
         return elements;
+    }
+
+    private sealed class SynchronousProgress<T>(Action<T> handler) : IProgress<T>
+    {
+        public void Report(T value) => handler(value);
     }
 }

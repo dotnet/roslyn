@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.LanguageServer.LanguageServer.Handler.Logging;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Logging;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -35,6 +35,35 @@ public sealed class WorkspaceStructureLogTests(ITestOutputHelper testOutputHelpe
         {
             if (filePath is not null && File.Exists(filePath))
                 File.Delete(filePath);
+        }
+    }
+
+    [Fact]
+    public async Task ConcurrentLogsReturnUniqueUris()
+    {
+        await using var server = await CreateLanguageServerAsync();
+
+        var requests = Enumerable.Range(0, 2).Select(_ =>
+            server.ExecuteRequestAsync<WorkspaceStructureLogParams, WorkspaceStructureLogResponse>(
+                WorkspaceStructureLogHandler.MethodName,
+                new WorkspaceStructureLogParams(),
+                CancellationToken.None));
+
+        var responses = await Task.WhenAll(requests);
+        var filePaths = responses.Select(response => response!.Uri.GetDocumentFilePathFromUri()).ToArray();
+
+        try
+        {
+            Assert.Equal(filePaths.Length, filePaths.Distinct().Count());
+            Assert.All(filePaths, filePath => Assert.True(File.Exists(filePath), $"Expected log file to exist at {filePath}"));
+        }
+        finally
+        {
+            foreach (var filePath in filePaths)
+            {
+                if (File.Exists(filePath))
+                    File.Delete(filePath);
+            }
         }
     }
 }

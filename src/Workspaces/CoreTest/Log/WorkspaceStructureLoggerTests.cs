@@ -200,8 +200,21 @@ public sealed class WorkspaceStructureLoggerTests
                 cts.Token));
     }
 
+    [Theory]
+    [InlineData("", "%USERPROFILE%")]
+    [InlineData("%USERPROFILE%", "%userprofile%")]
+    public void ReplacePathComponent_NoOpReplacement_ReturnsOriginal(string oldValue, string newValue)
+    {
+        const string path = "/test/path";
+
+        Assert.Equal(path, TestWorkspaceStructureLogger.ReplacePathComponentForTest(path, oldValue, newValue));
+    }
+
     private sealed class TestWorkspaceStructureLogger : WorkspaceStructureLogger
     {
+        public static string ReplacePathComponentForTest(string path, string oldValue, string newValue)
+            => ReplacePathComponent(path, oldValue, newValue);
+
         protected override Task<IEnumerable<XElement>> CreateAdditionalProjectElementsAsync(Project project, CancellationToken cancellationToken)
         {
             return Task.FromResult<IEnumerable<XElement>>(

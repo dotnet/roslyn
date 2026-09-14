@@ -4,10 +4,11 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Logging;
+using Roslyn.LanguageServer.Protocol;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.LanguageServer.Handler.Logging;
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Logging;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(WorkspaceStructureLogHandler)), Shared]
 [Method(MethodName)]
@@ -23,18 +24,41 @@ internal sealed class WorkspaceStructureLogHandler() : ILspServiceRequestHandler
 
     public async Task<WorkspaceStructureLogResponse> HandleRequestAsync(WorkspaceStructureLogParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(context.Solution);
+        var solution = context.Solution;
+        Contract.ThrowIfNull(solution);
 
-        var document = await WorkspaceStructureLogger.BuildWorkspaceStructureAsync(
-            context.Solution,
-            context.Solution.WorkspaceKind,
-            progress: null,
-            createAdditionalProjectElementsAsync: null,
-            cancellationToken).ConfigureAwait(false);
+        var progressManager = context.GetRequiredLspService<WorkDoneProgressManager>();
+        await using var progressReporter = await progressManager.CreateWorkDoneProgressAsync(
+            reportProgressToClient: true,
+            title: LanguageServerResources.Workspace_structure_log,
+            startMessage: LanguageServerResources.Generating_workspace_structure_log,
+            endMessage: LanguageServerResources.Workspace_structure_log_generated,
+            clientCanCancel: true,
+            serverCancellationToken: cancellationToken).ConfigureAwait(false);
 
-        var tempPath = Path.Combine(Path.GetTempPath(), $"RoslynWorkspaceLog-{DateTime.UtcNow:yyyyMMdd-HHmmss}.xml");
-        document.Save(tempPath);
+        var progress = new SynchronousProgress<(int current, int total)>(value =>
+        {
+            progressReporter.Report(new WorkDoneProgressReport
+            {
+                Percentage = value.total == 0 ? 100 : value.current * 100 / value.total,
+            });
+        });
+
+        var document = await new WorkspaceStructureLogger().BuildWorkspaceStructureAsync(
+            solution,
+            solution.WorkspaceKind,
+            progress,
+            progressReporter.CancellationToken).ConfigureAwait(false);
+
+        var tempPath = Path.Combine(Path.GetTempPath(), $"RoslynWorkspaceLog-{DateTime.UtcNow:yyyyMMdd-HHmmss}-{Guid.NewGuid():N}.xml");
+        using (var stream = new FileStream(tempPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            document.Save(stream);
 
         return new WorkspaceStructureLogResponse(ProtocolConversions.CreateAbsoluteDocumentUri(tempPath));
+    }
+
+    private sealed class SynchronousProgress<T>(Action<T> handler) : IProgress<T>
+    {
+        public void Report(T value) => handler(value);
     }
 }
