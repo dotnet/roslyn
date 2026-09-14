@@ -26,6 +26,11 @@ Frameworks: xUnit with Roslyn test utilities.
 
 - Prefer raw string literals (`"""..."""`) over verbatim strings for test source code.
 - Keep tests focused: use `.Single()` rather than asserting a count then indexing.
+- Analyzer testing-library tests should use `ReferenceAssemblies.Default` for
+  the stable .NET Core 3.1 reference surface. Use an explicit
+  `ReferenceAssemblies` value, such as `ReferenceAssemblies.Net.Net100`, when
+  the scenario intentionally depends on a newer or specific framework API
+  surface.
 - For issue-linked changes, add a `WorkItem` attribute next to the test
   attribute, e.g. `[Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1234")]`
   or `[Theory, WorkItem("https://github.com/dotnet/roslyn/issues/1234")]`.
@@ -47,7 +52,9 @@ Targeted runs are strongly preferred — the full suite is large and slow. Tests
 
 ### Test types to be aware of
 - VS integration tests (`azure-pipelines-integration*.yml`) require a VS install, so they run only on **Windows** hosts (not CI-only — they can be run locally on Windows). Prefer unit tests for the inner development loop; reach for integration tests when validating end-to-end VS behavior.
-- A handful of tests fail only for environmental reasons — see `KNOWN_ISSUES.md`.
+- A handful of tests fail only for environmental reasons:
+  - `RuntimeHostInfoTests.DotNetInPath_Symlinked` requires symlink-creation privilege (run elevated).
+  - `Workspaces.MSBuild` `NewlyCreatedProjectsFromDotNetNew.Validate*TemplateProjects` fail without mobile (ios/tvos/macos/maccatalyst) dotnet workloads installed.
 
 ## CI
 

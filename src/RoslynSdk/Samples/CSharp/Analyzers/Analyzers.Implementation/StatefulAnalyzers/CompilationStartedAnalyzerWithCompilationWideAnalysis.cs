@@ -33,7 +33,7 @@ namespace Sample.Analyzers
     public class CompilationStartedAnalyzerWithCompilationWideAnalysis : DiagnosticAnalyzer
     {
         private const string Title = "Secure types must not implement interfaces with unsecure methods";
-        public const string MessageFormat = "Type '{0}' is a secure type as it implements interface '{1}', but it also implements interface '{2}' which has unsecure method(s).";
+        public const string MessageFormat = "Type '{0}' is a secure type as it implements interface '{1}', but it also implements interface '{2}' which has unsecure method(s)";
         private const string Description = "Secure types must not implement interfaces with unsecure methods.";
 
         internal static DiagnosticDescriptor Rule =

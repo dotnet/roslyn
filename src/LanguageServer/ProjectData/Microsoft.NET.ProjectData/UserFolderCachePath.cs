@@ -56,6 +56,20 @@ public static class UserFolderCachePath
 		return Path.Combine(baseDir, hex.Substring(0, 2), hex.Substring(2));
 	}
 
+	internal static bool TryCompute(string projectFilePath, out string cacheFilePath)
+	{
+		try
+		{
+			cacheFilePath = Compute(projectFilePath);
+			return true;
+		}
+		catch (InvalidOperationException)
+		{
+			cacheFilePath = string.Empty;
+			return false;
+		}
+	}
+
 	/// <summary>
 	/// Returns the cache root directory used by <see cref="Compute"/>.
 	///

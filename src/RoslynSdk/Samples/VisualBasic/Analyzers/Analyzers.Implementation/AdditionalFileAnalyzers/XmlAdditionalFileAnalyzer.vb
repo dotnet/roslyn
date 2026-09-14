@@ -22,7 +22,7 @@ Namespace BasicAnalyzers
         Inherits DiagnosticAnalyzer
 
         Private Const Title As String = "Type name contains invalid term"
-        Private Const MessageFormat As String = "The term '{0}' is not allowed in a type name."
+        Private Const MessageFormat As String = "The term '{0}' is not allowed in a type name"
 
         Private Shared ReadOnly Rule As DiagnosticDescriptor =
             New DiagnosticDescriptor(
@@ -40,6 +40,8 @@ Namespace BasicAnalyzers
         End Property
 
         Public Overrides Sub Initialize(context As AnalysisContext)
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None)
+            context.EnableConcurrentExecution()
             context.RegisterCompilationStartAction(
                 Sub(compilationStartContext)
                     ' Find the additional file with the terms.

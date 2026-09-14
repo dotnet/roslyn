@@ -1,6 +1,11 @@
-﻿Option Strict Off
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
+
+Option Strict On
 
 Imports Microsoft.CodeAnalysis
+Imports System.Xml.Linq
 Imports VisualBasicToCSharpConverter
 Imports Xunit
 Imports CS = Microsoft.CodeAnalysis.CSharp
@@ -16,10 +21,8 @@ Namespace VisualBasicToCSharpConverter.UnitTests.Converting
 
             AssertConversion(
 <String>
-
 </String>,
 <String>
-
 </String>
             )
 
@@ -1118,15 +1121,16 @@ void M()
             Dim actual = Converter.ConvertTree(VB.SyntaxFactory.ParseSyntaxTree(My.Resources.VBAllInOne))
         End Sub
 
-        Sub AssertConversion(ByVal source As String, ByVal expected As String)
+        Sub AssertConversion(ByVal source As XElement, ByVal expected As XElement)
 
-            Dim tree = VB.SyntaxFactory.ParseSyntaxTree(source)
+            Dim expectedText = expected.Value
+            Normalize(expectedText)
 
-            Normalize(expected)
+            Dim tree = VB.SyntaxFactory.ParseSyntaxTree(source.Value)
 
             Dim actual = Converter.ConvertTree(tree).ToFullString()
 
-            Assert.Equal(expected, actual)
+            Assert.Equal(expectedText, actual)
 
         End Sub
 
@@ -1136,4 +1140,3 @@ void M()
     End Class
 
 End Namespace
-

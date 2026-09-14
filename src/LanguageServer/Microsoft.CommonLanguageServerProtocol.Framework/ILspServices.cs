@@ -11,7 +11,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
-internal interface ILspServices : IDisposable
+internal interface ILspServices : IAsyncDisposable
 {
     T? GetService<T>() where T : notnull;
     T GetRequiredService<T>() where T : notnull;

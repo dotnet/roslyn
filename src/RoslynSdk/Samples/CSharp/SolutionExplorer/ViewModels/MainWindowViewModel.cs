@@ -42,7 +42,7 @@ namespace MSBuildWorkspaceTester.ViewModels
             OpenProjectCommand = RegisterCommand(
                 text: "Open Project/Solution",
                 name: "Open Project/Solution",
-                executed: OpenProjectExecuted,
+                executed: OpenProjectExecutedAsync,
                 canExecute: CanOpenProjectExecute);
 
             OpenFileCommand = RegisterCommand<HierarchyItemViewModel>(
@@ -65,7 +65,7 @@ namespace MSBuildWorkspaceTester.ViewModels
 
         private bool CanOpenProjectExecute() => true;
 
-        private async void OpenProjectExecuted()
+        private async System.Threading.Tasks.Task OpenProjectExecutedAsync()
         {
             OpenFileDialog dialog = new OpenFileDialog
             {
@@ -86,11 +86,11 @@ namespace MSBuildWorkspaceTester.ViewModels
                 switch (extension)
                 {
                     case ".sln":
-                        await _workspaceService.OpenSolutionAsync(fileName);
+                        await _workspaceService.OpenSolutionAsync(fileName).ConfigureAwait(true);
                         break;
 
                     default:
-                        await _workspaceService.OpenProjectAsync(fileName);
+                        await _workspaceService.OpenProjectAsync(fileName).ConfigureAwait(true);
                         break;
                 }
 

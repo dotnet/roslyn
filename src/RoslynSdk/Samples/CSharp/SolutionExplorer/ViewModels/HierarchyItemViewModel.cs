@@ -13,7 +13,7 @@ namespace MSBuildWorkspaceTester.ViewModels
     {
         private bool _isExpanded;
         protected Workspace Workspace { get; }
-        private ObservableCollection<HierarchyItemViewModel> _children;
+        private readonly ObservableCollection<HierarchyItemViewModel> _children;
         public ReadOnlyObservableCollection<HierarchyItemViewModel> Children { get; }
 
         protected HierarchyItemViewModel(Workspace workspace, bool isExpanded = true)

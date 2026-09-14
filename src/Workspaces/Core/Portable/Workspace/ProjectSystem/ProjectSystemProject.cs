@@ -1042,9 +1042,9 @@ internal sealed partial class ProjectSystemProject
 
     #endregion
 
-    private void DocumentFileChangeContext_FileChanged(object? sender, string fullFilePath)
+    private void DocumentFileChangeContext_FileChanged(object? sender, FileChangedEventArgs e)
     {
-        _fileChangesToProcess.AddWork(fullFilePath);
+        _fileChangesToProcess.AddWork(e.FilePath);
     }
 
     private async ValueTask ProcessFileChangesAsync(ImmutableSegmentedList<string> filePaths, CancellationToken cancellationToken)

@@ -46,7 +46,6 @@ namespace ConvertToAutoProperty
                                                     (c) => ConvertToAutoPropertyAsync(document, propertyDeclaration, c)));
         }
 
-
         /// <summary>
         /// Returns true if both get and set accessors exist on the given property; otherwise false.
         /// </summary>
@@ -74,7 +73,7 @@ namespace ConvertToAutoProperty
             AccessorDeclarationSyntax getter = property.AccessorList.Accessors.FirstOrDefault(ad => ad.Kind() == SyntaxKind.GetAccessorDeclaration);
 
             // Retrieves the type that contains the specified property
-            INamedTypeSymbol containingType = semanticModel.GetDeclaredSymbol(property).ContainingType;
+            INamedTypeSymbol containingType = semanticModel.GetDeclaredSymbol(property, cancellationToken).ContainingType;
 
             // Find the backing field of the property
             ISymbol backingField = await GetBackingFieldAsync(document, getter, containingType, cancellationToken).ConfigureAwait(false);
@@ -95,7 +94,7 @@ namespace ConvertToAutoProperty
                 if (statements.FirstOrDefault() is ReturnStatementSyntax returnStatement && returnStatement.Expression != null)
                 {
                     SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(returnStatement.Expression);
+                    SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(returnStatement.Expression, cancellationToken);
 
                     if (symbolInfo.Symbol is IFieldSymbol fieldSymbol && Equals(fieldSymbol.OriginalDefinition.ContainingType, containingType))
                     {

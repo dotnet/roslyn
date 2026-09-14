@@ -28,18 +28,22 @@ public static class UnsupportedProjectDataMarker
 
 	public static string GetMarkerFilePath(string projectFilePath) => UserFolderCachePath.Compute(projectFilePath) + MarkerExtension;
 
-	public static bool TryReadValid(string projectFilePath, out UnsupportedProjectDataMarkerData marker)
+	public static bool TryReadValid(
+		string projectFilePath,
+		CancellationToken cancellationToken,
+		out UnsupportedProjectDataMarkerData marker)
 	{
 		marker = new UnsupportedProjectDataMarkerData();
-		string markerPath = GetMarkerFilePath(projectFilePath);
-		if (!File.Exists(markerPath))
-		{
-			return false;
-		}
-
+		cancellationToken.ThrowIfCancellationRequested();
 		try
 		{
-			Dictionary<string, string> values = ReadValues(markerPath);
+			string markerPath = GetMarkerFilePath(projectFilePath);
+			if (!File.Exists(markerPath))
+			{
+				return false;
+			}
+
+			Dictionary<string, string> values = ReadValues(markerPath, cancellationToken);
 			if (!TryGetInt(values, "version", out int version) || version != SchemaVersion)
 			{
 				return false;
@@ -56,14 +60,14 @@ public static class UnsupportedProjectDataMarker
 				return false;
 			}
 
-			string projectFingerprint = ComputeProjectFingerprint(projectFilePath);
+			string projectFingerprint = ComputeProjectFingerprint(projectFilePath, cancellationToken);
 			if (!values.TryGetValue("projectFingerprint", out string? markerProjectFingerprint) ||
 				!string.Equals(markerProjectFingerprint, projectFingerprint, StringComparison.Ordinal))
 			{
 				return false;
 			}
 
-			string inputsFingerprint = ComputeAncestorInputsFingerprint(projectFilePath);
+			string inputsFingerprint = ComputeAncestorInputsFingerprintCore(projectFilePath, cancellationToken);
 			if (!values.TryGetValue("inputsFingerprint", out string? markerInputsFingerprint) ||
 				!string.Equals(markerInputsFingerprint, inputsFingerprint, StringComparison.Ordinal))
 			{
@@ -78,10 +82,12 @@ public static class UnsupportedProjectDataMarker
 				ProjectFingerprint = projectFingerprint,
 				InputsFingerprint = inputsFingerprint,
 			};
+			cancellationToken.ThrowIfCancellationRequested();
 			return true;
 		}
-		catch (Exception ex) when (IsRecoverableMarkerReadException(ex))
+		catch (Exception ex) when (IsRecoverableMarkerException(ex))
 		{
+			cancellationToken.ThrowIfCancellationRequested();
 			System.Diagnostics.Trace.TraceWarning(
 				"[lscache] Failed to read unsupported-project marker for {0}: {1}",
 				projectFilePath,
@@ -108,8 +114,8 @@ public static class UnsupportedProjectDataMarker
 			$"version={SchemaVersion}\n" +
 			$"rulesVersion={RulesVersion}\n" +
 			$"project={Path.GetFullPath(projectFilePath)}\n" +
-			$"projectFingerprint={ComputeProjectFingerprint(projectFilePath)}\n" +
-			$"inputsFingerprint={ComputeAncestorInputsFingerprint(projectFilePath)}\n" +
+			$"projectFingerprint={ComputeProjectFingerprint(projectFilePath, CancellationToken.None)}\n" +
+			$"inputsFingerprint={ComputeAncestorInputsFingerprintCore(projectFilePath, CancellationToken.None)}\n" +
 			$"reason={reason}\n";
 
 		WriteAllTextAtomically(markerPath, content);
@@ -118,12 +124,12 @@ public static class UnsupportedProjectDataMarker
 
 	public static void Delete(string projectFilePath)
 	{
-		string markerPath = GetMarkerFilePath(projectFilePath);
 		try
 		{
+			string markerPath = GetMarkerFilePath(projectFilePath);
 			File.Delete(markerPath);
 		}
-		catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+		catch (Exception ex) when (IsRecoverableMarkerException(ex))
 		{
 			System.Diagnostics.Trace.TraceWarning(
 				"[lscache] Failed to delete unsupported-project marker for {0}: {1}",
@@ -132,15 +138,19 @@ public static class UnsupportedProjectDataMarker
 		}
 	}
 
-	public static string ComputeProjectFingerprint(string projectFilePath)
-		=> ComputeFileFingerprint(Path.GetFullPath(projectFilePath));
+	public static string ComputeProjectFingerprint(string projectFilePath, CancellationToken cancellationToken)
+		=> ComputeFileFingerprint(Path.GetFullPath(projectFilePath), cancellationToken);
 
-	public static string ComputeAncestorInputsFingerprint(string projectFilePath)
+	public static string ComputeAncestorInputsFingerprint(string projectFilePath, CancellationToken cancellationToken)
+		=> ComputeAncestorInputsFingerprintCore(projectFilePath, cancellationToken);
+
+	private static string ComputeAncestorInputsFingerprintCore(string projectFilePath, CancellationToken cancellationToken)
 	{
 		string? directory = Path.GetDirectoryName(Path.GetFullPath(projectFilePath));
 		List<string> inputs = [];
 		while (!string.IsNullOrEmpty(directory))
 		{
+			cancellationToken.ThrowIfCancellationRequested();
 			foreach (string fileName in AncestorInputFileNames)
 			{
 				string candidate = Path.Combine(directory, fileName);
@@ -163,18 +173,21 @@ public static class UnsupportedProjectDataMarker
 		StringBuilder builder = new();
 		foreach (string input in inputs)
 		{
+			cancellationToken.ThrowIfCancellationRequested();
 			builder.AppendLine(NormalizePathForFingerprint(input));
-			builder.AppendLine(ComputeFileFingerprint(input));
+			builder.AppendLine(ComputeFileFingerprint(input, cancellationToken));
 		}
 
+		cancellationToken.ThrowIfCancellationRequested();
 		return ComputeStringFingerprint(builder.ToString());
 	}
 
-	private static Dictionary<string, string> ReadValues(string markerPath)
+	private static Dictionary<string, string> ReadValues(string markerPath, CancellationToken cancellationToken)
 	{
 		Dictionary<string, string> values = new(StringComparer.Ordinal);
 		foreach (string line in File.ReadAllLines(markerPath))
 		{
+			cancellationToken.ThrowIfCancellationRequested();
 			int separatorIndex = line.IndexOf('=');
 			if (separatorIndex <= 0)
 			{
@@ -193,11 +206,13 @@ public static class UnsupportedProjectDataMarker
 		return values.TryGetValue(key, out string? text) && int.TryParse(text, out value);
 	}
 
-	private static string ComputeFileFingerprint(string path)
+	private static string ComputeFileFingerprint(string path, CancellationToken cancellationToken)
 	{
+		cancellationToken.ThrowIfCancellationRequested();
 		using FileStream stream = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
 		using SHA256 sha256 = SHA256.Create();
 		byte[] hash = sha256.ComputeHash(stream);
+		cancellationToken.ThrowIfCancellationRequested();
 		return HexEncoder.ToLowerHex(hash);
 	}
 
@@ -238,8 +253,8 @@ public static class UnsupportedProjectDataMarker
 	private static bool PathsEqual(string left, string right)
 		=> string.Equals(Path.GetFullPath(left), Path.GetFullPath(right), IsCaseSensitiveFileSystem() ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
 
-	private static bool IsRecoverableMarkerReadException(Exception ex)
-		=> ex is IOException or UnauthorizedAccessException or FormatException or ArgumentException or NotSupportedException or CryptographicException;
+	private static bool IsRecoverableMarkerException(Exception ex)
+		=> ex is IOException or UnauthorizedAccessException or FormatException or ArgumentException or NotSupportedException or InvalidOperationException or CryptographicException;
 
 	private static string NormalizePathForFingerprint(string path)
 	{

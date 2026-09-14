@@ -26,7 +26,7 @@ Namespace BasicAnalyzers
 
 #Region "Descriptor fields"
         Friend Shared ReadOnly Title As LocalizableString = "Remove unused parameters"
-        Friend Shared ReadOnly MessageFormat As LocalizableString = "Parameter '{0}' is unused in the method '{1}'."
+        Friend Shared ReadOnly MessageFormat As LocalizableString = "Parameter '{0}' is unused in the method '{1}'"
         Friend Shared ReadOnly Description As LocalizableString = "Remove unused parameters."
 
         Friend Shared Rule As New DiagnosticDescriptor(DiagnosticIds.CodeBlockStartedAnalyzerRuleId, Title, MessageFormat, DiagnosticCategories.Stateful, DiagnosticSeverity.Warning, isEnabledByDefault:=True, description:=Description)
@@ -38,7 +38,10 @@ Namespace BasicAnalyzers
             End Get
         End Property
 
+#Disable Warning RS1026 ' Enable concurrent execution. This analyzer uses mutable per-code-block state.
         Public Overrides Sub Initialize(context As AnalysisContext)
+#Enable Warning RS1026
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None)
             context.RegisterCodeBlockStartAction(Of SyntaxKind)(
                 Sub(startCodeBlockContext)
                     ' We only care about method bodies.

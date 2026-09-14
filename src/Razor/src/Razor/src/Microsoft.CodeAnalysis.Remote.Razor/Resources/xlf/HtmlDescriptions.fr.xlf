@@ -43,8 +43,8 @@ Dans les versions antérieures de HTML, les différents codages de caractères p
 
 **Note d’utilisation**
 
-* **N’utilisez pas cet attribut**, car il est obsolète. L’élément [`&lt;table&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table l’élément « Html &lt;table&gt; représente des données tabulaires, c’est-à-dire les informations présentées dans une table à deux dimensions composée de lignes et de colonnes de cellules contenant des données. ») doivent être mises en forme à l’aide de [CSS](https://developer.mozilla.org/en-US/docs/CSS). Définissez [`margin-left`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-left « La propriété CSS margin-left définit la zone de marge sur le côté gauche d’un élément. Une valeur positive le place plus loin de ses voisins, tandis qu’une valeur négative le rapproche. ») et [`margin-right`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-right « La propriété CSS margin-right définit la zone de marge sur le côté droit d’un élément. Une valeur positive le place plus loin de ses voisins, tandis qu’une valeur négative le rapproche. ») sur `auto` ou [`margin`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin « La propriété CSS margin définit la zone de marge sur les quatre côtés d’un élément. C’est un raccourci pour margin-top, margin-right, margin-bottom et margin-left.") sur `0 auto` pour obtenir un effet similaire à celui de l’attribut d’alignement.
-* Avant Firefox 4, Firefox prenait également en charge les valeurs `middle`, `absmiddle` et `abscenter` comme synonymes de `center`, en mode quirks uniquement.</target>
+* **N’utilisez pas cet attribut**, car il est obsolète. L’élément [`&lt;table&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table l’élément « Html &lt;table&gt; représente des données tabulaires, c’est-à-dire les informations présentées dans une table à deux dimensions composée de lignes et de colonnes de cellules contenant des données. ») doivent être mises en forme à l’aide de [CSS](https://developer.mozilla.org/en-US/docs/CSS). Définissez [`margin-left`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-left "La propriété CSS margin-left définit la zone de marge sur le côté gauche d'un élément. Une valeur positive le place plus loin de ses voisins, tandis qu'une valeur négative le rapproche.") et [`margin-right`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-right "La propriété CSS margin-right définit la zone de marge sur le côté droit d'un élément. Une valeur positive le place plus loin de ses voisins, tandis qu'une valeur négative le rapproche.") de `auto` ou [`margin`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin "La propriété CSS margin définit la zone de marge sur les quatre côtés d'un élément. Il s'agit d'un raccourci pour margin-top, margin-right, margin-bottom et margin-left.") à `0 auto` pour obtenir un effet similaire à l'attribut align.
+* Avant Firefox 4, Firefox prenait également en charge les valeurs `middle`, `absmiddle`, et `abscenter` comme synonymes de `center`, en mode bizarreries uniquement.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_allow">
@@ -55,7 +55,7 @@ Dans les versions antérieures de HTML, les différents codages de caractères p
       <trans-unit id="HtmlAttribute_allowfullscreen">
         <source>Set to `true` if the `&lt;iframe&gt;` can activate fullscreen mode by calling the [`requestFullscreen()`](https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen "The Element.requestFullscreen() method issues an asynchronous request to make the element be displayed in full-screen mode.") method.
 This attribute is considered a legacy attribute and redefined as `allow="fullscreen"`.</source>
-        <target state="translated">Défini sur `true` si le `&lt;iframe&gt;` peut activer le mode plein écran en appelant la méthode [`requestFullscreen()`](https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen « La méthode Element.requestFullscreen() envoie une requête asynchrone pour que l’élément s’affiche en mode plein écran. »).
+        <target state="translated">Défini sur `true` si `&lt;iframe&gt;` peut activer le mode plein écran en appelant la méthode [`requestFullscreen()`](https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen "La méthode Element.requestFullscreen() émet une requête asynchrone pour que l'élément soit affiché en mode plein écran.").
 Cet attribut est considéré comme obsolète et remplacé par `allow="fullscreen"`.</target>
         <note />
       </trans-unit>
@@ -93,7 +93,7 @@ Vous ne devez pas utiliser cet attribut si l’attribut `src` est absent (c’es
 
 Les navigateurs supposent généralement le pire cas et chargent les scripts de manière synchrone (c’est-à-dire `async="false"`) pendant l’analyse HTML.
 
-Les scripts insérés dynamiquement (à l’aide de [`document.createElement()`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement « Dans un document HTML, la méthode document.createElement() crée l'élément HTML spécifié par tagName, ou un HTMLUnknownElement si tagName n'est pas reconnu. »)) se chargent par défaut de manière asynchrone, donc pour activer le chargement synchrone (c’est-à-dire pour que les scripts se chargent dans l’ordre dans lequel ils ont été insérés), définissez `async="false"`.
+Les scripts insérés dynamiquement (à l'aide de [`document.createElement()`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement "Dans un document HTML, la méthode document.createElement() crée l'élément HTML spécifié par tagName, ou un HTMLUnknownElement si tagName n'est pas reconnu.")) se chargent de manière asynchrone par défaut, afin d'activer le chargement synchrone (c'est-à-dire que les scripts se chargent dans l'ordre dans lequel ils ont été insérés) définissez `async="false"`.
 
 Consultez [Compatibilité des navigateurs](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/script#Browser_compatibility) pour obtenir des informations sur la prise en charge par les navigateurs. Consultez aussi [Scripts asynchrones pour asm.js](https://developer.mozilla.org/en-US/docs/Games/Techniques/Async_scripts).</target>
         <note />
@@ -109,7 +109,7 @@ Consultez [Compatibilité des navigateurs](https://developer.mozilla.org/docs/We
 
 * `off` ou `none`, aucune mise en majuscule automatique n’est appliquée (toutes les lettres sont en minuscules par défaut)
 * `on` ou `sentences`, la première lettre de chaque phrase est une majuscule par défaut ; toutes les autres lettres sont en minuscules par défaut
-* `words`, la première lettre de chaque mot est une majuscule par défaut ; toutes les autres lettres sont en minuscules par défaut
+* `words`, la première lettre de chaque mot est par défaut une lettre majuscule ; toutes les autres lettres sont par défaut en minuscules
 * `characters`, toutes les lettres doivent être en majuscules par défaut</target>
         <note />
       </trans-unit>
@@ -126,8 +126,8 @@ For most modern browsers (including Firefox 38+, Google Chrome 34+, IE 11+) sett
 * `off` : l’utilisateur doit saisir explicitement une valeur dans chaque champ à chaque utilisation, ou le document fournit sa propre méthode de saisie semi-automatique. Le navigateur ne complète pas automatiquement les entrées.
 * `on` : le navigateur peut compléter automatiquement les valeurs en fonction de celles que l’utilisateur a déjà saisies dans le formulaire.
 
-Pour la plupart des navigateurs modernes (y compris Firefox 38+, Google Chrome 34+ et IE 11+), la définition de l’attribut autocomplete n’empêche pas le gestionnaire de mots de passe du navigateur de demander à l’utilisateur s’il souhaite enregistrer les champs de connexion (nom d’utilisateur et mot de passe). Si l’utilisateur autorise l’enregistrement, le navigateur remplira automatiquement les champs de connexion lors de la prochaine visite de la page. Consultez [Attribut de saisie semi-automatique et champs de connexion](https://developer.mozilla.org/en-US/docs/Web/Security/Securing_your_site/Turning_off_form_autocompletion#The_autocomplete_attribute_and_login_fields).
-**Remarque :** si vous définissez `autocomplete` sur `off` dans un formulaire parce que le document fournit sa propre saisie semi-automatique, vous devez également définir `autocomplete` sur `off` pour chacun des éléments `input` du formulaire que le document peut compléter automatiquement. Pour plus d’informations, consultez la note concernant Google Chrome dans le [graphique de compatibilité du navigateur](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/form#compatChart).</target>
+Pour la plupart des navigateurs modernes (y compris Firefox 38+, Google Chrome 34+, IE 11+), la définition de l'attribut de saisie semi-automatique n'empêchera pas le gestionnaire de mots de passe d'un navigateur de demander à l'utilisateur s'il souhaite stocker les champs de connexion (nom d'utilisateur et mot de passe). Si l'utilisateur autorise le stockage, le navigateur remplira automatiquement la connexion la prochaine fois que l'utilisateur visitera la page. Consultez [Attribut de saisie semi-automatique et champs de connexion](https://developer.mozilla.org/en-US/docs/Web/Security/Securing_your_site/Turning_off_form_autocompletion#The_autocomplete_attribute_and_login_fields).
+**Remarque :** Si vous définissez `autocomplete` sur `off` dans un formulaire parce que le document fournit sa propre saisie semi-automatique, vous devez également définir `autocomplete` sur `off` pour chacun des éléments `input` du formulaire que le document peut compléter automatiquement. Pour plus d’informations, consultez la note concernant Google Chrome dans le [graphique de compatibilité du navigateur](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/form#compatChart).</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_autocorrect">
@@ -167,23 +167,23 @@ Pour la plupart des navigateurs modernes (y compris Firefox 38+, Google Chrome�
 * This [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") element is only one part of the [algorithm to determine a page's character set](https://www.whatwg.org/specs/web-apps/current-work/multipage/parsing.html#encoding-sniffing-algorithm "Algorithm charset page"). The [`Content-Type` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type) and any [Byte-Order Marks](https://developer.mozilla.org/en-US/docs/Glossary/Byte-Order_Mark "The definition of that term (Byte-Order Marks) has not been written yet; please consider contributing it!") override this element.
 * It is strongly recommended to define the character encoding. If a page's encoding is undefined, cross-scripting techniques are possible, such as the [`UTF-7` fallback cross-scripting technique](https://code.google.com/p/doctype-mirror/wiki/ArticleUtf7).
 * The [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") element with a `charset` attribute is a synonym for the pre-HTML5 `&lt;meta http-equiv="Content-Type" content="text/html; charset=_IANAcharset_"&gt;`, where _`IANAcharset`_ contains the value of the equivalent [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) attribute. This syntax is still allowed, although no longer recommended.</source>
-        <target state="translated">Cet attribut déclare l’encodage de caractères de la page. Il doit contenir un [nom MIME IANA standard pour les encodages de caractères](https://www.iana.org/assignments/character-sets). Bien que la norme n’exige pas d’encodage spécifique, elle recommande :
+        <target state="translated">Cet attribut déclare l’encodage de caractères de la page. Il doit contenir un [nom IANA MIME standard pour les encodages de caractères](https://www.iana.org/assignments/character-sets). Bien que la norme n’exige pas d’encodage spécifique, elle recommande :
 
 * Les auteurs sont encouragés à utiliser [`UTF-8`](https://developer.mozilla.org/en-US/docs/Glossary/UTF-8).
-* Les auteurs ne doivent pas utiliser d’encodages incompatibles avec ASCII afin d’éviter les risques de sécurité : les navigateurs qui ne les prennent pas en charge peuvent interpréter du contenu malveillant comme du HTML. C’est le cas des familles `JIS_C6226-1983`, `JIS_X0212-1990`, `HZ-GB-2312`, `JOHAB`, ISO-2022 et EBCDIC.
+* Les auteurs ne doivent pas utiliser d'encodages incompatibles avec ASCII pour éviter les risques de sécurité : les navigateurs qui ne les prennent pas en charge peuvent interpréter le contenu nuisible comme du HTML. C’est le cas des familles `JIS_C6226-1983`, `JIS_X0212-1990`, `HZ-GB-2312`, `JOHAB`, ISO-2022 et EBCDIC.
 
 **Remarque :** les encodages incompatibles avec ASCII sont ceux qui ne mappent pas les points de code 8 bits `0x20` à `0x7E` vers les points de code Unicode `0x0020` à `0x007E`)
 
-* Les auteurs **ne doivent pas** utiliser `CESU-8`, `UTF-7`, `BOCU-1` et/ou `SCSU`, car des attaques de [scripting inter-site](https://developer.mozilla.org/en-US/docs/Glossary/Cross-site_scripting) exploitant ces encodages ont été démontrées.
-* Les auteurs ne doivent pas utiliser `UTF-32`, car tous les algorithmes d’encodage HTML5 ne peuvent pas le distinguer de `UTF-16`.
+* Les auteurs **ne doivent pas** utiliser `CESU-8`, `UTF-7`, `BOCU-1` et/ou `SCSU` car des attaques de [cross-site scripting](https://developer.mozilla.org/en-US/docs/Glossary/Cross-site_scripting) avec ces encodages ont été démontrées.
+* Les auteurs ne doivent pas utiliser `UTF-32` car tous les algorithmes d'encodage HTML5 ne peuvent pas le distinguer de `UTF-16`.
 
 **Remarques :**
 
 * L’encodage de caractères déclaré doit correspondre à celui avec lequel la page a été enregistrée pour éviter l’affichage incorrect des caractères et les failles de sécurité.
-* L’élément [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta « L’élément HTML &lt;meta&gt; représente des métadonnées qui ne peuvent pas être représentées par d’autres éléments HTML liés aux métadonnées, comme &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; ou &lt;title&gt;. ») qui déclare l’encodage doit se trouver à l’intérieur de l’élément [`&lt;head&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/head « L’élément HTML &lt;head&gt; fournit des informations générales (métadonnées) sur le document, y compris son titre et des liens vers ses scripts et feuilles de style. ») et **dans les 1 024 premiers octets** du code HTML, car certains navigateurs ne consultent que ces octets avant de choisir un encodage.
-* Cet élément [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta « L’élément HTML &lt;meta&gt; représente des métadonnées qui ne peuvent pas être représentées par d’autres éléments HTML liés aux métadonnées, comme &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; ou &lt;title&gt;. ») n’est qu’une partie de l'[algorithme permettant de déterminer le jeu de caractères d’une page](https://www.whatwg.org/specs/web-apps/current-work/multipage/parsing.html#encoding-sniffing-algorithm « Page de jeu de caractères d’algorithme »). L’en-tête [`Content-Type`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type) et tout [Byte-Order Mark](https://developer.mozilla.org/en-US/docs/Glossary/Byte-Order_Mark « La définition de ce terme (Byte-Order Marks) n’a pas encore été écrite ; n’hésitez pas à y contribuer ! ») priment sur cet élément.
-* Il est fortement recommandé de définir l’encodage de caractères. Si l’encodage d’une page n’est pas défini, des techniques de scripting inter-site sont possibles, telles que la [technique de repli `UTF-7`](https://code.google.com/p/doctype-mirror/wiki/ArticleUtf7).
-* [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta « L’élément HTML &lt;meta&gt; représente des métadonnées qui ne peuvent pas être représentées par d’autres éléments html liés aux métadonnées, comme &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; ou &lt;title&gt;. ») élément avec un attribut `charset` est un synonyme de la pré-HTML5 `&lt;meta http-equiv="Content-Type" content="text/html; charset=_IANAcharset_"&gt;`, où _`IANAcharset`_ contient la valeur de l’attribut [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) équivalent. Cette syntaxe est toujours autorisée, bien qu’elle ne soit plus recommandée.</target>
+* L'élément [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "L'élément HTML &lt;meta&gt; représente des métadonnées qui ne peuvent pas être représentées par d'autres éléments HTML liés aux méta, comme &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; ou &lt;title&gt;.") déclarant que l'encodage doit être à l'intérieur du [`&lt;head&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/head "L'élément HTML &lt;head&gt; fournit des informations générales (métadonnées) sur le document, y compris son titre et les liens vers ses scripts et feuilles de style.") et **dans les 1 024 premiers octets** du code HTML, car certains navigateurs ne consultent que ces octets avant de choisir un encodage.
+* Cet élément [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "L'élément HTML &lt;meta&gt; représente des métadonnées qui ne peuvent pas être représentées par d'autres éléments HTML liés aux méta, comme &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; ou &lt;title&gt;.") n'est qu'une partie de l'[algorithme pour déterminer le caractère d'une page set](https://www.whatwg.org/specs/web-apps/current-work/multipage/parsing.html#encoding-sniffing-algorithm "Page de jeu de caractères de l'algorithme"). L’en-tête [`Content-Type`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type) et tout [Byte-Order Mark](https://developer.mozilla.org/en-US/docs/Glossary/Byte-Order_Mark « La définition de ce terme (Byte-Order Marks) n’a pas encore été écrite ; n’hésitez pas à y contribuer ! ») priment sur cet élément.
+* Il est fortement recommandé de définir l’encodage de caractères. Si l'encodage d'une page n'est pas défini, des techniques de script croisé sont possibles, telles que la [technique de script croisé de secours `UTF-7`](https://code.google.com/p/doctype-mirror/wiki/ArticleUtf7).
+* L'élément [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "L'élément HTML &lt;meta&gt; représente des métadonnées qui ne peuvent pas être représentées par d'autres éléments HTML liés aux méta, comme &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; ou &lt;title&gt;.") avec un attribut `charset` est un synonyme de l'élément pré-HTML5 `&lt;meta http-equiv="Content-Type" content="text/html; charset=_IANAcharset_"&gt;`, où _`IANAcharset`_ contient la valeur de l'attribut équivalent [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset). Cette syntaxe est toujours autorisée, bien qu’elle ne soit plus recommandée.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_cite">
@@ -239,17 +239,17 @@ A cross-origin request (i.e. with an [`Origin`](https://developer.mozilla.org/en
 A cross-origin request (i.e. with an `Origin` HTTP header) is performed along with a credential sent (i.e. a cookie, certificate, and/or HTTP Basic authentication is performed). If the server does not give credentials to the origin site (through [`Access-Control-Allow-Credentials`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials "The Access-Control-Allow-Credentials response header tells browsers whether to expose the response to frontend JavaScript code when the request's credentials mode (Request.credentials) is "include".") HTTP header), the resource will be _tainted_ and its usage restricted.
 
 If the attribute is not present, the resource is fetched without a [CORS](https://developer.mozilla.org/en-US/docs/Glossary/CORS "CORS: CORS (Cross-Origin Resource Sharing) is a system, consisting of transmitting HTTP headers, that determines whether browsers block frontend JavaScript code from accessing responses for cross-origin requests.") request (i.e. without sending the `Origin` HTTP header), preventing its non-tainted usage. If invalid, it is handled as if the enumerated keyword **anonymous** was used. See [CORS settings attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_settings_attributes) for additional information.</source>
-        <target state="translated">Cet attribut énuméré indique si [CORS](https://developer.mozilla.org/en-US/docs/Glossary/CORS « CORS : CORS (Cross-Origin Resource Sharing) est un système, constitué d’en-têtes HTTP, qui détermine si les navigateurs empêchent le code JavaScript frontal d’accéder aux réponses pour les demandes cross-origin. ») doivent être utilisés lors de l’extraction de la ressource. [Images compatibles CORS](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_Enabled_Image) peut être réutilisé dans l’élément [`&lt;canvas&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas l’élément HTML &lt;canvas&gt; avec l’API de script de canevas ou l’API WebGL pour dessiner des graphiques et des animations. ») sans être _tainted_. Les valeurs autorisées sont : 
+        <target state="translated">Cet attribut énuméré indique si [CORS](https://developer.mozilla.org/en-US/docs/Glossary/CORS "CORS : CORS (Cross-Origin Resource Sharing) est un système, consistant à transmettre des en-têtes HTTP, qui détermine si les navigateurs empêchent le code JavaScript frontal d'accéder aux réponses pour les requêtes d'origine croisée.") doit être utilisé lors de la récupération de la ressource. Les [images compatibles CORS](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_Enabled_Image) peuvent être réutilisées dans l'élément [`&lt;canvas&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas "Utilisez l'élément HTML &lt;canvas&gt; avec l'API de script canevas ou l'API WebGL pour dessiner des graphiques et des animations.") sans être _tainted_. Les valeurs autorisées sont : 
 
 `anonymous`
 
-Une demande cross-origin (c’est-à-dire avec une [`Origin`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin « L’en-tête de la demande d’origine indique d’où provient une extraction. Il n’inclut aucune information de chemin d’accès, mais uniquement le nom du serveur. Il est envoyé avec les demandes CORS, ainsi qu’avec les demandes POST. Il est similaire à l’en-tête du référent, mais, contrairement à cet en-tête, il ne divulgue pas l’intégralité du chemin d’accès. ») En-tête HTTP) est effectué, mais aucune information d’identification n’est envoyée (par exemple, aucun cookie, certificat X.509 ou authentification HTTP De base). Si le serveur n’accorde pas d’informations d’identification au site d’origine (en ne définissant pas l’en-tête HTTP [`Access-Control-Allow-Origin`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin « L’en-tête de réponse Access-Control-Allow-Origin indique si la réponse peut être partagée avec le code demandeur provenant de l’origine donnée. »)), l’image sera altérée et son utilisation sera restreinte.
+Une requête d'origine croisée (c'est-à-dire avec un [`Origin`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin "L'en-tête de requête Origin indique d'où provient une récupération. Il n’inclut aucune information de chemin d’accès, mais uniquement le nom du serveur. Il est envoyé avec les requêtes CORS, ainsi qu'avec les requêtes POST. Il est similaire à l'en-tête Referer, mais contrairement à cet en-tête, il ne divulgue pas le chemin complet.") En-tête HTTP) est effectué, mais aucun identifiant n'est envoyé (c'est-à-dire aucun cookie, certificat X.509 ou authentification HTTP Basic). Si le serveur ne donne pas d'informations d'identification au site d'origine (en ne définissant pas l'en-tête HTTP [`Access-Control-Allow-Origin`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin "L'en-tête de réponse Access-Control-Allow-Origin indique si la réponse peut être partagée avec la requête de code de l'origine donnée.")), l'image sera corrompue et son utilisation restreinte.
 
 `use-credentials`
 
-Une requête cross-origin (c’est-à-dire avec un en-tête HTTP `Origin`) est effectuée avec l’envoi d’informations d’identification (c’est-à-dire avec un cookie, un certificat et/ou une authentification HTTP Basic). Si le serveur n’accorde pas d’informations d’identification au site d’origine (via l’en-tête HTTP [`Access-Control-Allow-Credentials`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials « L’en-tête de réponse Access-Control-Allow-Credentials indique aux navigateurs s’il faut exposer la réponse au code JavaScript frontal lorsque le mode d’informations d’identification de la requête (Request.credentials) est 'include'. »)), la ressource sera _altérée_ et son utilisation sera restreinte.
+Une requête d'origine croisée (c'est-à-dire avec un en-tête HTTP `Origin`) est effectuée avec un identifiant envoyé (c'est-à-dire qu'un cookie, un certificat et/ou une authentification HTTP Basic est effectué). Si le serveur ne donne pas d'informations d'identification au site d'origine (via [`Access-Control-Allow-Credentials`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials "L'en-tête de réponse Access-Control-Allow-Credentials indique aux navigateurs s'ils doivent exposer la réponse au code JavaScript frontal lorsque le mode d'informations d'identification de la demande (Request.credentials) est "include".") En-tête HTTP), la ressource sera _tainted_ et son utilisation restreinte.
 
-Si l’attribut n’est pas présent, la ressource est extraite sans [CORS](https://developer.mozilla.org/en-US/docs/Glossary/CORS « CORS : CORS (Cross-Origin Resource Sharing) est un système, constitué d’en-têtes HTTP transmis, qui détermine si les navigateurs empêchent le code JavaScript frontend d’accéder aux réponses pour les demandes cross-origin. ») (c’est-à-dire sans envoyer l’en-tête HTTP `Origin`) qui empêche son utilisation non altérée. S’il est invalide, il est traité comme si le mot clé énuméré **anonymous** était utilisé. Consultez [CORS settings attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_settings_attributes) pour plus d’informations.</target>
+Si l'attribut n'est pas présent, la ressource est récupérée sans requête [CORS](https://developer.mozilla.org/en-US/docs/Glossary/CORS "CORS : CORS (Cross-Origin Resource Sharing) est un système consistant à transmettre des en-têtes HTTP, qui détermine si les navigateurs empêchent le code JavaScript frontal d'accéder aux réponses pour les requêtes d'origine croisée.") (c'est-à-dire sans envoyer l'en-tête HTTP `Origin`), empêchant sa utilisation non entachée. S’il est invalide, il est traité comme si le mot clé énuméré **anonymous** était utilisé. Consultez [CORS settings attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_settings_attributes) pour plus d’informations.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_csp">
@@ -326,7 +326,7 @@ Pour obtenir un effet similaire pour les scripts insérés dynamiquement, utilis
 
 * `ltr`, qui signifie _left to right_ et doit être utilisé pour les langues écrites de gauche à droite (comme l’anglais) ;
 * `rtl`, qui signifie _right to left_ et doit être utilisé pour les langues écrites de droite à gauche (comme l’arabe) ;
-* `auto`, qui laisse l’agent utilisateur décider. Il utilise un algorithme de base lorsqu’il analyse les caractères à l’intérieur de l’élément jusqu’à ce qu’il trouve un caractère avec une forte directionnalité, puis applique cette directionnalité à l’ensemble de l’élément.</target>
+* `auto`, qui laisse l’agent utilisateur décider. Il utilise un algorithme de base pour analyser les caractères à l'intérieur de l'élément jusqu'à ce qu'il trouve un caractère avec une forte directionnalité, puis il applique cette directionnalité à l'ensemble de l'élément.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_disabled">
@@ -358,9 +358,9 @@ Pour obtenir un effet similaire pour les scripts insérés dynamiquement, utilis
 
 * `true`, which indicates that the element may be dragged
 * `false`, which indicates that the element may not be dragged.</source>
-        <target state="translated">Attribut énuméré indiquant si l’élément peut être déplacé à l’aide de l’[API Glisser-déplacer](https://developer.mozilla.org/docs/DragDrop/Drag_and_Drop). Il peut avoir les valeurs suivantes :
+        <target state="translated">Un attribut énuméré indiquant si l'élément peut être glissé, à l'aide de l'[API Drag and Drop](https://developer.mozilla.org/docs/DragDrop/Drag_and_Drop). Il peut avoir les valeurs suivantes :
 
-* `true`, qui indique que l’élément peut être déplacé
+* `true`, ce qui indique que l'élément peut être glissé
 * `false`, qui indique que l’élément peut être déplacé.</target>
         <note />
       </trans-unit>
@@ -370,11 +370,11 @@ Pour obtenir un effet similaire pour les scripts insérés dynamiquement, utilis
 * `copy`, which indicates that dropping will create a copy of the element that was dragged
 * `move`, which indicates that the element that was dragged will be moved to this new location.
 * `link`, will create a link to the dragged data.</source>
-        <target state="translated">Attribut énuméré indiquant les types de contenu pouvant être supprimés sur un élément, à l’aide de l'[API Glisser-déplacer](https://developer.mozilla.org/docs/DragDrop/Drag_and_Drop). Il peut avoir les valeurs suivantes :
+        <target state="translated">Un attribut énuméré indiquant quels types de contenu peuvent être déposés sur un élément, à l'aide de l'[API Drag and Drop](https://developer.mozilla.org/docs/DragDrop/Drag_and_Drop). Il peut avoir les valeurs suivantes :
 
 * `copy`, qui indique que le dépôt crée une copie de l’élément déplacé
 * `move`, qui indique que l’élément déplacé sera déplacé vers ce nouvel emplacement.
-* `link`, qui crée un lien vers les données déplacées.</target>
+* `link` créera un lien vers les données glissées.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_enctype">
@@ -385,13 +385,13 @@ Pour obtenir un effet similaire pour les scripts insérés dynamiquement, utilis
 * `text/plain`: (HTML5)
 
 This value can be overridden by a [`formenctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formenctype) attribute on a [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") or [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") element.</source>
-        <target state="translated">Lorsque la valeur de l’attribut `method` est `post`, enctype correspond au [type MIME](https://en.wikipedia.org/wiki/Mime_type) du contenu utilisé pour envoyer le formulaire au serveur. Les valeurs admises sont : 
+        <target state="translated">Lorsque la valeur de l'attribut `method` est `post`, enctype est le [type MIME](https://en.wikipedia.org/wiki/Mime_type) du contenu utilisé pour soumettre le formulaire au serveur. Les valeurs admises sont : 
 
-* `application/x-www-form-urlencoded` : valeur par défaut si l’attribut n’est pas spécifié.
-* `multipart/form-data` : valeur utilisée pour un élément [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input « L’élément HTML &lt;input&gt; est utilisé pour créer des contrôles interactifs pour les formulaires Web afin d’accepter des données de la part de l’utilisateur ; une grande variété de types de données d’entrée et de widgets de contrôle sont disponibles, selon l’appareil et l’agent utilisateur. ») avec l’attribut `type` défini sur "file".
-* `text/plain` : (HTML5)
+* `application/x-www-form-urlencoded` : La valeur par défaut si l'attribut n'est pas spécifié.
+* `multipart/form-data` : la valeur utilisée pour un élément [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "L'élément HTML &lt;input&gt; est utilisé pour créer des contrôles interactifs pour les formulaires Web afin d'accepter les données de l'utilisateur ; une grande variété de types de données d'entrée et de widgets de contrôle sont disponibles, en fonction du périphérique et de l'agent utilisateur.") élément avec l'attribut `type` défini sur "fichier".
+* `text/plain`: (HTML5)
 
-Cette valeur peut être remplacée par un attribut [`formenctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formenctype) sur un [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button « L’élément HTML &lt;button&gt; représente un bouton interactif, qui peut être utilisé dans les formulaires ou n’importe où dans un document nécessitant une fonctionnalité de bouton simple et standard. ») ou un [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input « L’élément HTML &lt;input&gt; est utilisé pour créer des contrôles interactifs pour les formulaires Web afin d’accepter les données de l’utilisateur ; une grande variété de types de données d’entrée et de widgets de contrôle sont disponibles, en fonction de l’appareil et de l’agent utilisateur. »).</target>
+Cette valeur peut être remplacée par un attribut [`formenctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formenctype) sur un [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "L'élément HTML &lt;button&gt; représente un bouton cliquable, qui peut être utilisé dans des formulaires ou n'importe où dans un document qui nécessite une fonctionnalité de bouton simple et standard.") ou [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "L'élément HTML &lt;input&gt; est utilisé pour créer des contrôles interactifs pour les formulaires Web afin d'accepter les données de l'utilisateur ; une grande variété de types de données d'entrée et de widgets de contrôle sont disponibles, en fonction de l'appareil et de l'agent utilisateur.") élément.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_enterkeyhint">
@@ -413,7 +413,7 @@ Cette valeur peut être remplacée par un attribut [`formenctype`](https://devel
         <source>The [`id`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-id) of a [labelable](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Content_categories#Form_labelable) form-related element in the same document as the `&lt;label&gt;` element. The first element in the document with an `id` matching the value of the `for` attribute is the _labeled control_ for this label element, if it is a labelable element. If it is not labelable then the `for` attribute has no effect. If there are other elements which also match the `id` value, later in the document, they are not considered.
 
 **Note**: A `&lt;label&gt;` element can have both a `for` attribute and a contained control element, as long as the `for` attribute points to the contained control element.</source>
-        <target state="translated">L’[`id`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-id) d’un élément de formulaire [étiquetable](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Content_categories#Form_labelable) situé dans le même document que l’élément `&lt;label&gt;`. Le premier élément du document dont l’`id` correspond à la valeur de l’attribut `for` est le _contrôle étiqueté_ de cet élément d’étiquette, s’il s’agit d’un élément étiquetable. S’il ne l’est pas, l’attribut `for` n’a aucun effet. Si d’autres éléments correspondent également à la valeur de l’`id`, ils ne sont pas pris en compte s’ils apparaissent plus loin dans le document.
+        <target state="translated">L’[`id`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-id) d’un élément de formulaire [étiquetable](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Content_categories#Form_labelable) situé dans le même document que l’élément `&lt;label&gt;`. Le premier élément du document avec un `id` correspondant à la valeur de l'attribut `for` est le _labeled control_ pour cet élément label, s'il s'agit d'un élément étiquetable. S’il ne l’est pas, l’attribut `for` n’a aucun effet. Si d’autres éléments correspondent également à la valeur de l’`id`, ils ne sont pas pris en compte s’ils apparaissent plus loin dans le document.
 
 **Remarque** : un élément `&lt;label&gt;` peut avoir à la fois un attribut `for` et un élément de contrôle qu’il contient, à condition que l’attribut `for` pointe vers l’élément de contrôle contenu.</target>
         <note />
@@ -438,11 +438,11 @@ Cette valeur peut être remplacée par un attribut [`formenctype`](https://devel
 If this attribute is specified, it overrides the [`enctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-enctype) attribute of the button's form owner.</source>
         <target state="translated">Si le bouton est un bouton d’envoi, cet attribut spécifie le type de contenu utilisé pour envoyer le formulaire au serveur. Les valeurs admises sont : 
 
-* `application/x-www-form-urlencoded` : valeur par défaut si l’attribut n’est pas spécifié.
-* `multipart/form-data` : utilisez cette valeur si vous utilisez un élément [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input « L’élément HTML &lt;input&gt; est utilisé pour créer des contrôles interactifs pour les formulaires Web afin d’accepter des données de la part de l’utilisateur ; une grande variété de types de données d’entrée et de widgets de contrôle sont disponibles, selon l’appareil et l’agent utilisateur. ») avec l’attribut [`type`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-type) défini sur `file`.
+* `application/x-www-form-urlencoded` : La valeur par défaut si l'attribut n'est pas spécifié.
+* `multipart/form-data` : utilisez cette valeur si vous utilisez un élément [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "L'élément HTML &lt;input&gt; est utilisé pour créer des contrôles interactifs pour les formulaires Web afin d'accepter les données de l'utilisateur ; une grande variété de types de données d'entrée et de widgets de contrôle sont disponibles, en fonction du périphérique et de l'agent utilisateur.") élément avec l'élément Attribut [`type`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-type) défini sur `file`.
 * `text/plain`
 
-Si cet attribut est spécifié, il remplace l’attribut [`enctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-enctype) du propriétaire du formulaire du bouton.</target>
+Si cet attribut est spécifié, il remplace l'attribut [`enctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-enctype) du propriétaire du formulaire du bouton.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_formmethod">
@@ -455,9 +455,9 @@ If specified, this attribute overrides the [`method`](https://developer.mozilla.
         <target state="translated">Si le bouton est un bouton d’envoi, cet attribut spécifie la méthode HTTP que le navigateur utilise pour envoyer le formulaire. Les valeurs admises sont : 
 
 * `post` : les données du formulaire sont incluses dans le corps du formulaire et envoyées au serveur.
-* `get` : les données du formulaire sont ajoutées à l’URI de l’attribut **form**, avec un '?' comme séparateur, puis l’URI obtenu est envoyé au serveur. Utilisez cette méthode lorsque le formulaire n’a pas d’effet secondaire et ne contient que des caractères ASCII.
+* `get` : les données du formulaire sont ajoutées à l'URI de l'attribut **form**, avec un '?' comme séparateur, et l'URI résultant est envoyé au serveur. Utilisez cette méthode lorsque le formulaire n’a pas d’effet secondaire et ne contient que des caractères ASCII.
 
-Si cet attribut est spécifié, il remplace l’attribut [`method`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-method) du formulaire associé au bouton.</target>
+S'il est spécifié, cet attribut remplace l'attribut [`method`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-method) du propriétaire du formulaire du bouton.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_formnovalidate">
@@ -472,7 +472,7 @@ Si cet attribut est spécifié, il remplace l’attribut [`method`](https://deve
 * `_blank`: Load the response into a new unnamed browsing context.
 * `_parent`: Load the response into the parent browsing context of the current one. If there is no parent, this option behaves the same way as `_self`.
 * `_top`: Load the response into the top-level browsing context (that is, the browsing context that is an ancestor of the current one, and has no parent). If there is no parent, this option behaves the same way as `_self`.</source>
-        <target state="translated">Si le bouton est un bouton d’envoi, cet attribut est un nom ou un mot clé indiquant où afficher la réponse reçue après l’envoi du formulaire. Il s’agit d’un nom ou d’un mot clé pour un _browsing context_ (par exemple, un onglet, une fenêtre ou un cadre en ligne). Si cet attribut est spécifié, il remplace l’attribut [`target`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-target) du propriétaire du formulaire du bouton. Les mots-clés suivants ont une signification particulière :
+        <target state="translated">Si le bouton est un bouton d’envoi, cet attribut est un nom ou un mot clé indiquant où afficher la réponse reçue après l’envoi du formulaire. Il s'agit du nom ou du mot-clé d'un _contexte de navigation_ (par exemple, un onglet, une fenêtre ou un cadre en ligne). Si cet attribut est spécifié, il remplace l'attribut [`target`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-target) du propriétaire du formulaire du bouton. Les mots-clés suivants ont une signification particulière :
 
 * `_self` : charge la réponse dans le même contexte de navigation que le contexte actuel. Cette valeur est la valeur par défaut si l’attribut n’est pas spécifié.
 * `_blank` : charge la réponse dans un nouveau contexte de navigation sans nom.
@@ -533,25 +533,25 @@ Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page
         <target state="translated">Définit une directive pragma. L’attribut est nommé `**http-equiv**(alent)` parce que toutes les valeurs autorisées sont des noms d’en-têtes HTTP particuliers :
 
 * `"content-language"` 
-Définit la langue par défaut de la page. Cet attribut peut être remplacé par l’attribut [lang](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/lang) sur n’importe quel élément.
+Définit la langue par défaut de la page. Il peut être remplacé par l'attribut [lang](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/lang) sur n'importe quel élément.
 
-**Avertissement :** n’utilisez pas cette valeur, car elle est obsolète. Préférez l’attribut `lang` sur l’élément [`&lt;html&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/html « L’élément HTML &lt;html&gt; représente la racine, c’est-à-dire l’élément de plus haut niveau, d’un document HTML. On l’appelle aussi élément racine. Tous les autres éléments doivent être des descendants de cet élément. »).
+**Avertissement :** n’utilisez pas cette valeur, car elle est obsolète. Préférez l'attribut `lang` sur le [`&lt;html&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/html "L'élément HTML &lt;html&gt; représente la racine (élément de niveau supérieur) d'un document HTML, il est donc également appelé élément racine. On l’appelle aussi élément racine. Tous les autres éléments doivent être des descendants de cet élément. »).
 
 * `"content-security-policy"` 
-Permet aux auteurs de pages de définir une [politique de contenu](https://developer.mozilla.org/en-US/docs/Web/Security/CSP/CSP_policy_directives) pour la page active. Les politiques de contenu définissent surtout les origines de serveur autorisées et les points de terminaison de script, ce qui aide à se protéger contre les attaques de scripting inter-site.
+Permet aux auteurs de pages de définir une [politique de contenu](https://developer.mozilla.org/en-US/docs/Web/Security/CSP/CSP_policy_directives) pour la page actuelle. Les stratégies de contenu spécifient principalement les origines de serveur autorisées et les points de terminaison de script qui aident à se prémunir contre les attaques de scripts intersites.
 * `"content-type"` 
-Définit le [type MIME](https://developer.mozilla.org/en-US/docs/Glossary/MIME_type) du document, suivi de son encodage de caractères. Il suit la même syntaxe que le champ d’en-tête d’entité HTTP `content-type`, mais comme il se trouve dans une page HTML, la plupart des valeurs autres que `text/html` sont impossibles. Par conséquent, la syntaxe valide de son `content` est la chaîne `text/html` suivie d’un jeu de caractères avec la syntaxe suivante : `; charset=_IANAcharset_`, où `IANAcharset` est le _nom MIME préféré_ pour un jeu de caractères, tel que [défini par l’IANA.](https://www.iana.org/assignments/character-sets)
+Définit le [type MIME](https://developer.mozilla.org/en-US/docs/Glossary/MIME_type) du document, suivi de son encodage de caractères. Il suit la même syntaxe que le champ d'en-tête d'entité HTTP `content-type`, mais comme il se trouve à l'intérieur d'une page HTML, la plupart des valeurs autres que `text/html` sont impossibles. Par conséquent, la syntaxe valide pour son `content` est la chaîne '`text/html`' suivie d'un jeu de caractères avec la syntaxe suivante : '`; charset=_IANAcharset_`', où `IANAcharset` est le _nom MIME préféré_ pour un jeu de caractères comme [défini par l'IANA.](https://www.iana.org/assignments/character-sets)
 
-**Avertissement :** n’utilisez pas cette valeur, car elle est obsolète. Utilisez l’attribut [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) sur l’élément [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta « L’élément HTML &lt;meta&gt; représente des métadonnées qui ne peuvent pas être représentées par d’autres éléments html liés aux métadonnées, comme &lt;base&gt;, &lt;link&gt;, élément &lt;script&gt;, &lt;style&gt; ou &lt;title&gt; »).
+**Avertissement :** n’utilisez pas cette valeur, car elle est obsolète. Utilisez l'attribut [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) sur le [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "L'élément HTML &lt;meta&gt; représente des métadonnées qui ne peuvent pas être représentées par d'autres éléments HTML liés aux méta, comme &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; ou &lt;title&gt;.") élément.
 
-**Remarque :** En tant que [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta « L’élément HTML &lt;meta&gt; représente des métadonnées qui ne peuvent pas être représentées par d’autres éléments liés aux métadonnées HTML, comme &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; ou &lt;title&gt;. ») ne peut pas modifier les types de documents dans la sérialisation XHTML ou HTML5, et ne jamais définir le type MIME sur un type MIME XHTML avec `&lt;meta&gt;`.
+**Remarque :** Comme [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "L'élément HTML &lt;meta&gt; représente des métadonnées qui ne peuvent pas être représentées par d'autres éléments HTML liés aux métadonnées, comme &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; ou &lt;title&gt;.") ne peut pas modifier les types de documents en XHTML ou la sérialisation XHTML de HTML5, ne définissez jamais le type MIME sur un Tapez XHTML MIME avec `&lt;meta&gt;`.
 
 * `"refresh"` 
 Cette instruction spécifie :
 * Nombre de secondes avant le rechargement de la page, uniquement si l’attribut [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) contient un entier positif.
 * Nombre de secondes avant que la page ne soit redirigée vers une autre, uniquement si l’attribut [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) contient un entier positif suivi de la chaîne '`;url=`', et d’une URL valide.
 * `"set-cookie"` 
-Définit un [cookie](https://developer.mozilla.org/en-US/docs/cookie) pour la page. Son contenu doit suivre la syntaxe définie dans la [spécification du cookie HTTP IETF](https://tools.ietf.org/html/draft-ietf-httpstate-cookie-14).
+Définit un [cookie](https://developer.mozilla.org/en-US/docs/cookie) pour la page. Son contenu doit suivre la syntaxe définie dans la [Spécification des cookies HTTP de l'IETF](https://tools.ietf.org/html/draft-ietf-httpstate-cookie-14).
 
 **Avertissement :** N’utilisez pas cette instruction, car elle est obsolète. Utilisez plutôt l’en-tête HTTP [`Set-Cookie`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie).</target>
         <note />
@@ -587,7 +587,7 @@ Définit un [cookie](https://developer.mozilla.org/en-US/docs/cookie) pour la pa
 **Note:** This attribute is allowed only if the `&lt;img&gt;` element is a descendant of an [`&lt;a&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a "The HTML &lt;a&gt; element (or anchor element) creates a hyperlink to other web pages, files, locations within the same page, email addresses, or any other URL.") element with a valid [`href`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-href) attribute.</source>
         <target state="translated">Cet attribut booléen indique que l’image fait partie d’une image cliquable côté serveur. Si c’est le cas, les coordonnées précises d’un clic sont envoyées au serveur.
 
-**Remarque :** cet attribut n’est autorisé que si l’élément `&lt;img&gt;` est un descendant d’un élément [`&lt;a&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a « L’élément HTML &lt;a&gt; (ou élément d’ancrage) crée un lien hypertexte vers d’autres pages Web, fichiers, emplacements dans la même page, adresses e-mail ou toute autre URL. ») avec un attribut [`href`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-href) valide.</target>
+**Remarque :** Cet attribut n'est autorisé que si l'élément `&lt;img&gt;` est un descendant d'un élément [`&lt;a&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a "L'élément HTML &lt;a&gt; (ou l'élément d'ancrage) crée un lien hypertexte vers d'autres pages Web, fichiers, emplacements dans la même page, adresses e-mail ou toute autre URL.") avec un élément valide Attribut [`href`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-href).</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_itemid">
@@ -632,14 +632,14 @@ Définit un [cookie](https://developer.mozilla.org/en-US/docs/cookie) pour la pa
 * Chapter titles are intended to be used when the user is navigating the media resource.
 * `metadata`
 * Tracks used by scripts. Not visible to the user.</source>
-        <target state="translated">Comment la piste de texte est censée être utilisée. Si vous l’omettez, le type par défaut est `subtitles`. Si l’attribut n’est pas présent, il utilise `subtitles`. Si l’attribut contient une valeur non valide, il utilise des `metadata`. (Les versions de Chrome antérieures à 52 considéraient une valeur non valide comme `subtitles`.) Les mots-clés suivants sont autorisés :
+        <target state="translated">Comment la piste de texte est censée être utilisée. S'il est omis, le type par défaut est `subtitles`. Si l'attribut n'est pas présent, il utilisera les `subtitles`. Si l'attribut contient une valeur non valide, il utilisera de `metadata`. (Les versions de Chrome antérieures à 52 considéraient une valeur non valide comme `subtitles`.) Les mots-clés suivants sont autorisés : 
 
 * `subtitles`
-* Les sous-titres fournissent une traduction du contenu que le spectateur ne peut pas comprendre. Par exemple, les dialogues ou le texte qui ne sont pas en anglais dans un film en anglais.
+* Les sous-titres fournissent une traduction du contenu qui ne peut pas être compris par le spectateur. Par exemple, les dialogues ou le texte qui ne sont pas en anglais dans un film en anglais.
 * Les sous-titres peuvent contenir du contenu supplémentaire, généralement des informations de contexte supplémentaires. Par exemple, le texte au début des films Star Wars, ou la date, l’heure et le lieu d’une scène.
 * `captions`
-* Les sous-titres fermés fournissent une transcription et éventuellement une traduction de l’audio.
-* Ils peuvent inclure des informations non verbales importantes, comme des indications musicales ou des effets sonores. Ils peuvent indiquer la source de l’indication (par exemple, musique, texte, personnage).
+* Les sous-titres codés fournissent une transcription et éventuellement une traduction de l'audio.
+* Ils peuvent inclure des informations non verbales importantes, comme des indications musicales ou des effets sonores. Cela peut indiquer la source de l'indication (par exemple, musique, texte, personnage).
 * Convient aux personnes malentendantes ou lorsque le son est coupé.
 * `descriptions`
 * Description textuelle du contenu vidéo.
@@ -647,7 +647,7 @@ Définit un [cookie](https://developer.mozilla.org/en-US/docs/cookie) pour la pa
 * `chapters`
 * Les titres de chapitres sont destinés à être utilisés lorsque l’utilisateur navigue dans la ressource multimédia.
 * `metadata`
-* Pistes utilisées par les scripts. Non visibles pour l’utilisateur.</target>
+* Pistes utilisées par les scripts. Non visible de l’utilisateur.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_label">
@@ -696,7 +696,7 @@ Définit un [cookie](https://developer.mozilla.org/en-US/docs/cookie) pour la pa
 
 **Remarques :**
 
-* En HTML 4, il ne peut s’agir que d’une simple liste de littéraux de description de média séparés par des espaces, c’est-à-dire [media types and groups](https://developer.mozilla.org/en-US/docs/Web/CSS/@media), lorsqu’ils sont définis et autorisés comme valeurs de cet attribut, comme `print`, `screen`, `aural`, `braille`. HTML5 a étendu cela à tout type de [media queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries), qui constituent un sur-ensemble des valeurs autorisées en HTML 4.
+* En HTML 4, il ne peut s'agir que d'une simple liste de littéraux de description de média, séparés par des espaces blancs, c'est-à-dire [types et groupes de médias](https://developer.mozilla.org/en-US/docs/Web/CSS/@media), lorsqu'ils sont définis et autorisés comme valeurs pour cet attribut, tels que `print`, `screen`, `aural`, `braille`. HTML5 a étendu cela à tout type de [media queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries), qui constituent un sur-ensemble des valeurs autorisées en HTML 4.
 * Les navigateurs qui ne prennent pas en charge les [CSS3 Media Queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries) ne reconnaîtront pas nécessairement le bon lien. N’oubliez pas de définir des liens de secours, avec le jeu restreint de requêtes média défini dans HTML 4.</target>
         <note />
       </trans-unit>
@@ -711,10 +711,10 @@ This value can be overridden by a [`formmethod`](https://developer.mozilla.org/e
         <target state="translated">Méthode [HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP) utilisée par le navigateur pour envoyer le formulaire. Les valeurs admises sont : 
 
 * `post` : correspond à la méthode HTTP [POST](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.5). Les données du formulaire sont incluses dans le corps du formulaire et envoyées au serveur.
-* `get` : correspond à la méthode HTTP [GET](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.3) ; les données du formulaire sont ajoutées à l’URI de l’attribut `action`, séparées par un « ? », puis l’URI résultant est envoyée au serveur. Utilisez cette méthode lorsque le formulaire n’a pas d’effet secondaire et ne contient que des caractères ASCII.
-* `dialog` : à utiliser lorsque le formulaire se trouve à l’intérieur d’un élément [`&lt;dialog&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog « L’élément HTML &lt;dialog&gt; représente une boîte de dialogue ou un autre composant interactif, tel qu’un inspecteur ou une fenêtre. ») pour fermer la boîte de dialogue lors de l’envoi.
+* `get` : Correspond au HTTP [méthode GET](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.3) ; les données du formulaire sont ajoutées à l'URI de l'attribut `action` avec un ? » comme séparateur, et l'URI résultant est envoyé au serveur. Utilisez cette méthode lorsque le formulaire n’a pas d’effet secondaire et ne contient que des caractères ASCII.
+* `dialog` : à utiliser lorsque le formulaire se trouve à l'intérieur d'un élément [`&lt;dialog&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog "L'élément HTML &lt;dialog&gt; représente une boîte de dialogue ou un autre composant interactif, tel qu'un inspecteur ou une fenêtre.") pour fermer la boîte de dialogue une fois soumise.
 
-Cette valeur peut être remplacée par un attribut [`formmethod`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formmethod) sur un élément [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button « L’élément HTML &lt;button&gt; représente un bouton cliquable, que vous pouvez utiliser dans les formulaires ou partout dans un document nécessitant une fonctionnalité de bouton simple et standard. ») ou [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input « L’élément HTML &lt;input&gt; est utilisé pour créer des contrôles interactifs pour les formulaires Web afin de recevoir des données de l’utilisateur ; un large éventail de types de saisie et de contrôles est disponible, selon l’appareil et l’agent utilisateur. »).</target>
+Cette valeur peut être remplacée par un attribut [`formmethod`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formmethod) sur un [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "L'élément HTML &lt;button&gt; représente un bouton cliquable, qui peut être utilisé dans des formulaires ou n'importe où dans un document qui nécessite une fonctionnalité de bouton simple et standard.") ou [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "L'élément HTML &lt;input&gt; est utilisé pour créer des contrôles interactifs pour les formulaires Web afin d'accepter les données de l'utilisateur ; une grande variété de types de données d'entrée et de widgets de contrôle sont disponibles, en fonction de l'appareil et de l'agent utilisateur.") élément.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_min">
@@ -1022,7 +1022,7 @@ Tout
 
 `noindex`
 
-Demande au robot de ne pas indexer la page.
+Requête au robot de ne pas indexer la page.
 
 Tout
 
@@ -1034,7 +1034,7 @@ Tout
 
 `nofollow`
 
-Demande au robot de ne pas suivre les liens de la page.
+Requête au robot de ne pas suivre les liens de la page.
 
 Tout
 
@@ -1052,7 +1052,7 @@ Empêche l’utilisation de la description de l’[Open Directory Project](https
 
 `noarchive`
 
-Demande au moteur de recherche de ne pas mettre en cache le contenu de la page.
+Requête au moteur de recherche de ne pas mettre en cache le contenu de la page.
 
 [Google](https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag#valid-indexing--serving-directives), [Yahoo](https://help.yahoo.com/kb/search-for-desktop/SLN2213.html), [Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240)
 
@@ -1064,7 +1064,7 @@ Empêche l’affichage de toute description de la page dans les résultats du mo
 
 `noimageindex`
 
-Demande que cette page n’apparaisse pas comme page référente pour une image indexée.
+Requête que cette page n'apparaisse pas comme page de référence d'une image indexée.
 
 [Google](https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag#valid-indexing--serving-directives)
 
@@ -1546,7 +1546,7 @@ Consultez aussi : [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS
         <target state="translated">Chaîne indiquant le référent à utiliser lors de la récupération de la ressource :
 
 * `no-referrer` signifie que l’en-tête [`Referer`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer « L’en-tête de requête Referer contient l’adresse de la page web précédente depuis laquelle un lien vers la page actuellement demandée a été suivi. L’en-tête Referer permet aux serveurs d’identifier l’emplacement à partir duquel les personnes les visitent et peut utiliser ces données pour l’analytique, la journalisation ou la mise en cache optimisée, par exemple. ») l’en-tête n’est pas envoyé.
-* `no-referrer-when-downgrade` signifie qu’aucun en-tête [`Referer`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer « L’en-tête de demande du référent contient l’adresse de la page web précédente à partir de laquelle un lien vers la page actuellement demandée a été suivi. L’en-tête Referer permet aux serveurs d’identifier l’emplacement à partir duquel les personnes les visitent et peut utiliser ces données pour l’analytique, la journalisation ou la mise en cache optimisée, par exemple. ») n’est envoyé lors de la navigation vers une origine sans TLS (HTTPS). Il s’agit du comportement par défaut d’un agent utilisateur si aucune stratégie n’est spécifiée.
+* `no-referrer-when-downgrade` signifie qu'aucun [`Referer`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer "L'en-tête de requête Referer contient l'adresse de la page Web précédente à partir de laquelle un lien vers la page actuellement demandée a été suivi. L’en-tête Referer permet aux serveurs d’identifier l’emplacement à partir duquel les personnes les visitent et peut utiliser ces données pour l’analytique, la journalisation ou la mise en cache optimisée, par exemple. ») n’est envoyé lors de la navigation vers une origine sans TLS (HTTPS). Il s’agit du comportement par défaut d’un agent utilisateur si aucune stratégie n’est spécifiée.
 * `origin` signifie que le référent sera l’origine de la page, c’est-à-dire approximativement le schéma, l’hôte et le port.
 * `origin-when-cross-origin` signifie que la navigation vers d’autres origines se limitera au schéma, à l’hôte et au port, tandis que la navigation sur la même origine inclura le chemin du référent.
 * `unsafe-url` signifie que le référent inclura l’origine et le chemin, mais pas le fragment, le mot de passe ni le nom d’utilisateur. Ce cas n’est pas sécurisé, car il peut divulguer des origines et des chemins de ressources protégées par TLS vers des origines non sécurisées.</target>
@@ -1604,7 +1604,7 @@ Consultez aussi : [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS
 * `allow-presentation` : permet à la ressource de démarrer une [session de présentation](https://developer.mozilla.org/en-US/docs/Web/API/PresentationRequest).
 * `allow-same-origin`: si ce jeton n’est pas utilisé, la ressource est traitée comme provenant d’une origine spéciale qui échoue toujours à la [stratégie de même origine](https://developer.mozilla.org/en-US/docs/Glossary/same-origin_policy « stratégie de même origine : la stratégie de même origine est un mécanisme de sécurité critique qui limite la façon dont un document ou un script chargé à partir d’une origine peut interagir avec une ressource d’une autre origine. »).
 * `allow-scripts` : permet à la ressource d’exécuter des scripts, mais pas de créer des fenêtres contextuelles.
-* `allow-storage-access-by-user-activation` : permet à la ressource de demander l’accès aux capacités de stockage du parent avec l’[API Storage Access](https://developer.mozilla.org/en-US/docs/Web/API/Storage_Access_API).
+* `allow-storage-access-by-user-activation` : permet à la ressource de demander l'accès aux capacités de stockage du parent avec l'[API d'accès au stockage](https://developer.mozilla.org/en-US/docs/Web/API/Storage_Access_API).
 * `allow-top-navigation` : permet à la ressource de naviguer dans le contexte de navigation de niveau supérieur, c’est-à-dire celui nommé `_top`.
 * `allow-top-navigation-by-user-activation` : permet à la ressource de naviguer dans le contexte de navigation de niveau supérieur, mais uniquement si l’action est déclenchée par une intervention de l’utilisateur.
 
@@ -1673,7 +1673,7 @@ Consultez aussi : [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS
         <source>This attribute specifies the URI of an external script; this can be used as an alternative to embedding a script directly within a document.
 
 If a `script` element has a `src` attribute specified, it should not have a script embedded inside its tags.</source>
-        <target state="translated">Cet attribut spécifie l’URI d’un script externe ; cela peut servir d’alternative à l’incorporation directe d’un script dans un document.
+        <target state="translated">Cet attribut spécifie l'URI d'un script externe ; cela peut être utilisé comme alternative à l’intégration d’un script directement dans un document.
 
 Si un élément `script` a un attribut `src` spécifié, il ne doit contenir aucun script entre ses balises.</target>
         <note />
@@ -1735,7 +1735,7 @@ L’agent utilisateur sélectionne l’une des sources disponibles à sa discré
 * a _negative value_ means that the element should be focusable, but should not be reachable via sequential keyboard navigation;
 * `0` means that the element should be focusable and reachable via sequential keyboard navigation, but its relative order is defined by the platform convention;
 * a _positive value_ means that the element should be focusable and reachable via sequential keyboard navigation; the order in which the elements are focused is the increasing value of the [**tabindex**](https://developer.mozilla.org/docs/Web/HTML/Reference/Global_attributes/tabindex#attr-tabindex). If several elements share the same tabindex, their relative order follows their relative positions in the document.</source>
-        <target state="translated">Attribut entier indiquant si l’élément peut recevoir le focus de saisie (est _focusable_), s’il doit participer à la navigation séquentielle au clavier et, si oui, à quelle position. Il peut prendre plusieurs valeurs :
+        <target state="translated">Un attribut entier indiquant si l'élément peut recevoir le focus de saisie (s'il est _focusable_), s'il doit participer à la navigation séquentielle au clavier et, le cas échéant, à quelle position. Il peut prendre plusieurs valeurs :
 
 * un _negative value_ signifie que l’élément doit pouvoir recevoir le focus, mais ne doit pas être atteignable par navigation séquentielle au clavier ;
 * `0` signifie que l’élément doit pouvoir recevoir le focus et être atteignable par navigation séquentielle au clavier, mais que son ordre relatif est défini par la convention de la plateforme ;

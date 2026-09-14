@@ -75,6 +75,10 @@
     <!-- Not directly referenced but needed for Route embedded language features -->
     <ProjectReference Include="..\..\Features\ExternalAccess\Core\Microsoft.CodeAnalysis.Features.ExternalAccess.csproj" />
     <ProjectReference Include="..\ExternalAccess\Core\Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.csproj" />
+
+    <!-- Retained for analyzers from supported older ASP.NET SDKs that reference this compatibility assembly. -->
+    <ProjectReference Include="..\..\Features\ExternalAccess\AspNetCore\Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.csproj" />
+
     <!-- Ship the VS Code Razor entrypoint as a real runtime dependency so it participates in the server deps.json. -->
     <ProjectReference Include="..\..\Razor\src\Razor\src\Microsoft.VisualStudioCode.RazorExtension\Microsoft.VisualStudioCode.RazorExtension.csproj" />
 

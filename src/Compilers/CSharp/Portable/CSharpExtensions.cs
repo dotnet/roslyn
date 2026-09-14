@@ -853,6 +853,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Gets the underlying <see cref="Conversion"/> information from this <see cref="ICoalesceOperation"/>. This
+        /// conversion is applied to <see cref="ICoalesceOperation.Value"/> when it is not null.
+        /// </summary>
+        /// <remarks>
+        /// This coalesce operation must have been created from C# code.
+        /// </remarks>
+        public static Conversion GetValueConversion(this ICoalesceOperation coalesceExpression)
+        {
+            if (coalesceExpression == null)
+            {
+                throw new ArgumentNullException(nameof(coalesceExpression));
+            }
+
+            if (coalesceExpression.Language == LanguageNames.CSharp)
+            {
+                return (Conversion)((CoalesceOperation)coalesceExpression).ValueConversionConvertible;
+            }
+            else
+            {
+                throw new ArgumentException(string.Format(CSharpResources.ICoalesceOperationIsNotCSharpCoalesceOperation,
+                                                          nameof(coalesceExpression)),
+                                            nameof(coalesceExpression));
+            }
+        }
+
+        /// <summary>
         /// Gets the underlying element <see cref="Conversion"/> information from this <see cref="ISpreadOperation"/>.
         /// </summary>
         /// <remarks>

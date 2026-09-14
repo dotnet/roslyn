@@ -32,6 +32,7 @@ internal sealed class LspOptionsStorage
 
     private static readonly OptionGroup s_codeLensOptionGroup = new(name: "code_lens", description: "");
     private static readonly OptionGroup s_formattingOptionGroup = new(name: "formatting", description: "");
+    private static readonly OptionGroup s_testingOptionGroup = new(name: "testing", description: "");
 
     private static readonly OptionGroup s_autoInsertOptionGroup = new(name: "auto_insert", description: "");
 
@@ -44,6 +45,11 @@ internal sealed class LspOptionsStorage
     /// Flag indicating whether or not test and debug code lens items should be returned.
     /// </summary>
     public static readonly PerLanguageOption2<bool> LspEnableTestsCodeLens = new("dotnet_enable_tests_code_lens", defaultValue: true, group: s_codeLensOptionGroup);
+
+    /// <summary>
+    /// Flag indicating whether test discovery should use semantic information to recognize derived test attributes.
+    /// </summary>
+    public static readonly PerLanguageOption2<bool> LspUseSemanticTestDiscovery = new("dotnet_use_semantic_test_discovery", defaultValue: false, group: s_testingOptionGroup);
 
     /// <summary>
     /// Flag indicating whether or not auto-insert should be abled by default in LSP.

@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#completionParams">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal sealed class CompletionParams : TextDocumentPositionParams, IPartialResultParams<SumType<CompletionItem[], CompletionList>?>, IWorkDoneProgressOptions
+internal sealed class CompletionParams : TextDocumentPositionParams, IPartialResultParams<SumType<CompletionItem[], CompletionList>?>, IWorkDoneProgressParams
 {
     /// <summary>
     /// The completion context. This is only available if the client specifies the
@@ -37,7 +37,7 @@ internal sealed class CompletionParams : TextDocumentPositionParams, IPartialRes
     }
 
     /// <inheritdoc/>
-    [JsonPropertyName("workDoneProgress")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public bool WorkDoneProgress { get; init; }
+    [JsonPropertyName(Methods.WorkDoneTokenName)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IProgress<WorkDoneProgress>? WorkDoneToken { get; set; }
 }

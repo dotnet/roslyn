@@ -1,4 +1,8 @@
-﻿Option Explicit On
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
+
+Option Explicit On
 Option Infer On
 Option Strict On
 
@@ -80,7 +84,7 @@ Namespace SourceGeneratorSamples
             Dim sb As New StringBuilder
             Dim parser As New CsvTextFieldParser(New StringReader(csvText))
 
-            ''' Imports
+            ' Imports
             sb.Append("Option Explicit On
 Option Strict On
 Option Infer On
@@ -90,7 +94,7 @@ Imports System.Collections.Generic
 Namespace Global.CSV
 ")
 
-            ''' Class Definition
+            ' Class Definition
             sb.Append($"
   Public Class {className}
 
@@ -111,7 +115,7 @@ Namespace Global.CSV
                 sb.AppendLine($"      Public Property {StringToValidPropertyName(names(i))} As {types(i)}")
             Next
 
-            ''' Loading data
+            ' Loading data
             sb.Append($"
       Private Shared m_all As IEnumerable(Of {className})
 

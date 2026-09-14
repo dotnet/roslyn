@@ -22,6 +22,8 @@ Public Class MakeConstAnalyzer
                                                                      isEnabledByDefault:=True)
 
     Public Overrides Sub Initialize(context As AnalysisContext)
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None)
+        context.EnableConcurrentExecution()
         context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, SyntaxKind.LocalDeclarationStatement)
     End Sub
 

@@ -1775,6 +1775,26 @@ public class Program
 }").VerifyDiagnostics();
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84675")]
+        public void InvalidCompoundAssignmentInAnonymousTypeInitializer()
+        {
+            var source = """
+                class C
+                {
+                    static void M()
+                    {
+                        var v = new { F = 0 += 0 };
+                        _ = v.F;
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (5,27): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         var v = new { F = 0 += 0 };
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "0").WithLocation(5, 27));
+        }
+
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(22588, "https://github.com/dotnet/roslyn/issues/22588")]
         public void AnonymousTypeSymbols_ErrorCases()

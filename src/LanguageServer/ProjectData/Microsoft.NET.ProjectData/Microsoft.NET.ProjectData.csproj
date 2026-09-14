@@ -4,6 +4,10 @@
     <!-- Library is consumed by the server (and source-linked into Tasks); not packaged on its own. -->
     <IsPackable>false</IsPackable>
     <IsTrimmable>true</IsTrimmable>
+    <!-- Keep additions and removals from the shared public contract intentional in all configurations. -->
+    <WarningsAsErrors>$(WarningsAsErrors);RS0016;RS0017</WarningsAsErrors>
+    <!-- Preserve mirrored overload, parameter-ordering, and unused-public-parameter shapes without inline suppressions that would diverge shared sources. -->
+    <NoWarn>$(NoWarn);RS0026;RS0027;CA1068;IDE0060</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,6 +23,11 @@
     <AdditionalFiles Include="..\Microsoft.NET.ProjectData.Generators\project-data-schema.json" />
     <InternalsVisibleTo Include="Microsoft.NET.ProjectData.UnitTests" Key="$(VsPublicKey)" />
     <InternalsVisibleTo Include="CSDevKit.Tests" Key="$(VsPublicKey)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
 
 </Project>

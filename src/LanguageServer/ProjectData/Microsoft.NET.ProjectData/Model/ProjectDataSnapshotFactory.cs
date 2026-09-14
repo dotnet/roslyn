@@ -28,6 +28,7 @@ public static class ProjectDataSnapshotFactory
 	/// </summary>
 	private static readonly KeySchema SourceFileMetadataSchema = new([ProjectItems.Compile.Link], StringComparers.ItemMetadataName);
 	private static readonly KeySchema MetadataReferenceMetadataSchema = new([ProjectItems.MetadataReference.Aliases, ProjectItems.MetadataReference.EmbedInteropTypes], StringComparers.ItemMetadataName);
+	private static readonly KeySchema ProjectReferenceMetadataSchema = new([ProjectItems.ProjectReference.ReferenceOutputAssembly], StringComparers.ItemMetadataName);
 	private static readonly KeySchema EmbeddedResourceMetadataSchema = new([ProjectItems.EmbeddedResource.Generator, ProjectItems.EmbeddedResource.LastGenOutput, ProjectItems.EmbeddedResource.CustomToolNamespace], StringComparers.ItemMetadataName);
 
 	/// <summary>
@@ -337,7 +338,7 @@ public static class ProjectDataSnapshotFactory
 		AddItems(items, ProjectItems.EmbeddedResource.ItemType, slice.EmbeddedResources, BuildEmbeddedResourceItems);
 
 		// Project references → ProjectReference items
-		AddSimpleItems(items, ProjectItems.ProjectReference, slice.ProjectReferences);
+		AddItems(items, ProjectItems.ProjectReference.ItemType, slice.ProjectReferences, BuildProjectReferenceItems);
 
 		// Command-line arguments → CommandLineArgument items
 		AddSimpleItems(items, ProjectItems.CommandLineArgument, slice.CommandLineArguments);
@@ -410,6 +411,29 @@ public static class ProjectDataSnapshotFactory
 			builder.Add(new ProjectDataItem(
 				reference.FilePath,
 				new KeyValueCollection(MetadataReferenceMetadataSchema, metaValues.MoveToImmutable())));
+		}
+
+		return builder.MoveToImmutable();
+	}
+
+	private static ImmutableArray<ProjectDataItem> BuildProjectReferenceItems(ImmutableArray<CachedProjectReference> references)
+	{
+		ImmutableArray<ProjectDataItem>.Builder builder = ImmutableArray.CreateBuilder<ProjectDataItem>(references.Length);
+
+		foreach (CachedProjectReference reference in references)
+		{
+			builder.Add(new ProjectDataItem(
+				reference.FilePath,
+				new KeyValueCollection(
+					ProjectReferenceMetadataSchema,
+					[
+						reference.ReferenceOutputAssembly switch
+						{
+							true => "true",
+							false => "false",
+							null => null,
+						},
+					])));
 		}
 
 		return builder.MoveToImmutable();

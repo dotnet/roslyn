@@ -17,7 +17,7 @@ namespace Microsoft.NET.ProjectData;
 /// </summary>
 internal static class FrameworkListExpander
 {
-	private static readonly ConcurrentDictionary<string, Lazy<ExpansionResult>> Cache = new(StringComparers.Paths);
+	private static readonly ConcurrentDictionary<string, Lazy<CachedExpansion>> Cache = new(StringComparers.Paths);
 
 	internal sealed class ExpansionResult
 	{
@@ -37,20 +37,27 @@ internal static class FrameworkListExpander
 	/// <c>Type="Analyzer" Language="cs"</c> entries (analyzer references). Results are
 	/// cached by <paramref name="packDir"/> for the lifetime of the process.
 	/// </summary>
-	public static ExpansionResult Expand(string packDir)
+	public static ExpansionResult Expand(string packDir, CancellationToken cancellationToken)
 	{
+		cancellationToken.ThrowIfCancellationRequested();
+
 		// Wrap the IO+XML parse in Lazy so racing callers can't trigger duplicate parses.
-		return Cache.GetOrAdd(
+		CachedExpansion expansion = Cache.GetOrAdd(
 			packDir,
-			static dir => new Lazy<ExpansionResult>(() => ParseFrameworkList(dir), LazyThreadSafetyMode.ExecutionAndPublication)).Value;
+			static dir => new Lazy<CachedExpansion>(() => ParseFrameworkList(dir), LazyThreadSafetyMode.ExecutionAndPublication)).Value;
+
+		cancellationToken.ThrowIfCancellationRequested();
+		expansion.ReportWarning(cancellationToken);
+		cancellationToken.ThrowIfCancellationRequested();
+		return expansion.Result;
 	}
 
-	private static ExpansionResult ParseFrameworkList(string packDir)
+	private static CachedExpansion ParseFrameworkList(string packDir)
 	{
 		string manifestPath = Path.Join(packDir, "data", "FrameworkList.xml");
 		if (!File.Exists(manifestPath))
 		{
-			return ExpansionResult.Empty;
+			return new(ExpansionResult.Empty);
 		}
 
 		XDocument doc;
@@ -60,11 +67,7 @@ internal static class FrameworkListExpander
 		}
 		catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Xml.XmlException)
 		{
-			System.Diagnostics.Trace.TraceWarning(
-				"[lscache] Failed to parse framework-list manifest at {0}: {1}",
-				manifestPath,
-				ex.Message);
-			return ExpansionResult.Empty;
+			return new(ExpansionResult.Empty, manifestPath, ex.Message);
 		}
 
 		ImmutableArray<string>.Builder managed = ImmutableArray.CreateBuilder<string>();
@@ -73,7 +76,7 @@ internal static class FrameworkListExpander
 		XElement? root = doc.Root;
 		if (root is null)
 		{
-			return ExpansionResult.Empty;
+			return new(ExpansionResult.Empty);
 		}
 
 		foreach (XElement file in root.Elements("File"))
@@ -98,10 +101,42 @@ internal static class FrameworkListExpander
 			}
 		}
 
-		return new ExpansionResult
+		return new(new ExpansionResult
 		{
 			ManagedAssemblyPaths = managed.ToImmutable(),
 			AnalyzerCsPaths = analyzers.ToImmutable(),
-		};
+		});
+	}
+
+	private sealed class CachedExpansion(ExpansionResult result, string? warningPath = null, string? warningMessage = null)
+	{
+		private readonly object warningGate = new();
+		private bool warningReported;
+
+		public ExpansionResult Result { get; } = result;
+
+		public void ReportWarning(CancellationToken cancellationToken)
+		{
+			cancellationToken.ThrowIfCancellationRequested();
+			if (warningPath is null)
+			{
+				return;
+			}
+
+			lock (this.warningGate)
+			{
+				if (this.warningReported)
+				{
+					return;
+				}
+
+				cancellationToken.ThrowIfCancellationRequested();
+				System.Diagnostics.Trace.TraceWarning(
+					"[lscache] Failed to parse framework-list manifest at {0}: {1}",
+					warningPath,
+					warningMessage);
+				this.warningReported = true;
+			}
+		}
 	}
 }

@@ -4846,6 +4846,200 @@ class Derived : Base
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedBaseConstructor_06()
+    {
+        // Base required property initializes a private field.
+        // Derived constructors have SetsRequiredMembers and demonstrate behavior with/without initializing base required property.
+        var @base = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+public class Base
+{
+    private string _field;
+    public string Field => _field;
+    public required string Property { get => _field; [MemberNotNull(nameof(_field))] set => _field = value; }
+
+    public Base() { }
+}
+""";
+
+        var derived = """
+using System;
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+
+var d = new Derived("property");
+Console.Write(d.Field);
+Console.Write(' ');
+
+d = new Derived();
+try
+{
+    d.Field.ToString();
+}
+catch (NullReferenceException)
+{
+    Console.Write("NullReferenceException");
+}
+
+class Derived : Base
+{
+    [SetsRequiredMembers]
+    public Derived()
+    {
+    }
+
+    [SetsRequiredMembers]
+    public Derived(string value)
+    {
+        Property = value;
+    }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { @base, derived, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(
+            // 1.cs(22,12): warning CS8618: Non-nullable property 'Property' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+            //     public Derived()
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Property").WithLocation(22, 12)
+            );
+        CompileAndVerify(comp, expectedOutput: "property NullReferenceException");
+
+        var baseComp = CreateCompilationWithRequiredMembers(new[] { @base, MemberNotNullAttributeDefinition });
+        comp = CreateCompilation(derived, new[] { baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(
+            // 1.cs(22,12): warning CS8618: Non-nullable property 'Property' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+            //     public Derived()
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Property").WithLocation(22, 12)
+            );
+        CompileAndVerify(comp, expectedOutput: "property NullReferenceException");
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedBaseConstructor_07()
+    {
+        // Base required property, with nullable type, initializes a private field.
+        // Derived constructors have SetsRequiredMembers and demonstrate behavior with/without initializing base required property.
+        // Note: this is a safety hole. However, the user has to go quite off into the weeds to fall into it.
+        var @base = """
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+public class Base
+{
+    private string _field;
+    public string Field => _field;
+    public required string? Property { get => _field; [MemberNotNull(nameof(_field))] set => _field = value ?? "property"; }
+
+    public Base() { }
+}
+""";
+
+        var derived = """
+using System;
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+
+var d = new Derived(null);
+Console.Write(d.Field);
+Console.Write(' ');
+
+d = new Derived();
+try
+{
+    d.Field.ToString();
+}
+catch (NullReferenceException)
+{
+    Console.Write("NullReferenceException");
+}
+
+class Derived : Base
+{
+    [SetsRequiredMembers]
+    public Derived()
+    {
+    }
+
+    [SetsRequiredMembers]
+    public Derived(string? value)
+    {
+        Property = value;
+    }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { @base, derived, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "property NullReferenceException");
+
+        var baseComp = CreateCompilationWithRequiredMembers(new[] { @base, MemberNotNullAttributeDefinition });
+        comp = CreateCompilation(derived, new[] { baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "property NullReferenceException");
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedBaseConstructor_08()
+    {
+        // Base required property initializes a private field.
+        // Derived is a nested type of the base and therefore can access the base private field.
+        // Derived constructors have SetsRequiredMembers and demonstrate behavior with/without initializing base required property.
+        var source = """
+using System;
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+
+var d = new Base.Derived("property");
+Console.Write(d.Field);
+Console.Write(' ');
+
+d = new Base.Derived();
+try
+{
+    d.Field.ToString();
+}
+catch (NullReferenceException)
+{
+    Console.Write("NullReferenceException");
+}
+
+public class Base
+{
+    private string _field;
+    public string Field => _field;
+    public required string Property { get => _field; [MemberNotNull(nameof(_field))] set => _field = value; }
+
+    public Base() { }
+
+    public class Derived : Base
+    {
+        [SetsRequiredMembers]
+        public Derived()
+        {
+        }
+
+        [SetsRequiredMembers]
+        public Derived(string value)
+        {
+            Property = value;
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { source, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(
+            // 0.cs(30,16): warning CS8618: Non-nullable property 'Property' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+            //         public Derived()
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Property").WithLocation(30, 16)
+            );
+        CompileAndVerify(comp, expectedOutput: "property NullReferenceException");
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
     public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_01()
     {
         var code = @"

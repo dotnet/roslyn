@@ -94,11 +94,11 @@ internal sealed partial class CodeFixService : ICodeFixService
     public async Task<CodeFixCollection?> GetMostSevereFixAsync(
         TextDocument document, TextSpan range, CodeActionRequestPriority? priority, CancellationToken cancellationToken)
     {
-        using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"Pri{priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}");
+        using var _ = RoslynTelemetry.Current.RecordBlockTime(FunctionId.CodeFix_Summary, $"Pri{priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}");
 
         ImmutableArray<DiagnosticData> allDiagnostics;
 
-        using (TelemetryLogging.LogBlockTimeAggregatedHistogram(
+        using (RoslynTelemetry.Current.RecordBlockTime(
             FunctionId.CodeFix_Summary, $"Pri{priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}.{nameof(IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync)}"))
         {
             var service = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
@@ -169,7 +169,7 @@ internal sealed partial class CodeFixService : ICodeFixService
         CodeActionRequestPriority? priority,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"Pri{priority.GetPriorityInt()}");
+        using var _ = RoslynTelemetry.Current.RecordBlockTime(FunctionId.CodeFix_Summary, $"Pri{priority.GetPriorityInt()}");
 
         // We only need to compute suppression/configuration fixes when request priority is
         // 'CodeActionPriorityRequest.Lowest' or no priority was provided at all (so all providers should run).
@@ -187,7 +187,7 @@ internal sealed partial class CodeFixService : ICodeFixService
         // user-invoked diagnostic requests, for example, user invoked Ctrl + Dot operation for lightbulb.
         ImmutableArray<DiagnosticData> diagnostics;
 
-        using (TelemetryLogging.LogBlockTimeAggregatedHistogram(
+        using (RoslynTelemetry.Current.RecordBlockTime(
             FunctionId.CodeFix_Summary, $"Pri{priority.GetPriorityInt()}.{nameof(IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync)}"))
         {
             var service = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
@@ -267,7 +267,7 @@ internal sealed partial class CodeFixService : ICodeFixService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"{nameof(GetDocumentFixAllForIdInSpanAsync)}");
+        using var _ = RoslynTelemetry.Current.RecordBlockTime(FunctionId.CodeFix_Summary, $"{nameof(GetDocumentFixAllForIdInSpanAsync)}");
         ImmutableArray<DiagnosticData> diagnostics;
 
         if (textSpan is null)
@@ -276,7 +276,7 @@ internal sealed partial class CodeFixService : ICodeFixService
             textSpan = new TextSpan(0, text.Length);
         }
 
-        using (TelemetryLogging.LogBlockTimeAggregatedHistogram(
+        using (RoslynTelemetry.Current.RecordBlockTime(
             FunctionId.CodeFix_Summary, $"{nameof(GetDocumentFixAllForIdInSpanAsync)}.{nameof(IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync)}"))
         {
             var service = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
@@ -511,11 +511,11 @@ internal sealed partial class CodeFixService : ICodeFixService
                     var logMessage = KeyValueLogMessage.Create(static (m, args) =>
                     {
                         var (fixerName, document) = args;
-                        m[TelemetryLogging.KeyName] = fixerName;
-                        m[TelemetryLogging.KeyLanguageName] = document.Project.Language;
+                        m[TelemetryKeys.Name] = fixerName;
+                        m[TelemetryKeys.LanguageName] = document.Project.Language;
                     }, (fixerName, document));
 
-                    using var _ = TelemetryLogging.LogBlockTime(FunctionId.CodeFix_Delay, logMessage, CodeFixTelemetryDelay);
+                    using var _ = RoslynTelemetry.Current.LogBlockTime(FunctionId.CodeFix_Delay, logMessage, CodeFixTelemetryDelay);
 
                     var codeFixCollection = await TryGetFixesOrConfigurationsAsync(
                         document, span, diagnostics, fixAllForInSpan, fixer,

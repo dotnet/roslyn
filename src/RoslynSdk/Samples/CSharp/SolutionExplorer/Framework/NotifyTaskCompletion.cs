@@ -36,7 +36,7 @@ namespace MSBuildWorkspaceTester.Framework
 
         private async Task WatchTaskAsync(Task task)
         {
-            await task;
+            await task.ConfigureAwait(true);
 
             PropertyChangedEventHandler handler = PropertyChanged;
             if (handler == null)

@@ -8,7 +8,6 @@
   <ItemGroup>
     <!-- This needs to be a package reference to avoid attempting to use a newer compiler version than either the CLI or IDE has. -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="xunit" />
   </ItemGroup>
@@ -25,6 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\RoslynSdk\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing\Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.csproj" />
     <ProjectReference Include="..\XUnit\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj" OutputItemType="CurrentContent" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" />
     <ProjectReference Include="..\SourceGenerator\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.csproj" />
   </ItemGroup>
