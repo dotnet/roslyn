@@ -106,6 +106,21 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         Assert.Empty(server.GetRequiredLspService<LanguageServerWorkspaceFactory>().HostWorkspace.CurrentSolution.Projects);
     }
 
+    [Fact]
+    public async Task WorkspaceLoadWaitsForActiveDiscoveryAndClosure()
+    {
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var loader = (OnDemandProjectLoader)server.GetRequiredLspService<IOnDemandProjectLoader>();
+        var loadSource = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        loader.GetTestAccessor().TrackLoad(loadSource.Task);
+
+        var workspaceLoadTask = await loader.GetWorkspaceLoadTaskAsync();
+
+        Assert.False(workspaceLoadTask.IsCompleted);
+        loadSource.SetResult();
+        await workspaceLoadTask.WaitAsync(TestHelpers.HangMitigatingTimeout);
+    }
+
     private static LspWorkspaceContent CreateUnrestoredConsoleApplication()
         => LspWorkspaceContent.Empty
             .WithFile("App.csproj", CreateProject())

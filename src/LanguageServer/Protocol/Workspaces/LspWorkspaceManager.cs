@@ -69,6 +69,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
     private readonly ILanguageInfoProvider _languageInfoProvider;
     private readonly RequestTelemetryLogger _requestTelemetryLogger;
+    private readonly SemaphoreSlim _miscellaneousFilesWorkspaceGate = new(initialCount: 1, maxCount: 1);
 
     public LspWorkspaceManager(
         ILspLogger logger,
@@ -157,7 +158,15 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         {
             try
             {
-                await _lspMiscellaneousFilesWorkspaceProvider.CloseDocumentAsync(uri).ConfigureAwait(false);
+                await _miscellaneousFilesWorkspaceGate.WaitAsync().ConfigureAwait(false);
+                try
+                {
+                    await _lspMiscellaneousFilesWorkspaceProvider.CloseDocumentAsync(uri).ConfigureAwait(false);
+                }
+                finally
+                {
+                    _miscellaneousFilesWorkspaceGate.Release();
+                }
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex))
             {
@@ -313,7 +322,17 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         {
             try
             {
-                var document = await _lspMiscellaneousFilesWorkspaceProvider.AddDocumentAsync(uri, trackedDocument).ConfigureAwait(false);
+                await _miscellaneousFilesWorkspaceGate.WaitAsync().ConfigureAwait(false);
+                TextDocument? document;
+                try
+                {
+                    document = await _lspMiscellaneousFilesWorkspaceProvider.AddDocumentAsync(uri, trackedDocument).ConfigureAwait(false);
+                }
+                finally
+                {
+                    _miscellaneousFilesWorkspaceGate.Release();
+                }
+
                 if (document is not null)
                     documentContext = (document.Project.Solution.Workspace, document.Project.Solution, document, IsForked: false);
             }
@@ -329,7 +348,15 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             {
                 try
                 {
-                    await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri).ConfigureAwait(false);
+                    await _miscellaneousFilesWorkspaceGate.WaitAsync().ConfigureAwait(false);
+                    try
+                    {
+                        await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        _miscellaneousFilesWorkspaceGate.Release();
+                    }
                 }
                 catch (Exception exception) when (FatalError.ReportAndCatchUnlessCanceled(exception))
                 {
@@ -389,7 +416,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             }
         }
 
-        return solutions.MoveToImmutable();
+        return solutions.ToImmutable();
     }
 
     private async Task<(Solution Solution, bool IsForked)> GetLspSolutionForWorkspaceAsync(

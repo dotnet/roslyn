@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.LanguageServer.Protocol;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.MiscellaneousFiles;
 
@@ -27,8 +28,13 @@ internal sealed class TestLspMiscellaneousFilesWorkspaceProviderFactory() : ILsp
         return new TestLspMiscellaneousFilesWorkspaceProvider(hostServices);
     }
 
-    private class TestLspMiscellaneousFilesWorkspaceProvider(HostServices host) : Workspace(host, WorkspaceKind.MiscellaneousFiles), ILspMiscellaneousFilesWorkspaceProvider
+    internal static TestAccessor GetTestAccessor(ILspMiscellaneousFilesWorkspaceProvider provider)
+        => new((TestLspMiscellaneousFilesWorkspaceProvider)provider);
+
+    internal sealed class TestLspMiscellaneousFilesWorkspaceProvider(HostServices host) : Workspace(host, WorkspaceKind.MiscellaneousFiles), ILspMiscellaneousFilesWorkspaceProvider
     {
+        private (TaskCompletionSource started, TaskCompletionSource release)? _nextRemoval;
+
         public ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo? trackedDocumentInfo)
         {
             if (trackedDocumentInfo is null)
@@ -49,8 +55,21 @@ internal sealed class TestLspMiscellaneousFilesWorkspaceProviderFactory() : ILsp
             await TryRemoveMiscellaneousDocumentAsync(uri);
         }
 
-        public ValueTask<bool> TryRemoveMiscellaneousDocumentAsync(DocumentUri uri)
+        public async ValueTask<bool> TryRemoveMiscellaneousDocumentAsync(DocumentUri uri)
         {
+            (TaskCompletionSource started, TaskCompletionSource release)? removal;
+            lock (this)
+            {
+                removal = _nextRemoval;
+                _nextRemoval = null;
+            }
+
+            if (removal is { } value)
+            {
+                value.started.SetResult();
+                await value.release.Task;
+            }
+
             // We'll only ever have a single document matching this URI in the misc solution.
             var matchingDocument = CurrentSolution.GetDocumentIds(uri).SingleOrDefault();
             if (matchingDocument != null)
@@ -58,10 +77,28 @@ internal sealed class TestLspMiscellaneousFilesWorkspaceProviderFactory() : ILsp
                 var project = CurrentSolution.GetRequiredProject(matchingDocument.ProjectId);
                 OnProjectRemoved(project.Id);
 
-                return new(true);
+                return true;
             }
 
-            return new(false);
+            return false;
         }
+
+        public (Task started, Action release) BlockNextRemoval()
+        {
+            lock (this)
+            {
+                RoslynDebug.Assert(_nextRemoval is null);
+                var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                _nextRemoval = (started, release);
+                return (started.Task, release.SetResult);
+            }
+        }
+    }
+
+    internal readonly struct TestAccessor(TestLspMiscellaneousFilesWorkspaceProvider provider)
+    {
+        public (Task started, Action release) BlockNextRemoval()
+            => provider.BlockNextRemoval();
     }
 }

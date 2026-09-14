@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests.MiscellaneousFiles;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.LanguageServer.Protocol;
@@ -121,6 +122,49 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         Assert.Empty(await server.GetManagerAccessor()
             .GetMiscellaneousDocumentsAsync(static project => project.Documents)
             .ToImmutableArrayAsync(CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task AsyncContextSerializesMiscellaneousDocumentRemovalWithDidClose()
+    {
+        var composition = Composition.AddParts(typeof(TestLspMiscellaneousFilesWorkspaceProviderFactory));
+        await using var server = await CreateTestLspServerAsync(
+            [],
+            mutatingLspWorkspace: false,
+            new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer },
+            composition);
+        var documentPath = TestHelpers.CreateAbsolutePath("Loose.cs");
+        var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(documentPath);
+        await server.OpenDocumentAsync(documentUri, "request text");
+
+        var loadSource = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var context = await CreateRequestContextAsync(
+            server,
+            new TextDocumentIdentifier { DocumentUri = documentUri },
+            mutatesSolutionState: false,
+            loadSource.Task);
+        var projectId = ProjectId.CreateNewId();
+        var documentId = DocumentId.CreateNewId(projectId);
+        await server.TestWorkspace.ChangeSolutionAsync(
+            server.TestWorkspace.CurrentSolution
+                .AddProject(projectId, "Loaded", "Loaded", LanguageNames.CSharp)
+                .AddDocument(documentId, "Loose.cs", SourceText.From("request text"), filePath: documentPath));
+
+        var provider = server.GetServerAccessor().GetLspServices()
+            .GetRequiredService<ILspMiscellaneousFilesWorkspaceProvider>();
+        var (removalStarted, releaseRemoval) =
+            TestLspMiscellaneousFilesWorkspaceProviderFactory.GetTestAccessor(provider).BlockNextRemoval();
+        var requestDocumentTask = context.GetRequiredDocumentAsync(CancellationToken.None).AsTask();
+        loadSource.SetResult();
+        await removalStarted.WithTimeout(TestHelpers.HangMitigatingTimeout);
+
+        var closeTask = server.CloseDocumentAsync(documentUri);
+        Assert.False(closeTask.IsCompleted);
+        releaseRemoval();
+
+        var requestDocument = await requestDocumentTask.WithTimeout(TestHelpers.HangMitigatingTimeout);
+        await closeTask.WithTimeout(TestHelpers.HangMitigatingTimeout);
+        Assert.Equal(WorkspaceKind.Host, requestDocument.Project.Solution.WorkspaceKind);
     }
 
     [Fact]

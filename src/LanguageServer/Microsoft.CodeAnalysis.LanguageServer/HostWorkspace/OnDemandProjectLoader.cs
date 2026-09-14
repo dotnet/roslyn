@@ -51,6 +51,8 @@ internal sealed partial class OnDemandProjectLoader(
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<OnDemandProjectLoader>();
     private readonly CancellationTokenSource _shutdownSource = new();
+    private readonly object _activeLoadsGate = new();
+    private readonly HashSet<Task> _activeLoads = [];
 
     public Task StartLoadingAsync(DocumentUri uri)
     {
@@ -70,11 +72,38 @@ internal sealed partial class OnDemandProjectLoader(
         var discoveryTask = Task.Run(
             () => discovery.DiscoverProjects(filePath, workspaceFolders, _shutdownSource.Token),
             _shutdownSource.Token);
-        return LoadDiscoveredProjectsAsync(discoveryTask);
+        return TrackLoad(LoadDiscoveredProjectsAsync(discoveryTask));
     }
 
-    public ValueTask<Task> GetWorkspaceLoadTaskAsync()
-        => projectSystem.GetWaitForAllProjectLoadsTaskAsync(_shutdownSource.Token);
+    public async ValueTask<Task> GetWorkspaceLoadTaskAsync()
+    {
+        Task[] activeLoads;
+        lock (_activeLoadsGate)
+            activeLoads = [.. _activeLoads];
+
+        var projectLoads = await projectSystem.GetWaitForAllProjectLoadsTaskAsync(_shutdownSource.Token);
+        return Task.WhenAll([projectLoads, .. activeLoads]);
+    }
+
+    private Task TrackLoad(Task loadTask)
+    {
+        lock (_activeLoadsGate)
+            _activeLoads.Add(loadTask);
+
+        _ = loadTask.ContinueWith(
+            static (completedLoad, state) => ((OnDemandProjectLoader)state!).RemoveActiveLoad(completedLoad),
+            this,
+            CancellationToken.None,
+            TaskContinuationOptions.ExecuteSynchronously,
+            TaskScheduler.Default);
+        return loadTask;
+    }
+
+    private void RemoveActiveLoad(Task loadTask)
+    {
+        lock (_activeLoadsGate)
+            _activeLoads.Remove(loadTask);
+    }
 
     private async Task LoadDiscoveredProjectsAsync(Task<ImmutableArray<string>> discoveryTask)
     {
@@ -143,5 +172,14 @@ internal sealed partial class OnDemandProjectLoader(
     {
         _shutdownSource.Cancel();
         _shutdownSource.Dispose();
+    }
+
+    internal TestAccessor GetTestAccessor()
+        => new(this);
+
+    internal readonly struct TestAccessor(OnDemandProjectLoader loader)
+    {
+        public void TrackLoad(Task loadTask)
+            => loader.TrackLoad(loadTask);
     }
 }
