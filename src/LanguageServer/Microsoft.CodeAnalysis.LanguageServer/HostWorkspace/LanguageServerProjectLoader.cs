@@ -204,7 +204,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
 
         if (GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore) && !projectsThatNeedRestore.IsEmpty)
         {
-            var pathsToRestore = await GetPathsToRestoreAsync(projectsThatNeedRestore.AsImmutable(), cancellationToken);
+            var pathsToRestore = await GetPathsToRestoreAsync(projectsThatNeedRestore.Distinct(PathUtilities.Comparer).AsImmutable(), cancellationToken);
 
             // This request blocks to ensure we aren't trying to run a design time build at the same time as a restore.
             await ProjectDependencyHelper.RestoreProjectsAsync(_workDoneProgressManager, pathsToRestore, EnableProgressReporting, _dotnetCliHelper, _logger, cancellationToken);
