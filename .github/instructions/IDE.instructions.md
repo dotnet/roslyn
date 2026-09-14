@@ -28,7 +28,7 @@ Partner APIs that depend on IDE layers are grouped into one ExternalAccess assem
 - `src/LanguageServer/ExternalAccess/Core/`
 - `src/VisualStudio/ExternalAccess/Core/`
 
-Partner-specific source remains organized in subdirectories of those projects. Compatibility assemblies remain for ASP.NET under `src/Features/ExternalAccess/AspNetCore/` and EditorConfigGenerator under `src/VisualStudio/ExternalAccess/EditorConfigGenerator/`; ExternalAccess projects for APIs that are not part of the unified layer assemblies remain separate.
+Partner-specific compatibility assembly for ASP.NET remains under `src/Features/ExternalAccess/AspNetCore/`; ExternalAccess projects for APIs that are not part of the unified layer assemblies remain separate.
 
 ### Service Resolution
 ```csharp
