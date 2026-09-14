@@ -21,8 +21,18 @@
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
   </ItemGroup>
 
-  <!-- VSTest and direct runner references copy the required runner files. -->
-  <Target Name="_XunitCopyRunnerDependencies" />
+  <!-- xunit.runner.visualstudio copies xunit.abstractions.dll; retain only the dynamic runner utility. -->
+  <Target Name="_XunitCopyRunnerDependencies" AfterTargets="Build">
+    <ItemGroup>
+      <XunitRunnerDependencies Include="$(NuGetPackageRoot)xunit.v3.core.mtp-off\$(_xunitVersion)\_content\runners\netfx\xunit.v3.runner.utility.netfx.dll"
+                               Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" />
+      <XunitRunnerDependencies Include="$(NuGetPackageRoot)xunit.v3.core.mtp-off\$(_xunitVersion)\_content\runners\netcore\xunit.v3.runner.utility.netcore.dll"
+                               Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'" />
+    </ItemGroup>
+    <Copy SourceFiles="@(XunitRunnerDependencies)"
+          DestinationFolder="$([System.IO.Path]::Combine($(MSBuildProjectDirectory),$(OutputPath)))"
+          SkipUnchangedFiles="true" />
+  </Target>
 
   <ItemGroup>
     <!-- Include BannedSymbols covering all test projects -->
