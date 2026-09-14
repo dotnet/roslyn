@@ -27,7 +27,7 @@
   -->
   <Target Name="_XunitCopyRunnerDependencies"
           AfterTargets="Build"
-          Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' or '$(TargetFrameworkIdentifier)' == '.NETCoreApp'">
+          Condition="('$(TargetFrameworkIdentifier)' == '.NETFramework' or '$(TargetFrameworkIdentifier)' == '.NETCoreApp') and '$(DotNetBuildSourceOnly)' != 'true'">
     <ItemGroup>
       <_XunitRunnerUtility
           Include="$(NuGetPackageRoot)xunit.v3.core.mtp-off\$(_xunitVersion)\_content\runners\netfx\xunit.v3.runner.utility.netfx.dll"
