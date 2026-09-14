@@ -21,7 +21,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\..\Dependencies\Contracts\IsExternalInit.cs" />
+    <Compile Include="..\..\Dependencies\Contracts\IsExternalInit.cs" />
   </ItemGroup>
 
   <ItemGroup>
