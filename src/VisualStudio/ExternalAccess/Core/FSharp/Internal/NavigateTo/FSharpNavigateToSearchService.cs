@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -26,6 +26,9 @@ internal class FSharpNavigateToSearchService([Import(AllowDefault = true)] IFSha
 
     public bool CanFilter => _service?.CanFilter ?? false;
 
+    private static ImmutableArray<INavigateToSearchResult> ToSearchResults(ImmutableArray<FSharpNavigateToSearchResult> results, Document? activeDocument)
+        => results.SelectAsArray(result => (INavigateToSearchResult)new InternalFSharpNavigateToSearchResult(result, activeDocument));
+
     public async Task SearchDocumentAsync(
         Document document,
         string searchPattern,
@@ -38,7 +41,7 @@ internal class FSharpNavigateToSearchService([Import(AllowDefault = true)] IFSha
 
         var results = await _service.SearchDocumentAsync(document, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
         if (results.Length > 0)
-            await onResultsFound(results.SelectAsArray(result => (INavigateToSearchResult)new InternalFSharpNavigateToSearchResult(result))).ConfigureAwait(false);
+            await onResultsFound(ToSearchResults(results, activeDocument: document)).ConfigureAwait(false);
     }
 
     public async Task SearchProjectsAsync(
@@ -61,7 +64,7 @@ internal class FSharpNavigateToSearchService([Import(AllowDefault = true)] IFSha
             {
                 var results = await _service.SearchProjectAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
                 if (results.Length > 0)
-                    await onResultsFound(results.SelectAsArray(result => (INavigateToSearchResult)new InternalFSharpNavigateToSearchResult(result))).ConfigureAwait(false);
+                    await onResultsFound(ToSearchResults(results, activeDocument)).ConfigureAwait(false);
             }
 
             await onProjectCompleted().ConfigureAwait(false);
@@ -93,7 +96,7 @@ internal class FSharpNavigateToSearchService([Import(AllowDefault = true)] IFSha
         {
             await advancedService.SearchCachedDocumentsAsync(
                 solution, projects, priorityDocuments, searchPattern, kinds, activeDocument,
-                results => onResultsFound(results.SelectAsArray(result => (INavigateToSearchResult)new InternalFSharpNavigateToSearchResult(result))),
+                results => onResultsFound(ToSearchResults(results, activeDocument)),
                 onProjectCompleted, cancellationToken).ConfigureAwait(false);
         }
     }
