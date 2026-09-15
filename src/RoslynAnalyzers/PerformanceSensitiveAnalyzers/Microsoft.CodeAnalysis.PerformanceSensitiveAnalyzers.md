@@ -84,6 +84,18 @@ Considering moving this out of the generic method
 |CodeFix|False|
 ---
 
+## HAA0304: Local function converted to a delegate captures variables
+
+Heap allocation of closure for local function '{0}' Captures: {1}
+
+|Item|Value|
+|-|-|
+|Category|Performance|
+|Enabled|True|
+|Severity|Warning|
+|CodeFix|False|
+---
+
 ## HAA0401: Possible allocation of reference type enumerator
 
 Non-ValueType enumerator may result in a heap allocation
