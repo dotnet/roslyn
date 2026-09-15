@@ -26,6 +26,7 @@ internal abstract class AbstractMoveTypeService : IMoveTypeService
     /// </summary>
     public static SyntaxAnnotation NamespaceScopeMovedAnnotation = new(nameof(MoveTypeOperationKind.MoveTypeNamespaceScope));
 
+    public abstract Task<string?> GetDesiredDocumentNameAsync(Document document, CancellationToken cancellationToken);
     public abstract Task<Solution> GetModifiedSolutionAsync(Document document, TextSpan textSpan, MoveTypeOperationKind operationKind, CancellationToken cancellationToken);
     public abstract Task<ImmutableArray<CodeAction>> GetRefactoringAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 }
@@ -163,6 +164,65 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 
     private static string GetDocumentNameWithoutExtension(SemanticDocument document)
         => Path.GetFileNameWithoutExtension(document.Document.Name);
+
+    public override async Task<string?> GetDesiredDocumentNameAsync(Document document, CancellationToken cancellationToken)
+    {
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        if (root is null)
+            return null;
+
+        var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+
+        // We don't want to rename documents unless they contains a single top level type.
+        var topLevelTypeDeclarations = TopLevelTypeDeclarations(root).ToImmutableArray();
+        if (topLevelTypeDeclarations is not [var topLevelType])
+            return null;
+
+        var deepestSingleType = GetDeepestSingleType(topLevelType);
+
+        // If the file already matches the name of any of the types in the file (either the name alone, or the dotted
+        // name path to a nested type), then do not offer to rename the file at all.
+        for (var currentType = deepestSingleType; currentType != null; currentType = currentType.Parent as TTypeDeclarationSyntax)
+        {
+            var suggestedFileNames = GetSuggestedFileNames(
+                semanticDocument, currentType, includeComplexFileNames: true);
+            foreach (var suggestedFileName in suggestedFileNames)
+            {
+                if (document.Name == suggestedFileName)
+                    return null;
+            }
+        }
+
+        // Nothing matched. Offer to rename to the first suggested name for the deepest type in the file that isn't
+        // already in use.
+        var deepestTypeSuggestedFileNames = GetSuggestedFileNames(
+            semanticDocument, deepestSingleType, includeComplexFileNames: true);
+
+        foreach (var suggestedFileName in deepestTypeSuggestedFileNames)
+        {
+            if (document.Project.Documents.Any(d => d.Name == suggestedFileName))
+                continue;
+
+            return suggestedFileName;
+        }
+
+        return null;
+
+        static TTypeDeclarationSyntax GetDeepestSingleType(TTypeDeclarationSyntax typeDeclaration)
+        {
+            while (true)
+            {
+                var childTypes = typeDeclaration.ChildNodes().OfType<TTypeDeclarationSyntax>().ToImmutableArray();
+                if (childTypes is [var nestedTypeDeclaration])
+                {
+                    typeDeclaration = nestedTypeDeclaration;
+                    continue;
+                }
+
+                return typeDeclaration;
+            }
+        }
+    }
 
     /// <summary>
     /// checks if type name matches its parent document name, per style rules.
