@@ -175,12 +175,12 @@ namespace Roslyn.Test.Utilities.Desktop
                 return;
             }
 
-            if ((verification.Status & VerificationStatus.Skipped) != 0)
+            if ((verification.Status & VerificationStatus.Skipped) == VerificationStatus.Skipped)
             {
                 return;
             }
 
-            var shouldSucceed = (verification.Status & VerificationStatus.FailsPEVerify) == 0;
+            var shouldSucceed = (verification.Status & VerificationStatus.FailsPEVerify) != VerificationStatus.FailsPEVerify;
 
             try
             {

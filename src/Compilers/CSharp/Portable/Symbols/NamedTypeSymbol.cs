@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 doGetExtensionMembers(members, name, alternativeName, arity, options, ref implementationsToShadow, fieldsBeingBound);
             }
 
-            if ((options & LookupOptions.MustBeOperator) == 0)
+            if ((options & LookupOptions.MustBeOperator) != LookupOptions.MustBeOperator)
             {
                 DoGetExtensionMethods(members, name, arity, options, implementationsToShadow);
                 if (alternativeName is not null)

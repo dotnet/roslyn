@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             symbol.Accept(visitor);
 
             if (symbol is INamedTypeSymbol { IsExtension: true } extension
-                && (format.CompilerInternalOptions & SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames) != 0)
+                && (format.CompilerInternalOptions & SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames) == SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames)
             {
                 visitor.AddExtensionMarkerName(extension);
             }
