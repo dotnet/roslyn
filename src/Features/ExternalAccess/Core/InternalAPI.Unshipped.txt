@@ -124,8 +124,6 @@ Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.TraitItem(str
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.Value.get -> string!
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.Value.init -> void
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotAnalysisUtilities
-Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper
-Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper.Equals(Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper? other) -> bool
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentProposalWrapper
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentProposalWrapper.CopilotDocumentationCommentProposalWrapper(Microsoft.CodeAnalysis.DocumentationComments.DocumentationCommentProposal! documentationCommentProposal) -> void
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentProposalWrapper.ProposedEdits.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentProposedEditWrapper!>
@@ -318,8 +316,6 @@ override Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetIte
 override Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.Equals(object? obj) -> bool
 override Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.GetHashCode() -> int
 override Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.ToString() -> string!
-override Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper.Equals(object? obj) -> bool
-override Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper.GetHashCode() -> int
 override Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompiledQueryId.GetHashCode() -> int
 override Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompileQueryResult.GetHashCode() -> int
 override Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.ExecuteQueryResult.GetHashCode() -> int
@@ -341,11 +337,6 @@ static Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem.
 static Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.operator !=(Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem? left, Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem? right) -> bool
 static Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.operator ==(Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem? left, Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem? right) -> bool
 static Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotAnalysisUtilities.AnalyzeCopilotChangeAsync(Microsoft.CodeAnalysis.Document! document, bool accepted, string! featureId, string! proposalId, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Text.TextChange>! textChanges, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
-static Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper.Create(System.Collections.Immutable.ImmutableArray<string!> values) -> Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper!
-static Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotUtilities.GetContainingMethodDeclarationAsync(Microsoft.CodeAnalysis.Document! document, int position, bool useFullSpan, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.SyntaxNode?>!
-static Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotUtilities.GetCopilotSuggestionDiagnosticTag() -> string!
-static Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotUtilities.IsResultantVisibilityPublic(this Microsoft.CodeAnalysis.ISymbol! symbol) -> bool
-static Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotUtilities.IsValidIdentifier(string? name) -> bool
 static Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchUtilities.CanApplyChange(Microsoft.CodeAnalysis.TextDocument! document) -> bool
 static Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchUtilities.CreateSyntaxTree(Microsoft.CodeAnalysis.Host.SolutionServices! services, string! language, string? filePath, Microsoft.CodeAnalysis.ParseOptions! options, Microsoft.CodeAnalysis.Text.SourceText? text, System.Text.Encoding? encoding, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm, Microsoft.CodeAnalysis.SyntaxNode! root) -> Microsoft.CodeAnalysis.SyntaxTree!
 static Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchUtilities.FindNode(this Microsoft.CodeAnalysis.Location! location, bool findInsideTrivia, bool getInnermostNodeForTie, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.SyntaxNode!
