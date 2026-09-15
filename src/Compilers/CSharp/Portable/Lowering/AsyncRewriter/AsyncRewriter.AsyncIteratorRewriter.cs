@@ -207,10 +207,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         F.New(stateMachineType.Constructor.AsMember(frameType), F.Literal(initialState))));
             }
 
-            protected override BoundStatement InitializeParameterField(MethodSymbol getEnumeratorMethod, ParameterSymbol parameter, BoundExpression resultParameter, BoundExpression parameterProxy)
+            protected override BoundStatement InitializeParameterField(MethodSymbol getEnumeratorMethod, ParameterSymbol parameter, BoundExpression result, BoundExpression resultParameter, BoundExpression parameterProxy)
             {
-                BoundStatement result;
-                if (_combinedTokensField is object &&
+                BoundStatement initializeParameterFieldResult;
+                if (_combinedTokensField is not null &&
                     !parameter.IsExtensionParameterImplementation() &&
                     parameter.HasEnumeratorCancellationAttribute &&
                     parameter.Type.Equals(F.Compilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken), TypeCompareKind.ConsiderEverything))
@@ -227,12 +227,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // else
                     // {
                     //     result.combinedTokens = CancellationTokenSource.CreateLinkedTokenSource(this.parameterProxy, token);
-                    //     result.parameter = combinedTokens.Token;
+                    //     result.parameter = result.combinedTokens.Token;
                     // }
 
                     BoundParameter tokenParameter = F.Parameter(getEnumeratorMethod.Parameters[0]);
-                    BoundFieldAccess combinedTokens = F.Field(F.This(), _combinedTokensField);
-                    result = F.If(
+                    BoundFieldAccess resultCombinedTokens = F.Field(result, _combinedTokensField);
+
+                    initializeParameterFieldResult = F.If(
                         // if (this.parameterProxy.Equals(default))
                         F.Call(parameterProxy, WellKnownMember.System_Threading_CancellationToken__Equals, F.Default(parameterProxy.Type)),
                         // result.parameter = token;
@@ -246,18 +247,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             thenClause: F.Assignment(resultParameter, parameterProxy),
                             elseClauseOpt: F.Block(
                                 // result.combinedTokens = CancellationTokenSource.CreateLinkedTokenSource(this.parameterProxy, token);
-                                F.Assignment(combinedTokens, F.StaticCall(WellKnownMember.System_Threading_CancellationTokenSource__CreateLinkedTokenSource, parameterProxy, tokenParameter)),
+                                F.Assignment(resultCombinedTokens, F.StaticCall(WellKnownMember.System_Threading_CancellationTokenSource__CreateLinkedTokenSource, parameterProxy, tokenParameter)),
                                 // result.parameter = result.combinedTokens.Token;
-                                F.Assignment(resultParameter, F.Property(combinedTokens, WellKnownMember.System_Threading_CancellationTokenSource__Token)))));
+                                F.Assignment(resultParameter, F.Property(resultCombinedTokens, WellKnownMember.System_Threading_CancellationTokenSource__Token)))));
                 }
                 else
                 {
                     // For parameters that don't have [EnumeratorCancellation], initialize their parameter fields
                     // result.parameter = this.parameterProxy;
-                    result = F.Assignment(resultParameter, parameterProxy);
+                    initializeParameterFieldResult = F.Assignment(resultParameter, parameterProxy);
                 }
 
-                return result;
+                return initializeParameterFieldResult;
             }
 
             protected override BoundStatement GenerateStateMachineCreation(LocalSymbol stateMachineVariable, NamedTypeSymbol frameType, IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> proxies)
