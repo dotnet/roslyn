@@ -168,7 +168,8 @@ internal sealed partial class OnDemandProjectLoader(
 
         async Task<(LoadedProject project, bool loadedSuccessfully)> LoadProjectAsync(string projectPath)
         {
-            var project = await projectSystem.BeginLoadingProjectAsync(projectPath).ConfigureAwait(false);
+            var project = await projectSystem.BeginLoadingProjectAsync(
+                projectPath, LanguageServerProjectLoader.ProjectReloadPriority.High).ConfigureAwait(false);
             var loadedSuccessfully = await project.WaitForLoadAsync(cancellationToken).ConfigureAwait(false);
             return (project, loadedSuccessfully);
         }
