@@ -8405,7 +8405,8 @@ public class Program
 12345.75
 ");
 
-            compilation.VerifyIL("Program.Main", @"
+            compilation.VerifyIL("Program.Main",
+@"
 {
   // Code size      179 (0xb3)
   .maxstack  5
@@ -12848,15 +12849,14 @@ public class C
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: """
-1.71875
+            CompileAndVerify(source, expectedOutput:
+@"1.71875
 1.71875
 1.71875
 1.71875
 True
 True
-True
-""");
+True");
         }
 
         [WorkItem(529593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529593")]
