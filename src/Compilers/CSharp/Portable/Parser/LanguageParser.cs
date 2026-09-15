@@ -1449,10 +1449,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 Debug.Assert(this.CurrentToken.Kind == SyntaxKind.RefKeyword);
 
-                // For back compatibility, parse 'ref record' and 'ref union' as type declarations
-                // when the corresponding feature is enabled.
-                var nextToken = this.PeekToken(1);
-                if (this.IsEnabledRecordOrUnionKeyword(nextToken))
+                // If the token immediately after 'ref' starts a type declaration, treat 'ref' as a
+                // modifier rather than part of a return type. Use the canonical declaration lookahead
+                // so record, union, and extension follow the same rules. Checking only the immediate
+                // token preserves a member such as 'ref readonly record M()' as a ref-returning method.
+                if (this.IsTypeDeclarationStart(peekIndex: 1))
                 {
                     return false;
                 }
@@ -1614,20 +1615,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private static bool IsNonContextualModifier(SyntaxToken nextToken)
         {
             return !SyntaxFacts.IsContextualKeyword(nextToken.ContextualKind) && GetModifierExcludingScoped(nextToken) != DeclarationModifiers.None;
-        }
-
-        private bool IsEnabledRecordOrUnionKeyword(SyntaxToken token)
-        {
-            // Normally the parser recognizes unsupported features and binding reports a language-version
-            // diagnostic. Record and union are contextual keywords, however, so treating them as type
-            // declarations in every ambiguous context would break older code. Only recognize them here
-            // when the corresponding feature is enabled.
-            return token.ContextualKind switch
-            {
-                SyntaxKind.RecordKeyword => IsFeatureEnabled(MessageID.IDS_FeatureRecords),
-                SyntaxKind.UnionKeyword => IsFeatureEnabled(MessageID.IDS_FeatureUnions),
-                _ => false,
-            };
         }
 
         /// <summary>
@@ -2481,24 +2468,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         private bool IsTypeDeclarationStart()
+            => this.IsTypeDeclarationStart(peekIndex: 0);
+
+        private bool IsTypeDeclarationStart(int peekIndex)
         {
-            switch (this.CurrentToken.Kind)
+            var token = this.PeekToken(peekIndex);
+
+            switch (token.Kind)
             {
                 case SyntaxKind.ClassKeyword:
-                case SyntaxKind.DelegateKeyword when !IsFunctionPointerStart():
                 case SyntaxKind.EnumKeyword:
                 case SyntaxKind.InterfaceKeyword:
                 case SyntaxKind.StructKeyword:
                     return true;
 
+                case SyntaxKind.DelegateKeyword:
+                    return !IsFunctionPointerStart(peekIndex);
+
                 case SyntaxKind.IdentifierToken:
 
-                    if (this.IsEnabledRecordOrUnionKeyword(this.CurrentToken))
+                    // Normally the parser recognizes unsupported features and binding reports a language-version
+                    // diagnostic. Record and union are contextual keywords, however, so treating them as type
+                    // declarations in every ambiguous context would break older code. Only recognize them here
+                    // when the corresponding feature is enabled.
+                    if (token.ContextualKind == SyntaxKind.RecordKeyword &&
+                        IsFeatureEnabled(MessageID.IDS_FeatureRecords))
                     {
                         return true;
                     }
 
-                    if (IsExtensionContainerStart())
+                    if (token.ContextualKind == SyntaxKind.UnionKeyword &&
+                        IsFeatureEnabled(MessageID.IDS_FeatureUnions))
+                    {
+                        return true;
+                    }
+
+                    if (IsExtensionContainerStart(peekIndex))
                     {
                         return true;
                     }
@@ -3258,6 +3263,10 @@ parse_member_name:;
                 bool isPossibleTypeDeclaration;
                 this.ParseModifiers(modifiers, forTopLevelStatements: false, out isPossibleTypeDeclaration);
 
+                // An extension declaration starts with `extension(`, where `(` begins its parameter list.
+                // Check for it before the constructor form below, which has the same `IdentifierToken (`
+                // shape. Record and union declarations instead require a type name after their contextual
+                // keyword, so they are not ambiguous with constructors.
                 if (IsExtensionContainerStart())
                 {
                     return this.ParseMainTypeDeclaration(attributes, modifiers);
@@ -3302,7 +3311,9 @@ parse_member_name:;
 
                 // Namespaces should be handled by the caller, not checking for them
 
-                // It's valid to have a type declaration here -- check for those
+                // Check for the remaining type declarations here. This can come after constructor parsing
+                // because declarations such as `record R` and `union U` have a type name after the
+                // contextual keyword rather than an immediate `(`.
                 if (isPossibleTypeDeclaration && IsTypeDeclarationStart())
                 {
                     return this.ParseTypeDeclaration(attributes, modifiers);
@@ -3393,11 +3404,11 @@ parse_member_name:;
             }
         }
 
-        private bool IsExtensionContainerStart()
+        private bool IsExtensionContainerStart(int peekIndex = 0)
         {
             // For error recovery, we recognize `extension` followed by `<` even in older language versions
-            return this.CurrentToken.ContextualKind == SyntaxKind.ExtensionKeyword &&
-                (IsFeatureEnabled(MessageID.IDS_FeatureExtensions) || this.PeekToken(1).Kind == SyntaxKind.LessThanToken);
+            return this.PeekToken(peekIndex).ContextualKind == SyntaxKind.ExtensionKeyword &&
+                (IsFeatureEnabled(MessageID.IDS_FeatureExtensions) || this.PeekToken(peekIndex + 1).Kind == SyntaxKind.LessThanToken);
         }
 
         // if the modifiers do not contain async or replace and the type is the identifier "async" or "replace", then
@@ -8161,8 +8172,8 @@ done:
             }
         }
 
-        private bool IsFunctionPointerStart()
-            => CurrentToken.Kind == SyntaxKind.DelegateKeyword && PeekToken(1).Kind == SyntaxKind.AsteriskToken;
+        private bool IsFunctionPointerStart(int peekIndex = 0)
+            => PeekToken(peekIndex).Kind == SyntaxKind.DelegateKeyword && PeekToken(peekIndex + 1).Kind == SyntaxKind.AsteriskToken;
 
         private static bool IsPossibleFunctionPointerParameterListStart(SyntaxToken token)
             // We consider both ( and < to be possible starts, in order to make error recovery more graceful
