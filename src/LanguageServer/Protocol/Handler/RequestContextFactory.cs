@@ -70,7 +70,10 @@ internal sealed class RequestContextFactory : AbstractRequestContextFactory<Requ
 
         var onDemandProjectLoader = _lspServices.GetService<IOnDemandProjectLoader>();
         Task projectLoadTask;
-        if (textDocumentIdentifier is not null)
+        // didOpen initiates project discovery even though text sync handlers do not require a solution. didChange and
+        // didClose only update already-tracked state and should not start new project loads.
+        if (textDocumentIdentifier is not null &&
+            (requiresLSPSolution || queueItem.MethodName == Methods.TextDocumentDidOpenName))
         {
             projectLoadTask = onDemandProjectLoader?.StartLoadingAsync(textDocumentIdentifier.DocumentUri) ?? Task.CompletedTask;
         }

@@ -69,7 +69,6 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
     private readonly ILanguageInfoProvider _languageInfoProvider;
     private readonly RequestTelemetryLogger _requestTelemetryLogger;
-    private readonly SemaphoreSlim _miscellaneousFilesWorkspaceGate = new(initialCount: 1, maxCount: 1);
 
     public LspWorkspaceManager(
         ILspLogger logger,
@@ -158,15 +157,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         {
             try
             {
-                await _miscellaneousFilesWorkspaceGate.WaitAsync(CancellationToken.None).ConfigureAwait(false);
-                try
-                {
-                    await _lspMiscellaneousFilesWorkspaceProvider.CloseDocumentAsync(uri).ConfigureAwait(false);
-                }
-                finally
-                {
-                    _miscellaneousFilesWorkspaceGate.Release();
-                }
+                await _lspMiscellaneousFilesWorkspaceProvider.CloseDocumentAsync(uri).ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex))
             {
@@ -266,8 +257,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                     var documentContext = await GetLspDocumentInfoAsync(
                         textDocumentIdentifier,
                         trackedDocuments,
-                        useCache: false,
-                        includeMiscellaneousFallback: false,
+                        LspDocumentResolutionKind.AfterProjectLoad,
                         cancellationToken: CancellationToken.None).ConfigureAwait(false);
                     if (documentContext is { Workspace: not null, Solution: not null })
                         return new(documentContext.Workspace, documentContext.Solution, documentContext.Document);
@@ -329,20 +319,20 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         TextDocumentIdentifier textDocumentIdentifier,
         CancellationToken cancellationToken)
         => GetLspDocumentInfoAsync(
-            textDocumentIdentifier, _trackedDocuments, useCache: true, includeMiscellaneousFallback: true, cancellationToken);
+            textDocumentIdentifier, _trackedDocuments, LspDocumentResolutionKind.QueueTime, cancellationToken);
 
     private async Task<(Workspace? Workspace, Solution? Solution, TextDocument? Document)> GetLspDocumentInfoAsync(
         TextDocumentIdentifier textDocumentIdentifier,
         ImmutableDictionary<DocumentUri, TrackedDocumentInfo> trackedDocuments,
-        bool useCache,
-        bool includeMiscellaneousFallback,
+        LspDocumentResolutionKind resolutionKind,
         CancellationToken cancellationToken)
     {
         var uri = textDocumentIdentifier.DocumentUri;
         (Workspace Workspace, Solution Solution, TextDocument Document, bool IsForked)? documentContext = null;
 
         // Get the LSP view of all the workspace solutions.
-        var lspSolutions = await GetLspSolutionsAsync(trackedDocuments, useCache, cancellationToken).ConfigureAwait(false);
+        var lspSolutions = await GetLspSolutionsAsync(
+            trackedDocuments, useCache: resolutionKind == LspDocumentResolutionKind.QueueTime, cancellationToken).ConfigureAwait(false);
 
         // Find the matching document from the LSP solutions.
         foreach (var (workspace, lspSolution, isForked) in lspSolutions)
@@ -360,7 +350,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         // Ask the loose files provider for the document (if we have one). The provider may add tracked documents to
         // a workspace or return an untracked file URI in a transient solution.
-        if (includeMiscellaneousFallback &&
+        if (resolutionKind == LspDocumentResolutionKind.QueueTime &&
             documentContext is null &&
             _lspMiscellaneousFilesWorkspaceProvider is not null)
         {
@@ -370,16 +360,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
             try
             {
-                await _miscellaneousFilesWorkspaceGate.WaitAsync(cancellationToken).ConfigureAwait(false);
-                TextDocument? document;
-                try
-                {
-                    document = await _lspMiscellaneousFilesWorkspaceProvider.AddDocumentAsync(uri, trackedDocument).ConfigureAwait(false);
-                }
-                finally
-                {
-                    _miscellaneousFilesWorkspaceGate.Release();
-                }
+                var document = await _lspMiscellaneousFilesWorkspaceProvider.AddDocumentAsync(uri, trackedDocument).ConfigureAwait(false);
 
                 if (document is not null)
                     documentContext = (document.Project.Solution.Workspace, document.Project.Solution, document, IsForked: false);
@@ -392,24 +373,14 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         if (documentContext is { } result)
         {
-            if (result.Workspace.Kind != WorkspaceKind.MiscellaneousFiles &&
-                _lspMiscellaneousFilesWorkspaceProvider is not null &&
-                ReferenceEquals(_trackedDocuments, trackedDocuments))
+            if (resolutionKind == LspDocumentResolutionKind.QueueTime &&
+                result.Workspace.Kind != WorkspaceKind.MiscellaneousFiles &&
+                _lspMiscellaneousFilesWorkspaceProvider is not null)
             {
-                // Found the document in a non-miscellaneous files workspace. Unload it from the miscellaneous files
-                // workspace as best-effort cleanup. Only mutate the miscellaneous workspace if no later text-sync
-                // notification has replaced the tracked-document snapshot used for this resolution.
+                // Found the document in a non-miscellaneous files workspace. Unload it from the miscellaneous files workspace.
                 try
                 {
-                    await _miscellaneousFilesWorkspaceGate.WaitAsync(cancellationToken).ConfigureAwait(false);
-                    try
-                    {
-                        await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri).ConfigureAwait(false);
-                    }
-                    finally
-                    {
-                        _miscellaneousFilesWorkspaceGate.Release();
-                    }
+                    await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri).ConfigureAwait(false);
                 }
                 catch (Exception exception) when (FatalError.ReportAndCatchUnlessCanceled(exception))
                 {
@@ -725,6 +696,12 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     internal readonly record struct DeferredLspContext(
         LspContext InitialValue,
         Task<LspContext> ResolvedValue);
+
+    private enum LspDocumentResolutionKind
+    {
+        QueueTime,
+        AfterProjectLoad,
+    }
 
     internal TestAccessor GetTestAccessor()
             => new(this);

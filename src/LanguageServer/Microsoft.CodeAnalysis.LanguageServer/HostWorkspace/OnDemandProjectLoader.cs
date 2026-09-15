@@ -68,20 +68,22 @@ internal sealed partial class OnDemandProjectLoader(
             return Task.CompletedTask;
 
         var workspaceFolders = workspaceFolderTracker.GetRequiredWorkspaceFolderPaths();
+        var shutdownToken = _shutdownSource.Token;
         _logger.LogDebug("Discovering a project on demand for '{DocumentPath}'.", filePath);
         var discoveryTask = Task.Run(
-            () => discovery.DiscoverProjects(filePath, workspaceFolders, _shutdownSource.Token),
-            _shutdownSource.Token);
-        return TrackLoadAsync(LoadDiscoveredProjectsAsync(discoveryTask));
+            () => discovery.DiscoverProjects(filePath, workspaceFolders, shutdownToken),
+            shutdownToken);
+        return TrackLoadAsync(LoadDiscoveredProjectsAsync(discoveryTask, shutdownToken));
     }
 
     public async ValueTask<Task> GetWorkspaceLoadTaskAsync()
     {
+        var shutdownToken = _shutdownSource.Token;
         Task[] activeLoads;
         lock (_activeLoadsGate)
             activeLoads = [.. _activeLoads];
 
-        var projectLoads = await projectSystem.GetWaitForAllProjectLoadsTaskAsync(_shutdownSource.Token);
+        var projectLoads = await projectSystem.GetWaitForAllProjectLoadsTaskAsync(shutdownToken);
         return Task.WhenAll([projectLoads, .. activeLoads]);
     }
 
@@ -105,7 +107,9 @@ internal sealed partial class OnDemandProjectLoader(
             _activeLoads.Remove(loadTask);
     }
 
-    private async Task LoadDiscoveredProjectsAsync(Task<ImmutableArray<string>> discoveryTask)
+    private async Task LoadDiscoveredProjectsAsync(
+        Task<ImmutableArray<string>> discoveryTask,
+        CancellationToken shutdownToken)
     {
         using var _ = listener.BeginAsyncOperation(nameof(LoadDiscoveredProjectsAsync));
 
@@ -118,9 +122,9 @@ internal sealed partial class OnDemandProjectLoader(
             foreach (var projectPath in projectPaths)
                 _logger.LogInformation("Loading project on demand for '{ProjectPath}'.", projectPath);
 
-            await LoadProjectClosureAsync(projectPaths, _shutdownSource.Token).ConfigureAwait(false);
+            await LoadProjectClosureAsync(projectPaths, shutdownToken).ConfigureAwait(false);
         }
-        catch (OperationCanceledException) when (_shutdownSource.IsCancellationRequested)
+        catch (OperationCanceledException) when (shutdownToken.IsCancellationRequested)
         {
         }
         catch (Exception exception) when (FatalError.ReportAndCatch(exception))

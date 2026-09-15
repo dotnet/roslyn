@@ -195,7 +195,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     }
 
     [Fact]
-    public async Task AsyncContextSerializesMiscellaneousDocumentRemovalWithDidClose()
+    public async Task AsyncContextLeavesMiscellaneousDocumentCleanupToDidClose()
     {
         var composition = Composition.AddParts(typeof(TestLspMiscellaneousFilesWorkspaceProviderFactory));
         await using var server = await CreateTestLspServerAsync(
@@ -220,21 +220,48 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
                 .AddProject(projectId, "Loaded", "Loaded", LanguageNames.CSharp)
                 .AddDocument(documentId, "Loose.cs", SourceText.From("request text"), filePath: documentPath));
 
-        var provider = server.GetServerAccessor().GetLspServices()
-            .GetRequiredService<ILspMiscellaneousFilesWorkspaceProvider>();
-        var (removalStarted, releaseRemoval) =
-            TestLspMiscellaneousFilesWorkspaceProviderFactory.GetTestAccessor(provider).BlockNextRemoval();
         var requestDocumentTask = context.GetRequiredDocumentAsync(CancellationToken.None).AsTask();
         loadSource.SetResult(true);
-        await removalStarted.WithTimeout(TestHelpers.HangMitigatingTimeout);
-
-        var closeTask = server.CloseDocumentAsync(documentUri);
-        Assert.False(closeTask.IsCompleted);
-        releaseRemoval();
 
         var requestDocument = await requestDocumentTask.WithTimeout(TestHelpers.HangMitigatingTimeout);
-        await closeTask.WithTimeout(TestHelpers.HangMitigatingTimeout);
         Assert.Equal(WorkspaceKind.Host, requestDocument.Project.Solution.WorkspaceKind);
+        Assert.Single(await server.GetManagerAccessor()
+            .GetMiscellaneousDocumentsAsync(static project => project.Documents)
+            .ToImmutableArrayAsync(CancellationToken.None));
+
+        await server.CloseDocumentAsync(documentUri);
+        Assert.Empty(await server.GetManagerAccessor()
+            .GetMiscellaneousDocumentsAsync(static project => project.Documents)
+            .ToImmutableArrayAsync(CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task TextSyncOnlyStartsOnDemandLoadingForDidOpen()
+    {
+        var composition = Composition.AddParts(typeof(TestOnDemandProjectLoaderFactory));
+        await using var server = await CreateTestLspServerAsync(
+            [],
+            mutatingLspWorkspace: false,
+            new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer },
+            composition);
+        var loader = (TestOnDemandProjectLoader)server.GetServerAccessor().GetLspServices()
+            .GetRequiredService<IOnDemandProjectLoader>();
+        var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(TestHelpers.CreateAbsolutePath("Loose.cs"));
+
+        await server.OpenDocumentAsync(documentUri, "request text");
+        Assert.Equal(1, loader.StartLoadingCount);
+
+        await server.InsertTextAsync(documentUri, (0, 0, "later "));
+        Assert.Equal(1, loader.StartLoadingCount);
+
+        await server.ExecuteRequestAsync<TestRequestTypeOne, string>(
+            TestDocumentHandler.MethodName,
+            new TestRequestTypeOne(new TextDocumentIdentifier { DocumentUri = documentUri }),
+            CancellationToken.None);
+        Assert.Equal(2, loader.StartLoadingCount);
+
+        await server.CloseDocumentAsync(documentUri);
+        Assert.Equal(2, loader.StartLoadingCount);
     }
 
     [Fact]
@@ -930,6 +957,29 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         {
             return new TestNotificationWithoutParamsHandler();
         }
+    }
+
+    [ExportCSharpVisualBasicLspServiceFactory(typeof(IOnDemandProjectLoader)), PartNotDiscoverable, Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class TestOnDemandProjectLoaderFactory() : ILspServiceFactory
+    {
+        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+            => new TestOnDemandProjectLoader();
+    }
+
+    internal sealed class TestOnDemandProjectLoader : IOnDemandProjectLoader
+    {
+        public int StartLoadingCount { get; private set; }
+
+        public Task StartLoadingAsync(DocumentUri uri)
+        {
+            StartLoadingCount++;
+            return Task.CompletedTask;
+        }
+
+        public ValueTask<Task> GetWorkspaceLoadTaskAsync()
+            => new(Task.CompletedTask);
     }
 
     /// <summary>

@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// Allows the LSP server to create miscellaneous files documents.
 /// </summary>
 /// <remarks>
-/// Calls are serialized by <see cref="LspWorkspaceManager"/>, including calls made by deferred request-context
-/// resolution after project loading completes.
+/// No methods will be called concurrently, since we are dispatching LSP requests one at a time in the core dispatching loop.
+/// This does mean methods should be reasonably fast since they will block the LSP server from processing other requests while they are running.
 /// </remarks>
 internal interface ILspMiscellaneousFilesWorkspaceProvider : ILspService
 {
