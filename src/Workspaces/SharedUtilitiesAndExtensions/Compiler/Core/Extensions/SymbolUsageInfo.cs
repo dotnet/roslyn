@@ -7,7 +7,6 @@ using System.Runtime.Serialization;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
-using static System.IO.Hashing.XxHashShared;
 
 namespace Microsoft.CodeAnalysis;
 
