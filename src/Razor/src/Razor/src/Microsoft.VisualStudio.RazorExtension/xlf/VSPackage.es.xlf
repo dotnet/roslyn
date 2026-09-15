@@ -137,6 +137,16 @@
         <target state="translated">Dar formato al escribir</target>
         <note />
       </trans-unit>
+      <trans-unit id="Setting_IgnoreIndentationInScriptOrStyleBlocksWithComplexRazorDescription">
+        <source>If true, preserves source indentation inside script and style blocks that contain Razor statements, blocks, directives, comments, templates, or standalone expressions</source>
+        <target state="new">If true, preserves source indentation inside script and style blocks that contain Razor statements, blocks, directives, comments, templates, or standalone expressions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_IgnoreIndentationInScriptOrStyleBlocksWithComplexRazorDisplayName">
+        <source>Ignore indentation in script or style blocks with complex Razor</source>
+        <target state="new">Ignore indentation in script or style blocks with complex Razor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Setting_LogLevelCritical">
         <source>Critical</source>
         <target state="translated">Crítico</target>

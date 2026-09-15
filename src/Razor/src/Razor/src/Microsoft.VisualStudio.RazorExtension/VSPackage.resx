@@ -168,6 +168,12 @@
   <data name="Setting_CodeBlockBraceOnNextLineDisplayName" xml:space="preserve">
     <value>Code/functions block open brace on next line</value>
   </data>
+  <data name="Setting_IgnoreIndentationInScriptOrStyleBlocksWithComplexRazorDescription" xml:space="preserve">
+    <value>If true, preserves source indentation inside script and style blocks that contain Razor statements, blocks, directives, comments, templates, or standalone expressions</value>
+  </data>
+  <data name="Setting_IgnoreIndentationInScriptOrStyleBlocksWithComplexRazorDisplayName" xml:space="preserve">
+    <value>Ignore indentation in script or style blocks with complex Razor</value>
+  </data>
   <data name="Setting_ColorBackgroundDescription" xml:space="preserve">
     <value>If true, gives C# code in Razor files a background color</value>
   </data>
