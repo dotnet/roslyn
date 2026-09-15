@@ -432,6 +432,26 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     private async Task<(Solution Solution, bool IsForked)> GetLspSolutionForWorkspaceAsync(
         Workspace workspace, CancellationToken cancellationToken)
     {
+        // At a high level these are the steps we take to compute the desired LSP solution:
+        //
+        //  1. Check whether the workspace's current solution is the same solution we last verified matched the LSP
+        //     text. If so, nothing has changed and we can return it without comparing document text. Importantly,
+        //     this only returns an unforked solution; a cached fork must still be validated against current LSP text.
+        //
+        //  2. Push tracked changes into the underlying workspace if it is a mutating workspace, bringing that
+        //     workspace into sync with everything received from LSP.
+        //
+        //  3. Compare the captured LSP text with the workspace text. If everything matches, return the workspace
+        //     solution. Computing checksums is a reasonable cost here; for example, VS already does this for OOP calls.
+        //
+        //  4. If the text does not match, reuse a cached fork for this workspace version and source-generator state
+        //     when one exists. This avoids recreating trees, source-generated documents, and other forked state.
+        //
+        //  5. Otherwise, create a new fork from the current workspace solution with the captured LSP text applied.
+        //
+        // Steps 3 through 5 are performed by ApplyLspTextAsync so deferred request resolution can use the same pure
+        // snapshot projection without mutating the workspace or updating this cache. IsForked is propagated so
+        // telemetry is reported only when the resulting solution is actually requested.
         var workspaceCurrentSolution = workspace.CurrentSolution;
         if (_cachedLspSolutions.TryGetValue(workspace, out var cachedSolution) &&
             cachedSolution.solution == workspaceCurrentSolution)
