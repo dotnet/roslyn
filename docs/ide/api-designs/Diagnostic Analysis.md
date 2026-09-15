@@ -362,7 +362,7 @@ ConditionalWeakTable<DiagnosticAnalyzer, Lazy<Task<ImmutableHashSet<string>?>>>
 
 Each lazy wraps a single non-cancelable computation task. Individual requests can cancel their waits without
 canceling or restarting the shared analyzer initialization. Successful results remain cached; if initialization
-faults, the matching cache entry is removed so a later request can retry with a fresh task.
+faults or is unexpectedly canceled, the matching cache entry is removed so a later request can retry with a fresh task.
 
 **Deprioritized analyzers:**
 - Register `SymbolStartAnalysisContext`/`SymbolEndAnalysisContext` actions

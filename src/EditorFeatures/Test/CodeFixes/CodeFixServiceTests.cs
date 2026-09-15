@@ -1000,6 +1000,33 @@ public sealed class CodeFixServiceTests
     }
 
     [Theory, CombinatorialData]
+    public async Task TestDeprioritizationComputationRetriesAfterAbnormalCompletionAsync(bool cancelComputation)
+    {
+        var analyzer = new FailingOnceDeprioritizationAnalyzer(cancelComputation);
+        var analyzerReference = new MockAnalyzerReference(fixer: null, [analyzer]);
+
+        using var workspace = ServiceSetup(new MockFixer()).workspace;
+        var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(analyzerReference);
+        var analyzerService = (DiagnosticAnalyzerService)workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+
+        var firstRequest = analyzerService.IsAnyDeprioritizedDiagnosticIdInProcessAsync(
+            project, [FailingOnceDeprioritizationAnalyzer.Descriptor.Id], CancellationToken.None);
+
+        if (cancelComputation)
+        {
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await firstRequest);
+        }
+        else
+        {
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await firstRequest);
+        }
+
+        Assert.True(await analyzerService.IsAnyDeprioritizedDiagnosticIdInProcessAsync(
+            project, [FailingOnceDeprioritizationAnalyzer.Descriptor.Id], CancellationToken.None));
+        Assert.Equal(1, analyzer.FailureCount);
+    }
+
+    [Theory, CombinatorialData]
     public async Task TestGetFixesWithDeprioritizedAnalyzerAsync(
         DeprioritizedAnalyzer.ActionKind actionKind,
         bool diagnosticOnFixLineInPriorSnapshot,
@@ -1208,6 +1235,47 @@ public sealed class CodeFixServiceTests
 
         public void ReleaseCompilationStart()
             => _continueCompilationStart.Set();
+    }
+
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    private sealed class FailingOnceDeprioritizationAnalyzer(bool cancelComputation) : DiagnosticAnalyzer
+    {
+        public static readonly DiagnosticDescriptor Descriptor = new(
+            "ID0003", "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+        private int _failNextSupportedDiagnostics;
+        private int _failureCount;
+        private int _compilationStartCount;
+
+        public int FailureCount => Volatile.Read(ref _failureCount);
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get
+            {
+                if (Interlocked.Exchange(ref _failNextSupportedDiagnostics, 0) != 0)
+                {
+                    Interlocked.Increment(ref _failureCount);
+                    if (cancelComputation)
+                        throw new OperationCanceledException(CancellationToken.None);
+
+                    throw new InvalidOperationException();
+                }
+
+                return [Descriptor];
+            }
+        }
+
+        public override void Initialize(AnalysisContext context)
+        {
+            context.RegisterCompilationStartAction(context =>
+            {
+                if (Interlocked.Increment(ref _compilationStartCount) == 1)
+                    Volatile.Write(ref _failNextSupportedDiagnostics, 1);
+
+                context.RegisterSemanticModelAction(_ => { });
+            });
+        }
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]

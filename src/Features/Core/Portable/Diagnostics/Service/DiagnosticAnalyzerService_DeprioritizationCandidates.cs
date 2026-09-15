@@ -9,7 +9,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -77,17 +76,15 @@ internal sealed partial class DiagnosticAnalyzerService
                         task =>
                         {
                             // The exception was already reported inside the computation. If every caller canceled its
-                            // wait, nobody else will observe the shared task's fault, so observe it here before removing
-                            // this entry and allowing a later lookup to retry.
-                            _ = task.Exception;
-                            if (s_analyzerToDeprioritizedDiagnosticIds.TryGetValue(analyzer, out var currentLazy) &&
-                                ReferenceEquals(currentLazy, createdLazy))
-                            {
-                                s_analyzerToDeprioritizedDiagnosticIds.Remove(analyzer);
-                            }
+                            // wait, nobody else will observe the shared task's fault, so observe it here. Remove any
+                            // faulted or canceled computation so a later lookup can retry.
+                            if (task.IsFaulted)
+                                _ = task.Exception;
+
+                            s_analyzerToDeprioritizedDiagnosticIds.Remove(analyzer);
                         },
                         CancellationToken.None,
-                        TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+                        TaskContinuationOptions.NotOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
                         TaskScheduler.Default);
                 }
             }
@@ -147,9 +144,9 @@ internal sealed partial class DiagnosticAnalyzerService
 
     private static Task<T> GetLazyValueAsync<T>(Lazy<Task<T>> lazy, CancellationToken cancellationToken)
     {
-#pragma warning disable VSTHRD011 // AsyncLazy can restart after cancellation; this lazy must own one shared task.
+#pragma warning disable VSTHRD011 // This lazy intentionally owns one shared task; callers never block synchronously.
         var task = lazy.Value;
-#pragma warning restore VSTHRD011 // AsyncLazy can restart after cancellation; this lazy must own one shared task.
+#pragma warning restore VSTHRD011 // This lazy intentionally owns one shared task; callers never block synchronously.
 
 #if NET
         return task.WaitAsync(cancellationToken);
