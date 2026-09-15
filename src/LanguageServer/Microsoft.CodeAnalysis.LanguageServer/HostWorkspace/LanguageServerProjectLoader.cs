@@ -386,12 +386,13 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
     /// </summary>
     internal async Task<LoadedProject> BeginLoadingProjectAsync(
         string projectPath,
-        ProjectReloadPriority priority = ProjectReloadPriority.Medium)
+        ProjectReloadPriority priority = ProjectReloadPriority.Medium,
+        CancellationToken cancellationToken = default)
     {
         projectPath = NormalizeProjectPath(projectPath);
         LoadedProject? loadedProject;
 
-        using (await _gate.DisposableWaitAsync(CancellationToken.None))
+        using (await _gate.DisposableWaitAsync(cancellationToken))
         {
             Contract.ThrowIfTrue(_isDisposed, "Project loader is already disposed");
 
@@ -415,7 +416,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
         // Try to load the contents from the project cache if we have one; we'll do this outside the lock
         try
         {
-            var cachedProjectStateAndFactory = await TryLoadProjectFromCacheAsync(projectPath, CancellationToken.None);
+            var cachedProjectStateAndFactory = await TryLoadProjectFromCacheAsync(projectPath, cancellationToken);
 
             if (cachedProjectStateAndFactory is not null)
             {
@@ -429,7 +430,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
                     _projectTargetFrameworkManager,
                     _workspaceFactory,
                     _logger,
-                    CancellationToken.None,
+                    cancellationToken,
                     onlyIfNoTargets: true);
 
                 if (applied)
@@ -442,7 +443,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
                 }
             }
         }
-        catch (Exception e)
+        catch (Exception e) when (!ExceptionUtilities.IsCurrentOperationBeingCancelled(e, cancellationToken))
         {
             _logger.LogWarning(e, "Exception encountered while trying to load cached state for {ProjectPath}", projectPath);
         }

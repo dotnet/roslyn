@@ -175,9 +175,9 @@ internal sealed partial class LoadedProject : IAsyncDisposable
         }
     }
 
-    public async ValueTask<ImmutableArray<string>> GetProjectReferencePathsAsync()
+    public async ValueTask<ImmutableArray<string>> GetProjectReferencePathsAsync(CancellationToken cancellationToken)
     {
-        using (await _gate.DisposableWaitAsync())
+        using (await _gate.DisposableWaitAsync(cancellationToken))
         {
             if (_projectDirectory is null)
                 return [];

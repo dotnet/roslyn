@@ -8,14 +8,17 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[ExportCSharpVisualBasicLspServiceFactory(typeof(IOnDemandProjectLoader)), Shared]
+[ExportCSharpVisualBasicLspServiceFactory(typeof(OnDemandProjectLoader)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class OnDemandProjectLoaderFactory(
@@ -43,17 +46,18 @@ internal sealed class OnDemandProjectLoaderFactory(
 internal sealed partial class OnDemandProjectLoader(
     OnDemandProjectLoader.ProjectDiscovery discovery,
     IWorkspaceFolderTracker workspaceFolderTracker,
-    LanguageServerProjectSystem projectSystem,
+    LanguageServerProjectLoader projectSystem,
     LanguageServerWorkspaceFactory workspaceFactory,
     IGlobalOptionService globalOptionService,
     IAsynchronousOperationListener listener,
-    ILoggerFactory loggerFactory) : IOnDemandProjectLoader, IAsyncDisposable
+    ILoggerFactory loggerFactory) : IOnDemandProjectLoader, IOnServerShutdown, System.IAsyncDisposable
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<OnDemandProjectLoader>();
     private readonly CancellationTokenSource _shutdownSource = new();
     private readonly object _activeLoadsGate = new();
-    private readonly HashSet<Task> _activeLoads = [];
-    private bool _shutdownStarted;
+
+    private readonly Dictionary<string, (Task Task, HashSet<string> ProjectPaths)> _activeLoads = new(PathUtilities.Comparer);
+    private Task? _shutdownTask;
 
     public Task StartLoadingAsync(DocumentUri uri)
     {
@@ -64,28 +68,35 @@ internal sealed partial class OnDemandProjectLoader(
             return Task.CompletedTask;
         }
 
-        var filePath = uri.GetDocumentFilePathFromUri();
-        if (!workspaceFactory.HostWorkspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath).IsEmpty)
-            return Task.CompletedTask;
-
-        Task loadTask;
+        var filePath = Path.GetFullPath(uri.GetDocumentFilePathFromUri());
+        var directory = Path.GetDirectoryName(filePath);
+        Contract.ThrowIfNull(directory);
         lock (_activeLoadsGate)
         {
-            if (_shutdownStarted)
+            if (_shutdownTask is not null)
                 return Task.CompletedTask;
+
+            if (_activeLoads.TryGetValue(directory, out var activeLoad))
+                return activeLoad.Task;
+
+            var solution = workspaceFactory.HostWorkspace.CurrentSolution;
+            var documentIds = solution.GetDocumentIdsWithFilePath(filePath);
+            if (!documentIds.IsEmpty)
+            {
+                return Task.WhenAll(_activeLoads.Values
+                    .Where(load => documentIds.Any(id =>
+                        solution.GetRequiredProject(id.ProjectId).FilePath is { } path &&
+                        load.ProjectPaths.Contains(Path.GetFullPath(path))))
+                    .Select(load => load.Task));
+            }
 
             var workspaceFolders = workspaceFolderTracker.GetRequiredWorkspaceFolderPaths();
             var shutdownToken = _shutdownSource.Token;
-            _logger.LogDebug("Discovering a project on demand for '{DocumentPath}'.", filePath);
-            var discoveryTask = Task.Run(
-                () => discovery.DiscoverProjects(filePath, workspaceFolders, shutdownToken),
-                shutdownToken);
-            loadTask = LoadDiscoveredProjectsAsync(discoveryTask, shutdownToken);
-            _activeLoads.Add(loadTask);
+            var projectPaths = new HashSet<string>(PathUtilities.Comparer);
+            var loadTask = Task.Run(() => LoadDiscoveredProjectsAsync(filePath, directory, workspaceFolders, projectPaths, shutdownToken));
+            _activeLoads.Add(directory, (loadTask, projectPaths));
+            return loadTask;
         }
-
-        RegisterLoadCompletion(loadTask);
-        return loadTask;
     }
 
     public async ValueTask<Task> GetWorkspaceLoadTaskAsync()
@@ -94,8 +105,8 @@ internal sealed partial class OnDemandProjectLoader(
         CancellationToken shutdownToken;
         lock (_activeLoadsGate)
         {
-            activeLoads = [.. _activeLoads];
-            if (_shutdownStarted)
+            activeLoads = [.. _activeLoads.Values.Select(load => load.Task)];
+            if (_shutdownTask is not null)
                 return Task.WhenAll(activeLoads);
 
             shutdownToken = _shutdownSource.Token;
@@ -105,94 +116,87 @@ internal sealed partial class OnDemandProjectLoader(
         return Task.WhenAll([projectLoads, .. activeLoads]);
     }
 
-    private Task TrackLoadAsync(Task loadTask)
-    {
-        lock (_activeLoadsGate)
-            _activeLoads.Add(loadTask);
-
-        RegisterLoadCompletion(loadTask);
-        return loadTask;
-    }
-
-    private void RegisterLoadCompletion(Task loadTask)
-    {
-        _ = loadTask.ContinueWith(
-            static (completedLoad, state) => ((OnDemandProjectLoader)state!).RemoveActiveLoad(completedLoad),
-            this,
-            CancellationToken.None,
-            TaskContinuationOptions.ExecuteSynchronously,
-            TaskScheduler.Default);
-    }
-
-    private void RemoveActiveLoad(Task loadTask)
-    {
-        lock (_activeLoadsGate)
-            _activeLoads.Remove(loadTask);
-    }
-
     private async Task LoadDiscoveredProjectsAsync(
-        Task<ImmutableArray<string>> discoveryTask,
+        string filePath,
+        string directory,
+        ImmutableHashSet<string> workspaceFolders,
+        HashSet<string> visitedProjectPaths,
         CancellationToken shutdownToken)
     {
         using var _ = listener.BeginAsyncOperation(nameof(LoadDiscoveredProjectsAsync));
 
         try
         {
-            var projectPaths = await discoveryTask.ConfigureAwait(false);
-            if (projectPaths.IsEmpty)
-                return;
-
-            foreach (var projectPath in projectPaths)
-                _logger.LogInformation("Loading project on demand for '{ProjectPath}'.", projectPath);
-
-            await LoadProjectClosureAsync(projectPaths, shutdownToken).ConfigureAwait(false);
+            _logger.LogDebug("Discovering a project on demand for '{DocumentPath}'.", filePath);
+            var projectPaths = discovery.DiscoverProjects(filePath, workspaceFolders, shutdownToken);
+            await LoadProjectClosureAsync(projectPaths, visitedProjectPaths, shutdownToken).ConfigureAwait(false);
         }
-        catch (Exception) when (shutdownToken.IsCancellationRequested)
+        catch (OperationCanceledException) when (shutdownToken.IsCancellationRequested)
         {
         }
         catch (Exception exception) when (FatalError.ReportAndCatch(exception))
         {
             _logger.LogError(exception, "Failed to load projects on demand.");
         }
+        finally
+        {
+            lock (_activeLoadsGate)
+                _activeLoads.Remove(directory);
+        }
     }
 
     private async Task LoadProjectClosureAsync(
-        ImmutableArray<string> rootProjectPaths, CancellationToken cancellationToken)
+        ImmutableArray<string> rootProjectPaths, HashSet<string> visitedProjectPaths, CancellationToken cancellationToken)
     {
-        var visitedProjectPaths = new HashSet<string>(PathUtilities.Comparer);
         var pendingLoads = new List<Task<(LoadedProject project, bool loadedSuccessfully)>>();
 
-        foreach (var projectPath in rootProjectPaths)
-            QueueProject(projectPath);
+        var traversalTask = TraverseAsync();
+        // Observe traversal and every started child together, even if traversal exits early.
+        // WhenAll preserves unexpected failures when other children are canceled during shutdown.
+        await traversalTask.NoThrowAwaitable(captureContext: false);
+        await Task.WhenAll([traversalTask, .. pendingLoads]).ConfigureAwait(false);
 
-        while (pendingLoads.Count > 0)
+        async Task TraverseAsync()
         {
-            var completedLoad = await Task.WhenAny(pendingLoads).ConfigureAwait(false);
-            pendingLoads.Remove(completedLoad);
+            foreach (var projectPath in rootProjectPaths)
+                QueueProject(projectPath);
 
-            var (project, loadedSuccessfully) = await completedLoad.ConfigureAwait(false);
-            if (!loadedSuccessfully)
-                continue;
+            while (pendingLoads.Count > 0)
+            {
+                var completedLoad = await Task.WhenAny(pendingLoads).ConfigureAwait(false);
+                pendingLoads.Remove(completedLoad);
 
-            foreach (var referencePath in await projectSystem.GetSupportedProjectReferencesAsync(project))
-                QueueProject(referencePath);
+                var (project, loadedSuccessfully) = await completedLoad.ConfigureAwait(false);
+                if (!loadedSuccessfully)
+                    continue;
+
+                foreach (var referencePath in await project.GetProjectReferencePathsAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    if (discovery.IsSupportedProject(referencePath))
+                        QueueProject(referencePath);
+                }
+            }
         }
-
-        return;
 
         void QueueProject(string projectPath)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             projectPath = Path.GetFullPath(projectPath);
-            if (visitedProjectPaths.Add(projectPath))
-                pendingLoads.Add(LoadProjectAsync(projectPath));
+            lock (_activeLoadsGate)
+            {
+                if (!visitedProjectPaths.Add(projectPath))
+                    return;
+            }
+
+            _logger.LogInformation("Loading project on demand for '{ProjectPath}'.", projectPath);
+            pendingLoads.Add(LoadProjectAsync(projectPath));
         }
 
         async Task<(LoadedProject project, bool loadedSuccessfully)> LoadProjectAsync(string projectPath)
         {
             var project = await projectSystem.BeginLoadingProjectAsync(
-                projectPath, LanguageServerProjectLoader.ProjectReloadPriority.High).ConfigureAwait(false);
+                projectPath, LanguageServerProjectLoader.ProjectReloadPriority.High, cancellationToken).ConfigureAwait(false);
             var loadedSuccessfully = await project.WaitForLoadAsync(cancellationToken).ConfigureAwait(false);
             return (project, loadedSuccessfully);
         }
@@ -200,23 +204,25 @@ internal sealed partial class OnDemandProjectLoader(
 
     public Task ShutdownAsync()
     {
-        Task[] activeLoads;
-        var cancel = false;
         lock (_activeLoadsGate)
         {
-            if (!_shutdownStarted)
+            if (_shutdownTask is not null)
+                return _shutdownTask;
+
+            var activeLoads = Task.WhenAll(_activeLoads.Values.Select(load => load.Task));
+            // Cancel outside the gate, and make concurrent shutdown/disposal callers await cancellation too.
+            return _shutdownTask = Task.Run(async () =>
             {
-                _shutdownStarted = true;
-                cancel = true;
-            }
-
-            activeLoads = [.. _activeLoads];
+                try
+                {
+                    _shutdownSource.Cancel();
+                }
+                finally
+                {
+                    await activeLoads.ConfigureAwait(false);
+                }
+            });
         }
-
-        if (cancel)
-            _shutdownSource.Cancel();
-
-        return Task.WhenAll(activeLoads);
     }
 
     public Task ExitAsync()
@@ -226,21 +232,5 @@ internal sealed partial class OnDemandProjectLoader(
     {
         await ShutdownAsync().ConfigureAwait(false);
         _shutdownSource.Dispose();
-    }
-
-    internal TestAccessor GetTestAccessor()
-        => new(this);
-
-    internal readonly struct TestAccessor(OnDemandProjectLoader loader)
-    {
-        public void TrackLoad(Task loadTask)
-            => loader.TrackLoadAsync(loadTask);
-
-        public CancellationToken ShutdownToken
-            => loader._shutdownSource.Token;
-
-        public Task LoadProjectClosureAsync(
-            ImmutableArray<string> rootProjectPaths, CancellationToken cancellationToken)
-            => loader.LoadProjectClosureAsync(rootProjectPaths, cancellationToken);
     }
 }

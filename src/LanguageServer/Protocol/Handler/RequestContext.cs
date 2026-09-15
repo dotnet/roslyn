@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -53,7 +54,7 @@ internal readonly partial struct RequestContext
     /// <remarks>
     /// This field is only initialized for handlers that request solution context.
     /// </remarks>
-    private readonly SolutionContext? _solutionContext;
+    private readonly StrongBox<Task<LspWorkspaceManager.LspContext>?>? _solutionContext;
 
     public ILspLogger Logger { get; }
 
@@ -75,7 +76,7 @@ internal readonly partial struct RequestContext
     public readonly CancellationToken QueueCancellationToken;
 
     private RequestContext(
-        SolutionContext? solutionContext,
+        StrongBox<Task<LspWorkspaceManager.LspContext>?>? solutionContext,
         ILspLogger logger,
         string method,
         ClientCapabilities? clientCapabilities,
@@ -109,7 +110,7 @@ internal readonly partial struct RequestContext
     public async ValueTask<Workspace?> GetWorkspaceAsync(CancellationToken cancellationToken)
         => _solutionContext is null
             ? null
-            : (await _solutionContext.GetValueAsync(cancellationToken).ConfigureAwait(false)).Workspace;
+            : (await GetSolutionContextAsync(cancellationToken).ConfigureAwait(false)).Workspace;
 
     public async ValueTask<Workspace> GetRequiredWorkspaceAsync(CancellationToken cancellationToken)
         => await GetWorkspaceAsync(cancellationToken).ConfigureAwait(false)
@@ -118,7 +119,7 @@ internal readonly partial struct RequestContext
     public async ValueTask<Solution?> GetSolutionAsync(CancellationToken cancellationToken)
         => _solutionContext is null
             ? null
-            : (await _solutionContext.GetValueAsync(cancellationToken).ConfigureAwait(false)).Solution;
+            : (await GetSolutionContextAsync(cancellationToken).ConfigureAwait(false)).Solution;
 
     public async ValueTask<Solution> GetRequiredSolutionAsync(CancellationToken cancellationToken)
         => await GetSolutionAsync(cancellationToken).ConfigureAwait(false)
@@ -127,7 +128,18 @@ internal readonly partial struct RequestContext
     public async ValueTask<TextDocument?> GetTextDocumentAsync(CancellationToken cancellationToken)
         => _solutionContext is null
             ? null
-            : (await _solutionContext.GetValueAsync(cancellationToken).ConfigureAwait(false)).Document;
+            : (await GetSolutionContextAsync(cancellationToken).ConfigureAwait(false)).Document;
+
+    private async ValueTask<LspWorkspaceManager.LspContext> GetSolutionContextAsync(CancellationToken cancellationToken)
+    {
+        Contract.ThrowIfNull(_solutionContext);
+        var task = Volatile.Read(ref _solutionContext.Value) ?? throw new InvalidOperationException();
+        var value = await task.WithCancellation(cancellationToken).ConfigureAwait(false);
+        if (Volatile.Read(ref _solutionContext.Value) is null)
+            throw new InvalidOperationException();
+
+        return value;
+    }
 
     public async ValueTask<TextDocument> GetRequiredTextDocumentAsync(CancellationToken cancellationToken)
         => await GetTextDocumentAsync(cancellationToken).ConfigureAwait(false)
@@ -182,6 +194,9 @@ internal readonly partial struct RequestContext
         }
         else
         {
+            // Decide before snapshot capture, so a load finishing during lookup still gets re-resolved.
+            var requiresDeferredResolution = !mutatesSolutionState && projectLoadTask.Status != TaskStatus.RanToCompletion;
+            var initialWorkspaceSolution = requiresDeferredResolution ? lspWorkspaceManager.GetHostWorkspaceCurrentSolution() : null;
             Workspace? workspace = null;
             Solution? solution = null;
             TextDocument? document = null;
@@ -209,16 +224,18 @@ internal readonly partial struct RequestContext
             Contract.ThrowIfNull(workspace);
             Contract.ThrowIfNull(solution);
             var initialLspContext = new LspWorkspaceManager.LspContext(workspace, solution, document);
-            var resolvedLspContext = lspWorkspaceManager.CreateResolvedLspContextAsync(
+            var resolvedLspContext = requiresDeferredResolution
+                ? lspWorkspaceManager.CreateResolvedLspContextAsync(
                 initialLspContext,
+                initialWorkspaceSolution,
                 textDocument,
                 trackedDocuments,
                 projectLoadTask,
-                method,
-                mutatesSolutionState);
+                cancellationToken)
+                : Task.FromResult(initialLspContext);
 
             context = new RequestContext(
-                new SolutionContext(initialLspContext, resolvedLspContext),
+                new StrongBox<Task<LspWorkspaceManager.LspContext>?>(resolvedLspContext),
                 logger,
                 method,
                 clientCapabilities,
@@ -268,7 +285,7 @@ internal readonly partial struct RequestContext
         if (_solutionContext is null)
             return;
 
-        _solutionContext.Clear();
+        Interlocked.Exchange(ref _solutionContext.Value, null);
     }
 
     public void TraceDebug(string message)
@@ -307,16 +324,5 @@ internal readonly partial struct RequestContext
     public T? GetService<T>() where T : class, ILspService
     {
         return _lspServices.GetService<T>();
-    }
-
-    internal TestAccessor GetTestAccessor() => new(this);
-
-    internal readonly struct TestAccessor(RequestContext context)
-    {
-        public Workspace? GetInitialWorkspace()
-            => context._solutionContext?.GetInitialValue().Workspace;
-
-        public Solution? GetInitialSolution()
-            => context._solutionContext?.GetInitialValue().Solution;
     }
 }

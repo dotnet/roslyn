@@ -7,6 +7,7 @@ extern alias MSBuildWorkspacesContracts;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -39,7 +40,7 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         ExtensionAssemblyManager extensionManager,
         IAssemblyLoader assemblyLoader)
         => Task.FromResult(LanguageServerTestComposition.GetSharedExportProvider(
-            serverConfiguration, loggerFactory, typeof(TestProjectLoaderFactory)));
+            serverConfiguration, loggerFactory, typeof(TestProjectLoaderFactory), typeof(TestOnDemandProjectLoaderFactory)));
 
     [Fact]
     public async Task ConcurrentCallersShareLoadedProjectAndCompleteAfterWorkspaceCommit()
@@ -91,6 +92,10 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
         var loader = server.GetRequiredLspService<TestProjectLoader>();
         loader.MaxNodeCountForTest = 1;
+        var blockingBuild = loader.QueueDesignTimeBuild();
+        var blockingPath = Path.Combine(TempRoot.Root, "Blocking.csproj");
+        await loader.BeginLoadAsync(blockingPath);
+        await blockingBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
         var firstDesignTimeBuild = loader.QueueDesignTimeBuild();
         var secondDesignTimeBuild = loader.QueueDesignTimeBuild();
         var normalPriorityPath = Path.Combine(TempRoot.Root, "Normal.csproj");
@@ -99,6 +104,7 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         var normalPriorityProject = await loader.BeginLoadAsync(normalPriorityPath);
         var highPriorityProject = await loader.BeginLoadAsync(highPriorityPath);
         Assert.Same(highPriorityProject, await loader.BeginHighPriorityLoadAsync(highPriorityPath));
+        blockingBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, blockingPath);
 
         Assert.Equal(
             highPriorityPath,
@@ -111,6 +117,205 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
             await secondDesignTimeBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout));
         secondDesignTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, normalPriorityPath);
         Assert.True(await normalPriorityProject.WaitForLoadAsync(CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task HighPriorityLoadDoesNotQueueAnotherInFlightBuild()
+    {
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var loader = server.GetRequiredLspService<TestProjectLoader>();
+        var build = loader.QueueDesignTimeBuild();
+        var path = Path.Combine(TempRoot.Root, "Project.csproj");
+        var project = await loader.BeginLoadAsync(path);
+        await build.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+
+        Assert.Same(project, await loader.BeginHighPriorityLoadAsync(path));
+        build.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, path);
+        await server.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+        Assert.Equal(1, loader.DesignTimeBuildCount);
+    }
+
+    [Fact]
+    public async Task OnDemandRequestsJoinClosureAfterRootLoads()
+    {
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var projectLoader = server.GetRequiredLspService<TestProjectLoader>();
+        var loader = server.GetRequiredLspService<IOnDemandProjectLoader>();
+        var directory = TempRoot.CreateDirectory();
+        var rootPath = directory.CreateFile("Root.csproj").Path;
+        var documentPath = directory.CreateDirectory("src").CreateFile("Program.cs").Path;
+        var otherDocumentPath = directory.CreateDirectory("linked").CreateFile("Other.cs").Path;
+        var dependencyPath = directory.CreateDirectory("dependency").CreateFile("Dependency.csproj").Path;
+        var uri = ProtocolConversions.CreateAbsoluteDocumentUri(documentPath);
+        server.GetRequiredLspService<IWorkspaceFolderTracker>().Update(
+            [new() { DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(directory.Path), Name = "Workspace" }],
+            removedFolders: null);
+        var rootBuild = projectLoader.QueueDesignTimeBuild();
+        var dependencyBuild = projectLoader.QueueDesignTimeBuild();
+
+        var loadTask = loader.StartLoadingAsync(uri);
+        Assert.Same(loadTask, loader.StartLoadingAsync(uri));
+        var workspaceLoadTask = await loader.GetWorkspaceLoadTaskAsync();
+        Assert.False(workspaceLoadTask.IsCompleted);
+        Assert.Equal(rootPath, await rootBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout));
+        rootBuild.CompleteSuccessfully(
+            projectLoader.WorkspaceFactory.HostProjectFactory, rootPath,
+            documents: [documentPath, otherDocumentPath], references: [dependencyPath]);
+        Assert.Equal(dependencyPath, await dependencyBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout));
+
+        Assert.NotEmpty(projectLoader.WorkspaceFactory.HostWorkspace.CurrentSolution.GetDocumentIdsWithFilePath(documentPath));
+        Assert.Same(loadTask, loader.StartLoadingAsync(uri));
+        var otherLoadTask = loader.StartLoadingAsync(ProtocolConversions.CreateAbsoluteDocumentUri(otherDocumentPath));
+        Assert.False(otherLoadTask.IsCompleted);
+        Assert.False(workspaceLoadTask.IsCompleted);
+        dependencyBuild.CompleteSuccessfully(projectLoader.WorkspaceFactory.HostProjectFactory, dependencyPath);
+        await Task.WhenAll(loadTask, otherLoadTask, workspaceLoadTask).WaitAsync(TestHelpers.HangMitigatingTimeout);
+        Assert.Equal(2, projectLoader.DesignTimeBuildCount);
+    }
+
+    [Fact]
+    public async Task OnDemandDependenciesTakePriorityOverQueuedProjects()
+    {
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var projectLoader = server.GetRequiredLspService<TestProjectLoader>();
+        projectLoader.MaxNodeCountForTest = 1;
+        var directory = TempRoot.CreateDirectory();
+        var rootPath = directory.CreateFile("Root.csproj").Path;
+        var dependencyPath = directory.CreateDirectory("dependency").CreateFile("Dependency.csproj").Path;
+        var normalPath = directory.CreateDirectory("normal").CreateFile("Normal.csproj").Path;
+        var blockingPath = directory.CreateDirectory("blocking").CreateFile("Blocking.csproj").Path;
+        var uri = ProtocolConversions.CreateAbsoluteDocumentUri(directory.CreateFile("Program.cs").Path);
+        server.GetRequiredLspService<IWorkspaceFolderTracker>().Update(
+            [new() { DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(directory.Path), Name = "Workspace" }],
+            removedFolders: null);
+        var releaseRoot = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var dependencyQueued = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        projectLoader.BeforeCacheLoadAsync = async (path, cancellationToken) =>
+        {
+            if (path == rootPath)
+                await releaseRoot.Task.WaitAsync(cancellationToken);
+            else if (path == dependencyPath)
+                dependencyQueued.SetResult();
+        };
+        var rootBuild = projectLoader.QueueDesignTimeBuild();
+        var blockingBuild = projectLoader.QueueDesignTimeBuild();
+        var loadTask = server.GetRequiredLspService<IOnDemandProjectLoader>().StartLoadingAsync(uri);
+        await rootBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        await projectLoader.BeginLoadAsync(blockingPath);
+        rootBuild.CompleteSuccessfully(projectLoader.WorkspaceFactory.HostProjectFactory, rootPath, references: [dependencyPath]);
+        await blockingBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+
+        var dependencyBuild = projectLoader.QueueDesignTimeBuild();
+        var normalBuild = projectLoader.QueueDesignTimeBuild();
+        var normalProject = await projectLoader.BeginLoadAsync(normalPath);
+        releaseRoot.SetResult();
+        await dependencyQueued.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        blockingBuild.CompleteSuccessfully(projectLoader.WorkspaceFactory.HostProjectFactory, blockingPath);
+
+        Assert.Equal(dependencyPath, await dependencyBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout));
+        dependencyBuild.CompleteSuccessfully(projectLoader.WorkspaceFactory.HostProjectFactory, dependencyPath);
+        await loadTask.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        Assert.Equal(normalPath, await normalBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout));
+        normalBuild.CompleteSuccessfully(projectLoader.WorkspaceFactory.HostProjectFactory, normalPath);
+        Assert.True(await normalProject.WaitForLoadAsync(CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task OnDemandShutdownDoesNotSuppressUnexpectedTraversalFailure()
+    {
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var projectLoader = server.GetRequiredLspService<TestProjectLoader>();
+        var directory = TempRoot.CreateDirectory();
+        directory.CreateFile("A.csproj");
+        directory.CreateFile("B.csproj");
+        var uri = ProtocolConversions.CreateAbsoluteDocumentUri(directory.CreateFile("Program.cs").Path);
+        var tracker = server.GetRequiredLspService<IWorkspaceFolderTracker>();
+        tracker.Update(
+            [new() { DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(directory.Path), Name = "Workspace" }],
+            removedFolders: null);
+        var cancellationObserved = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseCache = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        projectLoader.BeforeCacheLoadAsync = async (_, cancellationToken) =>
+        {
+            using var registration = cancellationToken.Register(() => cancellationObserved.TrySetResult());
+            await releaseCache.Task;
+            cancellationToken.ThrowIfCancellationRequested();
+        };
+        projectLoader.QueueDesignTimeBuild();
+        var expected = new InvalidOperationException("Unexpected traversal failure");
+        var reported = new ConcurrentQueue<Exception>();
+        FatalError.OverwriteHandler((exception, _, _) => reported.Enqueue(exception));
+        using var logger = new FaultingLoadLogger(expected);
+        await using var loader = new OnDemandProjectLoader(
+            new OnDemandProjectLoader.ProjectDiscovery([".csproj"], LoggerFactory),
+            tracker, projectLoader, projectLoader.WorkspaceFactory,
+            server.ExportProvider.GetExportedValue<IGlobalOptionService>(),
+            server.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.Workspace),
+            logger);
+        logger.OnSecondLoad = () => _ = loader.ShutdownAsync();
+
+        var loadTask = loader.StartLoadingAsync(uri);
+        try
+        {
+            await cancellationObserved.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+            Assert.False(loadTask.IsCompleted);
+        }
+        finally
+        {
+            releaseCache.SetResult();
+        }
+
+        await loader.ShutdownAsync().WaitAsync(TestHelpers.HangMitigatingTimeout);
+        Assert.Contains(expected, reported);
+    }
+
+    [Fact]
+    public async Task OnDemandShutdownDrainsChildrenStillEnteringProjectSystem()
+    {
+        var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var projectLoader = server.GetRequiredLspService<TestProjectLoader>();
+        var loader = server.GetRequiredLspService<IOnDemandProjectLoader>();
+        var directory = TempRoot.CreateDirectory();
+        directory.CreateFile("A.csproj");
+        var blockedPath = directory.CreateFile("B.csproj").Path;
+        var uri = ProtocolConversions.CreateAbsoluteDocumentUri(directory.CreateFile("Program.cs").Path);
+        server.GetRequiredLspService<IWorkspaceFolderTracker>().Update(
+            [new() { DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(directory.Path), Name = "Workspace" }],
+            removedFolders: null);
+        var enteredCache = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var cancellationObserved = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseCache = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        projectLoader.BeforeCacheLoadAsync = async (path, cancellationToken) =>
+        {
+            if (path != blockedPath)
+                return;
+
+            using var registration = cancellationToken.Register(() => cancellationObserved.TrySetResult());
+            enteredCache.SetResult();
+            await releaseCache.Task;
+            cancellationToken.ThrowIfCancellationRequested();
+        };
+        projectLoader.QueueDesignTimeBuild();
+        projectLoader.QueueDesignTimeBuild();
+        var loadTask = loader.StartLoadingAsync(uri);
+        await enteredCache.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+
+        var shutdownTask = server.DisposeAsync().AsTask();
+        try
+        {
+            await cancellationObserved.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+            Assert.False(shutdownTask.IsCompleted);
+            Assert.False(loadTask.IsCompleted);
+            var shutdownHook = server.GetRequiredLspService<OnDemandProjectLoader>();
+            Assert.Same(shutdownHook.ShutdownAsync(), shutdownHook.ShutdownAsync());
+        }
+        finally
+        {
+            releaseCache.SetResult();
+        }
+
+        await shutdownTask.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        await loadTask.WaitAsync(TestHelpers.HangMitigatingTimeout);
     }
 
     [Fact]
@@ -473,6 +678,28 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         Assert.Equal(project.Id, projectFromCanonicalPath.Id);
     }
 
+    [ExportCSharpVisualBasicLspServiceFactory(typeof(OnDemandProjectLoader), WellKnownLspServerKinds.CSharpVisualBasicLspServer), PartNotDiscoverable, Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class TestOnDemandProjectLoaderFactory(
+        IGlobalOptionService globalOptionService,
+        IAsynchronousOperationListenerProvider listenerProvider) : ILspServiceFactory
+    {
+        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        {
+            var loggerFactory = lspServices.GetRequiredService<ILoggerFactory>();
+            return new OnDemandProjectLoader(
+                new OnDemandProjectLoader.ProjectDiscovery(
+                    lspServices.GetRequiredService<LanguageServerProjectSystem>().GetSupportedProjectFileExtensions(), loggerFactory),
+                lspServices.GetRequiredService<IWorkspaceFolderTracker>(),
+                lspServices.GetRequiredService<TestProjectLoader>(),
+                lspServices.GetRequiredService<LanguageServerWorkspaceFactory>(),
+                globalOptionService,
+                listenerProvider.GetListener(FeatureAttribute.Workspace),
+                loggerFactory);
+        }
+    }
+
     [ExportCSharpVisualBasicLspServiceFactory(typeof(TestProjectLoader)), PartNotDiscoverable, Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -504,6 +731,7 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         public int DesignTimeBuildCount => Volatile.Read(ref _designTimeBuildCount);
         public Dictionary<string, ImmutableArray<ProjectFileInfo>> CachedProjects { get; } = new(PathUtilities.Comparer);
         public int MaxNodeCountForTest { get; set; } = 2;
+        public Func<string, CancellationToken, Task>? BeforeCacheLoadAsync { get; set; }
 
         // Tests wait for two design-time builds to start before completing either, so the worker count
         // must not fall back to one on machines with fewer processors.
@@ -561,9 +789,14 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
 
         protected override async Task<(ImmutableArray<ProjectFileInfo>, ProjectSystemProjectFactory)?> TryLoadProjectFromCacheAsync(
             string projectPath, CancellationToken cancellationToken)
-            => CachedProjects.TryGetValue(projectPath, out var projectFileInfos)
+        {
+            if (BeforeCacheLoadAsync is { } beforeCacheLoad)
+                await beforeCacheLoad(projectPath, cancellationToken);
+
+            return CachedProjects.TryGetValue(projectPath, out var projectFileInfos)
                 ? (projectFileInfos, WorkspaceFactory.HostProjectFactory)
                 : null;
+        }
 
         protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
             BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken)
@@ -581,10 +814,20 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         public TaskCompletionSource<string> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<LanguageServerProjectLoader.RemoteProjectLoadResult?> Result { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        public void CompleteSuccessfully(ProjectSystemProjectFactory projectFactory, string projectPath, string? targetFramework = null)
+        public void CompleteSuccessfully(
+            ProjectSystemProjectFactory projectFactory, string projectPath, string? targetFramework = null,
+            string[]? documents = null, string[]? references = null)
             => Result.SetResult(new()
             {
-                ProjectFileInfos = [ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, projectPath) with { CommandLineArgs = ["/target:library"], TargetFramework = targetFramework }],
+                ProjectFileInfos = [ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, projectPath) with
+                {
+                    CommandLineArgs = ["/target:library"],
+                    TargetFramework = targetFramework,
+                    Documents = documents?.Select(path => new MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.DocumentFileInfo(
+                        path, Path.GetFileName(path), isLinked: false, isGenerated: false, folders: [])).ToArray() ?? [],
+                    ProjectReferences = references?.Select(path => new MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.ProjectFileReference(
+                        path, aliases: [], referenceOutputAssembly: true)).ToArray() ?? [],
+                }],
                 DiagnosticLogItems = [],
                 ProjectRestorePath = projectPath,
                 ProjectFactory = projectFactory,
@@ -601,6 +844,27 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
 
         public void Fail(Exception exception)
             => Result.SetException(exception);
+    }
+
+    private sealed class FaultingLoadLogger(Exception exception) : ILoggerFactory, ILogger
+    {
+        private int _loadCount;
+        public Action? OnSecondLoad { get; set; }
+
+        public ILogger CreateLogger(string categoryName) => this;
+        public void AddProvider(ILoggerProvider provider) => throw new NotSupportedException();
+        public void Dispose() { }
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? error, Func<TState, Exception?, string> formatter)
+        {
+            if (logLevel == LogLevel.Information && ++_loadCount == 2)
+            {
+                OnSecondLoad!();
+                throw exception;
+            }
+        }
     }
 
     private sealed class TestProgressReporter : IProgress<LSP.WorkDoneProgress>

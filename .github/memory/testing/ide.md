@@ -39,3 +39,5 @@ public class MyTests
   `LanguageServerTestComposition.GetSharedExportProvider`. A controllable
   `PartNotDiscoverable` project loader can provide deterministic design-time
   build timing and results without invoking MSBuild.
+- Use blocking design-time builds and cache-entry barriers to test project
+  priority and shutdown ordering, rather than relying on batching delays.

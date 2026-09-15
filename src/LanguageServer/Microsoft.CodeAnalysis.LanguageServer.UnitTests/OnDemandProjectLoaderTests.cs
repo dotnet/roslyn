@@ -107,42 +107,7 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
     }
 
     [Fact]
-    public async Task WorkspaceLoadWaitsForActiveDiscoveryAndClosure()
-    {
-        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
-        var loader = (OnDemandProjectLoader)server.GetRequiredLspService<IOnDemandProjectLoader>();
-        var loadSource = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        loader.GetTestAccessor().TrackLoad(loadSource.Task);
-
-        var workspaceLoadTask = await loader.GetWorkspaceLoadTaskAsync();
-
-        Assert.False(workspaceLoadTask.IsCompleted);
-        loadSource.SetResult();
-        await workspaceLoadTask.WaitAsync(TestHelpers.HangMitigatingTimeout);
-    }
-
-    [Fact]
-    public async Task ServerShutdownWaitsForActiveLoad()
-    {
-        var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
-        var loader = (OnDemandProjectLoader)server.GetRequiredLspService<IOnDemandProjectLoader>();
-        var loadSource = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var shutdownStartedSource = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        using var registration = loader.GetTestAccessor().ShutdownToken.Register(
-            static state => ((TaskCompletionSource)state!).SetResult(),
-            shutdownStartedSource);
-        loader.GetTestAccessor().TrackLoad(loadSource.Task);
-
-        var disposeTask = server.DisposeAsync().AsTask();
-        await shutdownStartedSource.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
-
-        Assert.False(disposeTask.IsCompleted);
-        loadSource.SetResult();
-        await disposeTask.WaitAsync(TestHelpers.HangMitigatingTimeout);
-    }
-
-    [Fact]
-    public async Task CanceledClosureDoesNotStartProjectLoad()
+    public async Task ShutdownDoesNotStartProjectLoad()
     {
         var workspace = MaterializedLspWorkspace.Create(
             TempRoot,
@@ -150,15 +115,12 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
             CancellationToken.None);
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
         var loader = (OnDemandProjectLoader)server.GetRequiredLspService<IOnDemandProjectLoader>();
-        using var cancellationSource = new CancellationTokenSource();
-        cancellationSource.Cancel();
-
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
-            loader.GetTestAccessor().LoadProjectClosureAsync(
-                [workspace.GetFullPath("App.csproj")], cancellationSource.Token));
+        await loader.ShutdownAsync();
+        await LoadDocumentAsync(server, workspace.RootPath, workspace.GetFullPath("Program.cs"));
 
         var workspaceLoadTask = await loader.GetWorkspaceLoadTaskAsync();
         Assert.True(workspaceLoadTask.IsCompleted);
+        Assert.Empty(server.GetRequiredLspService<LanguageServerWorkspaceFactory>().HostWorkspace.CurrentSolution.Projects);
     }
 
     private static LspWorkspaceContent CreateUnrestoredConsoleApplication()

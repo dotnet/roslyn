@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
@@ -216,69 +217,64 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
     #region LSP Solution Retrieval
 
-    internal Task<LspContext> CreateResolvedLspContextAsync(
+    internal async Task<LspContext> CreateResolvedLspContextAsync(
         LspContext initialValue,
+        Solution? initialWorkspaceSolution,
         TextDocumentIdentifier? textDocumentIdentifier,
         ImmutableDictionary<DocumentUri, TrackedDocumentInfo> trackedDocuments,
         Task projectLoadTask,
-        string method,
-        bool mutatesSolutionState)
+        CancellationToken cancellationToken)
     {
-        if (mutatesSolutionState)
-            return Task.FromResult(initialValue);
+        // Ensure that post-load resolution does not run in the serialized request queue when loading has already completed.
+        await Task.Yield();
 
-        var initialWorkspaceSolution = initialValue.Workspace.CurrentSolution;
-        return ResolveAfterProjectLoadAsync();
-
-        async Task<LspContext> ResolveAfterProjectLoadAsync()
+        try
         {
-            // Ensure that post-load resolution does not run in the serialized request queue when loading has already completed.
-            await Task.Yield();
-
-            try
-            {
-                try
-                {
-                    await projectLoadTask.ConfigureAwait(false);
-                }
-                catch (OperationCanceledException)
-                {
-                    return initialValue;
-                }
-
-                if (initialValue.Workspace.Kind == WorkspaceKind.Host &&
-                    ReferenceEquals(initialValue.Workspace.CurrentSolution, initialWorkspaceSolution))
-                {
-                    return initialValue;
-                }
-
-                if (textDocumentIdentifier is not null)
-                {
-                    var documentContext = await GetLspDocumentInfoAfterProjectLoadAsync(
-                        textDocumentIdentifier,
-                        trackedDocuments,
-                        cancellationToken: CancellationToken.None).ConfigureAwait(false);
-                    if (documentContext is { Workspace: not null, Solution: not null })
-                        return new(documentContext.Workspace, documentContext.Solution, documentContext.Document);
-
-                    if (initialValue.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
-                        return initialValue;
-                }
-
-                var solutionContext = await GetLspSolutionInfoAsync(
-                    trackedDocuments, useCache: false, cancellationToken: CancellationToken.None).ConfigureAwait(false);
-                if (solutionContext is { Workspace: not null, Solution: not null })
-                    return new(solutionContext.Workspace, solutionContext.Solution, Document: null);
-            }
-            catch (Exception exception) when (FatalError.ReportAndCatch(exception))
-            {
-                _logger.LogException(exception);
-                _logger.LogWarning($"Could not refresh solution context after project loading on {method}.");
-            }
-
+            await projectLoadTask.WithCancellation(cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
             return initialValue;
         }
+
+        cancellationToken.ThrowIfCancellationRequested();
+        if (initialValue.Workspace.Kind == WorkspaceKind.Host &&
+            ReferenceEquals(initialValue.Workspace.CurrentSolution, initialWorkspaceSolution))
+        {
+            return initialValue;
+        }
+
+        var solutions = ImmutableArray.CreateBuilder<(Workspace workspace, Solution Solution, bool IsForked)>();
+        foreach (var workspace in GetRegisteredWorkspacesInSearchOrder())
+        {
+            var (solution, isForked) = await ApplyLspTextAsync(
+                workspace.CurrentSolution, trackedDocuments, cachedFork: null, cancellationToken).ConfigureAwait(false);
+            solutions.Add((workspace, solution, isForked));
+        }
+
+        if (textDocumentIdentifier is not null)
+        {
+            var documentContext = RecordDocumentLookupResult(
+                textDocumentIdentifier.DocumentUri,
+                await FindDocumentInSolutionsAsync(textDocumentIdentifier, solutions.ToImmutable(), cancellationToken).ConfigureAwait(false));
+            if (documentContext is { Workspace: not null, Solution: not null })
+                return new(documentContext.Workspace, documentContext.Solution, documentContext.Document);
+
+            if (initialValue.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+                return initialValue;
+        }
+
+        var hostContext = solutions.FirstOrDefault(static context => context.workspace.Kind == WorkspaceKind.Host);
+        if (hostContext.workspace is null)
+            return initialValue;
+
+        _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(hostContext.IsForked);
+        return new(hostContext.workspace, hostContext.Solution, Document: null);
     }
+
+    internal Solution? GetHostWorkspaceCurrentSolution()
+        => _lspWorkspaceRegistrationService.GetAllRegistrations()
+            .FirstOrDefault(static workspace => workspace.Kind == WorkspaceKind.Host)?.CurrentSolution;
 
     /// <summary>
     /// Returns the LSP solution associated with the workspace with workspace kind <see cref="WorkspaceKind.Host"/>.
@@ -287,21 +283,14 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// 
     /// This is always called serially in the <see cref="RequestExecutionQueue{RequestContextType}"/> when creating the <see cref="RequestContext"/>.
     /// </summary>
-    public Task<(Workspace? Workspace, Solution? Solution)> GetLspSolutionInfoAsync(CancellationToken cancellationToken)
-        => GetLspSolutionInfoAsync(_trackedDocuments, useCache: true, cancellationToken);
-
-    private async Task<(Workspace? Workspace, Solution? Solution)> GetLspSolutionInfoAsync(
-        ImmutableDictionary<DocumentUri, TrackedDocumentInfo> trackedDocuments,
-        bool useCache,
-        CancellationToken cancellationToken)
+    public async Task<(Workspace? Workspace, Solution? Solution)> GetLspSolutionInfoAsync(CancellationToken cancellationToken)
     {
-        var hostWorkspace = _lspWorkspaceRegistrationService.GetAllRegistrations()
-            .FirstOrDefault(static workspace => workspace.Kind == WorkspaceKind.Host);
+        var hostWorkspace = GetHostWorkspaceCurrentSolution()?.Workspace;
         if (hostWorkspace is null)
             return default;
 
         var (solution, isForked) = await GetLspSolutionForWorkspaceAsync(
-            hostWorkspace, trackedDocuments, useCache, cancellationToken).ConfigureAwait(false);
+            hostWorkspace, cancellationToken).ConfigureAwait(false);
         _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
 
         return (hostWorkspace, solution);
@@ -319,8 +308,8 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         CancellationToken cancellationToken)
     {
         var uri = textDocumentIdentifier.DocumentUri;
-        var documentContext = await FindDocumentInRegisteredWorkspacesAsync(
-            textDocumentIdentifier, _trackedDocuments, useCache: true, cancellationToken).ConfigureAwait(false);
+        var documentContext = await FindDocumentInSolutionsAsync(
+            textDocumentIdentifier, await GetLspSolutionsAsync(cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 
         if (documentContext is null && _lspMiscellaneousFilesWorkspaceProvider is not null)
         {
@@ -363,25 +352,12 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         return RecordDocumentLookupResult(uri, documentContext);
     }
 
-    private async Task<(Workspace? Workspace, Solution? Solution, TextDocument? Document)> GetLspDocumentInfoAfterProjectLoadAsync(
+    private static async Task<(Workspace Workspace, Solution Solution, TextDocument Document, bool IsForked)?> FindDocumentInSolutionsAsync(
         TextDocumentIdentifier textDocumentIdentifier,
-        ImmutableDictionary<DocumentUri, TrackedDocumentInfo> trackedDocuments,
-        CancellationToken cancellationToken)
-    {
-        var documentContext = await FindDocumentInRegisteredWorkspacesAsync(
-            textDocumentIdentifier, trackedDocuments, useCache: false, cancellationToken).ConfigureAwait(false);
-        return RecordDocumentLookupResult(textDocumentIdentifier.DocumentUri, documentContext);
-    }
-
-    private async Task<(Workspace Workspace, Solution Solution, TextDocument Document, bool IsForked)?> FindDocumentInRegisteredWorkspacesAsync(
-        TextDocumentIdentifier textDocumentIdentifier,
-        ImmutableDictionary<DocumentUri, TrackedDocumentInfo> trackedDocuments,
-        bool useCache,
+        ImmutableArray<(Workspace workspace, Solution Solution, bool IsForked)> lspSolutions,
         CancellationToken cancellationToken)
     {
         var uri = textDocumentIdentifier.DocumentUri;
-        var lspSolutions = await GetLspSolutionsAsync(trackedDocuments, useCache, cancellationToken).ConfigureAwait(false);
-
         foreach (var (workspace, lspSolution, isForked) in lspSolutions)
         {
             var documents = await lspSolution.GetTextDocumentsAsync(uri, cancellationToken).ConfigureAwait(false);
@@ -426,18 +402,9 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// Gets the LSP view of all the registered workspaces' current solutions.
     /// </summary>
     private async Task<ImmutableArray<(Workspace workspace, Solution Solution, bool IsForked)>> GetLspSolutionsAsync(
-        ImmutableDictionary<DocumentUri, TrackedDocumentInfo> trackedDocuments,
-        bool useCache,
         CancellationToken cancellationToken)
     {
-        // Ensure that the loose files workspace is searched last.
-        var registeredWorkspaces = _lspWorkspaceRegistrationService.GetAllRegistrations();
-        registeredWorkspaces =
-        [
-            .. registeredWorkspaces.Where(workspace => workspace.Kind != WorkspaceKind.MiscellaneousFiles),
-            .. registeredWorkspaces.Where(workspace => workspace.Kind == WorkspaceKind.MiscellaneousFiles),
-        ];
-
+        var registeredWorkspaces = GetRegisteredWorkspacesInSearchOrder();
         var solutions = ImmutableArray.CreateBuilder<(Workspace, Solution, bool)>(registeredWorkspaces.Length);
         foreach (var workspace in registeredWorkspaces)
         {
@@ -446,68 +413,56 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             // notifications (semantic tokens) to the client letting them know that our workspace has changed and they
             // need to re-query us.
             var (lspSolution, isForked) = await GetLspSolutionForWorkspaceAsync(
-                workspace, trackedDocuments, useCache, cancellationToken).ConfigureAwait(false);
+                workspace, cancellationToken).ConfigureAwait(false);
             solutions.Add((workspace, lspSolution, isForked));
         }
 
         return solutions.MoveToImmutable();
     }
 
+    private ImmutableArray<Workspace> GetRegisteredWorkspacesInSearchOrder()
+    {
+        var workspaces = _lspWorkspaceRegistrationService.GetAllRegistrations();
+        return [
+            .. workspaces.Where(workspace => workspace.Kind != WorkspaceKind.MiscellaneousFiles),
+            .. workspaces.Where(workspace => workspace.Kind == WorkspaceKind.MiscellaneousFiles),
+        ];
+    }
+
     private async Task<(Solution Solution, bool IsForked)> GetLspSolutionForWorkspaceAsync(
-        Workspace workspace,
-        ImmutableDictionary<DocumentUri, TrackedDocumentInfo> trackedDocuments,
-        bool useCache,
-        CancellationToken cancellationToken)
+        Workspace workspace, CancellationToken cancellationToken)
     {
         var workspaceCurrentSolution = workspace.CurrentSolution;
-
-        // At a high level these are the steps we take to compute what the desired LSP solution should be.
-        //
-        //  1. When using the cache, first we want to check if our workspace current solution is the same as the last
-        //     workspace current solution that we verified matches the LSP text. If so, we can skip comparing the LSP
-        //     text against the workspace text and just return the cached one since absolutely nothing has changed.
-        //     Importantly, we do not return a cached forked solution - we do not want to re-use a forked solution if
-        //     the LSP text has changed and now matches the workspace.
-        //
-        //  2. When using the cache, ensure that any changes we've collected are pushed through to the underlying
-        //     workspace if it's a mutating workspace. This will bring that workspace into sync with all that we've
-        //     heard from LSP. The no-cache path avoids mutating the workspace.
-        //
-        //  3. If the cached solution isn't a match, we compare the LSP text to the workspace's text and return the
-        //     workspace text if all LSP text matches. While this does compute checksums, generally speaking that's
-        //     a reasonable price to pay. For example, we always do this in VS anyways to make OOP calls, and it is
-        //     not a burden there.
-        //
-        //  4. When using the cache, we check to see if we have cached a forked LSP solution for the current set of LSP
-        //     texts against the current workspace version. If so, we can just reuse that instead of re-forking and
-        //     blowing away the trees / source generated docs / etc. that we created for the fork.
-        //
-        //  5. We have no reusable cached fork for this combination of LSP texts and workspace version. We have
-        //     exhausted our options and must create an LSP fork from the current workspace solution with the current
-        //     LSP text.
-        //
-        // We propagate the IsForked value back up so that we only report telemetry on forking if the forked solution
-        // is actually requested.
-
-        // Step 1: Check if nothing has changed and we already verified that the workspace text matches our LSP text.
-        var cachedSolution = default((int? forkedFromVersion, Checksum? sourceGeneratorChecksum, Solution solution));
-        if (useCache &&
-            _cachedLspSolutions.TryGetValue(workspace, out cachedSolution) &&
+        if (_cachedLspSolutions.TryGetValue(workspace, out var cachedSolution) &&
             cachedSolution.solution == workspaceCurrentSolution)
         {
             return (workspaceCurrentSolution, IsForked: false);
         }
 
-        // Step 2: Push through any changes to the underlying workspace if it's a mutating workspace.
-        if (useCache)
-            await TryOpenAndEditDocumentsInMutatingWorkspaceAsync(workspace).ConfigureAwait(false);
+        await TryOpenAndEditDocumentsInMutatingWorkspaceAsync(workspace, cancellationToken).ConfigureAwait(false);
 
         // Because the workspace may have been mutated, go back and retrieve its current snapshot so we're operating
         // against that view.
         workspaceCurrentSolution = workspace.CurrentSolution;
+        var forkedFromVersion = workspaceCurrentSolution.SolutionStateContentVersion;
+        var sourceGeneratorChecksum = workspaceCurrentSolution.CompilationState.SourceGeneratorExecutionVersionMap.GetChecksum();
+        var cachedFork = cachedSolution.forkedFromVersion == forkedFromVersion &&
+            cachedSolution.sourceGeneratorChecksum == sourceGeneratorChecksum ? cachedSolution.solution : null;
 
-        // Step 3: Check to see if the LSP text matches the workspace text.
+        var result = await ApplyLspTextAsync(
+            workspaceCurrentSolution, _trackedDocuments, cachedFork, cancellationToken).ConfigureAwait(false);
+        _cachedLspSolutions[workspace] = result.IsForked
+            ? (forkedFromVersion, sourceGeneratorChecksum, result.Solution)
+            : (null, null, result.Solution);
+        return result;
+    }
 
+    private async Task<(Solution Solution, bool IsForked)> ApplyLspTextAsync(
+        Solution workspaceCurrentSolution,
+        ImmutableDictionary<DocumentUri, TrackedDocumentInfo> trackedDocuments,
+        Solution? cachedFork,
+        CancellationToken cancellationToken)
+    {
         var documentsInWorkspace = GetDocumentsForUris([.. trackedDocuments.Keys], workspaceCurrentSolution);
         var sourceGeneratedDocuments =
             trackedDocuments.Keys.Where(static trackedDocument => trackedDocument.IsSourceGeneratedUri())
@@ -528,26 +483,15 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         var doesAllSourceGeneratedTextMatch = DoesAllSourceGeneratedTextMatchWorkspaceSolution(sourceGeneratedDocuments, workspaceCurrentSolution);
         if (doesAllTextMatch && doesAllSourceGeneratedTextMatch)
         {
-            // Remember that the current LSP text matches the text in this workspace solution.
-            if (useCache)
-                _cachedLspSolutions[workspace] = (forkedFromVersion: null, sourceGeneratorChecksum: null, workspaceCurrentSolution);
-
             return (workspaceCurrentSolution, IsForked: false);
         }
 
-        var forkedFromVersion = workspaceCurrentSolution.SolutionStateContentVersion;
-        var sourceGeneratorChecksum = workspaceCurrentSolution.CompilationState.SourceGeneratorExecutionVersionMap.GetChecksum();
-
-        // Step 4: See if we can reuse a previously forked solution.
-        if (useCache &&
-            cachedSolution != default &&
-            cachedSolution.forkedFromVersion == forkedFromVersion &&
-            cachedSolution.sourceGeneratorChecksum == sourceGeneratorChecksum)
+        // Prefer the actual workspace snapshot if text has caught up since this fork was cached.
+        if (cachedFork is not null)
         {
-            return (cachedSolution.solution!, IsForked: true);
+            return (cachedFork, IsForked: true);
         }
 
-        // Step 5: Fork a new solution from the workspace with the LSP text applied.
         var lspSolution = workspaceCurrentSolution;
         // If the workspace text matched we can leave the normal documents as-is
         if (!doesAllTextMatch)
@@ -560,42 +504,38 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         if (!doesAllSourceGeneratedTextMatch)
             lspSolution = lspSolution.WithFrozenSourceGeneratedDocuments(sourceGeneratedDocuments);
 
-        // Remember this forked solution and the workspace version it was forked from.
-        if (useCache)
-            _cachedLspSolutions[workspace] = (forkedFromVersion, sourceGeneratorChecksum, lspSolution);
-
         return (lspSolution, IsForked: true);
+    }
 
-        async ValueTask TryOpenAndEditDocumentsInMutatingWorkspaceAsync(Workspace workspace)
+    private async ValueTask TryOpenAndEditDocumentsInMutatingWorkspaceAsync(Workspace workspace, CancellationToken cancellationToken)
+    {
+        foreach (var (uri, (sourceText, _, _)) in _trackedDocuments)
         {
-            foreach (var (uri, (sourceText, _, _)) in trackedDocuments)
+            await ApplyChangeToMutatingWorkspaceAsync(workspace, uri, async (mutatingWorkspace, documentId) =>
             {
-                await ApplyChangeToMutatingWorkspaceAsync(workspace, uri, async (mutatingWorkspace, documentId) =>
+                if (documentId.IsSourceGenerated)
                 {
-                    if (documentId.IsSourceGenerated)
-                    {
-                        // Source generated documents cannot go through OnDocumentOpened/Closed.
-                        // There is a separate OnSourceGeneratedDocumentOpened/Closed method, but there is no need
-                        // for us to call it in LSP - it deals with mapping TextBuffers to text containers.
-                        return;
-                    }
-                    // This may be the first time this workspace is hearing that this document is open from LSP's
-                    // perspective. Attempt to open it there.
-                    //
-                    // TODO(cyrusn): Do we need to pass a correct value for isCurrentContext?  Or will that fall out from
-                    // something else in lsp.
-                    await workspace.TryOnDocumentOpenedAsync(
-                        documentId, sourceText.Container, isCurrentContext: false, cancellationToken).ConfigureAwait(false);
+                    // Source generated documents cannot go through OnDocumentOpened/Closed.
+                    // There is a separate OnSourceGeneratedDocumentOpened/Closed method, but there is no need
+                    // for us to call it in LSP - it deals with mapping TextBuffers to text containers.
+                    return;
+                }
+                // This may be the first time this workspace is hearing that this document is open from LSP's
+                // perspective. Attempt to open it there.
+                //
+                // TODO(cyrusn): Do we need to pass a correct value for isCurrentContext?  Or will that fall out from
+                // something else in lsp.
+                await workspace.TryOnDocumentOpenedAsync(
+                    documentId, sourceText.Container, isCurrentContext: false, cancellationToken).ConfigureAwait(false);
 
-                    // Note: there is a race here in that we might see/change/return here based on the
-                    // relationship of 'sourceText' and 'currentSolution' while some other entity outside of the
-                    // confines of lsp queue might update the workspace externally.  That's completely fine
-                    // though.  The caller will always grab the 'current solution' again off of the workspace
-                    // and check the checksums of all documents against the ones this workspace manager is
-                    // tracking.  If there are any differences, it will fork and use that fork.
-                    await mutatingWorkspace.UpdateTextIfPresentAsync(documentId, sourceText, cancellationToken).ConfigureAwait(false);
-                }).ConfigureAwait(false);
-            }
+                // Note: there is a race here in that we might see/change/return here based on the
+                // relationship of 'sourceText' and 'currentSolution' while some other entity outside of the
+                // confines of lsp queue might update the workspace externally.  That's completely fine
+                // though.  The caller will always grab the 'current solution' again off of the workspace
+                // and check the checksums of all documents against the ones this workspace manager is
+                // tracking.  If there are any differences, it will fork and use that fork.
+                await mutatingWorkspace.UpdateTextIfPresentAsync(documentId, sourceText, cancellationToken).ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
     }
 

@@ -3,14 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-internal interface IOnDemandProjectLoader : ILspService, IOnServerShutdown
+internal interface IOnDemandProjectLoader : ILspService
 {
     Task StartLoadingAsync(DocumentUri uri);
 
+    /// <summary>
+    /// Captures current discovery and project-load operations. Await the returned task outside serialized request
+    /// dispatch; awaiting this method only captures the snapshot.
+    /// </summary>
     ValueTask<Task> GetWorkspaceLoadTaskAsync();
 }

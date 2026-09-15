@@ -23,6 +23,9 @@ internal sealed partial class OnDemandProjectLoader
             supportedProjectFileExtensions.ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
         private readonly ILogger _logger = loggerFactory.CreateLogger<ProjectDiscovery>();
 
+        internal bool IsSupportedProject(string filePath)
+            => PathUtilities.IsAbsolute(filePath) && _supportedProjectFileExtensions.Contains(Path.GetExtension(filePath));
+
         internal ImmutableArray<string> DiscoverProjects(
             string filePath, ImmutableHashSet<string> workspaceFolders, CancellationToken cancellationToken)
         {
@@ -76,7 +79,7 @@ internal sealed partial class OnDemandProjectLoader
                 foreach (var filePath in Directory.EnumerateFiles(directory))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    if (_supportedProjectFileExtensions.Contains(Path.GetExtension(filePath)))
+                    if (IsSupportedProject(filePath))
                         builder.Add(filePath);
                 }
 
