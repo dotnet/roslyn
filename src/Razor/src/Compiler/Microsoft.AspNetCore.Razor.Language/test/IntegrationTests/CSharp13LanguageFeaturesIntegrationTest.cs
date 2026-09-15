@@ -3,7 +3,6 @@
 
 using Microsoft.CodeAnalysis;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 

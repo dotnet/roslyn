@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public void AssemblyLoading_ReferencesLaterFakeCompiler_EndToEnd_CSharp()
         {
             var directory = Temp.CreateDirectory();
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 """, writer.ToString());
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/63856")]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/63856")]
         public void DuplicateAnalyzerReference()
         {
             var directory = Temp.CreateDirectory();
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 """, writer.ToString());
         }
 
-        [ConditionalFact(typeof(CoreClrOnly), Reason = "Can't load a framework targeting generator, which these are in desktop")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly), Reason = "Can't load a framework targeting generator, which these are in desktop")]
         public void TestLoadGenerators()
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }, typeNames);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestLoadGeneratorsWithoutArgumentOnlyLoadsCSharp()
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(generators, generators2);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestLoadCSharpGenerators()
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }, typeNames);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestLoadVisualBasicGenerators()
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         // can't load a coreclr targeting generator on net framework / mono
-        [ConditionalFact(typeof(CoreClrOnly), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/60762")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/60762")]
         public void TestGeneratorsCantTargetNetFramework()
         {
             var directory = Temp.CreateDirectory();
@@ -543,7 +543,7 @@ public class Generator : ISourceGenerator
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.TestAnalyzerCSVB", allAnalyzers[7]);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly), Reason = "Can't load a framework targeting generator, which these are in desktop")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly), Reason = "Can't load a framework targeting generator, which these are in desktop")]
         [WorkItem(52035, "https://github.com/dotnet/roslyn/issues/52035")]
         public void TestLoadedGeneratorOrderIsDeterministic()
         {

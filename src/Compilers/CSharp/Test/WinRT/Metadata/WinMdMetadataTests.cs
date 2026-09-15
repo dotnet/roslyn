@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// Ensure that a simple program that uses projected types can compile
         /// and run.
         /// </summary>
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void WinMdColorTest()
         {
             var text = @"using Windows.UI;

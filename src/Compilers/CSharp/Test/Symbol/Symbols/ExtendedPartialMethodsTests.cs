@@ -2868,7 +2868,7 @@ public partial class C
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Override_CustomModifiers()
         {
             var source1 = @"

@@ -1453,7 +1453,7 @@ public class Program
             CompileAndVerify(comp, expectedOutput: "Animal");
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void ArgList()
         {
             var source = @"

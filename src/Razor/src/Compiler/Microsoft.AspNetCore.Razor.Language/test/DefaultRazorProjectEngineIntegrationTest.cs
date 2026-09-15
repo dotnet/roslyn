@@ -3,7 +3,6 @@
 
 using System.Collections.Immutable;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 

@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void Mscorlib()
         {
             // mscorlib is special - all identities with simple name "mscorlib" are considered equivalent
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 partial: true);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void SimpleName()
         {
             TestMatch(
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 partial: false);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void Version_StrongDefinition()
         {
             TestMatch(
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 partial: false);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void Version_WeakDefinition()
         {
             // if the reference is partial version is ignored
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 partial: true);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void Culture_StrongDefinition()
         {
             TestMatch(
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 partial: true);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void Culture_WeakDefinition()
         {
             TestMatch(
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 partial: true);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void PublicKeyToken()
         {
             TestMatch(
@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 partial: false);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void IgnoreOrFwUnifyVersion()
         {
             TestMatch(
@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void AsymmetricUnification()
         {
             // Note:
@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 unificationApplied: true);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void Portability()
         {
             TestMatch(
@@ -632,7 +632,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 policyPath: appConfig.Path);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void Retargetable_Reference()
         {
             TestMatch(
@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 AssemblyIdentityComparer.ComparisonResult.NotEquivalent);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void Retargetable_Reference_Partial()
         {
             TestMatch(
@@ -667,7 +667,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 partial: true);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void Retargetable_Reference_Portable()
         {
             TestMatch(
@@ -705,7 +705,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 partial: true);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void Retargetable_RefAndDef()
         {
             TestMatch(
@@ -715,7 +715,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 unificationApplied: true);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void WinRT_Basic()
         {
             TestMatch(

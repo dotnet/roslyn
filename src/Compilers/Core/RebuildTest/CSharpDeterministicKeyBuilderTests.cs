@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             }
         }
 
-        [ConditionalTheory(typeof(WindowsOnly))]
+        [ConditionalTheory(skipConditions: typeof(WindowsOnly))]
         [InlineData(@"c:\src\code.cs", @"c:\src", null)]
         [InlineData(@"d:\src\code.cs", @"d:\src\", @"/pathmap:d:\=c:\")]
         [InlineData(@"e:\long\path\src\code.cs", @"e:\long\path\src\", @"/pathmap:e:\long\path\=c:\")]
@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 ", compiler);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void CSharpPublicKey()
         {
             using var temp = new TempRoot();

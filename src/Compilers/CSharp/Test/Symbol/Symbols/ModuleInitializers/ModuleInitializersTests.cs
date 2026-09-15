@@ -809,7 +809,7 @@ C.Init
 Program.Main");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NetModulesNeedDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NetModulesNeedDesktop)]
         public void MultipleNetmodules()
         {
             var moduleOptions = TestOptions.ReleaseModule.WithMetadataImportOptions(MetadataImportOptions.All);
@@ -975,7 +975,7 @@ public class Program
             }
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NetModulesNeedDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NetModulesNeedDesktop)]
         public void NetmoduleFromIL_InitializerNotCalled()
         {
             var il = @"

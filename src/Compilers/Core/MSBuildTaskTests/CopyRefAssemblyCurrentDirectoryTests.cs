@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             _tempRoot.Dispose();
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public void RelativePaths_LogUsesRelativePath_NotAbsolutePath()
         {
             var projectDir = _tempRoot.CreateDirectory();

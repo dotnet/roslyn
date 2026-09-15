@@ -19,7 +19,7 @@ public class BasicExpressionEvaluator : AbstractEditorTest
     {
     }
 
-    public override async Task InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync();
 

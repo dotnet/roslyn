@@ -67,7 +67,7 @@ public sealed class ConvertTupleToStructTests
 
     #region update containing member tests
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task ConvertSingleTupleType(TestHost host)
         => TestAsync("""
             class Test
@@ -130,7 +130,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task ConvertSingleTupleTypeToRecord(TestHost host)
         => TestAsync("""
             class Test
@@ -163,7 +163,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, languageVersion: LanguageVersion.CSharp12, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task ConvertSingleTupleTypeToRecord_FileScopedNamespace(TestHost host)
         => TestAsync("""
             namespace N;
@@ -200,7 +200,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, languageVersion: LanguageVersion.CSharp12, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task ConvertSingleTupleTypeToRecord_MatchedNameCasing(TestHost host)
         => TestAsync("""
             class Test
@@ -233,7 +233,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, languageVersion: LanguageVersion.CSharp12, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/45451"), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/45451"), CombinatorialData]
     public Task ConvertSingleTupleType_ChangeArgumentNameCase(TestHost host)
         => TestAsync("""
             class Test
@@ -296,7 +296,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/45451"), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/45451"), CombinatorialData]
     public async Task ConvertSingleTupleType_ChangeArgumentNameCase_Uppercase(TestHost host)
     {
         var symbolSpecification = new SymbolSpecification(
@@ -391,7 +391,7 @@ public sealed class ConvertTupleToStructTests
             """, options: options, testHost: host);
     }
 
-    [ConditionalTheory(typeof(DesktopOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/39916"), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/39916"), CombinatorialData]
     public Task ConvertSingleTupleType_Explicit(TestHost host)
         => TestAsync("""
             class Test
@@ -454,7 +454,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task ConvertSingleTupleTypeNoNames(TestHost host)
         => TestAsync("""
             class Test
@@ -517,7 +517,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task ConvertSingleTupleTypePartialNames(TestHost host)
         => TestAsync("""
             class Test
@@ -580,7 +580,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task ConvertFromType(TestHost host)
         => TestAsync("""
             class Test
@@ -645,7 +645,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task ConvertFromType2(TestHost host)
         => TestAsync("""
             class Test
@@ -712,7 +712,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task ConvertFromType3(TestHost host)
         => TestAsync("""
             class Test
@@ -779,7 +779,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task ConvertFromType4(TestHost host)
         => TestAsync("""
             class Test
@@ -844,7 +844,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task ConvertSingleTupleTypeInNamespace(TestHost host)
         => TestAsync("""
             namespace N
@@ -913,7 +913,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task TestNonLiteralNames_WithUsings(TestHost host)
         => TestAsync("""
             using System.Collections.Generic;
@@ -978,7 +978,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task TestNonLiteralNames_WithoutUsings(TestHost host)
         => TestAsync("""
             class Test
@@ -1041,7 +1041,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task ConvertSingleTupleTypeWithInferredName(TestHost host)
         => TestAsync("""
             class Test
@@ -1104,7 +1104,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task ConvertMultipleInstancesInSameMethod(TestHost host)
         => TestAsync("""
             class Test
@@ -1169,7 +1169,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task ConvertMultipleInstancesAcrossMethods(TestHost host)
         => TestAsync("""
             class Test
@@ -1246,7 +1246,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task OnlyConvertMatchingTypesInSameMethod(TestHost host)
         => TestAsync("""
             class Test
@@ -1315,7 +1315,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task TestFixAllMatchesInSingleMethod(TestHost host)
         => TestAsync("""
             class Test
@@ -1384,7 +1384,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task TestFixNotAcrossMethods(TestHost host)
         => TestAsync("""
             class Test
@@ -1461,7 +1461,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task TestTrivia_WithUsings(TestHost host)
         => TestAsync("""
             using System.Collections.Generic;
@@ -1526,7 +1526,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task TestTrivia_WithoutUsings(TestHost host)
         => TestAsync("""
             class Test
@@ -1589,7 +1589,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public async Task NotIfReferencesAnonymousTypeInternally(TestHost host)
     {
         var text = """
@@ -1605,7 +1605,7 @@ public sealed class ConvertTupleToStructTests
         await TestAsync(text, text, testHost: host);
     }
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task ConvertMultipleNestedInstancesInSameMethod1_WithUsings(TestHost host)
         => TestAsync("""
             class Test
@@ -1670,7 +1670,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task ConvertMultipleNestedInstancesInSameMethod1_WithoutUsings(TestHost host)
         => TestAsync("""
             class Test
@@ -1735,7 +1735,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task ConvertMultipleNestedInstancesInSameMethod2_WithUsings(TestHost host)
         => TestAsync("""
             class Test
@@ -1800,7 +1800,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task ConvertMultipleNestedInstancesInSameMethod2_WithoutUsings(TestHost host)
         => TestAsync("""
             class Test
@@ -1865,7 +1865,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task RenameAnnotationOnStartingPoint(TestHost host)
         => TestAsync("""
             class Test
@@ -1930,7 +1930,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task CapturedMethodTypeParameters_WithUsings(TestHost host)
         => TestAsync("""
             using System.Collections.Generic;
@@ -2000,7 +2000,7 @@ public sealed class ConvertTupleToStructTests
                 FeaturesResources.updating_usages_in_containing_member
             ]);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task CapturedMethodTypeParameters_WithoutUsings(TestHost host)
         => TestAsync("""
             class Test<X> where X : struct
@@ -2070,7 +2070,7 @@ public sealed class ConvertTupleToStructTests
                 FeaturesResources.updating_usages_in_containing_member
             ]);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task NewTypeNameCollision(TestHost host)
         => TestAsync("""
             class Test
@@ -2141,7 +2141,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task TestDuplicatedName(TestHost host)
         => new VerifyCS.Test
         {
@@ -2277,7 +2277,7 @@ public sealed class ConvertTupleToStructTests
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task TestInLambda1(TestHost host)
         => TestAsync("""
             using System;
@@ -2352,7 +2352,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task TestInLambda2(TestHost host)
         => TestAsync("""
             using System;
@@ -2427,7 +2427,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task TestInLocalFunction1(TestHost host)
         => TestAsync("""
             using System;
@@ -2502,7 +2502,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task TestInLocalFunction2(TestHost host)
         => TestAsync("""
             using System;
@@ -2577,7 +2577,7 @@ public sealed class ConvertTupleToStructTests
             }
             """, options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task ConvertWithDefaultNames1(TestHost host)
         => TestAsync("""
             class Test
@@ -2652,7 +2652,7 @@ public sealed class ConvertTupleToStructTests
                 FeaturesResources.updating_usages_in_containing_type,
             ]);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task ConvertWithDefaultNames2(TestHost host)
         => TestAsync("""
             class Test
@@ -2731,7 +2731,7 @@ public sealed class ConvertTupleToStructTests
 
     #region update containing type tests
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task TestCapturedTypeParameter_UpdateType_WithUsings(TestHost host)
         => TestAsync(
             """
@@ -2827,7 +2827,7 @@ public sealed class ConvertTupleToStructTests
                 FeaturesResources.updating_usages_in_containing_type
             ]);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task TestCapturedTypeParameter_UpdateType_WithoutUsings(TestHost host)
         => TestAsync(
             """
@@ -2920,7 +2920,7 @@ public sealed class ConvertTupleToStructTests
                 FeaturesResources.updating_usages_in_containing_type
             ]);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task UpdateAllInType_SinglePart_SingleFile(TestHost host)
         => TestAsync(
             """
@@ -3015,7 +3015,7 @@ public sealed class ConvertTupleToStructTests
             """, index: 1, equivalenceKey: Scope.ContainingType.ToString(),
             options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public Task UpdateAllInType_MultiplePart_SingleFile(TestHost host)
         => TestAsync(
             """
@@ -3118,7 +3118,7 @@ public sealed class ConvertTupleToStructTests
             """, index: 1, equivalenceKey: Scope.ContainingType.ToString(),
             options: PreferImplicitTypeWithInfo(), testHost: host);
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public async Task UpdateAllInType_MultiplePart_MultipleFile(TestHost host)
     {
         var text1 = """
@@ -3273,7 +3273,7 @@ public sealed class ConvertTupleToStructTests
 
     #region update containing project tests
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public async Task UpdateAllInProject_MultiplePart_MultipleFile_WithNamespace(TestHost host)
     {
         var text1 = """
@@ -3426,7 +3426,7 @@ public sealed class ConvertTupleToStructTests
 
     #region update dependent projects
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public async Task UpdateDependentProjects_DirectDependency(TestHost host)
     {
         var text1 = """
@@ -3567,7 +3567,7 @@ public sealed class ConvertTupleToStructTests
         }.RunAsync();
     }
 
-    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(DesktopOnly)), CombinatorialData]
     public async Task UpdateDependentProjects_NoDependency(TestHost host)
     {
         var text1 = """

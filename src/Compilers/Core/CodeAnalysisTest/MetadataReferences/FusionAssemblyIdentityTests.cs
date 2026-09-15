@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.MetadataReferences
             Assert.Equal(name.ContentType, rtName.ContentType);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void FusionAssemblyNameRoundTrip()
         {
             RoundTrip(new AssemblyName("goo"));
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.MetadataReferences
             RoundTrip(new AssemblyIdentity("goo", contentType: AssemblyContentType.WindowsRuntime).ToAssemblyName());
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void FusionGetBestMatch()
         {
             var goo = FusionAssemblyIdentity.ToAssemblyNameObject("goo");
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.MetadataReferences
             Assert.Equal(goo3, m);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void FusionToAssemblyName()
         {
             var nameObject = FusionAssemblyIdentity.ToAssemblyNameObject("mscorlib");

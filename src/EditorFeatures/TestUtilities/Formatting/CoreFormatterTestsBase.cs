@@ -32,7 +32,6 @@ using Moq;
 using Roslyn.Test.EditorUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting;
 

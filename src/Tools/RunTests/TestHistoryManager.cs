@@ -21,15 +21,9 @@ internal class TestHistoryManager
 
     /// <summary>
     /// Looks up the last passing test run for the current build to estimate execution times for each
-    /// tests. The dictionary is indexed by test full name and contains the body duration and theory instance count.
-    /// The theory instance count is sourced from the AzDO <c>subResultsCount</c> field which represents individual
-    /// theory invocations reported under a grouped test result.
-    ///
-    /// Note: the duration returned is the sum of body execution times (DurationInMs) as reported by xUnit.
-    /// In xUnit v2, DurationInMs does NOT include IAsyncLifetime.InitializeAsync or DisposeAsync time.
-    /// The caller is responsible for adjusting the duration based on the HasAsyncLifetime flag from test discovery.
+    /// tests. The dictionary is indexed by test full name.
     /// </summary>
-    public static async Task<Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)>?> GetTestHistoryAsync(Options options, string testRunNamePrefix, CancellationToken cancellationToken)
+    public static async Task<Dictionary<string, TimeSpan>?> GetTestHistoryAsync(Options options, string testRunNamePrefix, CancellationToken cancellationToken)
     {
         // Access token that has permissions to lookup test history.  This typically comes from the pipeline.
         var accessToken = options.AccessToken ?? GetEnvironmentVariable("SYSTEM_ACCESSTOKEN");
@@ -86,7 +80,7 @@ internal class TestHistoryManager
 
         var totalTests = testRun.TotalTests;
 
-        Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testInfos = new();
+        Dictionary<string, TimeSpan> testInfos = new();
         var duplicateCount = 0;
 
         // Get runtimes for all tests.
@@ -106,7 +100,7 @@ internal class TestHistoryManager
 
                 var testName = CleanTestName(testResult.AutomatedTestName);
 
-                if (testInfos.TryGetValue(testName, out var existing))
+                if (!testInfos.TryAdd(testName, TimeSpan.FromMilliseconds(testResult.DurationInMs)))
                 {
                     // We can get duplicate tests if a test file is included in multiple assemblies (e.g. analyzer codestyle tests).
                     // This is fine, we'll just use capture one of the run times since it is the same test being run in both cases and unlikely to have different run times.
@@ -114,14 +108,7 @@ internal class TestHistoryManager
                     // Another case that can happen is if a test is incorrectly authored to have the same name and namespace as a test in another assembly.  For example
                     // a test that applies to both VB and C#, but the tests in both the C# and VB assembly accidentally use the C# namespace.
                     // It may have a different run time, but ADO does not let us differentiate by assembly name, so we just have to pick one.
-                    //
-                    // Keep tracking the count of theory instances so we can apply async lifetime adjustment.
-                    testInfos[testName] = (existing.Duration, existing.TestTheoryInstances + testResult.SubResultsCount);
                     duplicateCount++;
-                }
-                else
-                {
-                    testInfos[testName] = (TimeSpan.FromMilliseconds(testResult.DurationInMs), testResult.SubResultsCount);
                 }
             }
         }
@@ -139,7 +126,7 @@ internal class TestHistoryManager
             return null;
         }
 
-        var totalTestRuntime = TimeSpan.FromMilliseconds(testInfos.Values.Sum(t => t.Duration.TotalMilliseconds));
+        var totalTestRuntime = TimeSpan.FromMilliseconds(testInfos.Values.Sum(t => t.TotalMilliseconds));
         ConsoleUtil.WriteLine($"Retrieved {testInfos.Keys.Count} tests from AzureDevops in {timer.Elapsed}.  Total runtime of all tests is {totalTestRuntime}");
         return testInfos;
     }

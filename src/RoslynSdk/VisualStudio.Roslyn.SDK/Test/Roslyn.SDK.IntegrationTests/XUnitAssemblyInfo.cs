@@ -4,6 +4,9 @@
 
 using Xunit;
 using Xunit.Harness;
+using Xunit.Sdk;
+using Xunit.v3;
 
-[assembly: CollectionBehavior(CollectionBehavior.CollectionPerAssembly, DisableTestParallelization = true)]
+[assembly: CollectionBehavior(CollectionBehavior.CollectionPerAssembly)]
+[assembly: Parallelization(Mode = ParallelMode.None)]
 [assembly: RequireExtension("Roslyn.SDK.vsix")]

@@ -2924,7 +2924,7 @@ class C
             }
         }
 
-        [ConditionalTheory(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/44657
+        [ConditionalTheory(skipConditions: typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/44657
         [WorkItem(44657, "https://github.com/dotnet/roslyn/issues/44657")]
         [InlineData("sbyte", true)]
         [InlineData("short", true)]
@@ -4057,7 +4057,7 @@ struct S
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/44658
+        [ConditionalFact(skipConditions: typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/44658
         [WorkItem(44658, "https://github.com/dotnet/roslyn/issues/44658")]
         public void New9PatternsSemanticModel_01()
         {
@@ -4286,7 +4286,7 @@ class Program
             }
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/44658
+        [ConditionalFact(skipConditions: typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/44658
         [WorkItem(44658, "https://github.com/dotnet/roslyn/issues/44658")]
         public void New9PatternsSemanticModel_02()
         {

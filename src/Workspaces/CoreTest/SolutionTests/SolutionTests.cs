@@ -3478,7 +3478,7 @@ public sealed class SolutionTests : TestBase
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    [ConditionalFact(typeof(WindowsOnly)), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542736")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly)), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542736")]
     public void TestDocumentChangedOnDiskIsNotObserved()
     {
         var text1 = "public class A {}";
@@ -3554,7 +3554,7 @@ public sealed class SolutionTests : TestBase
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83118")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83118")]
     public void TestGetRecoveredTextAsync()
     {
         var pid = ProjectId.CreateNewId();

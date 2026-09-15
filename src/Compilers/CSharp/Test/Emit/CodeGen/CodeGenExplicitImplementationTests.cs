@@ -382,7 +382,7 @@ class Test
             CompileAndVerify(comp, expectedOutput: @"WriteReadOnly NormProp 123456");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void TestExplicitImplSignatureMismatches_ParamsAndOptionals()
         {
             // Tests:
@@ -690,7 +690,7 @@ Derived1.Method`2",
                 Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "Y").WithArguments("Y", "Outer<T>.Inner<U>.Derived1<X, Y>"));
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
         public void TestExplicitImplementationInBaseGenericType()
         {
             // Tests:
@@ -758,7 +758,7 @@ Derived`2.Method()");
             comp.VerifyDiagnostics(); // No errors
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
         public void TestExplicitImplementationInBaseGenericType2()
         {
             // Tests:

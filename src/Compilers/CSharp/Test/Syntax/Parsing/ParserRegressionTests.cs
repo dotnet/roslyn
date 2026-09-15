@@ -12,7 +12,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 {
@@ -161,7 +160,7 @@ class Program
         }
 
         [WorkItem(2771, "https://github.com/dotnet/roslyn/issues/2771")]
-        [ConditionalFact(typeof(IsRelease))]
+        [ConditionalFact(skipConditions: typeof(IsRelease))]
         public void TestBinary()
         {
             CSharpSyntaxTree.ParseText(new RandomizedSourceText());

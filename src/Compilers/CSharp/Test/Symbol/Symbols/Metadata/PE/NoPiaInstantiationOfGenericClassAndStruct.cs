@@ -490,7 +490,7 @@ public class DrivedClass
             Assert.Equal(SymbolKind.ErrorType, ((ArrayTypeSymbol)localField.Type).ElementType.Kind);
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void NoPIAGenericsAssemblyRefsWithClassThatInheritsGenericOfNoPiaType()
         {
             //Test class that inherits Generic(Of NoPIAType)
@@ -506,7 +506,7 @@ public class DrivedClass
             Assert.True(localField.Type is ArrayTypeSymbol);
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void NoPIAGenericsAssemblyRefs3()
         {
             //Test a static method that returns Generic(Of NoPIAType)

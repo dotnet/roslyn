@@ -10,7 +10,6 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 

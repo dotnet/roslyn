@@ -3,6 +3,12 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)../'))" />
   <Import Project="$(MSBuildThisFileDirectory)eng\targets\RewriteRazorVsixManifest.targets" />
 
+  <ItemGroup Condition="'$(IsTestProject)' == 'true' OR '$(IsUnitTestProject)' == 'true' OR '$(IsIntegrationTestProject)' == 'true'">
+    <PackageReference Update="xunit.v3">
+      <Aliases>XunitV3</Aliases>
+    </PackageReference>
+  </ItemGroup>
+
   <PropertyGroup>
     <PackageVersion Condition=" '$(PackageVersion)' == '' ">$(Version)</PackageVersion>
   </PropertyGroup>
@@ -154,5 +160,20 @@
           Condition="'@(_RazorRepositoryFilesToOutput)' != ''">
       <Output TaskParameter="CopiedFiles" ItemName="FileWrites" />
     </Copy>
+  </Target>
+
+  <Target Name="_CheckTestProjectTargetFileName" BeforeTargets="Build" Condition="'$(TargetFramework)' != ''">
+    <PropertyGroup>
+      <_ExpectedUnitTestSuffix Condition="'$(IsUnitTestProject)' == 'true' and '$(TargetFrameworkIdentifier)' == '.NETFramework' and '$(OutputType)' == 'Exe'">.UnitTests.exe</_ExpectedUnitTestSuffix>
+      <_ExpectedUnitTestSuffix Condition="'$(IsUnitTestProject)' == 'true' and '$(_ExpectedUnitTestSuffix)' == ''">.UnitTests.dll</_ExpectedUnitTestSuffix>
+      <_ExpectedIntegrationTestSuffix Condition="'$(IsIntegrationTestProject)' == 'true' and '$(TargetFrameworkIdentifier)' == '.NETFramework' and '$(OutputType)' == 'Exe'">.IntegrationTests.exe</_ExpectedIntegrationTestSuffix>
+      <_ExpectedIntegrationTestSuffix Condition="'$(IsIntegrationTestProject)' == 'true' and '$(_ExpectedIntegrationTestSuffix)' == ''">.IntegrationTests.dll</_ExpectedIntegrationTestSuffix>
+    </PropertyGroup>
+
+    <Error Text="Unit test project TargetFileName must end with '$(_ExpectedUnitTestSuffix)': '$(TargetFileName)'"
+           Condition="'$(IsUnitTestProject)' == 'true' and !$(TargetFileName.EndsWith('$(_ExpectedUnitTestSuffix)'))" />
+
+    <Error Text="Integration test project TargetFileName must end with '$(_ExpectedIntegrationTestSuffix)': '$(TargetFileName)'"
+           Condition="'$(IsIntegrationTestProject)' == 'true' and !$(TargetFileName.EndsWith('$(_ExpectedIntegrationTestSuffix)'))" />
   </Target>
 </Project>

@@ -301,7 +301,7 @@ No for 1.2";
             }
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28026")]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28026")]
         public void PatternInFieldInitializer()
         {
             var source =
@@ -781,7 +781,7 @@ True");
             VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl, x1Ref);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28026")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28026")]
         public void Query_01()
         {
             var source =
@@ -7483,7 +7483,7 @@ class C
         }
 
         // Similar to above but switching on a local value rather than a parameter.
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void SwitchReadOnlySpanChar_Local()
         {
             var source =
@@ -8234,7 +8234,7 @@ class C
 """);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void SwitchReadOnlySpanCharOnConstantStringAndOtherPatterns()
         {
             var source =
@@ -8675,7 +8675,7 @@ False");
 }");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void PatternMatchReadOnlySpanCharOnNull_01()
         {
             var source =
@@ -8749,7 +8749,7 @@ class C
                 Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "NullString").WithArguments("System.ReadOnlySpan<char>").WithLocation(5, 57));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void SwitchReadOnlySpanCharOnNull_01()
         {
             var source =
@@ -9828,7 +9828,7 @@ class C
 }");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void SwitchSpanCharOnConstantStringAndOtherPatterns()
         {
             var source =
@@ -10293,7 +10293,7 @@ class C
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(6, 50));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void PatternMatchSpanCharOnNull_02()
         {
             var source =
@@ -10364,7 +10364,7 @@ class C
             );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void SwitchSpanCharOnNull_02()
         {
             var source =
@@ -11136,7 +11136,7 @@ class Program
 }");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void SwitchSpanCharConstantStringAndListPatterns()
         {
             var source =

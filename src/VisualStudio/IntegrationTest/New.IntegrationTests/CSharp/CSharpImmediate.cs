@@ -21,7 +21,7 @@ public class CSharpImmediate : AbstractEditorTest
     {
     }
 
-    public override async Task InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync();
 

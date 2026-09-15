@@ -17,7 +17,6 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -33,7 +32,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
         typeof(LanguageSpecificHandler),
         typeof(TestLspMiscellaneousFilesWorkspaceProviderFactory));
 
-    [ConditionalTheory(typeof(WindowsOnly), Reason = "Uses Windows paths and Unicode encoding differs across platforms")]
+    [ConditionalTheory(skipConditions: typeof(WindowsOnly), Reason = "Uses Windows paths and Unicode encoding differs across platforms")]
     [CombinatorialData]
     [WorkItem("https://github.com/dotnet/runtime/issues/89538")]
     public async Task TestMiscDocument_WithFileScheme(bool mutatingLspWorkspace)

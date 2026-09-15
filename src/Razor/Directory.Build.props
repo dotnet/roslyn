@@ -9,7 +9,27 @@
     <IsIntegrationTestProject>false</IsIntegrationTestProject>
     <IsIntegrationTestProject Condition="$(MSBuildProjectName.EndsWith('.IntegrationTests'))">true</IsIntegrationTestProject>
     <AddPublicApiAnalyzers Condition="'$(IsTestProject)' == 'true' OR '$(IsUnitTestProject)' == 'true' OR '$(IsIntegrationTestProject)' == 'true'">false</AddPublicApiAnalyzers>
+    <OutputType Condition="('$(IsUnitTestProject)' == 'true' OR '$(IsIntegrationTestProject)' == 'true') AND '$(TargetFrameworkIdentifier)' == '.NETFramework'">Exe</OutputType>
   </PropertyGroup>
+
+  <ItemGroup Condition="'$(IsUnitTestProject)' == 'true' OR '$(IsIntegrationTestProject)' == 'true'">
+    <Compile Include="$(MSBuildThisFileDirectory)src\Shared\Microsoft.AspNetCore.Razor.Test.Common\XunitGlobalUsings.cs" Link="XunitGlobalUsings.cs" />
+    <PackageReference Include="xunit.v3.assert">
+      <Aliases>XunitV3</Aliases>
+    </PackageReference>
+    <PackageReference Include="xunit.v3.common">
+      <Aliases>XunitV3</Aliases>
+    </PackageReference>
+    <PackageReference Include="xunit.v3.extensibility.core">
+      <Aliases>XunitV3</Aliases>
+    </PackageReference>
+    <PackageReference Include="Xunit.Combinatorial">
+      <Aliases>XunitV3</Aliases>
+    </PackageReference>
+    <PackageReference Include="Xunit.StaFact">
+      <Aliases>XunitV3</Aliases>
+    </PackageReference>
+  </ItemGroup>
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 
   <Import

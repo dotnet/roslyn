@@ -32,7 +32,7 @@ class C
     }
 }";
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void TrivialSourceFileOnlyCsc()
         {
             var hello = Temp.CreateFile().WriteAllText(helloWorldCS).Path;
@@ -60,7 +60,7 @@ class C
             CleanupAllGeneratedFiles(hello);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void AppConfigCsc()
         {
             var hello = Temp.CreateFile().WriteAllText(helloWorldCS).Path;
@@ -106,7 +106,7 @@ class C
             CleanupAllGeneratedFiles(hello);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void StrongNameKeyCsc()
         {
             var hello = Temp.CreateFile().WriteAllText(helloWorldCS).Path;
@@ -141,7 +141,7 @@ class C
             CleanupAllGeneratedFiles(hello);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void XmlDocumentFileCsc()
         {
             var sourcePath = Temp.CreateFile().WriteAllText(@"

@@ -2527,7 +2527,7 @@ public readonly struct S1
 ");
         }
 
-        [ConditionalTheory(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10834"), CombinatorialData]
+        [ConditionalTheory(skipConditions: typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10834"), CombinatorialData]
         public void InParamGenericReadonly([CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var text = @"
@@ -2591,7 +2591,7 @@ public readonly struct S1
 }");
         }
 
-        [ConditionalTheory(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10834"), CombinatorialData]
+        [ConditionalTheory(skipConditions: typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10834"), CombinatorialData]
         public void InParamGenericReadonlyROstruct([CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var text = @"

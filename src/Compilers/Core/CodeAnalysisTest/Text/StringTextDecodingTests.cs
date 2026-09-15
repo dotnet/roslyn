@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void ShiftJisGetEncoding()
         {
             var sjis = Encoding.GetEncoding(932);
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(sjis.GetString(TestResources.General.ShiftJisSource), data.ToString());
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void ShiftJisFile()
         {
             var sjis = Encoding.GetEncoding(932);
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("f1945cd6 c19e56b3 c1c78943 ef5ec181 16907a4c a1efc40a 57d48ab1 db7adfc5", StringTextTest.ChecksumToHexQuads(checksum));
         }
 
-        [ConditionalFact(typeof(HasEnglishDefaultEncoding))]
+        [ConditionalFact(skipConditions: typeof(HasEnglishDefaultEncoding))]
         [WorkItem(5663, "https://github.com/dotnet/roslyn/issues/5663")]
         public void Decode_NonUtf8()
         {
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [ConditionalFact(typeof(HasEnglishDefaultEncoding))]
+        [ConditionalFact(skipConditions: typeof(HasEnglishDefaultEncoding))]
         [WorkItem(2081, "https://github.com/dotnet/roslyn/issues/2081")]
         [WorkItem(5663, "https://github.com/dotnet/roslyn/issues/5663")]
         public void HorizontalEllipsis()
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [ConditionalFact(typeof(HasEnglishDefaultEncoding))]
+        [ConditionalFact(skipConditions: typeof(HasEnglishDefaultEncoding))]
         public void NonUtf8_MiddleDot()
         {
             // Bytes 0xA0 and 0xB7 are invalid UTF-8 but valid in CodePage 1252 (and Latin-1).

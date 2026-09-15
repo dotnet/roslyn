@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             }
         }
 
-        [ConditionalTheory(typeof(WindowsOnly))]
+        [ConditionalTheory(skipConditions: typeof(WindowsOnly))]
         [InlineData(@"c:\src\code.vb", @"c:\src", null)]
         [InlineData(@"d:\src\code.vb", @"d:\src\", @"/pathmap:d:\=c:\")]
         [InlineData(@"e:\long\path\src\code.vb", @"e:\long\path\src\", @"/pathmap:e:\long\path\=c:\")]

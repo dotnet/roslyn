@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions.IntegrationTests;
 
@@ -36,7 +35,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
     #region Runtime
 
-    [ConditionalFact(typeof(IsEnglishLocal))]
+    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
     public void UsingDirectives()
     {
         // Arrange
@@ -183,7 +182,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         AssertLinePragmas(compiled.CodeDocument);
     }
 
-    [ConditionalFact(typeof(IsEnglishLocal))]
+    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
     public void AttributeDirectiveWithViewImports()
     {
         // Arrange

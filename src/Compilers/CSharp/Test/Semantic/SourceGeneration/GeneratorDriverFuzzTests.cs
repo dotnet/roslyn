@@ -21,7 +21,6 @@ using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 #pragma warning disable RS0062 // Do not implicitly capture primary constructor parameters
 

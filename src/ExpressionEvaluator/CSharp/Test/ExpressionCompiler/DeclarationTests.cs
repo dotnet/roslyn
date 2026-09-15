@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class DeclarationTests : ExpressionCompilerTestBase
     {
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(skipConditions: typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void Declarations()
         {
             var source =
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(skipConditions: typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void DeconstructionDeclaration()
         {
             var source = @"
@@ -158,7 +158,7 @@ class C
                });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(skipConditions: typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void DeconstructionDeclarationWithDiscard()
         {
             var source = @"
@@ -224,7 +224,7 @@ class C
                });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(skipConditions: typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void ExpressionLocals_ExpressionStatement_01()
         {
             var source =
@@ -347,7 +347,7 @@ class C
             });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(skipConditions: typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void ExpressionLocals_Assignment_01()
         {
             var source =
@@ -404,7 +404,7 @@ class C
             });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(skipConditions: typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void ExpressionLocals_LocalDeclarationStatement_01()
         {
             var source =
@@ -472,7 +472,7 @@ class C
             });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(skipConditions: typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void References()
         {
             var source =
@@ -547,7 +547,7 @@ class C
             });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(skipConditions: typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void Address()
         {
             var source =
@@ -652,7 +652,7 @@ class C
             });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(skipConditions: typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void BaseType()
         {
             var source =
@@ -700,7 +700,7 @@ class C
             });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(skipConditions: typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void Var()
         {
             var source =
@@ -742,7 +742,7 @@ class C
             });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(skipConditions: typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
         public void Dynamic()
         {
@@ -894,7 +894,7 @@ class C
             });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(skipConditions: typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void ReferenceInNextDeclaration()
         {
             var source =
@@ -955,7 +955,7 @@ class C
             });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(skipConditions: typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094107")]
         public void ReferenceInSameDeclaration()
         {
@@ -1166,7 +1166,7 @@ class C
             });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(skipConditions: typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void Keyword()
         {
             var source =
@@ -1220,7 +1220,7 @@ class C
             });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(skipConditions: typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void Constant()
         {
             var source =
@@ -1266,7 +1266,7 @@ class C
             });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(skipConditions: typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void Generic()
         {
             var source =
@@ -1367,7 +1367,7 @@ class C
         /// Local declarations inside a lambda should
         /// not be considered pseudo-variables.
         /// </summary>
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(skipConditions: typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void Lambda()
         {
             var source =
@@ -1443,7 +1443,7 @@ class C
             });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(skipConditions: typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
         public void GenericType_Identifier()
         {
@@ -1489,7 +1489,7 @@ class Generic<T>
             });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(skipConditions: typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
         public void GenericType_Keyword()
         {
@@ -1535,7 +1535,7 @@ class Generic<T>
             });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(skipConditions: typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
         public void PointerType_Identifier()
         {
@@ -1582,7 +1582,7 @@ struct S
             });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(skipConditions: typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
         public void PointerType_Keyword()
         {
@@ -1625,7 +1625,7 @@ class C
             });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(skipConditions: typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
         public void NullableType_Identifier()
         {
@@ -1674,7 +1674,7 @@ struct S
             });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(skipConditions: typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
         public void NullableType_Keyword()
         {
@@ -2205,7 +2205,7 @@ class C
             });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(skipConditions: typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void FieldKeyword_01()
         {
             var source =

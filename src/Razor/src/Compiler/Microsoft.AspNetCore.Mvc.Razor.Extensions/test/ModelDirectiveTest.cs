@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions;
 
@@ -193,7 +192,7 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         Assert.Empty(document.Diagnostics);
     }
 
-    [ConditionalFact(typeof(IsEnglishLocal)), WorkItem("https://github.com/dotnet/razor/issues/10987")]
+    [ConditionalFact(skipConditions: typeof(IsEnglishLocal)), WorkItem("https://github.com/dotnet/razor/issues/10987")]
     public void ModelDirectivePass_Execute_ReportsExpectedDiagnosticAtWarningLevel11()
     {
         // Arrange

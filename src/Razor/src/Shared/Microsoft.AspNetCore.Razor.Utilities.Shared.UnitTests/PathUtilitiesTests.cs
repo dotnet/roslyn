@@ -3,7 +3,6 @@
 
 using System;
 using System.IO;
-using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Utilities.Shared.Test;
 
@@ -272,7 +271,7 @@ public class PathUtilitiesTests
     {
         if (!actual.SequenceEqual(expected))
         {
-            throw Xunit.Sdk.EqualException.ForMismatchedValues(expected.ToString(), actual.ToString());
+            throw EqualException.ForMismatchedValues(expected.ToString(), actual.ToString());
         }
     }
 }

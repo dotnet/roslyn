@@ -159,6 +159,7 @@ dotnet_diagnostic.RS1039.severity = none
 dotnet_diagnostic.xUnit1012.severity = none
 dotnet_diagnostic.xUnit1030.severity = none
 dotnet_diagnostic.xUnit1031.severity = none
+dotnet_diagnostic.xUnit1051.severity = none
 dotnet_diagnostic.xUnit2005.severity = none
 dotnet_diagnostic.xUnit2020.severity = none
 dotnet_diagnostic.xUnit2023.severity = none

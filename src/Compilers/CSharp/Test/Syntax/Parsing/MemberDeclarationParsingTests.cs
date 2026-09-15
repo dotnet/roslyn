@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -59,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(ParseDeclaration("+-!@#$%^&*()"));
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         [WorkItem(367, "https://github.com/dotnet/roslyn/issues/367")]
         public void ParseOverflow()
         {
@@ -84,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         [WorkItem(367, "https://github.com/dotnet/roslyn/issues/367")]
         public void ParseOverflow2()
         {

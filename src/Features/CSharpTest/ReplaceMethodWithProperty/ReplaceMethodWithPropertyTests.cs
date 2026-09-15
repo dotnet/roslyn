@@ -2783,7 +2783,7 @@ index: 1);
             }
             """);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/72035")]
     public Task TestUpdateGetReferenceGeneratedPart()
         => TestInRegularAndScriptAsync(

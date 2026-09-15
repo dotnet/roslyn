@@ -3,7 +3,6 @@
 
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
-using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 

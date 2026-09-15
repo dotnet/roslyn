@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 
 {ScriptingResources.HelpPrompt}";
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void Await()
         {
             var runner = CreateRunner(input:
@@ -95,7 +95,7 @@ $@"{logoOutput}
 >", runner.Console.Out.ToString());
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30924")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30924")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/33564")]
         [WorkItem("http://github.com/dotnet/roslyn/issues/7133")]
         public void TestDisplayResultsWithCurrentUICulture2()
@@ -132,7 +132,7 @@ $@"{logoOutput}
 >", runner.Console.Out.ToString());
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void Void()
         {
             var runner = CreateRunner(input:
@@ -163,7 +163,7 @@ $@"{LogoAndHelpPrompt}
 > ", runner.Console.Out.ToString());
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void Exception()
         {
             var runner = CreateRunner(input:
@@ -192,7 +192,7 @@ $@"{exception.GetType()}: {exception.Message}
 ", runner.Console.Error.ToString());
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void ExceptionInGeneric()
         {
             var runner = CreateRunner(input:
@@ -251,7 +251,7 @@ $@"{LogoAndHelpPrompt}
             AssertEx.AssertEqualToleratingWhitespaceDifferences(error, runner.Console.Error.ToString());
         }
 
-        [ConditionalFact(typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
         public void Args_InteractiveWithScript1()
         {
             var script = Temp.CreateFile(extension: ".csx").WriteAllText("foreach (var arg in Args) Print(arg);");
@@ -284,7 +284,7 @@ $@"""@arg1""
 > ", runner.Console.Out.ToString());
         }
 
-        [ConditionalFact(typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
         public void Args_Script1()
         {
             var script = Temp.CreateFile(extension: ".csx").WriteAllText("foreach (var arg in Args) Print(arg);");
@@ -301,7 +301,7 @@ $@"""@arg1""
 ", runner.Console.Out.ToString());
         }
 
-        [ConditionalFact(typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
         public void Args_Script2()
         {
             var script = Temp.CreateFile(extension: ".csx").WriteAllText("foreach (var arg in Args) Print(arg);");
@@ -318,7 +318,7 @@ $@"""@arg1""
 ", runner.Console.Out.ToString());
         }
 
-        [ConditionalFact(typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
         public void Args_Script3()
         {
             var script = Temp.CreateFile(extension: ".csx").WriteAllText("foreach (var arg in Args) Print(arg);");
@@ -350,7 +350,7 @@ $@"""@arg1""
 ", runner.Console.Out.ToString());
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void Args_Script4()
         {
             var script = Temp.CreateFile(prefix: "@", extension: ".csx").WriteAllText("foreach (var arg in Args) Print(arg);");
@@ -367,7 +367,7 @@ $@"""@arg1""
 ", runner.Console.Out.ToString());
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void Args_Script5()
         {
             var dir = Temp.CreateDirectory();
@@ -433,7 +433,7 @@ $@"{string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion)}
             AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersion, runner.Console.Out.ToString());
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void Script_BadUsings()
         {
             var script = Temp.CreateFile(extension: ".csx").WriteAllText("WriteLine(42);");
@@ -452,7 +452,7 @@ $@"{string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion)}
             AssertEx.AssertEqualToleratingWhitespaceDifferences(error, runner.Console.Error.ToString());
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/29908")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/29908")]
         public void Script_NoHostNamespaces()
         {
             var runner = CreateRunner(input: "nameof(Microsoft.Missing)");
@@ -471,7 +471,7 @@ $@"{LogoAndHelpPrompt}
                 runner.Console.Error.ToString());
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void RelativePath()
         {
             using (var directory = new DisposableDirectory(Temp))
@@ -489,7 +489,7 @@ $@"{LogoAndHelpPrompt}
             }
         }
 
-        [ConditionalTheory(typeof(WindowsOnly))]
+        [ConditionalTheory(skipConditions: typeof(WindowsOnly))]
         [InlineData(null, null)]
         [InlineData("c:", null)]
         [InlineData("c:\\", null)]
@@ -514,7 +514,7 @@ $@"{LogoAndHelpPrompt}
             Assert.Equal(expectedOutput, PathUtilities.GetDirectoryName(path, isUnixLike: false));
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void SourceSearchPaths1()
         {
             var main = Temp.CreateFile(extension: ".csx").WriteAllText(@"
@@ -582,7 +582,7 @@ C4 { }
 ", runner.Console.Out.ToString());
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void SourceSearchPaths_Change1()
         {
             var dir = Temp.CreateDirectory();
@@ -618,7 +618,7 @@ SearchPaths {{ }}
                 runner.Console.Error.ToString());
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void ReferenceSearchPaths_Change1()
         {
             var dir = Temp.CreateDirectory();
@@ -711,7 +711,7 @@ int X = 1;
 ", runner.Console.Out.ToString());
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void InitialScript_Error()
         {
             var reference = Temp.CreateFile(extension: ".dll").WriteAllBytes(TestResources.General.C1);
@@ -776,7 +776,7 @@ $@"{LogoAndHelpPrompt}
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void SharedLibCopy_Different()
         {
             string libBaseName = "LibBase_" + Guid.NewGuid();
@@ -845,7 +845,7 @@ $@"{LogoAndHelpPrompt}
 > ", runner.Console.Out.ToString());
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/6580")]
         public void PreservingDeclarationsOnException()
         {
@@ -875,7 +875,7 @@ System.Exception: Bang!",
                 runner.Console.Error.ToString());
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/21327")]
         public void DefaultLiteral()
         {
@@ -893,7 +893,7 @@ $@"{LogoAndHelpPrompt}
 > ", runner.Console.Out.ToString());
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/21327")]
         public void InferredTupleNames()
         {

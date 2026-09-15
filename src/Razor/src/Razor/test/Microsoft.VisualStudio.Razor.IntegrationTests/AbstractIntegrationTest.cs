@@ -3,11 +3,9 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.Extensibility.Testing;
-using Xunit;
-using Xunit.Sdk;
-using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
@@ -22,7 +20,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 /// <item><description><see cref="BeforeAfterTestAttribute.Before"/></description></item>
 /// <item><description>Test method</description></item>
 /// <item><description><see cref="BeforeAfterTestAttribute.After"/></description></item>
-/// <item><description><see cref="IAsyncLifetime.DisposeAsync"/></description></item>
+/// <item><description><see cref="IAsyncDisposable.DisposeAsync"/></description></item>
 /// <item><description><see cref="IDisposable.Dispose"/></description></item>
 /// </list>
 /// </remarks>
@@ -33,7 +31,7 @@ public abstract class AbstractIntegrationTest : AbstractIdeIntegrationTest
 
     protected virtual bool AllowDebugFails => false;
 
-    public override async Task InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
         // Not sure why the module initializer doesn't seem to work for integration tests
         ThrowingTraceListener.Initialize();

@@ -38,7 +38,7 @@ public sealed class ShadowCopyAnalyzerPathResolverTests : IDisposable
         TempRoot.Dispose();
     }
 
-    [ConditionalFact(typeof(WindowsOnly))]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly))]
     public void IsAnalyzerPathHandled()
     {
         var analyzerPath = TempRoot.CreateDirectory().CreateFile("analyzer.dll").Path;
@@ -48,13 +48,13 @@ public sealed class ShadowCopyAnalyzerPathResolverTests : IDisposable
     /// <summary>
     /// Don't create the shadow directory until a copy actually happens
     /// </summary>
-    [ConditionalFact(typeof(WindowsOnly))]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly))]
     public void ShadowDirectoryIsDelayCreated()
     {
         Assert.False(Directory.Exists(PathResolver.ShadowDirectory));
     }
 
-    [ConditionalFact(typeof(WindowsOnly))]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly))]
     public void DirectoriesAreDerivedFromVersionedBaseDirectory()
     {
         var versionDirectory = Path.Combine(ResolverDirectory, "v1");
@@ -63,7 +63,7 @@ public sealed class ShadowCopyAnalyzerPathResolverTests : IDisposable
         Assert.Equal(Path.Combine(versionDirectory, "cache"), PathResolver.CacheDirectory);
     }
 
-    [ConditionalFact(typeof(WindowsOnly))]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly))]
     public async Task CleanLegacyShadowDirectory_CurrentlyUsed()
     {
         // When the legacy directory is currently used (any session mutex is held),
@@ -81,7 +81,7 @@ public sealed class ShadowCopyAnalyzerPathResolverTests : IDisposable
         Assert.False(Directory.Exists(staleSessionDirectory.Path));
     }
 
-    [ConditionalFact(typeof(WindowsOnly))]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly))]
     public async Task CleanLegacyShadowDirectory_NotUsed()
     {
         // When the legacy directory is not being used, verify that cleaning will entirely delete it
@@ -96,7 +96,7 @@ public sealed class ShadowCopyAnalyzerPathResolverTests : IDisposable
     /// <summary>
     /// A shadow copy of a file that doesn't exist should produce a file that doesn't exist, not throw
     /// </summary>
-    [ConditionalFact(typeof(WindowsOnly))]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly))]
     public void GetRealPath_FileDoesNotExist()
     {
         var analyzerPath = Path.Combine(TempRoot.CreateDirectory().Path, "analyzer.dll");
@@ -104,7 +104,7 @@ public sealed class ShadowCopyAnalyzerPathResolverTests : IDisposable
         Assert.False(File.Exists(shadowPath));
     }
 
-    [ConditionalFact(typeof(WindowsOnly))]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly))]
     public void GetRealPath_Copies()
     {
         var analyzerPath = Path.Combine(TempRoot.CreateDirectory().Path, "analyzer.dll");
@@ -118,7 +118,7 @@ public sealed class ShadowCopyAnalyzerPathResolverTests : IDisposable
     /// When shadow copying two files in the same directory they should end up in the same shadow 
     /// directory
     /// </summary>
-    [ConditionalFact(typeof(WindowsOnly))]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly))]
     public void GetRealPath_FilesInSameDirectory()
     {
         var dir = TempRoot.CreateDirectory().Path;
@@ -131,7 +131,7 @@ public sealed class ShadowCopyAnalyzerPathResolverTests : IDisposable
         Assert.Equal(Path.GetDirectoryName(shadow1Path), Path.GetDirectoryName(shadow2Path));
     }
 
-    [ConditionalFact(typeof(WindowsOnly))]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly))]
     public void GetRealPath_GroupOnDirectory()
     {
         var dir = TempRoot.CreateDirectory().Path;

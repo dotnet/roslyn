@@ -4282,7 +4282,7 @@ class Program
             );
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/39971
+        [ConditionalFact(skipConditions: typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/39971
         [WorkItem(39971, "https://github.com/dotnet/roslyn/issues/39971")]
         public void BadIteratorReturnInRefReturningMethod()
         {

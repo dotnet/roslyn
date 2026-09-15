@@ -9707,7 +9707,7 @@ public static class Program
                 verify: Verification.Fails).VerifyDiagnostics(expectedDiagnostics);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void PassingArgumentsToInParameters_Arglist()
         {
             var source = """

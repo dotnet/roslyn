@@ -35,7 +35,7 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
         protected override int CodeActionIndex => 4;
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/39664")]
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_Empty_Error()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -102,7 +102,7 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
                 """, CodeActionIndex);
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/39664")]
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_BothRulesExist_Error()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -182,7 +182,7 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
                 """, CodeActionIndex);
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/39664")]
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_OneRuleExists_Error()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -256,7 +256,7 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
                 """, CodeActionIndex);
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/39664")]
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_AllPossibleEntriesExist_Error()
             => TestInRegularAndScriptAsync("""
                 <Workspace>

@@ -28,7 +28,6 @@ using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics;
@@ -1005,7 +1004,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         Assert.Equal(LSP.DiagnosticSeverity.Information, results.Single().Diagnostics!.Single().Severity);
     }
 
-    [ConditionalTheory(typeof(UnixLikeOnly)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(UnixLikeOnly)), CombinatorialData]
     public async Task TestDocumentDiagnosticsWhenClientRequestsWithDifferentCasing(bool useVSDiagnostics, bool mutatingLspWorkspace)
     {
         var markup = @"class A {";

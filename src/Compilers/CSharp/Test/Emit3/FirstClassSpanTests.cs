@@ -29,7 +29,7 @@ public class FirstClassSpanTests : CSharpTestBase
     }
 
     private sealed class CombinatorialLangVersions()
-        : CombinatorialValuesAttribute(((IEnumerable<object[]>)LangVersions()).Select(d => d.Single()).ToArray());
+        : CombinatorialValuesAttribute(LangVersions().Select(d => (object)d.Data).ToArray());
 
     [Fact, WorkItem("https://github.com/dotnet/runtime/issues/101261")]
     public void Example_StringValuesAmbiguity()
@@ -663,7 +663,7 @@ public class FirstClassSpanTests : CSharpTestBase
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
     }
 
-    [ConditionalFact(typeof(CoreClrOnly))]
+    [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
     public void BreakingChange_Conversion_ArrayVsArraySegment()
     {
         var source = """
@@ -8623,7 +8623,7 @@ public class FirstClassSpanTests : CSharpTestBase
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
     }
 
-    [ConditionalFact(typeof(CoreClrOnly))]
+    [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
     public void OverloadResolution_ReadOnlySpanVsReadOnlySpan_Params()
     {
         var source1 = """

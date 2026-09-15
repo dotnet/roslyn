@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class FileUtilitiesTests
     {
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void IsAbsolute()
         {
             Assert.False(PathUtilities.IsAbsolute(null));
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(PathUtilities.IsAbsolute(@"/C"));
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void GetPathRoot()
         {
             Assert.Null(PathUtilities.GetPathRoot(null));
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // Assert.Equal(@"\\?\C:\", PathUtilities.GetPathRoot(@"\\?\C:\abc\def"));
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void CombinePaths()
         {
             Assert.Equal(@"C:\x/y", PathUtilities.CombineAbsoluteAndRelativePaths(@"C:\x/y", @""));
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(@"C:\x/y\../goo", PathUtilities.CombineAbsoluteAndRelativePaths(@"C:\x/y", @"../goo"));
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void ResolveRelativePath()
         {
             string baseDir = @"X:\rootdir\dir";
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(expected, Path.ChangeExtension(path, extension));
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void Extension()
         {
             TestGetExtension(path: "a.dll", expected: ".dll");
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("*", PathUtilities.RemoveExtension("*.dll"));
         }
 
-        [ConditionalTheory(typeof(WindowsOnly))]
+        [ConditionalTheory(skipConditions: typeof(WindowsOnly))]
         [InlineData(@"x:\a\b\file.cs", "x:/a/b/file.cs")]
         [InlineData(@"x:/a/b/file.cs", "x:/a/b/file.cs")]
         [InlineData(@"x:\a\b\", "x:/a/b/")]

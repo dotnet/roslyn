@@ -240,7 +240,7 @@ object
 }");
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/11036")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/11036")]
         public void IndexerLvalue()
         {
             var verifier = CompileAndVerify(@"

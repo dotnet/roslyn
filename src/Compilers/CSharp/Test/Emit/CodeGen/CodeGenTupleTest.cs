@@ -3195,7 +3195,7 @@ class C
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void LongTupleDeclaration()
         {
             var source = @"
@@ -3261,7 +3261,7 @@ class C
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation), Reason = "ValidateIOperations timeout in CI")]
+        [ConditionalFact(skipConditions: typeof(NoIOperationValidation), Reason = "ValidateIOperations timeout in CI")]
         [WorkItem(39976, "https://github.com/dotnet/roslyn/issues/39976")]
         public void HugeTupleCreationParses()
         {
@@ -3288,7 +3288,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 13));
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation), Reason = "ValidateIOperations timeout in CI")]
+        [ConditionalFact(skipConditions: typeof(NoIOperationValidation), Reason = "ValidateIOperations timeout in CI")]
         public void HugeTupleDeclarationParses()
         {
             StringBuilder b = new StringBuilder();
@@ -10960,7 +10960,7 @@ CS0151ERR_IntegralTypeValueExpected}
             Assert.Throws<ArgumentNullException>(() => Compilation.GetRequiredLanguageVersion(null));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28045")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28045")]
         public void DefaultAndFriendlyElementNames_01()
         {
             var source = @"
@@ -11304,7 +11304,7 @@ class C
             Assert.False(m6Tuple.IsDefinition);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28045")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28045")]
         public void DefaultAndFriendlyElementNames_LongTuple()
         {
             var source = @"
@@ -11689,7 +11689,7 @@ class C
             }
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void DefaultAndFriendlyElementNames_02()
         {
             var source = @"
@@ -11819,7 +11819,7 @@ class C
             }
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void DefaultAndFriendlyElementNames_03()
         {
             var source = @"
@@ -12088,7 +12088,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void DefaultAndFriendlyElementNames_05()
         {
             var source = @"
@@ -12512,7 +12512,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void DefaultAndFriendlyElementNames_08()
         {
             var source = @"
@@ -12640,7 +12640,7 @@ class C
                 "System.Int32 System.ValueTuple<System.Int32>.System.ITupleInternal.Size { get; }");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
         public void DefaultAndFriendlyElementNames_09()
         {
             var source = @"
@@ -13541,7 +13541,7 @@ Yes");
             Assert.Equal(1, m9Test.Arity);
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void CreationOfTupleSymbols_01()
         {
             var source = @"
@@ -14104,7 +14104,7 @@ public class Test
             }
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void UnifyUnderlyingWithTuple_05()
         {
             var source = @"
@@ -22753,7 +22753,7 @@ public interface I<in T>
                 );
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         [WorkItem(13767, "https://github.com/dotnet/roslyn/issues/13767")]
         public void TupleInConstant()
         {
@@ -22789,7 +22789,7 @@ class C
             // no assertion in MetadataWriter
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         [WorkItem(13767, "https://github.com/dotnet/roslyn/issues/13767")]
         public void ConstantTypeFromReferencedAssembly()
         {
@@ -23260,7 +23260,7 @@ public class A
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct).WithArguments("ValueTuple`2").WithLocation(1, 1));
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         [WorkItem(13472, "https://github.com/dotnet/roslyn/issues/13472")]
         public void InvalidCastRef()
         {
@@ -23401,7 +23401,7 @@ public class B1
 
         [WorkItem(14708, "https://github.com/dotnet/roslyn/issues/14708")]
         [WorkItem(14709, "https://github.com/dotnet/roslyn/issues/14709")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void RefTupleDynamicDecode001()
         {
             string lib = @"
@@ -23860,7 +23860,7 @@ namespace ConsoleApplication5
 
         [WorkItem(14708, "https://github.com/dotnet/roslyn/issues/14708")]
         [WorkItem(14709, "https://github.com/dotnet/roslyn/issues/14709")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void RefTupleDynamicDecode004()
         {
             string lib = @"
@@ -25243,7 +25243,7 @@ static class C
                 );
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void Serialization()
         {
             var source = @"

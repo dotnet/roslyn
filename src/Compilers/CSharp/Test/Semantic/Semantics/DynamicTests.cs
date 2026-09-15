@@ -9958,7 +9958,7 @@ class C2
             CompileAndVerify(comp3).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))] // IOperation validation is suppressed due to https://github.com/dotnet/roslyn/issues/72931
+        [ConditionalFact(skipConditions: typeof(NoIOperationValidation))] // IOperation validation is suppressed due to https://github.com/dotnet/roslyn/issues/72931
         [WorkItem("https://github.com/dotnet/roslyn/issues/72750")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/72931")]
         public void SingleCandidate_RefReturning_Property_MemberInitializer_CollectionInitializer()

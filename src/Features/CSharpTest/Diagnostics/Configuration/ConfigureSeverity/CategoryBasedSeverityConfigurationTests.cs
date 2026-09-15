@@ -61,7 +61,7 @@ public abstract partial class CategoryBasedSeverityConfigurationTests : Abstract
         /// </summary>
         protected override int CodeActionIndex => 6;
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_Empty()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -142,7 +142,7 @@ public abstract partial class CategoryBasedSeverityConfigurationTests : Abstract
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_InvalidHeader()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -207,7 +207,7 @@ public abstract partial class CategoryBasedSeverityConfigurationTests : Abstract
                 </Workspace>
                 """);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_InvalidRule()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -236,7 +236,7 @@ public abstract partial class CategoryBasedSeverityConfigurationTests : Abstract
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_RegexHeaderMatch()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -269,7 +269,7 @@ public abstract partial class CategoryBasedSeverityConfigurationTests : Abstract
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_RegexHeaderNonMatch()
             => TestInRegularAndScriptAsync("""
                 <Workspace>

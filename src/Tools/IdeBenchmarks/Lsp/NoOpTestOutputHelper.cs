@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Xunit.Abstractions;
+using Xunit;
 
 namespace IdeBenchmarks.Lsp
 {
@@ -10,6 +10,9 @@ namespace IdeBenchmarks.Lsp
     {
         public static readonly ITestOutputHelper Instance = new NoOpTestOutputHelper();
         private NoOpTestOutputHelper() { }
+        public string Output => "";
+        public void Write(string message) { }
+        public void Write(string format, params object[] args) { }
         public void WriteLine(string message) { }
         public void WriteLine(string format, params object[] args) { }
     }
