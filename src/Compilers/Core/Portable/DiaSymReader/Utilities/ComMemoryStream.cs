@@ -7,9 +7,10 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
-using System.Runtime.InteropServices.ComTypes;
 using System.Runtime.InteropServices;
-using STATSTG = System.Runtime.InteropServices.ComTypes.STATSTG;
+#if NET
+using System.Runtime.InteropServices.Marshalling;
+#endif
 
 namespace Microsoft.DiaSymReader
 {
@@ -20,7 +21,10 @@ namespace Microsoft.DiaSymReader
     /// 2. Read and Write are optimized to avoid copying (see <see cref="IUnsafeComStream"/>)
     /// 3. Allocates in chunks instead of a contiguous buffer to avoid re-alloc and copy costs when growing.
     /// </summary>
-    internal sealed unsafe class ComMemoryStream : IUnsafeComStream
+#if NET
+    [GeneratedComClass]
+#endif
+    internal sealed unsafe partial class ComMemoryStream : IUnsafeComStream
     {
         // internal for testing
         internal const int STREAM_SEEK_SET = 0;
@@ -90,7 +94,7 @@ namespace Microsoft.DiaSymReader
                 else
                 {
                     // The caller seeked behind the end of the stream and didn't write there.
-                    // The allocated array is not big in practice. 
+                    // The allocated array is not big in practice.
                     chunk = new byte[remainingBytes];
                     bytesToCopy = remainingBytes;
                 }
@@ -100,6 +104,7 @@ namespace Microsoft.DiaSymReader
                 remainingBytes -= bytesToCopy;
             }
         }
+
         private static unsafe void ZeroMemory(byte* dest, int count)
         {
             var p = dest;
@@ -197,12 +202,10 @@ namespace Microsoft.DiaSymReader
             _length = (int)libNewSize;
         }
 
-        void IUnsafeComStream.Stat(out STATSTG pstatstg, int grfStatFlag)
+        void IUnsafeComStream.Stat(ref NativeSTATSTG pstatstg, int grfStatFlag)
         {
-            pstatstg = new STATSTG()
-            {
-                cbSize = _length
-            };
+            pstatstg = default;
+            pstatstg.cbSize = _length;
         }
 
         unsafe void IUnsafeComStream.Write(byte* pv, int cb, int* pcbWritten)
@@ -242,12 +245,12 @@ namespace Microsoft.DiaSymReader
         {
         }
 
-        void IUnsafeComStream.Clone(out IStream ppstm)
+        void IUnsafeComStream.Clone(out IntPtr ppstm)
         {
             throw new NotSupportedException();
         }
 
-        void IUnsafeComStream.CopyTo(IStream pstm, long cb, int* pcbRead, int* pcbWritten)
+        void IUnsafeComStream.CopyTo(IntPtr pstm, long cb, int* pcbRead, int* pcbWritten)
         {
             throw new NotSupportedException();
         }
@@ -268,4 +271,3 @@ namespace Microsoft.DiaSymReader
         }
     }
 }
-

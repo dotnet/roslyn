@@ -417,7 +417,9 @@ public class C
                 {
                     SymWriterFactory = metadataProvider =>
                     {
+#pragma warning disable CA1416 // Test is Windows-only
                         var writer = SymWriterTestUtilities.CreateUnmanagedWriter(metadataProvider);
+#pragma warning restore CA1416 // Test is Windows-only
                         return new CustomMetadataSymUnmanagedWriter(writer, new byte[length]);
                     },
                 });
