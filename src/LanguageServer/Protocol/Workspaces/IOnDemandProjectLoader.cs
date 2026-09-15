@@ -3,11 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-internal interface IOnDemandProjectLoader : ILspService
+internal interface IOnDemandProjectLoader : ILspService, IOnServerShutdown
 {
     Task StartLoadingAsync(DocumentUri uri);
 

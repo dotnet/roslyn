@@ -972,6 +972,12 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     {
         public int StartLoadingCount { get; private set; }
 
+        public Task ShutdownAsync()
+            => Task.CompletedTask;
+
+        public Task ExitAsync()
+            => Task.CompletedTask;
+
         public Task StartLoadingAsync(DocumentUri uri)
         {
             StartLoadingCount++;

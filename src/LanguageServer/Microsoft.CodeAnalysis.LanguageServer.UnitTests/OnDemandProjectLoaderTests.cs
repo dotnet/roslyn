@@ -122,6 +122,26 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
     }
 
     [Fact]
+    public async Task ServerShutdownWaitsForActiveLoad()
+    {
+        var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var loader = (OnDemandProjectLoader)server.GetRequiredLspService<IOnDemandProjectLoader>();
+        var loadSource = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var shutdownStartedSource = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var registration = loader.GetTestAccessor().ShutdownToken.Register(
+            static state => ((TaskCompletionSource)state!).SetResult(),
+            shutdownStartedSource);
+        loader.GetTestAccessor().TrackLoad(loadSource.Task);
+
+        var disposeTask = server.DisposeAsync().AsTask();
+        await shutdownStartedSource.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+
+        Assert.False(disposeTask.IsCompleted);
+        loadSource.SetResult();
+        await disposeTask.WaitAsync(TestHelpers.HangMitigatingTimeout);
+    }
+
+    [Fact]
     public async Task CanceledClosureDoesNotStartProjectLoad()
     {
         var workspace = MaterializedLspWorkspace.Create(
