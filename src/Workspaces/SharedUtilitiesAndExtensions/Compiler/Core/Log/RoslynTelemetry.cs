@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.Internal.Log;
 
@@ -56,6 +57,12 @@ internal sealed partial class RoslynTelemetry
     {
         ImmutableInterlocked.Update(ref _eventSinks, static (sinks, sink) => AddSink(sinks, sink), sink);
         return new Registration(() => ImmutableInterlocked.Update(ref _eventSinks, static (sinks, sink) => sinks.Remove(sink, ReferenceEqualityComparer.Instance), sink));
+    }
+
+    public void ReportFault(Exception exception, ErrorSeverity severity, bool forceDump)
+    {
+        foreach (var sink in _eventSinks)
+            sink.ReportFault(exception, severity, forceDump);
     }
 
     private static ImmutableArray<TSink> AddSink<TSink>(ImmutableArray<TSink> sinks, TSink sink)
