@@ -16,6 +16,92 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComme
     Public Class DocumentationCommentTests
         Inherits AbstractDocumentationCommentTests
 
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")>
+        Public Sub Paste_MultilineText()
+            VerifyPaste(
+                JoinLines(vbCrLf, "", "''' <summary>", "''' $$", "''' </summary>", "Class C", "End Class", ""),
+                "Line 1" & vbCrLf & "Line 2",
+                JoinLines(vbCrLf, "", "''' <summary>", "''' Line 1", "''' Line 2$$", "''' </summary>", "Class C", "End Class", ""))
+        End Sub
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")>
+        Public Sub Paste_EscapesTextButPreservesValidXmlElements()
+            VerifyPaste(
+                JoinLines(vbCrLf, "", "''' $$", "Class C", "End Class", ""),
+                "<summary>Use A & B.</summary>",
+                JoinLines(vbCrLf, "", "''' <summary>Use A &amp; B.</summary>$$", "Class C", "End Class", ""))
+        End Sub
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")>
+        Public Sub Paste_RemovesEditorIndentationFromContinuationLines()
+            VerifyPaste(
+                JoinLines(vbCrLf,
+                    "Class C",
+                    "    ''' <summary>",
+                    "    ''' $$",
+                    "    ''' </summary>",
+                    "End Class"),
+                "Line 1" & vbCrLf & "    Line 2",
+                JoinLines(vbCrLf,
+                    "Class C",
+                    "    ''' <summary>",
+                    "    ''' Line 1",
+                    "    ''' Line 2$$",
+                    "    ''' </summary>",
+                    "End Class"))
+        End Sub
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")>
+        Public Sub Paste_MixedEligibleAndIneligibleSelections()
+            VerifyPaste(
+                JoinLines(vbCrLf,
+                    "''' <summary>Replace [|documentation|]</summary>",
+                    "' Replace [|ordinary|]$$",
+                    "Class C",
+                    "End Class"),
+                "A & B" & vbCrLf & "Line 2",
+                JoinLines(vbCrLf,
+                    "''' <summary>Replace A &amp; B",
+                    "''' Line 2</summary>",
+                    "' Replace A & B",
+                    "Line 2$$",
+                    "Class C",
+                    "End Class"))
+        End Sub
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")>
+        Public Sub Paste_UndoSmartAdjustmentThenNormalPaste()
+            Dim initialMarkup = JoinLines(vbCrLf,
+                "''' <summary>",
+                "''' $$",
+                "''' </summary>",
+                "Class C",
+                "End Class")
+
+            VerifyPasteAndUndo(
+                initialMarkup,
+                "A & B" & vbCrLf & "Line 2",
+                JoinLines(vbCrLf,
+                    "''' <summary>",
+                    "''' A &amp; B",
+                    "''' Line 2$$",
+                    "''' </summary>",
+                    "Class C",
+                    "End Class"),
+                JoinLines(vbCrLf,
+                    "''' <summary>",
+                    "''' A & B",
+                    "Line 2$$",
+                    "''' </summary>",
+                    "Class C",
+                    "End Class"),
+                initialMarkup)
+        End Sub
+
+        Private Shared Function JoinLines(newLine As String, ParamArray lines As String()) As String
+            Return String.Join(newLine, lines)
+        End Function
+
         Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures.AddParts(GetType(CommitConnectionListener))
 
         <WpfFact>

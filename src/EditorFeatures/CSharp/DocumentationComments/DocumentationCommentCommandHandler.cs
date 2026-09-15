@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments;
 [ContentType(ContentTypeNames.CSharpContentType)]
 [Name(PredefinedCommandHandlerNames.DocumentationComments)]
 [Order(After = PredefinedCommandHandlerNames.Rename)]
+[Order(After = PredefinedCommandHandlerNames.StringCopyPaste)]
 [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
