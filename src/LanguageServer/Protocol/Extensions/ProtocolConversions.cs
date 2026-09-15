@@ -4,6 +4,7 @@
 
 using System;
 using System.Buffers;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -637,6 +638,15 @@ internal static partial class ProtocolConversions
         }
     }
 
+    /// <summary>
+    /// Distinct invalid help links already reported through <see cref="HelpLinkToCodeDescription"/>. That method
+    /// runs once per diagnostic on every diagnostics pull, so without this a descriptor with one bad link would
+    /// report a fresh <c>FatalError.ReportNonFatalError</c> — a new exception instance each time, so its own
+    /// once-per-exception dedup does not help — for every diagnostic on every pull for as long as the document
+    /// stays open.
+    /// </summary>
+    private static readonly ConcurrentDictionary<string, bool> s_reportedInvalidHelpLinks = new();
+
     public static LSP.CodeDescription? HelpLinkToCodeDescription(string? helpLinkUri, bool supportsVisualStudioExtensions)
     {
         // DiagnosticDescriptor.HelpLinkUri is an empty string when the descriptor has no link, and clients reject
@@ -647,8 +657,11 @@ internal static partial class ProtocolConversions
         if (!IsAbsoluteUriForClient(helpLinkUri, supportsVisualStudioExtensions))
         {
             // A descriptor's HelpLinkUri is author-supplied free text, not something we validated on the way in;
-            // track how often it turns out unusable so a bad one can be found and fixed at the source.
-            FatalError.ReportNonFatalError(new UriFormatException($"Diagnostic help link is not a valid absolute URI: '{helpLinkUri}'"));
+            // track how often it turns out unusable so a bad one can be found and fixed at the source, once per
+            // distinct link rather than once per diagnostic per pull.
+            if (s_reportedInvalidHelpLinks.TryAdd(helpLinkUri, true))
+                FatalError.ReportNonFatalError(new UriFormatException($"Diagnostic help link is not a valid absolute URI: '{helpLinkUri}'"));
+
             return null;
         }
 
