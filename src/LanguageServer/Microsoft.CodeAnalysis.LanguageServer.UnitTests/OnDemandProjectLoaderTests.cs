@@ -121,6 +121,26 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         await workspaceLoadTask.WaitAsync(TestHelpers.HangMitigatingTimeout);
     }
 
+    [Fact]
+    public async Task CanceledClosureDoesNotStartProjectLoad()
+    {
+        var workspace = MaterializedLspWorkspace.Create(
+            TempRoot,
+            CreateUnrestoredConsoleApplication(),
+            CancellationToken.None);
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var loader = (OnDemandProjectLoader)server.GetRequiredLspService<IOnDemandProjectLoader>();
+        using var cancellationSource = new CancellationTokenSource();
+        cancellationSource.Cancel();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            loader.GetTestAccessor().LoadProjectClosureAsync(
+                [workspace.GetFullPath("App.csproj")], cancellationSource.Token));
+
+        var workspaceLoadTask = await loader.GetWorkspaceLoadTaskAsync();
+        Assert.True(workspaceLoadTask.IsCompleted);
+    }
+
     private static LspWorkspaceContent CreateUnrestoredConsoleApplication()
         => LspWorkspaceContent.Empty
             .WithFile("App.csproj", CreateProject())

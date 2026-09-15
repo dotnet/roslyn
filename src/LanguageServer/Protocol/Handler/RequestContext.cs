@@ -74,8 +74,8 @@ internal readonly partial struct RequestContext
 
     public readonly CancellationToken QueueCancellationToken;
 
-    public RequestContext(
-        LspWorkspaceManager.DeferredLspContext? deferredLspContext,
+    private RequestContext(
+        SolutionContext? solutionContext,
         ILspLogger logger,
         string method,
         ClientCapabilities? clientCapabilities,
@@ -86,9 +86,7 @@ internal readonly partial struct RequestContext
         ILspServices lspServices,
         CancellationToken queueCancellationToken)
     {
-        _solutionContext = deferredLspContext is { } context
-            ? new SolutionContext(context)
-            : null;
+        _solutionContext = solutionContext;
 
         _clientCapabilities = clientCapabilities;
         ServerKind = serverKind;
@@ -178,7 +176,7 @@ internal readonly partial struct RequestContext
         if (!requiresLSPSolution)
         {
             context = new RequestContext(
-                deferredLspContext: null, logger: logger, method: method, clientCapabilities: clientCapabilities, serverKind: serverKind,
+                solutionContext: null, logger: logger, method: method, clientCapabilities: clientCapabilities, serverKind: serverKind,
                 documentChangeTracker: documentChangeTracker, trackedDocuments: trackedDocuments, supportedLanguages: supportedLanguages, lspServices: lspServices,
                 queueCancellationToken: cancellationToken);
         }
@@ -210,8 +208,9 @@ internal readonly partial struct RequestContext
 
             Contract.ThrowIfNull(workspace);
             Contract.ThrowIfNull(solution);
-            var deferredLspContext = lspWorkspaceManager.CreateDeferredLspContext(
-                new(workspace, solution, document),
+            var initialLspContext = new LspWorkspaceManager.LspContext(workspace, solution, document);
+            var resolvedLspContext = lspWorkspaceManager.CreateResolvedLspContextAsync(
+                initialLspContext,
                 textDocument,
                 trackedDocuments,
                 projectLoadTask,
@@ -219,7 +218,7 @@ internal readonly partial struct RequestContext
                 mutatesSolutionState);
 
             context = new RequestContext(
-                deferredLspContext,
+                new SolutionContext(initialLspContext, resolvedLspContext),
                 logger,
                 method,
                 clientCapabilities,

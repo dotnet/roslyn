@@ -19,10 +19,12 @@ internal readonly partial struct RequestContext
         private Task<LspWorkspaceManager.LspContext>? _resolvedValue;
         private bool _isCleared;
 
-        public SolutionContext(LspWorkspaceManager.DeferredLspContext context)
+        public SolutionContext(
+            LspWorkspaceManager.LspContext initialValue,
+            Task<LspWorkspaceManager.LspContext> resolvedValue)
         {
-            _initialValue = context.InitialValue;
-            _resolvedValue = context.ResolvedValue;
+            _initialValue = initialValue;
+            _resolvedValue = resolvedValue;
         }
 
         public LspWorkspaceManager.LspContext GetInitialValue()

@@ -159,6 +159,8 @@ internal sealed partial class OnDemandProjectLoader(
 
         void QueueProject(string projectPath)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             projectPath = Path.GetFullPath(projectPath);
             if (visitedProjectPaths.Add(projectPath))
                 pendingLoads.Add(LoadProjectAsync(projectPath));
@@ -185,5 +187,9 @@ internal sealed partial class OnDemandProjectLoader(
     {
         public void TrackLoad(Task loadTask)
             => loader.TrackLoadAsync(loadTask);
+
+        public Task LoadProjectClosureAsync(
+            ImmutableArray<string> rootProjectPaths, CancellationToken cancellationToken)
+            => loader.LoadProjectClosureAsync(rootProjectPaths, cancellationToken);
     }
 }

@@ -216,7 +216,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
     #region LSP Solution Retrieval
 
-    internal DeferredLspContext CreateDeferredLspContext(
+    internal Task<LspContext> CreateResolvedLspContextAsync(
         LspContext initialValue,
         TextDocumentIdentifier? textDocumentIdentifier,
         ImmutableDictionary<DocumentUri, TrackedDocumentInfo> trackedDocuments,
@@ -225,10 +225,10 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         bool mutatesSolutionState)
     {
         if (mutatesSolutionState)
-            return new(initialValue, Task.FromResult(initialValue));
+            return Task.FromResult(initialValue);
 
         var initialWorkspaceSolution = initialValue.Workspace.CurrentSolution;
-        return new(initialValue, ResolveAfterProjectLoadAsync());
+        return ResolveAfterProjectLoadAsync();
 
         async Task<LspContext> ResolveAfterProjectLoadAsync()
         {
@@ -692,10 +692,6 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         Workspace Workspace,
         Solution Solution,
         TextDocument? Document);
-
-    internal readonly record struct DeferredLspContext(
-        LspContext InitialValue,
-        Task<LspContext> ResolvedValue);
 
     private enum LspDocumentResolutionKind
     {
