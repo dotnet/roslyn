@@ -8380,7 +8380,7 @@ public class Program
         Print(-9223372036854775808); // ldc.i8 - decimal..ctor(int64)
         Print(18446744073709551615); // decimal..ctor(uint64) [Note: Dev11 uses decimal..ctor(int32, int32, int32, bool, byte)]
         Print(-79228162514264337593543950335m); // decimal..ctor(int32, int32, int32, bool, byte)
-        Print((decimal)12345.679f); // ? ldc.r4 - decimal..ctor(Single)
+        Print((decimal)12345.75f); // ? ldc.r4 - decimal..ctor(Single)
     }
 
     public static void Print(decimal val)
@@ -8402,7 +8402,7 @@ public class Program
 -9223372036854775808
 18446744073709551615
 -79228162514264337593543950335
-12345.68
+12345.75
 ");
 
             compilation.VerifyIL("Program.Main",
@@ -8448,7 +8448,7 @@ public class Program
   IL_0094:  ldc.i4.0
   IL_0095:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
   IL_009a:  call       ""void Program.Print(decimal)""
-  IL_009f:  ldc.i4     0x12d688
+  IL_009f:  ldc.i4     0x12d68f
   IL_00a4:  ldc.i4.0
   IL_00a5:  ldc.i4.0
   IL_00a6:  ldc.i4.0
@@ -11152,7 +11152,8 @@ class C
         System.Console.Write(myMoney.ToString(CultureInfo.InvariantCulture));
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "99.9");
+            // https://github.com/dotnet/roslyn/issues/85043: decimal representation changed in .NET 11
+            var compilation = CompileAndVerify(source, expectedOutput: Environment.Version.Major >= 11 ? "99.90000000000000568434188608" : "99.9");
             compilation.VerifyIL("C.Main", """
 {
   // Code size       47 (0x2f)
@@ -11479,11 +11480,11 @@ class C
 
         static void Main(string[] args)
         {
-            M(new decimal(123.456), new decimal(1.2345600E+2));
-            M(new decimal(123.456), 123.4561M);
-            M(new decimal(123.456), 123.4559M);
-            M(new decimal(123.456), 123.456000M);
-            M(new decimal(123.456), new decimal(123456000, 0, 0, false, 6));
+            M(new decimal(123.625), new decimal(1.2362500E+2));
+            M(new decimal(123.625), 123.6251M);
+            M(new decimal(123.625), 123.6249M);
+            M(new decimal(123.625), 123.625000M);
+            M(new decimal(123.625), new decimal(123625000, 0, 0, false, 6));
         }
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"
@@ -12848,8 +12849,16 @@ public class C
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput:
-@"1.712
+            // https://github.com/dotnet/roslyn/issues/85043: decimal representation changed in .NET 11
+            CompileAndVerify(source, expectedOutput: Environment.Version.Major >= 11 ? """
+1.712
+1.71200001239776611328125
+1.7119999999999999662492200514
+1.71200001239776611328125
+False
+False
+False
+""" : @"1.712
 1.712
 1.712
 1.71200001239777
@@ -12887,8 +12896,23 @@ class C
 
     static void WriteLine(decimal d) => Console.WriteLine(d.ToString(CultureInfo.InvariantCulture));
 }";
-            CompileAndVerify(source, expectedOutput:
-@"2147484000
+            // https://github.com/dotnet/roslyn/issues/85043: decimal representation changed in .NET 11
+            CompileAndVerify(source, expectedOutput: Environment.Version.Major >= 11 ? """
+2147483648
+2147483648
+9223372036854775808
+9223372036854779904
+39614081257132168796771975168
+39614081257132203981144064000
+39614081257132168796771975168
+39614081266355496853161639936
+0.21474836766719818115234375
+0.2147483648000000078237547996
+-0.092233717441558837890625
+-0.0922337203685477946546455996
+-3.961408138275146484375
+-3.9614081257132198743420303799
+""" : @"2147484000
 2147483648
 9223372000000000000
 9223372036854780000
