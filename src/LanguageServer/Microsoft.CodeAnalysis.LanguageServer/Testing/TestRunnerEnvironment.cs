@@ -9,11 +9,13 @@ internal static class TestRunnerEnvironment
     public static Dictionary<string, string?> CreateEnvironmentVariables()
         => CreateEnvironmentVariables(
             Environment.GetEnvironmentVariables().Keys.Cast<string>(),
-            Environment.GetEnvironmentVariable("DOTNET_ROOT_USER"));
+            Environment.GetEnvironmentVariable("DOTNET_ROOT_USER"),
+            Environment.GetEnvironmentVariable(DotnetCliHelper.DotnetRootEnvVar));
 
     internal static Dictionary<string, string?> CreateEnvironmentVariables(
         IEnumerable<string> environmentVariableNames,
-        string? dotnetRootUser)
+        string? dotnetRootUser,
+        string? dotnetRoot)
     {
         var environmentVariables = new Dictionary<string, string?>(StringComparer.Ordinal);
 
@@ -26,8 +28,12 @@ internal static class TestRunnerEnvironment
             }
         }
 
-        environmentVariables[DotnetCliHelper.DotnetRootEnvVar] =
-            string.IsNullOrEmpty(dotnetRootUser) || dotnetRootUser == "EMPTY" ? string.Empty : dotnetRootUser;
+        environmentVariables[DotnetCliHelper.DotnetRootEnvVar] = dotnetRootUser switch
+        {
+            null => dotnetRoot ?? string.Empty,
+            "" or "EMPTY" => string.Empty,
+            _ => dotnetRootUser,
+        };
 
         return environmentVariables;
     }

@@ -13,7 +13,8 @@ public sealed class TestRunnerEnvironmentTests
     {
         var environmentVariables = TestRunnerEnvironment.CreateEnvironmentVariables(
             ["DOTNET_ROOT", "DOTNET_ROOT_X64", "dotnet_root_arm64", "UNRELATED"],
-            dotnetRootUser: "/user/dotnet");
+            dotnetRootUser: "/user/dotnet",
+            dotnetRoot: "/inherited/dotnet");
 
         Assert.Equal("/user/dotnet", environmentVariables["DOTNET_ROOT"]);
         Assert.Null(environmentVariables["DOTNET_ROOT_X64"]);
@@ -21,15 +22,38 @@ public sealed class TestRunnerEnvironmentTests
         Assert.DoesNotContain("UNRELATED", environmentVariables);
     }
 
+    [Fact]
+    public void CreateEnvironmentVariablesUsesInheritedDotnetRootWithoutUserValue()
+    {
+        var environmentVariables = TestRunnerEnvironment.CreateEnvironmentVariables(
+            ["DOTNET_ROOT", "DOTNET_ROOT_X64"],
+            dotnetRootUser: null,
+            dotnetRoot: "/inherited/dotnet");
+
+        Assert.Equal("/inherited/dotnet", environmentVariables["DOTNET_ROOT"]);
+        Assert.Null(environmentVariables["DOTNET_ROOT_X64"]);
+    }
+
     [Theory]
-    [InlineData(null)]
     [InlineData("")]
     [InlineData("EMPTY")]
-    public void CreateEnvironmentVariablesClearsDotnetRootWithoutUserValue(string? dotnetRootUser)
+    public void CreateEnvironmentVariablesClearsExplicitlyEmptyUserRoot(string dotnetRootUser)
     {
         var environmentVariables = TestRunnerEnvironment.CreateEnvironmentVariables(
             ["DOTNET_ROOT_X64"],
-            dotnetRootUser);
+            dotnetRootUser,
+            dotnetRoot: "/inherited/dotnet");
+
+        Assert.Equal(string.Empty, environmentVariables["DOTNET_ROOT"]);
+    }
+
+    [Fact]
+    public void CreateEnvironmentVariablesClearsDotnetRootWithoutAnyValue()
+    {
+        var environmentVariables = TestRunnerEnvironment.CreateEnvironmentVariables(
+            ["DOTNET_ROOT_X64"],
+            dotnetRootUser: null,
+            dotnetRoot: null);
 
         Assert.Equal(string.Empty, environmentVariables["DOTNET_ROOT"]);
     }
