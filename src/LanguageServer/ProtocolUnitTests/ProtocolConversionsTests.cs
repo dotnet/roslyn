@@ -64,6 +64,14 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
         }
     }
 
+    [Theory]
+    [InlineData(null, null)]
+    [InlineData("", null)]
+    [InlineData("not a link", null)]
+    [InlineData("https://learn.microsoft.com/dotnet/csharp/misc/cs1513", "https://learn.microsoft.com/dotnet/csharp/misc/cs1513")]
+    public void HelpLinkToCodeDescription_OnlyAbsoluteLinks(string? helpLinkUri, string? expectedHref)
+        => Assert.Equal(expectedHref, ProtocolConversions.HelpLinkToCodeDescription(helpLinkUri)?.Href.UriString);
+
     #region System.Uri Conversion Tests
 
 #pragma warning disable RS0030 // Do not use banned APIs

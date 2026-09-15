@@ -639,7 +639,21 @@ internal static partial class ProtocolConversions
 
     public static LSP.CodeDescription? HelpLinkToCodeDescription(string? helpLinkUri)
     {
-        return (helpLinkUri != null) ? new LSP.CodeDescription { Href = new DocumentUri(helpLinkUri) } : null;
+        // DiagnosticDescriptor.HelpLinkUri is an empty string when the descriptor has no link, and clients reject
+        // the whole report when an href is not an absolute URI.
+        if (string.IsNullOrEmpty(helpLinkUri))
+            return null;
+
+        try
+        {
+            LSP.ParsedUri.Parse(helpLinkUri, strict: true);
+        }
+        catch (UriFormatException)
+        {
+            return null;
+        }
+
+        return new LSP.CodeDescription { Href = new DocumentUri(helpLinkUri) };
     }
 
     public static LSP.SymbolKind NavigateToKindToSymbolKind(string kind)
