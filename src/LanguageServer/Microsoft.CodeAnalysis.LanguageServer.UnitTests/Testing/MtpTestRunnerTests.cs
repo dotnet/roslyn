@@ -41,22 +41,34 @@ public sealed class MtpTestRunnerTests
     }
 
     [Fact]
-    public void TryUpdateTerminalStateIgnoresDuplicatesAndKeepsLatestState()
+    public void TryAggregateTerminalStatePreservesFailureAcrossTheoryRows()
     {
         var terminalStates = new Dictionary<string, string>();
 
-        Assert.True(MtpTestRunner.TryUpdateTerminalState(
+        Assert.True(MtpTestRunner.TryAggregateTerminalState(
             terminalStates,
             CreateTestNode(("execution-state", "failed"))));
-        Assert.False(MtpTestRunner.TryUpdateTerminalState(
-            terminalStates,
-            CreateTestNode(("execution-state", "failed"))));
-        Assert.True(MtpTestRunner.TryUpdateTerminalState(
+        Assert.True(MtpTestRunner.TryAggregateTerminalState(
             terminalStates,
             CreateTestNode(("execution-state", "passed"))));
-        Assert.False(MtpTestRunner.TryUpdateTerminalState(
+        Assert.False(MtpTestRunner.TryAggregateTerminalState(
             terminalStates,
             CreateTestNode(("execution-state", "running"))));
+
+        Assert.Equal("failed", terminalStates["test-id"]);
+    }
+
+    [Fact]
+    public void TryAggregateTerminalStateIgnoresSupersededRetry()
+    {
+        var terminalStates = new Dictionary<string, string>();
+
+        Assert.False(MtpTestRunner.TryAggregateTerminalState(
+            terminalStates,
+            CreateTestNode(("execution-state", "failed"), ("retry.is-superseded", true))));
+        Assert.True(MtpTestRunner.TryAggregateTerminalState(
+            terminalStates,
+            CreateTestNode(("execution-state", "passed"))));
 
         Assert.Equal("passed", terminalStates["test-id"]);
     }

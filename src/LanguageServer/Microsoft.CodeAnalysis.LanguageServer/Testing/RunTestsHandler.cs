@@ -101,6 +101,7 @@ internal sealed class RunTestsHandler(
         return progress.GetValues() ?? [];
     }
 
+    // MTP cannot forward VSTest run settings, so path presence selects VSTest even when reading the file failed.
     internal static bool ShouldUseMtp(
         string? runSettingsPath,
         ProjectId projectId,

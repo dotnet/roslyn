@@ -23,6 +23,18 @@ public sealed class TestRunnerEnvironmentTests
     }
 
     [Fact]
+    public void CreateEnvironmentVariablesClearsInheritedDiagnosticPorts()
+    {
+        var environmentVariables = TestRunnerEnvironment.CreateEnvironmentVariables(
+            ["DOTNET_DiagnosticPorts", "DOTNET_DefaultDiagnosticPortSuspend"],
+            dotnetRootUser: null,
+            dotnetRoot: null);
+
+        Assert.Null(environmentVariables["DOTNET_DiagnosticPorts"]);
+        Assert.Null(environmentVariables["DOTNET_DefaultDiagnosticPortSuspend"]);
+    }
+
+    [Fact]
     public void CreateEnvironmentVariablesUsesInheritedDotnetRootWithoutUserValue()
     {
         var environmentVariables = TestRunnerEnvironment.CreateEnvironmentVariables(

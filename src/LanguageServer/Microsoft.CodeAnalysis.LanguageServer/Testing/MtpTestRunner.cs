@@ -17,6 +17,7 @@ internal sealed partial class MtpTestRunner(ILoggerFactory loggerFactory)
 {
     // MTP also reports container nodes; action nodes are the executable tests used for discovery and progress.
     private const string ActionNodeType = "action";
+    private const string RetryIsSupersededKey = "retry.is-superseded";
 
     private readonly ILogger _logger = loggerFactory.CreateLogger<MtpTestRunner>();
 
@@ -63,6 +64,7 @@ internal sealed partial class MtpTestRunner(ILoggerFactory loggerFactory)
             return;
         }
 
+        // Servers without multi-request support terminate after discovery, so execution needs a new client.
         await StopClientAsync(client, cancellationToken).ConfigureAwait(false);
 
         using var runClient = await CreateClientAsync(projectOutputPath, cancellationToken).ConfigureAwait(false);
@@ -93,33 +95,26 @@ internal sealed partial class MtpTestRunner(ILoggerFactory loggerFactory)
 
         var stopwatch = Stopwatch.StartNew();
         var terminalStates = new Dictionary<string, string>(StringComparer.Ordinal);
-        var terminalStatesGate = new object();
 
         void OnTestNodesUpdated(object? sender, MtpTestNodeUpdateEventArgs args)
         {
             var message = new StringBuilder();
-            TestProgress? currentProgress = null;
-
-            lock (terminalStatesGate)
+            foreach (var change in args.Changes)
             {
-                foreach (var change in args.Changes)
-                {
-                    if (!TryUpdateTerminalState(terminalStates, change))
-                        continue;
+                if (!TryAggregateTerminalState(terminalStates, change))
+                    continue;
 
-                    AppendTestResult(message, change);
-                }
-
-                if (message.Length > 0)
-                    currentProgress = CreateProgress(matchedTestUids.Length, terminalStates.Values);
+                // A theory can report multiple data-row results with the same UID, so report every
+                // non-superseded result even when it does not change the aggregate state for that UID.
+                AppendTestResult(message, change);
             }
 
-            if (currentProgress is not null)
+            if (message.Length > 0)
             {
                 progress.Report(new RunTestsPartialResult(
                     LanguageServerResources.Running_tests,
                     message.ToString(),
-                    currentProgress));
+                    CreateProgress(matchedTestUids.Length, terminalStates.Values)));
             }
         }
 
@@ -151,10 +146,7 @@ internal sealed partial class MtpTestRunner(ILoggerFactory loggerFactory)
             client.LogReceived -= OnLogReceived;
         }
 
-        string[] finalStates;
-        lock (terminalStatesGate)
-            finalStates = [.. terminalStates.Values];
-
+        string[] finalStates = [.. terminalStates.Values];
         var finalProgress = CreateProgress(matchedTestUids.Length, finalStates);
         var state = finalStates.Contains("canceled")
             ? LanguageServerResources.Canceled
@@ -172,19 +164,20 @@ internal sealed partial class MtpTestRunner(ILoggerFactory loggerFactory)
         progress.Report(new RunTestsPartialResult(LanguageServerResources.Running_tests, summary, finalProgress));
     }
 
-    private async Task<MtpServerClient> CreateClientAsync(string projectOutputPath, CancellationToken cancellationToken)
+    private Task<MtpServerClient> CreateClientAsync(string projectOutputPath, CancellationToken cancellationToken)
     {
         var options = new MtpServerClientOptions
         {
             ClientName = "Roslyn Language Server",
+            // The runner consumes each request's update stream immediately; it does not retain a test-node graph.
             IsStateful = false,
-            Logger = new DelegateMtpClientLogger((level, message) => LogClientMessage(level, message)),
+            Logger = new DelegateMtpClientLogger(LogClientMessage),
         };
 
         foreach (var (name, value) in TestRunnerEnvironment.CreateEnvironmentVariables())
             options.EnvironmentVariables[name] = value;
 
-        return await MtpServerClient.LaunchAsync(projectOutputPath, options, cancellationToken).ConfigureAwait(false);
+        return MtpServerClient.LaunchAsync(projectOutputPath, options, cancellationToken);
     }
 
     private static async Task StopClientAsync(MtpServerClient client, CancellationToken cancellationToken)
@@ -247,20 +240,37 @@ internal sealed partial class MtpTestRunner(ILoggerFactory loggerFactory)
     private static bool IsTerminalState(string? state)
         => state is "passed" or "skipped" or "failed" or "timed-out" or "error" or "canceled";
 
-    internal static bool TryUpdateTerminalState(Dictionary<string, string> terminalStates, MtpTestNodeUpdate change)
+    internal static bool TryAggregateTerminalState(Dictionary<string, string> terminalStates, MtpTestNodeUpdate change)
     {
         if (change.NodeType != ActionNodeType ||
             change.Uid is not { } uid ||
             change.ExecutionState is not { } executionState ||
             !IsTerminalState(executionState) ||
-            terminalStates.TryGetValue(uid, out var previousState) && previousState == executionState)
+            change.Node.TryGetValue(RetryIsSupersededKey, out var isSuperseded) && isSuperseded is true)
         {
             return false;
         }
 
-        terminalStates[uid] = executionState;
+        if (!terminalStates.TryGetValue(uid, out var previousState) ||
+            GetTerminalStatePriority(executionState) > GetTerminalStatePriority(previousState))
+        {
+            // Multiple theory rows can share a UID. Aggregate them so cancellation or failure wins,
+            // otherwise any passing row wins over a run where every row was skipped.
+            terminalStates[uid] = executionState;
+        }
+
         return true;
     }
+
+    private static int GetTerminalStatePriority(string state)
+        => state switch
+        {
+            "canceled" => 4,
+            "failed" or "timed-out" or "error" => 3,
+            "passed" => 2,
+            "skipped" => 1,
+            _ => 0,
+        };
 
     private static void AppendTestResult(StringBuilder builder, MtpTestNodeUpdate test)
     {

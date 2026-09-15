@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Features.Testing;
@@ -52,7 +51,9 @@ internal sealed partial class MtpTestRunner
         progress.Report(partialResult);
 
         var stopwatch = Stopwatch.StartNew();
-        var discoveredTests = new ConcurrentDictionary<string, MtpTestNodeUpdate>(StringComparer.Ordinal);
+        // MtpServerClient invokes notification handlers synchronously on a single ordered read loop and
+        // completes the request only after all of its handlers have run.
+        var discoveredTests = new Dictionary<string, MtpTestNodeUpdate>(StringComparer.Ordinal);
 
         void OnTestNodesUpdated(object? sender, MtpTestNodeUpdateEventArgs args)
         {

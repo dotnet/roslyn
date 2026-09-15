@@ -20,6 +20,9 @@ internal sealed partial class VsTestRunner(
     DotnetCliHelper dotnetCliHelper,
     LogConfiguration logConfiguration)
 {
+    /// <summary>
+    /// Older VSTest consoles, including the one in the .NET 6 SDK, throw when passed null run settings.
+    /// </summary>
     private const string DefaultRunSettings = "<RunSettings/>";
 
     private readonly ILogger _logger = loggerFactory.CreateLogger<VsTestRunner>();
