@@ -153,7 +153,6 @@ Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsRelevantFileInf
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsRelevantFileInfoWrapper.CopilotOnTheFlyDocsRelevantFileInfoWrapper(Microsoft.CodeAnalysis.QuickInfo.OnTheFlyDocsRelevantFileInfo! onTheFlyDocsRelevantFileInfo) -> void
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsRelevantFileInfoWrapper.Document.get -> Microsoft.CodeAnalysis.Document!
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsRelevantFileInfoWrapper.TextSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
-Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotUtilities
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateImplementation.ImplementationDetailsWrapper
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateImplementation.ImplementationDetailsWrapper.ImplementationDetailsWrapper() -> void
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateImplementation.ImplementationDetailsWrapper.Message.get -> string?
