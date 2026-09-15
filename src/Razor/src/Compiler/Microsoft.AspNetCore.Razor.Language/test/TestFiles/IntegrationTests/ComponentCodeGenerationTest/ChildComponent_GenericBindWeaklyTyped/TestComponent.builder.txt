@@ -1,0 +1,11 @@
+﻿[0000] OpenComponent<global::Test.MyComponent<
+#nullable restore
+#line (1,20)-(1,26) "x:\dir\subdir\Test\TestComponent.cshtml"
+string
+
+#line default
+#line hidden
+#nullable disable
+            >>()
+[0001] AddComponentParameter("Item", Value)
+[0002] AddComponentParameter("ItemChanged", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => Value = __value, Value))

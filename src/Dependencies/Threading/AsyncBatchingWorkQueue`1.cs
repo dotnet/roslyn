@@ -19,13 +19,13 @@ internal class AsyncBatchingWorkQueue<TItem>(
     Func<ImmutableSegmentedList<TItem>, CancellationToken, ValueTask> processBatchAsync,
     IEqualityComparer<TItem>? equalityComparer,
     IAsynchronousOperationListener asyncListener,
-    CancellationToken cancellationToken) : AsyncBatchingWorkQueue<TItem, VoidResult>(delay, Convert(processBatchAsync), equalityComparer, asyncListener, cancellationToken)
+    CancellationToken cancellationToken = default) : AsyncBatchingWorkQueue<TItem, VoidResult>(delay, Convert(processBatchAsync), equalityComparer, asyncListener, cancellationToken)
 {
     public AsyncBatchingWorkQueue(
         TimeSpan delay,
         Func<ImmutableSegmentedList<TItem>, CancellationToken, ValueTask> processBatchAsync,
         IAsynchronousOperationListener asyncListener,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
         : this(delay,
                processBatchAsync,
                equalityComparer: null,

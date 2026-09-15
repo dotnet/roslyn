@@ -36572,8 +36572,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException(NameOf(endSubOrFunctionStatement))
             End If
             Select Case endSubOrFunctionStatement.Kind()
-                Case SyntaxKind.EndSubStatement,
-                     SyntaxKind.EndFunctionStatement
+                Case SyntaxKind.EndFunctionStatement,
+                     SyntaxKind.EndSubStatement
                 Case Else
                     Throw new ArgumentException("endSubOrFunctionStatement")
             End Select
@@ -36627,8 +36627,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException(NameOf(endSubOrFunctionStatement))
             End If
             Select Case endSubOrFunctionStatement.Kind()
-                Case SyntaxKind.EndSubStatement,
-                     SyntaxKind.EndFunctionStatement
+                Case SyntaxKind.EndFunctionStatement,
+                     SyntaxKind.EndSubStatement
                 Case Else
                     Throw new ArgumentException("endSubOrFunctionStatement")
             End Select
@@ -36690,8 +36690,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException(NameOf(endSubOrFunctionStatement))
             End If
             Select Case endSubOrFunctionStatement.Kind()
-                Case SyntaxKind.EndSubStatement,
-                     SyntaxKind.EndFunctionStatement
+                Case SyntaxKind.EndFunctionStatement,
+                     SyntaxKind.EndSubStatement
                 Case Else
                     Throw new ArgumentException("endSubOrFunctionStatement")
             End Select

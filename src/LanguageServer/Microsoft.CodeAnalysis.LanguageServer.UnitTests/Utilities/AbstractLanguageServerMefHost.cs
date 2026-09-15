@@ -32,4 +32,13 @@ public abstract class AbstractLanguageServerMefHost : AbstractLanguageServerHost
     {
         return LanguageServerTestComposition.CreateLanguageServerExportProviderAsync(serverConfiguration, loggerFactory, extensionManager, assemblyLoader, MefCacheDirectory.Path);
     }
+
+    private protected async Task WarmCompositionCacheCoreAsync()
+    {
+        using var loggerFactory = new LoggerFactory();
+        var configuration = ServerConfigurationWithoutDevKit;
+        var extensionManager = ExtensionAssemblyManager.Create(configuration, loggerFactory);
+        var assemblyLoader = new CustomExportAssemblyLoader(extensionManager, loggerFactory);
+        using var exportProvider = await CreateExportProviderAsync(configuration, loggerFactory, extensionManager, assemblyLoader);
+    }
 }

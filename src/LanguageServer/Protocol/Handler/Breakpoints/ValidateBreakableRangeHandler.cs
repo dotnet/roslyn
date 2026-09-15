@@ -28,8 +28,8 @@ internal sealed class ValidateBreakableRangeHandler() : ILspServiceDocumentReque
     public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.VSInternalValidateBreakableRangeParams request)
         => request.TextDocument;
 
-    public Task<LSP.Range?> HandleRequestAsync(LSP.VSInternalValidateBreakableRangeParams request, RequestContext context, CancellationToken cancellationToken)
-        => GetBreakableRangeAsync(context.GetRequiredDocument(), request.Range, cancellationToken);
+    public async Task<LSP.Range?> HandleRequestAsync(LSP.VSInternalValidateBreakableRangeParams request, RequestContext context, CancellationToken cancellationToken)
+        => await GetBreakableRangeAsync(await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false), request.Range, cancellationToken).ConfigureAwait(false);
 
     public static async Task<LSP.Range?> GetBreakableRangeAsync(Document document, LSP.Range range, CancellationToken cancellationToken)
     {

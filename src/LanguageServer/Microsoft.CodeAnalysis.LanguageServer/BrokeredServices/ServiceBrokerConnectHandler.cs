@@ -20,18 +20,20 @@ internal sealed class ServiceBrokerConnectHandler() : ILspServiceNotificationHan
 
     public bool RequiresLSPSolution => true;
 
-    Task INotificationHandler<NotificationParams, RequestContext>.HandleNotificationAsync(NotificationParams request, RequestContext requestContext, CancellationToken cancellationToken)
+    async Task INotificationHandler<NotificationParams, RequestContext>.HandleNotificationAsync(NotificationParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
-        var workspace = requestContext.Workspace;
-        Contract.ThrowIfNull(workspace, "We should always have a workspace since this is a solution-level handler.");
+        var workspace = await requestContext.GetRequiredWorkspaceAsync(cancellationToken).ConfigureAwait(false);
 
         var serviceBrokerFactory = requestContext.GetRequiredService<ServiceBrokerFactory>();
         // Suppress logger async local context from flowing to the service broker connection.
         // This prevents all service broker requests from inheriting the LSP 'serviceBroker/connect' logging scope.
+        Task connectTask;
         using (ExecutionContext.SuppressFlow())
         {
-            return serviceBrokerFactory.CreateAndConnectAsync(request.PipeName, workspace);
+            connectTask = serviceBrokerFactory.CreateAndConnectAsync(request.PipeName, workspace);
         }
+
+        await connectTask.ConfigureAwait(false);
     }
 
     private sealed class NotificationParams

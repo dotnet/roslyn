@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
@@ -14,34 +16,206 @@ internal sealed class LanguageServerConnectionManager
     private readonly object _gate = new();
     private ImmutableArray<ServerEntry> _servers = [];
 
-    public LanguageServerHost CreateLanguageServerHost(
-        Stream inputStream,
-        Stream outputStream,
-        ExportProvider exportProvider,
-        AbstractTypeRefResolver typeRefResolver)
-    {
-        var server = new LanguageServerHost(inputStream, outputStream, exportProvider, typeRefResolver);
-        var entry = new ServerEntry(
-            server,
-            server.WaitForExitAsync().ContinueWith(
-                static (task, state) =>
-                {
-                    var (connectionManager, server) = ((LanguageServerConnectionManager, LanguageServerHost))state!;
-                    connectionManager.Unregister(server);
-                    task.GetAwaiter().GetResult();
-                },
-                (this, server),
-                CancellationToken.None,
-                TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.RunContinuationsAsynchronously,
-                TaskScheduler.Default));
+    // Test hook: invoked just before LanguageServerHost.Start(). Throw to simulate a startup failure.
+    private Action? _onBeforeStartServer;
 
-        lock (_gate)
+    /// <summary>
+    /// Runs an independent language server for each connection yielded by <paramref name="connectionSource"/>.
+    /// A <see cref="SingleLanguageServerConnectionSource"/> yields exactly one connection and then completes, so
+    /// this returns once that server exits. The daemon listener yields connections until its internally managed idle
+    /// timeout elapses or <paramref name="cancellationToken"/> is signaled.
+    /// </summary>
+    public async Task RunAsync(
+        ILanguageServerConnectionSource connectionSource,
+        ExportProvider exportProvider,
+        AbstractTypeRefResolver typeRefResolver,
+        ILogger logger,
+        CancellationToken cancellationToken)
+    {
+        // For a source that isolates faults (the daemon), a server fault is logged and confined to that one
+        // connection; otherwise a single misbehaving client would tear down the whole daemon.
+        var isolateFaults = connectionSource.ShouldIsolateConnectionFaults;
+
+        // All per-connection supervisors are tracked so they can be drained on graceful shutdown. Previously
+        // daemon supervisors were fire-and-forgotten, which required catching ObjectDisposedException in the
+        // keepalive helper; tracking them here eliminates that race.
+        var supervisors = new List<Task>();
+
+        try
         {
-            _servers = _servers.Add(entry);
+            await foreach (var connection in connectionSource.AcceptConnectionsAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (isolateFaults)
+                {
+                    // Daemon mode: start server construction and supervision in a background task so this
+                    // accept loop can immediately loop back to WaitForConnectionAsync for the next client,
+                    // without waiting for (potentially slow) MEF composition to finish.
+                    var supervisor = Task.Run(() => StartAndSuperviseAsync(connection), CancellationToken.None);
+                    lock (_gate)
+                        supervisors.Add(supervisor);
+
+                    // Remove completed supervisors immediately so a long-running daemon does not retain one task
+                    // per historical connection. Register after adding so even an already-completed task is removed.
+                    _ = supervisor.ContinueWith(
+                        RemoveCompletedSupervisor,
+                        CancellationToken.None,
+                        TaskContinuationOptions.ExecuteSynchronously,
+                        TaskScheduler.Default);
+                }
+                else
+                {
+                    // Single-server mode: StartAndSuperviseAsync starts synchronously until it begins waiting for
+                    // server exit, so no Task.Run or parallel startup is needed.
+                    supervisors.Add(StartAndSuperviseAsync(connection));
+                }
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // External process shutdown is expected; swallow and proceed.
         }
 
-        server.Start();
-        return server;
+        if (cancellationToken.IsCancellationRequested && isolateFaults)
+        {
+            ImmutableArray<IDisposable> connections;
+            lock (_gate)
+                connections = _servers.SelectAsArray(
+                    static entry => entry.Connection is not null,
+                    static entry => entry.Connection!);
+
+            foreach (var connection in connections)
+                connection.Dispose();
+        }
+
+        // Drain all daemon supervisors even on external shutdown so no per-server task can outlive the shared
+        // export provider and logger factory owned by Program. Single-server mode preserves the prior behavior
+        // of returning promptly on external cancellation when its transport is not manager-owned.
+        if (!cancellationToken.IsCancellationRequested || isolateFaults)
+        {
+            Task[] remainingSupervisors;
+            lock (_gate)
+                remainingSupervisors = [.. supervisors];
+
+            await Task.WhenAll(remainingSupervisors).ConfigureAwait(false);
+        }
+
+        void RemoveCompletedSupervisor(Task supervisor)
+        {
+            lock (_gate)
+                supervisors.Remove(supervisor);
+        }
+
+        async Task StartAndSuperviseAsync(LanguageServerConnection connection)
+        {
+            try
+            {
+                var entry = await TryStartServerAsync(connection).ConfigureAwait(false);
+                if (entry is not null)
+                    await SuperviseAsync(entry).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (isolateFaults)
+            {
+                // This is the daemon supervisor's startup fault boundary. TryStartServerAsync cleans up before
+                // propagating failures here so one connection cannot tear down the daemon.
+                logger.LogError(ex, "Language server connection supervisor faulted.");
+            }
+        }
+
+        // Creates, registers, and starts a language server for the connection. Returns null if shutdown won the
+        // race with startup; construction and startup failures are cleaned up and propagated to the caller.
+        async Task<ServerEntry?> TryStartServerAsync(LanguageServerConnection connection)
+        {
+            // --- Phase 1: construct the LanguageServerHost (MEF composition happens here) ---
+            LanguageServerHost server;
+            try
+            {
+                server = new LanguageServerHost(connection.InputStream, connection.OutputStream, exportProvider, typeRefResolver);
+            }
+            catch
+            {
+                connection.Resource?.Dispose();
+                throw;
+            }
+
+            var entry = new ServerEntry(server, connection.Resource);
+            var abortStartup = false;
+
+            // --- Phase 2: register and start ---
+            // Register before starting so GetStartedServers reflects the server before its JSON-RPC listen loop
+            // is active.
+            lock (_gate)
+            {
+                if (!cancellationToken.IsCancellationRequested)
+                {
+                    _servers = _servers.Add(entry);
+                }
+                else
+                {
+                    abortStartup = true;
+                }
+            }
+
+            if (abortStartup)
+            {
+                await AbortServerAsync(server).ConfigureAwait(false);
+                connection.Resource?.Dispose();
+                return null;
+            }
+
+            try
+            {
+                _onBeforeStartServer?.Invoke();
+                server.Start();
+            }
+            catch
+            {
+                lock (_gate)
+                    _servers = _servers.Remove(entry);
+
+                await AbortServerAsync(server).ConfigureAwait(false);
+                connection.Resource?.Dispose();
+                throw;
+            }
+
+            return entry;
+
+            async Task AbortServerAsync(LanguageServerHost server)
+            {
+                try
+                {
+                    await server.AbortAsync().ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Failed to clean up a language server after startup was aborted.");
+                }
+            }
+        }
+
+        // Awaits a server's exit, then unregisters it and disposes its connection. In isolated (daemon)
+        // mode a fault is observed and logged; otherwise it propagates so Task.WhenAll above re-raises it.
+        async Task SuperviseAsync(ServerEntry entry)
+        {
+            try
+            {
+                // Wait until the server exits. We specifically do not also wait on the JsonRpc completion; the
+                // server exiting (via an explicit 'exit' or an observed disconnect) is the only signal we need.
+                await entry.Server.WaitForExitAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex) when (isolateFaults)
+            {
+                logger.LogError(ex, "Language server connection faulted; tearing down that connection.");
+            }
+            finally
+            {
+                lock (_gate)
+                    _servers = _servers.Remove(entry);
+
+                // Dispose this connection's transport (e.g. the daemon's NamedPipeServerStream) now that its
+                // server has fully exited. Disposal is idempotent, so it is safe even if transport already closed.
+                entry.Connection?.Dispose();
+            }
+        }
     }
 
     public ImmutableArray<LanguageServerHost> GetStartedServers()
@@ -52,41 +226,27 @@ internal sealed class LanguageServerConnectionManager
         }
     }
 
-    public async Task WaitForExitAsync()
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor
     {
-        while (true)
+        private readonly LanguageServerConnectionManager _instance;
+
+        internal TestAccessor(LanguageServerConnectionManager instance) => _instance = instance;
+
+        /// <summary>
+        /// When set, invoked just before each <see cref="LanguageServerHost.Start"/> call. Throw from
+        /// this delegate to simulate a startup failure (for daemon-mode fault-isolation tests).
+        /// </summary>
+        internal Action? OnBeforeStartServer
         {
-            Task exitTask;
-
-            lock (_gate)
-            {
-                if (_servers.IsEmpty)
-                    return;
-
-                exitTask = _servers[0].ExitTask;
-            }
-
-            await exitTask.ConfigureAwait(false);
+            set => _instance._onBeforeStartServer = value;
         }
     }
 
-    private void Unregister(LanguageServerHost server)
+    private sealed class ServerEntry(LanguageServerHost server, IDisposable? connection)
     {
-        lock (_gate)
-        {
-            _servers = _servers.RemoveAll(entry => entry.Server == server);
-        }
-    }
-
-    private sealed class ServerEntry
-    {
-        public LanguageServerHost Server { get; }
-        public Task ExitTask { get; }
-
-        public ServerEntry(LanguageServerHost server, Task exitTask)
-        {
-            Server = server;
-            ExitTask = exitTask;
-        }
+        public LanguageServerHost Server { get; } = server;
+        public IDisposable? Connection { get; } = connection;
     }
 }

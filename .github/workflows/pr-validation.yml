@@ -101,9 +101,11 @@ jobs:
       - name: Check if PR author is Microsoft org member
         id: pr-author-org
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          PR_AUTHOR: ${{ steps.pr-author.outputs.username }}
         with:
           script: |
-            const prAuthor = '${{ steps.pr-author.outputs.username }}';
+            const prAuthor = process.env.PR_AUTHOR;
             try {
               await github.rest.orgs.checkMembershipForUser({
                 org: 'microsoft',
@@ -165,6 +167,12 @@ jobs:
               pull_number: context.issue.number
             });
 
+            const unsupportedBranchCharacters = /[`$'"{}()]/;
+            if (unsupportedBranchCharacters.test(pr.head.ref)) {
+              core.setFailed('The PR source branch contains unsupported characters. Rename the branch before running PR validation.');
+              return;
+            }
+
             core.setOutput('ref', pr.head.ref);
             core.setOutput('repo', pr.head.repo.full_name);
             core.setOutput('sha', pr.head.sha);
@@ -174,11 +182,15 @@ jobs:
       - name: Determine commit SHA to use
         id: commit-sha
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          HAS_COMMIT: ${{ steps.parse-commit.outputs.has-commit }}
+          PROVIDED_COMMIT: ${{ steps.parse-commit.outputs.commit-hash }}
+          PR_HEAD_SHA: ${{ steps.pr-details.outputs.sha }}
         with:
           script: |
-            const parseCommitOutput = '${{ steps.parse-commit.outputs.has-commit }}';
-            const providedCommit = '${{ steps.parse-commit.outputs.commit-hash }}';
-            const prHeadSha = '${{ steps.pr-details.outputs.sha }}';
+            const parseCommitOutput = process.env.HAS_COMMIT;
+            const providedCommit = process.env.PROVIDED_COMMIT;
+            const prHeadSha = process.env.PR_HEAD_SHA;
 
             let commitSha;
             if (parseCommitOutput === 'true' && providedCommit) {
@@ -196,9 +208,11 @@ jobs:
       - name: Validate commit exists in PR
         if: steps.parse-commit.outputs.has-commit == 'true'
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          COMMIT_SHA: ${{ steps.commit-sha.outputs.sha }}
         with:
           script: |
-            const commitSha = '${{ steps.commit-sha.outputs.sha }}';
+            const commitSha = process.env.COMMIT_SHA;
             const { data: commits } = await github.rest.pulls.listCommits({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -354,16 +368,36 @@ jobs:
       - name: Comment pipeline link
         if: success()
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          VALIDATION_TYPE: ${{ steps.validation-type.outputs.type }}
+          PIPELINE_URL: ${{ steps.trigger-pipeline.outputs.pipeline-url }}
+          PIPELINE_ID: ${{ steps.validation-type.outputs.pipeline-id }}
+          PIPELINE_VERSION: ${{ steps.target-branch.outputs.pipeline-version }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          COMMIT_SHA: ${{ steps.commit-sha.outputs.sha }}
+          SOURCE_BRANCH: ${{ steps.pr-details.outputs.ref }}
+          TARGET_BRANCH: ${{ steps.pr-details.outputs.base }}
+          BUILD_ID: ${{ steps.trigger-pipeline.outputs.build-id }}
         with:
           script: |
-            const validationType = '${{ steps.validation-type.outputs.type }}';
+            const {
+              VALIDATION_TYPE: validationType,
+              PIPELINE_URL: pipelineUrl,
+              PIPELINE_ID: pipelineId,
+              PIPELINE_VERSION: pipelineVersion,
+              PR_NUMBER: prNumber,
+              COMMIT_SHA: commitSha,
+              SOURCE_BRANCH: sourceBranch,
+              TARGET_BRANCH: targetBranch,
+              BUILD_ID: buildId
+            } = process.env;
             const linkText = validationType === 'dart' ? 'View DartLab Run' : 'View PR Validation Run';
             
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `[${linkText}](${{ steps.trigger-pipeline.outputs.pipeline-url }}) triggered by @${context.actor}\n\n<details>\n<summary>Parameters</summary>\n\n- Validation Type: \`${{ steps.validation-type.outputs.type }}\`\n- Pipeline ID: \`${{ steps.validation-type.outputs.pipeline-id }}\`\n- Pipeline Version: \`${{ steps.target-branch.outputs.pipeline-version }}\`\n- PR Number: \`${{ github.event.issue.number }}\`\n- Commit SHA: \`${{ steps.commit-sha.outputs.sha }}\`\n- Source Branch: \`${{ steps.pr-details.outputs.ref }}\`\n- Target Branch: \`${{ steps.pr-details.outputs.base }}\`\n- Build ID: \`${{ steps.trigger-pipeline.outputs.build-id }}\`\n</details>`
+              body: `[${linkText}](${pipelineUrl}) triggered by @${context.actor}\n\n<details>\n<summary>Parameters</summary>\n\n- Validation Type: \`${validationType}\`\n- Pipeline ID: \`${pipelineId}\`\n- Pipeline Version: \`${pipelineVersion}\`\n- PR Number: \`${prNumber}\`\n- Commit SHA: \`${commitSha}\`\n- Source Branch: \`${sourceBranch}\`\n- Target Branch: \`${targetBranch}\`\n- Build ID: \`${buildId}\`\n</details>`
             });
 
       - name: Comment on failure

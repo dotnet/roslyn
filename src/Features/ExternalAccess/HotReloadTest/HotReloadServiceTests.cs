@@ -72,6 +72,7 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
         Assert.Empty(result.TransientDiagnostics);
         Assert.Equal(1, result.ProjectUpdates.Length);
         AssertEx.Equal([0x02000002], result.ProjectUpdates[0].UpdatedTypes);
+        Assert.True(result.HasPendingUpdates);
 
         hotReload.CommitUpdate();
 
@@ -86,6 +87,7 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
         Assert.Empty(result.TransientDiagnostics);
         Assert.Empty(result.ProjectUpdates);
         Assert.Equal(HotReloadService.Status.NoChangesToApply, result.Status);
+        Assert.False(result.HasPendingUpdates);
 
         updatedText = await GetCommittedDocumentTextAsync(hotReload, documentIdA);
         Assert.Equal(source3, updatedText.ToString());
@@ -104,6 +106,7 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
         Assert.Empty(result.ProjectUpdates);
         AssertEx.SetEqual(["P"], result.ProjectsToRestart.Select(p => solution.GetRequiredProject(p.Key).Name));
         AssertEx.SetEqual(["P"], result.ProjectsToRebuild.Select(p => solution.GetRequiredProject(p).Name));
+        Assert.True(result.HasPendingUpdates);
 
         // Emulate the user making choice to not restart.
         // dotnet-watch then waits until Ctrl+R forces restart.
@@ -122,6 +125,7 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
         Assert.Empty(result.ProjectUpdates);
         Assert.Empty(result.ProjectsToRestart);
         Assert.Empty(result.ProjectsToRebuild);
+        Assert.False(result.HasPendingUpdates);
 
         updatedText = await GetCommittedDocumentTextAsync(hotReload, documentIdA);
         Assert.Equal(source3, updatedText.ToString());
@@ -146,6 +150,7 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
         Assert.Empty(result.ProjectUpdates);
         Assert.Empty(result.ProjectsToRestart);
         Assert.Empty(result.ProjectsToRebuild);
+        Assert.False(result.HasPendingUpdates);
 
         hotReload.EndSession();
     }
@@ -204,6 +209,8 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
         var diagnostic = result.PersistentDiagnostics.Single();
         Assert.Equal("CS8785", diagnostic.Id);
         Assert.Contains("Source generator failed", diagnostic.GetMessage());
+        Assert.False(result.HasPendingUpdates);
+
         hotReload.EndSession();
     }
 
@@ -249,6 +256,11 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
         AssertEx.Equal(
             [$"A: {generatedDoc.FilePath}: (0,26)-(0,42): Error ENC0023: {string.Format(FeaturesResources.Adding_an_abstract_0_or_overriding_an_inherited_0_requires_restarting_the_application, FeaturesResources.method)}"],
             InspectDiagnostics(result.TransientDiagnostics));
+
+        Assert.True(result.HasPendingUpdates);
+        Assert.NotEmpty(result.ProjectsToRebuild);
+        hotReload.DiscardUpdate();
+        hotReload.EndSession();
     }
 
     [Fact]
@@ -295,6 +307,11 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
         AssertEx.Equal(
             [$"A: {generatedDoc.FilePath}: (0,26)-(0,42): Error ENC0023: {string.Format(FeaturesResources.Adding_an_abstract_0_or_overriding_an_inherited_0_requires_restarting_the_application, FeaturesResources.method)}"],
             InspectDiagnostics(result.TransientDiagnostics));
+
+        Assert.True(result.HasPendingUpdates);
+        Assert.NotEmpty(result.ProjectsToRebuild);
+        hotReload.DiscardUpdate();
+        hotReload.EndSession();
     }
 
     [Theory]
@@ -334,6 +351,7 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
         Assert.Empty(result.ProjectUpdates);
         Assert.Empty(result.ProjectsToRestart);
         Assert.Empty(result.ProjectsToRebuild);
+        Assert.False(result.HasPendingUpdates);
 
         var message = string.Format(
             FeaturesResources.Changing_source_file_0_in_a_stale_project_1_has_no_effect_until_the_project_is_rebuilt_2,
@@ -395,6 +413,11 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
         AssertEx.Equal(
             [$"A: {generatedDoc.FilePath}: (0,26)-(0,42): Error ENC0023: {string.Format(FeaturesResources.Adding_an_abstract_0_or_overriding_an_inherited_0_requires_restarting_the_application, FeaturesResources.method)}"],
             InspectDiagnostics(result.TransientDiagnostics));
+
+        Assert.True(result.HasPendingUpdates);
+        Assert.NotEmpty(result.ProjectsToRebuild);
+        hotReload.DiscardUpdate();
+        hotReload.EndSession();
     }
 
     [Theory]

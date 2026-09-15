@@ -1,0 +1,6 @@
+﻿[0000] OpenElement("div")
+[0001] AddContent(context.ToLowerInvariant())
+[0002] OpenComponent<global::Test.MyComponent>()
+[0003] AddComponentParameter(nameof(global::Test.MyComponent. Header ), (global::Microsoft.AspNetCore.Components.RenderFragment<global::System.String>)( header ))
+[0004] AddAttribute("ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => { __builder2.AddMarkupContent(5, "\r\n Some Content\r\n"); } ))
+[0005] AddMarkupContent("\r\n Some Content\r\n")

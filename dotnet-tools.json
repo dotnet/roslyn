@@ -1,19 +1,18 @@
 {
   "isRoot": true,
   "tools": {
-    "dotnet-format": {
-      "version": "7.0.360304",
-      "commands": [
-        "dotnet-format"
-      ],
-      "rollForward": false
-    },
     "powershell": {
       "version": "7.6.0",
       "commands": [
         "pwsh"
       ],
       "rollForward": false
+    },
+    "microsoft.dotnet.helix.jobmonitor": {
+      "version": "11.0.0-beta.26427.10",
+      "commands": [
+        "dotnet-helix-job-monitor"
+      ]
     }
   }
 }

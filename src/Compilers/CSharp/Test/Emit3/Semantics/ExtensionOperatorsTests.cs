@@ -4281,6 +4281,48 @@ class Program
 
         [Theory]
         [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84538")]
+        public void Unary_075_Consumption_Checked([CombinatorialValues("struct", "class")] string typeKind)
+        {
+            var src1 = $$$"""
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static C1 operator -(C1 x)
+        {
+            System.Console.Write("regular");
+            return x;
+        }
+    }
+}
+
+public static class Extensions2
+{
+    extension(C1)
+    {
+        public static C1 operator checked -(C1 x)
+        {
+            System.Console.Write("checked");
+            return x;
+        }
+    }
+}
+
+public {{{typeKind}}} C1;
+""";
+
+            var comp1 = CreateCompilation(src1);
+            var op1 = (MethodSymbol)comp1.GetTypeByMetadataName("Extensions1").GetTypeMember("").GetMembers().Single();
+            var op2 = (MethodSymbol)comp1.GetTypeByMetadataName("Extensions2").GetTypeMember("").GetMembers().Single();
+
+            Assert.NotEqual(OverloadResolution.PairedExtensionOperatorSignatureComparer.Instance.GetHashCode(op1),
+                            OverloadResolution.PairedExtensionOperatorSignatureComparer.Instance.GetHashCode(op2));
+            Assert.False(OverloadResolution.PairedExtensionOperatorSignatureComparer.Instance.Equals(op1, op2));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void Increment_001_Declaration([CombinatorialValues("++", "--")] string op)
         {
             var src = $$$"""

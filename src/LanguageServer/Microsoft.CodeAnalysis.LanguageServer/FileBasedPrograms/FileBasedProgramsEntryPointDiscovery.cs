@@ -1,18 +1,18 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System.Buffers;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.IO.Enumeration;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Features.Workspaces;
+using Microsoft.CodeAnalysis.FileBasedPrograms;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -20,7 +20,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.Extensions.Logging;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -35,12 +35,23 @@ internal sealed class FileBasedProgramsEntryPointDiscoveryFactory(IGlobalOptionS
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
-        return new FileBasedProgramsEntryPointDiscovery(globalOptionService, listenerProvider.GetListener(FeatureAttribute.Workspace), lspServices.GetRequiredService<ILoggerFactory>(), lspServices);
+        return new FileBasedProgramsEntryPointDiscovery(
+            globalOptionService,
+            listenerProvider.GetListener(FeatureAttribute.Workspace),
+            lspServices.GetRequiredService<IHostWorkspaceProvider>().Workspace.Services.GetRequiredService<IFileBasedProgramService>(),
+            lspServices.GetRequiredService<ILoggerFactory>().CreateLogger<FileBasedProgramsEntryPointDiscovery>(),
+            lspServices.GetRequiredService<IWorkspaceFolderTracker>(),
+            lspServices);
     }
 }
 
 internal sealed partial class FileBasedProgramsEntryPointDiscovery(
-    IGlobalOptionService globalOptionService, IAsynchronousOperationListener listener, ILoggerFactory loggerFactory, LspServices lspServices) : ILspService, IOnInitialized
+    IGlobalOptionService globalOptionService,
+    IAsynchronousOperationListener listener,
+    IFileBasedProgramService fileBasedProgramService,
+    ILogger logger,
+    IWorkspaceFolderTracker workspaceFolderTracker,
+    LspServices lspServices) : ILspService, IOnInitialized, IDisposable
 {
     private static readonly StringComparer s_pathComparer = StringComparer.OrdinalIgnoreCase;
 
@@ -53,48 +64,56 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         "node_modules"
     ], StringComparison.OrdinalIgnoreCase);
 
-    private readonly ILogger _logger = loggerFactory.CreateLogger<FileBasedProgramsEntryPointDiscovery>();
-    private ImmutableArray<string> _workspaceFolders;
+    private readonly AsyncBatchingWorkQueue _discoveryQueue = new(
+        TimeSpan.Zero,
+        cancellationToken => FindAndLoadEntryPointsAsync(globalOptionService, fileBasedProgramService, workspaceFolderTracker, lspServices, logger, cancellationToken),
+        listener);
 
     public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
-        var initializeManager = context.GetRequiredService<IInitializeManager>();
-        _workspaceFolders = initializeManager.GetRequiredWorkspaceFolderPaths();
-        Task.Run(async () =>
-        {
-            try
-            {
-                using var token = listener.BeginAsyncOperation(nameof(FindAndLoadEntryPointsAsync));
-                await FindAndLoadEntryPointsAsync();
-            }
-            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
-        }, cancellationToken);
+        workspaceFolderTracker.WorkspaceFoldersChanged += OnWorkspaceFoldersChanged;
+        _discoveryQueue.AddWork();
 
         return Task.CompletedTask;
     }
 
-    internal async Task FindAndLoadEntryPointsAsync()
-    {
-        Contract.ThrowIfTrue(_workspaceFolders.IsDefault, $"{nameof(OnInitializedAsync)} must be called before {nameof(FindAndLoadEntryPointsAsync)}.");
+    private void OnWorkspaceFoldersChanged(object? sender, EventArgs e)
+        => _discoveryQueue.AddWork();
 
-        if (_workspaceFolders.IsEmpty)
+    public void Dispose()
+    {
+        workspaceFolderTracker.WorkspaceFoldersChanged -= OnWorkspaceFoldersChanged;
+        _discoveryQueue.Dispose();
+    }
+
+    internal ValueTask FindAndLoadEntryPointsAsync(CancellationToken cancellationToken)
+        => FindAndLoadEntryPointsAsync(globalOptionService, fileBasedProgramService, workspaceFolderTracker, lspServices, logger, cancellationToken);
+
+    private static async ValueTask FindAndLoadEntryPointsAsync(
+        IGlobalOptionService globalOptionService,
+        IFileBasedProgramService fileBasedProgramService,
+        IWorkspaceFolderTracker workspaceFolderTracker,
+        LspServices lspServices,
+        ILogger logger,
+        CancellationToken cancellationToken)
+    {
+        var workspaceFolders = workspaceFolderTracker.GetRequiredWorkspaceFolderPaths();
+
+        if (workspaceFolders.IsEmpty)
         {
-            _logger.LogTrace("No workspace folders to search for file-based apps.");
+            logger.LogTrace("No workspace folders to search for file-based apps.");
             return;
         }
 
         if (!globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms))
         {
-            _logger.LogTrace(@"""dotnet.projects.enableFileBasedPrograms"" is false. Not discovering entry points.");
+            logger.LogTrace(@"""dotnet.projects.enableFileBasedPrograms"" is false. Not discovering entry points.");
             return;
         }
 
         if (!globalOptionService.GetOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery))
         {
-            _logger.LogTrace(@"""dotnet.fileBasedApps.enableAutomaticDiscovery"" is false. Not discovering entry points.");
+            logger.LogTrace(@"""dotnet.fileBasedApps.enableAutomaticDiscovery"" is false. Not discovering entry points.");
             return;
         }
 
@@ -103,10 +122,13 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
 
         // Note: the overwhelmingly common case is when there is just one workspace folder.
         // For simplicity we orient our search around one workspace folder at a time.
-        foreach (var workspaceFolder in _workspaceFolders)
+        foreach (var workspaceFolder in workspaceFolders)
         {
-            foreach (var fileBasedAppPath in FindEntryPoints(workspaceFolder))
+            cancellationToken.ThrowIfCancellationRequested();
+
+            foreach (var fileBasedAppPath in FindEntryPoints(workspaceFolder, fileBasedProgramService, logger))
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 await fileBasedProgramsProjectSystem.TryBeginLoadingFileBasedAppAsync(fileBasedAppPath);
             }
         }
@@ -114,7 +136,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         // Discovery pass done. Find and delete old caches.
         IOUtilities.PerformIO(() =>
         {
-            using var enumerator = new OldCacheEnumerator();
+            using var enumerator = new OldCacheEnumerator(fileBasedProgramService);
             while (enumerator.MoveNext())
             {
                 IOUtilities.PerformIO(() => Directory.Delete(enumerator.Current, recursive: true));
@@ -122,8 +144,8 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         });
     }
 
-    private sealed class OldCacheEnumerator() : FileSystemEnumerator<string>(
-        directory: VirtualProjectXmlProvider.GetDiscoveryCacheRootDirectory(),
+    private sealed class OldCacheEnumerator(IFileBasedProgramService fileBasedProgramService) : FileSystemEnumerator<string>(
+        directory: fileBasedProgramService.GetDiscoveryCacheRootDirectory(),
         options: new() { RecurseSubdirectories = false })
     {
         // Yield cache directories that have not been modified in 30 days (indicates they are stale and should be deleted)
@@ -138,9 +160,12 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
     }
 
     internal ImmutableArray<string> FindEntryPoints(string workspaceFolder)
+        => FindEntryPoints(workspaceFolder, fileBasedProgramService, logger);
+
+    private static ImmutableArray<string> FindEntryPoints(string workspaceFolder, IFileBasedProgramService fileBasedProgramService, ILogger logger)
     {
         var stopwatch = SharedStopwatch.StartNew();
-        var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(workspaceFolder);
+        var cacheDirectory = fileBasedProgramService.GetDiscoveryCacheDirectory(workspaceFolder);
         var cacheFilePath = Path.Join(cacheDirectory, "cache.json");
         Cache? cache = null;
         try
@@ -162,7 +187,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         }
         catch (Exception ex)
         {
-            _logger.LogDebug("Could not read cache file: {ex.Message}", ex.Message);
+            logger.LogDebug("Could not read cache file: {ex.Message}", ex.Message);
         }
 
         cache ??= new Cache(workspaceFolder, DateTimeOffset.MinValue, FileBasedAppFullPaths: [], DirectoriesContainingCsproj: []);
@@ -185,10 +210,10 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
 
         var newFileBasedAppsBuilder = ArrayBuilder<string>.GetInstance(cache.FileBasedAppFullPaths.Length);
         var directoriesContainingCsprojBuilder = ArrayBuilder<string>.GetInstance(cache.DirectoriesContainingCsproj.Length);
-        var visitor = new WorkspaceFolderVisitor(cache, newFileBasedAppsBuilder, directoriesContainingCsprojBuilder, _logger);
+        var visitor = new WorkspaceFolderVisitor(cache, newFileBasedAppsBuilder, directoriesContainingCsprojBuilder, logger);
         visitor.Visit();
         var elapsedMilliseconds = Math.Round(stopwatch.Elapsed.TotalMilliseconds);
-        _logger.LogInformation("Finished discovery in '{workspaceFolder}' in {elapsedMilliseconds} milliseconds", workspaceFolder, elapsedMilliseconds);
+        logger.LogInformation("Finished discovery in '{workspaceFolder}' in {elapsedMilliseconds} milliseconds", workspaceFolder, elapsedMilliseconds);
 
         // Ensure items go into the cache file in a stable order.
         // This is useful for manual inspection and allows use of 'BinarySearch' to match directories against the cache.

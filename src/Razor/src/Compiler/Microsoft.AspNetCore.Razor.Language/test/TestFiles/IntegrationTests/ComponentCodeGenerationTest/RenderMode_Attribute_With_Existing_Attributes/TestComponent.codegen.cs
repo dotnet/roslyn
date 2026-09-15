@@ -50,17 +50,6 @@ P1
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (4,2)-(8,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    [Parameter]public string P1 {get; set;}
-
-    [Parameter]public string P2 {get; set;}
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

@@ -25,6 +25,7 @@ pr:
     - release/*
     - features/*
     - demos/*
+    - dev/*
     exclude:
     # Since the version of VS on the integration VM images are a moving target,
     # we are unable to reliably run integration tests on servicing branches.
@@ -36,6 +37,8 @@ pr:
       - docs/*
       - eng/config/OptProf.json
       - eng/config/PublishData.json
+      - eng/pipelines/insert.yml
+      - eng/pipelines/insertion-pr-tagger.yml
       - eng/setup-pr-validation.ps1
       - .vscode/*
       - .github/*

@@ -33,21 +33,30 @@ internal static class ContractWrappers
         => new((InternalContracts.ManagedHotReloadAvailabilityStatus)value.Status, value.LocalizedMessage);
 
     public static ManagedHotReloadUpdate FromContract(this InternalContracts.ManagedHotReloadUpdate update)
-        => new(
-            module: update.Module,
-            moduleName: update.ModuleName,
-            ilDelta: update.ILDelta,
-            metadataDelta: update.MetadataDelta,
-            pdbDelta: update.PdbDelta,
-            updatedTypes: update.UpdatedTypes,
-            requiredCapabilities: update.RequiredCapabilities,
-            updatedMethods: update.UpdatedMethods,
-            sequencePoints: update.SequencePoints.SelectAsArray(FromContract),
-            activeStatements: update.ActiveStatements.SelectAsArray(FromContract),
-            exceptionRegions: update.ExceptionRegions.SelectAsArray(FromContract));
+        => new()
+        {
+            Module = update.Module,
+            ModuleName = update.ModuleName,
+            ILDelta = update.ILDelta,
+            MetadataDelta = update.MetadataDelta,
+            PdbDelta = update.PdbDelta,
+            UpdatedTypes = update.UpdatedTypes,
+            RequiredCapabilities = update.RequiredCapabilities,
+            UpdatedMethods = update.UpdatedMethods,
+            SequencePoints = update.SequencePoints.SelectAsArray(FromContract),
+            ActiveStatements = update.ActiveStatements.SelectAsArray(FromContract),
+            ExceptionRegions = update.ExceptionRegions.SelectAsArray(FromContract)
+        };
 
     public static ManagedHotReloadUpdates FromContract(this InternalContracts.ManagedHotReloadUpdates updates)
-        => new(updates.Updates.FromContract(), updates.Diagnostics.FromContract(), updates.ProjectsToRebuild.SelectAsArray(FromContract), updates.ProjectsToRestart.SelectAsArray(FromContract));
+        => new()
+        {
+            Updates = updates.Updates.FromContract(),
+            Diagnostics = updates.Diagnostics.FromContract(),
+            ProjectInstancesToRebuild = updates.ProjectsToRebuild.SelectAsArray(FromContract),
+            ProjectInstancesToRestart = updates.ProjectsToRestart.SelectAsArray(FromContract),
+            HasPendingUpdates = updates.HasPendingUpdates,
+        };
 
     public static ImmutableArray<ManagedHotReloadUpdate> FromContract(this ImmutableArray<InternalContracts.ManagedHotReloadUpdate> diagnostics)
         => diagnostics.SelectAsArray(FromContract);

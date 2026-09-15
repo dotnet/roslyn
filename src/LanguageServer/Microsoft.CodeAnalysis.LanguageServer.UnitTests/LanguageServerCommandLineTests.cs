@@ -9,9 +9,10 @@ public sealed class LanguageServerCommandLineTests
     private static async Task<ServerConfiguration?> ParseAsync(params string[] args)
     {
         ServerConfiguration? configuration = null;
-        var command = LanguageServerCommandLine.CreateCommand(async (c, _) =>
+        var command = LanguageServerCommandLine.CreateCommand((c, _) =>
         {
             configuration = c;
+            return Task.FromResult(0);
         });
 
         var exitCode = await command.Parse(args).InvokeAsync(cancellationToken: CancellationToken.None);
@@ -55,6 +56,37 @@ public sealed class LanguageServerCommandLineTests
     public async Task AutoLoadProjects_SpecifiedWithNonPositiveValue_FailsParse(string value)
     {
         var configuration = await ParseAsync("--autoLoadProjects", value);
+        Assert.Null(configuration);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(42)]
+    public async Task DaemonKeepAlive_NonNegativeValue_UsesProvidedSeconds(int value)
+    {
+        var configuration = await ParseAsync("--daemonKeepAlive", value.ToString());
+
+        Assert.NotNull(configuration);
+        Assert.Equal(TimeSpan.FromSeconds(value), configuration.DaemonKeepAlive);
+    }
+
+    [Fact]
+    public async Task DaemonKeepAlive_NegativeOne_IsInfinite()
+    {
+        var configuration = await ParseAsync("--daemonKeepAlive", "-1");
+
+        Assert.NotNull(configuration);
+        Assert.Equal(Timeout.InfiniteTimeSpan, configuration.DaemonKeepAlive);
+    }
+
+    [Theory]
+    [InlineData("-2")]
+    [InlineData("-42")]
+    [InlineData("notanumber")]
+    public async Task DaemonKeepAlive_InvalidValue_FailsParse(string value)
+    {
+        var configuration = await ParseAsync("--daemonKeepAlive", value);
         Assert.Null(configuration);
     }
 }

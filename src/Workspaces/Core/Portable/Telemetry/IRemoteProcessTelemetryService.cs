@@ -2,20 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
 internal interface IRemoteProcessTelemetryService
 {
-    /// <summary>
-    /// Enables logging of <paramref name="functionIds"/> using loggers of the specified <paramref name="loggerTypeNames"/>.
-    /// </summary>
-    ValueTask EnableLoggingAsync(ImmutableArray<string> loggerTypeNames, ImmutableArray<FunctionId> functionIds, CancellationToken cancellationToken);
-
     /// <summary>
     /// Initializes telemetry session.
     /// </summary>

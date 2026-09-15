@@ -161,6 +161,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         break;
                     }
 
+                case BoundKind.RefArrayAccess:
+                    var right = (BoundRefArrayAccess)expression;
+                    Debug.Assert(HasHome(right, addressKind));
+                    EmitRefAssignmentValue(RefKind.Ref, right.ArrayAccess);
+                    break;
+
                 case BoundKind.ThrowExpression:
                     // emit value or address is the same here.
                     EmitExpression(expression, used: true);

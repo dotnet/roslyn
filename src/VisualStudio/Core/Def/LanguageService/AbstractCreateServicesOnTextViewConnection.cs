@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -43,7 +42,6 @@ internal abstract class AbstractCreateServicesOnTextViewConnection : IWpfTextVie
         VisualStudioWorkspace workspace,
         IGlobalOptionService globalOptions,
         IAsynchronousOperationListenerProvider listenerProvider,
-        IThreadingContext threadingContext,
         string languageName)
     {
         Workspace = workspace;
@@ -54,14 +52,16 @@ internal abstract class AbstractCreateServicesOnTextViewConnection : IWpfTextVie
                 TimeSpan.FromSeconds(1),
                 BatchProcessProjectsWithOpenedDocumentAsync,
                 EqualityComparer<ProjectId?>.Default,
-                listenerProvider.GetListener(FeatureAttribute.CompletionSet),
-                threadingContext.DisposalToken);
+                listenerProvider.GetListener(FeatureAttribute.CompletionSet));
 
         _workspaceDocumentOpenedDisposer = Workspace.RegisterDocumentOpenedHandler(QueueWorkOnDocumentOpened);
     }
 
     public void Dispose()
-        => _workspaceDocumentOpenedDisposer.Dispose();
+    {
+        _workspaceDocumentOpenedDisposer.Dispose();
+        _workQueue.Dispose();
+    }
 
     void IWpfTextViewConnectionListener.SubjectBuffersConnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
     {

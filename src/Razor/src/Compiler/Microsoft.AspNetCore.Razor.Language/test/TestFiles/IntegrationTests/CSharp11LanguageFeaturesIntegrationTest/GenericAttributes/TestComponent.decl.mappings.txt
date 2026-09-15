@@ -1,0 +1,23 @@
+﻿Source Location: (7:0,7 [153] x:\dir\subdir\Test\TestComponent.razor)
+|
+    public class GenericAttribute<T> : System.Attribute
+    {
+    }
+    
+    [GenericAttribute<string>]
+    public class Decorated
+    {
+    }
+|
+Generated Location: (557:18,0 [153] )
+|
+    public class GenericAttribute<T> : System.Attribute
+    {
+    }
+    
+    [GenericAttribute<string>]
+    public class Decorated
+    {
+    }
+|
+

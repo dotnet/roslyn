@@ -12,5 +12,3 @@
                         IntermediateToken - (16:0,16 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - MyType
                     ComponentAttribute - (33:0,33 [28] x:\dir\subdir\Test\TestComponent.cshtml) - OnClick - OnClick - AttributeStructure.DoubleQuotes
                         LazyIntermediateToken - (35:0,35 [25] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - (MyType arg) => counter++
-            CSharpCode - (75:2,7 [28] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (75:2,7 [28] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private int counter;\n

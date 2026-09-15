@@ -4877,39 +4877,23 @@ unsafe class D
                 // (11,28): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //             return (IntPtr)(void*)null;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "(void*)null").WithLocation(11, 28),
-                // (47,13): error CS4004: Cannot await in an unsafe context
+                // (47,13): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             await Task.Delay(3);
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(3)").WithLocation(47, 13),
-                // (22,17): error CS4004: Cannot await in an unsafe context
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("updated memory safety rules").WithLocation(47, 13),
+                // (22,17): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //                 await Task.Delay(1);
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(1)").WithLocation(22, 17),
-                // (59,17): error CS4004: Cannot await in an unsafe context
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("updated memory safety rules").WithLocation(22, 17),
+                // (59,17): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //                 await Task.Delay(4);
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(4)").WithLocation(59, 17),
-                // (33,13): error CS4004: Cannot await in an unsafe context
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("updated memory safety rules").WithLocation(59, 17),
+                // (33,13): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             await Task.Delay(2);
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(2)").WithLocation(33, 13));
-
-            var expectedPreviewDiagnostics = new[]
-            {
-                // (47,13): error CS4004: Cannot await in an unsafe context
-                //             await Task.Delay(3);
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(3)").WithLocation(47, 13),
-                // (22,17): error CS4004: Cannot await in an unsafe context
-                //                 await Task.Delay(1);
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(1)").WithLocation(22, 17),
-                // (59,17): error CS4004: Cannot await in an unsafe context
-                //                 await Task.Delay(4);
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(4)").WithLocation(59, 17),
-                // (33,13): error CS4004: Cannot await in an unsafe context
-                //             await Task.Delay(2);
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(2)").WithLocation(33, 13)
-            };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("updated memory safety rules").WithLocation(33, 13));
 
             CreateCompilationWithMscorlib46(source, options: TestOptions.UnsafeDebugDll)
-                .VerifyDiagnostics(expectedPreviewDiagnostics);
+                .VerifyEmitDiagnostics();
             CreateCompilationWithMscorlib46(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext)
-                .VerifyDiagnostics(expectedPreviewDiagnostics);
+                .VerifyEmitDiagnostics();
         }
 
         [Fact, WorkItem(16167, "https://github.com/dotnet/roslyn/issues/16167")]

@@ -287,6 +287,17 @@ public partial class SyntacticClassifierTests
             String("../path/to/lib.csproj"));
 
     [Theory, CombinatorialData]
+    public Task FileBasedApps_Ref_01(TestHost testHost)
+        => TestAsync("""
+            #:ref ../utils/Helper.cs
+            """,
+            testHost,
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword("ref"),
+            String("../utils/Helper.cs"));
+
+    [Theory, CombinatorialData]
     public Task FileBasedApps_Include_01(TestHost testHost)
         => TestAsync("""
             #:include src/**/*.cs

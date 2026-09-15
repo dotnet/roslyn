@@ -340,7 +340,11 @@ internal sealed class EditSession
             return false;
         }
 
-        if (AbstractEditAndContinueAnalyzer.EnableProjectLevelAnalysis && HasProjectLevelDifferences(oldProject, newProject, differences) && differences == null)
+        // Check for project differences even when AbstractEditAndContinueAnalyzer.EnableProjectLevelAnalysis is false.
+        // A project-level change may be used by a source generator to produce different outputs.
+        // We assume that a source generator will not produce different outputs if the project state
+        // and content of all input documents are the same.
+        if (HasProjectLevelDifferences(oldProject, newProject, differences) && differences == null)
         {
             return true;
         }
@@ -494,7 +498,14 @@ internal sealed class EditSession
             .WithXmlReferenceResolver(newOptions.XmlReferenceResolver)
             .Equals(newOptions);
 
-    internal static async Task GetProjectDifferencesAsync(TraceLog log, Project? oldProject, Project newProject, ProjectDifferences documentDifferences, ArrayBuilder<Diagnostic> diagnostics, CancellationToken cancellationToken)
+    internal static async Task GetProjectDifferencesAsync(
+        TraceLog log,
+        Project? oldProject,
+        Project newProject,
+        ProjectDifferences documentDifferences,
+        ArrayBuilder<Diagnostic> diagnostics,
+        EditAndContinueDiagnosticLevel diagnosticLevel,
+        CancellationToken cancellationToken)
     {
         documentDifferences.Clear();
 
@@ -503,8 +514,12 @@ internal sealed class EditSession
             return;
         }
 
-        if (!await HasDifferencesAsync(oldProject, newProject, documentDifferences, cancellationToken).ConfigureAwait(false))
+        var hasNonGeneratedDifferences = await HasDifferencesAsync(oldProject, newProject, documentDifferences, cancellationToken).ConfigureAwait(false);
+        if (!hasNonGeneratedDifferences && diagnosticLevel == EditAndContinueDiagnosticLevel.None)
         {
+            // When not running in diagnostic mode we expect source generators to be deterministic
+            // and not produce any changes if the project state and content of all input documents are the same.
+            // Therefore, we can avoid computing the source generated document states.
             return;
         }
 
@@ -545,6 +560,25 @@ internal sealed class EditSession
             }
 
             documentDifferences.DeletedDocuments.Add(oldProject.GetOrCreateSourceGeneratedDocument(oldState));
+        }
+
+        if (!hasNonGeneratedDifferences)
+        {
+            Contract.ThrowIfTrue(diagnosticLevel == EditAndContinueDiagnosticLevel.None);
+
+            foreach (var newDocument in documentDifferences.ChangedOrAddedDocuments)
+            {
+                log.Write($"Source-generated document '{newDocument.FilePath}' changed even though there are no differences in the project. The generator is faulty.", LogMessageSeverity.Warning);
+            }
+
+            foreach (var document in documentDifferences.DeletedDocuments)
+            {
+                log.Write($"Source-generated document '{document.FilePath}' has been deleted even though there are no differences in the project. The generator is faulty.", LogMessageSeverity.Warning);
+            }
+
+            // Keep the changed documents in the result.
+            // This modifies the behavior compared to non-diagnostic mode,
+            // but it allows to work around the issue with the source generator.
         }
     }
 
@@ -1156,7 +1190,7 @@ internal sealed class EditSession
                         continue;
                     }
 
-                    await GetProjectDifferencesAsync(Log, oldProject, newProject, projectDifferences, projectDiagnostics, cancellationToken).ConfigureAwait(false);
+                    await GetProjectDifferencesAsync(Log, oldProject, newProject, projectDifferences, projectDiagnostics, DebuggingSession.DiagnosticLevel, cancellationToken).ConfigureAwait(false);
                     projectDifferences.Log(Log, newProject);
 
                     if (projectDifferences.IsEmpty)
@@ -1597,7 +1631,11 @@ internal sealed class EditSession
 
         bool LogException(Exception e)
         {
-            Log.Write($"Exception while emitting update: {e}", LogMessageSeverity.Error);
+            if (e is not OperationCanceledException)
+            {
+                Log.Write($"Exception while emitting update: {e}", LogMessageSeverity.Error);
+            }
+
             return true;
         }
     }

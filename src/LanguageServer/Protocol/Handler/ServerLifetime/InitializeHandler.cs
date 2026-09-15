@@ -22,9 +22,7 @@ internal sealed class InitializeHandler() : ILspServiceRequestHandler<Initialize
         var clientCapabilitiesManager = context.GetRequiredLspService<IInitializeManager>();
         var clientCapabilities = request.Capabilities;
         clientCapabilitiesManager.SetInitializeParams(request);
-
-        if (request.ProcessId is int clientProcessId && RoslynLanguageServer.TryRegisterClientProcessId(clientProcessId))
-            context.Logger.LogInformation("Monitoring client process {clientProcessId} for exit", clientProcessId);
+        context.GetRequiredLspService<IWorkspaceFolderTracker>().Update(request.WorkspaceFolders, removedFolders: null);
 
         var lspServices = context.GetRequiredService<ILspServices>();
         var capabilitiesProvider = context.GetRequiredLspService<ICapabilitiesProvider>();

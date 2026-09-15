@@ -54,6 +54,7 @@ internal sealed class CohostConfigurationChangedService(
                 // Note: VS Code settings use snake_case, so this is "auto_closing_tags" not "autoClosingTags"
                 // TypeScript code in the VS Code extension converts between camelCase and snake_case
                 new ConfigurationItem { Section = "html.auto_closing_tags" },
+                new ConfigurationItem { Section = "razor.advanced.show_all_c_sharp_code_actions" },
             ]
         };
 
@@ -76,6 +77,7 @@ internal sealed class CohostConfigurationChangedService(
             AttributeIndentStyle = GetEnumOptionValue(TryGetElement(jsonArray, 1), settings.AttributeIndentStyle),
             CommitElementsWithSpace = GetBooleanOptionValue(TryGetElement(jsonArray, 2), settings.CommitElementsWithSpace),
             AutoClosingTags = GetBooleanOptionValue(TryGetElement(jsonArray, 3), settings.AutoClosingTags),
+            ShowAllCSharpCodeActions = GetBooleanOptionValue(TryGetElement(jsonArray, 4), settings.ShowAllCSharpCodeActions),
         };
     }
 

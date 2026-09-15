@@ -186,7 +186,7 @@ public sealed class ProtectedKeywordRecommenderTests : KeywordRecommenderTests
         => VerifyAbsenceAsync("""
             union U(int) {
                $$
-            """, CSharpNextParseOptions, CSharpNextScriptParseOptions);
+            """, CSharp15ParseOptions, CSharp15ScriptParseOptions);
 
     [Fact]
     public Task TestInsideInterface()

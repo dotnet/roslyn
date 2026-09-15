@@ -7,6 +7,8 @@ public sealed class TagHelperHtmlAttributeIntermediateNode : IntermediateNode
 {
     public required string AttributeName { get; init; }
     public required AttributeStructure AttributeStructure { get; init; }
+    internal SourceSpan? AttributeNameSpan { get; init; }
+    internal bool IsDirectiveAttributeCandidate { get; init; }
 
     public override IntermediateNodeCollection Children { get => field ??= []; }
 

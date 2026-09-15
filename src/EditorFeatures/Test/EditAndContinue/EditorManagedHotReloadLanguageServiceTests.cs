@@ -111,7 +111,7 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
             (!string.IsNullOrWhiteSpace(d.DataLocation.UnmappedFileSpan.Path) ? $" {d.DataLocation.UnmappedFileSpan.Path}({d.DataLocation.UnmappedFileSpan.StartLinePosition.Line}, {d.DataLocation.UnmappedFileSpan.StartLinePosition.Character}, {d.DataLocation.UnmappedFileSpan.EndLinePosition.Line}, {d.DataLocation.UnmappedFileSpan.EndLinePosition.Character}):" : "") +
             $" {d.Message}";
 
-    private static string Inspect(Microsoft.VisualStudio.Debugger.Contracts.HotReload.ManagedHotReloadDiagnostic d)
+    private static string Inspect(DebuggerContracts.ManagedHotReloadDiagnostic d)
         => $"{d.Severity} {d.Id}:" +
             (!string.IsNullOrWhiteSpace(d.FilePath) ? $" {d.FilePath}({d.Span.StartLine}, {d.Span.StartColumn}, {d.Span.EndLine}, {d.Span.EndColumn}):" : "") +
             $" {d.Message}";
@@ -129,7 +129,7 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
 
         ((MockServiceBroker)workspace.Services.GetRequiredService<IServiceBrokerProvider>().ServiceBroker).CreateService = t => t switch
         {
-            _ when t == typeof(Microsoft.VisualStudio.Debugger.Contracts.HotReload.IHotReloadLogger) => new MockHotReloadLogger(),
+            _ when t == typeof(DebuggerContracts.IHotReloadLogger) => new MockHotReloadLogger(),
             _ => throw ExceptionUtilities.UnexpectedValue(t)
         };
 
@@ -147,39 +147,60 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
         return workspace;
     }
 
+    private class TestContext : IDisposable
+    {
+        public readonly TestWorkspace LocalWorkspace;
+        public readonly PdbMatchingSourceTextProvider PdbMatchingSourceTextProvider;
+        public readonly MockEditAndContinueService MockEncService;
+        public readonly ManagedHotReloadLanguageService LocalService;
+
+        public TestContext()
+        {
+            var localComposition = EditorTestCompositions.LanguageServerProtocolEditorFeatures
+                .AddExcludedPartTypes(
+                    typeof(EditAndContinueService.WorkspaceServiceFactory))
+                .AddParts(
+                    typeof(NoCompilationLanguageService),
+                    typeof(MockHostWorkspaceProvider),
+                    typeof(MockServiceBrokerProvider),
+                    typeof(MockEditAndContinueServiceFactory),
+                    typeof(MockManagedHotReloadService));
+
+            LocalWorkspace = new TestWorkspace(composition: localComposition);
+
+            var globalOptions = LocalWorkspace.GetService<IGlobalOptionService>();
+            ((MockHostWorkspaceProvider)LocalWorkspace.GetService<IHostWorkspaceProvider>()).Workspace = LocalWorkspace;
+
+            ((MockServiceBroker)LocalWorkspace.Services.GetRequiredService<IServiceBrokerProvider>().ServiceBroker).CreateService = t => t switch
+            {
+                _ when t == typeof(DebuggerContracts.IHotReloadLogger) => new MockHotReloadLogger(),
+                _ => throw ExceptionUtilities.UnexpectedValue(t)
+            };
+
+            MockEncService = (MockEditAndContinueService)LocalWorkspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
+
+            var localFactory = LocalWorkspace.GetService<ManagedHotReloadLanguageServiceFactory>();
+            var localBroker = LocalWorkspace.Services.GetRequiredService<IServiceBrokerProvider>().ServiceBroker;
+            var localSnapshotProvider = LocalWorkspace.GetService<ISolutionSnapshotProvider>();
+            PdbMatchingSourceTextProvider = new PdbMatchingSourceTextProvider(LocalWorkspace);
+            LocalService = localFactory.Create(localBroker, localSnapshotProvider, LocalWorkspace.GetService<IHostWorkspaceProvider>(), PdbMatchingSourceTextProvider);
+        }
+
+        public void Dispose()
+        {
+            LocalWorkspace.Dispose();
+            PdbMatchingSourceTextProvider.Dispose();
+        }
+    }
+
     [Theory, CombinatorialData]
     public async Task Test(bool commitChanges)
     {
-        var localComposition = EditorTestCompositions.LanguageServerProtocolEditorFeatures
-            .AddExcludedPartTypes(
-                typeof(EditAndContinueService.WorkspaceServiceFactory))
-            .AddParts(
-                typeof(NoCompilationLanguageService),
-                typeof(MockHostWorkspaceProvider),
-                typeof(MockServiceBrokerProvider),
-                typeof(MockEditAndContinueServiceFactory),
-                typeof(MockManagedHotReloadService));
+        using var context = new TestContext();
 
-        using var localWorkspace = new TestWorkspace(composition: localComposition);
-
-        var globalOptions = localWorkspace.GetService<IGlobalOptionService>();
-        ((MockHostWorkspaceProvider)localWorkspace.GetService<IHostWorkspaceProvider>()).Workspace = localWorkspace;
-
-        ((MockServiceBroker)localWorkspace.Services.GetRequiredService<IServiceBrokerProvider>().ServiceBroker).CreateService = t => t switch
-        {
-            _ when t == typeof(DebuggerContracts.IHotReloadLogger) => new MockHotReloadLogger(),
-            _ => throw ExceptionUtilities.UnexpectedValue(t)
-        };
-
-        MockEditAndContinueService mockEncService;
-
-        mockEncService = (MockEditAndContinueService)localWorkspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
-
-        var localFactory = localWorkspace.GetService<ManagedHotReloadLanguageServiceFactory>();
-        var localBroker = localWorkspace.Services.GetRequiredService<IServiceBrokerProvider>().ServiceBroker;
-        var localSnapshotProvider = localWorkspace.GetService<ISolutionSnapshotProvider>();
-        using var pdbMatchingSourceTextProvider = new PdbMatchingSourceTextProvider(localWorkspace);
-        var localService = localFactory.Create(localBroker, localSnapshotProvider, localWorkspace.GetService<IHostWorkspaceProvider>(), pdbMatchingSourceTextProvider);
+        var localWorkspace = context.LocalWorkspace;
+        var mockEncService = context.MockEncService;
+        var localService = context.LocalService;
 
         await localWorkspace.ChangeSolutionAsync(localWorkspace.CurrentSolution
             .AddTestProject("proj", out var projectId)
@@ -250,6 +271,7 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
 
             return new()
             {
+                SolutionAction = SolutionAction.PendingUpdate,
                 Solution = solution,
                 ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Ready, []),
                 Diagnostics =
@@ -279,8 +301,8 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
             };
         };
 
-        var runningProjectInfo = new Microsoft.VisualStudio.Debugger.Contracts.HotReload.RunningProjectInfo(
-            new Microsoft.VisualStudio.Debugger.Contracts.HotReload.ProjectInstanceId(project.FilePath, "net10.0"),
+        var runningProjectInfo = new DebuggerContracts.RunningProjectInfo(
+            new DebuggerContracts.ProjectInstanceId(project.FilePath, "net10.0"),
             restartAutomatically: false);
 
         var updates = await localService.GetUpdatesAsync([runningProjectInfo], CancellationToken.None);
@@ -322,6 +344,7 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
 
             return new()
             {
+                SolutionAction = SolutionAction.PendingUpdate,
                 Solution = solution,
                 ModuleUpdates = new ModuleUpdates(
                     ModuleUpdateStatus.Ready,
@@ -414,6 +437,84 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
         Assert.Equal(++observedDiagnosticVersion, diagnosticRefresher.GlobalStateVersion);
         Assert.Empty(sessionState.ApplyChangesDiagnostics);
         Assert.False(sessionState.IsSessionActive);
+    }
+
+    [Theory]
+    [InlineData(SolutionAction.None, null)]
+    [InlineData(SolutionAction.Committed, null)]
+    [InlineData(SolutionAction.PendingUpdate, true)]
+    [InlineData(SolutionAction.PendingUpdate, false)]
+    internal async Task SolutionActions(SolutionAction solutionAction, bool? commit)
+    {
+        using var context = new TestContext();
+
+        var localService = context.LocalService;
+        var localWorkspace = context.LocalWorkspace;
+        var serviceImpl = localService.Impl.GetTestAccessor();
+
+        context.MockEncService.StartDebuggingSessionImpl = (_, _, _, _) => new DebuggingSessionId(1);
+
+        context.MockEncService.EmitSolutionUpdateImpl = (solution, _, _) => new()
+        {
+            SolutionAction = solutionAction,
+            Solution = solution,
+            ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Ready, []),
+            Diagnostics = [],
+            SyntaxError = null,
+            ProjectsToRebuild = [],
+            ProjectsToRestart = [],
+            ProjectsToRedeploy = [],
+        };
+
+        await localService.StartSessionAsync(CancellationToken.None);
+
+        var initialSolution = localWorkspace.CurrentSolution;
+        Assert.Same(initialSolution, serviceImpl.CommittedSolution);
+
+        await localWorkspace.ChangeSolutionAsync(initialSolution.AddTestProject("proj", out var projectId).Solution);
+
+        var updatedSolution = localWorkspace.CurrentSolution;
+
+        await localService.GetUpdatesAsync(runningProjects: ImmutableArray<DebuggerContracts.RunningProjectInfo>.Empty, CancellationToken.None);
+
+        switch (solutionAction)
+        {
+            case SolutionAction.None:
+                Assert.Null(serviceImpl.PendingUpdatedSolution);
+                Assert.Same(initialSolution, serviceImpl.CommittedSolution);
+                break;
+
+            case SolutionAction.Committed:
+                Assert.Null(serviceImpl.PendingUpdatedSolution);
+                Assert.Same(updatedSolution, serviceImpl.CommittedSolution);
+                break;
+
+            case SolutionAction.PendingUpdate:
+                Assert.Same(updatedSolution, serviceImpl.PendingUpdatedSolution);
+                Assert.Same(initialSolution, serviceImpl.CommittedSolution);
+
+                if (commit.Value)
+                {
+                    await localService.CommitUpdatesAsync(CancellationToken.None);
+
+                    Assert.Null(serviceImpl.PendingUpdatedSolution);
+                    Assert.Same(updatedSolution, serviceImpl.CommittedSolution);
+                }
+                else
+                {
+                    await localService.DiscardUpdatesAsync(CancellationToken.None);
+
+                    Assert.Null(serviceImpl.PendingUpdatedSolution);
+                    Assert.Same(initialSolution, serviceImpl.CommittedSolution);
+                }
+
+                break;
+
+            default:
+                throw ExceptionUtilities.UnexpectedValue(solutionAction);
+        }
+
+        await localService.EndSessionAsync(CancellationToken.None);
     }
 
     [Fact]

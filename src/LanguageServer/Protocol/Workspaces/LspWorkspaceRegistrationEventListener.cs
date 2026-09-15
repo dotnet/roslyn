@@ -4,9 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Logger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
@@ -16,18 +14,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// Process-wide singleton that learns about workspaces from the MEF
 /// <see cref="IEventListener"/> infrastructure and exposes them to
 /// per-server <see cref="LspWorkspaceRegistrationService"/> instances.
+/// <para>
+/// Abstract so each host composition chooses which workspace kinds are shared process-wide. The standalone
+/// language server only shares the global <see cref="WorkspaceKind.MetadataAsSource"/> workspace across the
+/// (daemon-mode) servers in the process and registers each server's own Host/MiscellaneousFiles workspaces
+/// directly with that server's <see cref="LspWorkspaceRegistrationService"/> (so they stay isolated per server);
+/// Visual Studio hosts one workspace per process and shares all of them. The
+/// <see cref="LspWorkspaceRegistrationService"/> imports whichever concrete subclass the active MEF composition
+/// provides.
+/// </para>
 /// </summary>
-[ExportEventListener(
-    WellKnownEventListeners.Workspace,
-    WorkspaceKind.Host,
-    WorkspaceKind.MiscellaneousFiles,
-    WorkspaceKind.MetadataAsSource,
-    WorkspaceKind.Interactive,
-    WorkspaceKind.SemanticSearch), Shared]
-[Export(typeof(LspWorkspaceRegistrationEventListener))]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class LspWorkspaceRegistrationEventListener() : IEventListener
+internal abstract class LspWorkspaceRegistrationEventListener : IEventListener
 {
     private readonly object _gate = new();
     private ImmutableArray<Workspace> _registeredWorkspaces = [];

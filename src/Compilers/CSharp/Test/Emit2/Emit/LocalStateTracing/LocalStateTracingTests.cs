@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Runtime
             """
         };
 
-        private CompilationVerifier CompileAndVerify(string source, string? ilVerifyMessage = null, string? expectedOutput = null, TargetFramework targetFramework = s_targetFramework)
+        private CompilationVerifier CompileAndVerify(CSharpTestSource source, string? ilVerifyMessage = null, string? expectedOutput = null, TargetFramework targetFramework = s_targetFramework)
             => CompileAndVerify(
                 source,
                 options: (expectedOutput != null) ? TestOptions.UnsafeDebugExe : TestOptions.UnsafeDebugDll,
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Runtime
                 expectedOutput: expectedOutput);
 
         // Only used to diagnose test verification failures (rename CompileAndVerify to CompileAndVerifyFails and rerun).
-        public CompilationVerifier CompileAndVerifyFails(string source, string? ilVerifyMessage = null, string? expectedOutput = null)
+        public CompilationVerifier CompileAndVerifyFails(CSharpTestSource source, string? ilVerifyMessage = null, string? expectedOutput = null)
             => CompileAndVerify(
                 source,
                 options: (expectedOutput != null) ? TestOptions.UnsafeDebugExe : TestOptions.UnsafeDebugDll,
@@ -7447,6 +7447,50 @@ E.M: P'i1'[0] = 42
 M: L1 -> P'i1'[0]
 E.M: Returned
 Program.<Main>$: Returned
+""");
+        }
+
+        [Fact]
+        public void UnionDeclaration_01()
+        {
+            var source = WithHelpers(@"
+public union TestUnion(string, int);
+");
+            var verifier = CompileAndVerify([source, UnionAttributeSource, IUnionSource]);
+
+            AssertNotInstrumented(verifier, "TestUnion.Value.get");
+            AssertInstrumented(verifier, "TestUnion..ctor(string)");
+            verifier.VerifyIL("TestUnion..ctor(int)", $$"""
+{
+  // Code size       46 (0x2e)
+  .maxstack  3
+  .locals init (Microsoft.CodeAnalysis.Runtime.LocalStoreTracker V_0)
+  IL_0000:  ldtoken    "TestUnion..ctor(int)"
+  IL_0005:  call       "Microsoft.CodeAnalysis.Runtime.LocalStoreTracker Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogMethodEntry(int)"
+  IL_000a:  stloc.0
+  .try
+  {
+    IL_000b:  ldloca.s   V_0
+    IL_000d:  ldarg.1
+    IL_000e:  ldc.i4.0
+    IL_000f:  call       "void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(uint, int)"
+    IL_0014:  nop
+    IL_0015:  ldarg.0
+    IL_0016:  ldarg.1
+    IL_0017:  box        "int"
+    IL_001c:  stfld      "object TestUnion.<Value>k__BackingField"
+    IL_0021:  nop
+    IL_0022:  leave.s    IL_002d
+  }
+  finally
+  {
+    IL_0024:  ldloca.s   V_0
+    IL_0026:  call       "void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogReturn()"
+    IL_002b:  nop
+    IL_002c:  endfinally
+  }
+  IL_002d:  ret
+}
 """);
         }
     }

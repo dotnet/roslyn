@@ -1,0 +1,162 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="it" original="../FileBasedProgramsResources.resx">
+    <body>
+      <trans-unit id="CannotConvertDirective">
+        <source>Some directives cannot be converted. Run the file to see all compilation errors. Specify '--force' to convert anyway.</source>
+        <target state="translated">Non è possibile convertire alcune direttive. Eseguire il file per visualizzare tutti gli errori di compilazione. Specificare '--force' per eseguire comunque la conversione.</target>
+        <note>{Locked="--force"}</note>
+      </trans-unit>
+      <trans-unit id="ConflictingDirectiveMetadata">
+        <source>Directive metadata '{0}' conflicts with a value already specified by the directive.</source>
+        <target state="translated">I metadati della direttiva '{0}' sono in conflitto con un valore già specificato dalla direttiva.</target>
+        <note>{0} is the metadata name.</note>
+      </trans-unit>
+      <trans-unit id="CouldNotFindAnyProjectInDirectory">
+        <source>Could not find any project in `{0}`.</source>
+        <target state="translated">Non è stato trovato alcun progetto in `{0}`.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CouldNotFindProjectOrDirectory">
+        <source>Could not find project or directory `{0}`.</source>
+        <target state="translated">Non sono stati trovati progetti o directory `{0}`.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CouldNotFindRefFile">
+        <source>Could not find file '{0}'.</source>
+        <target state="translated">Il file '{0}' non è stato trovato. </target>
+        <note>{0} is the file path.</note>
+      </trans-unit>
+      <trans-unit id="DirectiveError">
+        <source>error</source>
+        <target state="translated">errore</target>
+        <note>Used when reporting directive errors like "file(location): error: message".</note>
+      </trans-unit>
+      <trans-unit id="DirectiveMetadataInvalidName">
+        <source>Invalid directive metadata name '{0}': {1}</source>
+        <target state="translated">Nome dei metadati della direttiva non valido '{0}': {1}</target>
+        <note>{0} is the metadata name. {1} is the inner exception message.</note>
+      </trans-unit>
+      <trans-unit id="DuplicateDirective">
+        <source>Duplicate directives are not supported: {0}</source>
+        <target state="translated">Le direttive duplicate non supportate: {0}</target>
+        <note>{0} is the directive type and name.</note>
+      </trans-unit>
+      <trans-unit id="DuplicateDirectiveMetadata">
+        <source>Directive metadata name '{0}' is specified more than once.</source>
+        <target state="translated">Il nome dei metadati della direttiva '{0}' è specificato più di una volta.</target>
+        <note>{0} is the duplicate metadata name.</note>
+      </trans-unit>
+      <trans-unit id="EmptyTempPath">
+        <source>Unable to determine a temporary directory path. Consider configuring the TEMP environment variable on Windows or local app data folder on Unix.</source>
+        <target state="translated">Non è possibile determinare un percorso per la directory temporanea. Considerare la configurazione della variabile di ambiente TEMP in Windows o della cartella dei dati locali dell'app in Unix.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExpectedSimpleStringLiteralInDirective">
+        <source>Expected a simple string literal in the directive value. Raw and verbatim string literals are not supported in directive values. Found: {0}</source>
+        <target state="translated">È previsto un valore letterale stringa semplice nel valore della direttiva. I valori letterali stringa non elaborati e verbatim non sono supportati nei valori di direttiva. Trovato: {0}</target>
+        <note>{0} is the offending C# token text, for example '"""abc"""'.</note>
+      </trans-unit>
+      <trans-unit id="ExperimentalFeatureDisabled">
+        <source>This is an experimental feature, set MSBuild property '{0}' to 'true' to enable it.</source>
+        <target state="translated">Questa è una funzionalità sperimentale, impostare la proprietà MSBuild "{0}" su "true" per abilitarla.</target>
+        <note>{Locked="MSBuild"}{Locked="true"}. {0} is MSBuild property name.</note>
+      </trans-unit>
+      <trans-unit id="IncludeOrExcludeDirectiveUnknownFileType">
+        <source>Unrecognized file extension in the '{0}' directive. Only these extensions are currently recognized: {1}</source>
+        <target state="translated">Estensione file non riconosciuta nella direttiva "{0}". Sono riconosciute solo queste estensioni: {1}</target>
+        <note>{0} is the directive - '#:include' or '#:exclude'. {1} is a comma-separated list of file extensions, like: '.cs', '.resx'</note>
+      </trans-unit>
+      <trans-unit id="IncludedFileNotFound">
+        <source>File included via #:include directive (or Compile item) not found: {0}</source>
+        <target state="translated">File incluso tramite direttiva #:include (o elemento Compile) non trovato: {0}</target>
+        <note>{Locked="#:include"}{Locked="Compile"}. {0} is file path.</note>
+      </trans-unit>
+      <trans-unit id="InvalidDirectiveMetadata">
+        <source>Directive metadata must be in the form 'Name=Value'. Invalid metadata: '{0}'.</source>
+        <target state="translated">I metadati della direttiva devono essere nel formato 'Name=Value'. Metadati non validi: '{0}'.</target>
+        <note>{Locked="'Name=Value'"}{0} is the offending metadata text.</note>
+      </trans-unit>
+      <trans-unit id="InvalidDirectiveName">
+        <source>The directive should contain a name without special characters and an optional value separated by '{1}' like '#:{0} Name{1}Value'.</source>
+        <target state="translated">La direttiva deve contenere un nome senza caratteri speciali e un valore facoltativo delimitato da '{1}' come '#:{0}Nome {1}Valore'.</target>
+        <note>{0} is the directive type like 'package' or 'sdk'. {1} is the expected separator like '@' or '='.</note>
+      </trans-unit>
+      <trans-unit id="InvalidIncludeExcludeMappingEntry">
+        <source>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must have two parts separated by '='. The entry '{0}' is invalid.</source>
+        <target state="translated">Ogni voce nella proprietà MSBuild "FileBasedProgramsItemMapping" deve avere due parti separate da '='. La voce "{0}" non è valida.</target>
+        <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="'='"}</note>
+      </trans-unit>
+      <trans-unit id="InvalidIncludeExcludeMappingExtension">
+        <source>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map from a non-empty file extension starting with '.'. The extension '{0}' in entry '{1}' is invalid.</source>
+        <target state="translated">Ogni voce nella proprietà MSBuild "FileBasedProgramsItemMapping" deve essere mappata da un'estensione di file non vuota che inizia con '.'. L'estensione "{0}" nella voce "{1}" non è valida.</target>
+        <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="'.'"}</note>
+      </trans-unit>
+      <trans-unit id="InvalidIncludeExcludeMappingItemType">
+        <source>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map to a non-empty item type. The item type '{0}' in entry '{1}' is invalid.</source>
+        <target state="translated">Ogni voce nella proprietà MSBuild "FileBasedProgramsItemMapping" deve essere mappata a un tipo di elemento non vuoto. Il tipo di elemento "{0}" nella voce "{1}" non è valido.</target>
+        <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}</note>
+      </trans-unit>
+      <trans-unit id="InvalidProjectDirective">
+        <source>The '#:project' directive is invalid: {0}</source>
+        <target state="translated">La direttiva '#:project' non è valida: {0}</target>
+        <note>{0} is the inner error message.</note>
+      </trans-unit>
+      <trans-unit id="InvalidQuoteInDirective">
+        <source>Double quotes (") in a directive must enclose an entire value, for example: 'Name="a b"' or '"a b"'.</source>
+        <target state="translated">Le virgolette doppie (") in una direttiva devono racchiudere un valore intero, ad esempio: 'Name="a b"' o '"a b"'.</target>
+        <note>{Locked="Name="a b""}{Locked=""a b""}</note>
+      </trans-unit>
+      <trans-unit id="InvalidRefDirective">
+        <source>The '#:ref' directive is invalid: {0}</source>
+        <target state="translated">La direttiva "#:ref" non è valida: {0}</target>
+        <note>{Locked="#:ref"}{0} is the inner error message.</note>
+      </trans-unit>
+      <trans-unit id="InvalidStringLiteralInDirective">
+        <source>Invalid quoted value in directive: {0}</source>
+        <target state="translated">Valore tra virgolette non valido nella direttiva: {0}</target>
+        <note>{0} is the underlying C# string literal error message, for example 'Unrecognized escape sequence.'.</note>
+      </trans-unit>
+      <trans-unit id="MissingDirectiveName">
+        <source>Missing name of '{0}'.</source>
+        <target state="translated">Manca il nome di '{0}'.</target>
+        <note>{0} is the directive name like 'package' or 'sdk'.</note>
+      </trans-unit>
+      <trans-unit id="MoreThanOneProjectInDirectory">
+        <source>Found more than one project in `{0}`. Specify which one to use.</source>
+        <target state="translated">Sono stati trovati più progetti in `{0}`. Specificare quello da usare.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PropertyDirectiveInvalidName">
+        <source>Invalid property name: {0}</source>
+        <target state="translated">Nome proprietà non valido: {0}</target>
+        <note>{0} is an inner exception message.</note>
+      </trans-unit>
+      <trans-unit id="PropertyDirectiveMissingParts">
+        <source>The property directive needs to have two parts separated by '=' like '#:property PropertyName=PropertyValue'.</source>
+        <target state="translated">La direttiva di proprietà deve avere due parti delimitate da '=', come '#:property PropertyName=PropertyValue'.</target>
+        <note>{Locked="#:property"}</note>
+      </trans-unit>
+      <trans-unit id="StaticGraphRestoreNotSupported">
+        <source>Static graph restore is not supported for file-based apps. Remove the '#:property'.</source>
+        <target state="translated">Il ripristino statico del grafo non è supportato per le app basate su file. Rimuovere '#:property'.</target>
+        <note>{Locked="#:property"}</note>
+      </trans-unit>
+      <trans-unit id="UnexpectedDirectiveText">
+        <source>The '{0}' directive has unexpected content. To include whitespace in a value, enclose it in double quotes (").</source>
+        <target state="translated">La direttiva '{0}' presenta contenuto imprevisto. Per includere spazi vuoti in un valore, racchiuderlo tra virgolette doppie (").</target>
+        <note>{0} is the directive kind like 'property' or 'sdk'.</note>
+      </trans-unit>
+      <trans-unit id="UnrecognizedDirective">
+        <source>Unrecognized directive '{0}'.</source>
+        <target state="translated">Direttiva non riconosciuta '{0}'.</target>
+        <note>{0} is the directive name like 'package' or 'sdk'.</note>
+      </trans-unit>
+      <trans-unit id="UnterminatedQuoteInDirective">
+        <source>Unterminated double quote (") in directive.</source>
+        <target state="translated">Virgolette doppie non chiuse (") nella direttiva.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

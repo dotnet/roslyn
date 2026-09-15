@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var errorLocation = new SourceLocation(firstIdentifier);
             DeclarationModifiers result = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(
-                isOrdinaryMethod: false, isForInterfaceMember: isInterface,
+                isForInterfaceMember: isInterface,
                 modifiers, defaultAccess, allowedModifiers, errorLocation, diagnostics, out modifierErrors, out _);
 
             if ((result & DeclarationModifiers.Abstract) != 0)
@@ -264,6 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 reportBadMemberFlagIfAny(result, DeclarationModifiers.ReadOnly, diagnostics, errorLocation);
                 reportBadMemberFlagIfAny(result, DeclarationModifiers.Volatile, diagnostics, errorLocation);
                 reportBadMemberFlagIfAny(result, DeclarationModifiers.Unsafe, diagnostics, errorLocation);
+                reportBadMemberFlagIfAny(result, DeclarationModifiers.Safe, diagnostics, errorLocation);
 
                 if (reportBadMemberFlagIfAny(result, DeclarationModifiers.Required, diagnostics, errorLocation))
                 {
@@ -622,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_IllegalFixedType, loc);
                     }
 
-                    binder.ReportUnsafeIfNotAllowed(declarator.Location, diagnosticsForFirstDeclarator, disallowedUnder: MemorySafetyRules.Legacy);
+                    binder.ReportUnsafeIfNotAllowed(declarator.Location, diagnosticsForFirstDeclarator, disallowedUnder: MemorySafetyRulesVersion.Version1);
                 }
             }
 

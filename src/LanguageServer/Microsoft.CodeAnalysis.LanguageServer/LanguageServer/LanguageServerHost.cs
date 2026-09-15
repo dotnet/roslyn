@@ -38,17 +38,25 @@ internal sealed class LanguageServerHost
             ExceptionStrategy = ExceptionProcessing.CommonErrorData,
         };
 
-        var roslynLspFactory = exportProvider.GetExportedValue<CSharpVisualBasicLanguageServerFactory>();
+        try
+        {
+            var roslynLspFactory = exportProvider.GetExportedValue<CSharpVisualBasicLanguageServerFactory>();
 
-        var hostServices = exportProvider.GetExportedValue<HostServicesProvider>().HostServices;
-        _roslynLanguageServer = roslynLspFactory.Create(
-            _jsonRpc,
-            messageFormatter.JsonSerializerOptions,
-            WellKnownLspServerKinds.CSharpVisualBasicLspServer,
-            hostServices,
-            typeRefResolver);
+            var hostServices = exportProvider.GetExportedValue<HostServicesProvider>().HostServices;
+            _roslynLanguageServer = roslynLspFactory.Create(
+                _jsonRpc,
+                messageFormatter.JsonSerializerOptions,
+                WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+                hostServices,
+                typeRefResolver);
 
-        GlobalLogger = _roslynLanguageServer.GetLspServices().GetRequiredService<ILoggerFactory>().CreateLogger("Global");
+            GlobalLogger = _roslynLanguageServer.GetLspServices().GetRequiredService<ILoggerFactory>().CreateLogger("Global");
+        }
+        catch
+        {
+            _jsonRpc.Dispose();
+            throw;
+        }
     }
 
     public void Start()
@@ -76,6 +84,24 @@ internal sealed class LanguageServerHost
         //       even if the `_jsonRpc` instance has been disposed of (due to a synchronous read syscall that does not observe disposal).  The server
         //       should still shutdown regardless - we've been told to exit, so exit.
         return _roslynLanguageServer.WaitForExitAsync();
+    }
+
+    public async Task AbortAsync()
+    {
+        Exception? shutdownException = null;
+        try
+        {
+            await _roslynLanguageServer.ShutdownAsync("Aborting language server startup").ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            shutdownException = ex;
+        }
+
+        await _roslynLanguageServer.ExitAsync().ConfigureAwait(false);
+
+        if (shutdownException is not null)
+            throw new InvalidOperationException("Language server cleanup failed during startup abort.", shutdownException);
     }
 
     public ILspServices GetLspServices()

@@ -2254,7 +2254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // Value types do not need runtime element type checks.
                     !arrayAccess.Type.IsValueType)
                 {
-                    return new BoundRefArrayAccess(arrayAccess.Syntax, arrayAccess);
+                    return new BoundRefArrayAccess(arrayAccess.Syntax, arrayAccess, right.Type);
                 }
 
                 // assigned local is not used later => just emit the Right

@@ -70,10 +70,6 @@
          Note: We use None items since we do not want them to be included in VSIX and we want them to be displayed in Solution Explorer
          (if we used Content items they would get included in the VSIX by VSSDK by default).
   -->
-  
-  <!-- TODO: Remove UsingTasks when upgrading to Arcade 11: https://github.com/dotnet/roslyn/issues/83095 -->
-  <UsingTask TaskName="Microsoft.DotNet.Build.Tasks.VisualStudio.GetPkgDefAssemblyDependencyGuid" AssemblyFile="$(ArcadeVisualStudioBuildTasksAssembly)" Condition="$(ArcadeSdkVersion.StartsWith('10'))"  />
-  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" Condition="$(ArcadeSdkVersion.StartsWith('10'))" />
 
   <Target Name="_SetGeneratePkgDefInputsOutputs">
     <PropertyGroup>

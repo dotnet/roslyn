@@ -1,0 +1,5 @@
+﻿[0000] OpenElement("strong")
+[0001] AddContent(TestDecimal)
+[0002] AddMarkupContent("\r\n\r\n")
+[0003] OpenComponent<global::Test.TestComponent>()
+[0004] AddComponentParameter(nameof(global::Test.TestComponent. TestDecimal ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Decimal>( 4 ))

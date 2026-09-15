@@ -22,9 +22,7 @@ internal sealed class DispatchWorkspaceExtensionMessageHandler()
 
     public async Task<DispatchExtensionMessageResponse> HandleRequestAsync(DispatchWorkspaceExtensionMessageParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(context.Solution);
-
-        var solution = context.Solution;
+        var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
 
         var service = solution.Services.GetRequiredService<IExtensionMessageHandlerService>();
         var (response, extensionWasUnloaded, exception) = await service.HandleExtensionWorkspaceMessageAsync(

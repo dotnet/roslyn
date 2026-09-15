@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Notification;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -15,15 +14,14 @@ using Microsoft.VisualStudio.Shell;
 namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTesting;
 
 [Export(typeof(IGlobalOperationNotificationService)), Shared]
-internal sealed partial class VisualStudioGlobalOperationNotificationService : AbstractGlobalOperationNotificationService, IDisposable
+internal sealed partial class VisualStudioGlobalOperationNotificationService : AbstractGlobalOperationNotificationService
 {
     private readonly SolutionEventMonitor _solutionEventMonitor;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public VisualStudioGlobalOperationNotificationService(
-        IThreadingContext threadingContext,
-        IAsynchronousOperationListenerProvider listenerProvider) : base(listenerProvider, threadingContext.DisposalToken)
+        IAsynchronousOperationListenerProvider listenerProvider) : base(listenerProvider)
     {
         _solutionEventMonitor = new SolutionEventMonitor(this);
 
@@ -72,8 +70,9 @@ internal sealed partial class VisualStudioGlobalOperationNotificationService : A
         }
     }
 
-    public void Dispose()
+    public override void Dispose()
     {
+        base.Dispose();
         _solutionEventMonitor.Dispose();
     }
 }

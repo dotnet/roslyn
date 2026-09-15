@@ -360,13 +360,53 @@ namespace Microsoft.CodeAnalysis.CommandLine
     }
 
     /// <summary>
+    /// A single telemetry event produced by the compiler server for a build request. This is a
+    /// generic transport: the server attaches zero or more of these to a <see cref="CompletedBuildResponse"/>
+    /// and the build task forwards each one verbatim to the host via <c>IBuildEngine5.LogTelemetry</c>.
+    /// </summary>
+    internal sealed class BuildTelemetryEvent(string eventName, IDictionary<string, string> properties)
+    {
+        public string EventName { get; } = eventName;
+        public IDictionary<string, string> Properties { get; } = properties;
+
+        internal void WriteTo(BinaryWriter writer)
+        {
+            WriteLengthPrefixedString(writer, EventName);
+            writer.Write(Properties.Count);
+            foreach (var pair in Properties)
+            {
+                WriteLengthPrefixedString(writer, pair.Key);
+                WriteLengthPrefixedString(writer, pair.Value);
+            }
+        }
+
+        internal static BuildTelemetryEvent ReadFrom(BinaryReader reader)
+        {
+            var eventName = ReadLengthPrefixedString(reader) ?? string.Empty;
+            var count = reader.ReadInt32();
+            var properties = new Dictionary<string, string>(count);
+            for (var i = 0; i < count; i++)
+            {
+                var key = ReadLengthPrefixedString(reader) ?? string.Empty;
+                var value = ReadLengthPrefixedString(reader) ?? string.Empty;
+                properties[key] = value;
+            }
+
+            return new BuildTelemetryEvent(eventName, properties);
+        }
+    }
+
+    /// <summary>
     /// Represents a Response from the server. A response is as follows.
     /// 
     ///  Field Name         Type            Size (bytes)
     /// --------------------------------------------------
     ///  Length             UInteger        4
     ///  ReturnCode         Integer         4
+    ///  Utf8Output         Boolean         1
     ///  Output             String          Variable
+    ///  TelemetryCount     Integer         4
+    ///  TelemetryEvents    Variable        Variable
     /// 
     /// Strings are encoded via a character count prefix as a 
     /// 32-bit integer, followed by an array of characters.
@@ -377,14 +417,17 @@ namespace Microsoft.CodeAnalysis.CommandLine
         public readonly int ReturnCode;
         public readonly bool Utf8Output;
         public readonly string Output;
+        public readonly IReadOnlyList<BuildTelemetryEvent> TelemetryEvents;
 
         public CompletedBuildResponse(int returnCode,
                                       bool utf8output,
-                                      string? output)
+                                      string? output,
+                                      IReadOnlyList<BuildTelemetryEvent>? telemetryEvents = null)
         {
             ReturnCode = returnCode;
             Utf8Output = utf8output;
             Output = output ?? string.Empty;
+            TelemetryEvents = telemetryEvents ?? [];
         }
 
         public override ResponseType Type => ResponseType.Completed;
@@ -394,7 +437,25 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var returnCode = reader.ReadInt32();
             var utf8Output = reader.ReadBoolean();
             var output = ReadLengthPrefixedString(reader);
-            return new CompletedBuildResponse(returnCode, utf8Output, output);
+
+            var telemetryCount = reader.ReadInt32();
+            IReadOnlyList<BuildTelemetryEvent> telemetryEvents = telemetryCount == 0
+                ? []
+                : readTelemetryEvents(reader, telemetryCount);
+
+            return new CompletedBuildResponse(returnCode, utf8Output, output, telemetryEvents);
+
+            static BuildTelemetryEvent[] readTelemetryEvents(BinaryReader reader, int count)
+            {
+                var events = new BuildTelemetryEvent[count];
+
+                for (var i = 0; i < count; i++)
+                {
+                    events[i] = BuildTelemetryEvent.ReadFrom(reader);
+                }
+
+                return events;
+            }
         }
 
         protected override void AddResponseBody(BinaryWriter writer)
@@ -402,6 +463,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
             writer.Write(ReturnCode);
             writer.Write(Utf8Output);
             WriteLengthPrefixedString(writer, Output);
+
+            writer.Write(TelemetryEvents.Count);
+            foreach (var telemetryEvent in TelemetryEvents)
+            {
+                telemetryEvent.WriteTo(writer);
+            }
         }
     }
 

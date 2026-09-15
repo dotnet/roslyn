@@ -110,7 +110,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
         }
         else
         {
-            Contract.ThrowIfNull(context.Solution);
+            var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
 
             var clientCapabilities = context.GetRequiredClientCapabilities();
             var category = GetRequestDiagnosticCategory(diagnosticsParams);
@@ -130,7 +130,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
             // the updated diagnostics are.
             using var _1 = PooledDictionary<ProjectOrDocumentId, PreviousPullResult>.GetInstance(out var documentIdToPreviousDiagnosticParams);
             using var _2 = PooledHashSet<PreviousPullResult>.GetInstance(out var removedDocuments);
-            await ProcessPreviousResultsAsync(context.Solution, previousResults, documentIdToPreviousDiagnosticParams, removedDocuments, cancellationToken).ConfigureAwait(false);
+            await ProcessPreviousResultsAsync(solution, previousResults, documentIdToPreviousDiagnosticParams, removedDocuments, cancellationToken).ConfigureAwait(false);
 
             // First, let the client know if any workspace documents have gone away.  That way it can remove those for
             // the user from squiggles or error-list.

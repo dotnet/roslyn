@@ -132,6 +132,7 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         AddLazyService<AbstractRequestContextFactory<RequestContext>>(lspServices => new RequestContextFactory(lspServices));
         AddLazyService<AbstractTelemetryService>(lspServices => new TelemetryService(lspServices));
         AddLazyService<AbstractHandlerProvider>(_ => HandlerProvider);
+        AddService<IWorkspaceFolderTracker>(new WorkspaceFolderTracker());
         AddService<IInitializeManager>(new InitializeManager());
         AddService<IMethodHandler>(new InitializeHandler());
         AddService<IMethodHandler>(new InitializedHandler());
@@ -199,6 +200,59 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
     public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
         OnInitialized();
+
+        // Monitor the client process and shut down the server if the client process exits.
+        var clientProcessMonitor = context.GetService<IClientProcessMonitor>();
+        if (clientProcessMonitor != null && clientProcessMonitor.GetClientProcessId() is { } processId)
+        {
+            _ = MonitorClientProcessAsync(processId, clientProcessMonitor.Strategy);
+        }
+    }
+
+    private async Task MonitorClientProcessAsync(int processId, IClientProcessMonitor.ShutdownStrategy strategy)
+    {
+        var clientProcessExitTask = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        try
+        {
+            using var clientProcess = Process.GetProcessById(processId);
+            clientProcess.EnableRaisingEvents = true;
+            clientProcess.Exited += OnClientProcessExited;
+            try
+            {
+                if (!clientProcess.HasExited)
+                {
+                    // Stop monitoring when this logical server exits. In daemon mode the client process may
+                    // remain alive after disconnecting, so retaining the process event would leak this server.
+                    if (await Task.WhenAny(clientProcessExitTask.Task, WaitForExitAsync()).ConfigureAwait(false) != clientProcessExitTask.Task)
+                        return;
+                }
+            }
+            finally
+            {
+                clientProcess.Exited -= OnClientProcessExited;
+            }
+        }
+        finally
+        {
+            // The process didn't exist, exited, or we ran into issues checking whether it had exited. If the
+            // logical server has not already exited, apply the configured process-exit shutdown behavior.
+            if (!WaitForExitAsync().IsCompleted)
+            {
+                if (strategy == IClientProcessMonitor.ShutdownStrategy.ProcessExit)
+                {
+                    Environment.Exit(ServerExitCodes.ClientProcessExited);
+                }
+                else
+                {
+                    await ShutdownAsync().ConfigureAwait(false);
+                    await ExitAsync().ConfigureAwait(false);
+                }
+            }
+        }
+
+        void OnClientProcessExited(object? sender, EventArgs args)
+            => clientProcessExitTask.TrySetResult(true);
     }
 
     public override bool TryGetLanguageForRequest(string methodName, object? serializedParameters, [NotNullWhen(true)] out string? language)

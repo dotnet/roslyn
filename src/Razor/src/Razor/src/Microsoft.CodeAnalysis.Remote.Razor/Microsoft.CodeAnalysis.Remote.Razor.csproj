@@ -87,6 +87,10 @@
       <Namespace>$(ProjectName).Resources</Namespace>
     </EmbeddedResource>
 
+    <EmbeddedResource Update="Resources\HtmlDescriptions.resx">
+      <LogicalName>Microsoft.CodeAnalysis.Remote.Razor.Resources.HtmlDescriptions.resources</LogicalName>
+    </EmbeddedResource>
+
     <Using Include="$(ProjectName).Resources" />
   </ItemGroup>
 
@@ -101,8 +105,6 @@
       <_PublishedFiles Include="$(PublishDir)**\Microsoft.CodeAnalysis.Razor.*" />
       <_PublishedFiles Include="$(PublishDir)**\Microsoft.CodeAnalysis.Remote.Razor.*" Exclude="@(_ExcludedFiles)" />
       <_PublishedFiles Include="$(PublishDir)**\Microsoft.AspNetCore.*" />
-      <_PublishedFiles Include="$(ArtifactsDir)bin\Microsoft.AspNetCore.Razor.Utilities.Shared\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\publish\Microsoft.AspNetCore.Razor.Utilities.Shared.dll" Condition="'$(PublishReadyToRun)' == 'true' and !Exists('$(PublishDir)Microsoft.AspNetCore.Razor.Utilities.Shared.dll')" />
-      <_PublishedFiles Include="$(ArtifactsDir)bin\Microsoft.AspNetCore.Razor.Utilities.Shared\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\publish\**\Microsoft.AspNetCore.Razor.Utilities.Shared.resources.dll" Condition="'$(PublishReadyToRun)' == 'true' and !Exists('$(PublishDir)Microsoft.AspNetCore.Razor.Utilities.Shared.dll')" />
       <_PublishedFiles Include="$(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Compiler\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\publish\Microsoft.CodeAnalysis.Razor.Compiler.dll" Condition="'$(PublishReadyToRun)' == 'true' and !Exists('$(PublishDir)Microsoft.CodeAnalysis.Razor.Compiler.dll')" />
       <_PublishedFiles Include="$(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Workspaces\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\publish\Microsoft.CodeAnalysis.Razor.Workspaces.dll" Condition="'$(PublishReadyToRun)' == 'true' and !Exists('$(PublishDir)Microsoft.CodeAnalysis.Razor.Workspaces.dll')" />
       <_PublishedFiles Include="$(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Workspaces\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\publish\**\Microsoft.CodeAnalysis.Razor.Workspaces.resources.dll" Condition="'$(PublishReadyToRun)' == 'true' and !Exists('$(PublishDir)Microsoft.CodeAnalysis.Razor.Workspaces.dll')" />
@@ -123,6 +125,22 @@
   <Target Name="PublishedProjectOutputGroup" DependsOnTargets="PublishProjectOutputGroup" Returns="@(_PublishedFiles)" />
 
   <Target Name="PublishVsixItems" DependsOnTargets="Publish;PublishedProjectOutputGroup" Returns="@(_PublishedFiles)" />
+
+  <Target Name="AddRazorUtilitiesToPublish"
+          BeforeTargets="ComputeResolvedFilesToPublishList"
+          Condition="'$(TargetFramework)' == 'net10.0' and '$(PublishReadyToRun)' == 'true' and '$(RuntimeIdentifier)' != ''">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="$(ArtifactsDir)bin\Microsoft.AspNetCore.Razor.Utilities.Shared\$(Configuration)\$(TargetFramework)\Microsoft.AspNetCore.Razor.Utilities.Shared.dll" />
+      <ResolvedFileToPublish Include="$(ArtifactsDir)bin\Microsoft.AspNetCore.Razor.Utilities.Shared\$(Configuration)\$(TargetFramework)\Microsoft.AspNetCore.Razor.Utilities.Shared.dll"
+                             RelativePath="Microsoft.AspNetCore.Razor.Utilities.Shared.dll"
+                             CopyToPublishDirectory="PreserveNewest"
+                             PostprocessAssembly="true" />
+      <_RazorUtilitiesResources Include="$(ArtifactsDir)bin\Microsoft.AspNetCore.Razor.Utilities.Shared\$(Configuration)\$(TargetFramework)\**\Microsoft.AspNetCore.Razor.Utilities.Shared.resources.dll" />
+      <ResolvedFileToPublish Include="@(_RazorUtilitiesResources)"
+                             RelativePath="%(RecursiveDir)%(Filename)%(Extension)"
+                             CopyToPublishDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
 
   <!-- Remote.Razor needs direct Roslyn compile-time references when Remote.ServiceHub is a project reference. -->
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
@@ -145,10 +163,6 @@
       <Private>true</Private>
     </ProjectReference>
     <ProjectReference Update="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj">
-      <Private>true</Private>
-    </ProjectReference>
-    <ProjectReference Update="$(SharedSourceRoot)\Microsoft.AspNetCore.Razor.Utilities.Shared\Microsoft.AspNetCore.Razor.Utilities.Shared.csproj">
-      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
       <Private>true</Private>
     </ProjectReference>
     <ProjectReference Update="..\..\..\..\..\Workspaces\Remote\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj">

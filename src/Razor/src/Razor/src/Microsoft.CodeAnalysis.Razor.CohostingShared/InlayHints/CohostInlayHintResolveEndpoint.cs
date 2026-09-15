@@ -59,7 +59,7 @@ internal class CohostInlayHintResolveEndpoint(
 
         var hint = await _remoteServiceInvoker.TryInvokeAsync<IRemoteInlayHintService, InlayHint>(
            razorDocument.Project.Solution,
-           (service, solutionInfo, cancellationToken) => service.ResolveHintAsync(solutionInfo, razorDocument.Id, request, cancellationToken),
+           (service, solutionInfo, cancellationToken) => service.ResolveHintAsync(solutionInfo, razorDocument.Id, request, razorData.InDeclDocument, cancellationToken),
            cancellationToken).ConfigureAwait(false);
 
         if (hint is null)

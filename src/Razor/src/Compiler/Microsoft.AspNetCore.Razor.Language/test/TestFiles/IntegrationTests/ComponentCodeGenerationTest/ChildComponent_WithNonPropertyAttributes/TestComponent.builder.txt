@@ -1,0 +1,3 @@
+﻿[0000] OpenComponent<global::Test.MyComponent>()
+[0001] AddComponentParameter("some-attribute", "foo")
+[0002] AddComponentParameter("another-attribute", 43.ToString())

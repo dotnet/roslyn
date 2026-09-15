@@ -529,6 +529,7 @@ internal enum FunctionId
     InheritanceMargin_GetInheritanceMemberItems = 493,
 
     LSP_FindDocumentInWorkspace = 494,
+    LSP_SymbolRequest_EmptyResult = 495,
 
     SuggestedActions_GetSuggestedActionsAsync = 500,
 
@@ -651,13 +652,15 @@ internal enum FunctionId
     Copilot_Implement_NotImplementedException_Completed = 832,
 
     Copilot_AnalyzeChange = 840,
-    Copilot_AdjustProposal = 841,
 
     Copilot_Rename = 851,
 
     VSCode_LanguageServer_Started = 860,
     VSCode_Project_Load_Started = 861,
     VSCode_Projects_Load_Completed = 862,
+    VSCode_LanguageServer_Daemon_Started = 863,
+    VSCode_LanguageServer_Daemon_Client_Connected = 864,
+    VSCode_LanguageServer_Daemon_Client_Disconnected = 865,
 
     GraphQuery_Calls = 870,
     GraphQuery_Contains = 871,

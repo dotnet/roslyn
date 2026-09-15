@@ -54,11 +54,6 @@ internal static class LanguageServerConstants
         public const string WrapAttributes = nameof(WrapAttributes);
 
         /// <summary>
-        /// Remaps without formatting the resolved code action edit
-        /// </summary>
-        public const string UnformattedRemap = nameof(UnformattedRemap);
-
-        /// <summary>
         /// Remaps and formats the resolved code action edit
         /// </summary>
         public const string Default = nameof(Default);

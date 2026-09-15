@@ -188,9 +188,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 && effectiveClosedBase.TryGetClosedSubtypes(out var derivedTypes)
                 && derivedTypes is not [])
             {
-                foreach (var derivedType in derivedTypes)
+                foreach (var caseInfo in effectiveClosedBase.ClosedClassTypeUnionValueSetCases())
                 {
-                    if (closedDerivedTypeMayBePresent(node, derivedType, ref useSiteInfo))
+                    if (evaluateCore(node, caseInfo.CaseType, ref useSiteInfo) != false)
                         return null;
                 }
 
@@ -282,25 +282,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return null;
-            }
-
-            bool closedDerivedTypeMayBePresent(Node root, NamedTypeSymbol derivedType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-            {
-                Debug.Assert(derivedType.BaseTypeNoUseSiteDiagnostics.IsClosed);
-                if (derivedType.TryGetClosedSubtypes(out var nestedDerivedTypes) && nestedDerivedTypes is not [])
-                {
-                    foreach (var nestedDerivedType in nestedDerivedTypes)
-                    {
-                        if (closedDerivedTypeMayBePresent(root, nestedDerivedType, ref useSiteInfo))
-                            return true;
-                    }
-                }
-                else if (evaluateCore(root, derivedType, ref useSiteInfo) != false)
-                {
-                    return true;
-                }
-
-                return false;
             }
         }
 

@@ -19,6 +19,12 @@ Use this skill when:
 
 ## Review Process
 
+### Review Progress Updates
+
+1. Print your plan before beginning
+2. After each step of your plan, print a quick result and your next step
+3. Print something at least every few minutes so humans can audit activity
+
 ### Step 0: Gather Code Context (No PR Narrative Yet)
 
 Before analyzing anything, collect as much relevant **code** context as you can. **Critically, do NOT read the PR description, linked issues, or existing review comments yet.** You must form your own independent assessment of what the code does, why it might be needed, what problems it has, and whether the approach is sound — before being exposed to the author's framing. Reading the author's narrative first anchors your judgment and makes you less likely to find real problems.
@@ -80,6 +86,8 @@ If the PR is a pure or targeted revert of an earlier commit, adjust the review s
    - **Never assert that something "does not exist," "is deprecated," or "is unavailable" based on training data alone.** Your knowledge has a cutoff date. When uncertain, ask rather than assert.
 9. **Ensure code suggestions are valid.** Any code you suggest must be syntactically correct and complete. Ensure any suggestion would result in working code.
 10. **Label in-scope vs. follow-up.** Distinguish between issues the PR should fix and out-of-scope improvements. Be explicit when a suggestion is a follow-up rather than a blocker.
+11. **Enforce reviewable scope.** Verify that the PR addresses one coherent concern. Flag unrelated cleanup, behavior changes mixed with broad refactoring, or independently mergeable/revertible work combined into one diff. Judge size by reviewer cognitive load and validation boundaries, not an arbitrary line count; generated files and mechanical updates may legitimately be large.
+12. **Require validation evidence.** Check that the PR reports the applicable formatting, lint/analyzer, affected build, targeted tests, generated/resource/API updates, and documentation freshness work. Treat missing targeted tests for a behavior change or required validation that was skipped without explanation as merge-blocking. Do not demand product builds or tests for documentation-only changes.
 
 ### Step 4: Documentation Freshness Check (sub-agent)
 
@@ -87,8 +95,8 @@ Code changes frequently outdate the agent knowledge base, but it's easy to miss 
 
 Launch a sub-agent (e.g., the `explore` or `task` agent) with the PR diff and list of changed files, and instruct it to verify whether the change should have updated — but didn't — any of the repo's living documentation:
 
-- **Knowledge base** (`.github/memory/`): `FILE_MAP.md` (files added/moved/renamed), `API_MAP.md`, `ARCHITECTURE.md`, `CONVENTIONS.md` (new patterns), `KNOWN_ISSUES.md` (repo-wide surprising behavior/workarounds), `TESTING_STRATEGY.md` (repo-wide test layout), and `INDEX.md` (if memory files were added/removed/renamed).
-- **Per-layer memory files**: `.github/memory/known-issues/{compiler,ide,razor}.md` (layer-specific quirks/workarounds) and `.github/memory/testing/{compiler,ide,razor}.md` (layer-specific test base classes/conventions) for the area the change touches.
+- **Knowledge base** (`.github/memory/`): `FILE_MAP.md` (files added/moved/renamed), `API_MAP.md`, `ARCHITECTURE.md`, `CONVENTIONS.md` (new patterns), `TESTING_STRATEGY.md` (repo-wide test layout), and `INDEX.md` (if memory files were added/removed/renamed).
+- **Per-layer memory files**: `.github/memory/testing/{compiler,ide,razor}.md` (layer-specific test base classes/conventions) for the area the change touches.
 - **Path-scoped instruction files** (`.github/instructions/{Compiler,IDE,Razor}.instructions.md`): layer-specific directory detail, key files/APIs, diagnostic IDs, and coding conventions for the area the change touches.
 - **Entry points**: `.github/copilot-instructions.md` and `AGENTS.md` when build/test/orientation guidance changes.
 
@@ -181,6 +189,10 @@ Before reviewing individual lines of code, evaluate the PR as a whole. Consider 
 ### Scope & Focus
 
 - **Require large or mixed PRs to be split into focused changes.** Each PR should address one concern. Mixed concerns make review harder and increase regression risk.
+
+- **Use concrete split signals.** Request a split when changes can be reviewed, validated, merged, or reverted independently; touch unrelated ownership areas; or combine preparatory refactoring with a behavior change. Do not request a split solely because generated or mechanical files make the line count large.
+
+- **Check the Definition of Done evidence.** Confirm the author identifies the relevant format/lint, affected build, targeted tests, generated/resource/API work, and documentation freshness work. Missing evidence must be supplied or explicitly justified before approval.
 
 - **Defer tangential improvements to follow-up PRs.** Police scope creep by asking contributors to separate concerns. Even good ideas should wait if they're not part of the PR's core purpose.
 

@@ -1458,6 +1458,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property INamedTypeSymbol_TypeLayout As TypeLayout Implements INamedTypeSymbol.TypeLayout
+            Get
+                Return Layout
+            End Get
+        End Property
+
 #End Region
 
 #Region "ISymbol"

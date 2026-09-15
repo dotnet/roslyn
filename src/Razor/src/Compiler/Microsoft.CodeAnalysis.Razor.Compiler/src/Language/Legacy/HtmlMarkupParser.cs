@@ -658,6 +658,17 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
             return ParseStartTextTag(openAngleToken, out tagMode, out isWellFormed);
         }
 
+        if (mode == ParseMode.MarkupInCodeBlock &&
+            _tagTracker.Count == 0 &&
+            tagName.Length == 0 &&
+            At(SyntaxKind.CloseAngle))
+        {
+            // The outer tag of a markup block is missing a name.
+            Context.ErrorSink.OnError(
+                RazorDiagnosticFactory.CreateParsing_OuterTagMissingName(
+                    new SourceSpan(tagStartLocation, contentLength: 1)));
+        }
+
         var tagNameToken = At(SyntaxKind.Text) ? EatCurrentToken() : SyntaxFactory.MissingToken(SyntaxKind.Text);
 
         var attributes = EmptySyntaxList;

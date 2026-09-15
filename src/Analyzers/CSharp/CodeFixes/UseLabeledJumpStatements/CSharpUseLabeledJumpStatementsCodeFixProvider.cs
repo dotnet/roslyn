@@ -239,7 +239,6 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider()
             SyntaxFactory.Token(SyntaxKind.ColonToken).WithTrailingTrivia(SyntaxFactory.Space),
             newLoop.WithoutLeadingTrivia());
 
-#pragma warning disable RSEXPERIMENTAL006 // Labeled break/continue is a preview language feature.
     private static StatementSyntax CreateJump(string labelName, bool isBreak)
     {
         var name = SyntaxFactory.IdentifierName(labelName);
@@ -247,5 +246,4 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider()
             ? SyntaxFactory.BreakStatement(name)
             : SyntaxFactory.ContinueStatement(name);
     }
-#pragma warning restore RSEXPERIMENTAL006
 }

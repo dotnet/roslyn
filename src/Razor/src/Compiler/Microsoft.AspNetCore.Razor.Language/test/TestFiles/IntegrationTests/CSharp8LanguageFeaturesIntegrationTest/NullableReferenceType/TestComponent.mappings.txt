@@ -3,14 +3,3 @@
 Generated Location: (761:21,24 [16] )
 |GetLength(null!)|
 
-Source Location: (7:0,7 [82] x:\dir\subdir\Test\TestComponent.razor)
-|
-    public static int GetLength(string? value)
-        => value?.Length ?? 0;
-|
-Generated Location: (973:31,0 [82] )
-|
-    public static int GetLength(string? value)
-        => value?.Length ?? 0;
-|
-

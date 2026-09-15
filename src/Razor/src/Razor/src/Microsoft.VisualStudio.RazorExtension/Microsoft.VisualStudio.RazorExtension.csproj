@@ -45,9 +45,9 @@
   <!-- Import the list of service hub services we proffer, to generate various files to include in the VSIX -->
   <Import Project="$(RepositoryEngineeringDir)targets\RazorServices.props" />
 
-  <!-- Include Razor SDK design time assets in the VSIX -->
+  <!-- Include Razor design-time assets in the VSIX -->
   <ItemGroup>
-    <Content Include="$(PkgMicrosoft_NET_Sdk_Razor)\targets\Microsoft.NET.Sdk.Razor.DesignTime.targets">
+    <Content Include="..\Microsoft.VisualStudioCode.RazorExtension\Targets\Microsoft.NET.Sdk.Razor.DesignTime.targets">
       <IncludeInVsix>true</IncludeInVsix>
       <InstallRoot>MSBuild</InstallRoot>
       <VSIXSubPath>Microsoft\VisualStudio\Razor\</VSIXSubPath>

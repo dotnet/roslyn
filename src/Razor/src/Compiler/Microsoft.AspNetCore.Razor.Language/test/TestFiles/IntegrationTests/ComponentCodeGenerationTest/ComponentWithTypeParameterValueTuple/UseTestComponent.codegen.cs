@@ -54,17 +54,6 @@ __builder2.AddContent(5, context
             );
         }
         #pragma warning restore 1998
-#nullable restore
-#line (6,8)-(10,1) "x:\dir\subdir\Test\UseTestComponent.cshtml"
-
-    (string, int) item1 = ("A string", 42);
-    static (string, int) item2 = ("Another string", 42);
-    List<(string, int)> items2 = new List<(string, int)>() { item2 };
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 namespace __Blazor.Test.UseTestComponent

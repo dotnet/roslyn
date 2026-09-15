@@ -5,13 +5,11 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>Information about derived types of a closed type.</summary>
-    [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/83717")]
     public readonly struct ClosedDerivedTypeInfo
     {
         /// <summary>

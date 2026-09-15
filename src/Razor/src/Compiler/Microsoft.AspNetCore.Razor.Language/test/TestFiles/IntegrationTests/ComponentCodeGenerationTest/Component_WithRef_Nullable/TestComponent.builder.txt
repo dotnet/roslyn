@@ -1,0 +1,2 @@
+﻿[0000] OpenComponent<global::Test.TestComponent>()
+[0001] AddComponentReferenceCapture((__value) => { myComponent = (global::Test.TestComponent)__value; })

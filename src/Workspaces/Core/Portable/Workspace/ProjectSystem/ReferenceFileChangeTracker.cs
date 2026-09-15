@@ -41,8 +41,7 @@ internal sealed class ReferenceFileChangeTracker : IDisposable
     public ReferenceFileChangeTracker(
         IFileChangeWatcher fileChangeWatcher,
         IAsynchronousOperationListener asyncListener,
-        Func<string, CancellationToken, Task> callback,
-        CancellationToken cancellationToken)
+        Func<string, CancellationToken, Task> callback)
     {
         _callback = callback;
         _workQueue = new AsyncBatchingWorkQueue<string>(
@@ -50,13 +49,12 @@ internal sealed class ReferenceFileChangeTracker : IDisposable
             ProcessWorkAsync,
             // Dedupe notifications for the same file path
             EqualityComparer<string>.Default,
-            asyncListener,
-            cancellationToken);
+            asyncListener);
 
         _fileReferenceChangeContext = new Lazy<IFileChangeContext>(() =>
         {
             var fileReferenceChangeContext = fileChangeWatcher.CreateContext(GetAdditionalWatchedDirectories());
-            fileReferenceChangeContext.FileChanged += (s, e) => _workQueue.AddWork(e);
+            fileReferenceChangeContext.FileChanged += (s, e) => _workQueue.AddWork(e.FilePath);
             return fileReferenceChangeContext;
         });
 

@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
@@ -32,19 +31,19 @@ internal sealed class RenameService(
     private readonly IFileSystem _fileSystem = fileSystem;
 
     public async Task<RenameResult> TryGetRazorRenameEditsAsync(
-        RemoteDocumentContext documentContext,
+        RemoteDocumentSnapshot documentSnapshot,
         DocumentPositionInfo positionInfo,
         string newName,
-        ISolutionQueryOperations solutionQueryOperations,
+        RemoteSolutionSnapshot solutionSnapshot,
         CancellationToken cancellationToken)
     {
         // We only support renaming of .razor components, not .cshtml tag helpers
-        if (!documentContext.Snapshot.FileKind.IsComponent())
+        if (!documentSnapshot.FileKind.IsComponent())
         {
             return new(Edit: null);
         }
 
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         if (!TryGetOriginTagHelpers(codeDocument, positionInfo.HostDocumentIndex, out var originTagHelpers))
         {
@@ -52,7 +51,7 @@ internal sealed class RenameService(
         }
 
         var originComponentDocumentSnapshot = await _componentSearchEngine
-            .TryLocateComponentAsync(originTagHelpers.Primary, solutionQueryOperations, cancellationToken)
+            .TryLocateComponentAsync(originTagHelpers.Primary, solutionSnapshot, cancellationToken)
             .ConfigureAwait(false);
         if (originComponentDocumentSnapshot is null)
         {
@@ -91,11 +90,11 @@ internal sealed class RenameService(
     }
 
     public bool TryGetRazorFileRenameEdit(
-        RemoteDocumentContext documentContext,
+        RemoteDocumentSnapshot documentSnapshot,
         string newName,
         [NotNullWhen(true)] out WorkspaceEdit? workspaceEdit)
     {
-        var oldPath = documentContext.Snapshot.FilePath;
+        var oldPath = documentSnapshot.FilePath;
         var newPath = MakeNewPath(oldPath, newName);
 
         using var documentChanges = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();

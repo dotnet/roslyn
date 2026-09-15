@@ -1550,7 +1550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.FTL_BadChecksumAlgorithm
                 or ErrorCode.ERR_BadAwaitArgIntrinsic
                 or ErrorCode.ERR_BadAwaitAsIdentifier
-                or ErrorCode.ERR_AwaitInUnsafeContext
+                or ErrorCode.ERR_BadAwaitInFixed
                 or ErrorCode.ERR_UnsafeAsyncArgType
                 or ErrorCode.ERR_VarargsAsync
                 or ErrorCode.ERR_BadAwaitArgVoidCall
@@ -1999,7 +1999,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_AutoSetterCantBeReadOnly
                 or ErrorCode.ERR_AutoPropertyWithSetterCantBeReadOnly
                 or ErrorCode.ERR_InvalidPropertyReadOnlyMods
+                or ErrorCode.ERR_InvalidPropertyUnsafeMods
                 or ErrorCode.ERR_DuplicatePropertyReadOnlyMods
+                or ErrorCode.ERR_SamePropertyUnsafeAccessorMods
                 or ErrorCode.ERR_FieldLikeEventCantBeReadOnly
                 or ErrorCode.ERR_PartialMemberReadOnlyDifference
                 or ErrorCode.ERR_ReadOnlyModMissingAccessor
@@ -2537,6 +2539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_InterpolatedStringHandlerArgumentDisallowed
                 or ErrorCode.ERR_MemberNameSameAsExtendedType
                 or ErrorCode.ERR_FeatureNotAvailableInVersion14
+                or ErrorCode.ERR_FeatureNotAvailableInVersion15
                 or ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync
                 or ErrorCode.ERR_ExtensionBlockCollision
                 or ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed
@@ -2544,7 +2547,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_BadSpreadInCatchFilter
                 or ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch
                 or ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch
-                or ErrorCode.HDN_RedundantPattern
                 or ErrorCode.WRN_RedundantPattern
                 or ErrorCode.HDN_RedundantPatternStackGuard
                 or ErrorCode.ERR_BadVisBaseType
@@ -2593,13 +2595,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_MissingUnionCaseTypes
                 or ErrorCode.ERR_MissingUnionValueProperty
                 or ErrorCode.ERR_MemberProviderInUnionDeclaration
-                or ErrorCode.ERR_SafeModifierUnsupportedTarget
+                or ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe
                 or ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe
                 or ErrorCode.ERR_PartialMemberSafeDifference
                 or ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe
                 or ErrorCode.ERR_NoBreakId
                 or ErrorCode.ERR_NoContinueId
                 or ErrorCode.ERR_ClosedBadDerivedTypesProperty
+                or ErrorCode.ERR_BadCompilationOptionValueAccepted
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

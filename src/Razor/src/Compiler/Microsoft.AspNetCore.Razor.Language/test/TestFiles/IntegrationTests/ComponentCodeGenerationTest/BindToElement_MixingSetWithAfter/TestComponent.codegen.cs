@@ -48,18 +48,6 @@ AfterUpdate
             __builder.CloseElement();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (2,8)-(7,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    public string ParentValue { get; set; } = "hi";
-
-    public void UpdateValue(string value) => ParentValue = value;
-    public void AfterUpdate() { }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

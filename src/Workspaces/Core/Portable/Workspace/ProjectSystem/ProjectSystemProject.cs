@@ -115,7 +115,6 @@ internal sealed partial class ProjectSystemProject
     private readonly BatchingDocumentCollection _analyzerConfigFiles;
 
     private readonly AsyncBatchingWorkQueue<string> _fileChangesToProcess;
-    private readonly CancellationTokenSource _asynchronousFileChangeProcessingCancellationTokenSource = new();
 
     public ProjectId Id { get; }
     public string Language { get; }
@@ -164,8 +163,7 @@ internal sealed partial class ProjectSystemProject
             TimeSpan.FromMilliseconds(200), // 200 chosen with absolutely no evidence whatsoever
             ProcessFileChangesAsync,
             StringComparer.Ordinal,
-            _projectSystemProjectFactory.WorkspaceListener,
-            _asynchronousFileChangeProcessingCancellationTokenSource.Token);
+            _projectSystemProjectFactory.WorkspaceListener);
 
         _assemblyName = assemblyName;
         _compilationOptions = compilationOptions;
@@ -1044,9 +1042,9 @@ internal sealed partial class ProjectSystemProject
 
     #endregion
 
-    private void DocumentFileChangeContext_FileChanged(object? sender, string fullFilePath)
+    private void DocumentFileChangeContext_FileChanged(object? sender, FileChangedEventArgs e)
     {
-        _fileChangesToProcess.AddWork(fullFilePath);
+        _fileChangesToProcess.AddWork(e.FilePath);
     }
 
     private async ValueTask ProcessFileChangesAsync(ImmutableSegmentedList<string> filePaths, CancellationToken cancellationToken)
@@ -1223,7 +1221,7 @@ internal sealed partial class ProjectSystemProject
                 throw new InvalidOperationException("The project has already been removed.");
             }
 
-            _asynchronousFileChangeProcessingCancellationTokenSource.Cancel();
+            _fileChangesToProcess.Dispose();
         }
 
         _documentFileChangeContext.FileChanged -= DocumentFileChangeContext_FileChanged;

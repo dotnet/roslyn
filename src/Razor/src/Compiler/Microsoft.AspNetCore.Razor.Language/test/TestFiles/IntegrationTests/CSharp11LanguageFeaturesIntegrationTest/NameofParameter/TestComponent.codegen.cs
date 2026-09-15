@@ -19,16 +19,6 @@ namespace Test
         {
         }
         #pragma warning restore 1998
-#nullable restore
-#line (1,8)-(4,1) "x:\dir\subdir\Test\TestComponent.razor"
-
-    public static string Capture(int value)
-        => nameof(value);
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

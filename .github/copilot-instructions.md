@@ -40,6 +40,8 @@ dotnet build Razor.slnf          # Razor compiler & tooling only
 dotnet build <path/to/Project.csproj>
 ```
 
+- In this repository, local `dotnet build` will not run analyzers by default. To include analyzers in the build, use the `-p:RunAnalyzersDuringBuild=true` flag to run them. Consider using this when searching for diagnostics you need to fix, or when you're doing a final build before creating a pull request.
+
 ### Run tests for modified code
 ```bash
 dotnet test <path/to/Specific.UnitTests.csproj>
@@ -54,6 +56,8 @@ Tests can take a while to build and run — monitor output and wait for completi
 ./test.sh    # Test.cmd on Windows
 ```
 
+- If you need build.sh to run analyzers, pass `--runAnalyzers`. If you need build.cmd to run analyzers, pass `-runAnalyzers`.
+
 Other entry points: `dotnet run --file eng/generate-compiler-code.cs` (regenerate Syntax/BoundNodes code), `dotnet msbuild <proj> /t:UpdateXlf` (refresh `.xlf` after `.resx` edits).
 
 ## Code Style
@@ -65,6 +69,7 @@ Other entry points: `dotnet run --file eng/generate-compiler-code.cs` (regenerat
 - Language services are exported **per-language** (`[ExportLanguageService(..., LanguageNames.CSharp), Shared]`), never shared across C#/VB.
 - No `TODO`/`TODO2` comments — track follow-ups as linked GitHub issues in code; existing `TODO2`s are only a frozen enforcement baseline. No `PROTOTYPE` comments in PRs to `main`.
 - Update `PublicAPI.Unshipped.txt` for public API changes. Never hand-edit generated code or `eng/common`.
+- It is acceptable to have async methods with no awaits. CS1998 is not active for this repository.
 
 Full conventions: `.github/memory/CONVENTIONS.md` and `.github/instructions/{Compiler,IDE,Razor}.instructions.md`.
 
@@ -73,7 +78,7 @@ Full conventions: `.github/memory/CONVENTIONS.md` and `.github/instructions/{Com
 When starting any task or answering any question about this repo:
 1. **Read `.github/memory/INDEX.md` first** — it's the loading map for the knowledge base. Use it to find authoritative answers before searching the file system.
 2. **For any non-trivial task, also read `.github/memory/ARCHITECTURE.md` and `.github/memory/CONVENTIONS.md`** as your baseline.
-3. **Read the path-scoped instruction file for the area you're editing** — `.github/instructions/Compiler.instructions.md`, `IDE.instructions.md`, or `Razor.instructions.md` (these auto-apply to `.cs`/`.vb` under their glob and carry the layer's directory detail, conventions, and key files/APIs). For that layer's **known issues** and **test conventions**, load `.github/memory/known-issues/<area>.md` and `.github/memory/testing/<area>.md` on demand (see the INDEX loading map).
+3. **Read the path-scoped instruction file for the area you're editing** — `.github/instructions/Compiler.instructions.md`, `IDE.instructions.md`, or `Razor.instructions.md` (these auto-apply to `.cs`/`.vb` under their glob and carry the layer's directory detail, conventions, and key files/APIs). For that layer's **test conventions**, load `.github/memory/testing/<area>.md` on demand (see the INDEX loading map).
 4. After completing work, run the `update-agent-docs` skill.
 
 ### Memory
@@ -87,9 +92,8 @@ When starting any task or answering any question about this repo:
 ### Doc Update Obligation
 
 Every task that changes code must end with a doc pass:
-- Added or moved files? → Update `.github/memory/FILE_MAP.md` (top-level) and the matching `.github/instructions/<area>.instructions.md` (directory detail).
 - Changed a public interface, diagnostic ID, or API? → Update the relevant `.github/instructions/<area>.instructions.md` and `PublicAPI.Unshipped.txt`.
-- Hit something surprising or undocumented? → Repo-wide → `.github/memory/KNOWN_ISSUES.md`; layer-specific → `.github/memory/known-issues/<area>.md`.
+- Hit something surprising or undocumented? → Ask the user how they want it documented.
 - Established a new pattern? → Repo-wide → `.github/memory/CONVENTIONS.md`; layer-specific → the matching `.github/instructions/<area>.instructions.md`.
 - Changed test base classes or conventions? → Repo-wide layout → `.github/memory/TESTING_STRATEGY.md`; layer-specific → `.github/memory/testing/<area>.md`.
 - Added/removed/renamed a memory file? → Update `.github/memory/INDEX.md`.
@@ -98,13 +102,50 @@ Every task that changes code must end with a doc pass:
 
 Skills live in `.github/skills/<skill-name>/SKILL.md` and are auto-discovered by their YAML `description`. Useful ones here include `code-review`, `ci-analysis`, `analyzer-codefix`, `merge-into-branch`, `snap`, and `update-agent-docs`.
 
-## Validation Checklist
+## Working Loop (plan first)
 
-When making changes:
-1. **Read `.github/memory/INDEX.md` first.**
-2. For non-trivial tasks, read `ARCHITECTURE.md` and `CONVENTIONS.md`, and the `.github/instructions/<area>.instructions.md` for the area you're editing.
-3. **Build the specific project(s) modified** (`Compilers.slnf` / `Ide.slnf` / `Razor.slnf` / the project).
-4. **Run targeted tests** for affected test project(s).
-5. If you edited a `.resx`, run `/t:UpdateXlf`; if you edited Syntax/BoundNodes XML, regenerate code. Update `PublicAPI.Unshipped.txt` for public API changes.
-6. Follow existing patterns in similar files.
-7. **Doc pass** (mandatory) — run the `update-agent-docs` skill and apply the Doc Update Obligation above.
+For any **non-trivial** change, start with a short plan **before** writing the implementing diff — and surface it so it can be reviewed before a large diff appears. "Non-trivial" means anything that is cross-file or cross-area, touches a public API / diagnostic ID / analyzer, changes behavior (not just a typo/comment/formatting fix), or where the approach isn't obvious. When in doubt, write the plan — it's cheap.
+
+Write the plan to `plan.md` in your session folder (see the session context) and keep it updated at milestones. A plan is a working artifact, not a deliverable: keep it lean.
+
+**Plan template** (drop unneeded fields):
+
+```markdown
+## Plan: <short title>
+
+- **Scope:** what this change will do.
+- **Non-goals:** what this change explicitly will NOT do.
+- **Affected areas:** projects/files/layers touched (e.g. `src/Compilers/CSharp`, matching `.instructions.md`).
+- **Approach:** the intended implementation, and any alternatives considered/rejected.
+- **Acceptance:** observable done-state — the behavior/tests that prove it works.
+- **Validation:** exact build + targeted test commands you'll run (see Build & Test).
+```
+
+**Post the plan and wait for approval before writing the implementing diff** — the plan is meant to be reviewed now, not after a large diff already exists.
+
+If a pull request already exists when work pauses for plan approval, update its description or add a comment that clearly states the implementation is **not complete**, summarizes what remains, and links to the Copilot session containing the plan and approval request so the user can provide further instructions.
+
+Then implement, keeping the diff **scoped and reviewable** — prefer the smallest change that fully addresses the task over a broad refactor. If the plan changes materially while implementing, update it rather than silently diverging. Only after the plan's **Acceptance** and **Validation** are satisfied (and the Definition of Done below passes) is the work "done."
+
+Trivial changes don't need a written plan — go straight to the Definition of Done.
+
+### Keep changes reviewable
+
+- Keep each change focused on one coherent concern. Do not mix behavior changes with unrelated cleanup, broad renames, or opportunistic refactoring.
+- Split work when parts can be reviewed, validated, merged, or reverted independently; when they affect unrelated areas or owners; or when a preparatory refactoring can land before the behavior change.
+- Checkpoint after each independently valid slice rather than accumulating one large unreviewed diff. Each checkpoint must build on the previous one and leave the branch in a coherent state.
+- Do not optimize for an arbitrary line-count limit: generated files and mechanical updates can be large. Optimize for reviewer cognitive load, clear intent, and independent validation.
+- If a change cannot be split without making it less correct or harder to validate, explain that constraint in the plan and keep the commits logically separated.
+
+## Definition of Done
+
+Work is done only when every applicable step below is complete:
+
+1. **Format:** Run the repository's existing formatter for changed files when applicable.
+2. **Lint/analyzers:** Run the smallest existing lint or analyzer command that covers the changed files when applicable.
+3. **Build:** Build the specific affected project or solution filter (`Compilers.slnf`, `Ide.slnf`, `Razor.slnf`, or the project). Documentation-only changes do not require a product build.
+4. **Targeted tests:** Run the affected test project or focused test filter. Add or update tests when behavior changes; explain when no relevant automated test exists.
+5. **Generated/resource/API updates:** Regenerate Syntax/BoundNodes outputs when their XML changes, run `/t:UpdateXlf` after `.resx` edits, and update `PublicAPI.Unshipped.txt` for public API changes.
+6. **Diff review:** Review the final diff and confirm it matches the approved plan, contains no unrelated edits, and follows nearby patterns.
+7. **Docs:** Run the `update-agent-docs` skill and apply the Doc Update Obligation above.
+8. **Final evidence:** Inspect repository status and the final diff, then report the exact validation performed. Do not claim completion while required validation is failing or was silently skipped.

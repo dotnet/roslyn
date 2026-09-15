@@ -46,20 +46,6 @@ __builder2.AddContent(2, person.Name
             );
         }
         #pragma warning restore 1998
-#nullable restore
-#line (2,8)-(9,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    class Person
-    {
-        public string Name { get; set; }
-    }
-
-    object RenderPerson(RenderFragment<Person> p) => null;
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

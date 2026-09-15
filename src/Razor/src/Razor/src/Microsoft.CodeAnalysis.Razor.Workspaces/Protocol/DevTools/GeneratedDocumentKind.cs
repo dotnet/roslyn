@@ -5,7 +5,8 @@ namespace Microsoft.CodeAnalysis.Razor.Protocol.DevTools;
 
 internal enum GeneratedDocumentKind
 {
-    CSharp,
+    CSharpImplementation,
+    CSharpDeclaration,
     Html,
     Formatting
 }

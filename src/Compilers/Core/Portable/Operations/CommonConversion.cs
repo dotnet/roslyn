@@ -80,7 +80,6 @@ namespace Microsoft.CodeAnalysis.Operations
         [MemberNotNullWhen(true, nameof(MethodSymbol))]
         public bool IsUnion
         {
-            [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/82567")]
             get
             {
                 return MethodSymbol is
