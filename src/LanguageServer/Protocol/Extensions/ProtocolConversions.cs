@@ -4,6 +4,7 @@
 
 using System;
 using System.Buffers;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -637,9 +638,57 @@ internal static partial class ProtocolConversions
         }
     }
 
-    public static LSP.CodeDescription? HelpLinkToCodeDescription(string? helpLinkUri)
+    /// <summary>
+    /// Distinct invalid help links already reported through <see cref="HelpLinkToCodeDescription"/>. That method
+    /// runs once per diagnostic on every diagnostics pull, so without this a descriptor with one bad link would
+    /// report a fresh <c>FatalError.ReportNonFatalError</c> — a new exception instance each time, so its own
+    /// once-per-exception dedup does not help — for every diagnostic on every pull for as long as the document
+    /// stays open.
+    /// </summary>
+    private static readonly ConcurrentDictionary<string, bool> s_reportedInvalidHelpLinks = new();
+
+    public static LSP.CodeDescription? HelpLinkToCodeDescription(string? helpLinkUri, bool supportsVisualStudioExtensions)
     {
-        return (helpLinkUri != null) ? new LSP.CodeDescription { Href = new DocumentUri(helpLinkUri) } : null;
+        // DiagnosticDescriptor.HelpLinkUri is an empty string when the descriptor has no link, and clients reject
+        // the whole report when an href is not an absolute URI.
+        if (string.IsNullOrEmpty(helpLinkUri))
+            return null;
+
+        if (!IsAbsoluteUriForClient(helpLinkUri, supportsVisualStudioExtensions))
+        {
+            // A descriptor's HelpLinkUri is author-supplied free text, not something we validated on the way in;
+            // track how often it turns out unusable so a bad one can be found and fixed at the source, once per
+            // distinct link rather than once per diagnostic per pull.
+            if (s_reportedInvalidHelpLinks.TryAdd(helpLinkUri, true))
+                FatalError.ReportNonFatalError(new UriFormatException($"Diagnostic help link is not a valid absolute URI: '{helpLinkUri}'"));
+
+            return null;
+        }
+
+        return new LSP.CodeDescription { Href = new DocumentUri(helpLinkUri) };
+
+        static bool IsAbsoluteUriForClient(string uriString, bool supportsVisualStudioExtensions)
+        {
+            if (supportsVisualStudioExtensions)
+            {
+                // The VS LSP client deserializes a href with System.Uri, which is stricter than our vscode-uri
+                // compatible ParsedUri (e.g. it rejects a scheme with no authority, such as "https://"). Validate
+                // the same way that client will, or we ship a link its own parsing then rejects.
+#pragma warning disable RS0030 // Do not use banned APIs
+                return Uri.TryCreate(uriString, UriKind.Absolute, out _);
+#pragma warning restore RS0030
+            }
+
+            try
+            {
+                LSP.ParsedUri.Parse(uriString, strict: true);
+                return true;
+            }
+            catch (UriFormatException)
+            {
+                return false;
+            }
+        }
     }
 
     public static LSP.SymbolKind NavigateToKindToSymbolKind(string kind)

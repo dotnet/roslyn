@@ -85,6 +85,25 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         Assert.NotNull(results.Single().Diagnostics!.Single().CodeDescription!.Href.ParsedDocumentUri);
     }
 
+    [Theory, CombinatorialData]
+    public async Task TestDocumentDiagnosticsWithoutHelpLinkHaveNoCodeDescription(bool useVSDiagnostics, bool mutatingLspWorkspace)
+    {
+        var markup = @"class A { }";
+        await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+            markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, additionalAnalyzers: [new CSharpSyntaxAnalyzer()]);
+
+        var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+
+        await OpenDocumentAsync(testLspServer, document);
+
+        var results = await RunGetDocumentPullDiagnosticsAsync(
+            testLspServer, document.GetURI(), useVSDiagnostics, category: PullDiagnosticCategories.DocumentAnalyzerSyntax);
+
+        var diagnostic = results.Single().Diagnostics!.Single();
+        Assert.Equal(CSharpSyntaxAnalyzer.RuleId, diagnostic.Code);
+        Assert.Null(diagnostic.CodeDescription);
+    }
+
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/fsharp/issues/15972")]
     public async Task TestDocumentDiagnosticsForOpenFilesWithFSAOff_Categories(bool useVSDiagnostics, bool mutatingLspWorkspace)
     {

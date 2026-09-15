@@ -64,6 +64,22 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
         }
     }
 
+    [Theory]
+    [InlineData(null, false, null)]
+    [InlineData(null, true, null)]
+    [InlineData("", false, null)]
+    [InlineData("", true, null)]
+    [InlineData("not a link", false, null)]
+    [InlineData("not a link", true, null)]
+    [InlineData("https://learn.microsoft.com/dotnet/csharp/misc/cs1513", false, "https://learn.microsoft.com/dotnet/csharp/misc/cs1513")]
+    [InlineData("https://learn.microsoft.com/dotnet/csharp/misc/cs1513", true, "https://learn.microsoft.com/dotnet/csharp/misc/cs1513")]
+    // A scheme with no authority: our vscode-uri-compatible ParsedUri accepts it, System.Uri (what the VS LSP
+    // client parses a href with) does not, so only the non-VS path lets it through.
+    [InlineData("https://", false, "https://")]
+    [InlineData("https://", true, null)]
+    public void HelpLinkToCodeDescription_ValidatesForTheClient(string? helpLinkUri, bool supportsVisualStudioExtensions, string? expectedHref)
+        => Assert.Equal(expectedHref, ProtocolConversions.HelpLinkToCodeDescription(helpLinkUri, supportsVisualStudioExtensions)?.Href.UriString);
+
     #region System.Uri Conversion Tests
 
 #pragma warning disable RS0030 // Do not use banned APIs
