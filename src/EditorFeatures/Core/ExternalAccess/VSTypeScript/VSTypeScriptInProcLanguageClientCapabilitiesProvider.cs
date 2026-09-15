@@ -49,6 +49,15 @@ internal sealed class VSTypeScriptInProcLanguageClientCapabilitiesProvider() : I
             }
         };
 
+        if (clientCapabilities.TextDocument?.Diagnostic?.DynamicRegistration is not true)
+        {
+            serverCapabilities.DiagnosticOptions = new DiagnosticOptions
+            {
+                InterFileDependencies = true,
+                WorkspaceDiagnostics = true,
+            };
+        }
+
         return serverCapabilities;
     }
 }
