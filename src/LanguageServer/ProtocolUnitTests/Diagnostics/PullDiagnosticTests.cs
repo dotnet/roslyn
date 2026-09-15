@@ -162,6 +162,34 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         }
     }
 
+    [Theory, CombinatorialData]
+    public async Task TestDocumentDiagnosticsOmitsCodeDescriptionWithoutHelpLink(bool useVSDiagnostics, bool mutatingLspWorkspace)
+    {
+        var markup = @"class A {";
+
+        var additionalAnalyzers = new DiagnosticAnalyzer[] { new CSharpSyntaxAnalyzer() };
+        await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+            markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, additionalAnalyzers: additionalAnalyzers);
+
+        var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+
+        await OpenDocumentAsync(testLspServer, document);
+
+        var compilerResults = await RunGetDocumentPullDiagnosticsAsync(
+            testLspServer, document.GetURI(), useVSDiagnostics, category: PullDiagnosticCategories.DocumentCompilerSyntax);
+        var analyzerResults = await RunGetDocumentPullDiagnosticsAsync(
+            testLspServer, document.GetURI(), useVSDiagnostics, category: PullDiagnosticCategories.DocumentAnalyzerSyntax);
+
+        // CS1513's descriptor sets a real help link, so its href round-trips.
+        Assert.Equal("CS1513", compilerResults.Single().Diagnostics!.Single().Code);
+        Assert.NotNull(compilerResults.Single().Diagnostics!.Single().CodeDescription!.Href.ParsedDocumentUri);
+
+        // CSharpSyntaxAnalyzer's descriptor leaves HelpLinkUri unset (DiagnosticDescriptor defaults it to "",
+        // never null), so this must come back as no CodeDescription rather than one with an empty href.
+        Assert.Equal(CSharpSyntaxAnalyzer.RuleId, analyzerResults.Single().Diagnostics!.Single().Code);
+        Assert.Null(analyzerResults.Single().Diagnostics!.Single().CodeDescription);
+    }
+
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65172")]
     public async Task TestDocumentDiagnosticsHasVSExpandedMessage(bool mutatingLspWorkspace)
     {

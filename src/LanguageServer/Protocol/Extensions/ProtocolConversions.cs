@@ -639,7 +639,15 @@ internal static partial class ProtocolConversions
 
     public static LSP.CodeDescription? HelpLinkToCodeDescription(string? helpLinkUri)
     {
-        return (helpLinkUri != null) ? new LSP.CodeDescription { Href = new DocumentUri(helpLinkUri) } : null;
+        // DiagnosticDescriptor.HelpLinkUri is never null (it defaults to string.Empty), so most diagnostics without
+        // a help link reach this as "" rather than null. Unlike Roslyn.LanguageServer.Protocol.DocumentUri, which
+        // parses lazily and tolerates a bad value, some LSP clients eagerly parse Href with System.Uri and throw on
+        // an empty or otherwise unparseable string. Skip those rather than send a CodeDescription they can't use.
+        if (string.IsNullOrEmpty(helpLinkUri))
+            return null;
+
+        var documentUri = new DocumentUri(helpLinkUri);
+        return documentUri.ParsedDocumentUri != null ? new LSP.CodeDescription { Href = documentUri } : null;
     }
 
     public static LSP.SymbolKind NavigateToKindToSymbolKind(string kind)
