@@ -29,6 +29,9 @@ internal sealed class TestLspMiscellaneousFilesWorkspaceProviderFactory() : ILsp
 
     private class TestLspMiscellaneousFilesWorkspaceProvider(HostServices host) : Workspace(host, WorkspaceKind.MiscellaneousFiles), ILspMiscellaneousFilesWorkspaceProvider
     {
+        public ValueTask OpenDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo trackedDocumentInfo)
+            => ValueTask.CompletedTask;
+
         public ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo? trackedDocumentInfo)
         {
             if (trackedDocumentInfo is null)

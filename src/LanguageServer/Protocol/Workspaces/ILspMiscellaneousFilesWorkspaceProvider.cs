@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 internal interface ILspMiscellaneousFilesWorkspaceProvider : ILspService
 {
     /// <summary>
+    /// Signals that the document was opened, even if it already belongs to a non-miscellaneous workspace.
+    /// </summary>
+    ValueTask OpenDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo trackedDocumentInfo);
+
+    /// <summary>
     /// Gets a miscellaneous document for the given URI. If <paramref name="trackedDocumentInfo"/> is provided,
     /// adds the document to an appropriate workspace and may initiate work to load a project for it. Otherwise,
     /// the provider may return a transient document without updating a workspace.
