@@ -227,6 +227,9 @@ internal class WorkspaceStructureLogger
     /// </summary>
     protected static string ReplacePathComponent(string s, string oldValue, string newValue)
     {
+        if (string.IsNullOrEmpty(oldValue) || string.Equals(oldValue, newValue, StringComparison.OrdinalIgnoreCase))
+            return s;
+
         while (true)
         {
             var index = s.IndexOf(oldValue, StringComparison.OrdinalIgnoreCase);

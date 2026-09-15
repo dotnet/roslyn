@@ -13,6 +13,7 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Logging;
+using Microsoft.CodeAnalysis.Progress;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
 using Microsoft.VisualStudio.Shell;
@@ -86,7 +87,7 @@ internal sealed class RoslynWorkspaceStructureLogger(IServiceProvider servicePro
 
         try
         {
-            var progress = new Progress<(int current, int total)>(value =>
+            var progress = new SynchronousProgress<(int current, int total)>(value =>
             {
                 session.Progress.Report(new ThreadedWaitDialogProgressData(
                     ServicesVSResources.Logging_Roslyn_Workspace_structure,
