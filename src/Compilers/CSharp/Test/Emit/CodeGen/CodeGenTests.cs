@@ -12835,10 +12835,10 @@ public class C
 {
     static void Main()
     {
-        decimal d1 = 1.71875m;
-        decimal d2 = (decimal)1.71875f;
-        decimal d3 = (decimal)1.71875;
-        decimal d4 = (decimal)(double)1.71875f;
+        decimal d1 = 1.712m;
+        decimal d2 = (decimal)1.712f;
+        decimal d3 = (decimal)1.712;
+        decimal d4 = (decimal)(double)1.712f;
         Console.WriteLine(d1.ToString(CultureInfo.InvariantCulture));
         Console.WriteLine(d2.ToString(CultureInfo.InvariantCulture));
         Console.WriteLine(d3.ToString(CultureInfo.InvariantCulture));
@@ -12849,14 +12849,22 @@ public class C
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput:
-@"1.71875
-1.71875
-1.71875
-1.71875
+            // https://github.com/dotnet/roslyn/issues/85043: decimal representation changed in .NET 11
+            CompileAndVerify(source, expectedOutput: Environment.Version.Major >= 11 ? """
+1.712
+1.71200001239776611328125
+1.7119999999999999662492200514
+1.71200001239776611328125
+False
+False
+False
+""" : @"1.712
+1.712
+1.712
+1.71200001239777
 True
 True
-True");
+False");
         }
 
         [WorkItem(529593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529593")]
