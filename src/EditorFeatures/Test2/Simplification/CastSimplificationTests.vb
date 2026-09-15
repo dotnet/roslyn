@@ -1109,6 +1109,59 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
+        <Theory>
+        <InlineData("ISomeInterface", "((T)value)")>
+        <InlineData("struct, ISomeInterface", "((T)value)")>
+        <InlineData("class, ISomeInterface", "(value)")>
+        <InlineData("BaseClass, ISomeInterface", "(value)")>
+        Public Async Function TestCSharp_IdentityCastToTypeParameter(constraint As String, expectedReceiver As String) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface ISomeInterface
+{
+    void Mutate();
+}
+
+class BaseClass
+{
+}
+
+class C
+{
+    void M&lt;T&gt;(T value) where T : <%= constraint %>
+    {
+        ({|Simplify:(T)value|}).Mutate();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+interface ISomeInterface
+{
+    void Mutate();
+}
+
+class BaseClass
+{
+}
+
+class C
+{
+    void M&lt;T&gt;(T value) where T : <%= constraint %>
+    {
+        <%= expectedReceiver %>.Mutate();
+    }
+}
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529914")>
         Public Async Function TestCSharp_Remove_TypeParameterToEffectiveBaseType() As Task
             Dim input =
