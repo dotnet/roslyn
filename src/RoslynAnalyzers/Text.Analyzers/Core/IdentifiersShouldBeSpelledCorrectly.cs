@@ -373,11 +373,20 @@ namespace Text.Analyzers
                     reportDiagnostic(GetMisspelledWordDiagnostic(symbol, misspelledWord));
                 }
 
-                if (checkForUnmeaningful && symbolName.Length == 1)
+                if (checkForUnmeaningful && symbolName.Length == 1 && !IsExcludedSingleLetterParameter(symbol))
                 {
                     reportDiagnostic(GetUnmeaningfulIdentifierDiagnostic(symbol, symbolName));
                 }
             }
+
+            bool IsExcludedSingleLetterParameter(ISymbol symbol)
+                => symbol.Kind == SymbolKind.Parameter
+                    && context.Options.GetBoolOptionValue(
+                        EditorConfigOptionNames.ExcludeSingleLetterParameters,
+                        MemberParameterMoreMeaningfulNameRule,
+                        symbol,
+                        context.Compilation,
+                        defaultValue: false);
 
             IEnumerable<string> GetMisspelledWords(string symbolName)
             {
