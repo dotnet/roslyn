@@ -777,4 +777,102 @@ public sealed class TypeConversionAllocationAnalyzerTests
                 }
             }
             """);
+
+    // Documents current behavior for converting a local function to a delegate: this analyzer sees
+    // the method group conversion and reports HAA0603, but it has no capture analysis, so the
+    // display class allocation caused by the captured local is not reported by any rule today.
+    // That gap is tracked by dotnet/roslyn-analyzers#1438 and will be covered by HAA0304 in a
+    // follow-up PR; HAA0603 behavior here is expected to stay unchanged.
+    [Fact]
+    public Task TypeConversionAllocation_ReportMethodGroupAllocationForCapturingLocalFunctionAsync()
+        => VerifyCS.VerifyAnalyzerAsync("""
+            using System;
+            using Roslyn.Utilities;
+
+            public class MyClass
+            {
+                [PerformanceSensitive("uri")]
+                public void SomeMethod()
+                {
+                    int local = 1;
+                    void LocalFunction() => Console.WriteLine(local);
+                    Action action = LocalFunction;
+                    Consume(LocalFunction);
+                }
+
+                private static void Consume(Action action)
+                {
+                }
+            }
+            """,
+            // Test0.cs(11,25): warning HAA0603: This will allocate a delegate instance
+#pragma warning disable RS0030 // Do not use banned APIs
+            VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.MethodGroupAllocationRule).WithLocation(11, 25),
+#pragma warning restore RS0030 // Do not use banned APIs
+            // Test0.cs(12,17): warning HAA0603: This will allocate a delegate instance
+#pragma warning disable RS0030 // Do not use banned APIs
+            VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.MethodGroupAllocationRule).WithLocation(12, 17));
+
+    // Documents that returning a method group does not report HAA0603 at all: the return statement
+    // path only checks for boxing conversions and never calls the delegate-creation check. Pinned
+    // so the follow-up HAA0304 work does not silently depend on HAA0603 covering this position.
+    [Fact]
+    public Task TypeConversionAllocation_DoNotReportMethodGroupAllocationForReturnedLocalFunctionAsync()
+        => VerifyCS.VerifyAnalyzerAsync("""
+            using System;
+            using Roslyn.Utilities;
+
+            public class MyClass
+            {
+                [PerformanceSensitive("uri")]
+                public Action SomeMethod()
+                {
+                    int local = 1;
+                    void LocalFunction() => Console.WriteLine(local);
+                    return LocalFunction;
+                }
+            }
+            """);
+
+    // A local function that captures nothing still allocates a delegate when converted, so HAA0603
+    // fires here too. Pinned so the follow-up HAA0304 work can show it does not report on the
+    // non-capturing case.
+    [Fact]
+    public Task TypeConversionAllocation_ReportMethodGroupAllocationForNonCapturingLocalFunctionAsync()
+        => VerifyCS.VerifyAnalyzerAsync("""
+            using System;
+            using Roslyn.Utilities;
+
+            public class MyClass
+            {
+                [PerformanceSensitive("uri")]
+                public void SomeMethod()
+                {
+                    void LocalFunction() => Console.WriteLine("no capture");
+                    Action action = LocalFunction;
+                }
+            }
+            """,
+            // Test0.cs(10,25): warning HAA0603: This will allocate a delegate instance
+#pragma warning disable RS0030 // Do not use banned APIs
+            VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.MethodGroupAllocationRule).WithLocation(10, 25));
+
+    // Directly invoking a local function is not a delegate creation, so no allocation is reported.
+    [Fact]
+    public Task TypeConversionAllocation_DoNotReportForDirectlyInvokedLocalFunctionAsync()
+        => VerifyCS.VerifyAnalyzerAsync("""
+            using System;
+            using Roslyn.Utilities;
+
+            public class MyClass
+            {
+                [PerformanceSensitive("uri")]
+                public void SomeMethod()
+                {
+                    int local = 1;
+                    void LocalFunction() => Console.WriteLine(local);
+                    LocalFunction();
+                }
+            }
+            """);
 }
