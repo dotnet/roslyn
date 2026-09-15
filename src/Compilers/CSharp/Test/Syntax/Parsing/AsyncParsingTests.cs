@@ -1891,9 +1891,6 @@ class C
 {
     async partial int operator
 ",
-                // (4,19): error CS1519: Invalid token 'int' in class, record, struct, or interface member declaration
-                //     async partial int operator
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "int").WithArguments("int").WithLocation(4, 19),
                 // (5,1): error CS1037: Overloadable operator expected
                 // 
                 Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "").WithLocation(5, 1),
@@ -1916,16 +1913,10 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.AsyncKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "partial");
-                        }
-                    }
                     N(SyntaxKind.OperatorDeclaration);
                     {
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.PartialKeyword);
                         N(SyntaxKind.PredefinedType);
                         {
                             N(SyntaxKind.IntKeyword);
