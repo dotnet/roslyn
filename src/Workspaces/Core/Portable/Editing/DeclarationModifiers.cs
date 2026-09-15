@@ -139,6 +139,8 @@ public readonly record struct DeclarationModifiers
 
     internal bool IsFixed => (Modifiers & Modifiers.Fixed) != 0;
 
+    internal bool IsIterator => (Modifiers & Modifiers.Iterator) != 0;
+
     public bool IsClosed => (Modifiers & Modifiers.Closed) != 0;
 
     public DeclarationModifiers WithIsStatic(bool isStatic)
@@ -224,6 +226,8 @@ public readonly record struct DeclarationModifiers
     public static DeclarationModifiers File => new(Modifiers.File);
 
     internal static DeclarationModifiers Fixed => new(Modifiers.Fixed);
+
+    internal static DeclarationModifiers Iterator => new(Modifiers.Iterator);
 
     public static DeclarationModifiers Closed => new(Modifiers.Closed);
 
