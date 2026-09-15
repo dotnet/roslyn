@@ -20,7 +20,7 @@
     <PackageReference Include="Microsoft.Build.Utilities.Core" ExcludeAssets="Runtime" PrivateAssets="All" />
     <PackageReference Include="NuGet.Versioning" />
     <PackageReference Include="System.Collections.Immutable" />
-    <PackageReference Include="System.IO.Pipelines" GeneratePathProperty="true" />
+    <PackageReference Include="System.IO.Pipelines" GeneratePathProperty="true" ExcludeAssets="all" PrivateAssets="all" />
     <PackageReference Include="System.Text.Json" GeneratePathProperty="true" />
   </ItemGroup>
 
