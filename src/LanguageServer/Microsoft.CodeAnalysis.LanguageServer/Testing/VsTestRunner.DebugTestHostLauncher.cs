@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
 
-internal sealed partial class TestRunner
+internal sealed partial class VsTestRunner
 {
     private sealed class DebugTestHostLauncher(BufferedProgress<RunTestsPartialResult> progress, IClientLanguageServerManager clientLanguageServerManager) : ITestHostLauncher2, ITestHostLauncher3
     {
@@ -45,24 +45,12 @@ internal sealed partial class TestRunner
 
         private bool AttachDebugger(int processId, CancellationToken cancellationToken)
         {
-            progress.Report(new RunTestsPartialResult(LanguageServerResources.Debugging_tests, string.Format(LanguageServerResources.Attaching_debugger_to_process_0, processId), Progress: null));
-
             // Send an explicit request to the client to tell it to attach to the debugger and wait for the response.
             // We want to wait for the attach to complete before we continue.
-            var task = Task.Run(async () => await AttachDebuggerAsync(processId, cancellationToken), cancellationToken);
+            var task = Task.Run(
+                async () => await TestDebugger.AttachAsync(processId, progress, clientLanguageServerManager, cancellationToken).ConfigureAwait(false),
+                cancellationToken);
             return task.WaitAndGetResult_CanCallOnBackground(cancellationToken);
-        }
-
-        private async Task<bool> AttachDebuggerAsync(int processId, CancellationToken cancellationToken)
-        {
-            var request = new DebugAttachParams(processId);
-            var result = await clientLanguageServerManager.SendRequestAsync<DebugAttachParams, DebugAttachResult>("workspace/attachDebugger", request, cancellationToken);
-            if (!result.DidAttach)
-            {
-                progress.Report(new RunTestsPartialResult(LanguageServerResources.Debugging_tests, LanguageServerResources.Client_failed_to_attach_the_debugger, Progress: null));
-            }
-
-            return result.DidAttach;
         }
     }
 }

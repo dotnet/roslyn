@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
 
-internal sealed partial class TestDiscoverer
+internal sealed partial class VsTestRunner
 {
     /// <summary>
     /// Implementation of <see cref="ITestDiscoveryEventsHandler"/>
