@@ -237,6 +237,7 @@ public sealed class VisualStudioOptionStorageTests
             "dotnet_style_prefer_non_hidden_explicit_cast_in_source",                          // For a small customer segment, doesn't warrant VS UI.
             "dotnet_binary_log_path",                                                       // VSCode only option for the VS Code project system; does not apply to VS
             "dotnet_enable_automatic_restore",                                              // VSCode only option for the VS Code project system; does not apply to VS
+            "dotnet_load_on_demand",                                                        // VSCode only option for the VS Code project system; does not apply to VS
             "dotnet_enable_file_based_programs",                                            // VSCode only option for the VS Code project system; does not apply to VS
             "dotnet_enable_file_based_programs_when_ambiguous",                             // VSCode only option for the VS Code project system; does not apply to VS
             "dotnet_enable_automatic_discovery",                                            // VSCode only option for the VS Code project system; does not apply to VS

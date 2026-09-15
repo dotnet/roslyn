@@ -28,7 +28,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
     private static readonly string s_razorDesignTimePath = Path.Combine(AppContext.BaseDirectory, "Targets", "Microsoft.NET.Sdk.Razor.DesignTime.targets");
 
     private readonly AsyncPriorityWorkQueue<string> _projectsToReload;
-    private enum ProjectReloadPriority
+    internal enum ProjectReloadPriority
     {
         Low = 0,
         Medium = 1,
@@ -384,12 +384,15 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
     /// <summary>
     /// Begins loading a project. If the project has already begun loading, returns without doing any additional work.
     /// </summary>
-    internal async Task<LoadedProject> BeginLoadingProjectAsync(string projectPath)
+    internal async Task<LoadedProject> BeginLoadingProjectAsync(
+        string projectPath,
+        ProjectReloadPriority priority = ProjectReloadPriority.Medium,
+        CancellationToken cancellationToken = default)
     {
         projectPath = NormalizeProjectPath(projectPath);
         LoadedProject? loadedProject;
 
-        using (await _gate.DisposableWaitAsync(CancellationToken.None))
+        using (await _gate.DisposableWaitAsync(cancellationToken))
         {
             Contract.ThrowIfTrue(_isDisposed, "Project loader is already disposed");
 
@@ -400,14 +403,20 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
                 _loadedProjects.Add(projectPath, loadedProject);
 
                 loadedProject.NeedsReload += LoadedProject_NeedsReload;
-                _projectsToReload.AddWork(loadedProject.ProjectFilePath, priority: (int)ProjectReloadPriority.Medium);
+                _projectsToReload.AddWork(loadedProject.ProjectFilePath, priority: (int)priority);
+            }
+            else if (priority == ProjectReloadPriority.High)
+            {
+                _projectsToReload.ChangeWorkPriorityIfScheduled(
+                    loadedProject.ProjectFilePath,
+                    (int)ProjectReloadPriority.High);
             }
         }
 
         // Try to load the contents from the project cache if we have one; we'll do this outside the lock
         try
         {
-            var cachedProjectStateAndFactory = await TryLoadProjectFromCacheAsync(projectPath, CancellationToken.None);
+            var cachedProjectStateAndFactory = await TryLoadProjectFromCacheAsync(projectPath, cancellationToken);
 
             if (cachedProjectStateAndFactory is not null)
             {
@@ -421,7 +430,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
                     _projectTargetFrameworkManager,
                     _workspaceFactory,
                     _logger,
-                    CancellationToken.None,
+                    cancellationToken,
                     onlyIfNoTargets: true);
 
                 if (applied)
@@ -434,7 +443,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
                 }
             }
         }
-        catch (Exception e)
+        catch (Exception e) when (!ExceptionUtilities.IsCurrentOperationBeingCancelled(e, cancellationToken))
         {
             _logger.LogWarning(e, "Exception encountered while trying to load cached state for {ProjectPath}", projectPath);
         }
@@ -470,13 +479,19 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
 
     internal async Task WaitForAllProjectLoadsAsync(CancellationToken cancellationToken)
     {
+        var waitAllTask = await GetWaitForAllProjectLoadsTaskAsync(cancellationToken);
+        await waitAllTask;
+    }
+
+    internal async ValueTask<Task> GetWaitForAllProjectLoadsTaskAsync(CancellationToken cancellationToken)
+    {
         ImmutableArray<LoadedProject> loadedProjects;
         using (await _gate.DisposableWaitAsync(cancellationToken))
         {
             loadedProjects = [.. _loadedProjects.Values];
         }
 
-        await WaitForProjectLoadsAsync(loadedProjects, cancellationToken: cancellationToken);
+        return WaitForProjectLoadsAsync(loadedProjects, cancellationToken: cancellationToken);
     }
 
     /// <summary>Unloads all projects associated with this project loader.</summary>
