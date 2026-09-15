@@ -14,5 +14,7 @@ internal sealed class ExtensionDocumentMessageHandlerWrapper(
     : ExtensionHandlerWrapper<Document>(handler, customMessageHandlerInterface, extensionIdentifier)
 {
     protected override Task ExecuteAsync(MethodInfo executeAsyncMethod, object handler, object? message, Document argument, CancellationToken cancellationToken)
+#pragma warning disable RSEXPERIMENTAL008 // Internal implementation of experimental API
         => (Task)executeAsyncMethod.Invoke(handler, [message, new ExtensionMessageContext(argument.Project.Solution), argument, cancellationToken])!;
+#pragma warning restore RSEXPERIMENTAL008
 }

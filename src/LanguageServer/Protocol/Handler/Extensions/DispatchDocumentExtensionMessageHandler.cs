@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Extensions;
 internal sealed class DispatchDocumentExtensionMessageHandler()
     : AbstractExtensionHandler, ILspServiceDocumentRequestHandler<DispatchDocumentExtensionMessageParams, DispatchExtensionMessageResponse>
 {
-    private const string MethodName = "textDocument/_vs_dipatchExtensionMessage";
+    private const string MethodName = "textDocument/_vs_dispatchExtensionMessage";
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(DispatchDocumentExtensionMessageParams request)
         => request.TextDocument;
