@@ -136,6 +136,7 @@ internal partial class ItemManager
             var itemsToBeIncluded = s_listOfMatchResultPool.Allocate();
             var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var threadLocalPatternMatchHelper = new ThreadLocal<PatternMatchHelper>(() => new PatternMatchHelper(_filterText), trackAllValues: true);
+            Task<(CompletionList<CompletionItemWithHighlight>, ImmutableArray<CompletionFilterWithState>)>? highlightAndFilterTask = null;
 
             try
             {
@@ -151,7 +152,7 @@ internal partial class ItemManager
                 // Sort items based on pattern matching result
                 itemsToBeIncluded.Sort(MatchResult.SortingComparer);
 
-                var highlightAndFilterTask = Task.Run(
+                highlightAndFilterTask = Task.Run(
                     () => GetHighlightedListAndUpdatedFilters(session, itemsToBeIncluded, threadLocalPatternMatchHelper, cancellationTokenSource.Token),
                     cancellationTokenSource.Token);
 
@@ -184,6 +185,11 @@ internal partial class ItemManager
             finally
             {
                 cancellationTokenSource.Cancel();
+
+                // Cancellation is cooperative, so wait for the task to stop using pooled state before releasing it.
+                if (highlightAndFilterTask is not null)
+                    await highlightAndFilterTask.NoThrowAwaitable(captureContext: false);
+
                 cancellationTokenSource.Dispose();
 
                 // Don't call ClearAndFree, which resets the capacity to a default value.
