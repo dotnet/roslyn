@@ -370,9 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lambda = AnalyzeAnonymousFunction(syntax, diagnostics);
             var data = lambda.Data;
 
-            // Parser will only have accepted static/async as allowed modifiers on this construct.
-            // However, it may have accepted duplicates of those modifiers.  Ensure that any dupes
-            // are reported now.
+            // Report duplicate modifiers and modifiers accepted only for parser recovery.
             ModifierUtils.ToDeclarationModifiers(syntax.Modifiers, allowsPartialModifier: false, diagnostics.DiagnosticBag ?? new DiagnosticBag());
 
             if (data.HasSignature)

@@ -18,6 +18,7 @@ the one for your area):
 | Unit tests | Sibling `*Test` / `*.UnitTests` project next to the product project (e.g., `Workspaces/Core` ↔ `Workspaces/CoreTest`). |
 | Compiler tests | `src/Compilers/*/Test/`. |
 | IDE/analyzer tests | `*Test` projects under `src/Features`, `src/Analyzers`, `src/EditorFeatures`. |
+| Project-data tests | `src/ProjectData/Microsoft.NET.ProjectData{,.Generators,.Tasks}.Tests/`; assemblies use the `UnitTests` suffix. |
 | Integration tests | VS integration tests (`azure-pipelines-integration*.yml`); runnable locally on **Windows** hosts with a VS install, also run in CI. |
 
 Frameworks: xUnit with Roslyn test utilities.
@@ -26,6 +27,11 @@ Frameworks: xUnit with Roslyn test utilities.
 
 - Prefer raw string literals (`"""..."""`) over verbatim strings for test source code.
 - Keep tests focused: use `.Single()` rather than asserting a count then indexing.
+- Analyzer testing-library tests should use `ReferenceAssemblies.Default` for
+  the stable .NET Core 3.1 reference surface. Use an explicit
+  `ReferenceAssemblies` value, such as `ReferenceAssemblies.Net.Net100`, when
+  the scenario intentionally depends on a newer or specific framework API
+  surface.
 - For issue-linked changes, add a `WorkItem` attribute next to the test
   attribute, e.g. `[Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1234")]`
   or `[Theory, WorkItem("https://github.com/dotnet/roslyn/issues/1234")]`.

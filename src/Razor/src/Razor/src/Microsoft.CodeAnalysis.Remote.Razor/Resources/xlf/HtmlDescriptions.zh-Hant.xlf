@@ -43,7 +43,7 @@ In previous versions of HTML, the different character encodings could be delimit
 
 **使用方式注意事項**
 
-* **請勿使用此屬性**，因為它已被棄用。[`&lt;table&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table "The HTML &lt;table&gt; element represents tabular data — that is, information presented in a two-dimensional table comprised of rows and columns of cells containing data.") 元素應使用 [CSS](https://developer.mozilla.org/en-US/docs/CSS) 進行樣式設定。將 [`margin-left`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-left "margin-left CSS 屬性會設定元素左側的邊界區域。正值會使其離鄰居更遠，負值則會使其更靠近。") 和 [`margin-right`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-right "margin-right CSS 屬性會設定元素右側的邊界區域。正值會使其離鄰居更遠，負值則會使其更靠近。") 設為 `auto`，或將 [`margin`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin "margin CSS 屬性會設定元素四邊的邊界區域。這是 margin-top、margin-right、margin-bottom 和 margin-left 的速記。") 到 `0 auto`，以達到類似 align 屬性的效果。
+* **請勿使用此屬性**，因為它已被棄用。[`&lt;table&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table "The HTML &lt;table&gt; element represents tabular data — that is, information presented in a two-dimensional table comprised of rows and columns of cells containing data.") 元素應使用 [CSS](https://developer.mozilla.org/en-US/docs/CSS) (英文) 進行樣式設定。將 [`margin-left`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-left "margin-left CSS 屬性會設定元素左側的邊界區域。正值會使其離鄰居更遠，負值則會使其更靠近。") 和 [`margin-right`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-right "margin-right CSS 屬性會設定元素右側的邊界區域。正值會使其離鄰居更遠，負值則會使其更靠近。") 設為 `auto`，或將 [`margin`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin "margin CSS 屬性會設定元素四邊的邊界區域。這是 margin-top、margin-right、margin-bottom 和 margin-left 的速記。") 到 `0 auto`，以達到類似 align 屬性的效果。
 * 在 Firefox 4 之前，Firefox 也僅支援 quirks 模式中的 `middle`、`absmiddle` 和 `abscenter` 值做為 `center` 的同義字。</target>
         <note />
       </trans-unit>
@@ -55,7 +55,7 @@ In previous versions of HTML, the different character encodings could be delimit
       <trans-unit id="HtmlAttribute_allowfullscreen">
         <source>Set to `true` if the `&lt;iframe&gt;` can activate fullscreen mode by calling the [`requestFullscreen()`](https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen "The Element.requestFullscreen() method issues an asynchronous request to make the element be displayed in full-screen mode.") method.
 This attribute is considered a legacy attribute and redefined as `allow="fullscreen"`.</source>
-        <target state="translated">如果 `&lt;iframe&gt;` 可透過呼叫 [`requestFullscreen()`](https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen "The Element.requestFullscreen() method issues an asynchronous request to make the element be displayed in full-screen mode.") 方法啟動全螢幕模式，請設為 `true`。
+        <target state="translated">如果 `&lt;iframe&gt;` 可透過呼叫 [`requestFullscreen()`](https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen "Element.requestFullscreen() 方法會發出一個非同步要求，使該元素以全螢幕模式顯示。") 方法啟動全螢幕模式，請設為 `true`。
 此屬性視為舊版屬性，已重新定義為 `allow="fullscreen"`。</target>
         <note />
       </trans-unit>
@@ -67,7 +67,7 @@ This attribute is considered a legacy attribute and redefined as `allow="fullscr
 **Note:** Omitting this attribute altogether indicates that the image is a key part of the content, and no textual equivalent is available. Setting this attribute to an empty string (`alt=""`) indicates that this image is _not_ a key part of the content (decorative), and that non-visual browsers may omit it from rendering.</source>
         <target state="translated">此屬性定義影像的替代文字描述。
 
-**注意:** 瀏覽器不一定顯示元素所參照的影像。在非圖形瀏覽器中 (包括視覺障礙者使用的瀏覽器)，如果使用者選擇不顯示影像，或瀏覽器因影像無效或屬於 [不支援的類型](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/img#Supported_image_formats) 而無法顯示影像時，就會發生這種情況。在這些情況下，瀏覽器可能會以此元素 `alt` 屬性中定義的文字取代影像。由於這些及其他原因，您應該盡可能為 `alt` 提供有用的值。
+**注意:** 瀏覽器不一定顯示元素所參照的影像。在非圖形瀏覽器中 (包括視覺障礙者使用的瀏覽器)，如果使用者選擇不顯示影像，或瀏覽器因影像無效或屬於[不支援的類型](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/img#Supported_image_formats) (英文) 而無法顯示影像時，就會發生這種情況。在這些情況下，瀏覽器可能會以此元素 `alt` 屬性中定義的文字取代影像。由於這些及其他原因，您應該盡可能為 `alt` 提供有用的值。
 
 **注意:** 完全省略此屬性表示影像是內容的重要部分，而且沒有文字對等項目可用。將這個屬性設為空字串 (`alt=""`) 表示這個影像不是內容的重要部分 (屬於裝飾性)，而非視覺瀏覽器可能會在呈現時省略它。</target>
         <note />
@@ -93,9 +93,9 @@ See [Browser compatibility](https://developer.mozilla.org/docs/Web/HTML/Referenc
 
 瀏覽器通常會採用最壞情況，並在 HTML 剖析期間同步載入指令碼 (也就是 `async="false"`)。
 
-動態插入的指令碼 (使用 [`document.createElement()`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement "在 HTML 文件中，document.createElement() 方法會建立由 tagName 指定的 HTML 元素；如果 tagName 無法辨識，則會建立 HTMLUnknownElement。")) 預設會以非同步方式載入，因此若要啟用同步載入 (也就是讓指令碼依插入順序載入)，請設定 `async="false"`。
+動態插入的指令碼 (使用 [`document.createElement()`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement "在 HTML 文件中，document.createElement() 方法會建立由 tagName 指定的 HTML 元素; 如果 tagName 無法辨識，則會建立 HTMLUnknownElement。")) 預設會以非同步方式載入，因此若要啟用同步載入 (也就是讓指令碼依插入順序載入)，請設定 `async="false"`。
 
-如需瀏覽器支援的注意事項，請參閱 [瀏覽器相容性](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/script#Browser_compatibility)。另請參閱 [asm.js 的非同步指令碼](https://developer.mozilla.org/en-US/docs/Games/Techniques/Async_scripts)。</target>
+如需瀏覽器支援的注意事項，請參閱[瀏覽器相容性](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/script#Browser_compatibility) (英文)。另請參閱 [asm.js 的非同步指令碼](https://developer.mozilla.org/en-US/docs/Games/Techniques/Async_scripts) (英文)。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_autocapitalize">
@@ -123,11 +123,11 @@ For most modern browsers (including Firefox 38+, Google Chrome 34+, IE 11+) sett
 **Note:** If you set `autocomplete` to `off` in a form because the document provides its own auto-completion, then you should also set `autocomplete` to `off` for each of the form's `input` elements that the document can auto-complete. For details, see the note regarding Google Chrome in the [Browser Compatibility chart](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/form#compatChart).</source>
         <target state="translated">指出輸入元素在預設情況下，瀏覽器是否可以自動完成其值。表單中的元素可以使用 `autocomplete` 屬性覆寫此設定。可能的值為:
 
-* `off`: 使用者必須在每個欄位中明確輸入值以供每次使用，或者文字提供自己的自動完成方法；瀏覽器不會自動完成輸入項目。
+* `off`: 使用者必須在每個欄位中明確輸入值以供每次使用，或者文字提供自己的自動完成方法; 瀏覽器不會自動完成輸入項目。
 * `on`: 瀏覽器可以根據使用者先前在表單中輸入的值自動完成值。
 
-對於大多數現代瀏覽器 (包括 Firefox 38+、Google Chrome 34+、IE 11+)，將 autocomplete 屬性設為 off 不會阻止瀏覽器的密碼管理員詢問使用者是否要儲存登入欄位 (使用者名稱和密碼)。如果使用者允許儲存，瀏覽器會在下次使用者造訪頁面時自動填入登入資訊。請參閱 [自動完成屬性和登入欄位](https://developer.mozilla.org/en-US/docs/Web/Security/Securing_your_site/Turning_off_form_autocompletion#The_autocomplete_attribute_and_login_fields)。
-**注意:** 如果您在表單中將 `autocomplete` 設定為 `off`，因為文件會提供自己的自動完成，則您也應該針對文件可自動完成的每個表單的 `input` 元素，將 `autocomplete` 設定為 `off`。如需詳細資訊，請參閱 [瀏覽器相容性圖表](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/form#compatChart) 中有關 Google Chrome 的注意事項。</target>
+對於大多數現代瀏覽器 (包括 Firefox 38+、Google Chrome 34+、IE 11+)，將 autocomplete 屬性設為 off 不會阻止瀏覽器的密碼管理員詢問使用者是否要儲存登入欄位 (使用者名稱和密碼)。如果使用者允許儲存，瀏覽器會在下次使用者造訪頁面時自動填入登入資訊。請參閱[自動完成屬性和登入欄位](https://developer.mozilla.org/en-US/docs/Web/Security/Securing_your_site/Turning_off_form_autocompletion#The_autocomplete_attribute_and_login_fields) (英文)。
+**注意:** 如果您在表單中將 `autocomplete` 設定為 `off`，因為文件會提供自己的自動完成，則您也應該針對文件可自動完成的每個表單的 `input` 元素，將 `autocomplete` 設定為 `off`。如需詳細資訊，請參閱[瀏覽器相容性圖表](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/form#compatChart) (英文) 中有關 Google Chrome 的注意事項。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_autocorrect">
@@ -146,7 +146,7 @@ For most modern browsers (including Firefox 38+, Google Chrome 34+, IE 11+) sett
 **Note:** Do not use this attribute as it is obsolete in the latest standard: use the [`scope`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/th#attr-scope) attribute instead.</source>
         <target state="translated">此屬性包含以空格分隔的字串清單。每個字串都是此標頭所適用之儲存格群組的 `id`。
 
-**注意:** 請勿使用此屬性，因為它在最新標準中已過時: 請改用 [`scope`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/th#attr-scope) 屬性。</target>
+**注意:** 請勿使用此屬性，因為它在最新標準中已過時: 請改用 [`scope`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/th#attr-scope) (英文) 屬性。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_charset">
@@ -167,23 +167,23 @@ For most modern browsers (including Firefox 38+, Google Chrome 34+, IE 11+) sett
 * This [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") element is only one part of the [algorithm to determine a page's character set](https://www.whatwg.org/specs/web-apps/current-work/multipage/parsing.html#encoding-sniffing-algorithm "Algorithm charset page"). The [`Content-Type` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type) and any [Byte-Order Marks](https://developer.mozilla.org/en-US/docs/Glossary/Byte-Order_Mark "The definition of that term (Byte-Order Marks) has not been written yet; please consider contributing it!") override this element.
 * It is strongly recommended to define the character encoding. If a page's encoding is undefined, cross-scripting techniques are possible, such as the [`UTF-7` fallback cross-scripting technique](https://code.google.com/p/doctype-mirror/wiki/ArticleUtf7).
 * The [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") element with a `charset` attribute is a synonym for the pre-HTML5 `&lt;meta http-equiv="Content-Type" content="text/html; charset=_IANAcharset_"&gt;`, where _`IANAcharset`_ contains the value of the equivalent [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) attribute. This syntax is still allowed, although no longer recommended.</source>
-        <target state="translated">此屬性會宣告頁面的字元編碼。它必須包含 [字元編碼的標準 IANA MIME 名稱](https://www.iana.org/assignments/character-sets)。雖然標準不會要求特定編碼，但建議:
+        <target state="translated">此屬性會宣告頁面的字元編碼。它必須包含[字元編碼的標準 IANA MIME 名稱](https://www.iana.org/assignments/character-sets) (英文)。雖然標準不會要求特定編碼，但建議:
 
-* 建議作者使用 [`UTF-8`](https://developer.mozilla.org/en-US/docs/Glossary/UTF-8)。
+* 建議作者使用 [`UTF-8`](https://developer.mozilla.org/en-US/docs/Glossary/UTF-8) (英文)。
 * 作者不應使用 ASCII 不相容的編碼來避免安全性風險: 不支援此種編碼的瀏覽器可能會將有害的內容解譯為 HTML。這種情況會發生在 `JIS_C6226-1983`、`JIS_X0212-1990`、`HZ-GB-2312`、`JOHAB`、ISO-2022 系列和 EBCDIC 系列。
 
 **注意: ** ASCII 不相容的編碼未將 8 位元程式碼點 `0x20` 對應至 `0x7E` 至 `0x0020` 至 `0x007E` Unicode 程式碼點)
 
-* 已示範這些編碼的情況下，作者「不得」使用 `CESU-8`、`UTF-7`、`BOCU-1` 和/或 `SCSU` 做為 [跨網站指令碼](https://developer.mozilla.org/en-US/docs/Glossary/Cross-site_scripting) 攻擊。
+* 已示範這些編碼的情況下，作者「不得」使用 `CESU-8`、`UTF-7`、`BOCU-1` 和/或 `SCSU` 作為[跨網站指令碼](https://developer.mozilla.org/en-US/docs/Glossary/Cross-site_scripting) (英文) 攻擊。
 * 作者不應使用 `UTF-32`，因為並非所有 HTML5 編碼演算法都可以將其與 `UTF-16` 區分。
 
 **注意:**
 
 * 宣告的字元編碼必須與用以儲存頁面的字元編碼相符，以避免亂碼和安全漏洞。
-* 宣告編碼的 [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta“HTML &lt;meta&gt; 元素代表無法由其他 HTML 中繼相關元素代表的中繼資料，例如 &lt;base&gt;、&lt;link&gt;、&lt;script&gt;、&lt;style&gt; 或 &lt;title&gt;。”) 元素必須在 [`&lt;head&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/head "HTML &lt;head&gt; 元素提供有關文件的一般資訊，包括其標題及指令碼和樣式表的連結。") 元素內部，以及在 HTML 的「前 1024 個位元組」內，因為有些瀏覽器只會在選擇編碼之前查看這些位元組。
-* 此 [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta “HTML &lt;meta&gt; 元素代表無法由其他 HTML 中繼相關元素代表的中繼資料， 例如 &lt;base&gt;、&lt;link&gt;、&lt;script&gt;、&lt;style&gt; 或 &lt;title&gt;。”) 元素只是 [判斷頁面字元集的演算法](https://www.whatwg.org/specs/web-apps/current-work/multipage/parsing.html#encoding-sniffing-algorithm "Algorithm charset page") 的一部分。[`Content-Type` 標頭](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type) 和任何 [Byte-Order 標記](https://developer.mozilla.org/en-US/docs/Glossary/Byte-Order_Mark "該術語的定義 (位元順序標記) 尚未撰寫;請考慮參與!") 會取代此元素。
+* 宣告編碼的 [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTML &lt;meta&gt; 元素代表無法由其他 HTML 中繼相關元素代表的中繼資料，例如 &lt;base&gt;、&lt;link&gt;、&lt;script&gt;、&lt;style&gt; 或 &lt;title&gt;。”) 元素必須在 [`&lt;head&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/head "HTML &lt;head&gt; 元素提供有關文件的一般資訊，包括其標題及指令碼和樣式表的連結。") 元素內部，以及在 HTML 的「前 1024 個位元組」內，因為有些瀏覽器只會在選擇編碼之前查看這些位元組。
+* 此 [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTML &lt;meta&gt; 元素代表無法由其他 HTML 中繼相關元素代表的中繼資料， 例如 &lt;base&gt;、&lt;link&gt;、&lt;script&gt;、&lt;style&gt; 或 &lt;title&gt;。”) 元素只是 [判斷頁面字元集的演算法](https://www.whatwg.org/specs/web-apps/current-work/multipage/parsing.html#encoding-sniffing-algorithm "Algorithm charset page") 的一部分。[`Content-Type` 標頭](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type) 和任何 [Byte-Order 標記](https://developer.mozilla.org/en-US/docs/Glossary/Byte-Order_Mark "該術語的定義 (位元順序標記) 尚未撰寫;請考慮參與!") 會取代此元素。
 * 強烈建議您定義字元編碼。如果未定義頁面的編碼，則可能使用跨指令碼技術，例如 [`UTF-7` 後援跨指令碼技術](https://code.google.com/p/doctype-mirror/wiki/ArticleUtf7).
-* [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta“HTML &lt;meta&gt; 元素代表無法由其他 HTML 中繼相關元素代表的中繼資料，例如 &lt;base&gt;、&lt;link&gt;、&lt;script&gt;、&lt;style&gt; 或 &lt;title&gt;。") 元素與 `charset` 屬性是前 HTML5 `&lt;meta http-equiv="Content-Type" content="text/html; charset=_IANAcharset_"&gt;`，其中 _`IANAcharset`_ 包含對等的 [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) 屬性值。雖然已不再建議，但仍允許此語法。</target>
+* [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTML &lt;meta&gt; 元素代表無法由其他 HTML 中繼相關元素代表的中繼資料，例如 &lt;base&gt;、&lt;link&gt;、&lt;script&gt;、&lt;style&gt; 或 &lt;title&gt;。") 元素與 `charset` 屬性是前 HTML5 `&lt;meta http-equiv="Content-Type" content="text/html; charset=_IANAcharset_"&gt;`，其中 _`IANAcharset`_ 包含對等的 [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) 屬性值。雖然已不再建議，但仍允許此語法。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_cite">
@@ -239,17 +239,17 @@ A cross-origin request (i.e. with an [`Origin`](https://developer.mozilla.org/en
 A cross-origin request (i.e. with an `Origin` HTTP header) is performed along with a credential sent (i.e. a cookie, certificate, and/or HTTP Basic authentication is performed). If the server does not give credentials to the origin site (through [`Access-Control-Allow-Credentials`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials "The Access-Control-Allow-Credentials response header tells browsers whether to expose the response to frontend JavaScript code when the request's credentials mode (Request.credentials) is "include".") HTTP header), the resource will be _tainted_ and its usage restricted.
 
 If the attribute is not present, the resource is fetched without a [CORS](https://developer.mozilla.org/en-US/docs/Glossary/CORS "CORS: CORS (Cross-Origin Resource Sharing) is a system, consisting of transmitting HTTP headers, that determines whether browsers block frontend JavaScript code from accessing responses for cross-origin requests.") request (i.e. without sending the `Origin` HTTP header), preventing its non-tainted usage. If invalid, it is handled as if the enumerated keyword **anonymous** was used. See [CORS settings attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_settings_attributes) for additional information.</source>
-        <target state="translated">這個列舉屬性指出在擷取資源時是否必須使用 [CORS](https://developer.mozilla.org/en-US/docs/Glossary/CORS "CORS: CORS (跨原始來源資源共用) 是一個系統，由傳輸 HTTP 標頭所組成，決定瀏覽器是否禁止前端 JavaScript 程式碼存取跨原始來源要求的回應。”)。[啟用 CORS 的影像](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_Enabled_Image) 可以在 [`&lt;canvas&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas "使用 HTML &lt;canvas&gt; 元素，搭配畫布指令碼處理 API 或 WebGL API 以繪製圖形和動畫。") 元素中重複使用，而不會被 _tainted_。允許的值為:
+        <target state="translated">這個列舉屬性指出在擷取資源時是否必須使用 [CORS](https://developer.mozilla.org/en-US/docs/Glossary/CORS "CORS: CORS (跨原始來源資源共用) 是一個系統，由傳輸 HTTP 標頭所組成，決定瀏覽器是否禁止前端 JavaScript 程式碼存取跨原始來源要求的回應。”)。[啟用 CORS 的影像](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_Enabled_Image) (英文) 可以在 [`&lt;canvas&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas "使用 HTML &lt;canvas&gt; 元素，搭配畫布指令碼處理 API 或 WebGL API 以繪製圖形和動畫。") 元素中重複使用，而不會被 _tainted_。允許的值為:
 
 `anonymous`
 
-跨原始來源要求 (即具有 [`Origin`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin "原始來源要求標頭指出擷取原自何處。它不包含任何路徑資訊，但只包含伺服器名稱。它會與 CORS 要求以及 POST 要求一起送出。它類似於 Referer 標頭，但與此標頭不同，它不會公開整個路徑。") HTTP 標頭)，會執行，但不會送出任何認證 (也就是不包含 cookie、X.509 憑證或 HTTP Basic 驗證)。如果伺服器未提供認證給原始來源網站 (不要設定 [`Access-Control-Allow-Origin`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin "Access-Control-Allow-Origin 回應標頭指出回應是否可與來自指定原始來源的要求程式碼共用。") HTTP 標頭)，則影像會受到污染，且其使用方式受到限制。
+跨原始來源要求 (即具有 [`Origin`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin "原始來源要求標頭指出擷取原自何處。它不包含任何路徑資訊，但只包含伺服器名稱。它會與 CORS 要求以及 POST 要求一起送出。它類似於 Referer 標頭，但與此標頭不同，它不會公開整個路徑。") HTTP 標頭)，會執行，但不會送出任何認證 (也就是不包含 Cookie、X.509 憑證或 HTTP 基本驗證)。如果伺服器未提供認證給原始來源網站 (不要設定 [`Access-Control-Allow-Origin`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin "Access-Control-Allow-Origin 回應標頭指出回應是否可與來自指定原始來源的要求程式碼共用。") HTTP 標頭)，則影像會受到污染，且其使用方式受到限制。
 
 `use-credentials`
 
 跨原始來源要求 (即具有 `Origin` HTTP 標頭) 會隨著傳送的認證一起執行 (即執行 Cookie、憑證和/或 HTTP 基本驗證)。如果伺服器未透過 [`Access-Control-Allow-Credentials`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials "Access-Control-Allow-Credentials 回應標頭會告訴瀏覽器，當要求認證模式 (Request.credentials) 為 "include" 時，是否要將回應公開給前端 JavaScript 程式碼。") HTTP 標頭將認證提供給來源站台，資源就會被 _tainted_，其使用也會受限。
 
-如果屬性不存在，系統會在不發出 [CORS](https://developer.mozilla.org/en-US/docs/Glossary/CORS "CORS: CORS (跨來源資源共用) 是一個系統，由傳輸 HTTP 標頭所組成，可決定瀏覽器是否封鎖前端 JavaScript 程式碼存取跨原始來源要求的回應。") 要求的情況下擷取資源 (也就是不送出 `Origin` HTTP 標頭)，因此無法以未受污染的方式使用。如果值無效，系統會將其視為使用列舉關鍵字 **anonymous**。如需其他資訊，請參閱 [CORS 設定屬性](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_settings_attributes)。</target>
+如果屬性不存在，系統會在不發出 [CORS](https://developer.mozilla.org/en-US/docs/Glossary/CORS "CORS: CORS (跨來源資源共用) 是一個系統，由傳輸 HTTP 標頭所組成，可決定瀏覽器是否封鎖前端 JavaScript 程式碼存取跨原始來源要求的回應。") 要求的情況下擷取資源 (也就是不送出 `Origin` HTTP 標頭)，因此無法以未受污染的方式使用。如果值無效，系統會將其視為使用列舉關鍵字 **anonymous**。如需其他資訊，請參閱 [CORS 設定屬性](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_settings_attributes) (英文)。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_csp">
@@ -311,7 +311,7 @@ To achieve a similar effect for dynamically inserted scripts use `async="false"`
 
 具有 `defer` 屬性的指令碼會延後 `DOMContentLoaded` 事件，直到指令碼載入並完成評估為止。
 
-如果沒有 `src` 屬性，則不得使用此屬性 (也就是內嵌指令碼)；在這種情況下，此屬性不會產生任何作用。
+如果沒有 `src` 屬性，則不得使用此屬性 (也就是內嵌指令碼); 在這種情況下，此屬性不會產生任何作用。
 
 若要讓動態插入的指令碼達到類似效果，請改用 `async="false"`。具有 `defer` 屬性的指令碼會依照它們在文件中出現的順序執行。</target>
         <note />
@@ -343,13 +343,13 @@ To achieve a similar effect for dynamically inserted scripts use `async="false"`
 * Although HTTP(s) URLs need to be in the same-origin, [`blob:` URLs](https://developer.mozilla.org/en-US/docs/Web/API/URL.createObjectURL) and [`data:` URLs](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs) are allowed so that content generated by JavaScript, such as pictures created in an image-editor Web app, can be downloaded.
 * If the HTTP header [`Content-Disposition:`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition) gives a different filename than this attribute, the HTTP header takes priority over this attribute.
 * If `Content-Disposition:` is set to `inline`, Firefox prioritizes `Content-Disposition`, like the filename case, while Chrome prioritizes the `download` attribute.</source>
-        <target state="translated">此屬性會指示瀏覽器下載 URL，而不是瀏覽至該 URL，因此系統會提示使用者將其儲存為本機檔案。如果此屬性有值，系統會在 [儲存] 提示中將其作為預先填入的檔案名稱 (使用者仍可視需要變更檔名)。允許的值沒有限制，但 `/` 和 `\` 會轉換為底線。大部分的檔案系統會限制檔名中的某些標點符號，而瀏覽器會據此調整建議的名稱。
+        <target state="translated">此屬性會指示瀏覽器下載 URL，而不是瀏覽至該 URL，因此系統會提示使用者將其儲存為本機檔案。如果此屬性有值，系統會在「儲存」提示中將其作為預先填入的檔案名稱 (使用者仍可視需要變更檔名)。允許的值沒有限制，但 `/` 和 `\` 會轉換為底線。大部分的檔案系統會限制檔名中的某些標點符號，而瀏覽器會據此調整建議的名稱。
 
 **注意:**
 
-* 此屬性僅適用於 [相同原始來源的 URL](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy)。
-* 雖然 HTTP URL 必須位於相同的原始來源中，但允許 [`blob:` URLs](https://developer.mozilla.org/en-US/docs/Web/API/URL.createObjectURL) 和 [`data:` URLs](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs)，以便下載 JavaScript 產生的內容，例如在影像編輯器 Web 應用程式中建立的圖片。
-* 如果 HTTP 標頭 [`Content-Disposition:`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition) 提供與此屬性不同的檔名，則 HTTP 標頭的優先順序高於此屬性。
+* 此屬性僅適用於[相同原始來源的 URL](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy) (英文)。
+* 雖然 HTTP URL 必須位於相同的原始來源中，但允許 [`blob:` URLs](https://developer.mozilla.org/en-US/docs/Web/API/URL.createObjectURL) (英文) 和 [`data:` URLs](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs) (英文)，以便下載 JavaScript 產生的內容，例如在影像編輯器 Web 應用程式中建立的圖片。
+* 如果 HTTP 標頭 [`Content-Disposition:`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition) (英文) 提供與此屬性不同的檔名，則 HTTP 標頭的優先順序高於此屬性。
 * 如果 `Content-Disposition:` 設定為 `inline`，Firefox 會優先處理 `Content-Disposition` (例如檔名案例)，而 Chrome 會優先處理 `download` 属性。</target>
         <note />
       </trans-unit>
@@ -358,7 +358,7 @@ To achieve a similar effect for dynamically inserted scripts use `async="false"`
 
 * `true`, which indicates that the element may be dragged
 * `false`, which indicates that the element may not be dragged.</source>
-        <target state="translated">列舉屬性，指出是否可以使用 [拖曳 API](https://developer.mozilla.org/docs/DragDrop/Drag_and_Drop) 拖曳元素。它可能有下列值:
+        <target state="translated">列舉屬性，指出是否可以使用[拖曳 API](https://developer.mozilla.org/docs/DragDrop/Drag_and_Drop) (英文) 拖曳元素。它可能有下列值:
 
 * `true`，表示可以拖曳元素
 * `false`，表示不可以拖曳元素。</target>
@@ -370,7 +370,7 @@ To achieve a similar effect for dynamically inserted scripts use `async="false"`
 * `copy`, which indicates that dropping will create a copy of the element that was dragged
 * `move`, which indicates that the element that was dragged will be moved to this new location.
 * `link`, will create a link to the dragged data.</source>
-        <target state="translated">列舉屬性，指出可以使用 [拖曳 API](https://developer.mozilla.org/docs/DragDrop/Drag_and_Drop) 在元素上放置的內容類型。它可能有下列值:
+        <target state="translated">列舉屬性，指出可以使用[拖曳 API](https://developer.mozilla.org/docs/DragDrop/Drag_and_Drop) (英文) 在元素上放置的內容類型。它可能有下列值:
 
 * `copy`，表示置放會建立所拖曳元素的複本
 * `move`，表示拖曳的元素將會移至這個新位置。
@@ -388,10 +388,10 @@ This value can be overridden by a [`formenctype`](https://developer.mozilla.org/
         <target state="translated">當 `method` 屬性的值為 `post` 時，enctype 是用來將表單提交至伺服器的內容 [MIME 類型](https://en.wikipedia.org/wiki/Mime_type)。可能的值為:
 
 * `application/x-www-form-urlencoded`: 若未指定屬性則為預設值。
-* `multipart/form-data`: 此值用於 [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML &lt;input&gt; 元素用於建立 Web 表單的互動式控制項，以便接受使用者的輸入；可用的輸入資料類型和控制 Widget 種類很多，取決於裝置和使用者代理程式。") 元素，其 `type` 屬性設定為 "file"。
+* `multipart/form-data`: 此值用於 [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML &lt;input&gt; 元素用於建立 Web 表單的互動式控制項，以便接受使用者的輸入; 可用的輸入資料類型和控制 Widget 種類很多，取決於裝置和使用者代理程式。") 元素，其 `type` 屬性設定為 "file"。
 * `text/plain`: (HTML5)
 
-此值可由 [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "HTML &lt;button&gt; 元素代表可點選按鈕，可在表單或文件中需要簡單、標準按鈕功能表的任何位置中使用。") 或 [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML &lt;input&gt; 元素用於建立網頁型表單的互動式控制項，以便接受使用者的資料；根據裝置和使用者代理程式，有各種不同的輸入資料和控制項小工具可供使用。") 元素上的 [`formenctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formenctype) 屬性覆寫。</target>
+此值可由 [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "HTML &lt;button&gt; 元素代表可點選按鈕，可在表單或文件中需要簡單、標準按鈕功能表的任何位置中使用。") 或 [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML &lt;input&gt; 元素用於建立網頁型表單的互動式控制項，以便接受使用者的資料; 根據裝置和使用者代理程式，有各種不同的輸入資料和控制項小工具可供使用。") 元素上的 [`formenctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formenctype) 屬性覆寫。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_enterkeyhint">
@@ -413,7 +413,7 @@ This value can be overridden by a [`formenctype`](https://developer.mozilla.org/
         <source>The [`id`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-id) of a [labelable](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Content_categories#Form_labelable) form-related element in the same document as the `&lt;label&gt;` element. The first element in the document with an `id` matching the value of the `for` attribute is the _labeled control_ for this label element, if it is a labelable element. If it is not labelable then the `for` attribute has no effect. If there are other elements which also match the `id` value, later in the document, they are not considered.
 
 **Note**: A `&lt;label&gt;` element can have both a `for` attribute and a contained control element, as long as the `for` attribute points to the contained control element.</source>
-        <target state="translated">與 `&lt;label&gt;` 元素位於相同文件中的可標記 [labelable](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Content_categories#Form_labelable) 表單相關元素的 [`id`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-id)。如果文件中第一個 `id` 符合 `for` 屬性值的元素是可標記元素，則它就是此標籤元素的 _labeled control_。如果它不可標記，則 `for` 屬性沒有作用。如果有其他元素也符合 `id` 值，則稍後在文件中不會考慮它們。
+        <target state="translated">與 `&lt;label&gt;` 元素位於相同文件中的可標記 [labelable](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Content_categories#Form_labelable) (英文) 表單相關元素的 [`id`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-id) (英文)。如果文件中第一個 `id` 符合 `for` 屬性值的元素是可標記元素，則它就是此標籤元素的 _labeled control_。如果它不可標記，則 `for` 屬性沒有作用。如果有其他元素也符合 `id` 值，則稍後在文件中不會考慮它們。
 
 **注意**: `&lt;label&gt;` 元素可同時有 `for` 屬性和自主控制元素，只要 `for` 屬性指向自主控制元素即可。</target>
         <note />
@@ -439,10 +439,10 @@ If this attribute is specified, it overrides the [`enctype`](https://developer.m
         <target state="translated">如果按鈕是送出按鈕，這個屬性會指定用來將表單送出至伺服器的內容類型。可能的值為:
 
 * `application/x-www-form-urlencoded`: 若未指定屬性則為預設值。
-* `multipart/form-data`: 使用此值，前提是您正使用 [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML &lt;input&gt; 元素用於建立 Web 表單的互動式控制項，以便接受使用者的輸入；可用的輸入資料類型和控制 Widget 種類很多，取決於裝置和使用者代理程式。") 元素，其 [`type`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-type) 屬性設定為 `file`。
+* `multipart/form-data`: 使用此值，前提是您正使用 [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML &lt;input&gt; 元素用於建立 Web 表單的互動式控制項，以便接受使用者的輸入; 可用的輸入資料類型和控制 Widget 種類很多，取決於裝置和使用者代理程式。") 元素，其 [`type`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-type) (英文) 屬性設定為 `file`。
 * `text/plain`
 
-如果指定此屬性，它會覆寫按鈕表單擁有者的 [`enctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-enctype) 屬性。</target>
+如果指定此屬性，它會覆寫按鈕表單擁有者的 [`enctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-enctype) (英文) 屬性。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_formmethod">
@@ -472,7 +472,7 @@ If specified, this attribute overrides the [`method`](https://developer.mozilla.
 * `_blank`: Load the response into a new unnamed browsing context.
 * `_parent`: Load the response into the parent browsing context of the current one. If there is no parent, this option behaves the same way as `_self`.
 * `_top`: Load the response into the top-level browsing context (that is, the browsing context that is an ancestor of the current one, and has no parent). If there is no parent, this option behaves the same way as `_self`.</source>
-        <target state="translated">如果按鈕是提交按鈕，則此屬性是名稱或關鍵字，用來指出在提交表單後，應將收到的回應顯示的位置。這是 _browsing context_ 的名稱或關鍵字 (例如索引標籤、視窗或內嵌框架)。如果指定此屬性，它會覆寫按鈕表單擁有者的 [`target`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-target) 屬性。下列關鍵字有特殊意義:
+        <target state="translated">如果按鈕是提交按鈕，則此屬性是名稱或關鍵字，用來指出在提交表單後，應將收到的回應顯示的位置。這是 _browsing context_ 的名稱或關鍵字 (例如索引標籤、視窗或內嵌框架)。如果指定此屬性，它會覆寫按鈕表單擁有者的 [`target`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-target) (英文) 屬性。下列關鍵字有特殊意義:
 
 * `_self`: 將回應載入至與目前內容相同的瀏覽內容。如果未指定屬性，則此值為預設值。
 * `_blank`: 將回應載入至新的未命名瀏覽內容。
@@ -535,25 +535,25 @@ Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page
 * `"content-language"` 
 定義頁面的預設語言。您可以在任何元素上使用 [lang](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/lang) 屬性覆寫它。
 
-**警告：** 請勿使用此值，因為它已過時。偏好 `lang` 屬性的 [`&lt;html&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/html“HTML &lt;html&gt; 元素代表 HTML 檔的根 (最上層元素)，因此也稱為根元素。所有其他元素都必須是此元素的子系。") 元素。
+**警告：** 請勿使用此值，因為它已過時。偏好 `lang` 屬性的 [`&lt;html&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/html "HTML &lt;html&gt; 元素代表 HTML 檔的根 (最上層元素)，因此也稱為根元素。所有其他元素都必須是此元素的子系。") 元素。
 
 * `"content-security-policy"` 
-允許頁面作者定義目前頁面的 [內容原則](https://developer.mozilla.org/en-US/docs/Web/Security/CSP/CSP_policy_directives)。內容原則大部分會指定允許的伺服器原則來源和指令碼端點，協助防範跨網站指令碼攻擊。
+允許頁面作者定義目前頁面的[內容原則](https://developer.mozilla.org/en-US/docs/Web/Security/CSP/CSP_policy_directives) (英文)。內容原則大部分會指定允許的伺服器原則來源和指令碼端點，協助防範跨網站指令碼攻擊。
 * `"content-type"` 
-定義文件的 [MIME 類型](https://developer.mozilla.org/en-US/docs/Glossary/MIME_type)，後面接著其字元編碼。它的語法與 HTTP `content-type` entity-header 欄位相同，但因為它位於 HTML 頁面內，所以除了 `text/html` 之外，大多數值都不可能使用。因此，其 `content` 的有效語法為字串 `text/html`，後面接著具有下列語法的字元集:`; charset=_IANAcharset_`，其中 `IANAcharset` 是字元集的 _preferred MIME name_，如 [IANA 所定義](https://www.iana.org/assignments/character-sets)。
+定義文件的 [MIME 類型](https://developer.mozilla.org/en-US/docs/Glossary/MIME_type) (英文)，後面接著其字元編碼。它的語法與 HTTP `content-type` entity-header 欄位相同，但因為它位於 HTML 頁面內，所以除了 `text/html` 之外，大多數值都不可能使用。因此，其 `content` 的有效語法為字串 `text/html`，後面接著具有下列語法的字元集:`; charset=_IANAcharset_`，其中 `IANAcharset` 是字元集的 _preferred MIME name_，如 [IANA 所定義](https://www.iana.org/assignments/character-sets) (英文)
 
-**警告：** 請勿使用此值，因為它已過時。在 [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTML &lt;meta&gt; 元素代表無法由其他 HTML 中繼相關元素表示的中繼資料，例如 &lt;base&gt;、&lt;link&gt;、&lt;script&gt;、&lt;style&gt; 或 &lt;title&gt;。") 元素上使用 [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) 屬性。
+**警告：** 請勿使用此值，因為它已過時。在 [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTML &lt;meta&gt; 元素代表無法由其他 HTML 中繼相關元素表示的中繼資料，例如 &lt;base&gt;、&lt;link&gt;、&lt;script&gt;、&lt;style&gt; 或 &lt;title&gt;。") 元素上使用 [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) (英文) 屬性。
 
 **注意:** 由於 [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTML &lt;meta&gt; 元素代表無法由其他 HTML 中繼相關元素表示的中繼資料，例如 &lt;base&gt;、&lt;link&gt;、&lt;script&gt;、&lt;style&gt; 或 &lt;title&gt;。") 無法變更 XHTML 或 HTML5 的 XHTML 序列化中的文件類型，切勿將 MIME 類型設定為具有 `&lt;meta&gt;` 的 XHTML MIME 類型。
 
 * `"refresh"` 
 這個指示指定:
-* 應該重新載入頁面的秒數 - 只有在 [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) 屬性包含正整數時。
-* 頁面應該重新導向至另一個頁面的秒數 - 只有在 [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) 屬性包含後面接著字串 '`;url=`' 的正整數以及有效的 URL 時。
+* 應該重新載入頁面的秒數 - 只有在 [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) (英文) 屬性包含正整數時。
+* 頁面應該重新導向至另一個頁面的秒數 - 只有在 [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) (英文) 屬性包含後面接著字串 '`;url=`' 的正整數以及有效的 URL 時。
 * `"set-cookie"` 
-定義頁面的 [cookie](https://developer.mozilla.org/en-US/docs/cookie)。其內容必須遵循 [IETF HTTP Cookie 規格](https://tools.ietf.org/html/draft-ietf-httpstate-cookie-14) 中定義的語法。
+定義頁面的 [Cookie](https://developer.mozilla.org/en-US/docs/cookie) (英文)。其內容必須遵循 [IETF HTTP Cookie 規格](https://tools.ietf.org/html/draft-ietf-httpstate-cookie-14) (英文) 中定義的語法。
 
-**警告：** 請勿使用此指示，因為它已過時。請改為使用 HTTP 標頭 [`Set-Cookie`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie)。</target>
+**警告：** 請勿使用此指示，因為它已過時。請改為使用 HTTP 標頭 [`Set-Cookie`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie) (英文)。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_id">
@@ -647,7 +647,7 @@ Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page
 * `chapters`
 * 章節標題主要用於使用者正在瀏覽媒體資源時。
 * `metadata`
-* 指令碼使用的追蹤。使用者看不到。</target>
+* 指令碼使用的追蹤。不會向使用者顯示。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_label">
@@ -692,12 +692,12 @@ Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page
 
 * In HTML 4, this can only be a simple white-space-separated list of media description literals, i.e., [media types and groups](https://developer.mozilla.org/en-US/docs/Web/CSS/@media), where defined and allowed as values for this attribute, such as `print`, `screen`, `aural`, `braille`. HTML5 extended this to any kind of [media queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries), which are a superset of the allowed values of HTML 4.
 * Browsers not supporting [CSS3 Media Queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries) won't necessarily recognize the adequate link; do not forget to set fallback links, the restricted set of media queries defined in HTML 4.</source>
-        <target state="translated">此屬性會指定連結資源適用的媒體。其值必須是媒體類型 / [media query](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries)。此屬性主要在連結至外部樣式表時很有用，它允許使用者代理程式針對其執行所在的裝置挑選最適合的樣式表。
+        <target state="translated">此屬性會指定連結資源適用的媒體。其值必須是媒體類型 / [媒體查詢](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries) (英文)。此屬性主要在連結至外部樣式表時很有用，它允許使用者代理程式針對其執行所在的裝置挑選最適合的樣式表。
 
 **注意:**
 
-* 在 HTML 4 中，這只能是簡單以空格分隔的媒體描述常值清單，即 [媒體類型和群組](https://developer.mozilla.org/en-US/docs/Web/CSS/@media)，其中已定義和允許做為此屬性的值，例如 `print`、`screen`、`aural`、`braille`。HTML5 將此延伸至任何種類的 [媒體查詢](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries)，這是 HTML 4 允許值的超集。
-* 不支援 [CSS3 媒體查詢](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries) 的瀏覽器不一定會辨識適當的連結; 別忘了設定後援連結，這是 HTML 4 中定義的一組受限制的媒體查詢。</target>
+* 在 HTML 4 中，這只能是簡單以空格分隔的媒體描述常值清單，即[媒體類型和群組](https://developer.mozilla.org/en-US/docs/Web/CSS/@media) (英文)，其中已定義和允許做為此屬性的值，例如 `print`、`screen`、`aural`、`braille`。HTML5 將此延伸至任何種類的[媒體查詢](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries) (英文)，這是 HTML 4 允許值的超集。
+* 不支援 [CSS3 媒體查詢](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries) (英文) 的瀏覽器不一定會辨識適當的連結; 別忘了設定後援連結，這是 HTML 4 中定義的一組受限制的媒體查詢。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_method">
@@ -708,13 +708,13 @@ Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page
 * `dialog`: Use when the form is inside a [`&lt;dialog&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog "The HTML &lt;dialog&gt; element represents a dialog box or other interactive component, such as an inspector or window.") element to close the dialog when submitted.
 
 This value can be overridden by a [`formmethod`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formmethod) attribute on a [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") or [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") element.</source>
-        <target state="translated">瀏覽器用來提交表單的 [HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP) 方法。可能的值為:
+        <target state="translated">瀏覽器用來提交表單的 [HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP) (英文) 方法。可能的值為:
 
-* `post`: 對應至 HTTP [POST 方法](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.5) ; 表單資料會包含在表單內文中並傳送到伺服器。
-* `get`: 對應至 HTTP [GET 方法](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.3); 表單資料會附加至 `action` 屬性 URI (以 '？' 做為分隔符號)，而結果產生的 URI 會傳送到伺服器。當表單沒有副作用且只包含 ASCII 字元時，請使用此方法。
+* `post`: 對應至 HTTP [POST 方法](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.5) (英文); 表單資料會包含在表單內文中並傳送到伺服器。
+* `get`: 對應至 HTTP [GET 方法](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.3) (英文); 表單資料會附加至 `action` 屬性 URI (以 '？' 做為分隔符號)，而結果產生的 URI 會傳送到伺服器。當表單沒有副作用且只包含 ASCII 字元時，請使用此方法。
 * `dialog`：當表單位於 [`&lt;dialog&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog "HTML &lt;dialog&gt; 元素代表對話方塊或其他互動元件，例如檢查程式或視窗。") 元素內時使用，提交時會關閉對話方塊。
 
-此值可由 [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "HTML &lt;button&gt; 元素代表可點選按鈕，可在表單或文件中需要簡單、標準按鈕功能表的任何位置中使用。") 或 [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML &lt;input&gt; 元素用於建立網頁型表單的互動式控制項，以便接受使用者的資料；根據裝置和使用者代理程式，有各種不同的輸入資料和控制項小工具可供使用。") 元素上的 [`formmethod`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formmethod) 屬性覆寫。</target>
+此值可由 [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "HTML &lt;button&gt; 元素代表可點選按鈕，可在表單或文件中需要簡單、標準按鈕功能表的任何位置中使用。") 或 [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML &lt;input&gt; 元素用於建立網頁型表單的互動式控制項，以便接受使用者的資料; 根據裝置和使用者代理程式，有各種不同的輸入資料和控制項小工具可供使用。") 元素上的 [`formmethod`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formmethod) (英文) 屬性覆寫。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_min">
@@ -941,9 +941,9 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 * Though unstandardized, this declaration is respected by most mobile browsers due to de-facto dominance.
 * The default values may vary between devices and browsers.
 * To learn about this declaration in Firefox for Mobile, see [this article](https://developer.mozilla.org/en-US/docs/Mobile/Viewport_meta_tag "Mobile/Viewport meta tag").</source>
-        <target state="translated">此屬性定義文件層級中繼資料的一個名稱。如果也設定了 [`itemprop`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-itemprop)、[`http-equiv`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-http-equiv) 或 [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) 其中一個屬性，就不應設定此屬性。
+        <target state="translated">此屬性定義文件層級中繼資料的一個名稱。如果也設定了 [`itemprop`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-itemprop) (英文)、[`http-equiv`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-http-equiv) (英文) 或 [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) (英文) 其中一個屬性，就不應設定此屬性。
 
-此中繼資料名稱會與 [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) 屬性的值相關聯。名稱屬性的可能值為:
+此中繼資料名稱會與 [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) (英文) 屬性的值相關聯。名稱屬性的可能值為:
 
 * `application-name` 可定義在網頁中執行之應用程式名稱。
 
@@ -956,7 +956,7 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 * `description`，其中包含簡短且正確的頁面內容摘要。數個瀏覽器 (例如 Firefox 和 Opera) 會使用此瀏覽器做為已加入書籤頁面的預設描述。
 * `generator`，其中包含產生頁面之軟體的識別碼。
 * `keywords`，其中包含與頁面內容相關的字組 (以逗號分隔)。
-* `referrer` 可控制附加至從文件傳送之要求的 [`Referer` HTTP header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer):
+* `referrer` 可控制附加至從文件傳送之要求的 [`Referer` HTTP 標頭](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer) (英文):
 
 `&lt;meta name="referrer"&gt;` 的 `content` 屬性值
 
@@ -966,19 +966,19 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 
 `origin`
 
-傳送文件的 [origin](https://developer.mozilla.org/en-US/docs/Glossary/Origin)。
+傳送文件的[來源](https://developer.mozilla.org/en-US/docs/Glossary/Origin) (英文)。
 
 `no-referrer-when-downgrade`
 
-將 [origin](https://developer.mozilla.org/en-US/docs/Glossary/Origin) 當作參考者傳送至與目前頁面一樣安全的 URL (https→https)，但不將參考者傳送至較不安全的 URL (https→http)。這是預設行為。
+將[來源](https://developer.mozilla.org/en-US/docs/Glossary/Origin) (英文) 當作參考者傳送至與目前頁面一樣安全的 URL (https→https)，但不將參考者傳送至較不安全的 URL (https→http)。這是預設行為。
 
 `origin-when-cross-origin`
 
-傳送相同原始來源要求的完整 URL (已移除參數)，但只傳送其他案例的 [origin](https://developer.mozilla.org/en-US/docs/Glossary/Origin)。
+傳送相同原始來源要求的完整 URL (已移除參數)，但只傳送其他案例的[來源](https://developer.mozilla.org/en-US/docs/Glossary/Origin) (英文)。
 
 `same-origin`
 
-將會針對 [相同網站的原始來源](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy) 傳送參考者，但跨原始來源要求不會包含任何參考者資訊。
+將會針對[相同網站的原始來源](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy) (英文) 傳送參考者，但跨原始來源要求不會包含任何參考者資訊。
 
 `strict-origin`
 
@@ -995,11 +995,11 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 **注意:**
 
 * 某些瀏覽器為參考者支援 `always`、`default` 和 `never` 的棄用值。
-* 動態插入 `&lt;meta name="referrer"&gt;` (具有 [`document.write`](https://developer.mozilla.org/en-US/docs/Web/API/Document/write) 或 [`appendChild`](https://developer.mozilla.org/en-US/docs/Web/API/Node/appendChild)) 會使參考者的行為無法預測。
+* 動態插入 `&lt;meta name="referrer"&gt;` (具有 [`document.write`](https://developer.mozilla.org/en-US/docs/Web/API/Document/write) (英文) 或 [`appendChild`](https://developer.mozilla.org/en-US/docs/Web/API/Node/appendChild)) (英文) 會使參考者的行為無法預測。
 * 定義數個有衝突的原則時，會套用無參考者的原則。
 
 
-此屬性也可以使用 [WHATWG Wiki MetaExtensions 頁面](https://wiki.whatwg.org/wiki/MetaExtensions)中定義的延伸清單值。雖然尚未正式接受任何名稱，但一些常用的名稱如下:
+此屬性也可以使用 [WHATWG Wiki MetaExtensions 頁面](https://wiki.whatwg.org/wiki/MetaExtensions) (英文) 中定義的延伸清單值。雖然尚未正式接受任何名稱，但一些常用的名稱如下:
 
 * `creator` 可定義文件的建立者名稱，例如組織或機構。如果有一個以上，則應該使用數個 [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTML &lt;meta&gt; 元素代表無法由其他 HTML 中繼相關元素 例如 &lt;base&gt;、&lt;link&gt;、&lt;script&gt;、&lt;style&gt; 或 &lt;title&gt;。") 元素。
 * `googlebot` (`robots` 的同義字) 後面只接著 Googlebot (Google 的索引編目程式)。
@@ -1042,37 +1042,37 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 
 相當於 `noindex, nofollow`
 
-[Google](https://support.google.com/webmasters/answer/79812)
+[Google](https://support.google.com/webmasters/answer/79812) (英文)
 
 `noodp`
 
-防止使用 [Open Directory Project](https://www.dmoz.org/) 描述 (如果有的話) 做為搜尋引擎結果中的頁面描述。
+防止使用[開啟目錄專案](https://www.dmoz.org/) (英文) 描述 (如果有的話) 做為搜尋引擎結果中的頁面描述。
 
-[Google](https://support.google.com/webmasters/answer/35624#nodmoz), [Yahoo](https://help.yahoo.com/kb/search-for-desktop/meta-tags-robotstxt-yahoo-search-sln2213.html#cont5), [Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240)
+[Google](https://support.google.com/webmasters/answer/35624#nodmoz), [Yahoo](https://help.yahoo.com/kb/search-for-desktop/meta-tags-robotstxt-yahoo-search-sln2213.html#cont5) (英文)，[Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240) (英文)
 
 `noarchive`
 
 要求搜尋引擎不要快取頁面內容。
 
-[Google](https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag#valid-indexing--serving-directives), [Yahoo](https://help.yahoo.com/kb/search-for-desktop/SLN2213.html), [Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240)
+[Google](https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag#valid-indexing--serving-directives) (英文)，[Yahoo](https://help.yahoo.com/kb/search-for-desktop/SLN2213.html) (英文)，[Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240) (英文)
 
 `nosnippet`
 
 防止在搜尋引擎結果中顯示頁面的任何描述。
 
-[Google](https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag#valid-indexing--serving-directives), [Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240)
+[Google](https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag#valid-indexing--serving-directives) (英文)，[Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240) (英文)
 
 `noimageindex`
 
 要求此頁面不要顯示為檢索影像的參考頁面。
 
-[Google](https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag#valid-indexing--serving-directives)
+[Google](https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag#valid-indexing--serving-directives) (英文)
 
 `nocache`
 
 `noarchive` 的同義字。
 
-[Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240)
+[Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240) (英文)
 
 **注意:**
 
@@ -1080,7 +1080,7 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 * 機器人仍然需要存取頁面，才能讀取這些規則。若要避免耗用頻寬，請使用 _[robots.txt](https://developer.mozilla.org/en-US/docs/Glossary/robots.txt "robots.txt: Robots.txt 是通常放在任何網站的根目錄的檔案。它會決定允許或禁止編目程式存取網站。")_ 檔案。
 * 如果您想要移除頁面，`noindex` 將會運作，但只有在機器人再次造訪頁面之後。確保 `robots.txt` 檔案不會阻止重新造訪。
 * 有些值互斥，例如 `index` 和 `noindex`，或 `follow` 和 `nofollow`。在這些情況下，機器人的行為未定義且在其間可能有所不同。
-* 某些編目程式機器人 (例如 Google、Yahoo 和 Bing) 支援 HTTP 標頭 `X-Robots-Tag` 的相同值；這可讓非 HTML 文件 (例如影像) 使用這些規則。
+* 某些編目程式機器人 (例如 Google、Yahoo 和 Bing) 支援 HTTP 標頭 `X-Robots-Tag` 的相同值; 這可讓非 HTML 文件 (例如影像) 使用這些規則。
 
 * `slurp` 是 `robots` 的同義字，但僅適用於 Slurp - Yahoo 搜尋的編目程式。
 * `viewport` 可對於目前所檢視的電腦圖形中 [viewport](https://developer.mozilla.org/en-US/docs/Glossary/viewport "viewport: 檢視區代表多邊形 (通常是矩形) 區域的初始大小，提供大小相關提示。在網頁瀏覽器的詞彙中，它是指您目前在其視窗中可見的檔部分 (或螢幕，如果文件以全螢幕模式檢視)。在捲動到檢視之前，無法在螢幕上看到檢視區外的內容。")。僅供行動裝置使用。
@@ -1136,7 +1136,7 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 註解
 
 [CSS 裝置調整 
-該規格中 '&lt;meta name="viewport"&gt;' in that specification.](https://drafts.csswg.org/css-device-adapt/#viewport-meta) 的定義。
+該規格中 '&lt;meta name="viewport"&gt;' in that specification.](https://drafts.csswg.org/css-device-adapt/#viewport-meta) 的定義
 
 處理中草稿
 
@@ -1148,7 +1148,7 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 
 * 雖然未標準化，但大多數行動瀏覽器都會遵守此宣告，因為實質支配地位。
 * 預設值可能會因裝置和瀏覽器而異。
-* 若要了解 Firefox for Mobile 中的這項宣告，請參閱 [這篇文章](https://developer.mozilla.org/en-US/docs/Mobile/Viewport_meta_tag "Mobile/Viewport meta tag")。</target>
+* 若要了解 Firefox for Mobile 中的這項宣告，請參閱[這篇文章](https://developer.mozilla.org/en-US/docs/Mobile/Viewport_meta_tag "Mobile/Viewport meta tag") (英文)。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_nomodule">
@@ -1517,7 +1517,7 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 **Note:** Placeholders should only be used to show an example of the type of data that should be entered into a form; they are _not_ a substitute for a proper [`&lt;label&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label "The HTML &lt;label&gt; element represents a caption for an item in a user interface.") element tied to the input. See [Labels and placeholders](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Labels_and_placeholders "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") in [&lt;input&gt;: The Input (Form Input) element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") for a full explanation.</source>
         <target state="translated">提供使用者可在控制項中輸入內容的提示。預留位置文字中的歸位字元或換行字元，在呈現提示時必須視為換行符號。
 
-**注意: ** 預留位置應只用來顯示表單中應輸入資料類型的範例；它們不是與輸入欄位連結的適當 [`&lt;label&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label "HTML &lt;label&gt; 元素代表使用者介面中項目的標題。") 元素的替代品。請參閱 [標籤與預留位置](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Labels_and_placeholders "HTML &lt;input&gt; 元素用於建立網頁型表單的互動式控制項，以便接收使用者的資料；根據裝置和使用者代理程式，有各種不同的輸入資料和控制項小工具可供使用。")，或在 [&lt;input&gt;：輸入（表單輸入）元素](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML &lt;input&gt; 元素用於建立網頁型表單的互動式控制項，以便接收使用者的資料；根據裝置和使用者代理程式，有各種不同的輸入資料和控制項小工具可供使用。") 中查看完整說明。</target>
+**注意: ** 預留位置應只用來顯示表單中應輸入資料類型的範例; 它們不是與輸入欄位連結的適當 [`&lt;label&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label "HTML &lt;label&gt; 元素代表使用者介面中項目的標題。") 元素的替代品。請參閱 [標籤與預留位置](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Labels_and_placeholders "HTML &lt;input&gt; 元素用於建立網頁型表單的互動式控制項，以便接收使用者的資料; 根據裝置和使用者代理程式，有各種不同的輸入資料和控制項小工具可供使用。")，或在 [&lt;input&gt;: 輸入 (表單輸入) 元素](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML &lt;input&gt; 元素用於建立網頁型表單的互動式控制項，以便接收使用者的資料; 根據裝置和使用者代理程式，有各種不同的輸入資料和控制項小工具可供使用。") 中查看完整說明。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_popover">
@@ -1596,15 +1596,15 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
         <target state="translated">對框架中的內容套用額外限制。屬性的值可以留空以套用所有限制，也可以使用以空格分隔的權杖來解除特定限制:
 
 * `allow-forms`: 允許資源提交表單。如果未使用此關鍵字，表單提交會遭到封鎖。
-* `allow-modals`: 讓資源 [開啟模型視窗](https://html.spec.whatwg.org/multipage/origin.html#sandboxed-modals-flag)。
-* `allow-orientation-lock`: 讓資源 [鎖定螢幕方向](https://developer.mozilla.org/en-US/docs/Web/API/Screen/lockOrientation)。
-* `allow-pointer-lock`: 讓資源使用 [指標鎖定 API](https://developer.mozilla.org/en-US/docs/WebAPI/Pointer_Lock)。
+* `allow-modals`: 讓資源[開啟模型視窗](https://html.spec.whatwg.org/multipage/origin.html#sandboxed-modals-flag) (英文)。
+* `allow-orientation-lock`: 讓資源[鎖定螢幕方向](https://developer.mozilla.org/en-US/docs/Web/API/Screen/lockOrientation) (英文)。
+* `allow-pointer-lock`: 讓資源使用[指標鎖定 API](https://developer.mozilla.org/en-US/docs/WebAPI/Pointer_Lock) (英文)。
 * `allow-popups`: 允許快顯視窗 (例如 `window.open()`、`target="_blank"` 或 `showModalDialog()`)。如果未使用此關鍵字，快顯視窗將無法以無訊息方式開啟。
 * `allow-popups-to-escape-sandbox`: 讓沙箱化文件開啟新的視窗，而不需要那些繼承沙箱的視窗。例如，這可將廣告安全地進行沙箱處理，而不需要在廣告連線至頁面時強制執行相同的限制。
-* `allow-presentation`: 讓資源啟動 [簡報工作階段](https://developer.mozilla.org/en-US/docs/Web/API/PresentationRequest)。
+* `allow-presentation`: 讓資源啟動[簡報工作階段](https://developer.mozilla.org/en-US/docs/Web/API/PresentationRequest) (英文)。
 * `allow-same-origin`: 如果未使用此權杖，此資源被視為來自一直未通過 [相同原始來源的原則](https://developer.mozilla.org/en-US/docs/Glossary/same-origin_policy "same-origin policy: 相同原始來源的原則是重要的安全性機制，可限制從一個原則來源載入的文件或指令碼如何與其他原始來源的資源互動。") 的特殊原始來源。
 * `allow-scripts`: 讓資源執行指令碼 (但不建立快顯視窗)。
-* `allow-storage-access-by-user-activation` : 讓資源要求透過 [儲存體存取 API](https://developer.mozilla.org/en-US/docs/Web/API/Storage_Access_API) 存取父代的儲存體功能。
+* `allow-storage-access-by-user-activation` : 讓資源要求透過[儲存體存取 API](https://developer.mozilla.org/en-US/docs/Web/API/Storage_Access_API) (英文) 存取父代的儲存體功能。
 * `allow-top-navigation`: 讓資源瀏覽最上層瀏覽內容 (名為 `_top`)。
 * `allow-top-navigation-by-user-activation`: 讓資源瀏覽最上層瀏覽內容，但只有在由使用者手勢初始化時。
 
@@ -1619,7 +1619,7 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
         <source>This attribute defines the scheme in which metadata is described. A scheme is a context leading to the correct interpretations of the [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) value, like a format.
 
 **Warning:** Do not use this value, as it is obsolete. There is no replacement as there was no real usage for it.</source>
-        <target state="translated">此屬性定義描述中繼資料所使用的結構描述。結構描述是一種情境，可提供 [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) 值的正確解讀方式，例如格式。
+        <target state="translated">此屬性定義描述中繼資料所使用的結構描述。結構描述是一種情境，可提供 [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) (英文) 值的正確解讀方式，例如格式。
 
 **警告：** 請勿使用此值，因為它已過時。由於從未真正使用，也沒有替代方案。</target>
         <note />
@@ -1635,7 +1635,7 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 **Note:** According to the HTML5 specification, the default value for size should be 1; however, in practice, this has been found to break some web sites, and no other browser currently does that, so Mozilla has opted to continue to return 0 for the time being with Firefox.</source>
         <target state="translated">如果控制項呈現為可捲動的清單方塊 (例如指定 `multiple` 時)，此屬性表示清單中一次應顯示的列數。瀏覽器不一定要將選取元素呈現為可捲動的清單方塊。預設值為 0。
 
-**注意:** 根據 HTML5 規格，大小的預設值應為 1；不過，實務上這會導致某些網站出問題，而且目前沒有其他瀏覽器這麼做，因此 Mozilla 目前在 Firefox 中仍決定回傳 0。</target>
+**注意:** 根據 HTML5 規格，大小的預設值應為 1; 不過，實務上這會導致某些網站出問題，而且目前沒有其他瀏覽器這麼做，因此 Mozilla 目前在 Firefox 中仍決定回傳 0。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_sizes">
@@ -1645,12 +1645,12 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 * a white-space separated list of sizes, each in the format `_&lt;width in pixels&gt;_x_&lt;height in pixels&gt;_` or `_&lt;width in pixels&gt;_X_&lt;height in pixels&gt;_`. Each of these sizes must be contained in the resource.
 
 **Note:** Most icon formats are only able to store one single icon; therefore most of the time the [`sizes`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-sizes) contains only one entry. MS's ICO format does, as well as Apple's ICNS. ICO is more ubiquitous; you should definitely use it.</source>
-        <target state="translated">此屬性定義資源中視覺媒體圖示的大小。只有在 [`rel`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link#attr-rel) 包含 `icon` 值，或非標準類型（例如 Apple 的 `apple-touch-icon`）時，才必須使用。它可能有下列值:
+        <target state="translated">此屬性定義資源中視覺媒體圖示的大小。只有在 [`rel`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link#attr-rel) (英文) 包含 `icon` 值，或非標準類型 (例如 Apple 的 `apple-touch-icon`) 時，才必須使用。它可能有下列值:
 
 * `any`，表示圖示可以縮放為任何大小，因為它採用向量格式，例如 `image/svg+xml`。
 * 以空格分隔的大小清單，各自的格式為 `_&lt;width in pixels&gt;_x_&lt;height in pixels&gt;_` 或 `_&lt;width in pixels&gt;_X_&lt;height in pixels&gt;_`。每個大小都必須包含在資源中。
 
-**注意:** 大多數圖示格式只能儲存單一圖示，因此大多數情況下 [`sizes`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-sizes) 只會包含一個項目。MS 的 ICO 格式可以，Apple 的 ICNS 也可以。ICO 更普遍；您應該優先使用它。</target>
+**注意:** 大多數圖示格式只能儲存單一圖示，因此大多數情況下 [`sizes`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-sizes) (英文) 只會包含一個項目。MS 的 ICO 格式可以，Apple 的 ICNS 也可以。ICO 更普遍; 您應該優先使用它。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_slot">
@@ -1673,7 +1673,7 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
         <source>This attribute specifies the URI of an external script; this can be used as an alternative to embedding a script directly within a document.
 
 If a `script` element has a `src` attribute specified, it should not have a script embedded inside its tags.</source>
-        <target state="translated">此屬性指定外部指令碼的 URI；這可作為直接在文件中內嵌指令碼的替代方式。
+        <target state="translated">此屬性指定外部指令碼的 URI; 這可作為直接在文件中內嵌指令碼的替代方式。
 
 如果 `script` 元素已指定 `src` 屬性，就不應在其標籤內內嵌指令碼。</target>
         <note />
@@ -1712,7 +1712,7 @@ The user agent selects any one of the available sources at its discretion. This 
 
 在同一個 `srcset` 屬性中同時混用寬度描述項和像素密度描述項是錯誤的。重複的描述項也無效，例如同一個 `srcset` 中有兩個來源都標示為 `2x`。
 
-使用者代理程式可自行決定要選取哪一個可用來源。這讓它們有很大的彈性，可依使用者偏好或頻寬條件等因素調整選擇。請參閱我們的 [回應式影像](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images) 教學課程，查看範例。</target>
+使用者代理程式可自行決定要選取哪一個可用來源。這讓它們有很大的彈性，可依使用者偏好或頻寬條件等因素調整選擇。請參閱我們的[回應式影像](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images) (英文) 教學課程，查看範例。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_start">
@@ -1739,7 +1739,7 @@ The user agent selects any one of the available sources at its discretion. This 
 
 * _negative value_ 表示元素應為可成為焦點，但不得透過循序鍵盤瀏覽來連線;
 * `0` 表示元素應可透過循序鍵盤瀏覽成為焦點和連線，但其相對順序是由平台慣例定義;
-* _positive value_ 表示元素應可透過循序鍵盤瀏覽成為焦點和連線; 元素的聚焦順序是 [**tabindex**](https://developer.mozilla.org/docs/Web/HTML/Reference/Global_attributes/tabindex#attr-tabindex) 的遞增值。如果多個元素具有相同的 tabindex，其相對順序會依文件中的相對位置決定。</target>
+* _positive value_ 表示元素應可透過循序鍵盤瀏覽成為焦點和連線; 元素的聚焦順序是 [**tabindex**](https://developer.mozilla.org/docs/Web/HTML/Reference/Global_attributes/tabindex#attr-tabindex) (英文) 的遞增值。如果多個元素具有相同的 tabindex，其相對順序會依文件中的相對位置決定。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_target">
@@ -1786,7 +1786,7 @@ If this attribute is specified, this element must come before any other elements
         <source>The partial URL (starting with '#') of an [image map](https://developer.mozilla.org/en-US/docs/HTML/Element/map) associated with the element.
 
 **Note:** You cannot use this attribute if the `&lt;img&gt;` element is a descendant of an [`&lt;a&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a "The HTML &lt;a&gt; element (or anchor element) creates a hyperlink to other web pages, files, locations within the same page, email addresses, or any other URL.") or [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") element.</source>
-        <target state="translated">與元素相關聯之 [影像地圖](https://developer.mozilla.org/en-US/docs/HTML/Element/map) 的部分 URL (以 '#' 開頭)。
+        <target state="translated">與元素相關聯之[影像地圖](https://developer.mozilla.org/en-US/docs/HTML/Element/map) (英文) 的部分 URL (以 '#' 開頭)。
 
 **注意: ** 如果 `&lt;img&gt;` 元素是 [`&lt;a&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a "HTML &lt;a&gt; 元素 (或錨點元素) 可建立通往其他網頁、檔案、同一頁面中的位置、電子郵件地址或任何其他 URL 的超連結。") 或 [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "HTML &lt;button&gt; 元素代表可點擊的按鈕，可用於表單或文件中任何需要簡單、標準按鈕功能的位置。") 元素的子系，就不能使用此屬性。</target>
         <note />

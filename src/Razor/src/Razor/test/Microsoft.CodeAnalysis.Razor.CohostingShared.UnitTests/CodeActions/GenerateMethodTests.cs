@@ -572,6 +572,46 @@ public class GenerateMethodTests(ITestOutputHelper testOutputHelper) : CohostCod
     }
 
     [Fact]
+    public async Task GenerateMethod_FromRazor_InSameRazorFile_UsesEditorConfig()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @code
+                {
+                    private void M()
+                    {
+                        [||]NewMethod();
+                    }
+                }
+                """,
+            expected: """
+                @using System
+                @code
+                {
+                    private void M()
+                    {
+                        NewMethod();
+                    }
+
+                    private void NewMethod ()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_space_between_method_declaration_name_and_open_parenthesis = true
+                    """)
+            ],
+            codeActionName: PredefinedCodeFixProviderNames.GenerateMethod);
+    }
+
+    [Fact]
     public async Task GenerateMethod_FromRazor_InOtherRazorFile()
     {
         await VerifyCodeActionAsync(
@@ -606,6 +646,59 @@ public class GenerateMethodTests(ITestOutputHelper testOutputHelper) : CohostCod
                     <div>Hi</div>
                     @code {
                         internal void NewMethod()
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                    """)
+            ],
+            codeActionName: PredefinedCodeFixProviderNames.GenerateMethod);
+    }
+
+    [Fact]
+    public async Task GenerateMethod_FromRazor_InOtherRazorFile_UsesEditorConfig()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @code {
+                    private void M()
+                    {
+                        var x= new OtherComponent();
+                        x.[||]NewMethod();
+                    }
+                }
+                """,
+            expected: """
+                @code {
+                    private void M()
+                    {
+                        var x= new OtherComponent();
+                        x.NewMethod();
+                    }
+                }
+                """,
+            additionalFiles:
+            [
+                (FilePath("OtherComponent.razor"), """
+                    <div>Hi</div>
+                    """),
+                (".editorconfig", """
+                    root = true
+
+                    [File1.razor]
+                    csharp_space_between_method_declaration_name_and_open_parenthesis = false
+
+                    [OtherComponent.razor]
+                    csharp_space_between_method_declaration_name_and_open_parenthesis = true
+                    """)
+            ],
+            additionalExpectedFiles:
+            [
+                (FileUri("OtherComponent.razor"), """
+                    @using System
+                    <div>Hi</div>
+                    @code {
+                        internal void NewMethod ()
                         {
                             throw new NotImplementedException();
                         }

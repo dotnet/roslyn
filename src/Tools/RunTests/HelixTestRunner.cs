@@ -324,6 +324,9 @@ internal sealed class HelixTestRunner
             File.CreateSymbolicLink(
                 path: Path.Combine(workItemPayloadDir, "global.json"),
                 pathToTarget: Path.Combine(artifactsDir, "..", "global.json"));
+            File.CreateSymbolicLink(
+                path: Path.Combine(workItemPayloadDir, "NuGet.config"),
+                pathToTarget: Path.Combine(artifactsDir, "..", "NuGet.config"));
 
             var (commandFileName, commandContent) = GetHelixCommandContent(assemblyRelativeFilePaths, rspFileName, testOS);
             File.WriteAllText(Path.Combine(workItemPayloadDir, commandFileName), commandContent);

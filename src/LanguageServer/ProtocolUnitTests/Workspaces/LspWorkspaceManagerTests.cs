@@ -50,6 +50,42 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         Assert.Equal(testLspServer.GetCurrentSolution(), closedDocument!.Project.Solution);
     }
 
+    [Fact]
+    public async Task TestForksWhenLinkedDocumentTextDoesNotMatchAsync()
+    {
+        var filePath = TestHelpers.CreateAbsolutePath("C.cs");
+        var workspaceXml = $"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1">
+                    <Document FilePath="{filePath}">Console</Document>
+                </Project>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj2">
+                    <Document IsLinkFile="true" LinkFilePath="{filePath}" LinkAssemblyName="CSProj1"></Document>
+                </Project>
+            </Workspace>
+            """;
+
+        await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace: false);
+        var workspaceDocuments = testLspServer.TestWorkspace.CurrentSolution.Projects.SelectMany(static p => p.Documents).ToArray();
+        Assert.Equal(2, workspaceDocuments.Length);
+        await testLspServer.TestWorkspace.ChangeDocumentAsync(workspaceDocuments[1].Id, SourceText.From(""));
+
+        workspaceDocuments = testLspServer.TestWorkspace.CurrentSolution.Projects.SelectMany(static p => p.Documents).ToArray();
+        Assert.Equal("Console", (await workspaceDocuments[0].GetTextAsync(CancellationToken.None)).ToString());
+        Assert.Equal("", (await workspaceDocuments[1].GetTextAsync(CancellationToken.None)).ToString());
+
+        var documentUri = workspaceDocuments[0].GetURI();
+        await testLspServer.OpenDocumentAsync(documentUri, "Console");
+
+        var (_, lspDocument) = await GetLspWorkspaceAndDocumentAsync(documentUri, testLspServer).ConfigureAwait(false);
+        Assert.NotNull(lspDocument);
+        Assert.NotSame(testLspServer.TestWorkspace.CurrentSolution, lspDocument.Project.Solution);
+
+        var lspDocuments = lspDocument.Project.Solution.Projects.SelectMany(static p => p.Documents);
+        foreach (var document in lspDocuments)
+            Assert.Equal("Console", (await document.GetTextAsync(CancellationToken.None)).ToString());
+    }
+
     [Theory, CombinatorialData]
     public async Task TestLspUsesWorkspaceInstanceOnChangesAsync(bool mutatingLspWorkspace)
     {

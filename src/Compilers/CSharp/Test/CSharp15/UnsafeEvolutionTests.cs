@@ -6162,7 +6162,24 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (3,1): error CS9362: 'I.M2()' must be used in an unsafe context because it is marked as 'unsafe'
                 // i.M2();
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "i.M2()").WithArguments("I.M2()").WithLocation(3, 1),
-            ]);
+            ],
+            legacyLibValidator: static comp =>
+            {
+                AssertEx.Equal("I", comp.GetTypeByMetadataName("I")!.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void I.M1()", comp.GetMember("I.M1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void I.M2()", comp.GetMember("I.M2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+            },
+            updatedLibValidator: static comp =>
+            {
+                AssertEx.Equal("I", comp.GetTypeByMetadataName("I")!.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void I.M1()", comp.GetMember("I.M1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+
+                AssertEx.Equal("void I.M2()", comp.GetMember("I.M2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+                AssertEx.Equal("unsafe void I.M2()", comp.GetMember("I.M2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+
+                // interface members never have accessibility displayed
+                AssertEx.Equal("unsafe void I.M2()", comp.GetMember("I.M2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers | SymbolDisplayMemberOptions.IncludeAccessibility)));
+            });
     }
 
     [Fact]

@@ -3,6 +3,7 @@
     <TargetFramework>net472</TargetFramework>
     <IsProductComponent>false</IsProductComponent>
     <RootNamespace></RootNamespace>
+    <PublishWindowsPdb>true</PublishWindowsPdb>
   </PropertyGroup>
 
   <ItemGroup>
