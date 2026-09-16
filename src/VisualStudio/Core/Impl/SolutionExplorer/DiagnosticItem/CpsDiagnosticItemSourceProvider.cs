@@ -5,11 +5,11 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.Internal.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Shell;
@@ -18,7 +18,6 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
 using OrderAttribute = Microsoft.VisualStudio.Utilities.OrderAttribute;
-using Workspace = Microsoft.CodeAnalysis.Workspace;
 
 [Export(typeof(IAttachedCollectionSourceProvider))]
 [Name(nameof(CpsDiagnosticItemSourceProvider))]
@@ -29,13 +28,13 @@ using Workspace = Microsoft.CodeAnalysis.Workspace;
 internal sealed class CpsDiagnosticItemSourceProvider(
     IThreadingContext threadingContext,
     [Import(typeof(AnalyzersCommandHandler))] IAnalyzersCommandHandler commandHandler,
-    VisualStudioWorkspace workspace,
+    VisualStudioWorkspaceImpl workspace,
     IAsynchronousOperationListenerProvider listenerProvider)
     : AttachedCollectionSourceProvider<IVsHierarchyItem>
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly IAnalyzersCommandHandler _commandHandler = commandHandler;
-    private readonly Workspace _workspace = workspace;
+    private readonly VisualStudioWorkspaceImpl _workspace = workspace;
     private readonly IAsynchronousOperationListenerProvider _listenerProvider = listenerProvider;
 
     private IHierarchyItemToProjectIdMap? _projectMap;

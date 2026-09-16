@@ -995,7 +995,7 @@ internal sealed partial class ProjectSystemProject
         return OneOrMany.Create(fullPath);
     }
 
-    private string? TryRedirectAnalyzerAssembly(string fullPath)
+    internal string? TryRedirectAnalyzerAssembly(string fullPath)
     {
         string? redirectedPath = null;
 
