@@ -13,6 +13,8 @@
 //
 // Environment: RESOLVE_MODE, PR_NUMBER, GH_TOKEN, GH_AW_REPO, ADO_API,
 // ADO_BUILD_UI, ADO_BUILD_DEFINITION_ID, BINLOG_DIR, GITHUB_OUTPUT.
+// BINLOG_DIR must name a directory inside /tmp, TMPDIR or RUNNER_TEMP; the run
+// is refused otherwise, because that directory is reset with a recursive delete.
 //
 // Usage: dotnet run --file ./fetch-build-binlogs.cs
 //        dotnet run --file ./fetch-build-binlogs.cs -- --extract <archive> <dest> <prefix> <budget> [label]
@@ -39,7 +41,18 @@ if (githubOutput.Length == 0 || !TryAppendOutput(string.Empty))
 var repo = Env("GH_AW_REPO");
 var adoApi = Env("ADO_API");
 var adoDefinitionId = Env("ADO_BUILD_DEFINITION_ID");
-var binlogDir = Env("BINLOG_DIR");
+
+// The staging directory is reset with a recursive delete, so it is the one
+// environment value that can destroy something outside this run. Confine it to
+// a scratch root instead of trusting whatever is set: `/`, `$HOME` or the
+// workspace must not be reachable, whether by misconfiguration or by an edit to
+// the workflow's `env:` block.
+var binlogDir = ResolveScratchDir(Env("BINLOG_DIR")) ?? string.Empty;
+if (binlogDir.Length == 0)
+{
+    Console.Error.WriteLine("::error::BINLOG_DIR must be a fully-qualified directory inside /tmp, TMPDIR or RUNNER_TEMP; refusing to run.");
+    return 1;
+}
 
 using var github = new HttpClient();
 github.DefaultRequestHeaders.UserAgent.ParseAdd("roslyn-build-failure-analysis");
@@ -251,7 +264,8 @@ var remainingBytes = MaxTotalBytes;
 // runner, away from being someone else's file.
 var zipTmp = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 // Only binlogs extracted by this run may be analyzed, so make the reset
-// authoritative rather than best-effort.
+// authoritative rather than best-effort. `binlogDir` was confined to a scratch
+// root at startup, which is what makes a recursive delete here safe to do.
 if (Directory.Exists(binlogDir))
 {
     Directory.Delete(binlogDir, recursive: true);
@@ -370,6 +384,78 @@ TryAppendOutput(
 return 0;
 
 static string Env(string name) => Environment.GetEnvironmentVariable(name) ?? string.Empty;
+
+// Accepts a path only if it is a proper descendant of a scratch root, and
+// returns it normalized; null otherwise. The root itself is refused along with
+// `/`, because the caller deletes this directory whole and a temp root holds
+// this script's own zip as well as every other job's files on the same runner.
+//
+// Three roots count, because the runner has three names for scratch space and
+// the workflow is entitled to use any of them: `Path.GetTempPath()`, which
+// follows `TMPDIR`; `RUNNER_TEMP`, the per-job directory Actions hands out; and
+// `/tmp`, the path the workflow actually names. `/tmp` is listed rather than
+// left to `Path.GetTempPath()` so that an image which starts setting `TMPDIR`
+// elsewhere cannot quietly turn every fetch into a refusal. It is not fully
+// qualified on Windows, so it drops out of the loop there.
+static string? ResolveScratchDir(string value)
+{
+    if (value.Length == 0 || !Path.IsPathFullyQualified(value))
+    {
+        return null;
+    }
+
+    var candidate = Path.TrimEndingDirectorySeparator(Path.GetFullPath(value));
+    if (!IsUnderScratchRoot(candidate))
+    {
+        return null;
+    }
+
+    // `GetFullPath` is purely lexical, so a symlink planted at this path still
+    // reads as being inside the root while pointing anywhere. Judge the target
+    // when there is one. Nothing to judge when the path holds an ordinary entry
+    // or nothing at all - the latter being the normal case, since the caller
+    // creates the directory.
+    string? linkTarget;
+    try
+    {
+        var entry = Directory.Exists(candidate)
+            ? (FileSystemInfo)new DirectoryInfo(candidate)
+            : new FileInfo(candidate);
+        if (entry.LinkTarget is null)
+        {
+            return candidate;
+        }
+
+        // Empty for a link that resolves to nothing legible - dangling or
+        // cyclic - which no root contains, so it is refused below.
+        linkTarget = entry.ResolveLinkTarget(returnFinalTarget: true)?.FullName ?? string.Empty;
+    }
+    catch (Exception)
+    {
+        return null;
+    }
+
+    return IsUnderScratchRoot(Path.TrimEndingDirectorySeparator(linkTarget)) ? candidate : null;
+
+    static bool IsUnderScratchRoot(string path)
+    {
+        foreach (var root in new[] { Path.GetTempPath(), Environment.GetEnvironmentVariable("RUNNER_TEMP"), "/tmp" })
+        {
+            if (string.IsNullOrEmpty(root) || !Path.IsPathFullyQualified(root))
+            {
+                continue;
+            }
+
+            var prefix = Path.TrimEndingDirectorySeparator(Path.GetFullPath(root)) + Path.DirectorySeparatorChar;
+            if (path.Length > prefix.Length && path.StartsWith(prefix, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
 
 bool TryAppendOutput(string text)
 {
