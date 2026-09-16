@@ -38,7 +38,6 @@ internal sealed class BrokeredServiceContainer : GlobalBrokeredServiceContainer
 
     internal static async Task<BrokeredServiceContainer> CreateAsync(
         ExportProvider exportProvider,
-        ImmutableArray<IServiceBrokerInitializer> serviceBrokerInitializers,
         ILoggerFactory loggerFactory,
         CancellationToken cancellationToken)
     {
@@ -57,14 +56,6 @@ internal sealed class BrokeredServiceContainer : GlobalBrokeredServiceContainer
 
         // Register the desired remote services
         container.RegisterServices(Descriptors.RemoteServicesToRegister);
-
-        // Register and proffer all services that come from service broker manual initialization
-        var servicesToRegister = serviceBrokerInitializers.SelectMany(s => s.ServicesToRegister).ToDictionary(a => a.Key, a => a.Value);
-        container.RegisterServices(servicesToRegister);
-
-        // Proffer might request dependent remote services from the container, so we need to proffer after registering all services.
-        foreach (var initializer in serviceBrokerInitializers)
-            await initializer.ProfferAsync(container, cancellationToken).ConfigureAwait(false);
 
         return container;
     }
