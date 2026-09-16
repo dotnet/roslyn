@@ -133,7 +133,7 @@ public sealed class ServiceBrokerFactoryTests(ITestOutputHelper testOutputHelper
         var contributor = new TestDiscoveryServiceContributor(() => null);
 
         // Should be a no-op (and must not throw) when there is no implementation to proffer.
-        contributor.ProfferAsync(container);
+        contributor.ProfferAsync(container, CancellationToken.None);
     }
 
     [Fact]
@@ -147,7 +147,7 @@ public sealed class ServiceBrokerFactoryTests(ITestOutputHelper testOutputHelper
         // Mirror the production ordering performed by BrokeredServiceContainer.CreateAsync /
         // ServiceBrokerFactory.CreateAsync: register the advertised monikers, then proffer.
         container.RegisterServices(contributor.ServicesToRegister);
-        contributor.ProfferAsync(container);
+        contributor.ProfferAsync(container, CancellationToken.None);
 
         // The proffered moniker is advertised and serviceable: acquiring a proxy via the implementation's
         // descriptor runs the proffer factory callback, which invokes InitializeAsync before handing back
