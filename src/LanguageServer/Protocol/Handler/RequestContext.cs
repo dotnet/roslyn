@@ -169,7 +169,7 @@ internal readonly partial struct RequestContext
         ILspServices lspServices,
         ILspLogger logger,
         string method,
-        Task projectLoadTask,
+        Func<Task>? startProjectLoad,
         ImmutableDictionary<DocumentUri, TrackedDocumentInfo>? trackedDocuments,
         CancellationToken cancellationToken)
     {
@@ -194,48 +194,22 @@ internal readonly partial struct RequestContext
         }
         else
         {
-            // Decide before snapshot capture, so a load finishing during lookup still gets re-resolved.
-            var requiresDeferredResolution = !mutatesSolutionState && projectLoadTask.Status != TaskStatus.RanToCompletion;
-            var initialWorkspaceSolution = requiresDeferredResolution ? lspWorkspaceManager.GetHostWorkspaceCurrentSolution() : null;
-            Workspace? workspace = null;
-            Solution? solution = null;
-            TextDocument? document = null;
-            if (textDocument is not null)
-            {
-                // we were given a request associated with a document.  Find the corresponding roslyn document for this.
-                // There are certain cases where we may be asked for a document that does not exist (for example a
-                // document is removed) For example, document pull diagnostics can ask us after removal to clear
-                // diagnostics for a document.
-                (workspace, solution, document) = await lspWorkspaceManager.GetLspDocumentInfoAsync(textDocument, cancellationToken).ConfigureAwait(false);
-            }
-
-            if (workspace is null)
-            {
-                (workspace, solution) = await lspWorkspaceManager.GetLspSolutionInfoAsync(cancellationToken).ConfigureAwait(false);
-            }
-
-            if (workspace is null || solution is null)
+            var solutionContext = textDocument is null
+                ? await lspWorkspaceManager.GetLspSolutionInfoAsync(
+                    trackedDocuments, startProjectLoad, cancellationToken).ConfigureAwait(false)
+                : await lspWorkspaceManager.GetLspDocumentInfoAsync(
+                    textDocument, trackedDocuments, startProjectLoad, cancellationToken).ConfigureAwait(false);
+            if (solutionContext is null)
             {
                 logger.LogError($"Could not find appropriate workspace or solution on {method}");
                 FatalError.ReportWithDumpAndCatch(new Exception(
                     $"Could not find appropriate workspace or solution on {method}"), ErrorSeverity.Critical);
             }
 
-            Contract.ThrowIfNull(workspace);
-            Contract.ThrowIfNull(solution);
-            var initialLspContext = new LspWorkspaceManager.LspContext(workspace, solution, document);
-            var resolvedLspContext = requiresDeferredResolution
-                ? lspWorkspaceManager.CreateResolvedLspContextAsync(
-                initialLspContext,
-                initialWorkspaceSolution,
-                textDocument,
-                trackedDocuments,
-                projectLoadTask,
-                cancellationToken)
-                : Task.FromResult(initialLspContext);
+            Contract.ThrowIfNull(solutionContext);
 
             context = new RequestContext(
-                new StrongBox<Task<LspWorkspaceManager.LspContext>?>(resolvedLspContext),
+                new StrongBox<Task<LspWorkspaceManager.LspContext>?>(solutionContext),
                 logger,
                 method,
                 clientCapabilities,

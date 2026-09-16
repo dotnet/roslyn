@@ -68,22 +68,25 @@ internal sealed class RequestContextFactory : AbstractRequestContextFactory<Requ
             throw new InvalidOperationException($"{nameof(IMethodHandler)} implementation {methodHandler.GetType()} does not implement {nameof(ISolutionRequiredHandler)}");
         }
 
+        Func<Task>? startProjectLoad = null;
         var onDemandProjectLoader = _lspServices.GetService<IOnDemandProjectLoader>();
-        Task projectLoadTask;
         // didOpen initiates project discovery even though text sync handlers do not require a solution. didChange and
         // didClose only update already-tracked state and should not start new project loads.
-        if (textDocumentIdentifier is not null &&
-            (requiresLSPSolution || queueItem.MethodName == Methods.TextDocumentDidOpenName))
+        if (textDocumentIdentifier is not null && queueItem.MethodName == Methods.TextDocumentDidOpenName)
         {
-            projectLoadTask = onDemandProjectLoader?.StartLoadingAsync(textDocumentIdentifier.DocumentUri) ?? Task.CompletedTask;
+            _ = onDemandProjectLoader?.StartLoadingAsync(textDocumentIdentifier.DocumentUri);
+        }
+        else if (requiresLSPSolution &&
+            !methodHandler.MutatesSolutionState &&
+            textDocumentIdentifier is not null &&
+            onDemandProjectLoader is not null)
+        {
+            startProjectLoad = () => onDemandProjectLoader.StartLoadingAsync(textDocumentIdentifier.DocumentUri);
         }
         else if (requiresLSPSolution && !methodHandler.MutatesSolutionState && onDemandProjectLoader is not null)
         {
-            projectLoadTask = await onDemandProjectLoader.GetWorkspaceLoadTaskAsync().ConfigureAwait(false);
-        }
-        else
-        {
-            projectLoadTask = Task.CompletedTask;
+            var workspaceLoadTask = await onDemandProjectLoader.GetWorkspaceLoadTaskAsync().ConfigureAwait(false);
+            startProjectLoad = () => workspaceLoadTask;
         }
 
         var trackedDocuments = _lspServices.GetRequiredService<LspWorkspaceManager>().GetTrackedLspText();
@@ -98,7 +101,7 @@ internal sealed class RequestContextFactory : AbstractRequestContextFactory<Requ
             _lspServices,
             logger,
             queueItem.MethodName,
-            projectLoadTask,
+            startProjectLoad,
             trackedDocuments,
             cancellationToken).ConfigureAwait(false);
     }

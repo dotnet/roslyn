@@ -110,7 +110,7 @@ var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 - **Cancellation**: Always thread `CancellationToken` through async operations
 - **Performance**: Avoid LINQ in hot paths, prefer `for` loops or `.AsSpan()`, use `ObjectPool<T>`
 - **LanguageServer request context**: Handlers should use the asynchronous `RequestContext.Get*Async` methods for workspace, solution, and document access. Obsolete synchronous members remain only for compatibility with existing external-access consumers and forward to the asynchronous accessors.
-- **LanguageServer snapshot ownership**: Request dispatch captures immutable LSP text. Workspace mutation, miscellaneous-provider calls, and LSP solution-cache updates stay on the serialized queue; deferred context resolution only projects captured text onto solution snapshots. Accessor cancellation does not cancel shared project loading.
+- **LanguageServer snapshot ownership**: Request dispatch captures immutable LSP text. Workspace mutation, miscellaneous-provider calls, and LSP solution-cache updates stay on the serialized queue; deferred context resolution only projects captured text onto solution snapshots. Document lookup starts on-demand loading only after the initial registered-workspace lookup misses, and preserves the initial miscellaneous-file context if the loaded project still does not contain the document. Accessor cancellation does not cancel shared project loading.
 - **LanguageServer on-demand loading**: An active operation owns its full project-reference traversal, including children still entering the project system. The loader's `IOnServerShutdown` hook cancels and drains those operations before LSP service disposal.
 
 ## Common Gotchas
