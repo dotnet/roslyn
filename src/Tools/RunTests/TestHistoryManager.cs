@@ -99,11 +99,6 @@ internal class TestHistoryManager
                 var testResults = await GetTestResultsAsync(azdoClient, testRun, i, MaxTestsReturnedPerRequest, cancellationToken);
                 foreach (var testResult in testResults)
                 {
-                    if (!string.Equals(testResult.Outcome, "Passed", StringComparison.OrdinalIgnoreCase))
-                    {
-                        continue;
-                    }
-
                     // Helix outputs results for the whole dll work item suffixed with WorkItemExecution which we should ignore.
                     if (testResult.AutomatedTestName.Contains("WorkItemExecution"))
                     {
