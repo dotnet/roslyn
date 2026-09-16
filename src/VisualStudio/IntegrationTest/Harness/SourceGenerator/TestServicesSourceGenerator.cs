@@ -1828,7 +1828,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         /// <summary>
         /// A long timeout used to avoid hangs in tests, where a test failure manifests as an operation never occurring.
         /// </summary>
-        public static readonly TimeSpan HangMitigatingTimeout = TimeSpan.FromMinutes(4);
+        public static readonly TimeSpan HangMitigatingTimeout = TimeSpan.FromSeconds(30);
 
         /// <summary>
         /// A timeout used to avoid hangs during test cleanup. This is separate from <see cref=""HangMitigatingTimeout""/>
