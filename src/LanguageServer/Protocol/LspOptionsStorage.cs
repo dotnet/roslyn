@@ -15,10 +15,10 @@ internal sealed class LspOptionsStorage
     /// </summary>
     public static readonly Option2<int> MaxCompletionListSize = new("dotnet_lsp_max_completion_list_size", defaultValue: 1000);
 
-    // Flag is defined in VisualStudio\Core\Def\PackageRegistration.pkgdef.
+    // Flag is defined in VisualStudio\Core\Def\Microsoft.VisualStudio.LanguageServices.Extra.pkgdef.
     public static readonly Option2<bool> LspEditorFeatureFlag = new("dotnet_enable_lsp_editor", defaultValue: false);
 
-    // Flag is defined in VisualStudio\Core\Def\PackageRegistration.pkgdef.
+    // Flag is defined in VisualStudio\Core\Def\Microsoft.VisualStudio.LanguageServices.Extra.pkgdef.
     public static readonly Option2<bool> LspSemanticTokensFeatureFlag = new("dotnet_enable_lsp_semantic_tokens", defaultValue: false);
 
     /// <summary>
