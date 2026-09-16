@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Razor.IntegrationTests.Extensions;
 using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 

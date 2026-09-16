@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructor;
 
@@ -3753,7 +3752,7 @@ class C
             }
             """);
 
-    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [ConditionalTheory(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/22293")]
     [InlineData("void")]
     [InlineData("int")]
@@ -4650,7 +4649,7 @@ unsafe class C
             }
             """);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/50765")]
     public Task TestDelegateConstructorWithMissingType()
         => TestAsync("""

@@ -1567,7 +1567,7 @@ namespace NS
         }
 
         [WorkItem(545911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545911")]
-        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
+        [ConditionalFact(skipConditions: [typeof(DesktopOnly), typeof(ClrOnly)])]
         public void EmitForwarder_ModuleInReferencedAssembly()
         {
             string moduleA = @"public class Goo{ public static string A = ""Original""; }";
@@ -1636,7 +1636,7 @@ using System;
             CheckForwarderEmit2(source0, source1, source2, "X.Goo");
         }
 
-        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
+        [ConditionalFact(skipConditions: [typeof(DesktopOnly), typeof(ClrOnly)])]
         [WorkItem(18437, "https://github.com/dotnet/roslyn/issues/18437")]
         public void TypeForwarderInAModule()
         {

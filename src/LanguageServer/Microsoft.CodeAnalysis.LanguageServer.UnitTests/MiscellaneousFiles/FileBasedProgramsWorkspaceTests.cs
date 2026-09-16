@@ -21,7 +21,6 @@ using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using StreamJsonRpc;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.FileBasedPrograms;
 
@@ -47,7 +46,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         Assert.Equal(document.Id, Assert.Single(documentsFromCanonicalPath).Id);
     }
 
-    [ConditionalFact(typeof(WindowsOnly))]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly))]
     public async Task GetOrLoadEntryPointDocument_MatchesPathCaseInsensitively()
     {
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
@@ -509,7 +508,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         }
     }
 
-    [ConditionalTheory(typeof(WindowsOnly), Reason = "FileSystemWatcher (inotify) does not reliably detect file changes on Linux")]
+    [ConditionalTheory(skipConditions: typeof(WindowsOnly), Reason = "FileSystemWatcher (inotify) does not reliably detect file changes on Linux")]
     [CombinatorialData]
     public async Task TestSemanticDiagnosticsEnabledWhenTopLevelStatementsAdded(bool mutatingLspWorkspace)
     {
@@ -895,7 +894,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         }
     }
 
-    [ConditionalTheory(typeof(WindowsOnly), Reason = "FileSystemWatcher (inotify) does not reliably detect file changes on Linux")]
+    [ConditionalTheory(skipConditions: typeof(WindowsOnly), Reason = "FileSystemWatcher (inotify) does not reliably detect file changes on Linux")]
     [CombinatorialData]
     public async Task TestFileBecomesFileBasedProgramWhenDirectiveAdded(bool mutatingLspWorkspace)
     {
@@ -953,7 +952,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         Assert.True(document.Project.State.HasAllInformation);
     }
 
-    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83192"), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83192"), CombinatorialData]
     public async Task TestFileStopsBeingFileBasedProgramWhenDirectivesDeleted(bool mutatingLspWorkspace)
     {
         var tempDir = CreateTempDirectoryWithGlobalJson();

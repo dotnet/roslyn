@@ -12,10 +12,8 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
     using System.Windows;
     using System.Windows.Threading;
     using global::Xunit;
-    using global::Xunit.Sdk;
     using Microsoft.VisualStudio.Shell;
     using Microsoft.VisualStudio.Threading;
-    using Task = System.Threading.Tasks.Task;
 
     /// <summary>
     /// Provides a base class for Visual Studio integration tests.
@@ -26,11 +24,10 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
     /// <list type="number">
     /// <item><description>Instance constructor</description></item>
     /// <item><description><see cref="IAsyncLifetime.InitializeAsync"/></description></item>
-    /// <item><description><see cref="BeforeAfterTestAttribute.Before"/></description></item>
+    /// <item><description>BeforeAfterTestAttribute.Before</description></item>
     /// <item><description>Test method</description></item>
-    /// <item><description><see cref="BeforeAfterTestAttribute.After"/></description></item>
-    /// <item><description><see cref="IAsyncLifetime.DisposeAsync"/></description></item>
-    /// <item><description><see cref="IDisposable.Dispose"/></description></item>
+    /// <item><description>BeforeAfterTestAttribute.After</description></item>
+    /// <item><description><see cref="global::System.IAsyncDisposable.DisposeAsync"/></description></item>
     /// </list>
     /// </remarks>
     public abstract class AbstractIdeIntegrationTest : IAsyncLifetime, IDisposable
@@ -128,7 +125,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             => _hangMitigatingCancellationTokenSource.Token;
 
         /// <remarks>
-        /// ⚠️ Note that this token will not be cancelled prior to the call to <see cref="DisposeAsync"/> (which starts
+        /// ⚠️ Note that this token will not be cancelled prior to the call to <see cref="global::System.IAsyncDisposable.DisposeAsync"/> (which starts
         /// the cancellation timer). Derived types are not likely to make use of this, so it's marked
         /// <see langword="private"/>.
         /// </remarks>
@@ -136,17 +133,17 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             => _cleanupCancellationTokenSource.Token;
 
         /// <inheritdoc/>
-        public virtual async Task InitializeAsync()
+        public virtual async ValueTask InitializeAsync()
         {
             TestServices = await CreateTestServicesAsync();
         }
 
         /// <summary>
-        /// This method implements <see cref="IAsyncLifetime.DisposeAsync"/>, and is used for releasing resources
+        /// This method implements <see cref="global::System.IAsyncDisposable.DisposeAsync"/>, and is used for releasing resources
         /// created by <see cref="IAsyncLifetime.InitializeAsync"/>. This method is only called if
         /// <see cref="InitializeAsync"/> completes successfully.
         /// </summary>
-        public virtual async Task DisposeAsync()
+        public virtual async ValueTask DisposeAsync()
         {
             _cleanupCancellationTokenSource.CancelAfter(CleanupHangMitigatingTimeout);
 
@@ -158,6 +155,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
 
             JoinableTaskContext = null;
+            Dispose();
         }
 
         /// <summary>

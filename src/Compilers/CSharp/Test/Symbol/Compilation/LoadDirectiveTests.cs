@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/12603")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/12603")]
         public void FileThatCannotBeDecoded()
         {
             var code = "#load \"b.csx\"";

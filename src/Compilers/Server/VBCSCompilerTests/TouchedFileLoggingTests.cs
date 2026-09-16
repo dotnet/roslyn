@@ -43,7 +43,7 @@ Class C
 End Class
 ";
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void CSharpTrivialMetadataCaching()
         {
             var loader = AnalyzerAssemblyLoader.CreateNonLockingLoader(Temp.CreateDirectory().Path);
@@ -94,7 +94,7 @@ End Class
             }
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void VisualBasicTrivialMetadataCaching()
         {
             var loader = AnalyzerAssemblyLoader.CreateNonLockingLoader(Temp.CreateDirectory().Path);

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenUsingDeclarationTests : EmitMetadataTestBase
     {
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void UsingVariableVarEmitTest()
         {
             string source = @"

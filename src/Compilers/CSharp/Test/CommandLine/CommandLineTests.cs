@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             return CSharpCommandLineParser.Default.Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly))]
         [WorkItem(34101, "https://github.com/dotnet/roslyn/issues/34101")]
         public void SuppressedWarnAsErrorsStillEmit()
         {
@@ -158,7 +158,7 @@ public class P {
             Assert.Equal(0, result.ExitCode);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         public void XmlMemoryMapped()
         {
             var dir = Temp.CreateDirectory();
@@ -393,7 +393,7 @@ dotnet_diagnostic.cs0169.severity = suppress";
         }
 
         // This test should only run when the machine's default encoding is shift-JIS
-        [ConditionalFact(typeof(WindowsDesktopOnly), typeof(HasShiftJisDefaultEncoding), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
+        [ConditionalFact(skipConditions: [typeof(WindowsDesktopOnly), typeof(HasShiftJisDefaultEncoding)], Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void CompileShiftJisOnShiftJis()
         {
             var dir = Temp.CreateDirectory();
@@ -413,7 +413,7 @@ dotnet_diagnostic.cs0169.severity = suppress";
             Assert.Equal("星野 八郎太", File.ReadAllText(Path.Combine(dir.Path, "output.txt"), Encoding.GetEncoding(932)));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void RunWithShiftJisFile()
         {
             var dir = Temp.CreateDirectory();
@@ -434,7 +434,7 @@ dotnet_diagnostic.cs0169.severity = suppress";
         }
 
         [WorkItem(946954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/946954")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void CompilerBinariesAreAnyCPU()
         {
 #pragma warning disable SYSLIB0037
@@ -465,7 +465,7 @@ a.cs
             CleanupAllGeneratedFiles(rsp);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         public void ResponseFiles_RelativePaths()
         {
             var parentDir = Temp.CreateDirectory();
@@ -519,7 +519,7 @@ d.cs
         }
 
 #nullable enable
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void NullBaseDirectoryNotAddedToKeyFileSearchPaths()
         {
             var parser = CSharpCommandLineParser.Default.Parse(new[] { "c:/test.cs" }, baseDirectory: null, SdkDirectory);
@@ -531,7 +531,7 @@ d.cs
                 );
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void NullBaseDirectoryWithAdditionalFiles()
         {
             var parser = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:web.config", "c:/test.cs" }, baseDirectory: null, SdkDirectory);
@@ -545,7 +545,7 @@ d.cs
                 );
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void NullBaseDirectoryWithAdditionalFiles_Wildcard()
         {
             var parser = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:*", "c:/test.cs" }, baseDirectory: null, SdkDirectory);
@@ -589,7 +589,7 @@ class C
             Assert.Equal("error CS0006: Metadata file 'System.dll' could not be found", outWriter.ToString().Trim());
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void SourceFiles_Patterns()
         {
             var parser = new TestCommandLineParser(
@@ -671,7 +671,7 @@ class C
 
         [WorkItem(546009, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546009")]
         [WorkItem(545991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545991")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void SourceFiles_Patterns2()
         {
             var folder = Temp.CreateDirectory();
@@ -728,7 +728,7 @@ class C
             Assert.Equal(4, resolvedSourceFiles.Length);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void SourceFile_BadPath()
         {
             var args = DefaultParse(new[] { @"e:c:\test\test.cs", "/t:library" }, WorkingDirectory);
@@ -888,7 +888,7 @@ class C
             CleanupAllGeneratedFiles(tmpFileName);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void Win32ResQuotes()
         {
             string[] responseFile = new string[] {
@@ -913,7 +913,7 @@ class C
             Assert.Equal(@"d:\abc def\ab cd\a.manifest", args.Win32Manifest);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void TryParseResourceDescription()
         {
             var diags = new List<Diagnostic>();
@@ -1205,7 +1205,7 @@ class C
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/link-:"));
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void Recurse_SimpleTests()
         {
             var dir = Temp.CreateDirectory();
@@ -1460,7 +1460,7 @@ class C
 
         // The following test is failing in the Linux Debug test leg of CI.
         // This issue is being tracked by https://github.com/dotnet/roslyn/issues/58077
-        [ConditionalFact(typeof(WindowsOrMacOSOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOrMacOSOnly))]
         public void ArgumentParsing()
         {
             var sdkDirectory = SdkDirectory;
@@ -2100,7 +2100,7 @@ class C
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/debug-:"));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void Pdb()
         {
             var parsedArgs = DefaultParse(new[] { "/pdb:something", "a.cs" }, WorkingDirectory);
@@ -3546,7 +3546,7 @@ class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void DiagnosticFormatting()
         {
             string source = @"
@@ -3720,7 +3720,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
         }
 
         [WorkItem(540891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540891")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void ParseOut()
         {
             const string baseDirectory = @"C:\abc\def\baz";
@@ -4070,7 +4070,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             Assert.True(parsedArgs.EmitOptions.InstrumentationKinds.SequenceEqual(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void ParseDoc()
         {
             const string baseDirectory = @"C:\abc\def\baz";
@@ -4172,7 +4172,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode); //Even though the format was incorrect
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void ParseErrorLog()
         {
             const string baseDirectory = @"C:\abc\def\baz";
@@ -4305,7 +4305,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void AppConfigParse()
         {
             const string baseDirectory = @"C:\abc\def\baz";
@@ -4368,7 +4368,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             CleanupAllGeneratedFiles(appConfigFile.Path);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void AppConfigBasicFail()
         {
             var srcFile = Temp.CreateFile().WriteAllText(@"class A { static void Main(string[] args) { } }");
@@ -4386,7 +4386,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             CleanupAllGeneratedFiles(srcFile.Path);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void ParseDocAndOut()
         {
             const string baseDirectory = @"C:\abc\def\baz";
@@ -4410,7 +4410,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             Assert.Equal("d.exe", parsedArgs.OutputFileName);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void ParseErrorLogAndOut()
         {
             const string baseDirectory = @"C:\abc\def\baz";
@@ -4677,7 +4677,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
                 Diagnostic(ErrorCode.ERR_InvalidFileAlignment).WithArguments("123"));
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void SdkPathAndLibEnvVariable()
         {
             var dir = Temp.CreateDirectory();
@@ -4696,7 +4696,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             }, parsedArgs.ReferencePaths);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void SdkPathAndLibEnvVariable_Errors()
         {
             var parsedArgs = DefaultParse(new[] { @"/lib:c:lib2", @"/lib:o:\sdk1", "a.cs" }, WorkingDirectory);
@@ -4790,7 +4790,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             CleanupAllGeneratedFiles(src.Path);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void UnableWriteOutput_OutputFileLocked()
         {
             var tempFolder = Temp.CreateDirectory();
@@ -6161,7 +6161,7 @@ class A                                                               \
             Assert.Contains(((int)ErrorCode.WRN_FileAlreadyIncluded).ToString(), result.Output);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void CscUtf8Output_WithRedirecting_Off()
         {
             var srcFile = Temp.CreateFile().WriteAllText("\u265A").Path;
@@ -6176,7 +6176,7 @@ class A                                                               \
             CleanupAllGeneratedFiles(tempOut.Path);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void CscUtf8Output_WithRedirecting_On()
         {
             var srcFile = Temp.CreateFile().WriteAllText("\u265A").Path;
@@ -6192,7 +6192,7 @@ class A                                                               \
         }
 
         [WorkItem(546653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546653")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void NoSourcesWithModule()
         {
             var folder = Temp.CreateDirectory();
@@ -6212,7 +6212,7 @@ class A                                                               \
         }
 
         [WorkItem(546653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546653")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void NoSourcesWithResource()
         {
             var folder = Temp.CreateDirectory();
@@ -6226,7 +6226,7 @@ class A                                                               \
         }
 
         [WorkItem(546653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546653")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void NoSourcesWithLinkResource()
         {
             var folder = Temp.CreateDirectory();
@@ -6360,7 +6360,7 @@ public class CS1698_a {}
             CleanupAllGeneratedFiles(cs1698.Path);
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30926")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30926")]
         [ValidatePooledObjects(LeakReason = "Binary file detection exception path")]
         public void BinaryFileErrorTest()
         {
@@ -6379,7 +6379,7 @@ public class CS1698_a {}
 #if !NETCOREAPP
         [WorkItem(530221, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530221")]
         [WorkItem(5660, "https://github.com/dotnet/roslyn/issues/5660")]
-        [ConditionalFact(typeof(WindowsOnly), typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: [typeof(WindowsOnly), typeof(IsEnglishLocal)])]
         public void Bug15538()
         {
             // Several Jenkins VMs are still running with local systems permissions.  This suite won't run properly
@@ -6696,7 +6696,7 @@ class myClass
             AssertEx.Equal(new[] { @"/o:""goo.cs""", @"/o:""abc def""\baz", @"""/o:baz bar""bing" }, args);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void SourceFileQuoting()
         {
             string[] responseFile = new string[] {
@@ -7142,7 +7142,7 @@ class C
         }
 
         [WorkItem(545025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545025")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void CompilationWithWarnAsError_01()
         {
             string source = @"
@@ -7169,7 +7169,7 @@ public class C
         }
 
         [WorkItem(545025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545025")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void CompilationWithWarnAsError_02()
         {
             string source = @"
@@ -7216,7 +7216,7 @@ public class C
         }
 
         [WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void CompilationWithNonExistingOutPath()
         {
             string source = @"
@@ -7298,7 +7298,7 @@ public class C
         }
 
         [WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")]
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly))]
         public void CompilationWithWrongOutPath_03()
         {
             string source = @"
@@ -7514,7 +7514,7 @@ public class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30328")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30328")]
         public void SpecifyProperCodePage()
         {
             byte[] source = {
@@ -7553,7 +7553,7 @@ a.cs(1,9): error CS1002: ; expected
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void DefaultWin32ResForExe()
         {
             var source = @"
@@ -7581,7 +7581,7 @@ class C
 </ManifestResource>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void DefaultManifestForDll()
         {
             var source = @"
@@ -7593,7 +7593,7 @@ class C
             CheckManifestString(source, OutputKind.DynamicallyLinkedLibrary, explicitManifest: null, expectedManifest: null);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void DefaultManifestForWinExe()
         {
             var source = @"
@@ -7621,7 +7621,7 @@ class C
 </ManifestResource>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void DefaultManifestForAppContainerExe()
         {
             var source = @"
@@ -7649,7 +7649,7 @@ class C
 </ManifestResource>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void DefaultManifestForWinMD()
         {
             var source = @"
@@ -7661,7 +7661,7 @@ class C
             CheckManifestString(source, OutputKind.WindowsRuntimeMetadata, explicitManifest: null, expectedManifest: null);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void DefaultWin32ResForModule()
         {
             var source = @"
@@ -7673,7 +7673,7 @@ class C
             CheckManifestString(source, OutputKind.NetModule, explicitManifest: null, expectedManifest: null);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void ExplicitWin32ResForExe()
         {
             var source = @"
@@ -7710,7 +7710,7 @@ explicitManifest +
         }
 
         // DLLs don't get the default manifest, but they do respect explicitly set manifests.
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void ExplicitWin32ResForDll()
         {
             var source = @"
@@ -7745,7 +7745,7 @@ explicitManifest +
         }
 
         // Modules don't have manifests, even if one is explicitly specified.
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void ExplicitWin32ResForModule()
         {
             var source = @"
@@ -7862,7 +7862,7 @@ class C
         }
 
         [WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void ResponseFilesWithNoconfig_01()
         {
             string source = Temp.CreateFile("a.cs").WriteAllText(@"
@@ -7910,7 +7910,7 @@ public class C
         }
 
         [WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void ResponseFilesWithNoconfig_02()
         {
             string source = Temp.CreateFile("a.cs").WriteAllText(@"
@@ -7944,7 +7944,7 @@ public class C
         }
 
         [WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void ResponseFilesWithNoconfig_03()
         {
             string source = Temp.CreateFile("a.cs").WriteAllText(@"
@@ -7978,7 +7978,7 @@ public class C
         }
 
         [WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void ResponseFilesWithNoconfig_04()
         {
             string source = Temp.CreateFile("a.cs").WriteAllText(@"
@@ -8256,7 +8256,7 @@ namespace System
         }
 
         [WorkItem(733242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/733242")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void Bug733242()
         {
             var dir = Temp.CreateDirectory();
@@ -8300,7 +8300,7 @@ class C {} ");
         }
 
         [WorkItem(768605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768605")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void Bug768605()
         {
             var dir = Temp.CreateDirectory();
@@ -8750,7 +8750,7 @@ class Program
             CleanupAllGeneratedFiles(source);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void ExistingPdb()
         {
             var dir = Temp.CreateDirectory();
@@ -8841,7 +8841,7 @@ class Program3
         ///
         /// On Windows we can read the original data directly from the stream without creating a memory map.
         /// </summary>
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void FileShareDeleteCompatibility_Windows()
         {
             var dir = Temp.CreateDirectory();
@@ -8878,7 +8878,7 @@ class Program3
         /// We need to create the actual memory map. This works on Windows as well.
         /// </summary>
         [WorkItem(8896, "https://github.com/dotnet/roslyn/issues/8896")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
+        [ConditionalFact(skipConditions: [typeof(WindowsDesktopOnly), typeof(IsEnglishLocal)], Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void FileShareDeleteCompatibility_Xplat()
         {
             var bytes = TestResources.MetadataTests.InterfaceAndClass.CSClasses01;
@@ -8948,7 +8948,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
         }
 
         // Seems like File.SetAttributes(libDll.Path, FileAttributes.ReadOnly) doesn't restrict access to the file on Mac (Linux passes).
-        [ConditionalFact(typeof(WindowsOnly)), WorkItem(8939, "https://github.com/dotnet/roslyn/issues/8939")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly)), WorkItem(8939, "https://github.com/dotnet/roslyn/issues/8939")]
         public void FileShareDeleteCompatibility_ReadOnlyFiles()
         {
             var dir = Temp.CreateDirectory();
@@ -9291,7 +9291,7 @@ public class C { }
         }
 
         [WorkItem(546468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546468")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void CS2002WRN_FileAlreadyIncluded()
         {
             const string cs2002 = @"warning CS2002: Source file '{0}' specified multiple times";
@@ -9856,7 +9856,7 @@ using System.Diagnostics; // Unused.
         }
 
         [WorkItem(715339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715339")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void WRN_InvalidSearchPathDir()
         {
             var baseDir = Temp.CreateDirectory();
@@ -9952,7 +9952,7 @@ using System.Diagnostics; // Unused.
             Assert.True(args.ParseOptions.Features.SetEquals(new Dictionary<string, string> { { "Test", "true" } }));
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void ParseAdditionalFile()
         {
             var args = DefaultParse(new[] { "/additionalfile:web.config", "a.cs" }, WorkingDirectory);
@@ -11431,7 +11431,7 @@ public class C
 
         [WorkItem(1091972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091972")]
         [WorkItem(444, "CodePlex")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void Bug1091972()
         {
             var dir = Temp.CreateDirectory();
@@ -11478,7 +11478,7 @@ class C {
             CleanupAllGeneratedFiles(src.Path);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void CommandLineMisc()
         {
             CSharpCommandLineArguments args = null;
@@ -11672,7 +11672,7 @@ class C {
             AssertEx.Equal(expected, CommandLineParser.SplitWithDoubledSeparatorEscaping(str, ','));
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         [CompilerTrait(CompilerFeature.Determinism)]
         public void PathMapPdbParser()
         {
@@ -11685,7 +11685,7 @@ class C {
             Assert.Null(parsedArgs.EmitOptions.PdbFilePath);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         [CompilerTrait(CompilerFeature.Determinism)]
         public void PathMapPdbEmit()
         {
@@ -11764,7 +11764,7 @@ class C {
         }
 
         [CompilerTrait(CompilerFeature.Determinism)]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void DeterministicPdbsRegardlessOfBitness()
         {
             var dir = Temp.CreateDirectory();
@@ -11835,7 +11835,7 @@ class Runner
         }
 
         [WorkItem(7588, "https://github.com/dotnet/roslyn/issues/7588")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void Version()
         {
             var folderName = Temp.CreateDirectory().ToString();
@@ -11854,7 +11854,7 @@ class Runner
             }
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void RefOut()
         {
             var dir = Temp.CreateDirectory();
@@ -12118,7 +12118,7 @@ class C
         }
 
         [WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=406649")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
+        [ConditionalFact(skipConditions: [typeof(WindowsDesktopOnly), typeof(IsEnglishLocal)], Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void MissingCompilerAssembly()
         {
             var dir = Temp.CreateDirectory();
@@ -12142,7 +12142,7 @@ class C
         }
 
 #if NET472
-        [ConditionalFact(typeof(WindowsDesktopOnly), typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
+        [ConditionalFact(skipConditions: [typeof(WindowsDesktopOnly), typeof(IsEnglishLocal)], Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void LoadinganalyzerNetStandard13()
         {
             var analyzerFileName = "AnalyzerNS13.dll";
@@ -12334,7 +12334,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
 #endif
 
         [WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=484417")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
+        [ConditionalFact(skipConditions: [typeof(WindowsDesktopOnly), typeof(IsEnglishLocal)], Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void MicrosoftDiaSymReaderNativeAltLoadPath()
         {
             var dir = Temp.CreateDirectory();
@@ -12384,7 +12384,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             Assert.Equal("", result.Output.Trim());
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         [WorkItem(21935, "https://github.com/dotnet/roslyn/issues/21935")]
         public void PdbPathNotEmittedWithoutPdb()
         {
@@ -12534,7 +12534,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             }
 
             [WorkItem(12427, "https://github.com/dotnet/roslyn/issues/12427")]
-            [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30328")]
+            [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30328")]
             public void CodePage()
             {
                 VerifyQuotedValid("codepage", "1252", 1252, x => x.Encoding.CodePage);
@@ -12616,7 +12616,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
         }
 
         [WorkItem(23525, "https://github.com/dotnet/roslyn/issues/23525")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void InvalidPathCharacterInPdbPath()
         {
             string filePath = Temp.CreateFile().WriteAllText("").Path;
@@ -12636,7 +12636,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
         }
 
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public void TestSuppression_CompilerParserWarningAsError()
         {
             string source = @"
@@ -12686,7 +12686,7 @@ class C
         }
 
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
-        [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
+        [ConditionalTheory(skipConditions: typeof(IsEnglishLocal)), CombinatorialData]
         public void TestSuppression_CompilerSyntaxWarning(bool skipAnalyzers)
         {
             // warning CS1522: Empty switch block
@@ -12748,7 +12748,7 @@ class C
         }
 
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
-        [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
+        [ConditionalTheory(skipConditions: typeof(IsEnglishLocal)), CombinatorialData]
         public void TestSuppression_CompilerSemanticWarning(bool skipAnalyzers)
         {
             string source = @"
@@ -12804,7 +12804,7 @@ class C
         }
 
         [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
-        [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
+        [ConditionalTheory(skipConditions: typeof(IsEnglishLocal)), CombinatorialData]
         public void TestSuppression_CompilerSyntaxParseError_SuppressWarningCaughtDuringParsingStage(bool skipAnalyzers)
         {
             const string SourceCode = @"
@@ -12891,7 +12891,7 @@ class C
         }
 
         [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
-        [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
+        [ConditionalTheory(skipConditions: typeof(IsEnglishLocal)), CombinatorialData]
         public void TestSuppression_CompilerSyntaxDeclarationError_SuppressWarningTriggeredByGenerator(bool skipAnalyzers)
         {
             const string SourceCode = @"
@@ -12992,7 +12992,7 @@ class C
         }
 
         [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
-        [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
+        [ConditionalTheory(skipConditions: typeof(IsEnglishLocal)), CombinatorialData]
         public void TestSuppression_CompilerSyntaxBindingError_SuppressWarningTriggeredByGenerator(bool skipAnalyzers)
         {
             const string SourceCode = @"
@@ -13151,7 +13151,7 @@ class C
         }
 
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public void TestSuppression_AnalyzerWarning()
         {
             string source = @"
@@ -14353,7 +14353,7 @@ class C
             Directory.Delete(dir.Path, true);
         }
 
-        [ConditionalFact(typeof(DesktopClrOnly))]  //CoreCLR doesn't support SxS loading
+        [ConditionalFact(skipConditions: typeof(DesktopClrOnly))]  //CoreCLR doesn't support SxS loading
         [WorkItem(47990, "https://github.com/dotnet/roslyn/issues/47990")]
         public void SourceGenerators_SxS_AssemblyLoading()
         {
@@ -15497,7 +15497,7 @@ dotnet_diagnostic.{diagnosticId}.severity = {analyzerConfigSeverity}");
             }
         }
 
-        [ConditionalFact(typeof(CoreClrOnly), Reason = "Can't load a coreclr targeting generator on net framework / mono")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly), Reason = "Can't load a coreclr targeting generator on net framework / mono")]
         public void TestGeneratorsCantTargetNetFramework()
         {
             var directory = Temp.CreateDirectory();
@@ -15612,7 +15612,7 @@ public class Generator : ISourceGenerator
             CleanupAllGeneratedFiles(srcDirectory.Path);
         }
 
-        [ConditionalTheory(typeof(WindowsOnly))]
+        [ConditionalTheory(skipConditions: typeof(WindowsOnly))]
         [InlineData("abc/a.txt", "abc\\a.txt", 1)]
         [InlineData("abc\\a.txt", "abc\\a.txt", 1)]
         [InlineData("abc/a.txt", "abc\\..\\a.txt", 2)]
@@ -15625,7 +15625,7 @@ public class Generator : ISourceGenerator
         [InlineData("abc/a.txt", "ABC\\A.txt", 1)]
         public void TestDuplicateAdditionalFiles_Windows(string additionalFilePath1, string additionalFilePath2, int expectedCount) => TestDuplicateAdditionalFiles(additionalFilePath1, additionalFilePath2, expectedCount);
 
-        [ConditionalTheory(typeof(LinuxOnly))]
+        [ConditionalTheory(skipConditions: typeof(LinuxOnly))]
         [InlineData("a.txt", "A.txt", 2)]
         [InlineData("abc/a.txt", "abc/A.txt", 2)]
         [InlineData("abc/a.txt", "ABC/a.txt", 2)]

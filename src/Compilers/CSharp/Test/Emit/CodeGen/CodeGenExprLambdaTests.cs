@@ -295,7 +295,7 @@ class Program : TestBase
         }
 
         [WorkItem(544027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544027")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void AnonymousCreation()
         {
             var source =
@@ -1579,7 +1579,7 @@ class Test
         }
 
         [WorkItem(544226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544226")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void BinaryAddOperandTypesDelegate()
         {
             var text = @"
@@ -1832,7 +1832,7 @@ class Test
         }
 
         [WorkItem(544222, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544222")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void CoalesceWithImplicitUDC()
         {
             var text =
@@ -2021,7 +2021,7 @@ Lambda:
         }
 
         [WorkItem(544241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544241")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void ArrayIndexTypeLong()
         {
             var text =
@@ -2102,7 +2102,7 @@ class Program
         }
 
         [WorkItem(544276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544276")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void UnsafeParamTypeInDelegate()
         {
             var text = @"
@@ -2349,7 +2349,7 @@ public class Test
             CompileAndVerifyUtil(text, expectedOutput: "45");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void AnonTypes2()
         {
             var text =
@@ -2981,7 +2981,7 @@ public class A
         }
 
         [WorkItem(544403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544403")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void ConditionalWithOperandTypesObjectArrAndStringArr()
         {
             var text =
@@ -4901,7 +4901,7 @@ Convert(Not(Convert(Parameter(x Type:Test+Color) Type:System.Int32) Type:System.
         }
 
         [WorkItem(531382, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531382")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void IndexerIsIndexedProperty()
         {
             var source1 =
@@ -4940,7 +4940,7 @@ class Program
         }
 
         [WorkItem(579711, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579711")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void CheckedEnumConversion()
         {
             var text =
@@ -5764,7 +5764,7 @@ public class Program
         }
 
         [WorkItem(3292, "https://github.com/dotnet/roslyn/issues/3292")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void EnumConversions001()
         {
             const string source = @"
@@ -5803,7 +5803,7 @@ class C //: TestBase
         }
 
         [WorkItem(3292, "https://github.com/dotnet/roslyn/issues/3292")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void EnumConversions002()
         {
             const string source = @"

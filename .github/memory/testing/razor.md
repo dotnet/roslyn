@@ -27,6 +27,11 @@ Layer-specific test guidance for Razor tooling/compiler tests under `src/Razor`.
   Under two-phase compilation the `AdditionalSyntaxTrees` are compiled into a
   temp assembly and added as a *reference*, so discovery sees those types as
   coming from a referenced assembly (not source).
+- `Microsoft.VisualStudio.Razor.IntegrationTests` uses the shared Visual Studio
+  xUnit harness. Its xUnit v3 references are aliased as `XunitV3`, so the project
+  disables the harness-generated test-framework attribute and registers
+  `IdeTestFramework` in `TestFrameworkAttribute.cs` with that alias. Overrides of
+  `InitializeAsync` and `DisposeAsync` return `ValueTask`.
 - Regenerate baseline-backed compiler tests with a targeted test filter and
   `/p:GenerateBaselines=true` on one CoreCLR target framework, then rerun the
   tests normally. Two-phase tests can produce `.decl.codegen.cs` and

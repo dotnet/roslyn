@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion;
@@ -505,7 +504,7 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
         Assert.True(results.IsIncomplete);
     }
 
-    [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(IsEnglishLocal)), CombinatorialData]
     public async Task TestGetDateAndTimeCompletionsAsync(bool mutatingLspWorkspace)
     {
         var markup =
@@ -567,7 +566,7 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
         Assert.Null(results);
     }
 
-    [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/50964")]
+    [ConditionalTheory(skipConditions: typeof(IsEnglishLocal)), CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/50964")]
     public async Task TestGetRegexCompletionsAsync(bool mutatingLspWorkspace)
     {
         var markup =
@@ -606,7 +605,7 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
         Assert.Equal(defaultRange, results.ItemDefaults.EditRange);
     }
 
-    [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(IsEnglishLocal)), CombinatorialData]
     public async Task TestGetRegexLiteralCompletionsAsync(bool mutatingLspWorkspace)
     {
         var markup =
@@ -645,7 +644,7 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
         Assert.Equal(defaultRange, results.ItemDefaults.EditRange);
     }
 
-    [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(IsEnglishLocal)), CombinatorialData]
     public async Task TestGetRegexCompletionsReplaceTextAsync(bool mutatingLspWorkspace)
     {
         var markup =
@@ -684,7 +683,7 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
         Assert.Equal(defaultRange, results.ItemDefaults.EditRange);
     }
 
-    [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/50964")]
+    [ConditionalTheory(skipConditions: typeof(IsEnglishLocal)), CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/50964")]
     public async Task TestGetRegexCompletionsWithoutItemDefaultSupportAsync(bool mutatingLspWorkspace)
     {
         var clientCapabilities = new LSP.VSInternalClientCapabilities

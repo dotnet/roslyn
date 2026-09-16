@@ -62,24 +62,24 @@ public sealed class ReferenceDirectiveCompletionProviderTests : AbstractInteract
     public void IsTextualTriggerCharacterTest(string markup)
         => VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true, SourceCodeKind.Script);
 
-    [ConditionalTheory(typeof(WindowsOnly))]
+    [ConditionalTheory(skipConditions: typeof(WindowsOnly))]
     [InlineData(EnterKeyRule.Never)]
     [InlineData(EnterKeyRule.AfterFullyTypedWord)]
     [InlineData(EnterKeyRule.Always)] // note: GAC completion helper uses its own EnterKeyRule
     public async Task SendEnterThroughToEditorTest(EnterKeyRule enterKeyRule)
         => await VerifySendEnterThroughToEnterAsync("#r \"System$$", "System", enterKeyRule, expected: false);
 
-    [ConditionalFact(typeof(WindowsOnly))]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly))]
     public async Task GacReference()
         => await VerifyItemExistsAsync("#r \"$$", "System.Windows.Forms", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
-    [ConditionalFact(typeof(WindowsOnly))]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly))]
     public Task GacReferenceFullyQualified()
         => VerifyItemExistsAsync(
             "#r \"System.Windows.Forms,$$",
             "System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
-    [ConditionalFact(typeof(WindowsOnly))]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly))]
     public async Task FileSystemReference()
     {
         var systemDir = Path.GetFullPath(Environment.SystemDirectory);

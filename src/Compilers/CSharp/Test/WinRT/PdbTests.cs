@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             r.Diagnostics.Verify();
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void EmitToStreamWithNonZeroPosition()
         {
             var pdbStream = new MemoryStream();

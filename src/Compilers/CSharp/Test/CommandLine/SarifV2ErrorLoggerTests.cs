@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             return FormatOutputText(expectedOutput, cmd, hasAnalyzers: false);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void NoDiagnostics()
         {
             NoDiagnosticsImpl();
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void SimpleCompilerDiagnostics()
         {
             SimpleCompilerDiagnosticsImpl();
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
                 AnalyzerForErrorLogTest.GetUriForPath(sourceFile));
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void SimpleCompilerDiagnosticsSuppressed()
         {
             SimpleCompilerDiagnosticsSuppressedImpl();
@@ -377,37 +377,37 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
                     (AnalyzerForErrorLogTest.Descriptor1.Id, 0, ImmutableHashSet.Create(ReportDiagnostic.Error))));
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void AnalyzerDiagnosticsWithAndWithoutLocation()
         {
             AnalyzerDiagnosticsWithAndWithoutLocationImpl();
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void AnalyzerDiagnosticsSuppressedWithJustification()
         {
             AnalyzerDiagnosticsSuppressedWithJustificationImpl();
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void AnalyzerDiagnosticsSuppressedWithMissingJustification()
         {
             AnalyzerDiagnosticsSuppressedWithMissingJustificationImpl();
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void AnalyzerDiagnosticsSuppressedWithEmptyJustification()
         {
             AnalyzerDiagnosticsSuppressedWithEmptyJustificationImpl();
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void AnalyzerDiagnosticsSuppressedWithNullJustification()
         {
             AnalyzerDiagnosticsSuppressedWithNullJustificationImpl();
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void AnalyzerDiagnosticsWithWarnAsError()
         {
             AnalyzerDiagnosticsWithWarnAsErrorImpl();
@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             return string.Format(CultureInfo.InvariantCulture, s, arguments);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void AnalyzerDisabledWithCommandLineOptions()
         {
             var source = @"
@@ -504,7 +504,7 @@ class C
             CleanupAllGeneratedFiles(errorLogFile);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void AnalyzerPartiallyDisabledWithEditorconfig()
         {
             var source1 = @"
@@ -587,7 +587,7 @@ dotnet_diagnostic.ID1.severity = none
             CleanupAllGeneratedFiles(errorLogFile);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void AnalyzerDiagnosticSuppressedWithDiagnosticSuppressor()
         {
             var source = @"
@@ -660,7 +660,7 @@ class C
             return version == SarifTestVersion.V1 ? "" : ";version=2";
         }
 
-        [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalTheory(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         [CombinatorialData]
         public void LineDirective(SarifTestVersion version)
         {

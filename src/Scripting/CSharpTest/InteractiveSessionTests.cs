@@ -1229,7 +1229,7 @@ new C()
             Assert.NotNull(result);
         }
 
-        [ConditionalFact(typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
         public void ReferenceDirective_RelativeToBaseParent()
         {
             var file = Temp.CreateFile();
@@ -1247,7 +1247,7 @@ new C()
             script.GetCompilation().VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
         public void ReferenceDirective_RelativeToBaseRoot()
         {
             var file = Temp.CreateFile();
@@ -1636,7 +1636,7 @@ new List<ArgumentException>()
             Assert.Equal(1, r1.Result);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void HostObjectAssemblyReference1()
         {
             var scriptCompilation = CSharpScript.Create(
@@ -1693,7 +1693,7 @@ new List<ArgumentException>()
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void HostObjectAssemblyReference2()
         {
             var scriptCompilation = CSharpScript.Create(
@@ -1757,7 +1757,7 @@ new List<ArgumentException>()
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void HostObjectAssemblyReference3()
         {
             string source = $@"

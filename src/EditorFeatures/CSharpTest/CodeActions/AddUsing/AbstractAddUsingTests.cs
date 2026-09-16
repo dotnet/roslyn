@@ -4,15 +4,15 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.AddImport;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Remote.Testing;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing;
 

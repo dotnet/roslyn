@@ -3079,7 +3079,7 @@ class C
             MetadataValidation.VerifyMetadataEqualModuloMvid(peStream1, peStream2);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
         public void ImportedNoPiaTypes()
         {
             var sourceLib = @"

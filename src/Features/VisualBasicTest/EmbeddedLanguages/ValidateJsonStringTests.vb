@@ -8,7 +8,6 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
-Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
     <Trait(Traits.Feature, Traits.Features.ValidateJsonString)>

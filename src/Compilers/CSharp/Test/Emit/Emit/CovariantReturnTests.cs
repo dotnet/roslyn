@@ -249,7 +249,7 @@ namespace System.Runtime.CompilerServices
                 assemblyName: assemblyName);
         }
 
-        [ConditionalFact(typeof(CovariantReturnRuntimeOnly))]
+        [ConditionalFact(skipConditions: typeof(CovariantReturnRuntimeOnly))]
         public void SimpleCovariantReturnEndToEndTest()
         {
             var source = @"
@@ -283,7 +283,7 @@ Derived.M";
             CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
         }
 
-        [ConditionalFact(typeof(CovariantReturnRuntimeOnly))]
+        [ConditionalFact(skipConditions: typeof(CovariantReturnRuntimeOnly))]
         public void CovariantRuntimeHasRequiredMembers()
         {
             var source = @"
@@ -483,7 +483,7 @@ Derived2[]";
 ");
         }
 
-        [ConditionalFact(typeof(CovariantReturnRuntimeOnly))]
+        [ConditionalFact(skipConditions: typeof(CovariantReturnRuntimeOnly))]
         public void CheckPreserveBaseOverride_01()
         {
             var s0 = @"

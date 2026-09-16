@@ -27,7 +27,7 @@ using static TemporaryStorageService;
 [Trait(Traits.Feature, Traits.Features.Workspace)]
 public sealed class TemporaryStorageServiceTests
 {
-    [ConditionalFact(typeof(WindowsOnly))]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly))]
     public void TestTemporaryStorageText()
     {
         using var workspace = new AdhocWorkspace();
@@ -47,7 +47,7 @@ public sealed class TemporaryStorageServiceTests
         TestTemporaryStorage(service, text);
     }
 
-    [ConditionalFact(typeof(WindowsOnly)), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531188")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly)), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531188")]
     public void TestTemporaryStorageStream()
     {
         using var workspace = new AdhocWorkspace();
@@ -84,7 +84,7 @@ public sealed class TemporaryStorageServiceTests
         Assert.Equal(text.Encoding, text2.Encoding);
     }
 
-    [ConditionalFact(typeof(WindowsOnly))]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly))]
     public void TestZeroLengthStreams()
     {
         using var workspace = new AdhocWorkspace();
@@ -102,7 +102,7 @@ public sealed class TemporaryStorageServiceTests
         Assert.Equal(0, stream2.Length);
     }
 
-    [ConditionalFact(typeof(WindowsOnly))]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly))]
     public void TestTemporaryStorageMemoryMappedFileManagement()
     {
         using var workspace = new AdhocWorkspace();
@@ -174,7 +174,7 @@ public sealed class TemporaryStorageServiceTests
         }
     }
 
-    [ConditionalFact(typeof(WindowsOnly))]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly))]
     public void StreamTest1()
     {
         using var workspace = new AdhocWorkspace();
@@ -199,7 +199,7 @@ public sealed class TemporaryStorageServiceTests
         }
     }
 
-    [ConditionalFact(typeof(WindowsOnly))]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly))]
     public void StreamTest2()
     {
         using var workspace = new AdhocWorkspace();
@@ -234,7 +234,7 @@ public sealed class TemporaryStorageServiceTests
         Assert.Equal(index, stream.Length);
     }
 
-    [ConditionalFact(typeof(WindowsOnly))]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly))]
     public void StreamTest3()
     {
         using var workspace = new AdhocWorkspace();
@@ -269,7 +269,7 @@ public sealed class TemporaryStorageServiceTests
         }
     }
 
-    [ConditionalFact(typeof(WindowsOnly))]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly))]
     public void TestTemporaryStorageTextEncoding()
     {
         using var workspace = new AdhocWorkspace();

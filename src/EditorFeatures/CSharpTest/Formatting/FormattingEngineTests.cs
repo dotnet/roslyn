@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting;
 

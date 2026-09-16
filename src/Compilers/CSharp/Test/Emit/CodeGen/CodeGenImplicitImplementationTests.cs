@@ -254,7 +254,7 @@ Base.Property.set(6)
 ");
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
         public void TestImplicitImplementationInBaseGenericType()
         {
             var source = @"
@@ -1555,7 +1555,7 @@ Base.Method()");
             comp.VerifyDiagnostics(); // No errors
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
         public void TestImplicitImplementationInBaseGenericType2()
         {
             // Tests:
@@ -1623,7 +1623,7 @@ Derived`2.Method()");
             comp.VerifyDiagnostics(); // No errors
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
         public void TestImplicitImplementationInBaseGenericType3()
         {
             // Tests:
@@ -1688,7 +1688,7 @@ Derived.Method()");
             comp.VerifyDiagnostics(); // No errors
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
         public void TestImplicitImplementationInBaseGenericType4()
         {
             // Tests:
@@ -1756,7 +1756,7 @@ Derived.Method()");
                 Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "Interface<int>").WithArguments("Derived<int, string>.Method(int)", "Interface<int>.Method(int)", "Derived").WithLocation(20, 58)); // No errors
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
         public void TestImplicitImplementationInBaseGenericType5()
         {
             // Tests:

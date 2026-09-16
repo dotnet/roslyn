@@ -7235,7 +7235,7 @@ S3 { X = 3, Y =  }", verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))] // For conversion from Span<T> to ReadOnlySpan<T>.
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))] // For conversion from Span<T> to ReadOnlySpan<T>.
         public void FieldInitializer_EscapeAnalysis_06()
         {
             var source =

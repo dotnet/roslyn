@@ -289,7 +289,7 @@ abstract class C
             Assert.Null(matcher.MapDefinition(h1.GetCciAdapter()));
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void VaryingCompilationReferences()
         {
             string libSource = @"

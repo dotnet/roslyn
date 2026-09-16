@@ -1713,7 +1713,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void Constraints_01()
         {
             string source = @"
@@ -7820,7 +7820,7 @@ Handler");
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.WinRTNeedsWindowsDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.WinRTNeedsWindowsDesktop)]
         [WorkItem(16962, "https://github.com/dotnet/roslyn/issues/16962")]
         public void Events_03()
         {
@@ -7867,7 +7867,7 @@ Handler", references: WinRtRefs.Concat(new[] { ValueTupleRef, comp1.ToMetadataRe
             Assert.True(comp2.Compilation.GetMember<IEventSymbol>("C.E").IsWindowsRuntimeEvent);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.WinRTNeedsWindowsDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.WinRTNeedsWindowsDesktop)]
         [WorkItem(16962, "https://github.com/dotnet/roslyn/issues/16962")]
         public void Events_04()
         {

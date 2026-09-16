@@ -5,19 +5,23 @@
 namespace Xunit
 {
     using System;
-    using Xunit.Sdk;
+    using System.Runtime.CompilerServices;
+    using Xunit.v3;
 
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    [XunitTestCaseDiscoverer("Xunit.Threading.IdeFactDiscoverer", "Microsoft.VisualStudio.Extensibility.Testing.Xunit")]
+    [XunitTestCaseDiscoverer(typeof(Threading.IdeFactDiscoverer))]
     public class IdeFactAttribute : FactAttribute, IIdeSettingsAttribute
     {
-        public IdeFactAttribute()
+        public IdeFactAttribute(
+            [CallerFilePath] string? sourceFilePath = null,
+            [CallerLineNumber] int sourceLineNumber = -1)
+            : base(sourceFilePath, sourceLineNumber)
         {
             MinVersion = VisualStudioVersion.Unspecified;
             MaxVersion = VisualStudioVersion.Unspecified;
             RootSuffix = null;
             MaxAttempts = 0;
-            EnvironmentVariables = new string[0];
+            EnvironmentVariables = Array.Empty<string>();
         }
 
         public VisualStudioVersion MinVersion

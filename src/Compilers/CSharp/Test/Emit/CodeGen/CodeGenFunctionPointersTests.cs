@@ -1297,7 +1297,7 @@ class Caller
 }}");
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(CoreClrOnly))]
         [InlineData("", "")]
         [InlineData("[Cdecl]", "typeof(System.Runtime.CompilerServices.CallConvCdecl)")]
         [InlineData("[Stdcall]", "typeof(System.Runtime.CompilerServices.CallConvStdcall)")]
@@ -1508,7 +1508,7 @@ unsafe class C
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void Thiscall_UnmanagedCallersOnly()
         {
             var verifier = CompileAndVerifyFunctionPointers(new[] { @"
@@ -7171,7 +7171,7 @@ unsafe public class C
             );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void SpanInArgumentAndReturn()
         {
             var comp = CompileAndVerifyFunctionPointers(@"
@@ -10723,7 +10723,7 @@ unsafe class C
             );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void UnmanagedCallersOnly_Il()
         {
             var verifier = CompileAndVerifyFunctionPointers(new[] { @"

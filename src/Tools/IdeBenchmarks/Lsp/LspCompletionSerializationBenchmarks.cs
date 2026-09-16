@@ -39,14 +39,14 @@ namespace IdeBenchmarks.Lsp
         [IterationSetup]
         public void IterationSetup()
         {
-            _useExportProviderAttribute.Before(null);
+            _useExportProviderAttribute.Before(null, null!);
             LoadSolutionAsync().Wait();
         }
 
         [IterationCleanup]
         public void CleanupAsync()
         {
-            _useExportProviderAttribute.Before(null);
+            _useExportProviderAttribute.After(null, null!);
         }
 
         private async Task LoadSolutionAsync()

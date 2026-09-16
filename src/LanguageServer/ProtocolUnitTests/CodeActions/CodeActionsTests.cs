@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions;
@@ -138,7 +137,7 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
         Assert.Equal(AddImportDiagnosticIds.CS0103, addImport.Diagnostics.Single().Code!.Value);
     }
 
-    [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(IsEnglishLocal)), CombinatorialData]
     public async Task TestStandardLspNestedCodeAction(bool mutatingLspWorkspace)
     {
         var markup = """
@@ -184,7 +183,7 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
         Assert.NotNull(inline?.Command);
     }
 
-    [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(IsEnglishLocal)), CombinatorialData]
     public async Task TestStandardLspNestedFixAllCodeAction(bool mutatingLspWorkspace)
     {
         var markup = """
@@ -230,7 +229,7 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
         Assert.Equal("Fix All: in Source", data.NestedCodeActions!.Value[1].Title);
     }
 
-    [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
+    [ConditionalTheory(skipConditions: typeof(IsEnglishLocal)), CombinatorialData]
     public async Task TestStandardLspNestedResolveTopLevelCodeAction(bool mutatingLspWorkspace)
     {
         var markup = """

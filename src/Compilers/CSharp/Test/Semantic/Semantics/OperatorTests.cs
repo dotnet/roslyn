@@ -7133,7 +7133,7 @@ A");
         }
 
         [WorkItem(656739, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/656739")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void DynamicAmbiguousOrConversion()
         {
             string source = @"
@@ -7729,7 +7729,7 @@ class Module1
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason = "https://github.com/mono/mono/issues/10917")]
+        [ConditionalFact(skipConditions: [typeof(ClrOnly), typeof(NoIOperationValidation)], Reason = "https://github.com/mono/mono/issues/10917")]
         public void BinaryIntrinsicSymbols1()
         {
             BinaryOperatorKind[] operators =
@@ -7904,7 +7904,7 @@ class Module1
             Assert.Equal(n, nodes.Length);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [ConditionalFact(skipConditions: typeof(NoIOperationValidation))]
         [WorkItem(39975, "https://github.com/dotnet/roslyn/issues/39975")]
         public void BinaryIntrinsicSymbols2()
         {
@@ -12394,7 +12394,7 @@ public class C {
 
         // Attempting to call `ConstantValue` on every constituent string component realizes every string, effectively
         // replicating the original O(n^2) bug that this test is demonstrating is fixed.
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [ConditionalFact(skipConditions: typeof(NoIOperationValidation))]
         [WorkItem(43019, "https://github.com/dotnet/roslyn/issues/43019"), WorkItem(529600, "DevDiv"), WorkItem(7398, "https://github.com/dotnet/roslyn/issues/7398")]
         public void Bug529600()
         {

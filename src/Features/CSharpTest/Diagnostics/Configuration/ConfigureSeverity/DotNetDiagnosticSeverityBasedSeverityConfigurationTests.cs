@@ -55,7 +55,7 @@ public abstract partial class DotNetDiagnosticSeverityBasedSeverityConfiguration
     {
         protected override int CodeActionIndex => 0;
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_Empty_None()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -107,7 +107,7 @@ public abstract partial class DotNetDiagnosticSeverityBasedSeverityConfiguration
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_InvalidHeader_None()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -153,7 +153,7 @@ public abstract partial class DotNetDiagnosticSeverityBasedSeverityConfiguration
                 </Workspace>
                 """);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_InvalidRule_None()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -182,7 +182,7 @@ public abstract partial class DotNetDiagnosticSeverityBasedSeverityConfiguration
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/45446")]
         public Task ConfigureEditorconfig_MissingRule_None()
             => TestInRegularAndScriptAsync("""
@@ -212,7 +212,7 @@ public abstract partial class DotNetDiagnosticSeverityBasedSeverityConfiguration
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_RegexHeaderMatch_None()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -240,7 +240,7 @@ public abstract partial class DotNetDiagnosticSeverityBasedSeverityConfiguration
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_RegexHeaderNonMatch_None()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -273,7 +273,7 @@ public abstract partial class DotNetDiagnosticSeverityBasedSeverityConfiguration
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureGlobalconfig_Empty_None()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -325,7 +325,7 @@ public abstract partial class DotNetDiagnosticSeverityBasedSeverityConfiguration
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureGlobalconfig_InvalidHeader_None()
             => TestInRegularAndScriptAsync("""
                 <Workspace>

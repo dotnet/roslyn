@@ -26,7 +26,7 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void EmptyOrNullStringConv()
         {
@@ -507,7 +507,7 @@ class Test
 }");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void ConvInMethodCall()
         {
@@ -1509,7 +1509,7 @@ public class Test
 ");
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public void MultipleArrays_InPlaceAndUsed()
         {
             string csharp = @$"
@@ -1619,7 +1619,7 @@ public class Test
 """);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void MultipleNonSize1Types_EqualDataBlobs_HasCreateSpan_EveryAlignmentGetsUniqueTypeAndBlob()
         {
             var source = @"
@@ -3292,7 +3292,7 @@ public class C
             CompileAndVerify(compilation, expectedOutput: "1 !", verify: Verification.Skipped).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
         public void ReadOnlySpanFromArrayOfConstants_Bool()
         {
             var src = $$"""

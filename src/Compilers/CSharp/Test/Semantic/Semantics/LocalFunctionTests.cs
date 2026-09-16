@@ -58,7 +58,7 @@ public class C
             );
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void LocalFunctionResetsLockScopeFlag()
         {
             var source = @"
@@ -87,7 +87,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "localFunc");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void LocalFunctionResetsTryCatchFinallyScopeFlags()
         {
             var source = @"
@@ -144,7 +144,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "123");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void LocalFunctionDoesNotOverwriteInnerLockScopeFlag()
         {
             var source = @"
@@ -179,7 +179,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadAwaitInLock, "await Task.Yield()").WithLocation(16, 21));
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void LocalFunctionDoesNotOverwriteInnerTryCatchFinallyScopeFlags()
         {
             var source = @"
@@ -246,7 +246,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadYieldInFinally, "yield").WithLocation(42, 21));
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void RethrowingExceptionsInCatchInsideLocalFuncIsAllowed()
         {
             var source = @"
@@ -292,7 +292,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "localFunc_thrown");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void RethrowingExceptionsInLocalFuncInsideCatchIsNotAllowed()
         {
             var source = @"
@@ -5461,7 +5461,7 @@ class C<T>
             public int SomeGlobal => 42;
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28001")]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28001")]
         public void CanAccessScriptGlobalsFromInsideMethod()
         {
             var source = @"
@@ -5477,7 +5477,7 @@ void Method()
                 .VerifyEmitDiagnostics();
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28001")]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28001")]
         public void CanAccessScriptGlobalsFromInsideLambda()
         {
             var source = @"

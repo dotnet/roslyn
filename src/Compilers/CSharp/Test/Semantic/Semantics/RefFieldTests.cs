@@ -537,7 +537,7 @@ readonly ref struct B
             VerifyFieldSymbol(tupleType.GetField("Item2"), "ref modopt(System.Object) modopt(System.SByte) System.Object (System.Int32, System.Object).Item2", RefKind.Ref, new[] { "System.Object", "System.SByte" });
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
         public void EmbeddedField()
         {
             var sourceA =
@@ -2331,7 +2331,7 @@ class Program
             Assert.True(comp.SupportsRuntimeCapability(RuntimeCapability.ByRefFields));
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(CoreClrOnly))]
         [CombinatorialData]
         public void RefAssembly(bool includePrivateMembers)
         {
@@ -15827,7 +15827,7 @@ class Enumerator1<T>
             Assert.Equal(expectedDisplayString, local.ToDisplayString(displayFormatWithScoped));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
         public void ParameterScope_EmbeddedMethod()
         {
             var sourceA =
@@ -23244,7 +23244,7 @@ struct B
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "value.F = ref this").WithArguments("F", "this").WithLocation(20, 16));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void UnscopedRefAttribute_Event_01()
         {
             var source =
@@ -23288,7 +23288,7 @@ interface I
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(17, 6));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void UnscopedRefAttribute_Event_02()
         {
             var source =
@@ -26354,7 +26354,7 @@ public class A
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(10, 6));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void UnscopedRefAttribute_InterfaceImplementation_07()
         {
             string source = """
@@ -26499,7 +26499,7 @@ public class A
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(27, 45));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void UnscopedRefAttribute_InterfaceImplementation_10()
         {
             string source = """
@@ -29127,7 +29127,7 @@ struct S<T> : System.IDisposable
         }
 
         [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(CoreClrOnly))]
         [InlineData("ref")]
         [InlineData("ref readonly")]
         public void FieldInitializer_01(string refModifier)
@@ -29170,7 +29170,7 @@ $@"{{
         }
 
         [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void FieldInitializer_02A()
         {
             var source =
@@ -29196,7 +29196,7 @@ ref struct R
 
         // Similar to above but with scoped parameter.
         [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void FieldInitializer_02B()
         {
             var source =
@@ -29255,7 +29255,7 @@ class Program
         }
 
         [WorkItem(64725, "https://github.com/dotnet/roslyn/issues/64725")]
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void FieldInitializer_03()
         {
             var source =
@@ -29283,7 +29283,7 @@ ref struct R
         }
 
         [WorkItem(64725, "https://github.com/dotnet/roslyn/issues/64725")]
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void FieldInitializer_04()
         {
             var source =
@@ -29313,7 +29313,7 @@ ref struct R
         }
 
         [WorkItem(64725, "https://github.com/dotnet/roslyn/issues/64725")]
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void FieldInitializer_05()
         {
             var source =
@@ -29336,7 +29336,7 @@ ref struct R
         }
 
         [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void FieldInitializer_06A()
         {
             var source =
@@ -29356,7 +29356,7 @@ ref struct R
 
         // Similar to above but with [UnscopedRef] out parameter.
         [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void FieldInitializer_06B()
         {
             var source =
@@ -29384,7 +29384,7 @@ ref struct R
         }
 
         [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void FieldInitializer_07()
         {
             var source =
@@ -30160,7 +30160,7 @@ Block[B2] - Exit
         }
 
         [WorkItem(66128, "https://github.com/dotnet/roslyn/issues/66128")]
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void DefensiveCopy_RefReadOnlyReceiver_01()
         {
             var source = """
@@ -30214,7 +30214,7 @@ Block[B2] - Exit
         }
 
         [WorkItem(66128, "https://github.com/dotnet/roslyn/issues/66128")]
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void DefensiveCopy_RefReadOnlyReceiver_02()
         {
             var source = """
@@ -30283,7 +30283,7 @@ Block[B2] - Exit
         }
 
         [WorkItem(66128, "https://github.com/dotnet/roslyn/issues/66128")]
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void DefensiveCopy_RefReadOnlyReceiver_03()
         {
             var source = """
@@ -31149,7 +31149,7 @@ Block[B2] - Exit
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(27, 2));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/69148")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/69148")]
         public void RefField_Assignment_AutoDefault_01()
         {
             var verifier = CompileAndVerify("""
@@ -31200,7 +31200,7 @@ Block[B2] - Exit
                 """);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/69148")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/69148")]
         public void RefField_Assignment_AutoDefault_02()
         {
             var verifier = CompileAndVerify("""
@@ -31259,7 +31259,7 @@ Block[B2] - Exit
                 """);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/69148")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/69148")]
         public void RefField_Assignment_AutoDefault_03()
         {
             var verifier = CompileAndVerify("""
@@ -31326,7 +31326,7 @@ Block[B2] - Exit
                 """);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/69148")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/69148")]
         public void RefField_Assignment_AutoDefault_04()
         {
             var verifier = CompileAndVerify("""
@@ -31363,7 +31363,7 @@ Block[B2] - Exit
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/69148")]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/69148")]
         public void RefField_Assignment_AutoDefault_05()
         {
             var comp = CreateCompilation("""

@@ -25,7 +25,6 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
 {
-    [TestCaseOrderer("XUnit.Project.Orderers.AlphabeticalOrderer", "XUnit.Project")]
     public class EndToEndTests : EmitMetadataTestBase
     {
         /// <summary>
@@ -118,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
         // This test is a canary attempting to make sure that we don't regress the # of fluent calls that 
         // the compiler can handle. 
         [WorkItem(16669, "https://github.com/dotnet/roslyn/issues/16669")]
-        [ConditionalFact(typeof(WindowsOrLinuxOnly)), WorkItem(34880, "https://github.com/dotnet/roslyn/issues/34880")]
+        [ConditionalFact(skipConditions: typeof(WindowsOrLinuxOnly)), WorkItem(34880, "https://github.com/dotnet/roslyn/issues/34880")]
         public void OverflowOnFluentCall()
         {
             int numberFluentCalls = (IntPtr.Size, ExecutionConditionUtil.Configuration) switch
@@ -253,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
             }
         }
 
-        [ConditionalFact(typeof(WindowsOrLinuxOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOrLinuxOnly))]
         [WorkItem(33909, "https://github.com/dotnet/roslyn/issues/33909")]
         [WorkItem(34880, "https://github.com/dotnet/roslyn/issues/34880")]
         [WorkItem(53361, "https://github.com/dotnet/roslyn/issues/53361")]
@@ -408,7 +407,7 @@ public class Test
             }, timeout: TimeSpan.FromSeconds(10));
         }
 
-        [ConditionalFact(typeof(WindowsOrLinuxOnly), typeof(NoIOperationValidation))]
+        [ConditionalFact(skipConditions: [typeof(WindowsOrLinuxOnly), typeof(NoIOperationValidation)])]
         public void NestedIfStatements()
         {
             int nestingLevel = (IntPtr.Size, ExecutionConditionUtil.Configuration) switch
@@ -454,7 +453,7 @@ $@"        if (F({i}))
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/72393")]
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [ConditionalTheory(skipConditions: typeof(NoIOperationValidation))]
         [InlineData(2)]
 #if DEBUG
         [InlineData(2000)]
@@ -543,7 +542,7 @@ $@"        if (F({i}))
         }
 
         [WorkItem(42361, "https://github.com/dotnet/roslyn/issues/42361")]
-        [ConditionalFact(typeof(WindowsOrLinuxOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOrLinuxOnly))]
         public void Constraints()
         {
             int n = (IntPtr.Size, ExecutionConditionUtil.Configuration) switch
@@ -585,7 +584,7 @@ $@"        if (F({i}))
             }
         }
 
-        [ConditionalFact(typeof(WindowsOrMacOSOnly), Reason = "https://github.com/dotnet/roslyn/issues/69210"), WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1819416")]
+        [ConditionalFact(skipConditions: typeof(WindowsOrMacOSOnly), Reason = "https://github.com/dotnet/roslyn/issues/69210"), WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1819416")]
         public void LongInitializerList()
         {
             var sb = new StringBuilder();

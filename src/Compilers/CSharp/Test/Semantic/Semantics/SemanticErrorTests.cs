@@ -21676,7 +21676,7 @@ class C
         }
 
         [WorkItem(543615, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543615"), WorkItem(546550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546550")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void CS0811ERR_DebugFullNameTooLong()
         {
             var text = @"
@@ -22087,7 +22087,7 @@ public class Test
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "Main").WithArguments("Test.Main()"));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/18610")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/18610")]
         public void CS1592WRN_XMLParseIncludeError()
         {
             var xmlFile = Temp.CreateFile(extension: ".xml").WriteAllText("&");

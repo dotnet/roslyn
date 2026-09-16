@@ -5,7 +5,6 @@ using System.Globalization;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.CodeAnalysis.CSharp;
-using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 

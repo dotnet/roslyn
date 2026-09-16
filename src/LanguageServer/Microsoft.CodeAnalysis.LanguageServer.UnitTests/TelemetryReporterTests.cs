@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Telemetry.Metrics;
 using Microsoft.VisualStudio.Telemetry.Metrics.Events;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 

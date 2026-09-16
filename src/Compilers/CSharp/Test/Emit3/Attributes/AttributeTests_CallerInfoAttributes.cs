@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public static IEnumerable<MetadataReference> GetReferencesWithoutInteropServices() =>
             TargetFrameworkUtil.GetReferencesWithout(TargetFramework.Net50, "System.Runtime.InteropServices.dll");
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestBeginInvoke()
         {
             string source = @"
@@ -89,7 +89,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestEndInvoke()
         {
             string source = @"
@@ -155,7 +155,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestEndInvoke2()
         {
             string source = @"
@@ -211,7 +211,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestEndInvoke3()
         {
             string source = @"
@@ -269,7 +269,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "EndInvoke").WithArguments("s2", "Program.D.EndInvoke(ref string, System.IAsyncResult)").WithLocation(38, 11));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestEndInvoke4()
         {
             string source = @"
@@ -325,7 +325,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "EndInvoke").WithArguments("s2", "Program.D.EndInvoke(ref string, System.IAsyncResult)").WithLocation(39, 11));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestBeginInvoke_ReferringToCallbackParameter()
         {
             string source = @"
@@ -396,7 +396,7 @@ class Program
         }
 
         #region CallerArgumentExpression - Invocations
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute()
         {
             string source = @"
@@ -421,7 +421,7 @@ class Program
             CompileAndVerify(compilation, expectedOutput: "123").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute_MultipleAttributes()
         {
             string source = @"
@@ -460,7 +460,7 @@ class Program
             CompileAndVerify(compilation, expectedOutput: "456").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute_MultipleAttributes_IncorrectCtor()
         {
             string source = @"
@@ -499,7 +499,7 @@ class Program
             CompileAndVerify(compilation, expectedOutput: "<default-arg>").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute_ExpressionHasTrivia()
         {
             string source = @"
@@ -529,7 +529,7 @@ class Program
                5").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute_Pragmas()
         {
             string source = @"
@@ -574,7 +574,7 @@ class Program
 ").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute_ImplicitAndExplicitConstructorBaseCalls()
         {
             string source = @"
@@ -635,7 +635,7 @@ Derived2 class: 3 +  6
 ").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute_SwapArguments()
         {
             string source = @"
@@ -660,7 +660,7 @@ class Program
             CompileAndVerify(compilation, expectedOutput: "124, 123, 124").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute_DifferentAssembly()
         {
             string source = @"
@@ -691,7 +691,7 @@ public static class Program
             CompileAndVerify(compilation, expectedOutput: "2 + 2").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute_ExtensionMethod_ThisParameter()
         {
             string source = @"
@@ -717,7 +717,7 @@ public static class Program
             CompileAndVerify(compilation, expectedOutput: "myIntegerExpression").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute_ExtensionMethod_NotThisParameter()
         {
             string source = @"
@@ -743,7 +743,7 @@ public static class Program
             CompileAndVerify(compilation, expectedOutput: "myIntegerExpression * 2").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestIncorrectParameterNameInCallerArgumentExpressionAttribute()
         {
             string source = @"
@@ -772,7 +772,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestCallerArgumentWithMemberNameAttributes()
         {
             string source = @"
@@ -801,7 +801,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestCallerArgumentWithMemberNameAttributes2()
         {
             string source = @"
@@ -830,7 +830,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestCallerArgumentWitLineNumberAttributes()
         {
             string source = @"
@@ -865,7 +865,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestCallerArgumentWithLineNumberAttributes2()
         {
             string source = @"
@@ -900,7 +900,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestCallerArgumentWitLineNumberAttributes3()
         {
             string source = @"
@@ -929,7 +929,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestCallerArgumentWithLineNumberAttributes4()
         {
             string source = @"
@@ -958,7 +958,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestCallerArgumentNonOptionalParameter()
         {
             string source = @"
@@ -990,7 +990,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestCallerArgumentNonOptionalParameter2()
         {
             string source = @"
@@ -1022,7 +1022,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestCallerArgumentWithOverride()
         {
             string source = @"
@@ -1067,7 +1067,7 @@ default
 5 + 5").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestCallerArgumentWithUserDefinedConversionFromString()
         {
             string source = @"
@@ -1103,7 +1103,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestCallerArgumentWithExtensionGetEnumerator()
         {
             string source = @"
@@ -1138,7 +1138,7 @@ class Program
             CompileAndVerify(compilation, expectedOutput: "x").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestCallerArgumentWithExtensionDeconstruct()
         {
             string source = @"
@@ -1188,7 +1188,7 @@ class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestCallerArgumentExpressionWithOptionalTargetParameter()
         {
             string source = @"
@@ -1220,7 +1220,7 @@ caller target value
 callerTargetExp").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestCallerArgumentExpressionWithMultipleOptionalAttribute()
         {
             string source = @"
@@ -1261,7 +1261,7 @@ caller target value
 callerTargetExp").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestCallerArgumentExpressionWithDifferentParametersReferringToEachOther()
         {
             string source = @"
@@ -1297,7 +1297,7 @@ param1: param1_value, param2: param2_value
 param1: param1_value, param2: param2_value").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestArgumentExpressionIsCallerMember()
         {
             string source = @"
@@ -1323,7 +1323,7 @@ public static class C
 <default-arg-expression>").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestArgumentExpressionIsSelfReferential()
         {
             string source = @"
@@ -1352,7 +1352,7 @@ value").VerifyDiagnostics(
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestArgumentExpressionIsSelfReferential_Metadata()
         {
             string il = @".class private auto ansi '<Module>'
@@ -1395,7 +1395,7 @@ C.M(""value"");
 value").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestInterpolatedStringHandler()
         {
             string source = @"
@@ -1448,7 +1448,7 @@ namespace System.Runtime.CompilerServices
 
         #region CallerArgumentExpression - Attribute constructor
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute_Attribute()
         {
             string source = @"
@@ -1479,7 +1479,7 @@ public class Program
             CompileAndVerify(compilation, expectedOutput: "123").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute_ExpressionHasTrivia_Attribute()
         {
             string source = @"
@@ -1515,7 +1515,7 @@ public class Program
                5").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute_SwapArguments_AttributeConstructor()
         {
             string source = @"
@@ -1546,7 +1546,7 @@ public class Program
             CompileAndVerify(compilation, expectedOutput: "124, 123, 124").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute_DifferentAssembly_AttributeConstructor()
         {
             string source = @"
@@ -1583,7 +1583,7 @@ public class Program
             CompileAndVerify(compilation, expectedOutput: "2 + 2").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestIncorrectParameterNameInCallerArgumentExpressionAttribute_AttributeConstructor()
         {
             string source = @"
@@ -1618,7 +1618,7 @@ public class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestCallerArgumentWithMemberNameAttributes_AttributeConstructor()
         {
             string source = @"
@@ -1653,7 +1653,7 @@ public class Program
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestCallerArgumentExpressionWithOptionalTargetParameter_AttributeConstructor()
         {
             string source = @"
@@ -1693,7 +1693,7 @@ caller target value
 callerTargetExp").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestCallerArgumentExpressionWithMultipleOptionalAttribute_AttributeConstructor()
         {
             string source = @"
@@ -1741,7 +1741,7 @@ caller target value
 callerTargetExp").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestCallerArgumentExpressionWithDifferentParametersReferringToEachOther_AttributeConstructor()
         {
             string source = @"
@@ -1783,7 +1783,7 @@ param1: param1_value, param2: param2_value
 param1: param1_value, param2: param2_value").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestArgumentExpressionIsCallerMember_AttributeConstructor()
         {
             string source = @"
@@ -1817,7 +1817,7 @@ public class Program
 <default-arg-expression>").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestArgumentExpressionIsReferringToItself_AttributeConstructor()
         {
             string source = @"
@@ -1855,7 +1855,7 @@ value").VerifyDiagnostics(
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestArgumentExpressionIsReferringToItself_AttributeConstructor_Metadata()
         {
             string il = @"
@@ -1915,7 +1915,7 @@ public class Program
 value").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestArgumentExpressionInAttributeConstructor()
         {
             string source = @"
@@ -1947,7 +1947,7 @@ public class Program
             Assert.Equal("\"Hello\"", attributeArguments[1].Value);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestArgumentExpressionInAttributeConstructor_NamedArgument()
         {
             string source = @"
@@ -1979,7 +1979,7 @@ public class Program
             Assert.Equal("\"Hello\"", attributeArguments[1].Value);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestArgumentExpressionInAttributeConstructor_NamedArgumentsSameOrder()
         {
             string source = @"
@@ -2012,7 +2012,7 @@ public class Program
             Assert.Equal("\"Hello\"", attributeArguments[2].Value);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestArgumentExpressionInAttributeConstructor_NamedArgumentsOutOfOrder()
         {
             string source = @"
@@ -2045,7 +2045,7 @@ public class Program
             Assert.Equal("\"Hello\"", attributeArguments[2].Value);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestArgumentExpressionInAttributeConstructor_Complex()
         {
             string source = @"
@@ -2085,7 +2085,7 @@ param1: param1_value, param2: param2_value
 param1: param1_value, param2: param2_value").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestArgumentExpressionInAttributeConstructor_NamedAndOptionalParameters()
         {
             string source = @"
@@ -2123,7 +2123,7 @@ class Program
 '0', '2', '2', '0+0', '', '1+1'").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestArgumentExpressionInAttributeConstructor_OptionalAndFieldInitializer()
         {
             string source = @"
@@ -2154,7 +2154,7 @@ class Program
             CompileAndVerify(compilation, expectedOutput: "'<default1>', '<default0>'").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestArgumentExpressionInAttributeConstructor_LangVersion9()
         {
             string source = @"
@@ -2182,7 +2182,7 @@ class Program
             CompileAndVerify(compilation, expectedOutput: "'3', '1+2'").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestArgumentExpression_ImplicitConversionFromStringExists()
         {
             string source = @"
@@ -2210,7 +2210,7 @@ class Program
             CompileAndVerify(compilation, expectedOutput: @"'3', '1+2'").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestArgumentExpression_ImplicitConversionFromStringDoesNotExists()
         {
             string source = @"
@@ -2242,7 +2242,7 @@ class Program
             );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestArgumentExpression_ImplicitConversionFromStringDoesNotExists_Metadata()
         {
             string il = @"
@@ -2304,7 +2304,7 @@ class Program
         #endregion
 
         #region CallerArgumentExpression - Test various symbols
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestIndexers()
         {
             string source = @"
@@ -2333,7 +2333,7 @@ class Program
 4, explicit-value").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestDelegate()
         {
             string source = @"
@@ -2371,7 +2371,7 @@ s3:
 s4: ""s1-arg""").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestDelegate2()
         {
             string source = @"
@@ -2409,7 +2409,7 @@ s3:
 s4: _").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestDelegate3()
         {
             string source = @"
@@ -2460,7 +2460,7 @@ class Program
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void TestDelegate4()
         {
             string source = @"
@@ -4009,7 +4009,7 @@ name: ThingHappened
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void TestCallerMemberName_ConstructorDestructor()
         {
             string source = @"
@@ -4218,7 +4218,7 @@ partial class A
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
         public void TestCallerFilePath2()
         {
             string source1 = @"
@@ -5810,7 +5810,7 @@ void M(int i, [CallerArgumentExpression(""i"")] {refType} string s = null)
             );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void CallerArgumentExpression_OnRefParameter03()
         {
             var comp = CreateCompilation(@"

@@ -7,7 +7,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace IdeCoreBenchmarks;
 
@@ -84,6 +84,16 @@ internal sealed class LanguageServerBenchmarkHost : AbstractLanguageServerMefHos
     private sealed class NullTestOutputHelper : ITestOutputHelper
     {
         public static NullTestOutputHelper Instance { get; } = new();
+
+        public string Output => "";
+
+        public void Write(string message)
+        {
+        }
+
+        public void Write(string format, params object[] args)
+        {
+        }
 
         public void WriteLine(string message)
         {

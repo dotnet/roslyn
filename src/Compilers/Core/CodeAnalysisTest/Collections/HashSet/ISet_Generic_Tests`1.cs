@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             }
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(CoreClrOnly))]
         [MemberData(nameof(ValidCollectionSizes))]
         public void ISet_Generic_IntersectWith_Itself(int setLength)
         {

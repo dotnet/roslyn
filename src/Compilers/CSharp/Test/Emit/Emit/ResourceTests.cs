@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern bool FreeLibrary([In] IntPtr hFile);
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void DefaultVersionResource()
         {
             string source = @"
@@ -120,7 +120,7 @@ public class Maine
             Assert.Equal(" ", fileVer.LegalCopyright);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void ResourcesInCoff()
         {
             //this is to test that resources coming from a COFF can be added to a binary.
@@ -393,7 +393,7 @@ class C
         }
 
 #if NET472
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void AddManagedResource()
         {
             string source = @"public class C { static public void Main() {} }";
@@ -438,7 +438,7 @@ class C
             c1 = null;
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly))]
         public void AddResourceToModule()
         {
             bool metadataOnly = false;
@@ -808,7 +808,7 @@ public class Maine
             Assert.Equal((int)ErrorCode.ERR_CantReadResource, result.Diagnostics.ToArray()[0].Code);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void ResourceWithAttrSettings()
         {
             string source = @"

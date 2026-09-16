@@ -4396,7 +4396,7 @@ partial class C
             Assert.Equal(expected, actual);
         }
 
-        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: [typeof(ClrOnly), typeof(DesktopOnly)])]
         [WorkItem(637435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/637435")]
         [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
         public void NonXmlWhitespace()
@@ -4436,7 +4436,7 @@ class C {{ }}
             Assert.Equal(expected, actual);
         }
 
-        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: [typeof(ClrOnly), typeof(DesktopOnly)])]
         [WorkItem(637435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/637435")]
         [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
         public void Repro637435()
@@ -4668,7 +4668,7 @@ class C {{ }}
             Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
         }
 
-        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: [typeof(ClrOnly), typeof(DesktopOnly)])]
         [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
         public void IncludeFileResolution()
         {
@@ -5058,7 +5058,7 @@ class C {{ }}
             Assert.Equal(string.Format(expectedTemplate, TestHelpers.AsXmlCommentText(xmlFilePath)), actual);
         }
 
-        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: [typeof(ClrOnly), typeof(DesktopOnly)])]
         [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
         public void WRN_XMLParseIncludeError_Xml()
         {
@@ -7423,7 +7423,7 @@ class A { }
         }
 
         [WorkItem(547311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547311")]
-        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: [typeof(ClrOnly), typeof(DesktopOnly)])]
         [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
         public void UndeclaredXmlNamespace()
         {
@@ -8175,7 +8175,7 @@ public class C {} // CS1587
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "C").WithArguments("C").WithWarningAsError(true));
         }
 
-        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: [typeof(ClrOnly), typeof(DesktopOnly)])]
         [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
         public void Dev11_303769()
         {
@@ -8347,7 +8347,7 @@ namespace Demo
             Assert.Equal(expected, actual);
         }
 
-        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: [typeof(ClrOnly), typeof(DesktopOnly)])]
         [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
         public void Dev11_142553()
         {
@@ -8429,7 +8429,7 @@ class C { }
             Assert.Equal(expected, actual);
         }
 
-        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: [typeof(ClrOnly), typeof(DesktopOnly)])]
         [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
         public void DtdDenialOfService()
         {
@@ -8647,7 +8647,7 @@ class Module1
         /// "--" is not valid within an XML comment.
         /// </summary>
         [WorkItem(8807, "https://github.com/dotnet/roslyn/issues/8807")]
-        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: [typeof(ClrOnly), typeof(DesktopOnly)])]
         [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
         public void IncludeErrorDashDashInName()
         {

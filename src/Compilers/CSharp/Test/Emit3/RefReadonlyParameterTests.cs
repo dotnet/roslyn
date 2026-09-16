@@ -3112,7 +3112,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         }
     }
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
     public void RefReadonlyParameter_Arglist()
     {
         var source = """

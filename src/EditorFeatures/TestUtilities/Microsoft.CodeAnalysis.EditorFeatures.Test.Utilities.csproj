@@ -23,6 +23,7 @@
     <PackageReference Include="Moq" />
     <PackageReference Include="BasicUndo" />
     <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor" />
+    <PackageReference Include="Xunit.StaFact" PrivateAssets="all" Aliases="XunitStaFact" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="IdeBenchmarks" />

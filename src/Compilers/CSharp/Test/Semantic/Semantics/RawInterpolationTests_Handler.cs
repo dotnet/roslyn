@@ -597,7 +597,7 @@ Console.WriteLine($""""""{span}"""""");";
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "span").WithArguments("interpolated string handlers", "10.0").WithLocation(4, 24));
     }
 
-    [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+    [ConditionalTheory(skipConditions: typeof(MonoOrCoreClrOnly))]
     [CombinatorialData]
     public void UseOfSpanInInterpolationHole(bool useDefaultParameters, bool useBoolReturns, bool constructorBoolArg,
         [CombinatorialValues(@"$""""""base{a}{a,1}{a:X}{a,2:Y}""""""", @"$""""""base"""""" + $""""""{a}"""""" + $""""""{a,1}"""""" + $""""""{a:X}"""""" + $""""""{a,2:Y}""""""")] string expression)
@@ -2337,7 +2337,7 @@ Caught");
 ");
     }
 
-    [ConditionalFact(typeof(MonoOrCoreClrOnly), typeof(NoIOperationValidation))]
+    [ConditionalFact(skipConditions: [typeof(MonoOrCoreClrOnly), typeof(NoIOperationValidation)])]
     public void ExceptionFilter_02()
     {
         var source = @"
@@ -2429,7 +2429,7 @@ Caught");
 ");
     }
 
-    [ConditionalTheory(typeof(MonoOrCoreClrOnly), typeof(NoIOperationValidation))]
+    [ConditionalTheory(skipConditions: [typeof(MonoOrCoreClrOnly), typeof(NoIOperationValidation)])]
     [InlineData(@"$""""""{s}{c}""""""")]
     [InlineData(@"$""""""{s}"""""" + $""""""{c}""""""")]
     public void ImplicitUserDefinedConversionInHole(string expression)

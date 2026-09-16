@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable enable
@@ -36,7 +36,6 @@ using Microsoft.Extensions.DependencyModel;
 using Microsoft.Extensions.DependencyModel.Resolution;
 using Moq;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators;
 
@@ -136,6 +135,12 @@ public abstract class RazorSourceGeneratorTestsBase
     {
         // Load the compiled DLL.
         var assemblyLoadContext = new AssemblyLoadContext("Razor execution", isCollectible: true);
+        assemblyLoadContext.Resolving += static (_, assemblyName) =>
+        {
+            var assemblyPath = Path.Combine(AppContext.BaseDirectory, $"{assemblyName.Name}.dll");
+            return File.Exists(assemblyPath) ? Assembly.LoadFrom(assemblyPath) : null;
+        };
+
         Assembly assembly;
         using (var peStream = new MemoryStream())
         {

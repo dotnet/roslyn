@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirectives;
 
@@ -231,7 +230,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
     /// <summary>
     /// Verifies that using statements in a namespace produces the expected diagnostics.
     /// </summary>
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task WhenOutsidePreferred_UsingsInNamespace_UsingsMoved()
         => TestInRegularAndScriptAsync("""
             namespace TestNamespace
@@ -248,7 +247,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
             }
             """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task WhenOutsidePreferred_UsingsInNamespace_UsingsMoved_FileScopedNamespace()
         => TestInRegularAndScriptAsync("""
             namespace TestNamespace;
@@ -266,7 +265,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
     /// <summary>
     /// Verifies that simplified using statements in a namespace are expanded during the code fix operation.
     /// </summary>
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task WhenOutsidePreferred_SimplifiedUsingInNamespace_UsingsMovedAndExpanded()
         => TestInRegularAndScriptAsync("""
             namespace System
@@ -309,7 +308,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
     /// <summary>
     /// Verifies that simplified using statements in a namespace are expanded during the code fix operation.
     /// </summary>
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task WhenOutsidePreferred_SimplifiedUsingAliasInNamespace_UsingsMovedAndExpanded()
         => TestInRegularAndScriptAsync("""
             namespace System.MyExtension
@@ -360,7 +359,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
     /// <summary>
     /// Verifies that the file header of a file is properly preserved when moving using statements out of a namespace.
     /// </summary>
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task WhenOutsidePreferred_UsingsInNamespaceAndCompilationUnitHasFileHeader_UsingsMovedAndHeaderPreserved()
         => TestInRegularAndScriptAsync("""
             // Copyright (c) Tunnel Vision Laboratories, LLC. All Rights Reserved.
@@ -381,7 +380,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
             }
             """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task WhenOutsidePreferred_UsingsInNamespaceWithCommentsAndCompilationUnitHasFileHeader_UsingsMovedWithCommentsAndHeaderPreserved()
         => TestInRegularAndScriptAsync("""
             // Copyright (c) Tunnel Vision Laboratories, LLC. All Rights Reserved.
@@ -410,7 +409,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
             }
             """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task WhenOutsidePreferred_UsingsInNamespace_UsingsMovedAndSystemPlacedFirstIgnored()
         => TestInRegularAndScriptAsync("""
             namespace Foo
@@ -450,7 +449,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
             }
             """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task WhenOutsidePreferred_UsingsInNamespace_UsingsMovedAndAlphaSortIgnored()
         => TestInRegularAndScriptAsync("""
             namespace Foo
@@ -596,7 +595,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
             }
             """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159"), WorkItem("https://github.com/dotnet/roslyn/issues/61773")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159"), WorkItem("https://github.com/dotnet/roslyn/issues/61773")]
     public Task WhenOutsidePreferred_MoveGlobalUsing1()
         => TestInRegularAndScriptAsync("""
             namespace N1
@@ -611,7 +610,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
             }
             """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159"), WorkItem("https://github.com/dotnet/roslyn/issues/75961")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159"), WorkItem("https://github.com/dotnet/roslyn/issues/75961")]
     public Task WhenOutsidePreferred_AliasToLocalType_FileScopedNamespace()
         => TestInRegularAndScriptAsync("""
             namespace Goo;
@@ -627,7 +626,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
             class C;
             """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159"), WorkItem("https://github.com/dotnet/roslyn/issues/75961")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159"), WorkItem("https://github.com/dotnet/roslyn/issues/75961")]
     public Task WhenOutsidePreferred_AliasToLocalType_BlockNamespace()
         => TestInRegularAndScriptAsync("""
             namespace Goo
@@ -649,7 +648,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
 
     #region OutsideNamespaceIgnoringAliases
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159"), WorkItem("https://github.com/dotnet/roslyn/issues/43271")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159"), WorkItem("https://github.com/dotnet/roslyn/issues/43271")]
     public Task WhenOutsideIgnoringAliasesPreferred_UsingsInNamespace_UsingsMoved()
         => TestInRegularAndScriptAsync("""
             namespace TestNamespace
@@ -668,7 +667,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
             }
             """, OutsideNamespaceIgnoringAliasesOption, placeSystemNamespaceFirst: true);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159"), WorkItem("https://github.com/dotnet/roslyn/issues/43271")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159"), WorkItem("https://github.com/dotnet/roslyn/issues/43271")]
     public Task WhenOutsideIgnoringAliasesPreferred_UsingsInNamespace_UsingsMoved_InnerType()
         => TestInRegularAndScriptAsync("""
             namespace TestNamespace
@@ -695,7 +694,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
             }
             """, OutsideNamespaceIgnoringAliasesOption, placeSystemNamespaceFirst: true);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159"), WorkItem("https://github.com/dotnet/roslyn/issues/43271")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159"), WorkItem("https://github.com/dotnet/roslyn/issues/43271")]
     public Task WhenOutsideIgnoringAliasesPreferred_UsingsInNamespace_UsingsMoved_AliasInMiddle()
         => TestInRegularAndScriptAsync("""
             namespace TestNamespace
@@ -785,7 +784,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
     /// <summary>
     /// Verifies that the code fix will move the using directives and not place System directives first.
     /// </summary>
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task WhenInsidePreferred_UsingsInCompilationUnit_UsingsMovedAndSystemPlacedFirstIgnored()
         => TestInRegularAndScriptAsync("""
             [|using Microsoft.CodeAnalysis;
@@ -828,7 +827,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
     /// <summary>
     /// Verifies that the code fix will move the using directives and not sort them alphabetically.
     /// </summary>
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task WhenInsidePreferred_UsingsInCompilationUnit_UsingsAndWithAlphaSortIgnored()
         => TestInRegularAndScriptAsync("""
             [|using Microsoft.CodeAnalysis;

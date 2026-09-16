@@ -4360,7 +4360,7 @@ class S
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(skipConditions: typeof(CoreClrOnly))]
         public void SpanSlice()
         {
             string source = """

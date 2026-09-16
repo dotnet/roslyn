@@ -126,6 +126,19 @@ namespace RunTests
 
                 // Define environment variables for processes started via ProcessRunner.
                 var environmentVariables = new Dictionary<string, string>();
+                foreach (string key in Environment.GetEnvironmentVariables().Keys)
+                {
+                    if (key.StartsWith("DOTNET_ROOT", StringComparison.OrdinalIgnoreCase))
+                    {
+                        environmentVariables[key] = string.Empty;
+                    }
+                }
+
+                var dotnetDirectory = Path.GetDirectoryName(options.DotnetFilePath);
+                if (!string.IsNullOrEmpty(dotnetDirectory))
+                {
+                    environmentVariables["DOTNET_ROOT"] = dotnetDirectory;
+                }
 
                 // NOTE: xUnit seems to have an occasional issue creating logs create
                 // an empty log just in case, so our runner will still fail.

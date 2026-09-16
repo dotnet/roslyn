@@ -3,7 +3,6 @@
 
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Text;
-using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces.Test.Extensions;
 

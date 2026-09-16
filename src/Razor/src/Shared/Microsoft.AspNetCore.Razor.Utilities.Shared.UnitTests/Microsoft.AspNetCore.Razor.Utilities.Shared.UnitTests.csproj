@@ -5,6 +5,7 @@
     <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
     <TargetFrameworks>$(NetVSAndVSCode)</TargetFrameworks>
     <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TargetFrameworks);$(NetFxVS)</TargetFrameworks>
+    <OutputType Condition="'$(TargetFramework)' == '$(NetFxVS)'">Exe</OutputType>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <IsShipping>false</IsShipping>
   </PropertyGroup>
@@ -15,7 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Xunit.Combinatorial" />
   </ItemGroup>
 
 </Project>

@@ -18617,7 +18617,7 @@ public sealed partial class CSharpRegexParserTests
             </Tree>
             """, RegexOptions.None, runtimeHasBug: true);
 
-    [ConditionalFact(typeof(IsEnglishLocal))]
+    [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
     public void TestInlineOptionsInConditionalBranch_OptionsAsTestExpression_Negative()
         => Test("""
             @"(?(?i)yes|no)"

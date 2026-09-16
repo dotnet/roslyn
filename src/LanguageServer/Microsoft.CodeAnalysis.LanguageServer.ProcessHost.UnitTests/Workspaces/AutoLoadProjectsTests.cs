@@ -5,7 +5,6 @@
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using Roslyn.Test.Utilities;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests.Workspaces;
 

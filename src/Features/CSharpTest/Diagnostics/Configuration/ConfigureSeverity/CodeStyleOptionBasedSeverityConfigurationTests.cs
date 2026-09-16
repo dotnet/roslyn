@@ -34,7 +34,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
     {
         protected override int CodeActionIndex => 0;
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_Empty_None()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -172,7 +172,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_InvalidHeader_None()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -315,7 +315,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_InvalidRule_None()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -394,7 +394,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
     {
         protected override int CodeActionIndex => 1;
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_Empty_Silent()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -536,7 +536,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
     {
         protected override int CodeActionIndex => 2;
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_Empty_Suggestion()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -680,7 +680,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
     {
         protected override int CodeActionIndex => 3;
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_Empty_Warning()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -822,7 +822,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
     {
         protected override int CodeActionIndex => 4;
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_Empty_Error()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -890,7 +890,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_RuleExists_CodeStyleBased_Error()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -1099,7 +1099,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_InvalidHeader_Error()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -1172,7 +1172,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_InvalidRule_Error()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -1245,7 +1245,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_ConcreteHeader_Error()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -1315,7 +1315,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_NestedDirectory_Error()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -1385,7 +1385,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_NestedDirectoryNestedHeader_Error()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -1455,7 +1455,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_NestedDirectoryIncorrectHeader_Error()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -1530,7 +1530,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_IncorrectExtension_Error()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -1605,7 +1605,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_HeaderRegex_Error()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -1675,7 +1675,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_HeaderAllFiles_Error()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -1745,7 +1745,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_MultipleHeaders_Error()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -1845,7 +1845,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_RegexPartialMatch_Error()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -1918,7 +1918,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_VerifyCaseInsensitive_Warning()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -1986,7 +1986,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_DuplicateRule_Error()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -2064,7 +2064,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_ChooseBestHeader_Error()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -2141,7 +2141,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_ChooseBestHeaderReversed_Error()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -2218,7 +2218,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_DotFileName_Error()
             => TestInRegularAndScriptAsync("""
                 <Workspace>

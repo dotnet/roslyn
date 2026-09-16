@@ -328,7 +328,7 @@ class C
             CompileAndVerify(source, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void TestPseudoAttributes1()
         {
             #region "Source"
@@ -2042,7 +2042,7 @@ public class MyClass
 No DecimalConstantAttribute");
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/23760")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/23760")]
         public void DecimalConstant_Indexers()
         {
             string source = @"
@@ -2077,7 +2077,7 @@ public class C
             });
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/23760")]
+        [ConditionalFact(skipConditions: typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/23760")]
         public void DecimalConstant_Delegates()
         {
             string source = @"
@@ -7443,7 +7443,7 @@ namespace N
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "X").WithArguments("N.A", "Do not use").WithLocation(15, 16));
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/28328")]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/28328")]
         [WorkItem(580832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580832")]
         public void ObsoleteOnVirtual_OnBase()
         {

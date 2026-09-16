@@ -14720,7 +14720,7 @@ class Test
             return ExecutionConditionUtil.IsMonoOrCoreClr;
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(CoreClrOnly))]
         [CombinatorialData]
         [WorkItem(60069, "https://github.com/dotnet/roslyn/issues/60069")]
         public void DelegateCaching_01(bool isVirtual)
@@ -14786,7 +14786,7 @@ SimpleStruct
 ").VerifyDiagnostics();
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [ConditionalTheory(skipConditions: typeof(CoreClrOnly))]
         [CombinatorialData]
         [WorkItem(60069, "https://github.com/dotnet/roslyn/issues/60069")]
         public void DelegateCaching_02(bool isVirtual)

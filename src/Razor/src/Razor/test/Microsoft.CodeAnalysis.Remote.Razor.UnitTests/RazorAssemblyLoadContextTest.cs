@@ -11,7 +11,6 @@ using System.Runtime.Loader;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Nerdbank.Streams;
-using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
 

@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SymbolKind.NamedType, comp.GlobalNamespace.GetMembers()[0].Kind);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation))]
+        [ConditionalFact(skipConditions: [typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation)])]
         public void OnlyOneParse()
         {
             var underlyingTree = SyntaxFactory.ParseSyntaxTree(@"
@@ -426,7 +426,7 @@ public class B
             Assert.Equal(1, countedTree.AccessCount);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation))]
+        [ConditionalFact(skipConditions: [typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation)])]
         public void OnlyOneParse_WithReservedTypeName()
         {
             var underlyingTree = SyntaxFactory.ParseSyntaxTree(@"

@@ -946,7 +946,7 @@ IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperatorMethod: B B.op_Bit
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
-        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void ParameterReference_NoPiaObjectCreation()
         {
             var sources0 = @"

@@ -25,7 +25,7 @@ public sealed class FileSystemCompletionHelperTests
         Assert.True(actual.All(i => i.Rules == TestFileSystemCompletionHelper.CompletionRules));
     }
 
-    [ConditionalFact(typeof(WindowsOnly))]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly))]
     public void GetItems_Windows1()
     {
         var fsc = new TestFileSystemCompletionHelper(
@@ -87,7 +87,7 @@ public sealed class FileSystemCompletionHelperTests
             @"'\\', , 'Text|\5C\5C'");
     }
 
-    [ConditionalFact(typeof(WindowsOnly))]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly))]
     public void GetItems_Windows_NoBaseDirectory()
     {
         var fsc = new TestFileSystemCompletionHelper(
@@ -123,7 +123,7 @@ public sealed class FileSystemCompletionHelperTests
             @"'file5.abc', File, C#, 'Text|X:\5CB\5Cfile5.abc'");
     }
 
-    [ConditionalFact(typeof(WindowsOnly))]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly))]
     public void GetItems_Windows_NoSearchPaths()
     {
         var fsc = new TestFileSystemCompletionHelper(
@@ -155,7 +155,7 @@ public sealed class FileSystemCompletionHelperTests
             @"'\\', , 'Text|\5C\5C'");
     }
 
-    [ConditionalFact(typeof(WindowsOnly))]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly))]
     public void GetItems_Windows_Network()
     {
         var fsc = new TestFileSystemCompletionHelper(
@@ -185,7 +185,7 @@ public sealed class FileSystemCompletionHelperTests
             @"'c.cs', File, C#, 'Text|\5C\5Cserver\5Cshare\5CC\5Cc.cs'");
     }
 
-    [ConditionalFact(typeof(UnixLikeOnly))]
+    [ConditionalFact(skipConditions: typeof(UnixLikeOnly))]
     public void GetItems_Unix1()
     {
         var fsc = new TestFileSystemCompletionHelper(

@@ -14922,7 +14922,7 @@ namespace Test
             }
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         [WorkItem(665920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665920")]
         public void ObjectCreation3()
         {

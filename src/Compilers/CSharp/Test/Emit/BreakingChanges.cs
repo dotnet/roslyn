@@ -986,7 +986,7 @@ public class @c
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         [WorkItem(530518, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530518")]
         public void ExpressionTreeExplicitOpVsConvert()
         {
@@ -1015,7 +1015,7 @@ x => Convert(Convert(Convert(x)))
         }
 
         [WorkItem(530531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530531")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void ExpressionTreeNoCovertForIdentityConversion()
         {
             var source = @"
@@ -1300,7 +1300,7 @@ namespace VS7_336319
         }
 
         [WorkItem(530666, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530666")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void ExpressionTreeWithNullableUDCandOperator()
         {
             string source = @"

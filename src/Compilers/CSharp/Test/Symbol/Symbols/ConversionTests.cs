@@ -1994,7 +1994,7 @@ public struct S
             CompileAndVerify(source, expectedOutput: @"1ttt");
         }
 
-        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: [typeof(ClrOnly), typeof(DesktopOnly)])]
         [WorkItem(545471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545471")]
         [WorkItem(18446, "https://github.com/dotnet/roslyn/issues/18446")]
         public void CheckedConversionsInExpressionTrees()

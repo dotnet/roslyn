@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             return expectedHeader + expectedIssues;
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void NoDiagnostics()
         {
             NoDiagnosticsImpl();
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             return expectedHeader + expectedIssues;
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void SimpleCompilerDiagnostics()
         {
             SimpleCompilerDiagnosticsImpl();
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             return expectedHeader + expectedIssues;
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void SimpleCompilerDiagnosticsSuppressed()
         {
             SimpleCompilerDiagnosticsSuppressedImpl();
@@ -210,37 +210,37 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             return expectedHeader + expectedIssues;
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void AnalyzerDiagnosticsWithAndWithoutLocation()
         {
             AnalyzerDiagnosticsWithAndWithoutLocationImpl();
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void AnalyzerDiagnosticsSuppressedWithJustification()
         {
             AnalyzerDiagnosticsSuppressedWithJustificationImpl();
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void AnalyzerDiagnosticsSuppressedWithMissingJustification()
         {
             AnalyzerDiagnosticsSuppressedWithMissingJustificationImpl();
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void AnalyzerDiagnosticsSuppressedWithEmptyJustification()
         {
             AnalyzerDiagnosticsSuppressedWithEmptyJustificationImpl();
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void AnalyzerDiagnosticsSuppressedWithNullJustification()
         {
             AnalyzerDiagnosticsSuppressedWithNullJustificationImpl();
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void AnalyzerDiagnosticsWithWarnAsError()
         {
             AnalyzerDiagnosticsWithWarnAsErrorImpl();

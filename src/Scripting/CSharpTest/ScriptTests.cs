@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         [Fact]
         public void TestEmit_PortablePdb() => TestEmit(DebugInformationFormat.PortablePdb);
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(skipConditions: typeof(WindowsOnly))]
         public void TestEmit_WindowsPdb() => TestEmit(DebugInformationFormat.Pdb);
 
         private void TestEmit(DebugInformationFormat format)
@@ -854,7 +854,7 @@ i", options);
             }
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromString_CodeFromFile_WithEmitDebugInformation_WithFileEncoding_ResultInPdbEmitted()
         {
@@ -862,21 +862,21 @@ i", options);
             return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), line: 1, column: 1, filename: "debug.csx");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         public Task Pdb_CreateFromString_CodeFromFile_WithoutEmitDebugInformation_WithoutFileEncoding_ResultInPdbNotEmitted()
         {
             var opts = ScriptOptions.WithEmitDebugInformation(false).WithFilePath(null).WithFileEncoding(null);
             return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         public Task Pdb_CreateFromString_CodeFromFile_WithoutEmitDebugInformation_WithFileEncoding_ResultInPdbNotEmitted()
         {
             var opts = ScriptOptions.WithEmitDebugInformation(false).WithFilePath("debug.csx").WithFileEncoding(Encoding.UTF8);
             return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromStream_CodeFromFile_WithEmitDebugInformation_ResultInPdbEmitted()
         {
@@ -891,7 +891,7 @@ i", options);
             return VerifyStackTraceAsync(() => CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("throw new System.Exception();")), opts));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromString_InlineCode_WithEmitDebugInformation_WithoutFileEncoding_ResultInPdbEmitted()
         {
@@ -899,7 +899,7 @@ i", options);
             return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), line: 1, column: 1, filename: "");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromString_InlineCode_WithEmitDebugInformation_WithFileEncoding_ResultInPdbEmitted()
         {
@@ -921,7 +921,7 @@ i", options);
             return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromStream_InlineCode_WithEmitDebugInformation_ResultInPdbEmitted()
         {

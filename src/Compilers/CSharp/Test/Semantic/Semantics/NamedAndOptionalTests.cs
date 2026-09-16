@@ -1213,7 +1213,7 @@ public static class ErrorCases
         }
 
         [WorkItem(544440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544440")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void TestBug12768()
         {
             string sourceDefinitions = @"
@@ -1351,7 +1351,7 @@ System.Runtime.InteropServices.UnknownWrapper
             }
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: typeof(DesktopOnly))]
         public void IUnknownConstant_MissingType()
         {
             var source = @"

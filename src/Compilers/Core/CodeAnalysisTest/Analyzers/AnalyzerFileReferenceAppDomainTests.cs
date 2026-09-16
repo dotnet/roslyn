@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/mono/mono/issues/10960")]
+        [ConditionalFact(skipConditions: typeof(WindowsDesktopOnly), Reason = "https://github.com/mono/mono/issues/10960")]
         public void TestAnalyzerLoading_Error()
         {
             var analyzerSource = @"

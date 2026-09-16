@@ -34,7 +34,7 @@ public abstract partial class CSharpCodeStyleOptionBasedSeverityConfigurationTes
     {
         protected override int CodeActionIndex => 4;
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_Empty_Error()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -79,7 +79,7 @@ public abstract partial class CSharpCodeStyleOptionBasedSeverityConfigurationTes
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_ExistingRule_Error()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -129,7 +129,7 @@ public abstract partial class CSharpCodeStyleOptionBasedSeverityConfigurationTes
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_ExistingRuleDotNetHeader_Error()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -179,7 +179,7 @@ public abstract partial class CSharpCodeStyleOptionBasedSeverityConfigurationTes
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_ChooseBestHeader_Error()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
@@ -232,7 +232,7 @@ public abstract partial class CSharpCodeStyleOptionBasedSeverityConfigurationTes
                 </Workspace>
                 """, CodeActionIndex);
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(skipConditions: typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_ChooseBestHeaderReversed_Error()
             => TestInRegularAndScriptAsync("""
                 <Workspace>

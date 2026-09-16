@@ -112,7 +112,7 @@ namespace System
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [ConditionalFact(skipConditions: [typeof(ClrOnly), typeof(DesktopOnly)])]
         public void TypeSymbolFromReflectionType()
         {
             var c = CSharpCompilation.Create("TypeSymbolFromReflectionType",

@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
             GC.KeepAlive(b.GetReference());
         }
 
-        [ConditionalFact(typeof(ClrOnly))]
+        [ConditionalFact(skipConditions: typeof(ClrOnly))]
         public void ResizeCompactsAllDead()
         {
             var a = Create("A");

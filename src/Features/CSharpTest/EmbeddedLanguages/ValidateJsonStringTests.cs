@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.EmbeddedLanguages;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages;
 

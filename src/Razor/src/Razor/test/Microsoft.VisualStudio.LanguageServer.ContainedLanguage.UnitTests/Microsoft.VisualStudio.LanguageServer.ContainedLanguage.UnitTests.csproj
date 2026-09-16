@@ -5,6 +5,7 @@
     <IsShipping>false</IsShipping>
     <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
     <TargetFrameworks>$(NetFxVS)</TargetFrameworks>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 
   <ItemGroup>

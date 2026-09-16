@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         /// loaded in the debuggee.
         /// </summary>
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981104")]
-        [ConditionalFact(typeof(OSVersionWin8))]
+        [ConditionalFact(skipConditions: typeof(OSVersionWin8))]
         public void Win8RuntimeAssemblies()
         {
             var source =
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             });
         }
 
-        [ConditionalFact(typeof(OSVersionWin8))]
+        [ConditionalFact(skipConditions: typeof(OSVersionWin8))]
         public void Win8RuntimeAssemblies_ExternAlias()
         {
             var source =
@@ -244,7 +244,7 @@ class C
         /// and referencing runtime assembly.
         /// </summary>
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1116143")]
-        [ConditionalFact(typeof(OSVersionWin8), typeof(IsRelease))] // https://github.com/dotnet/roslyn/issues/25702
+        [ConditionalFact(skipConditions: [typeof(OSVersionWin8), typeof(IsRelease)])] // https://github.com/dotnet/roslyn/issues/25702
         public void AssemblyQualifiedName()
         {
             var source =
@@ -327,7 +327,7 @@ class C
         }
 
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1154988")]
-        [ConditionalFact(typeof(OSVersionWin8))]
+        [ConditionalFact(skipConditions: typeof(OSVersionWin8))]
         public void WinMdAssemblyReferenceRequiresRedirect()
         {
             var source =

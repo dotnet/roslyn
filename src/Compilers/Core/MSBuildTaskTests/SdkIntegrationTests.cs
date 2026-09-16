@@ -12,7 +12,6 @@ using Microsoft.Build.Logging.StructuredLogger;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests;
 
@@ -97,7 +96,7 @@ public sealed class SdkIntegrationTests : IDisposable
         return list;
     }
 
-    [ConditionalFact(typeof(DotNetSdkAvailable))]
+    [ConditionalFact(skipConditions: typeof(DotNetSdkAvailable))]
     public void Console()
     {
         var projectFile = ProjectDir.CreateFile("console.csproj");
@@ -124,7 +123,7 @@ public sealed class SdkIntegrationTests : IDisposable
         ArtifactUploadUtil.SetSucceeded();
     }
 
-    [ConditionalTheory(typeof(DotNetSdkAvailable))]
+    [ConditionalTheory(skipConditions: typeof(DotNetSdkAvailable))]
     [InlineData(NetCoreTfm, true)]
     [InlineData("net6.0", true)]
     [InlineData("netstandard2.0", false)]
@@ -162,7 +161,7 @@ public sealed class SdkIntegrationTests : IDisposable
         ArtifactUploadUtil.SetSucceeded();
     }
 
-    [ConditionalTheory(typeof(DotNetSdkAvailable))]
+    [ConditionalTheory(skipConditions: typeof(DotNetSdkAvailable))]
     [InlineData(NetCoreTfm, true)]
     [InlineData("net6.0", true)]
     [InlineData("netstandard2.0", false)]
@@ -201,7 +200,7 @@ public sealed class SdkIntegrationTests : IDisposable
         ArtifactUploadUtil.SetSucceeded();
     }
 
-    [ConditionalFact(typeof(DotNetSdkAvailable))]
+    [ConditionalFact(skipConditions: typeof(DotNetSdkAvailable))]
     [WorkItem("https://github.com/dotnet/roslyn/issues/82721")]
     public void EditorConfig_EmbeddedInBinlog_Generated()
     {
@@ -235,7 +234,7 @@ public sealed class SdkIntegrationTests : IDisposable
         ArtifactUploadUtil.SetSucceeded();
     }
 
-    [ConditionalFact(typeof(DotNetSdkAvailable))]
+    [ConditionalFact(skipConditions: typeof(DotNetSdkAvailable))]
     [WorkItem("https://github.com/dotnet/roslyn/issues/82721")]
     public void EditorConfig_EmbeddedInBinlog_FromTarget()
     {

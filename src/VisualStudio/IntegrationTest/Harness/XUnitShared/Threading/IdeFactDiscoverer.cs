@@ -7,112 +7,144 @@ namespace Xunit.Threading
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Runtime.CompilerServices;
-    using Xunit.Abstractions;
+    using System.Threading.Tasks;
     using Xunit.Harness;
     using Xunit.Sdk;
+    using Xunit.v3;
 
     public class IdeFactDiscoverer : IXunitTestCaseDiscoverer
     {
-        private readonly IMessageSink _diagnosticMessageSink;
-
-        public IdeFactDiscoverer(IMessageSink diagnosticMessageSink)
+        public ValueTask<IReadOnlyCollection<IXunitTestCase>> Discover(
+            ITestFrameworkDiscoveryOptions discoveryOptions,
+            IXunitTestMethod testMethod,
+            IFactAttribute factAttribute)
         {
-            _diagnosticMessageSink = diagnosticMessageSink;
-        }
-
-        public IEnumerable<IXunitTestCase> Discover(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo factAttribute)
-        {
+            if (discoveryOptions is null)
+                throw new ArgumentNullException(nameof(discoveryOptions));
             if (testMethod is null)
-            {
                 throw new ArgumentNullException(nameof(testMethod));
-            }
+            if (factAttribute is null)
+                throw new ArgumentNullException(nameof(factAttribute));
 
-            if (!testMethod.Method.GetParameters().Any())
+            var testCases = new List<IXunitTestCase>();
+
+            if (testMethod.Parameters.Count != 0)
             {
-                if (!testMethod.Method.IsGenericMethodDefinition)
-                {
-                    foreach (var supportedInstance in GetSupportedInstances(testMethod, factAttribute))
-                    {
-                        yield return new IdeTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, supportedInstance);
-                        if (IdeInstanceTestCase.TryCreateNewInstanceForFramework(discoveryOptions, _diagnosticMessageSink, supportedInstance) is { } instanceTestCase)
-                        {
-                            yield return instanceTestCase;
-                        }
-                    }
-                }
-                else
-                {
-                    yield return new ExecutionErrorTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, "[IdeFact] methods are not allowed to be generic.");
-                }
+                testCases.Add(CreateErrorTestCase(discoveryOptions, testMethod, factAttribute, "[IdeFact] methods are not allowed to have parameters. Did you mean to use [IdeTheory]?"));
+            }
+            else if (testMethod.IsGenericMethodDefinition)
+            {
+                testCases.Add(CreateErrorTestCase(discoveryOptions, testMethod, factAttribute, "[IdeFact] methods are not allowed to be generic."));
             }
             else
             {
-                yield return new ExecutionErrorTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, "[IdeFact] methods are not allowed to have parameters. Did you mean to use [IdeTheory]?");
+                var details = TestIntrospectionHelper.GetTestCaseDetails(discoveryOptions, testMethod, factAttribute);
+                var traits = TestIntrospectionHelper.GetTraits(testMethod, dataRow: null);
+                foreach (var supportedInstance in GetSupportedInstances(testMethod, factAttribute))
+                {
+                    testCases.Add(CreateTestCase(details, supportedInstance, traits));
+                    AddInstanceTestCase(discoveryOptions, supportedInstance, testCases);
+                }
             }
+
+            return new ValueTask<IReadOnlyCollection<IXunitTestCase>>(testCases);
         }
 
-        internal static ITestMethod CreateVisualStudioTestMethod()
+        internal static IXunitTestMethod CreateVisualStudioTestMethod()
         {
-            var testAssembly = new TestAssembly(new ReflectionAssemblyInfo(typeof(Instances).Assembly));
-            var testCollection = new TestCollection(testAssembly, collectionDefinition: null, nameof(Instances));
-            var testClass = new TestClass(testCollection, new ReflectionTypeInfo(typeof(Instances)));
-            var testMethod = testClass.Class.GetMethods(false).Single(method => method.Name == nameof(Instances.VisualStudio));
-            return new TestMethod(testClass, testMethod);
+            var testAssembly = new XunitTestAssembly(typeof(Instances).Assembly, configFilePath: null);
+            var testCollection = new XunitTestCollection(testAssembly, collectionDefinition: null, disableParallelization: true, nameof(Instances));
+            var testClass = new XunitTestClass(typeof(Instances), testCollection);
+            var testMethod = typeof(Instances).GetMethod(nameof(Instances.VisualStudio))!;
+            return new XunitTestMethod(testClass, testMethod, testMethodArguments: Array.Empty<object?>());
         }
 
-        internal static IEnumerable<VisualStudioInstanceKey> GetSupportedInstances(ITestMethod testMethod, IAttributeInfo factAttribute)
+        internal static IEnumerable<VisualStudioInstanceKey> GetSupportedInstances(IXunitTestMethod testMethod, IFactAttribute factAttribute)
         {
-            var rootSuffix = GetRootSuffix(testMethod, factAttribute);
-            var maxAttempts = GetMaxAttempts(testMethod, factAttribute);
-            var environmentVariables = GetEnvironmentVariables(testMethod, factAttribute);
-            return GetSupportedVersions(factAttribute, GetSettingsAttributes(testMethod).ToArray())
+            var settingsAttribute = GetSettingsAttribute(factAttribute);
+            var settingsAttributes = GetSettingsAttributes(testMethod).ToArray();
+            var rootSuffix = GetRootSuffix(settingsAttribute, settingsAttributes);
+            var maxAttempts = GetMaxAttempts(settingsAttribute, settingsAttributes);
+            var environmentVariables = GetEnvironmentVariables(settingsAttribute, settingsAttributes);
+            return GetSupportedVersions(settingsAttribute, settingsAttributes)
                 .Select(version => new VisualStudioInstanceKey(version, rootSuffix, maxAttempts, environmentVariables));
         }
 
-        private static string GetRootSuffix(ITestMethod testMethod, IAttributeInfo factAttribute)
+        internal static void AddInstanceTestCase(
+            ITestFrameworkDiscoveryOptions discoveryOptions,
+            VisualStudioInstanceKey supportedInstance,
+            List<IXunitTestCase> testCases)
         {
-            return GetRootSuffix(factAttribute, GetSettingsAttributes(testMethod).ToArray());
-        }
-
-        private static int GetMaxAttempts(ITestMethod testMethod, IAttributeInfo factAttribute)
-        {
-            return GetMaxAttempts(factAttribute, GetSettingsAttributes(testMethod).ToArray());
-        }
-
-        private static string[] GetEnvironmentVariables(ITestMethod testMethod, IAttributeInfo factAttribute)
-        {
-            return GetEnvironmentVariables(factAttribute, GetSettingsAttributes(testMethod).ToArray());
-        }
-
-        private static IEnumerable<IAttributeInfo> GetSettingsAttributes(ITestMethod testMethod)
-        {
-            foreach (var attributeData in testMethod.Method.GetCustomAttributes(typeof(IdeSettingsAttribute)))
+            if (IdeInstanceTestCase.TryCreateNewInstanceForFramework(discoveryOptions, supportedInstance) is { } instanceTestCase)
             {
-                yield return attributeData;
-            }
-
-            foreach (var attributeData in testMethod.TestClass.Class.GetCustomAttributes(typeof(IdeSettingsAttribute)))
-            {
-                yield return attributeData;
+                testCases.Add(instanceTestCase);
             }
         }
 
-        private static IEnumerable<VisualStudioVersion> GetSupportedVersions(IAttributeInfo factAttribute, IAttributeInfo[] settingsAttributes)
+        internal static IdeTestCase CreateTestCase(
+            (string TestCaseDisplayName, bool Explicit, Type[]? SkipExceptions, string? SkipReason, Type? SkipType, string? SkipUnless, string? SkipWhen, string? SourceFilePath, int? SourceLineNumber, int Timeout, string UniqueID, IXunitTestMethod ResolvedTestMethod) details,
+            VisualStudioInstanceKey supportedInstance,
+            Dictionary<string, HashSet<string>>? traits = null,
+            object?[]? testMethodArguments = null)
         {
-            var minVersion = GetNamedArgument(
-                factAttribute,
-                settingsAttributes,
-                nameof(IIdeSettingsAttribute.MinVersion),
-                static value => value is not VisualStudioVersion.Unspecified,
-                defaultValue: VisualStudioVersion.VS2012);
+            return new IdeTestCase(
+                details.ResolvedTestMethod,
+                details.TestCaseDisplayName,
+                details.UniqueID,
+                details.Explicit,
+                details.SkipExceptions,
+                details.SkipReason,
+                details.SkipType,
+                details.SkipUnless,
+                details.SkipWhen,
+                traits,
+                testMethodArguments,
+                details.SourceFilePath,
+                details.SourceLineNumber,
+                details.Timeout,
+                supportedInstance);
+        }
 
-            var maxVersion = GetNamedArgument(
+        private static ExecutionErrorTestCase CreateErrorTestCase(
+            ITestFrameworkDiscoveryOptions discoveryOptions,
+            IXunitTestMethod testMethod,
+            IFactAttribute factAttribute,
+            string message)
+        {
+            var details = TestIntrospectionHelper.GetTestCaseDetails(discoveryOptions, testMethod, factAttribute);
+            return new ExecutionErrorTestCase(details.ResolvedTestMethod, details.TestCaseDisplayName, details.UniqueID, details.SourceFilePath, details.SourceLineNumber, message);
+        }
+
+        private static IIdeSettingsAttribute GetSettingsAttribute(IFactAttribute factAttribute)
+        {
+            if (factAttribute is not IIdeSettingsAttribute settingsAttribute)
+                throw new ArgumentException("The fact attribute must implement IIdeSettingsAttribute.", nameof(factAttribute));
+
+            return settingsAttribute;
+        }
+
+        private static IEnumerable<IIdeSettingsAttribute> GetSettingsAttributes(IXunitTestMethod testMethod)
+        {
+            return testMethod.Method.GetCustomAttributes(typeof(IdeSettingsAttribute), inherit: true)
+                .Concat(testMethod.TestClass.Class.GetCustomAttributes(typeof(IdeSettingsAttribute), inherit: true))
+                .Cast<IIdeSettingsAttribute>();
+        }
+
+        private static IEnumerable<VisualStudioVersion> GetSupportedVersions(IIdeSettingsAttribute factAttribute, IIdeSettingsAttribute[] settingsAttributes)
+        {
+            var minVersion = GetValue(
                 factAttribute,
                 settingsAttributes,
-                nameof(IIdeSettingsAttribute.MaxVersion),
+                static attribute => attribute.MinVersion,
                 static value => value is not VisualStudioVersion.Unspecified,
-                defaultValue: VisualStudioVersion.VS18);
+                VisualStudioVersion.VS2012);
+
+            var maxVersion = GetValue(
+                factAttribute,
+                settingsAttributes,
+                static attribute => attribute.MaxVersion,
+                static value => value is not VisualStudioVersion.Unspecified,
+                VisualStudioVersion.VS18);
 
             for (var version = minVersion; version <= maxVersion; version++)
             {
@@ -132,35 +164,38 @@ namespace Xunit.Threading
             }
         }
 
-        private static string GetRootSuffix(IAttributeInfo factAttribute, IAttributeInfo[] settingsAttributes)
+        private static string GetRootSuffix(IIdeSettingsAttribute factAttribute, IIdeSettingsAttribute[] settingsAttributes)
         {
-            return GetNamedArgument(
+            return GetValue(
                 factAttribute,
                 settingsAttributes,
-                nameof(IIdeSettingsAttribute.RootSuffix),
+                static attribute => attribute.RootSuffix,
                 static value => value is not null,
-                defaultValue: "Exp");
+                "Exp")!;
         }
 
-        private static int GetMaxAttempts(IAttributeInfo factAttribute, IAttributeInfo[] settingsAttributes)
+        private static int GetMaxAttempts(IIdeSettingsAttribute factAttribute, IIdeSettingsAttribute[] settingsAttributes)
         {
-            return GetNamedArgument(
+            return GetValue(
                 factAttribute,
                 settingsAttributes,
-                nameof(IIdeSettingsAttribute.MaxAttempts),
+                static attribute => attribute.MaxAttempts,
                 static value => value > 0,
-                defaultValue: 1);
+                1);
         }
 
-        private static string[] GetEnvironmentVariables(IAttributeInfo factAttribute, IAttributeInfo[] settingsAttributes)
+        private static string[] GetEnvironmentVariables(IIdeSettingsAttribute factAttribute, IIdeSettingsAttribute[] settingsAttributes)
         {
-            return GetNamedArgument(
-                factAttribute,
-                settingsAttributes,
-                nameof(IIdeSettingsAttribute.EnvironmentVariables),
-                static value => value != null,
-                (inherited, current) => MergeEnvironmentVariables(inherited, current),
-                defaultValue: new string[0]);
+            var result = Array.Empty<string>();
+            for (var i = settingsAttributes.Length - 1; i >= 0; i--)
+            {
+                if (settingsAttributes[i].EnvironmentVariables.Length > 0)
+                    result = MergeEnvironmentVariables(result, settingsAttributes[i].EnvironmentVariables);
+            }
+
+            return factAttribute.EnvironmentVariables.Length > 0
+                ? MergeEnvironmentVariables(result, factAttribute.EnvironmentVariables)
+                : result;
         }
 
         private static string[] MergeEnvironmentVariables(string[] inherited, string[] current)
@@ -188,68 +223,25 @@ namespace Xunit.Threading
             return set.ToArray();
         }
 
-        private static TValue GetNamedArgument<TValue>(IAttributeInfo factAttribute, IAttributeInfo[] settingsAttributes, string argumentName, Func<TValue, bool> isValidValue, TValue defaultValue)
+        private static TValue GetValue<TValue>(IIdeSettingsAttribute factAttribute, IIdeSettingsAttribute[] settingsAttributes, Func<IIdeSettingsAttribute, TValue> getValue, Func<TValue, bool> isValidValue, TValue defaultValue)
         {
-            return GetNamedArgument(
-                factAttribute,
-                settingsAttributes,
-                argumentName,
-                isValidValue,
-                merge: null,
-                defaultValue);
-        }
-
-        private static TValue GetNamedArgument<TValue>(IAttributeInfo factAttribute, IAttributeInfo[] settingsAttributes, string argumentName, Func<TValue, bool> isValidValue, Func<TValue, TValue, TValue>? merge, TValue defaultValue)
-        {
-            StrongBox<TValue>? result = null;
-            if (TryGetNamedArgument(factAttribute, argumentName, isValidValue, out var value))
-            {
-                if (merge is null)
-                {
-                    return value;
-                }
-
-                result = new StrongBox<TValue>(value);
-            }
+            var value = getValue(factAttribute);
+            if (isValidValue(value))
+                return value;
 
             foreach (var attribute in settingsAttributes)
             {
-                if (TryGetNamedArgument(attribute, argumentName, isValidValue, out value))
-                {
-                    if (merge is null)
-                    {
-                        return value;
-                    }
-                    else if (result is null)
-                    {
-                        result = new StrongBox<TValue>(value);
-                    }
-                    else
-                    {
-                        result.Value = merge(value, result.Value);
-                    }
-
+                value = getValue(attribute);
+                if (isValidValue(value))
                     return value;
-                }
-            }
-
-            if (result is not null)
-            {
-                return result.Value;
             }
 
             return defaultValue;
-
-            static bool TryGetNamedArgument(IAttributeInfo attribute, string argumentName, Func<TValue, bool> isValidValue, out TValue value)
-            {
-                value = attribute.GetNamedArgument<TValue>(argumentName);
-                return isValidValue(value);
-            }
         }
 
-        private class KeyOnlyComparerIgnoreCase : IEqualityComparer<string?>
+        private sealed class KeyOnlyComparerIgnoreCase : IEqualityComparer<string?>
         {
-            public static readonly KeyOnlyComparerIgnoreCase Instance = new KeyOnlyComparerIgnoreCase();
+            public static readonly KeyOnlyComparerIgnoreCase Instance = new();
 
             private KeyOnlyComparerIgnoreCase()
             {

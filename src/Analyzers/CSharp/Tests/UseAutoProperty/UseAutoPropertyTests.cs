@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseAutoProperty;
 
@@ -2813,7 +2812,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             }
             """);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [ConditionalFact(skipConditions: typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/25408")]
     public Task TestLinkedFile()
         => TestInRegularAndScriptAsync(

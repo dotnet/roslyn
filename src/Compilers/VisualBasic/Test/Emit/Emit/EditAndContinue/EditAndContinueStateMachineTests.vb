@@ -9,7 +9,6 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
-Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
