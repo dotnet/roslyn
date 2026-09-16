@@ -48,6 +48,7 @@ internal sealed class Descriptors
         // Hot Reload services:
         { new("Microsoft.VisualStudio.HotReload.HotReloadEventSubscriber", new Version(3, 0)), s_serviceRegistration },
         { new("Microsoft.VisualStudio.HotReload.ManagedHotReloadUpdatesProviderRegistration", new Version(3, 0)), s_serviceRegistration },
+        { new("Microsoft.VisualStudio.HotReload.ManagedHotReloadState", new Version(3, 0)), s_serviceRegistration },        
 
         // TODO: https://github.com/dotnet/roslyn/issues/84158
         // Registered so the XAML diagnostics component in the C# extension for VS Code can call them.

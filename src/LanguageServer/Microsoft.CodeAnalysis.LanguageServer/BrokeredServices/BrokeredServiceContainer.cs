@@ -62,7 +62,7 @@ internal sealed class BrokeredServiceContainer : GlobalBrokeredServiceContainer
         var servicesToRegister = serviceBrokerInitializers.SelectMany(s => s.ServicesToRegister).ToDictionary(a => a.Key, a => a.Value);
         container.RegisterServices(servicesToRegister);
 
-        // Profer might request dependent remote services from the container, so we need to proffer after registering all services.
+        // Proffer might request dependent remote services from the container, so we need to proffer after registering all services.
         foreach (var initializer in serviceBrokerInitializers)
             await initializer.ProfferAsync(container, cancellationToken).ConfigureAwait(false);
 
