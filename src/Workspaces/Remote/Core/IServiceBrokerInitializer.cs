@@ -24,6 +24,7 @@ internal interface IServiceBrokerInitializer
 
     /// <summary>
     /// Proffers services into the container.  Services must be registered via <see cref="ServicesToRegister"/> to be proffered here.
+    /// May request remote services from the <paramref name="container"/> (i.e. services not proffered by the Language Server).
     /// </summary>
     ValueTask ProfferAsync(GlobalBrokeredServiceContainer container, CancellationToken cancellationToken);
 

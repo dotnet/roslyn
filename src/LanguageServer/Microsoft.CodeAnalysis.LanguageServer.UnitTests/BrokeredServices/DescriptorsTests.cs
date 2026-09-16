@@ -3,33 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services;
-using Microsoft.ServiceHub.Framework;
+using Microsoft.VisualStudio.HotReload;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.BrokeredServices;
 
 public sealed class DescriptorsTests
 {
     [Fact]
-    public void RemoteServicesToRegister_IncludesLegacyHotReloadServices()
+    public void RemoteServicesToRegister_IncludesHotReloadServices()
     {
-        Assert.Contains(new ServiceMoniker("Microsoft.VisualStudio.Debugger.ManagedHotReloadService", new(0, 1)), Descriptors.RemoteServicesToRegister.Keys);
-        Assert.Contains(new ServiceMoniker("Microsoft.VisualStudio.Debugger.HotReloadLogger", new(0, 1)), Descriptors.RemoteServicesToRegister.Keys);
-    }
-
-    [Fact]
-    public void RemoteServicesToRegister_IncludesManagedHotReloadServices()
-    {
-        Assert.Contains(new ServiceMoniker("Microsoft.VisualStudio.HotReload.HotReloadEventSubscriber", new(3, 0)), Descriptors.RemoteServicesToRegister.Keys);
-        Assert.Contains(new ServiceMoniker("Microsoft.VisualStudio.HotReload.ManagedHotReloadUpdatesProviderRegistration", new(3, 0)), Descriptors.RemoteServicesToRegister.Keys);
-    }
-
-    [Fact]
-    public void RemoteServicesToRegister_IncludesHotReloadAgentServices()
-    {
-        Assert.Contains(new ServiceMoniker("Microsoft.VisualStudio.Debugger.HotReloadSessionNotificationService", new(0, 1)), Descriptors.RemoteServicesToRegister.Keys);
-        Assert.Contains(new ServiceMoniker("Microsoft.VisualStudio.Debugger.ManagedHotReloadAgentManagerService", new(0, 1)), Descriptors.RemoteServicesToRegister.Keys);
-        Assert.Contains(new ServiceMoniker("Microsoft.VisualStudio.Debugger.GenericHotReloadAgentManagerService", new(0, 1)), Descriptors.RemoteServicesToRegister.Keys);
-        Assert.Contains(new ServiceMoniker("Microsoft.VisualStudio.HotReload.ProcessTrackingService", new(2, 0)), Descriptors.RemoteServicesToRegister.Keys);
-        Assert.Contains(new ServiceMoniker("Microsoft.VisualStudio.HotReload.ProjectHotReloadSession", new(2, 0)), Descriptors.RemoteServicesToRegister.Keys);
+        Assert.Contains(IHotReloadEventSubscriber.ServiceDescriptor.Moniker, Descriptors.RemoteServicesToRegister.Keys);
+        Assert.Contains(IManagedHotReloadUpdatesProviderRegistration.ServiceDescriptor.Moniker, Descriptors.RemoteServicesToRegister.Keys);
+        Assert.Contains(IProcessTrackingService.ServiceDescriptor.Moniker, Descriptors.RemoteServicesToRegister.Keys);
+        Assert.Contains(IRemoteProjectHotReloadSession.ServiceDescriptor.Moniker, Descriptors.RemoteServicesToRegister.Keys);
     }
 }
