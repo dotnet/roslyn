@@ -192,5 +192,13 @@ internal sealed class PublicCohostDocumentPullDiagnosticsEndpoint(
             return CohostDocumentPullDiagnosticsHelpers.ConvertDiagnostics(doc, supportsVisualStudioExtensions, globalOptionsService, implItems);
         }
     }
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(PublicCohostDocumentPullDiagnosticsEndpoint instance)
+    {
+        public Task<FullDocumentDiagnosticReport?> HandleRequestAsync(DocumentDiagnosticParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+            => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
+    }
 }
 
