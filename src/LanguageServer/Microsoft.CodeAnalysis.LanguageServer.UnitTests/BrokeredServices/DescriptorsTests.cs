@@ -16,5 +16,6 @@ public sealed class DescriptorsTests
         Assert.Contains(IManagedHotReloadUpdatesProviderRegistration.ServiceDescriptor.Moniker, Descriptors.RemoteServicesToRegister.Keys);
         Assert.Contains(IProcessTrackingService.ServiceDescriptor.Moniker, Descriptors.RemoteServicesToRegister.Keys);
         Assert.Contains(IRemoteProjectHotReloadSession.ServiceDescriptor.Moniker, Descriptors.RemoteServicesToRegister.Keys);
+        Assert.Contains(IManagedHotReloadState.ServiceDescriptor.Moniker, Descriptors.RemoteServicesToRegister.Keys);
     }
 }
