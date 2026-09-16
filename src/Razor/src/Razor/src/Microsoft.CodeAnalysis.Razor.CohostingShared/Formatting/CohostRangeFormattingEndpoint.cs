@@ -84,10 +84,12 @@ internal sealed class CohostRangeFormattingEndpoint(
         var htmlChanges = htmlEdits.SelectAsArray(sourceText.GetTextChange);
 
         var csharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument, cancellationToken);
+        var settings = _clientSettingsManager.GetClientSettings().AdvancedSettings;
         var options = RazorFormattingOptions.From(
             request.Options,
-            _clientSettingsManager.GetClientSettings().AdvancedSettings.CodeBlockBraceOnNextLine,
-            _clientSettingsManager.GetClientSettings().AdvancedSettings.AttributeIndentStyle,
+            settings.CodeBlockBraceOnNextLine,
+            settings.AttributeIndentStyle,
+            settings.IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor,
             csharpSyntaxFormattingOptions,
             fromPaste);
 

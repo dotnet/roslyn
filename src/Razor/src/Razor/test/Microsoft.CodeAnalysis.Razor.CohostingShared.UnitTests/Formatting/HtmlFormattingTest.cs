@@ -686,7 +686,16 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput) : DocumentFormatti
         formattingService.GetTestAccessor().SetFormattingLoggerFactory(new TestFormattingLoggerFactory(TestOutputHelper));
 
         var htmlEdits = new TextEdit[0];
-        var edits = await GetFormattingEditsAsync(document, htmlEdits, span: default, options.CodeBlockBraceOnNextLine, attributeIndentStyle, options.InsertSpaces, options.TabSize);
+        var edits = await GetFormattingEditsAsync(
+            document,
+            htmlEdits,
+            span: default,
+            options.CodeBlockBraceOnNextLine,
+            attributeIndentStyle,
+            options.InsertSpaces,
+            options.TabSize,
+            csharpSyntaxFormattingOptions: null,
+            ignoreIndentationInScriptOrStyleBlocksWithComplexRazor: false);
 
         Assert.NotNull(edits);
 
