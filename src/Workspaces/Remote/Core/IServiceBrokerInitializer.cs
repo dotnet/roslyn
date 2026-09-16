@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.BrokeredServices;
 internal interface IServiceBrokerInitializer
 {
     /// <summary>
-    /// Gets the set of services that this initializer will proffer into the service container via <see cref="ProfferAsync(GlobalBrokeredServiceContainer)"/>
+    /// Gets the set of services that this initializer will proffer into the service container via <see cref="ProfferAsync"/>
     /// </summary>
     ImmutableDictionary<ServiceMoniker, ServiceRegistration> ServicesToRegister { get; }
 
