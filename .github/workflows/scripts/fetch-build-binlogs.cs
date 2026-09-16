@@ -925,6 +925,12 @@ static class Json
         return node;
     }
 
+    // `ToString()` rather than `TryGetValue<string>()` because these payloads mix
+    // scalar kinds: `result`, `name` and `sourceBranch` arrive as JSON strings,
+    // while `total_count`, `id` and `definition.id` arrive as JSON numbers, and
+    // both are read as text here. `JsonNode.ToString()` special-cases strings and
+    // returns them unquoted, so a string reads back verbatim and a number renders
+    // as its digits; `TryGetValue<string>` would return false for the numbers.
     public static string Text(this JsonNode? node) => (node as JsonValue)?.ToString() ?? string.Empty;
 
     public static IEnumerable<JsonNode?> Items(this JsonNode? node) => node as JsonArray ?? [];
