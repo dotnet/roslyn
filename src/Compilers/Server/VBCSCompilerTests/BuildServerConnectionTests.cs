@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
@@ -397,7 +398,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             thread.Start();
             Assert.True(thread.Join(TimeSpan.FromSeconds(30)));
-            Assert.Null(exception);
+            if (exception is not null)
+            {
+                ExceptionDispatchInfo.Capture(exception).Throw();
+            }
         }
     }
 }
