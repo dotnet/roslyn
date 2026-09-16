@@ -64,7 +64,7 @@ if (token.Length != 0)
     github.DefaultRequestHeaders.Authorization = new("Bearer", token);
 }
 
-using var ado = new HttpClient();
+using var ado = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
 ado.DefaultRequestHeaders.UserAgent.ParseAdd("roslyn-build-failure-analysis");
 
 // --- 1. Resolve and validate the PR number ---------------------------------
@@ -265,7 +265,15 @@ var remainingBytes = MaxTotalBytes;
 var zipTmp = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 // Only binlogs extracted by this run may be analyzed, so make the reset
 // authoritative rather than best-effort. `binlogDir` was confined to a scratch
-// root at startup, which is what makes a recursive delete here safe to do.
+// root at startup, which is what makes a recursive delete here safe to do -
+// re-checked on the spot, because minutes of API calls have passed since, and
+// the check is worth more immediately before the delete than it is at startup.
+if (ResolveScratchDir(binlogDir) is null)
+{
+    Console.Error.WriteLine("::error::BINLOG_DIR stopped resolving inside a scratch directory; refusing to delete it.");
+    return 1;
+}
+
 if (Directory.Exists(binlogDir))
 {
     Directory.Delete(binlogDir, recursive: true);
@@ -410,32 +418,52 @@ static string? ResolveScratchDir(string value)
         return null;
     }
 
-    // `GetFullPath` is purely lexical, so a symlink planted at this path still
-    // reads as being inside the root while pointing anywhere. Judge the target
-    // when there is one. Nothing to judge when the path holds an ordinary entry
-    // or nothing at all - the latter being the normal case, since the caller
-    // creates the directory.
-    string? linkTarget;
-    try
+    // `GetFullPath` is purely lexical, so passing that test means the *spelling*
+    // is inside a root, not the directory. Every component from the leaf down to
+    // the root has to be judged as well: `/tmp/link/binlogs`, where `link` points
+    // outside and `binlogs` does not exist yet, spells out as contained while the
+    // reset would land somewhere else entirely. A link at any depth therefore has
+    // to resolve back inside a root. The OS expands the earlier components while
+    // stat-ing each ancestor, so a chain of links needs no special handling here.
+    //
+    // The roots themselves are left out of the walk: `/tmp` is a link to
+    // `/private/tmp` on macOS, and a root is configuration rather than something
+    // an artifact can influence.
+    for (var path = candidate; path is not null && IsUnderScratchRoot(path); path = Path.GetDirectoryName(path))
     {
-        var entry = Directory.Exists(candidate)
-            ? (FileSystemInfo)new DirectoryInfo(candidate)
-            : new FileInfo(candidate);
-        if (entry.LinkTarget is null)
+        if (!ResolvesInside(path))
         {
-            return candidate;
+            return null;
         }
-
-        // Empty for a link that resolves to nothing legible - dangling or
-        // cyclic - which no root contains, so it is refused below.
-        linkTarget = entry.ResolveLinkTarget(returnFinalTarget: true)?.FullName ?? string.Empty;
     }
-    catch (Exception)
+
+    return candidate;
+
+    // True when the path holds no link - an ordinary entry, or nothing at all,
+    // the latter being the normal case since the caller creates the directory -
+    // or holds one whose final target is still inside a root.
+    static bool ResolvesInside(string path)
     {
-        return null;
-    }
+        try
+        {
+            var entry = Directory.Exists(path)
+                ? (FileSystemInfo)new DirectoryInfo(path)
+                : new FileInfo(path);
+            if (entry.LinkTarget is null)
+            {
+                return true;
+            }
 
-    return IsUnderScratchRoot(Path.TrimEndingDirectorySeparator(linkTarget)) ? candidate : null;
+            // Null for a link that resolves to nothing legible - dangling or
+            // cyclic - which no root contains, so it is refused.
+            var target = entry.ResolveLinkTarget(returnFinalTarget: true)?.FullName;
+            return target is not null && IsUnderScratchRoot(Path.TrimEndingDirectorySeparator(target));
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
 
     static bool IsUnderScratchRoot(string path)
     {
@@ -563,6 +591,57 @@ static bool IsTrustedArtifactUrl(string url)
             || uri.Host.EndsWith(".dev.azure.com", StringComparison.OrdinalIgnoreCase)
             || uri.Host.EndsWith(".visualstudio.com", StringComparison.OrdinalIgnoreCase));
 
+static bool IsRedirect(HttpStatusCode status)
+    => status is HttpStatusCode.MovedPermanently or HttpStatusCode.Found or HttpStatusCode.SeeOther
+        or HttpStatusCode.TemporaryRedirect or HttpStatusCode.PermanentRedirect;
+
+// Checking the artifact's own URL only constrains the first hop. A handler that
+// follows redirects on its own would then let a URL that passed the allowlist
+// hand the transfer to any host at all, which is the whole restriction gone.
+// The hops cannot simply be refused either: ADO really does redirect artifact
+// downloads, from dev.azure.com to a regional artprod*.artifacts.visualstudio.com.
+//
+// So the `ado` client has auto-redirect switched off and follows them here,
+// where every `Location` goes through the same allowlist the first URL passed.
+// An untrusted hop ends the attempt with a status the caller reports and does
+// not retry, so an artifact that tries to send this job elsewhere is skipped
+// rather than fetched. The `github` client keeps the handler's own redirect
+// handling - which drops the Authorization header across hosts - so no redirect
+// status reaches this loop for it.
+static async Task<HttpResponseMessage> Get(
+    HttpClient client, string url, HttpCompletionOption completion, CancellationToken cancellation)
+{
+    var response = await client.GetAsync(url, completion, cancellation);
+
+    // Bounded so a redirect cycle cannot spin. The attempt timeout covers it too.
+    for (var hop = 0; hop < 5 && IsRedirect(response.StatusCode); hop++)
+    {
+        // Resolves a relative `Location` against the URL that produced it, and
+        // leaves an absolute one alone.
+        var location = response.Headers.Location;
+        var next = location is null ? null : new Uri(new Uri(url), location);
+        response.Dispose();
+
+        if (next is null || !IsTrustedArtifactUrl(next.AbsoluteUri))
+        {
+            Console.WriteLine($"::warning::Refusing a redirect to '{Extractor.Sanitize(next?.Host ?? "an unparseable location")}': not an Azure DevOps artifact host.");
+            return new HttpResponseMessage(HttpStatusCode.Forbidden);
+        }
+
+        url = next.AbsoluteUri;
+        response = await client.GetAsync(url, completion, cancellation);
+    }
+
+    if (!IsRedirect(response.StatusCode))
+    {
+        return response;
+    }
+
+    response.Dispose();
+    Console.WriteLine("::warning::Refusing to follow any further redirects for this artifact.");
+    return new HttpResponseMessage(HttpStatusCode.Forbidden);
+}
+
 // Runs `consume` against a successful response, retrying under a per-attempt
 // timeout and an overall window. `consume` runs inside the attempt's
 // cancellation scope, so the timeout covers reading the body too. Every attempt
@@ -605,7 +684,7 @@ static async Task<(T? Value, string? Error)> Fetch<T>(
         try
         {
             using var cts = new CancellationTokenSource(timeout);
-            using var response = await client.GetAsync(url, completion, cts.Token);
+            using var response = await Get(client, url, completion, cts.Token);
             if (response.IsSuccessStatusCode)
             {
                 return (await consume(response, cts.Token), null);
