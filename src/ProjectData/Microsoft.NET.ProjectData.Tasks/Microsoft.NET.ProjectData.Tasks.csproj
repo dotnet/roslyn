@@ -20,11 +20,16 @@
     <PackageReference Include="Microsoft.Build.Utilities.Core" ExcludeAssets="Runtime" PrivateAssets="All" />
     <PackageReference Include="NuGet.Versioning" />
     <PackageReference Include="System.Collections.Immutable" />
-    <PackageReference Include="System.Text.Json" />
+    <PackageReference Include="System.IO.Pipelines" GeneratePathProperty="true" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="System.Text.Json" GeneratePathProperty="true" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.NET.ProjectData.Generators\Microsoft.NET.ProjectData.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" SkipGetTargetFrameworkProperties="true" SetPlatform="" />
+
+    <Analyzer Include="$(PkgSystem_IO_Pipelines)\lib\netstandard2.0\System.IO.Pipelines.dll" />
+    <Analyzer Include="$(PkgSystem_Text_Json)\lib\netstandard2.0\System.Text.Json.dll" />
+
     <AdditionalFiles Include="..\Microsoft.NET.ProjectData.Generators\project-data-schema.json" />
     <InternalsVisibleTo Include="Microsoft.NET.ProjectData.Tasks.UnitTests" Key="$(VsPublicKey)" />
   </ItemGroup>
