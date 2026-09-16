@@ -58,11 +58,11 @@ internal sealed class ServiceBrokerFactory : ILspService
         var provider = (ServiceBrokerProvider)workspace.Services.GetRequiredService<IServiceBrokerProvider>();
         provider.SetContainer(container);
 
-        foreach (var onInitialized in _serviceBrokerInitializers)
+        foreach (var initializer in _serviceBrokerInitializers)
         {
             try
             {
-                onInitialized.OnServiceBrokerInitialized(container.GetFullAccessServiceBroker(), _cancellationTokenSource.Token);
+                initializer.OnServiceBrokerInitialized(container.GetFullAccessServiceBroker(), _cancellationTokenSource.Token);
             }
             catch (Exception)
             {

@@ -67,42 +67,59 @@ internal sealed class ManagedHotReloadLanguageServiceFactory : IEditAndContinueS
         PdbMatchingSourceTextProvider sourceTextProvider,
         CancellationToken cancellationToken)
     {
-        var hotReloadStateProxy = new ManagedHotReloadStateProxy(serviceBroker);
-        var logReporter = new EditAndContinueLogReporter(serviceBroker, _listenerProvider);
+        IDisposable? eventSubscription = null;
+        IDisposable? providerRegistration = null;
 
-        var impl = new ManagedHotReloadLanguageServiceImpl(
-            _sessionState,
-            workspaceProvider,
-            hotReloadStateProxy,
-            solutionSnapshotProvider,
-            sourceTextProvider,
-            _activeStatementTrackingController,
-            logReporter,
-            _diagnosticRefresher);
+        try
+        {
+            var hotReloadStateProxy = new ManagedHotReloadStateProxy(serviceBroker);
+            var logReporter = new EditAndContinueLogReporter(serviceBroker, _listenerProvider);
 
-#pragma warning disable ISB001 // Dispose of proxies
-        var hotReloadEventSubscriber = await serviceBroker.GetProxyAsync<IHotReloadEventSubscriber>(
-            IHotReloadEventSubscriber.ServiceDescriptor,
-            new() { ClientRpcTarget = impl },
-            cancellationToken).ConfigureAwait(false);
-#pragma warning restore ISB001 // Dispose of proxies
-
-        Assumes.Present(hotReloadEventSubscriber);
-        using var _1 = hotReloadEventSubscriber as IDisposable;
-
-        var eventSubscription = await hotReloadEventSubscriber.SubscribeAsync(cancellationToken).ConfigureAwait(false);
+            var impl = new ManagedHotReloadLanguageServiceImpl(
+                _sessionState,
+                workspaceProvider,
+                hotReloadStateProxy,
+                solutionSnapshotProvider,
+                sourceTextProvider,
+                _activeStatementTrackingController,
+                logReporter,
+                _diagnosticRefresher);
 
 #pragma warning disable ISB001 // Dispose of proxies
-        var registrationService = await serviceBroker.GetProxyAsync<IManagedHotReloadUpdatesProviderRegistration>(IManagedHotReloadUpdatesProviderRegistration.ServiceDescriptor, cancellationToken).ConfigureAwait(false);
+            var hotReloadEventSubscriber = await serviceBroker.GetProxyAsync<IHotReloadEventSubscriber>(
+                IHotReloadEventSubscriber.ServiceDescriptor,
+                new() { ClientRpcTarget = impl },
+                cancellationToken).ConfigureAwait(false);
 #pragma warning restore ISB001 // Dispose of proxies
 
-        Assumes.Present(registrationService);
-        using var _2 = registrationService as IDisposable;
+            Assumes.Present(hotReloadEventSubscriber);
+            using var _1 = hotReloadEventSubscriber as IDisposable;
 
-        var providerRegistration = await registrationService.RegisterAsync(ManagedHotReloadUpdatesProviderDescriptor.Moniker, cancellationToken).ConfigureAwait(false);
+            eventSubscription = await hotReloadEventSubscriber.SubscribeAsync(cancellationToken).ConfigureAwait(false);
 
-        impl.SolutionCommitted += solution => SolutionCommitted?.Invoke(solution);
+#pragma warning disable ISB001 // Dispose of proxies
+            var registrationService = await serviceBroker.GetProxyAsync<IManagedHotReloadUpdatesProviderRegistration>(IManagedHotReloadUpdatesProviderRegistration.ServiceDescriptor, cancellationToken).ConfigureAwait(false);
+#pragma warning restore ISB001 // Dispose of proxies
 
-        return new ManagedHotReloadLanguageService(impl, eventSubscription, providerRegistration);
+            Assumes.Present(registrationService);
+            using var _2 = registrationService as IDisposable;
+
+            providerRegistration = await registrationService.RegisterAsync(ManagedHotReloadUpdatesProviderDescriptor.Moniker, cancellationToken).ConfigureAwait(false);
+
+            impl.SolutionCommitted += solution => SolutionCommitted?.Invoke(solution);
+
+            var service = new ManagedHotReloadLanguageService(impl, eventSubscription, providerRegistration);
+
+            // transfer ownership to the service instance
+            eventSubscription = null;
+            providerRegistration = null;
+
+            return service;
+        }
+        finally
+        {
+            eventSubscription?.Dispose();
+            providerRegistration?.Dispose();
+        }
     }
 }
