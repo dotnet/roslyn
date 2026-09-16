@@ -584,12 +584,19 @@ static bool IsTransient(HttpStatusCode status)
 
 // The leading dot is load-bearing: a bare suffix test would also accept a
 // lookalike host such as `notvisualstudio.com`.
+//
+// `.artifacts.visualstudio.com` rather than `.visualstudio.com`, because the
+// latter is the legacy per-organization namespace - anyone can register an
+// Azure DevOps organization and be handed `theirorg.visualstudio.com`, which
+// would make the allowlist self-service. The artifact service lives on the
+// regional `artprod*.artifacts.visualstudio.com` hosts, which is where the 612
+// `PipelineArtifact` downloads sampled across 33 real builds came from.
 static bool IsTrustedArtifactUrl(string url)
     => Uri.TryCreate(url, UriKind.Absolute, out var uri)
         && uri.Scheme == Uri.UriSchemeHttps
         && (uri.Host.Equals("dev.azure.com", StringComparison.OrdinalIgnoreCase)
             || uri.Host.EndsWith(".dev.azure.com", StringComparison.OrdinalIgnoreCase)
-            || uri.Host.EndsWith(".visualstudio.com", StringComparison.OrdinalIgnoreCase));
+            || uri.Host.EndsWith(".artifacts.visualstudio.com", StringComparison.OrdinalIgnoreCase));
 
 static bool IsRedirect(HttpStatusCode status)
     => status is HttpStatusCode.MovedPermanently or HttpStatusCode.Found or HttpStatusCode.SeeOther
@@ -787,15 +794,26 @@ static int RunExtractOnly(string[] extractArgs)
 // Extracts the *.binlog entries of one Azure DevOps build-log artifact.
 //
 // The archive comes from a PR-triggered build, so its entry paths, metadata and
-// contents are untrusted. Two properties keep extraction safe: destination names
-// are generated here rather than taken from the archive, so a traversal or
-// absolute path cannot choose where bytes land; and writing stops as soon as the
-// remaining budget is exceeded, so a zip bomb cannot fill the runner disk.
+// contents are untrusted. Three properties keep extraction safe: destination
+// names are generated here rather than taken from the archive, so a traversal or
+// absolute path cannot choose where bytes land; writing stops as soon as the
+// remaining budget is exceeded, so a zip bomb cannot fill the runner disk; and
+// the entry and binlog counts are capped, so an archive cannot turn a modest
+// byte budget into millions of filesystem operations.
 // Paths and types are validated up front because an archive containing a
 // traversal path or a link entry is hostile rather than merely odd, so the whole
 // artifact is rejected instead of partially extracted.
 static class Extractor
 {
+    // The byte budgets bound how much is written, never how many times. An
+    // archive of millions of tiny entries stays far inside them while still
+    // costing a validation pass over every entry and one output file per binlog,
+    // which is enough to exhaust inodes or run out the job's wall clock. These
+    // cap the counts instead, generously enough that a real build-log artifact -
+    // a handful of binlogs among the leg's logs - is nowhere near them.
+    private const int MaxEntries = 65536;
+    private const int MaxBinlogs = 256;
+
     public static (int Count, long Written) Extract(
         string archivePath, string destination, string prefix, long budgetBytes, string label)
     {
@@ -803,6 +821,13 @@ static class Extractor
         var safeLabel = Sanitize(label);
 
         using var zip = ZipFile.OpenRead(archivePath);
+
+        // Refuse an oversized archive before the validation pass below walks it
+        // and before anything is selected or written.
+        if (zip.Entries.Count > MaxEntries)
+        {
+            throw new InvalidDataException($"archive holds {zip.Entries.Count} entries, above the {MaxEntries} allowed");
+        }
 
         for (var i = 0; i < zip.Entries.Count; i++)
         {
@@ -815,6 +840,13 @@ static class Extractor
         var selected = zip.Entries
             .Where(entry => !IsDirectoryEntry(entry) && entry.FullName.EndsWith(".binlog", StringComparison.OrdinalIgnoreCase))
             .ToArray();
+
+        // One output file per binlog, so this is the cap that keeps a single
+        // artifact from filling the staging directory with entries.
+        if (selected.Length > MaxBinlogs)
+        {
+            throw new InvalidDataException($"archive holds {selected.Length} binlogs, above the {MaxBinlogs} allowed");
+        }
 
         Directory.CreateDirectory(destination);
 
