@@ -64,6 +64,51 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
 
         Assert.True(loadedSuccessfully);
         Assert.NotEmpty(loader.WorkspaceFactory.HostWorkspace.CurrentSolution.Projects);
+        Assert.Equal(1, loader.CacheLoadCount);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task ConcurrentCallersDoNotRepeatCacheInitialization(bool highPriority)
+    {
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var loader = server.GetRequiredLspService<TestProjectLoader>();
+        var designTimeBuild = loader.QueueDesignTimeBuild();
+        var projectPath = Path.Combine(TempRoot.Root, "Project.csproj");
+        var equivalentPath = Path.Combine(TempRoot.Root, "directory", "..", "Project.csproj");
+        var enteredCache = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseCache = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        loader.BeforeCacheLoadAsync = async (_, cancellationToken) =>
+        {
+            enteredCache.TrySetResult();
+            await releaseCache.Task.WaitAsync(cancellationToken);
+        };
+
+        var firstLoad = loader.BeginLoadAsync(projectPath);
+        await enteredCache.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        await designTimeBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        var secondLoad = highPriority
+            ? loader.BeginHighPriorityLoadAsync(equivalentPath)
+            : loader.BeginLoadAsync(equivalentPath);
+
+        try
+        {
+            Assert.Equal(1, loader.CacheLoadCount);
+            var joinedProject = await secondLoad.WaitAsync(TestHelpers.HangMitigatingTimeout);
+            Assert.False(firstLoad.IsCompleted);
+            Assert.False(joinedProject.WaitForLoadAsync(CancellationToken.None).AsTask().IsCompleted);
+        }
+        finally
+        {
+            releaseCache.SetResult();
+            await Task.WhenAll(firstLoad, secondLoad).WaitAsync(TestHelpers.HangMitigatingTimeout);
+        }
+
+        var loadedProject = await firstLoad;
+        Assert.Same(loadedProject, await secondLoad);
+        designTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
+        Assert.True(await loadedProject.WaitForLoadAsync(CancellationToken.None).AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout));
+        Assert.Equal(1, loader.CacheLoadCount);
+        Assert.Equal(1, loader.DesignTimeBuildCount);
     }
 
     [Fact]
@@ -84,6 +129,7 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         Assert.Same(firstLoadedProject, loadedProject);
         Assert.Equal(firstResult, await loadedProject.WaitForLoadAsync(CancellationToken.None));
         Assert.Equal(1, loader.DesignTimeBuildCount);
+        Assert.Equal(1, loader.CacheLoadCount);
     }
 
     [Fact]
@@ -104,6 +150,7 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         var normalPriorityProject = await loader.BeginLoadAsync(normalPriorityPath);
         var highPriorityProject = await loader.BeginLoadAsync(highPriorityPath);
         Assert.Same(highPriorityProject, await loader.BeginHighPriorityLoadAsync(highPriorityPath));
+        Assert.Same(highPriorityProject, await loader.BeginLoadAsync(highPriorityPath));
         blockingBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, blockingPath);
 
         Assert.Equal(
@@ -133,6 +180,7 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         build.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, path);
         await server.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
         Assert.Equal(1, loader.DesignTimeBuildCount);
+        Assert.Equal(1, loader.CacheLoadCount);
     }
 
     [Fact]
@@ -551,6 +599,7 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         var currentLoadedProject = await loader.BeginLoadAsync(projectPath);
 
         Assert.NotSame(staleLoadedProject, currentLoadedProject);
+        Assert.Equal(2, loader.CacheLoadCount);
         Assert.False(await staleLoadedProject.WaitForLoadAsync(CancellationToken.None));
         await currentDesignTimeBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
 
@@ -578,6 +627,8 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         var project = Assert.Single(loader.WorkspaceFactory.HostWorkspace.CurrentSolution.Projects);
         Assert.Contains("CACHED_PROJECT", project.ParseOptions!.PreprocessorSymbolNames);
         Assert.False(designTimeBuild.Result.Task.IsCompleted);
+        Assert.Same(loadedProject, await loader.BeginLoadAsync(projectPath));
+        Assert.Equal(1, loader.CacheLoadCount);
 
         designTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
     }
@@ -726,9 +777,11 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
     {
         private readonly ConcurrentQueue<ExpectedDesignTimeBuild> _expectedDesignTimeBuilds = new();
         private int _designTimeBuildCount;
+        private int _cacheLoadCount;
 
         public LanguageServerWorkspaceFactory WorkspaceFactory => _workspaceFactory;
         public int DesignTimeBuildCount => Volatile.Read(ref _designTimeBuildCount);
+        public int CacheLoadCount => Volatile.Read(ref _cacheLoadCount);
         public Dictionary<string, ImmutableArray<ProjectFileInfo>> CachedProjects { get; } = new(PathUtilities.Comparer);
         public int MaxNodeCountForTest { get; set; } = 2;
         public Func<string, CancellationToken, Task>? BeforeCacheLoadAsync { get; set; }
@@ -790,6 +843,7 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         protected override async Task<(ImmutableArray<ProjectFileInfo>, ProjectSystemProjectFactory)?> TryLoadProjectFromCacheAsync(
             string projectPath, CancellationToken cancellationToken)
         {
+            Interlocked.Increment(ref _cacheLoadCount);
             if (BeforeCacheLoadAsync is { } beforeCacheLoad)
                 await beforeCacheLoad(projectPath, cancellationToken);
 

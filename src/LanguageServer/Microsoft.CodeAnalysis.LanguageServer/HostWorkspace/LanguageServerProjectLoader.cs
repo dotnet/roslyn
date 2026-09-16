@@ -382,8 +382,11 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
     }
 
     /// <summary>
-    /// Begins loading a project. If the project has already begun loading, returns without doing any additional work.
+    /// Begins loading a project, or returns its existing load state without repeating cache initialization or queuing another build.
     /// </summary>
+    /// <remarks>
+    /// High-priority requests also promote an existing queued load. Other requests leave its priority unchanged.
+    /// </remarks>
     internal async Task<LoadedProject> BeginLoadingProjectAsync(
         string projectPath,
         ProjectReloadPriority priority = ProjectReloadPriority.Medium,
@@ -396,21 +399,23 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
         {
             Contract.ThrowIfTrue(_isDisposed, "Project loader is already disposed");
 
-            // If we haven't already started this project loading, then let's create a project and start it loading
-            if (!_loadedProjects.TryGetValue(projectPath, out loadedProject))
+            if (_loadedProjects.TryGetValue(projectPath, out loadedProject))
             {
-                loadedProject = new LoadedProject(projectPath, _fileChangeWatcher);
-                _loadedProjects.Add(projectPath, loadedProject);
+                if (priority == ProjectReloadPriority.High)
+                {
+                    _projectsToReload.ChangeWorkPriorityIfScheduled(
+                        loadedProject.ProjectFilePath,
+                        (int)ProjectReloadPriority.High);
+                }
 
-                loadedProject.NeedsReload += LoadedProject_NeedsReload;
-                _projectsToReload.AddWork(loadedProject.ProjectFilePath, priority: (int)priority);
+                return loadedProject;
             }
-            else if (priority == ProjectReloadPriority.High)
-            {
-                _projectsToReload.ChangeWorkPriorityIfScheduled(
-                    loadedProject.ProjectFilePath,
-                    (int)ProjectReloadPriority.High);
-            }
+
+            loadedProject = new LoadedProject(projectPath, _fileChangeWatcher);
+            _loadedProjects.Add(projectPath, loadedProject);
+
+            loadedProject.NeedsReload += LoadedProject_NeedsReload;
+            _projectsToReload.AddWork(loadedProject.ProjectFilePath, priority: (int)priority);
         }
 
         // Try to load the contents from the project cache if we have one; we'll do this outside the lock
