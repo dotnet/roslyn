@@ -30,18 +30,18 @@ internal sealed class ServiceBrokerFactory : ILspService
     private readonly ExportProvider _exportProvider;
     private Task _bridgeCompletionTask;
     private readonly CancellationTokenSource _cancellationTokenSource = new();
-    private readonly ImmutableArray<IServiceBrokerInitializer> _serviceBrokerInitializers;
+    private readonly ImmutableArray<IServiceBrokerInitializer> _initializers;
     private readonly ILoggerFactory _loggerFactory;
 
     public ServiceBrokerFactory(
-        IEnumerable<IServiceBrokerInitializer> onServiceBrokerInitialized,
+        IEnumerable<IServiceBrokerInitializer> initializers,
         ExportProvider exportProvider,
         ILoggerFactory loggerFactory)
     {
         _exportProvider = exportProvider;
         _loggerFactory = loggerFactory;
         _bridgeCompletionTask = Task.CompletedTask;
-        _serviceBrokerInitializers = [.. onServiceBrokerInitialized];
+        _initializers = [.. initializers];
     }
 
     /// <summary>
@@ -49,7 +49,13 @@ internal sealed class ServiceBrokerFactory : ILspService
     /// </summary>
     public async Task<BrokeredServiceContainer> CreateAsync(Workspace workspace)
     {
-        var container = await BrokeredServiceContainer.CreateAsync(_exportProvider, _serviceBrokerInitializers, _loggerFactory, _cancellationTokenSource.Token);
+        var cancellationToken = _cancellationTokenSource.Token;
+
+        var container = await BrokeredServiceContainer.CreateAsync(_exportProvider, _loggerFactory, cancellationToken);
+
+        // Register and proffer all services that come from service broker manual initialization
+        var servicesToRegister = _initializers.SelectMany(s => s.ServicesToRegister).ToDictionary(a => a.Key, a => a.Value);
+        container.RegisterServices(servicesToRegister);
 
         // Proffer the manifest service that describes the services proffered by this process across the bridge, so the other side can know what services to expect.
         ProfferBridgeManifest(container, _loggerFactory);
@@ -58,11 +64,18 @@ internal sealed class ServiceBrokerFactory : ILspService
         var provider = (ServiceBrokerProvider)workspace.Services.GetRequiredService<IServiceBrokerProvider>();
         provider.SetContainer(container);
 
-        foreach (var initializer in _serviceBrokerInitializers)
+        // Proffer might request dependent remote services from the container,
+        // so we need to proffer after the container is set up and services registered.
+        foreach (var initializer in _initializers)
+        {
+            await initializer.ProfferAsync(container, cancellationToken).ConfigureAwait(false);
+        }
+
+        foreach (var initializer in _initializers)
         {
             try
             {
-                initializer.OnServiceBrokerInitialized(container.GetFullAccessServiceBroker(), _cancellationTokenSource.Token);
+                initializer.OnServiceBrokerInitialized(container.GetFullAccessServiceBroker(), cancellationToken);
             }
             catch (Exception)
             {
