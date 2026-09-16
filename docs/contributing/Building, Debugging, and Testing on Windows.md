@@ -242,45 +242,27 @@ Before pushing a relevant fix to CI, you can validate locally using the `-testUs
 
 ## Troubleshooting
 
-### Build fails with "MSB3103: Invalid Resx file ... Could not find a part of the path"
+If you hit an unexpected build failure, especially one that doesn't reproduce on a clean
+clone, a good first step is to delete the `artifacts` folder and rebuild. If that doesn't
+help, the bigger hammer is `git clean -xdfn` (dry run) followed by `git clean -xdf`. Note
+that this also deletes the locally-provisioned `.dotnet` SDK, forcing a full restore and
+rebuild, so prefer just deleting `artifacts` first.
 
-If `Build.cmd` fails with errors like:
+For example, renaming or moving your clone can leave stale cached files under
+`artifacts\obj\...\*.xlf\` referencing the old path, which causes `Build.cmd` to fail with
+errors like:
 
 ```
 error MSB3103: Invalid Resx file. Could not find a part of the path
 '<OLD-PATH>\src\RoslynAnalyzers\Text.Analyzers\Core\Dictionary.dic'. [Text.Analyzers.csproj]
-error MSB3103: Invalid Resx file. Could not find a part of the path
-'<OLD-PATH>\src\Razor\...\Microsoft.VisualStudio.RazorExtension\Resources\RazorPackage.ico'. [Microsoft.VisualStudio.RazorExtension.csproj]
 ```
 
-where `<OLD-PATH>` is not the current location of your clone, the source `.resx` files are
-fine. The failing files are generated localized resources under `artifacts\obj\...\*.xlf\`.
-
 This happens because the [XliffTasks](https://github.com/dotnet/xliff-tasks) MSBuild tasks
-bake the **absolute** path of `ResXFileRef` entries into the cached translated `.resx` files
-placed in `artifacts\obj`. When you rename or move the repository root, those paths become
-stale. MSBuild's incremental-build check doesn't detect the rename because the file timestamps
-and contents haven't changed, so the cached files are never regenerated.
-
-**Fix (cheapest first):**
-
-- Delete only the stale generated resources and rebuild:
-  ```pwsh
-  Remove-Item -Recurse -Force artifacts\obj\Text.Analyzers\*\*\Text.Analyzers.xlf
-  Remove-Item -Recurse -Force artifacts\obj\Microsoft.VisualStudio.RazorExtension\*\*\Microsoft.VisualStudio.RazorExtension.xlf
-  ```
-  XliffTasks regenerates them with the correct path on the next build.
-- Or, the bigger hammer, `git clean -xdfn` (dry run) then `git clean -xdf`. Note this also
-  deletes the locally-provisioned `.dotnet` SDK and the entire `artifacts\` tree, forcing a
-  full restore + rebuild, so prefer the targeted delete above.
-
-**To avoid it:** When renaming your clone, delete `artifacts\obj` (or the two `*.xlf` folders
-above) afterwards.
-
-> **Upstream fix:** The root cause is being tracked in
-> [dotnet/xliff-tasks](https://github.com/dotnet/xliff-tasks). The fix is to store paths in
-> the cached translated `.resx` files as relative (relative to the output file) rather than
-> absolute, so the cached artifacts survive a repository rename.
+bake the **absolute** path of `ResXFileRef` entries into those cached translated `.resx`
+files, and MSBuild's incremental-build check doesn't detect the rename because the file
+timestamps and contents haven't changed. Deleting `artifacts\obj` (or just the affected
+`.xlf` folders) as described above resolves it. This is being tracked upstream in
+[dotnet/xliff-tasks](https://github.com/dotnet/xliff-tasks).
 
 ## Contributing
 
