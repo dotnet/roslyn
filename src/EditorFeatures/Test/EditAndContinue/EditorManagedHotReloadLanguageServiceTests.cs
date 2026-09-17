@@ -149,49 +149,94 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
             (!string.IsNullOrWhiteSpace(d.FilePath) ? $" {d.FilePath}({d.Span.StartLine}, {d.Span.StartColumn}, {d.Span.EndLine}, {d.Span.EndColumn}):" : "") +
             $" {d.Message}";
 
-    private TestWorkspace CreateEditorWorkspace(out Solution solution, out EditAndContinueService service, out ManagedHotReloadLanguageService languageService, out HR.IHotReloadEventListener eventListener, out PdbMatchingSourceTextProvider sourceTextProvider, Type[] additionalParts = null)
+    private static TestWorkspace CreateWorkspace(TestComposition composition)
     {
-        var composition = EditorTestCompositions.EditorFeatures
-            .AddParts(
-                typeof(MockHostWorkspaceProvider),
-                typeof(MockManagedHotReloadService),
-                typeof(MockServiceBrokerProvider))
-            .AddParts(additionalParts);
-
         var workspace = new TestWorkspace(composition: composition, solutionTelemetryId: s_solutionTelemetryId);
+        ((MockHostWorkspaceProvider)workspace.GetService<IHostWorkspaceProvider>()).Workspace = workspace;
+        return workspace;
+    }
 
-        var serviceBroker = new TestServiceBroker((_, t) => t switch
+    private static async Task<ManagedHotReloadLanguageService> CreateServiceAsync(IServiceBroker serviceBroker, TestWorkspace workspace, PdbMatchingSourceTextProvider sourceTextProvider)
+    {
+        var localFactory = workspace.GetService<ManagedHotReloadLanguageServiceFactory>();
+        var localSnapshotProvider = workspace.GetService<ISolutionSnapshotProvider>();
+        var workspaceProvider = workspace.GetService<IHostWorkspaceProvider>();
+
+        var impl = localFactory.CreateImplementation(serviceBroker, localSnapshotProvider, workspaceProvider, sourceTextProvider);
+        var service = new ManagedHotReloadLanguageService(_ => impl);
+        await service.InitializeAsync(serviceBroker, CancellationToken.None);
+        return service;
+    }
+
+    private static TestServiceBroker CreateServiceBroker()
+        => new((_, t) => t switch
         {
             _ when t == typeof(DebuggerContracts.IHotReloadLogger) => new MockHotReloadLogger(),
             _ when t == typeof(HR.IManagedHotReloadState) => new TestManagedHotReloadService(["Baseline"]),
             _ => throw ExceptionUtilities.UnexpectedValue(t)
         });
 
-        ((MockHostWorkspaceProvider)workspace.GetService<IHostWorkspaceProvider>()).Workspace = workspace;
+    private sealed class EditorTestContext(
+        TestWorkspace workspace,
+        Solution solution,
+        EditAndContinueService workspaceService,
+        ManagedHotReloadLanguageService brokeredService,
+        HR.IHotReloadEventListener eventListener,
+        PdbMatchingSourceTextProvider sourceTextProvider) : IDisposable
+    {
+        public TestWorkspace Workspace => workspace;
+        public Solution Solution => solution;
+        public EditAndContinueService WorkspaceService => workspaceService;
+        public ManagedHotReloadLanguageService BrokeredService => brokeredService;
+        public HR.IHotReloadEventListener EventListener => eventListener;
+        public PdbMatchingSourceTextProvider PdbMatchingSourceTextProvider => sourceTextProvider;
 
-        solution = workspace.CurrentSolution;
-        service = GetEditAndContinueService(workspace);
+        public static async Task<EditorTestContext> CreateAsync(EditorManagedHotReloadLanguageServiceTests test, Type[] additionalParts = null)
+        {
+            var composition = EditorTestCompositions.EditorFeatures
+                .AddParts(
+                    typeof(MockHostWorkspaceProvider),
+                    typeof(MockManagedHotReloadService),
+                    typeof(MockServiceBrokerProvider))
+                .AddParts(additionalParts);
 
-        sourceTextProvider = new PdbMatchingSourceTextProvider(workspace);
+            var workspace = CreateWorkspace(composition);
+            var solution = workspace.CurrentSolution;
+            var workspaceService = test.GetEditAndContinueService(workspace);
 
-        var factory = workspace.GetService<ManagedHotReloadLanguageServiceFactory>();
-        var solutionSnapshotProvider = workspace.GetService<ISolutionSnapshotProvider>();
-        languageService = (ManagedHotReloadLanguageService)factory.CreateAsync(serviceBroker, solutionSnapshotProvider, workspace.GetService<IHostWorkspaceProvider>(), sourceTextProvider, CancellationToken.None).AsTask().GetAwaiter().GetResult();
-        eventListener = serviceBroker.HotReloadEventListener;
-        return workspace;
+            var serviceBroker = CreateServiceBroker();
+            var sourceTextProvider = new PdbMatchingSourceTextProvider(workspace);
+            var brokeredService = await CreateServiceAsync(serviceBroker, workspace, sourceTextProvider);
+            var eventListener = serviceBroker.HotReloadEventListener;
+
+            return new EditorTestContext(workspace, solution, workspaceService, brokeredService, eventListener, sourceTextProvider);
+        }
+
+        public void Dispose()
+        {
+            BrokeredService.Dispose();
+            Workspace.Dispose();
+            PdbMatchingSourceTextProvider.Dispose();
+        }
     }
 
-    private class TestContext : IDisposable
+    private class TestContext(
+        TestWorkspace workspace,
+        TestServiceBroker serviceBroker,
+        PdbMatchingSourceTextProvider sourceTextProvider,
+        ManagedHotReloadLanguageService brokeredService) : IDisposable
     {
-        public readonly TestWorkspace LocalWorkspace;
-        public readonly PdbMatchingSourceTextProvider PdbMatchingSourceTextProvider;
-        public readonly MockEditAndContinueService MockEncService;
-        public readonly ManagedHotReloadLanguageService LocalService;
-        public readonly HR.IHotReloadEventListener EventListener;
+        public readonly MockEditAndContinueService MockEncService
+            = (MockEditAndContinueService)workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
 
-        public TestContext()
+        public TestWorkspace LocalWorkspace => workspace;
+        public PdbMatchingSourceTextProvider PdbMatchingSourceTextProvider => sourceTextProvider;
+        public HR.IHotReloadEventListener EventListener => serviceBroker.HotReloadEventListener;
+        public ManagedHotReloadLanguageService LocalService => brokeredService;
+
+        public static async Task<TestContext> CreateAsync()
         {
-            var localComposition = EditorTestCompositions.LanguageServerProtocolEditorFeatures
+            var composition = EditorTestCompositions.LanguageServerProtocolEditorFeatures
                 .AddExcludedPartTypes(
                     typeof(EditAndContinueService.WorkspaceServiceFactory))
                 .AddParts(
@@ -201,26 +246,12 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
                     typeof(MockEditAndContinueServiceFactory),
                     typeof(MockManagedHotReloadService));
 
-            LocalWorkspace = new TestWorkspace(composition: localComposition);
+            var serviceBroker = CreateServiceBroker();
 
-            var globalOptions = LocalWorkspace.GetService<IGlobalOptionService>();
-            ((MockHostWorkspaceProvider)LocalWorkspace.GetService<IHostWorkspaceProvider>()).Workspace = LocalWorkspace;
-
-            var serviceBroker = new TestServiceBroker((_, t) => t switch
-            {
-                _ when t == typeof(DebuggerContracts.IHotReloadLogger) => new MockHotReloadLogger(),
-                _ when t == typeof(HR.IManagedHotReloadState) => new TestManagedHotReloadService(["Baseline"]),
-                _ => throw ExceptionUtilities.UnexpectedValue(t)
-            });
-
-            MockEncService = (MockEditAndContinueService)LocalWorkspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
-
-            var localFactory = LocalWorkspace.GetService<ManagedHotReloadLanguageServiceFactory>();
-            var localSnapshotProvider = LocalWorkspace.GetService<ISolutionSnapshotProvider>();
-            PdbMatchingSourceTextProvider = new PdbMatchingSourceTextProvider(LocalWorkspace);
-            var impl = localFactory.CreateImplementation(serviceBroker, localSnapshotProvider, LocalWorkspace.GetService<IHostWorkspaceProvider>(), PdbMatchingSourceTextProvider);
-            LocalService = new ManagedHotReloadLanguageService(_ => impl);
-            EventListener = serviceBroker.HotReloadEventListener;
+            var workspace = CreateWorkspace(composition);
+            var sourceTextProvider = new PdbMatchingSourceTextProvider(workspace);
+            var brokeredService = await CreateServiceAsync(serviceBroker, workspace, sourceTextProvider);
+            return new TestContext(workspace, serviceBroker, sourceTextProvider, brokeredService);
         }
 
         public void Dispose()
@@ -234,7 +265,7 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
     [Theory, CombinatorialData]
     public async Task Test(bool commitChanges)
     {
-        using var context = new TestContext();
+        using var context = await TestContext.CreateAsync();
 
         var localWorkspace = context.LocalWorkspace;
         var mockEncService = context.MockEncService;
@@ -478,7 +509,7 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
     [InlineData(SolutionAction.PendingUpdate, false)]
     internal async Task SolutionActions(SolutionAction solutionAction, bool? commit)
     {
-        using var context = new TestContext();
+        using var context = await TestContext.CreateAsync();
 
         var localService = context.LocalService;
         var localWorkspace = context.LocalWorkspace;
@@ -556,9 +587,13 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
         var dir = Temp.CreateDirectory();
         var sourceFile = dir.CreateFile("test.cs").WriteAllText(source1, Encoding.UTF8);
 
-        using var workspace = CreateEditorWorkspace(out var solution, out var service, out var languageService, out var eventListener, out var sourceTextProvider);
-        using var _2 = languageService;
-        using var _1 = sourceTextProvider;
+        using var context = await EditorTestContext.CreateAsync(this);
+
+        var workspace = context.Workspace;
+        var solution = context.Solution;
+        var service = context.WorkspaceService;
+        var eventListener = context.EventListener;
+        var sourceTextProvider = context.PdbMatchingSourceTextProvider;
 
         var projectId = ProjectId.CreateNewId();
         var documentId = DocumentId.CreateNewId(projectId);
