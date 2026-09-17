@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 using Microsoft.VisualStudio.HotReload;
 
@@ -15,27 +16,63 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// Wrapper of <see cref="ManagedHotReloadLanguageServiceImpl"/> implementing closed-source debugger contract interfaces.
 /// Created via <see cref="ManagedHotReloadLanguageServiceFactory"/> and manually proffered as a brokered service.
 /// </summary>
-internal sealed class ManagedHotReloadLanguageService(ManagedHotReloadLanguageServiceImpl impl, IDisposable eventListener, IDisposable providerRegistration) : IManagedHotReloadUpdatesProvider, IDisposable
+internal sealed class ManagedHotReloadLanguageService(Func<IServiceBroker, ManagedHotReloadLanguageServiceImpl> implFactory) : IManagedHotReloadUpdatesProvider, IDisposable
 {
+    private ManagedHotReloadLanguageServiceImpl? _impl;
+    private IDisposable? _eventSubscription;
+    private IDisposable? _providerRegistration;
+
+    internal async ValueTask InitializeAsync(IServiceBroker serviceBroker, CancellationToken cancellationToken)
+    {
+        Contract.ThrowIfFalse(_impl is null);
+
+        _impl = implFactory(serviceBroker);
+
+#pragma warning disable ISB001 // Dispose of proxies
+        var hotReloadEventSubscriber = await serviceBroker.GetProxyAsync<IHotReloadEventSubscriber>(
+            IHotReloadEventSubscriber.ServiceDescriptor,
+            new() { ClientRpcTarget = _impl },
+            cancellationToken).ConfigureAwait(false);
+#pragma warning restore ISB001 // Dispose of proxies
+
+        Assumes.Present(hotReloadEventSubscriber);
+        using var _1 = hotReloadEventSubscriber as IDisposable;
+
+        _eventSubscription = await hotReloadEventSubscriber.SubscribeAsync(cancellationToken).ConfigureAwait(false);
+
+#pragma warning disable ISB001 // Dispose of proxies
+        var registrationService = await serviceBroker.GetProxyAsync<IManagedHotReloadUpdatesProviderRegistration>(IManagedHotReloadUpdatesProviderRegistration.ServiceDescriptor, cancellationToken).ConfigureAwait(false);
+#pragma warning restore ISB001 // Dispose of proxies
+
+        Assumes.Present(registrationService);
+        using var _2 = registrationService as IDisposable;
+
+        _providerRegistration = await registrationService.RegisterAsync(ManagedHotReloadUpdatesProviderDescriptor.Moniker, cancellationToken).ConfigureAwait(false);
+    }
+
     public void Dispose()
     {
-        eventListener.Dispose();
-        providerRegistration.Dispose();
+        _eventSubscription?.Dispose();
+        _providerRegistration?.Dispose();
     }
 
     // internal for testing:
-    internal ManagedHotReloadLanguageServiceImpl Impl
-        => impl;
+    internal ManagedHotReloadLanguageServiceImpl GetImplementation()
+    {
+        Contract.ThrowIfNull(_impl);
+        return _impl;
+    }
 
     public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<RunningProjectInfo> runningProjects, CancellationToken cancellationToken)
-        => (await impl.GetUpdatesAsync(runningProjects.SelectAsArray(rp => rp.ToContract()), cancellationToken).ConfigureAwait(false)).FromContract();
+        => (await GetImplementation().GetUpdatesAsync(runningProjects.SelectAsArray(rp => rp.ToContract()), cancellationToken).ConfigureAwait(false)).FromContract();
 
     public ValueTask CommitUpdatesAsync(CancellationToken cancellationToken)
-        => impl.CommitUpdatesAsync(cancellationToken);
+        => GetImplementation().CommitUpdatesAsync(cancellationToken);
 
     public ValueTask DiscardUpdatesAsync(CancellationToken cancellationToken)
-        => impl.DiscardUpdatesAsync(cancellationToken);
+        => GetImplementation().DiscardUpdatesAsync(cancellationToken);
 
     public ValueTask<bool> HasChangesAsync(string? sourceFilePath, CancellationToken cancellationToken)
-        => impl.HasChangesAsync(sourceFilePath, cancellationToken);
+        => GetImplementation().HasChangesAsync(sourceFilePath, cancellationToken);
+
 }

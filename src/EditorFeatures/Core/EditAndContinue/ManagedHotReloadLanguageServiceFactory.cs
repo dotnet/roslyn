@@ -18,32 +18,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// <summary>
 /// Factory that creates the hot reload brokered service stack. Non-brokered dependencies are resolved via MEF;
 /// brokered-service-dependent components and the host's <see cref="IHostWorkspaceProvider"/> are passed
-/// to <see cref="CreateAsync"/>.
+/// to <see cref="CreateImplementation"/>.
 /// </summary>
 [Shared]
 [Export(typeof(ManagedHotReloadLanguageServiceFactory))]
 [Export(typeof(IEditAndContinueSolutionProvider))]
-internal sealed class ManagedHotReloadLanguageServiceFactory : IEditAndContinueSolutionProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class ManagedHotReloadLanguageServiceFactory(
+    EditAndContinueSessionState sessionState,
+    IActiveStatementTrackingController activeStatementTrackingController,
+    IDiagnosticsRefresher diagnosticRefresher,
+    IAsynchronousOperationListenerProvider listenerProvider) : IEditAndContinueSolutionProvider
 {
-    private readonly EditAndContinueSessionState _sessionState;
-    private readonly IActiveStatementTrackingController _activeStatementTrackingController;
-    private readonly IDiagnosticsRefresher _diagnosticRefresher;
-    private readonly IAsynchronousOperationListenerProvider _listenerProvider;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ManagedHotReloadLanguageServiceFactory(
-        EditAndContinueSessionState sessionState,
-        IActiveStatementTrackingController activeStatementTrackingController,
-        IDiagnosticsRefresher diagnosticRefresher,
-        IAsynchronousOperationListenerProvider listenerProvider)
-    {
-        _sessionState = sessionState;
-        _activeStatementTrackingController = activeStatementTrackingController;
-        _diagnosticRefresher = diagnosticRefresher;
-        _listenerProvider = listenerProvider;
-    }
-
     public static readonly ServiceRpcDescriptor ServiceDescriptor = IManagedHotReloadUpdatesProvider.CreateServiceDescriptor(ManagedHotReloadUpdatesProviderDescriptor.Moniker);
 
     public event Action<Solution>? SolutionCommitted;
@@ -60,66 +47,26 @@ internal sealed class ManagedHotReloadLanguageServiceFactory : IEditAndContinueS
     /// Per-host source text provider, observing the host's <see cref="WorkspaceKind.Host"/> workspace. Owned by the caller
     /// (the per-server hot reload stack), which is responsible for disposing it when the host/server shuts down.
     /// </param>
-    public async ValueTask<IManagedHotReloadUpdatesProvider> CreateAsync(
+    public ManagedHotReloadLanguageServiceImpl CreateImplementation(
         IServiceBroker serviceBroker,
         ISolutionSnapshotProvider solutionSnapshotProvider,
         IHostWorkspaceProvider workspaceProvider,
-        PdbMatchingSourceTextProvider sourceTextProvider,
-        CancellationToken cancellationToken)
+        PdbMatchingSourceTextProvider sourceTextProvider)
     {
-        IDisposable? eventSubscription = null;
-        IDisposable? providerRegistration = null;
+        var hotReloadStateProxy = new ManagedHotReloadStateProxy(serviceBroker);
+        var logReporter = new EditAndContinueLogReporter(serviceBroker, listenerProvider);
 
-        try
-        {
-            var hotReloadStateProxy = new ManagedHotReloadStateProxy(serviceBroker);
-            var logReporter = new EditAndContinueLogReporter(serviceBroker, _listenerProvider);
+        var impl = new ManagedHotReloadLanguageServiceImpl(
+            sessionState,
+            workspaceProvider,
+            hotReloadStateProxy,
+            solutionSnapshotProvider,
+            sourceTextProvider,
+            activeStatementTrackingController,
+            logReporter,
+            diagnosticRefresher);
 
-            var impl = new ManagedHotReloadLanguageServiceImpl(
-                _sessionState,
-                workspaceProvider,
-                hotReloadStateProxy,
-                solutionSnapshotProvider,
-                sourceTextProvider,
-                _activeStatementTrackingController,
-                logReporter,
-                _diagnosticRefresher);
-
-#pragma warning disable ISB001 // Dispose of proxies
-            var hotReloadEventSubscriber = await serviceBroker.GetProxyAsync<IHotReloadEventSubscriber>(
-                IHotReloadEventSubscriber.ServiceDescriptor,
-                new() { ClientRpcTarget = impl },
-                cancellationToken).ConfigureAwait(false);
-#pragma warning restore ISB001 // Dispose of proxies
-
-            Assumes.Present(hotReloadEventSubscriber);
-            using var _1 = hotReloadEventSubscriber as IDisposable;
-
-            eventSubscription = await hotReloadEventSubscriber.SubscribeAsync(cancellationToken).ConfigureAwait(false);
-
-#pragma warning disable ISB001 // Dispose of proxies
-            var registrationService = await serviceBroker.GetProxyAsync<IManagedHotReloadUpdatesProviderRegistration>(IManagedHotReloadUpdatesProviderRegistration.ServiceDescriptor, cancellationToken).ConfigureAwait(false);
-#pragma warning restore ISB001 // Dispose of proxies
-
-            Assumes.Present(registrationService);
-            using var _2 = registrationService as IDisposable;
-
-            providerRegistration = await registrationService.RegisterAsync(ManagedHotReloadUpdatesProviderDescriptor.Moniker, cancellationToken).ConfigureAwait(false);
-
-            impl.SolutionCommitted += solution => SolutionCommitted?.Invoke(solution);
-
-            var service = new ManagedHotReloadLanguageService(impl, eventSubscription, providerRegistration);
-
-            // transfer ownership to the service instance
-            eventSubscription = null;
-            providerRegistration = null;
-
-            return service;
-        }
-        finally
-        {
-            eventSubscription?.Dispose();
-            providerRegistration?.Dispose();
-        }
+        impl.SolutionCommitted += solution => SolutionCommitted?.Invoke(solution);
+        return impl;
     }
 }

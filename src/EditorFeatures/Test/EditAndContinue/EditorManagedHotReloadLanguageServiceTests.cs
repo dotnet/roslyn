@@ -218,7 +218,8 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
             var localFactory = LocalWorkspace.GetService<ManagedHotReloadLanguageServiceFactory>();
             var localSnapshotProvider = LocalWorkspace.GetService<ISolutionSnapshotProvider>();
             PdbMatchingSourceTextProvider = new PdbMatchingSourceTextProvider(LocalWorkspace);
-            LocalService = (ManagedHotReloadLanguageService)localFactory.CreateAsync(serviceBroker, localSnapshotProvider, LocalWorkspace.GetService<IHostWorkspaceProvider>(), PdbMatchingSourceTextProvider, CancellationToken.None).AsTask().GetAwaiter().GetResult();
+            var impl = localFactory.CreateImplementation(serviceBroker, localSnapshotProvider, LocalWorkspace.GetService<IHostWorkspaceProvider>(), PdbMatchingSourceTextProvider);
+            LocalService = new ManagedHotReloadLanguageService(_ => impl);
             EventListener = serviceBroker.HotReloadEventListener;
         }
 
@@ -481,7 +482,7 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
 
         var localService = context.LocalService;
         var localWorkspace = context.LocalWorkspace;
-        var serviceImpl = localService.Impl.GetTestAccessor();
+        var serviceImpl = localService.GetImplementation().GetTestAccessor();
 
         context.MockEncService.StartDebuggingSessionImpl = (_, _, _, _) => new DebuggingSessionId(1);
 

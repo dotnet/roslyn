@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.ServiceHub.Framework;
+using Microsoft.VisualStudio.HotReload;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Microsoft.VisualStudio.Utilities.ServiceBroker;
 
@@ -39,35 +40,42 @@ internal sealed class DevKitHotReloadServiceContributorFactory(
     }
 }
 
-internal sealed class DevKitHotReloadServiceContributor(
-    ManagedHotReloadLanguageServiceFactory factory,
-    IHostWorkspaceProvider workspaceProvider,
-    SolutionSnapshotRegistry solutionSnapshotRegistry) : IServiceBrokerInitializer, ILspService, IDisposable
+internal sealed class DevKitHotReloadServiceContributor : IServiceBrokerInitializer, ILspService, IDisposable
 {
     /// <summary>
     /// Per-server source text provider, observing this server's host workspace. Owned (and disposed) here so that each
     /// in-process LSP server gets its own provider bound to its own host workspace.
     /// </summary>
-    private readonly PdbMatchingSourceTextProvider _sourceTextProvider = new(workspaceProvider.Workspace);
+    private readonly PdbMatchingSourceTextProvider _sourceTextProvider;
+
+    private readonly ManagedHotReloadLanguageService _service;
+    private readonly SolutionSnapshotRegistry _solutionSnapshotRegistry;
+
+    public DevKitHotReloadServiceContributor(
+        ManagedHotReloadLanguageServiceFactory factory,
+        IHostWorkspaceProvider workspaceProvider,
+        SolutionSnapshotRegistry solutionSnapshotRegistry)
+    {
+        _solutionSnapshotRegistry = solutionSnapshotRegistry;
+        _sourceTextProvider = new(workspaceProvider.Workspace);
+
+        _service = new ManagedHotReloadLanguageService(serviceBroker =>
+        {
+            var solutionSnapshotProvider = new LspSolutionSnapshotProvider(serviceBroker, _solutionSnapshotRegistry);
+            return factory.CreateImplementation(serviceBroker, solutionSnapshotProvider, workspaceProvider, _sourceTextProvider);
+        });
+    }
 
     public ImmutableDictionary<ServiceMoniker, ServiceRegistration> ServicesToRegister => new Dictionary<ServiceMoniker, ServiceRegistration>
     {
         { ManagedHotReloadUpdatesProviderDescriptor.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) }
     }.ToImmutableDictionary();
 
-    public async ValueTask ProfferAsync(GlobalBrokeredServiceContainer container, CancellationToken cancellationToken)
-    {
-        var serviceBroker = container.GetFullAccessServiceBroker();
-        var solutionSnapshotProvider = new LspSolutionSnapshotProvider(serviceBroker, solutionSnapshotRegistry);
+    public void Proffer(GlobalBrokeredServiceContainer container)
+        => container.Proffer(ManagedHotReloadLanguageServiceFactory.ServiceDescriptor, async (_, _, _, _) => _service);
 
-        var hotReloadService = await factory.CreateAsync(serviceBroker, solutionSnapshotProvider, workspaceProvider, _sourceTextProvider, cancellationToken).ConfigureAwait(false);
-
-        container.Proffer(ManagedHotReloadLanguageServiceFactory.ServiceDescriptor, async (_, _, _, _) => hotReloadService);
-    }
-
-    public void OnServiceBrokerInitialized(IServiceBroker serviceBroker, CancellationToken cancellationToken)
-    {
-    }
+    public ValueTask OnServiceBrokerInitializedAsync(IServiceBroker serviceBroker, CancellationToken cancellationToken)
+        => _service.InitializeAsync(serviceBroker, cancellationToken);
 
     public void Dispose()
         => _sourceTextProvider.Dispose();

@@ -39,7 +39,7 @@ internal sealed class DevKitProjectLoadingServiceContributor(
         { WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) }
     }.ToImmutableDictionary();
 
-    public async ValueTask ProfferAsync(GlobalBrokeredServiceContainer container, CancellationToken cancellationToken)
+    public void Proffer(GlobalBrokeredServiceContainer container)
     {
         container.Proffer(
             WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor,
@@ -55,7 +55,6 @@ internal sealed class DevKitProjectLoadingServiceContributor(
             });
     }
 
-    public void OnServiceBrokerInitialized(IServiceBroker serviceBroker, CancellationToken cancellationToken)
-    {
-    }
+    public ValueTask OnServiceBrokerInitializedAsync(IServiceBroker serviceBroker, CancellationToken cancellationToken)
+        => ValueTask.CompletedTask;
 }
