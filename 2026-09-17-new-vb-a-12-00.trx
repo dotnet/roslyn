@@ -1,0 +1,1356 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="e3cba870-38e5-46a9-96b1-9f405046b560" name="mwiemer@CPC-mwiem-JQR2A 2026-09-17 11:55:11" runUser="REDMOND\mwiemer" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-09-17T11:55:11.8921315-07:00" queuing="2026-09-17T11:55:11.8921315-07:00" start="2026-09-17T11:53:34.3773793-07:00" finish="2026-09-17T12:00:34.0775655-07:00" />
+  <TestSettings name="default" id="957da067-491d-4dcd-a414-50dcea8e3177">
+    <Deployment runDeploymentRoot="mwiemer_CPC-mwiem-JQR2A_2026-09-17_11_55_11" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="e0914d1f-1e4c-4e51-b35a-ac7dffb341b3" testId="529851eb-4282-ada2-2b84-1be535410608" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSignatureHelp.GenericMethodSignatureHelp1 (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.7960000" startTime="2026-09-17T11:55:50.7201609-07:00" endTime="2026-09-17T11:55:53.0456397-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e0914d1f-1e4c-4e51-b35a-ac7dffb341b3" />
+    <UnitTestResult executionId="4ad8d7b9-85bb-4796-9dec-46c68c3eb964" testId="1c7f5128-c93e-d0e8-8751-296ce76b3746" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicOrganizing.RemoveAndSort (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.1320000" startTime="2026-09-17T11:59:36.6129815-07:00" endTime="2026-09-17T11:59:38.1609848-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4ad8d7b9-85bb-4796-9dec-46c68c3eb964" />
+    <UnitTestResult executionId="2be77c6b-e4d9-4efa-917b-de0050581201" testId="0f11ef1b-6694-926e-3e7b-ceed8bbaa6df" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeCapitalizedRename (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T12:00:33.9217481-07:00" endTime="2026-09-17T12:00:33.9227431-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2be77c6b-e4d9-4efa-917b-de0050581201">
+      <Output>
+        <ErrorInfo>
+          <Message>System.InvalidOperationException : Test did not run due to a harness failure.&#xD;
+---- System.InvalidOperationException : Key '806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d' already exists in the message metadata cache.&#xD;
+Old item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null&#xD;
+New item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null</Message>
+          <StackTrace>&#xD;
+----- Inner Stack Trace -----&#xD;
+&#xD;
+Server stack trace: &#xD;
+   at System.Runtime.Remoting.Messaging.StackBuilderSink._PrivateProcessMessage(IntPtr md, Object[] args, Object server, Object[]&amp; outArgs)&#xD;
+   at System.Runtime.Remoting.Messaging.StackBuilderSink.SyncProcessMessage(IMessage msg)&#xD;
+&#xD;
+Exception rethrown at [0]: &#xD;
+   at System.Runtime.Remoting.Proxies.RealProxy.HandleReturnMessage(IMessage reqMsg, IMessage retMsg)&#xD;
+   at System.Runtime.Remoting.Proxies.RealProxy.PrivateInvoke(MessageData&amp; msgData, Int32 type)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="5a90c712-c9bd-4b3d-800e-86b370edff00" testId="4baaa1b1-1bc7-51b0-0b31-944fb577be79" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSignatureHelp.VerifyActiveParameterChanges (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.5880000" startTime="2026-09-17T11:55:43.3102129-07:00" endTime="2026-09-17T11:55:45.0333548-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5a90c712-c9bd-4b3d-800e-86b370edff00" />
+    <UnitTestResult executionId="88e2ed2c-dabb-4def-af6f-a139ef8d4faa" testId="1d2b0039-d514-fb6d-a16b-4e89bab0f2ba" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit.CommitOnSave (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:59:56.6056437-07:00" endTime="2026-09-17T12:00:02.8282342-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="88e2ed2c-dabb-4def-af6f-a139ef8d4faa">
+      <Output>
+        <ErrorInfo>
+          <Message>Test will automatically retry.</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="a7a7c268-7bc3-4123-9a2a-ae93e3bc420f" testId="33f5871e-8584-bc62-efa8-726c8182ae05" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicWinForms.RemoveEventHandler (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:01.5390000" startTime="2026-09-17T11:55:29.1810825-07:00" endTime="2026-09-17T11:55:32.1108760-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a7a7c268-7bc3-4123-9a2a-ae93e3bc420f" />
+    <UnitTestResult executionId="79ea3fde-90b2-4af7-a612-b47808ecb51c" testId="97a62e7c-8c6b-2bd4-9d03-7235d9b20534" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSignatureHelp.JaggedMultidimensionalArray (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.7100000" startTime="2026-09-17T11:55:46.7569560-07:00" endTime="2026-09-17T11:55:48.8405481-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="79ea3fde-90b2-4af7-a612-b47808ecb51c" />
+    <UnitTestResult executionId="edcd917d-d444-4ae4-a922-ae5badab6031" testId="284b3fc5-d133-a73f-9f7f-486abf6c560a" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyLocalVariableRename (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T12:00:33.8360829-07:00" endTime="2026-09-17T12:00:33.8466179-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="edcd917d-d444-4ae4-a922-ae5badab6031">
+      <Output>
+        <ErrorInfo>
+          <Message>System.InvalidOperationException : Test did not run due to a harness failure.&#xD;
+---- System.InvalidOperationException : Key '806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d' already exists in the message metadata cache.&#xD;
+Old item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null&#xD;
+New item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null</Message>
+          <StackTrace>&#xD;
+----- Inner Stack Trace -----&#xD;
+&#xD;
+Server stack trace: &#xD;
+   at System.Runtime.Remoting.Messaging.StackBuilderSink._PrivateProcessMessage(IntPtr md, Object[] args, Object server, Object[]&amp; outArgs)&#xD;
+   at System.Runtime.Remoting.Messaging.StackBuilderSink.SyncProcessMessage(IMessage msg)&#xD;
+&#xD;
+Exception rethrown at [0]: &#xD;
+   at System.Runtime.Remoting.Proxies.RealProxy.HandleReturnMessage(IMessage reqMsg, IMessage retMsg)&#xD;
+   at System.Runtime.Remoting.Proxies.RealProxy.PrivateInvoke(MessageData&amp; msgData, Int32 type)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="50b1d4bb-6b0e-4078-8c16-a2d1c1ec05e2" testId="bc9dd6e2-b216-0f07-0a5e-0028e21335a7" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicWinForms.ChangeControlProperty (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:01.1220000" startTime="2026-09-17T11:55:18.0339689-07:00" endTime="2026-09-17T11:55:20.4843138-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="50b1d4bb-6b0e-4078-8c16-a2d1c1ec05e2" />
+    <UnitTestResult executionId="44af1aab-2e9d-4889-a911-2670f2b305ea" testId="a700a427-8011-c54d-f12b-f39f09b173d4" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicNavigationBar.VerifyEvents (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:01.7240000" startTime="2026-09-17T11:59:40.6549760-07:00" endTime="2026-09-17T11:59:43.5686106-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="44af1aab-2e9d-4889-a911-2670f2b305ea" />
+    <UnitTestResult executionId="21c714ec-a207-4dca-9d4f-8a731e125314" testId="276047c4-339a-ef6f-e8b4-1a70ff198a31" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicNavigationBar.VerifyNavBar (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:01.7160000" startTime="2026-09-17T11:59:43.6132474-07:00" endTime="2026-09-17T11:59:46.4398132-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="21c714ec-a207-4dca-9d4f-8a731e125314" />
+    <UnitTestResult executionId="bdaa9838-e328-438e-ada8-fcb5e5857017" testId="be8e7353-05e3-474e-41af-4897c16ec5a7" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit.CommitOnFocusLostDoesNotFormatWithPrettyListingOff (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:01.4700000" startTime="2026-09-17T11:59:53.9346649-07:00" endTime="2026-09-17T11:59:56.5606699-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="bdaa9838-e328-438e-ada8-fcb5e5857017" />
+    <UnitTestResult executionId="8c711afe-12e4-45ed-8d2b-8956dc43cd3c" testId="bf05a703-f2cf-3561-5976-ba7bd26e8aac" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit.CaseCorrection (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.2990000" startTime="2026-09-17T11:59:52.4323146-07:00" endTime="2026-09-17T11:59:53.8951435-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8c711afe-12e4-45ed-8d2b-8956dc43cd3c" />
+    <UnitTestResult executionId="e546addd-f72f-4078-8db3-543d5fc747c6" testId="9075bf53-1cee-7db3-270f-da5fe80e4e2d" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicNavigateTo.NavigateTo (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:59:47.6962236-07:00" endTime="2026-09-17T11:59:47.7012182-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e546addd-f72f-4078-8db3-543d5fc747c6">
+      <Output>
+        <ErrorInfo>
+          <Message>https://github.com/dotnet/roslyn/issues/69364</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="693b9af6-2ef9-43f6-98fe-a5ad9463b352" testId="38c5d2e3-3774-f093-9501-cba978f7ad23" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit.CommitOnFocusLost (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:01.6170000" startTime="2026-09-17T11:59:49.5029509-07:00" endTime="2026-09-17T11:59:52.3919698-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="693b9af6-2ef9-43f6-98fe-a5ad9463b352" />
+    <UnitTestResult executionId="60da4693-9b01-4efb-aefe-503e9840938d" testId="8b4cc4f0-654e-bb4d-478b-860ec352f1d4" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicReferenceHighlighting.Highlighting (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.6410000" startTime="2026-09-17T11:59:31.7222797-07:00" endTime="2026-09-17T11:59:33.6676285-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="60da4693-9b01-4efb-aefe-503e9840938d" />
+    <UnitTestResult executionId="90ea763f-cde0-475e-8cdb-e5a89fe1b503" testId="76c97766-b6ff-63d7-2621-3d3a0ff3d3b1" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicKeywordHighlighting.NavigationBetweenKeywords (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.5830000" startTime="2026-09-17T12:00:06.1453669-07:00" endTime="2026-09-17T12:00:07.9766384-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="90ea763f-cde0-475e-8cdb-e5a89fe1b503" />
+    <UnitTestResult executionId="ce3263ce-b103-4709-89a5-94cc32208eac" testId="284b3fc5-d133-a73f-9f7f-486abf6c560a" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyLocalVariableRename (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:56:32.8185386-07:00" endTime="2026-09-17T11:57:08.3559704-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ce3263ce-b103-4709-89a5-94cc32208eac">
+      <Output>
+        <ErrorInfo>
+          <Message>Test will automatically retry.</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="146757be-73dd-453e-b66c-fac5e77655a4" testId="f26a661c-1ede-fdf8-7ab7-755ad00ee49a" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit.UndoWithoutEndConstruct (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T12:00:33.9332831-07:00" endTime="2026-09-17T12:00:33.9362814-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="146757be-73dd-453e-b66c-fac5e77655a4">
+      <Output>
+        <ErrorInfo>
+          <Message>System.InvalidOperationException : Test did not run due to a harness failure.&#xD;
+---- System.InvalidOperationException : Key '806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d' already exists in the message metadata cache.&#xD;
+Old item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null&#xD;
+New item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null</Message>
+          <StackTrace>&#xD;
+----- Inner Stack Trace -----&#xD;
+&#xD;
+Server stack trace: &#xD;
+   at System.Runtime.Remoting.Messaging.StackBuilderSink._PrivateProcessMessage(IntPtr md, Object[] args, Object server, Object[]&amp; outArgs)&#xD;
+   at System.Runtime.Remoting.Messaging.StackBuilderSink.SyncProcessMessage(IMessage msg)&#xD;
+&#xD;
+Exception rethrown at [0]: &#xD;
+   at System.Runtime.Remoting.Proxies.RealProxy.HandleReturnMessage(IMessage reqMsg, IMessage retMsg)&#xD;
+   at System.Runtime.Remoting.Proxies.RealProxy.PrivateInvoke(MessageData&amp; msgData, Int32 type)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="f1071eb6-ad7a-46d0-8cbc-51946233dcd6" testId="c59818c9-b7ac-25c6-3ede-eefc216dff9b" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSquigglesDesktop.VerifySyntaxErrorSquiggles (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:55:43.1795689-07:00" endTime="2026-09-17T11:55:43.1835676-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f1071eb6-ad7a-46d0-8cbc-51946233dcd6">
+      <Output>
+        <ErrorInfo>
+          <Message>https://github.com/dotnet/roslyn/issues/72428</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="f2b3d282-c11d-4af0-8cdb-61eed51caf15" testId="47854ee6-dfd2-a4fb-ea26-95dd32880ea0" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSignatureHelp.HandleBufferTextChangesDuringComputation (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.4340000" startTime="2026-09-17T11:55:45.0713233-07:00" endTime="2026-09-17T11:55:46.7179241-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f2b3d282-c11d-4af0-8cdb-61eed51caf15" />
+    <UnitTestResult executionId="b918b6af-29d7-4705-a5be-84c7cfd2b165" testId="20fc4f8f-fae2-d012-e1ea-3d435e592f49" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRename (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T12:00:33.9077173-07:00" endTime="2026-09-17T12:00:33.9087141-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b918b6af-29d7-4705-a5be-84c7cfd2b165">
+      <Output>
+        <ErrorInfo>
+          <Message>System.InvalidOperationException : Test did not run due to a harness failure.&#xD;
+---- System.InvalidOperationException : Key '806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d' already exists in the message metadata cache.&#xD;
+Old item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null&#xD;
+New item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null</Message>
+          <StackTrace>&#xD;
+----- Inner Stack Trace -----&#xD;
+&#xD;
+Server stack trace: &#xD;
+   at System.Runtime.Remoting.Messaging.StackBuilderSink._PrivateProcessMessage(IntPtr md, Object[] args, Object server, Object[]&amp; outArgs)&#xD;
+   at System.Runtime.Remoting.Messaging.StackBuilderSink.SyncProcessMessage(IMessage msg)&#xD;
+&#xD;
+Exception rethrown at [0]: &#xD;
+   at System.Runtime.Remoting.Proxies.RealProxy.HandleReturnMessage(IMessage reqMsg, IMessage retMsg)&#xD;
+   at System.Runtime.Remoting.Proxies.RealProxy.PrivateInvoke(MessageData&amp; msgData, Int32 type)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="27a32bfd-dbcf-4769-88f4-8f969bf090e9" testId="1792e1a0-0863-c264-a9e7-89031b30aa50" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicWinForms.RenameControl (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:05.7420000" startTime="2026-09-17T11:55:35.4895219-07:00" endTime="2026-09-17T11:55:42.6766217-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="27a32bfd-dbcf-4769-88f4-8f969bf090e9" />
+    <UnitTestResult executionId="5ebeb162-3588-44d8-b69b-73603ba12bcc" testId="51fbf47b-1f5c-8d7a-9659-beee082343bb" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicWinForms.ChangeAccessibility (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:01.7640000" startTime="2026-09-17T11:55:26.0079117-07:00" endTime="2026-09-17T11:55:29.1414481-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5ebeb162-3588-44d8-b69b-73603ba12bcc" />
+    <UnitTestResult executionId="f51de512-1af9-4f97-bad3-3353c267c5b2" testId="fa321790-23ff-00cb-a906-555a778d0918" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRenameWhileRenameClasss (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T12:00:33.8661480-07:00" endTime="2026-09-17T12:00:33.8681677-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f51de512-1af9-4f97-bad3-3353c267c5b2">
+      <Output>
+        <ErrorInfo>
+          <Message>System.InvalidOperationException : Test did not run due to a harness failure.&#xD;
+---- System.InvalidOperationException : Key '806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d' already exists in the message metadata cache.&#xD;
+Old item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null&#xD;
+New item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null</Message>
+          <StackTrace>&#xD;
+----- Inner Stack Trace -----&#xD;
+&#xD;
+Server stack trace: &#xD;
+   at System.Runtime.Remoting.Messaging.StackBuilderSink._PrivateProcessMessage(IntPtr md, Object[] args, Object server, Object[]&amp; outArgs)&#xD;
+   at System.Runtime.Remoting.Messaging.StackBuilderSink.SyncProcessMessage(IMessage msg)&#xD;
+&#xD;
+Exception rethrown at [0]: &#xD;
+   at System.Runtime.Remoting.Proxies.RealProxy.HandleReturnMessage(IMessage reqMsg, IMessage retMsg)&#xD;
+   at System.Runtime.Remoting.Proxies.RealProxy.PrivateInvoke(MessageData&amp; msgData, Int32 type)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="f594c8a4-187c-42d0-a97c-d7224f2547b0" testId="1fa65d01-6a6c-27d7-600c-1582306dcc0e" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicWinForms.AddControl (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:01.0430000" startTime="2026-09-17T11:55:11.9056523-07:00" endTime="2026-09-17T11:55:14.4037379-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f594c8a4-187c-42d0-a97c-d7224f2547b0" />
+    <UnitTestResult executionId="418ec7f8-fd0d-4dad-af75-324a110b65d1" testId="34714321-7466-8ae3-c571-889d40db34d9" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSquigglesNetCore.VerifySyntaxErrorSquiggles (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:55:43.1253089-07:00" endTime="2026-09-17T11:55:43.1298272-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="418ec7f8-fd0d-4dad-af75-324a110b65d1">
+      <Output>
+        <ErrorInfo>
+          <Message>https://github.com/dotnet/roslyn/issues/72428</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="d19d85d4-264d-4a1e-814e-65c3672d6326" testId="5c61eb72-1489-a46f-c8d8-70ffd60ead2a" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicWinForms.AddClickHandler (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:01.6380000" startTime="2026-09-17T11:55:32.1485701-07:00" endTime="2026-09-17T11:55:35.4487835-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d19d85d4-264d-4a1e-814e-65c3672d6326" />
+    <UnitTestResult executionId="6f11a19d-ac28-46cb-a1f0-818c19f11da5" testId="82938cf0-d6af-7b05-0c1f-d9f9e20f8b47" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicWinForms.DeleteControl (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:02.2020000" startTime="2026-09-17T11:55:14.4475019-07:00" endTime="2026-09-17T11:55:17.9946163-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6f11a19d-ac28-46cb-a1f0-818c19f11da5" />
+    <UnitTestResult executionId="04210329-103a-4376-b41a-9b11885d13a7" testId="d9ce716b-af8c-f047-fd33-159d03c6e1f6" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicIntelliSense.CtrlAltSpace (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.8580000" startTime="2026-09-17T12:00:09.6827368-07:00" endTime="2026-09-17T12:00:11.8319705-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="04210329-103a-4376-b41a-9b11885d13a7" />
+    <UnitTestResult executionId="1e3b5c8e-ed07-493a-a740-1b49ce5b0701" testId="7b735933-2e9a-1524-ee7b-22db993af9d8" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicIntelliSense.CtrlAltSpaceOption (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.2390000" startTime="2026-09-17T12:00:08.1244914-07:00" endTime="2026-09-17T12:00:09.6370175-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1e3b5c8e-ed07-493a-a740-1b49ce5b0701" />
+    <UnitTestResult executionId="d1b7c7f8-d21f-4b2a-a7e0-eedb0272c52b" testId="0a0a9f84-f1f8-977c-c414-b7488df9c61d" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRenameWhileRenameAttributeClass (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:58:55.8234991-07:00" endTime="2026-09-17T11:59:31.6463474-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d1b7c7f8-d21f-4b2a-a7e0-eedb0272c52b">
+      <Output>
+        <ErrorInfo>
+          <Message>Test will automatically retry.</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="629b7370-2e8b-4907-9281-9089c03ab413" testId="fa321790-23ff-00cb-a906-555a778d0918" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRenameWhileRenameClasss (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:58:20.0549530-07:00" endTime="2026-09-17T11:58:55.7737158-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="629b7370-2e8b-4907-9281-9089c03ab413">
+      <Output>
+        <ErrorInfo>
+          <Message>Test will automatically retry.</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="e7827cbb-af0c-4ac9-8859-19c861565cb0" testId="e96dc27c-27a6-a368-5a6e-e2bb605eb135" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRenameWhileRenameAttribute (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T12:00:33.8941783-07:00" endTime="2026-09-17T12:00:33.8966922-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e7827cbb-af0c-4ac9-8859-19c861565cb0">
+      <Output>
+        <ErrorInfo>
+          <Message>System.InvalidOperationException : Test did not run due to a harness failure.&#xD;
+---- System.InvalidOperationException : Key '806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d' already exists in the message metadata cache.&#xD;
+Old item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null&#xD;
+New item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null</Message>
+          <StackTrace>&#xD;
+----- Inner Stack Trace -----&#xD;
+&#xD;
+Server stack trace: &#xD;
+   at System.Runtime.Remoting.Messaging.StackBuilderSink._PrivateProcessMessage(IntPtr md, Object[] args, Object server, Object[]&amp; outArgs)&#xD;
+   at System.Runtime.Remoting.Messaging.StackBuilderSink.SyncProcessMessage(IMessage msg)&#xD;
+&#xD;
+Exception rethrown at [0]: &#xD;
+   at System.Runtime.Remoting.Proxies.RealProxy.HandleReturnMessage(IMessage reqMsg, IMessage retMsg)&#xD;
+   at System.Runtime.Remoting.Proxies.RealProxy.PrivateInvoke(MessageData&amp; msgData, Int32 type)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="65a08940-a583-4e62-89a0-8abfb533e021" testId="c46179d9-bce8-f457-b324-397b3a1c7877" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSquigglesNetCore.VerifySemanticErrorSquiggles (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:55:43.0883464-07:00" endTime="2026-09-17T11:55:43.0943487-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="65a08940-a583-4e62-89a0-8abfb533e021">
+      <Output>
+        <ErrorInfo>
+          <Message>https://github.com/dotnet/roslyn/issues/61367</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="aea50c51-b290-4310-8110-9c87ab743e7a" testId="b35e07dc-e07a-619b-5467-e5335bf4ebca" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyLocalVariableRenameWithCommentsUpdated (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:57:44.1428941-07:00" endTime="2026-09-17T11:57:44.1479275-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="aea50c51-b290-4310-8110-9c87ab743e7a">
+      <Output>
+        <ErrorInfo>
+          <Message>https://github.com/dotnet/roslyn/issues/63576</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="df9aa169-e568-401a-972d-43308c2de39b" testId="6de93a2b-9cab-b674-0471-7c893594e64c" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicWinForms.TestMyIntelliSense (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:03.7560000" startTime="2026-09-17T11:55:20.5348080-07:00" endTime="2026-09-17T11:55:25.9642952-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="df9aa169-e568-401a-972d-43308c2de39b" />
+    <UnitTestResult executionId="57298230-9c3f-4e4e-ab26-ad061b538033" testId="1d2b0039-d514-fb6d-a16b-4e89bab0f2ba" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit.CommitOnSave (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T12:00:33.9468187-07:00" endTime="2026-09-17T12:00:33.9518203-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="57298230-9c3f-4e4e-ab26-ad061b538033">
+      <Output>
+        <ErrorInfo>
+          <Message>System.InvalidOperationException : Test did not run due to a harness failure.&#xD;
+---- System.InvalidOperationException : Key '806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d' already exists in the message metadata cache.&#xD;
+Old item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null&#xD;
+New item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null</Message>
+          <StackTrace>&#xD;
+----- Inner Stack Trace -----&#xD;
+&#xD;
+Server stack trace: &#xD;
+   at System.Runtime.Remoting.Messaging.StackBuilderSink._PrivateProcessMessage(IntPtr md, Object[] args, Object server, Object[]&amp; outArgs)&#xD;
+   at System.Runtime.Remoting.Messaging.StackBuilderSink.SyncProcessMessage(IMessage msg)&#xD;
+&#xD;
+Exception rethrown at [0]: &#xD;
+   at System.Runtime.Remoting.Proxies.RealProxy.HandleReturnMessage(IMessage reqMsg, IMessage retMsg)&#xD;
+   at System.Runtime.Remoting.Proxies.RealProxy.PrivateInvoke(MessageData&amp; msgData, Int32 type)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="b2615730-01fa-4edf-a5c6-ede49b33c27f" testId="a6b0ae22-8e09-dd99-d644-051ec6c7af11" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeNotCapitalizedRename (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:57:44.1084776-07:00" endTime="2026-09-17T11:57:44.1164910-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b2615730-01fa-4edf-a5c6-ede49b33c27f">
+      <Output>
+        <ErrorInfo>
+          <Message>https://github.com/dotnet/roslyn/issues/79300</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="8d7bac11-c00b-4047-89e3-f30033647267" testId="aa6efeb9-3e07-64ba-a5a4-9edbb765e416" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit.UndoWithEndConstruct (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.5540000" startTime="2026-09-17T11:59:47.8034922-07:00" endTime="2026-09-17T11:59:49.4624997-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8d7bac11-c00b-4047-89e3-f30033647267" />
+    <UnitTestResult executionId="83972fc1-17bb-4a62-ae07-1a9f8e26bcd5" testId="20fc4f8f-fae2-d012-e1ea-3d435e592f49" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRename (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:57:44.1869494-07:00" endTime="2026-09-17T11:58:20.0079813-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="83972fc1-17bb-4a62-ae07-1a9f8e26bcd5">
+      <Output>
+        <ErrorInfo>
+          <Message>Test will automatically retry.</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="a1ff85ad-8617-4b2e-9266-722b5a464873" testId="d3ca7b3c-2746-6a20-33c9-24703d19d5d2" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicOutlining.Outlining (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.1990000" startTime="2026-09-17T11:59:35.0572017-07:00" endTime="2026-09-17T11:59:36.5484122-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a1ff85ad-8617-4b2e-9266-722b5a464873" />
+    <UnitTestResult executionId="70e194b7-2808-4cb5-90f9-a7139d15d748" testId="0a0a9f84-f1f8-977c-c414-b7488df9c61d" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRenameWhileRenameAttributeClass (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T12:00:33.8811660-07:00" endTime="2026-09-17T12:00:33.8831798-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="70e194b7-2808-4cb5-90f9-a7139d15d748">
+      <Output>
+        <ErrorInfo>
+          <Message>System.InvalidOperationException : Test did not run due to a harness failure.&#xD;
+---- System.InvalidOperationException : Key '806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d' already exists in the message metadata cache.&#xD;
+Old item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null&#xD;
+New item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null</Message>
+          <StackTrace>&#xD;
+----- Inner Stack Trace -----&#xD;
+&#xD;
+Server stack trace: &#xD;
+   at System.Runtime.Remoting.Messaging.StackBuilderSink._PrivateProcessMessage(IntPtr md, Object[] args, Object server, Object[]&amp; outArgs)&#xD;
+   at System.Runtime.Remoting.Messaging.StackBuilderSink.SyncProcessMessage(IMessage msg)&#xD;
+&#xD;
+Exception rethrown at [0]: &#xD;
+   at System.Runtime.Remoting.Proxies.RealProxy.HandleReturnMessage(IMessage reqMsg, IMessage retMsg)&#xD;
+   at System.Runtime.Remoting.Proxies.RealProxy.PrivateInvoke(MessageData&amp; msgData, Int32 type)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="32862f5f-f4fe-400a-82b9-3ffcb9bc39e4" testId="0f11ef1b-6694-926e-3e7b-ceed8bbaa6df" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeCapitalizedRename (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:55:56.6180620-07:00" endTime="2026-09-17T11:56:32.7736711-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="32862f5f-f4fe-400a-82b9-3ffcb9bc39e4">
+      <Output>
+        <ErrorInfo>
+          <Message>Test will automatically retry.</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="36d44a9b-1c0e-460d-b823-87ac75bd9ba3" testId="0f5e9b10-015c-997a-7a0b-59cc3de191ef" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicNavigationBar.VerifyOption (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0360000" startTime="2026-09-17T11:59:46.4829717-07:00" endTime="2026-09-17T11:59:47.6419722-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="36d44a9b-1c0e-460d-b823-87ac75bd9ba3" />
+    <UnitTestResult executionId="20f915d4-8474-4eb5-bcdc-086570f1f83f" testId="960ecd13-f6a4-4427-b586-d1a9570fa0bb" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicTempPE.TempPEServiceWorks (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0770000" startTime="2026-09-17T11:55:42.7468655-07:00" endTime="2026-09-17T11:55:43.0182170-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="20f915d4-8474-4eb5-bcdc-086570f1f83f" />
+    <UnitTestResult executionId="54c58b46-92c9-4ed2-afb9-876d55ca6278" testId="e96dc27c-27a6-a368-5a6e-e2bb605eb135" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRenameWhileRenameAttribute (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:57:08.4641086-07:00" endTime="2026-09-17T11:57:44.0586732-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="54c58b46-92c9-4ed2-afb9-876d55ca6278">
+      <Output>
+        <ErrorInfo>
+          <Message>Test will automatically retry.</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="b65da0a0-5044-45f4-a4c3-ca129dc221d3" testId="b1c1fcfc-d65d-6972-7926-17278cb20080" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyLocalVariableRenameWithStringsUpdated (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:57:08.4238980-07:00" endTime="2026-09-17T11:57:08.4278982-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b65da0a0-5044-45f4-a4c3-ca129dc221d3">
+      <Output>
+        <ErrorInfo>
+          <Message>https://github.com/dotnet/roslyn/issues/63576</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="32c31197-0b82-493d-bffc-679d4d05cd4b" testId="fc80acfa-5b2b-8ae0-19fd-1fc72d4f8ca9" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicNavigationBar.CodeSpit (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:01.0900000" startTime="2026-09-17T11:59:38.2443232-07:00" endTime="2026-09-17T11:59:40.6135393-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="32c31197-0b82-493d-bffc-679d4d05cd4b" />
+    <UnitTestResult executionId="18ddb89f-065e-4162-82a1-9b3ddfaae392" testId="1f22d582-3f7c-4e71-89d0-a5668e19e3bd" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSignatureHelp.GenericMethodSignatureHelp_InvokeSighelp (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0740000" startTime="2026-09-17T11:55:55.0954076-07:00" endTime="2026-09-17T11:55:56.4838006-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="18ddb89f-065e-4162-82a1-9b3ddfaae392" />
+    <UnitTestResult executionId="1c2bbc8c-2ec6-46b1-9a02-d106aac16d41" testId="7b8764c2-0dc3-0c55-d9ae-4d738f92f852" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicWinForms.ChangeControlPropertyInCode (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:07.2140000" startTime="2026-09-17T11:54:54.6976935-07:00" endTime="2026-09-17T11:55:11.8333802-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1c2bbc8c-2ec6-46b1-9a02-d106aac16d41" />
+    <UnitTestResult executionId="1271fd10-2c32-4eb7-83cc-273d6a04c01d" testId="67dc381c-d4b1-ffab-b9ac-2f6db67cd7a4" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSquigglesDesktop.VerifySemanticErrorSquiggles (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:55:43.2081760-07:00" endTime="2026-09-17T11:55:43.2131978-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1271fd10-2c32-4eb7-83cc-273d6a04c01d">
+      <Output>
+        <ErrorInfo>
+          <Message>https://github.com/dotnet/roslyn/issues/61367</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="da83a757-6fa5-48f5-a80d-9626159caf69" testId="0ec02fbe-5eff-6ed4-bdc8-0e84e468291c" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSignatureHelp.GenericMethodSignatureHelp2 (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.6130000" startTime="2026-09-17T11:55:53.1061118-07:00" endTime="2026-09-17T11:55:55.0489505-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="da83a757-6fa5-48f5-a80d-9626159caf69" />
+    <UnitTestResult executionId="8336cede-7dfa-4861-8d55-5cba4a60a8ac" testId="f26a661c-1ede-fdf8-7ab7-755ad00ee49a" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit.UndoWithoutEndConstruct (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T12:00:02.8758968-07:00" endTime="2026-09-17T12:00:06.0677877-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8336cede-7dfa-4861-8d55-5cba4a60a8ac">
+      <Output>
+        <ErrorInfo>
+          <Message>Test will automatically retry.</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="c8330480-9032-4744-932c-d6882c2c9a56" testId="29a22f6e-0896-7dbc-64f1-065f26f0e103" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSignatureHelp.MethodSignatureHelp (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.5760000" startTime="2026-09-17T11:55:48.8778464-07:00" endTime="2026-09-17T11:55:50.6780156-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c8330480-9032-4744-932c-d6882c2c9a56" />
+    <UnitTestResult executionId="55ab61c1-e2aa-468a-b9c5-533ea40fb6f1" testId="8de76d9a-a62c-8cbe-596a-fdcde713266a" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicProjectExistsUIContext.ProjectContextChanges (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.8540000" startTime="2026-09-17T11:59:33.7560605-07:00" endTime="2026-09-17T11:59:35.0010583-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="55ab61c1-e2aa-468a-b9c5-533ea40fb6f1" />
+    <UnitTestResult executionId="6d706000-2d77-4b23-b88c-07bbb5663ccc" testId="697942c0-c1ce-05d1-1a44-b83dc1e5c493" testName="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyOverloadsUpdated (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:57:08.3925484-07:00" endTime="2026-09-17T11:57:08.3971857-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6d706000-2d77-4b23-b88c-07bbb5663ccc">
+      <Output>
+        <ErrorInfo>
+          <Message>https://github.com/dotnet/roslyn/issues/63576</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicNavigationBar.VerifyEvents (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="a700a427-8011-c54d-f12b-f39f09b173d4">
+      <Execution id="44af1aab-2e9d-4889-a911-2670f2b305ea" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicNavigationBar" name="VerifyEvents" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicWinForms.ChangeControlProperty (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="bc9dd6e2-b216-0f07-0a5e-0028e21335a7">
+      <Execution id="50b1d4bb-6b0e-4078-8c16-a2d1c1ec05e2" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicWinForms" name="ChangeControlProperty" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSignatureHelp.GenericMethodSignatureHelp_InvokeSighelp (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="1f22d582-3f7c-4e71-89d0-a5668e19e3bd">
+      <Execution id="18ddb89f-065e-4162-82a1-9b3ddfaae392" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSignatureHelp" name="GenericMethodSignatureHelp_InvokeSighelp" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicWinForms.RenameControl (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="1792e1a0-0863-c264-a9e7-89031b30aa50">
+      <Execution id="27a32bfd-dbcf-4769-88f4-8f969bf090e9" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicWinForms" name="RenameControl" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit.CommitOnFocusLost (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="38c5d2e3-3774-f093-9501-cba978f7ad23">
+      <Execution id="693b9af6-2ef9-43f6-98fe-a5ad9463b352" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit" name="CommitOnFocusLost" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSignatureHelp.JaggedMultidimensionalArray (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="97a62e7c-8c6b-2bd4-9d03-7235d9b20534">
+      <Execution id="79ea3fde-90b2-4af7-a612-b47808ecb51c" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSignatureHelp" name="JaggedMultidimensionalArray" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSignatureHelp.GenericMethodSignatureHelp2 (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="0ec02fbe-5eff-6ed4-bdc8-0e84e468291c">
+      <Execution id="da83a757-6fa5-48f5-a80d-9626159caf69" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSignatureHelp" name="GenericMethodSignatureHelp2" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicProjectExistsUIContext.ProjectContextChanges (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="8de76d9a-a62c-8cbe-596a-fdcde713266a">
+      <Execution id="55ab61c1-e2aa-468a-b9c5-533ea40fb6f1" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicProjectExistsUIContext" name="ProjectContextChanges" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyLocalVariableRename (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="284b3fc5-d133-a73f-9f7f-486abf6c560a">
+      <Execution id="ce3263ce-b103-4709-89a5-94cc32208eac" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename" name="VerifyLocalVariableRename" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSquigglesNetCore.VerifySemanticErrorSquiggles (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="c46179d9-bce8-f457-b324-397b3a1c7877">
+      <Execution id="65a08940-a583-4e62-89a0-8abfb533e021" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSquigglesNetCore" name="VerifySemanticErrorSquiggles" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicIntelliSense.CtrlAltSpace (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="d9ce716b-af8c-f047-fd33-159d03c6e1f6">
+      <Execution id="04210329-103a-4376-b41a-9b11885d13a7" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicIntelliSense" name="CtrlAltSpace" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit.UndoWithEndConstruct (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="aa6efeb9-3e07-64ba-a5a4-9edbb765e416">
+      <Execution id="8d7bac11-c00b-4047-89e3-f30033647267" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit" name="UndoWithEndConstruct" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSquigglesNetCore.VerifySyntaxErrorSquiggles (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="34714321-7466-8ae3-c571-889d40db34d9">
+      <Execution id="418ec7f8-fd0d-4dad-af75-324a110b65d1" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSquigglesNetCore" name="VerifySyntaxErrorSquiggles" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicKeywordHighlighting.NavigationBetweenKeywords (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="76c97766-b6ff-63d7-2621-3d3a0ff3d3b1">
+      <Execution id="90ea763f-cde0-475e-8cdb-e5a89fe1b503" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicKeywordHighlighting" name="NavigationBetweenKeywords" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicWinForms.AddClickHandler (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="5c61eb72-1489-a46f-c8d8-70ffd60ead2a">
+      <Execution id="d19d85d4-264d-4a1e-814e-65c3672d6326" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicWinForms" name="AddClickHandler" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSignatureHelp.VerifyActiveParameterChanges (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="4baaa1b1-1bc7-51b0-0b31-944fb577be79">
+      <Execution id="5a90c712-c9bd-4b3d-800e-86b370edff00" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSignatureHelp" name="VerifyActiveParameterChanges" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicIntelliSense.CtrlAltSpaceOption (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="7b735933-2e9a-1524-ee7b-22db993af9d8">
+      <Execution id="1e3b5c8e-ed07-493a-a740-1b49ce5b0701" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicIntelliSense" name="CtrlAltSpaceOption" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSquigglesDesktop.VerifySemanticErrorSquiggles (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="67dc381c-d4b1-ffab-b9ac-2f6db67cd7a4">
+      <Execution id="1271fd10-2c32-4eb7-83cc-273d6a04c01d" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSquigglesDesktop" name="VerifySemanticErrorSquiggles" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicWinForms.RemoveEventHandler (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="33f5871e-8584-bc62-efa8-726c8182ae05">
+      <Execution id="a7a7c268-7bc3-4123-9a2a-ae93e3bc420f" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicWinForms" name="RemoveEventHandler" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSignatureHelp.MethodSignatureHelp (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="29a22f6e-0896-7dbc-64f1-065f26f0e103">
+      <Execution id="c8330480-9032-4744-932c-d6882c2c9a56" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSignatureHelp" name="MethodSignatureHelp" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit.UndoWithoutEndConstruct (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="f26a661c-1ede-fdf8-7ab7-755ad00ee49a">
+      <Execution id="8336cede-7dfa-4861-8d55-5cba4a60a8ac" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit" name="UndoWithoutEndConstruct" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit.CommitOnFocusLostDoesNotFormatWithPrettyListingOff (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="be8e7353-05e3-474e-41af-4897c16ec5a7">
+      <Execution id="bdaa9838-e328-438e-ada8-fcb5e5857017" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit" name="CommitOnFocusLostDoesNotFormatWithPrettyListingOff" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicOrganizing.RemoveAndSort (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="1c7f5128-c93e-d0e8-8751-296ce76b3746">
+      <Execution id="4ad8d7b9-85bb-4796-9dec-46c68c3eb964" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicOrganizing" name="RemoveAndSort" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyOverloadsUpdated (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="697942c0-c1ce-05d1-1a44-b83dc1e5c493">
+      <Execution id="6d706000-2d77-4b23-b88c-07bbb5663ccc" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename" name="VerifyOverloadsUpdated" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicWinForms.ChangeControlPropertyInCode (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="7b8764c2-0dc3-0c55-d9ae-4d738f92f852">
+      <Execution id="1c2bbc8c-2ec6-46b1-9a02-d106aac16d41" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicWinForms" name="ChangeControlPropertyInCode" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit.CommitOnSave (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="1d2b0039-d514-fb6d-a16b-4e89bab0f2ba">
+      <Execution id="88e2ed2c-dabb-4def-af6f-a139ef8d4faa" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit" name="CommitOnSave" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicWinForms.AddControl (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="1fa65d01-6a6c-27d7-600c-1582306dcc0e">
+      <Execution id="f594c8a4-187c-42d0-a97c-d7224f2547b0" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicWinForms" name="AddControl" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicNavigateTo.NavigateTo (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="9075bf53-1cee-7db3-270f-da5fe80e4e2d">
+      <Execution id="e546addd-f72f-4078-8db3-543d5fc747c6" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicNavigateTo" name="NavigateTo" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicTempPE.TempPEServiceWorks (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="960ecd13-f6a4-4427-b586-d1a9570fa0bb">
+      <Execution id="20f915d4-8474-4eb5-bcdc-086570f1f83f" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicTempPE" name="TempPEServiceWorks" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSquigglesDesktop.VerifySyntaxErrorSquiggles (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="c59818c9-b7ac-25c6-3ede-eefc216dff9b">
+      <Execution id="f1071eb6-ad7a-46d0-8cbc-51946233dcd6" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSquigglesDesktop" name="VerifySyntaxErrorSquiggles" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRenameWhileRenameAttributeClass (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="0a0a9f84-f1f8-977c-c414-b7488df9c61d">
+      <Execution id="d1b7c7f8-d21f-4b2a-a7e0-eedb0272c52b" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename" name="VerifyAttributeRenameWhileRenameAttributeClass" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyLocalVariableRenameWithStringsUpdated (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="b1c1fcfc-d65d-6972-7926-17278cb20080">
+      <Execution id="b65da0a0-5044-45f4-a4c3-ca129dc221d3" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename" name="VerifyLocalVariableRenameWithStringsUpdated" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRenameWhileRenameClasss (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="fa321790-23ff-00cb-a906-555a778d0918">
+      <Execution id="629b7370-2e8b-4907-9281-9089c03ab413" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename" name="VerifyAttributeRenameWhileRenameClasss" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicOutlining.Outlining (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="d3ca7b3c-2746-6a20-33c9-24703d19d5d2">
+      <Execution id="a1ff85ad-8617-4b2e-9266-722b5a464873" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicOutlining" name="Outlining" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyLocalVariableRenameWithCommentsUpdated (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="b35e07dc-e07a-619b-5467-e5335bf4ebca">
+      <Execution id="aea50c51-b290-4310-8110-9c87ab743e7a" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename" name="VerifyLocalVariableRenameWithCommentsUpdated" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit.CaseCorrection (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="bf05a703-f2cf-3561-5976-ba7bd26e8aac">
+      <Execution id="8c711afe-12e4-45ed-8d2b-8956dc43cd3c" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit" name="CaseCorrection" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicNavigationBar.CodeSpit (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="fc80acfa-5b2b-8ae0-19fd-1fc72d4f8ca9">
+      <Execution id="32c31197-0b82-493d-bffc-679d4d05cd4b" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicNavigationBar" name="CodeSpit" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSignatureHelp.GenericMethodSignatureHelp1 (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="529851eb-4282-ada2-2b84-1be535410608">
+      <Execution id="e0914d1f-1e4c-4e51-b35a-ac7dffb341b3" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSignatureHelp" name="GenericMethodSignatureHelp1" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicNavigationBar.VerifyNavBar (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="276047c4-339a-ef6f-e8b4-1a70ff198a31">
+      <Execution id="21c714ec-a207-4dca-9d4f-8a731e125314" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicNavigationBar" name="VerifyNavBar" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicWinForms.DeleteControl (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="82938cf0-d6af-7b05-0c1f-d9f9e20f8b47">
+      <Execution id="6f11a19d-ac28-46cb-a1f0-818c19f11da5" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicWinForms" name="DeleteControl" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSignatureHelp.HandleBufferTextChangesDuringComputation (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="47854ee6-dfd2-a4fb-ea26-95dd32880ea0">
+      <Execution id="f2b3d282-c11d-4af0-8cdb-61eed51caf15" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSignatureHelp" name="HandleBufferTextChangesDuringComputation" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicNavigationBar.VerifyOption (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="0f5e9b10-015c-997a-7a0b-59cc3de191ef">
+      <Execution id="36d44a9b-1c0e-460d-b823-87ac75bd9ba3" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicNavigationBar" name="VerifyOption" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRename (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="20fc4f8f-fae2-d012-e1ea-3d435e592f49">
+      <Execution id="83972fc1-17bb-4a62-ae07-1a9f8e26bcd5" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename" name="VerifyAttributeRename" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicWinForms.ChangeAccessibility (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="51fbf47b-1f5c-8d7a-9659-beee082343bb">
+      <Execution id="5ebeb162-3588-44d8-b69b-73603ba12bcc" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicWinForms" name="ChangeAccessibility" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicReferenceHighlighting.Highlighting (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="8b4cc4f0-654e-bb4d-478b-860ec352f1d4">
+      <Execution id="60da4693-9b01-4efb-aefe-503e9840938d" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicReferenceHighlighting" name="Highlighting" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRenameWhileRenameAttribute (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="e96dc27c-27a6-a368-5a6e-e2bb605eb135">
+      <Execution id="54c58b46-92c9-4ed2-afb9-876d55ca6278" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename" name="VerifyAttributeRenameWhileRenameAttribute" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicWinForms.TestMyIntelliSense (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="6de93a2b-9cab-b674-0471-7c893594e64c">
+      <Execution id="df9aa169-e568-401a-972d-43308c2de39b" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicWinForms" name="TestMyIntelliSense" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeNotCapitalizedRename (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="a6b0ae22-8e09-dd99-d644-051ec6c7af11">
+      <Execution id="b2615730-01fa-4edf-a5c6-ede49b33c27f" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename" name="VerifyAttributeNotCapitalizedRename" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeCapitalizedRename (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="0f11ef1b-6694-926e-3e7b-ceed8bbaa6df">
+      <Execution id="32862f5f-f4fe-400a-82b9-3ffcb9bc39e4" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename" name="VerifyAttributeCapitalizedRename" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="529851eb-4282-ada2-2b84-1be535410608" executionId="e0914d1f-1e4c-4e51-b35a-ac7dffb341b3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1c7f5128-c93e-d0e8-8751-296ce76b3746" executionId="4ad8d7b9-85bb-4796-9dec-46c68c3eb964" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0f11ef1b-6694-926e-3e7b-ceed8bbaa6df" executionId="2be77c6b-e4d9-4efa-917b-de0050581201" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4baaa1b1-1bc7-51b0-0b31-944fb577be79" executionId="5a90c712-c9bd-4b3d-800e-86b370edff00" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1d2b0039-d514-fb6d-a16b-4e89bab0f2ba" executionId="88e2ed2c-dabb-4def-af6f-a139ef8d4faa" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="33f5871e-8584-bc62-efa8-726c8182ae05" executionId="a7a7c268-7bc3-4123-9a2a-ae93e3bc420f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="97a62e7c-8c6b-2bd4-9d03-7235d9b20534" executionId="79ea3fde-90b2-4af7-a612-b47808ecb51c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="284b3fc5-d133-a73f-9f7f-486abf6c560a" executionId="edcd917d-d444-4ae4-a922-ae5badab6031" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="bc9dd6e2-b216-0f07-0a5e-0028e21335a7" executionId="50b1d4bb-6b0e-4078-8c16-a2d1c1ec05e2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a700a427-8011-c54d-f12b-f39f09b173d4" executionId="44af1aab-2e9d-4889-a911-2670f2b305ea" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="276047c4-339a-ef6f-e8b4-1a70ff198a31" executionId="21c714ec-a207-4dca-9d4f-8a731e125314" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="be8e7353-05e3-474e-41af-4897c16ec5a7" executionId="bdaa9838-e328-438e-ada8-fcb5e5857017" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="bf05a703-f2cf-3561-5976-ba7bd26e8aac" executionId="8c711afe-12e4-45ed-8d2b-8956dc43cd3c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9075bf53-1cee-7db3-270f-da5fe80e4e2d" executionId="e546addd-f72f-4078-8db3-543d5fc747c6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="38c5d2e3-3774-f093-9501-cba978f7ad23" executionId="693b9af6-2ef9-43f6-98fe-a5ad9463b352" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8b4cc4f0-654e-bb4d-478b-860ec352f1d4" executionId="60da4693-9b01-4efb-aefe-503e9840938d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="76c97766-b6ff-63d7-2621-3d3a0ff3d3b1" executionId="90ea763f-cde0-475e-8cdb-e5a89fe1b503" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="284b3fc5-d133-a73f-9f7f-486abf6c560a" executionId="ce3263ce-b103-4709-89a5-94cc32208eac" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f26a661c-1ede-fdf8-7ab7-755ad00ee49a" executionId="146757be-73dd-453e-b66c-fac5e77655a4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c59818c9-b7ac-25c6-3ede-eefc216dff9b" executionId="f1071eb6-ad7a-46d0-8cbc-51946233dcd6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="47854ee6-dfd2-a4fb-ea26-95dd32880ea0" executionId="f2b3d282-c11d-4af0-8cdb-61eed51caf15" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="20fc4f8f-fae2-d012-e1ea-3d435e592f49" executionId="b918b6af-29d7-4705-a5be-84c7cfd2b165" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1792e1a0-0863-c264-a9e7-89031b30aa50" executionId="27a32bfd-dbcf-4769-88f4-8f969bf090e9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="51fbf47b-1f5c-8d7a-9659-beee082343bb" executionId="5ebeb162-3588-44d8-b69b-73603ba12bcc" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fa321790-23ff-00cb-a906-555a778d0918" executionId="f51de512-1af9-4f97-bad3-3353c267c5b2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1fa65d01-6a6c-27d7-600c-1582306dcc0e" executionId="f594c8a4-187c-42d0-a97c-d7224f2547b0" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="34714321-7466-8ae3-c571-889d40db34d9" executionId="418ec7f8-fd0d-4dad-af75-324a110b65d1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5c61eb72-1489-a46f-c8d8-70ffd60ead2a" executionId="d19d85d4-264d-4a1e-814e-65c3672d6326" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="82938cf0-d6af-7b05-0c1f-d9f9e20f8b47" executionId="6f11a19d-ac28-46cb-a1f0-818c19f11da5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d9ce716b-af8c-f047-fd33-159d03c6e1f6" executionId="04210329-103a-4376-b41a-9b11885d13a7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7b735933-2e9a-1524-ee7b-22db993af9d8" executionId="1e3b5c8e-ed07-493a-a740-1b49ce5b0701" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0a0a9f84-f1f8-977c-c414-b7488df9c61d" executionId="d1b7c7f8-d21f-4b2a-a7e0-eedb0272c52b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fa321790-23ff-00cb-a906-555a778d0918" executionId="629b7370-2e8b-4907-9281-9089c03ab413" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e96dc27c-27a6-a368-5a6e-e2bb605eb135" executionId="e7827cbb-af0c-4ac9-8859-19c861565cb0" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c46179d9-bce8-f457-b324-397b3a1c7877" executionId="65a08940-a583-4e62-89a0-8abfb533e021" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b35e07dc-e07a-619b-5467-e5335bf4ebca" executionId="aea50c51-b290-4310-8110-9c87ab743e7a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6de93a2b-9cab-b674-0471-7c893594e64c" executionId="df9aa169-e568-401a-972d-43308c2de39b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1d2b0039-d514-fb6d-a16b-4e89bab0f2ba" executionId="57298230-9c3f-4e4e-ab26-ad061b538033" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a6b0ae22-8e09-dd99-d644-051ec6c7af11" executionId="b2615730-01fa-4edf-a5c6-ede49b33c27f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="aa6efeb9-3e07-64ba-a5a4-9edbb765e416" executionId="8d7bac11-c00b-4047-89e3-f30033647267" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="20fc4f8f-fae2-d012-e1ea-3d435e592f49" executionId="83972fc1-17bb-4a62-ae07-1a9f8e26bcd5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d3ca7b3c-2746-6a20-33c9-24703d19d5d2" executionId="a1ff85ad-8617-4b2e-9266-722b5a464873" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0a0a9f84-f1f8-977c-c414-b7488df9c61d" executionId="70e194b7-2808-4cb5-90f9-a7139d15d748" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0f11ef1b-6694-926e-3e7b-ceed8bbaa6df" executionId="32862f5f-f4fe-400a-82b9-3ffcb9bc39e4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0f5e9b10-015c-997a-7a0b-59cc3de191ef" executionId="36d44a9b-1c0e-460d-b823-87ac75bd9ba3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="960ecd13-f6a4-4427-b586-d1a9570fa0bb" executionId="20f915d4-8474-4eb5-bcdc-086570f1f83f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e96dc27c-27a6-a368-5a6e-e2bb605eb135" executionId="54c58b46-92c9-4ed2-afb9-876d55ca6278" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b1c1fcfc-d65d-6972-7926-17278cb20080" executionId="b65da0a0-5044-45f4-a4c3-ca129dc221d3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fc80acfa-5b2b-8ae0-19fd-1fc72d4f8ca9" executionId="32c31197-0b82-493d-bffc-679d4d05cd4b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1f22d582-3f7c-4e71-89d0-a5668e19e3bd" executionId="18ddb89f-065e-4162-82a1-9b3ddfaae392" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7b8764c2-0dc3-0c55-d9ae-4d738f92f852" executionId="1c2bbc8c-2ec6-46b1-9a02-d106aac16d41" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="67dc381c-d4b1-ffab-b9ac-2f6db67cd7a4" executionId="1271fd10-2c32-4eb7-83cc-273d6a04c01d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0ec02fbe-5eff-6ed4-bdc8-0e84e468291c" executionId="da83a757-6fa5-48f5-a80d-9626159caf69" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f26a661c-1ede-fdf8-7ab7-755ad00ee49a" executionId="8336cede-7dfa-4861-8d55-5cba4a60a8ac" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="29a22f6e-0896-7dbc-64f1-065f26f0e103" executionId="c8330480-9032-4744-932c-d6882c2c9a56" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8de76d9a-a62c-8cbe-596a-fdcde713266a" executionId="55ab61c1-e2aa-468a-b9c5-533ea40fb6f1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="697942c0-c1ce-05d1-1a44-b83dc1e5c493" executionId="6d706000-2d77-4b23-b88c-07bbb5663ccc" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="57" executed="40" passed="32" failed="8" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.01] xUnit.net VSTest Adapter v3.1.3+b1b99bdeb3 (64-bit .NET Framework 4.8.9345.0)&#xD;
+[xUnit.net 00:00:01.35]   Starting:    Microsoft.VisualStudio.LanguageServices.New.IntegrationTests&#xD;
+[xUnit.net 00:02:07.48]       https://github.com/dotnet/roslyn/issues/61367&#xD;
+[xUnit.net 00:02:07.52]       https://github.com/dotnet/roslyn/issues/72428&#xD;
+[xUnit.net 00:02:07.57]       https://github.com/dotnet/roslyn/issues/72428&#xD;
+[xUnit.net 00:02:07.60]       https://github.com/dotnet/roslyn/issues/61367&#xD;
+Test 'Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSquigglesNetCore.VerifySemanticErrorSquiggles (VS18)' was skipped in the test run.&#xD;
+Test 'Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSquigglesNetCore.VerifySyntaxErrorSquiggles (VS18)' was skipped in the test run.&#xD;
+Test 'Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSquigglesDesktop.VerifySyntaxErrorSquiggles (VS18)' was skipped in the test run.&#xD;
+Test 'Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSquigglesDesktop.VerifySemanticErrorSquiggles (VS18)' was skipped in the test run.&#xD;
+[xUnit.net 00:02:57.16]       Test will automatically retry.&#xD;
+Test 'Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeCapitalizedRename (VS18)' was skipped in the test run.&#xD;
+[xUnit.net 00:03:32.75]       Test will automatically retry.&#xD;
+Test 'Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyLocalVariableRename (VS18)' was skipped in the test run.&#xD;
+[xUnit.net 00:03:32.79]       https://github.com/dotnet/roslyn/issues/63576&#xD;
+[xUnit.net 00:03:32.82]       https://github.com/dotnet/roslyn/issues/63576&#xD;
+Test 'Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyOverloadsUpdated (VS18)' was skipped in the test run.&#xD;
+Test 'Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyLocalVariableRenameWithStringsUpdated (VS18)' was skipped in the test run.&#xD;
+[xUnit.net 00:04:08.45]       Test will automatically retry.&#xD;
+Test 'Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRenameWhileRenameAttribute (VS18)' was skipped in the test run.&#xD;
+[xUnit.net 00:04:08.51]       https://github.com/dotnet/roslyn/issues/79300&#xD;
+[xUnit.net 00:04:08.54]       https://github.com/dotnet/roslyn/issues/63576&#xD;
+Test 'Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeNotCapitalizedRename (VS18)' was skipped in the test run.&#xD;
+Test 'Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyLocalVariableRenameWithCommentsUpdated (VS18)' was skipped in the test run.&#xD;
+[xUnit.net 00:04:44.40]       Test will automatically retry.&#xD;
+Test 'Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRename (VS18)' was skipped in the test run.&#xD;
+[xUnit.net 00:05:20.17]       Test will automatically retry.&#xD;
+Test 'Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRenameWhileRenameClasss (VS18)' was skipped in the test run.&#xD;
+[xUnit.net 00:05:56.04]       Test will automatically retry.&#xD;
+Test 'Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRenameWhileRenameAttributeClass (VS18)' was skipped in the test run.&#xD;
+[xUnit.net 00:06:12.10]       https://github.com/dotnet/roslyn/issues/69364&#xD;
+Test 'Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicNavigateTo.NavigateTo (VS18)' was skipped in the test run.&#xD;
+[xUnit.net 00:06:27.23]       Test will automatically retry.&#xD;
+Test 'Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit.CommitOnSave (VS18)' was skipped in the test run.&#xD;
+[xUnit.net 00:06:30.47]       Test will automatically retry.&#xD;
+Test 'Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit.UndoWithoutEndConstruct (VS18)' was skipped in the test run.&#xD;
+[xUnit.net 00:06:58.25]       System.InvalidOperationException : Test did not run due to a harness failure.&#xD;
+[xUnit.net 00:06:58.25]       ---- System.InvalidOperationException : Key '806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d' already exists in the message metadata cache.&#xD;
+[xUnit.net 00:06:58.25]       Old item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null&#xD;
+[xUnit.net 00:06:58.25]       New item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null&#xD;
+[xUnit.net 00:06:58.25]       Stack Trace:&#xD;
+[xUnit.net 00:06:58.26]         &#xD;
+[xUnit.net 00:06:58.26]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:06:58.26]         &#xD;
+[xUnit.net 00:06:58.26]         Server stack trace: &#xD;
+[xUnit.net 00:06:58.26]            at System.Runtime.Remoting.Messaging.StackBuilderSink._PrivateProcessMessage(IntPtr md, Object[] args, Object server, Object[]&amp; outArgs)&#xD;
+[xUnit.net 00:06:58.26]            at System.Runtime.Remoting.Messaging.StackBuilderSink.SyncProcessMessage(IMessage msg)&#xD;
+[xUnit.net 00:06:58.26]         &#xD;
+[xUnit.net 00:06:58.26]         Exception rethrown at [0]: &#xD;
+[xUnit.net 00:06:58.26]            at System.Runtime.Remoting.Proxies.RealProxy.HandleReturnMessage(IMessage reqMsg, IMessage retMsg)&#xD;
+[xUnit.net 00:06:58.26]            at System.Runtime.Remoting.Proxies.RealProxy.PrivateInvoke(MessageData&amp; msgData, Int32 type)&#xD;
+[xUnit.net 00:06:58.26]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.26]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.26]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.26]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.26]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.26]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.26]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.26]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.26]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.26]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.26]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.26]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.26]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.26]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.26]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.26]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.26]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.26]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.26]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.26]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.26]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.26]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.26]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.26]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.26]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.26]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.26]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.26]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.26]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.26]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.26]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.27]       System.InvalidOperationException : Test did not run due to a harness failure.&#xD;
+[xUnit.net 00:06:58.27]       ---- System.InvalidOperationException : Key '806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d' already exists in the message metadata cache.&#xD;
+[xUnit.net 00:06:58.27]       Old item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null&#xD;
+[xUnit.net 00:06:58.27]       New item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null&#xD;
+[xUnit.net 00:06:58.27]       Stack Trace:&#xD;
+[xUnit.net 00:06:58.27]         &#xD;
+[xUnit.net 00:06:58.27]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:06:58.27]         &#xD;
+[xUnit.net 00:06:58.27]         Server stack trace: &#xD;
+[xUnit.net 00:06:58.27]            at System.Runtime.Remoting.Messaging.StackBuilderSink._PrivateProcessMessage(IntPtr md, Object[] args, Object server, Object[]&amp; outArgs)&#xD;
+[xUnit.net 00:06:58.27]            at System.Runtime.Remoting.Messaging.StackBuilderSink.SyncProcessMessage(IMessage msg)&#xD;
+[xUnit.net 00:06:58.27]         &#xD;
+[xUnit.net 00:06:58.27]         Exception rethrown at [0]: &#xD;
+[xUnit.net 00:06:58.27]            at System.Runtime.Remoting.Proxies.RealProxy.HandleReturnMessage(IMessage reqMsg, IMessage retMsg)&#xD;
+[xUnit.net 00:06:58.27]            at System.Runtime.Remoting.Proxies.RealProxy.PrivateInvoke(MessageData&amp; msgData, Int32 type)&#xD;
+[xUnit.net 00:06:58.27]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.27]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.27]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.27]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.27]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.27]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.27]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.27]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.27]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.27]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.27]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.27]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.27]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.27]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.27]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.27]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.27]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.27]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.27]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.27]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.27]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.27]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.27]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.27]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.27]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.27]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.27]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.27]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.27]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.27]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.27]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.29]       System.InvalidOperationException : Test did not run due to a harness failure.&#xD;
+[xUnit.net 00:06:58.29]       ---- System.InvalidOperationException : Key '806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d' already exists in the message metadata cache.&#xD;
+[xUnit.net 00:06:58.29]       Old item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null&#xD;
+[xUnit.net 00:06:58.29]       New item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null&#xD;
+[xUnit.net 00:06:58.29]       Stack Trace:&#xD;
+[xUnit.net 00:06:58.29]         &#xD;
+[xUnit.net 00:06:58.29]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:06:58.29]         &#xD;
+[xUnit.net 00:06:58.29]         Server stack trace: &#xD;
+[xUnit.net 00:06:58.29]            at System.Runtime.Remoting.Messaging.StackBuilderSink._PrivateProcessMessage(IntPtr md, Object[] args, Object server, Object[]&amp; outArgs)&#xD;
+[xUnit.net 00:06:58.29]            at System.Runtime.Remoting.Messaging.StackBuilderSink.SyncProcessMessage(IMessage msg)&#xD;
+[xUnit.net 00:06:58.29]         &#xD;
+[xUnit.net 00:06:58.29]         Exception rethrown at [0]: &#xD;
+[xUnit.net 00:06:58.29]            at System.Runtime.Remoting.Proxies.RealProxy.HandleReturnMessage(IMessage reqMsg, IMessage retMsg)&#xD;
+[xUnit.net 00:06:58.29]            at System.Runtime.Remoting.Proxies.RealProxy.PrivateInvoke(MessageData&amp; msgData, Int32 type)&#xD;
+[xUnit.net 00:06:58.29]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.29]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.29]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.29]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.29]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.29]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.29]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.29]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.29]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.29]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.29]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.29]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.29]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.29]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.29]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.29]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.29]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.29]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.29]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.29]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.29]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.29]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.29]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.29]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.29]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.29]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.29]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.29]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.29]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.29]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.29]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.30]       System.InvalidOperationException : Test did not run due to a harness failure.&#xD;
+[xUnit.net 00:06:58.30]       ---- System.InvalidOperationException : Key '806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d' already exists in the message metadata cache.&#xD;
+[xUnit.net 00:06:58.30]       Old item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null&#xD;
+[xUnit.net 00:06:58.30]       New item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null&#xD;
+[xUnit.net 00:06:58.30]       Stack Trace:&#xD;
+[xUnit.net 00:06:58.30]         &#xD;
+[xUnit.net 00:06:58.30]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:06:58.30]         &#xD;
+[xUnit.net 00:06:58.30]         Server stack trace: &#xD;
+[xUnit.net 00:06:58.30]            at System.Runtime.Remoting.Messaging.StackBuilderSink._PrivateProcessMessage(IntPtr md, Object[] args, Object server, Object[]&amp; outArgs)&#xD;
+[xUnit.net 00:06:58.30]            at System.Runtime.Remoting.Messaging.StackBuilderSink.SyncProcessMessage(IMessage msg)&#xD;
+[xUnit.net 00:06:58.30]         &#xD;
+[xUnit.net 00:06:58.30]         Exception rethrown at [0]: &#xD;
+[xUnit.net 00:06:58.30]            at System.Runtime.Remoting.Proxies.RealProxy.HandleReturnMessage(IMessage reqMsg, IMessage retMsg)&#xD;
+[xUnit.net 00:06:58.30]            at System.Runtime.Remoting.Proxies.RealProxy.PrivateInvoke(MessageData&amp; msgData, Int32 type)&#xD;
+[xUnit.net 00:06:58.30]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.30]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.30]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.30]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.30]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.30]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.30]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.30]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.30]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.30]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.30]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.30]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.30]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.30]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.30]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.30]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.30]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.30]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.30]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.30]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.30]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.30]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.30]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.30]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.30]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.30]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.30]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.30]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.30]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.30]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.30]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.31]       System.InvalidOperationException : Test did not run due to a harness failure.&#xD;
+[xUnit.net 00:06:58.31]       ---- System.InvalidOperationException : Key '806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d' already exists in the message metadata cache.&#xD;
+[xUnit.net 00:06:58.31]       Old item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null&#xD;
+[xUnit.net 00:06:58.31]       New item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null&#xD;
+[xUnit.net 00:06:58.31]       Stack Trace:&#xD;
+[xUnit.net 00:06:58.31]         &#xD;
+[xUnit.net 00:06:58.31]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:06:58.31]         &#xD;
+[xUnit.net 00:06:58.31]         Server stack trace: &#xD;
+[xUnit.net 00:06:58.31]            at System.Runtime.Remoting.Messaging.StackBuilderSink._PrivateProcessMessage(IntPtr md, Object[] args, Object server, Object[]&amp; outArgs)&#xD;
+[xUnit.net 00:06:58.31]            at System.Runtime.Remoting.Messaging.StackBuilderSink.SyncProcessMessage(IMessage msg)&#xD;
+[xUnit.net 00:06:58.31]         &#xD;
+[xUnit.net 00:06:58.31]         Exception rethrown at [0]: &#xD;
+[xUnit.net 00:06:58.31]            at System.Runtime.Remoting.Proxies.RealProxy.HandleReturnMessage(IMessage reqMsg, IMessage retMsg)&#xD;
+[xUnit.net 00:06:58.31]            at System.Runtime.Remoting.Proxies.RealProxy.PrivateInvoke(MessageData&amp; msgData, Int32 type)&#xD;
+[xUnit.net 00:06:58.31]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.31]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.31]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.31]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.31]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.31]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.31]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.31]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.31]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.31]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.31]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.31]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.31]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.31]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.31]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.31]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.31]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.31]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.31]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.31]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.31]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.31]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.31]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.31]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.31]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.31]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.31]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.31]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.31]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.31]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.31]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.33]       System.InvalidOperationException : Test did not run due to a harness failure.&#xD;
+[xUnit.net 00:06:58.33]       ---- System.InvalidOperationException : Key '806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d' already exists in the message metadata cache.&#xD;
+[xUnit.net 00:06:58.33]       Old item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null&#xD;
+[xUnit.net 00:06:58.33]       New item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null&#xD;
+[xUnit.net 00:06:58.33]       Stack Trace:&#xD;
+[xUnit.net 00:06:58.33]         &#xD;
+[xUnit.net 00:06:58.33]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:06:58.33]         &#xD;
+[xUnit.net 00:06:58.33]         Server stack trace: &#xD;
+[xUnit.net 00:06:58.33]            at System.Runtime.Remoting.Messaging.StackBuilderSink._PrivateProcessMessage(IntPtr md, Object[] args, Object server, Object[]&amp; outArgs)&#xD;
+[xUnit.net 00:06:58.33]            at System.Runtime.Remoting.Messaging.StackBuilderSink.SyncProcessMessage(IMessage msg)&#xD;
+[xUnit.net 00:06:58.33]         &#xD;
+[xUnit.net 00:06:58.33]         Exception rethrown at [0]: &#xD;
+[xUnit.net 00:06:58.33]            at System.Runtime.Remoting.Proxies.RealProxy.HandleReturnMessage(IMessage reqMsg, IMessage retMsg)&#xD;
+[xUnit.net 00:06:58.33]            at System.Runtime.Remoting.Proxies.RealProxy.PrivateInvoke(MessageData&amp; msgData, Int32 type)&#xD;
+[xUnit.net 00:06:58.33]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.33]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.33]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.33]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.33]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.33]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.33]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.33]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.33]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.33]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.33]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.33]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.33]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.33]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.33]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.33]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.33]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.33]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.33]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.33]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.33]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.33]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.33]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.33]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.33]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.33]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.33]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.33]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.33]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.33]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.33]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.34]       System.InvalidOperationException : Test did not run due to a harness failure.&#xD;
+[xUnit.net 00:06:58.34]       ---- System.InvalidOperationException : Key '806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d' already exists in the message metadata cache.&#xD;
+[xUnit.net 00:06:58.34]       Old item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null&#xD;
+[xUnit.net 00:06:58.34]       New item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null&#xD;
+[xUnit.net 00:06:58.34]       Stack Trace:&#xD;
+[xUnit.net 00:06:58.34]         &#xD;
+[xUnit.net 00:06:58.34]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:06:58.34]         &#xD;
+[xUnit.net 00:06:58.34]         Server stack trace: &#xD;
+[xUnit.net 00:06:58.34]            at System.Runtime.Remoting.Messaging.StackBuilderSink._PrivateProcessMessage(IntPtr md, Object[] args, Object server, Object[]&amp; outArgs)&#xD;
+[xUnit.net 00:06:58.34]            at System.Runtime.Remoting.Messaging.StackBuilderSink.SyncProcessMessage(IMessage msg)&#xD;
+[xUnit.net 00:06:58.34]         &#xD;
+[xUnit.net 00:06:58.34]         Exception rethrown at [0]: &#xD;
+[xUnit.net 00:06:58.34]            at System.Runtime.Remoting.Proxies.RealProxy.HandleReturnMessage(IMessage reqMsg, IMessage retMsg)&#xD;
+[xUnit.net 00:06:58.34]            at System.Runtime.Remoting.Proxies.RealProxy.PrivateInvoke(MessageData&amp; msgData, Int32 type)&#xD;
+[xUnit.net 00:06:58.34]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.34]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.34]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.34]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.34]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.34]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.34]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.34]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.34]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.34]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.34]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.34]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.34]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.34]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.34]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.34]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.34]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.34]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.34]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.34]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.34]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.34]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.34]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.34]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.34]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.34]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.34]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.34]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.34]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.34]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.34]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.35]       System.InvalidOperationException : Test did not run due to a harness failure.&#xD;
+[xUnit.net 00:06:58.35]       ---- System.InvalidOperationException : Key '806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d' already exists in the message metadata cache.&#xD;
+[xUnit.net 00:06:58.35]       Old item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null&#xD;
+[xUnit.net 00:06:58.35]       New item: TestCollectionStarting("806e37544dc158c20e72fdbe0ffcded9a60d8070dfec0a30f36d8e21eec7458d") name="Test collection for Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.DLL" class=null&#xD;
+[xUnit.net 00:06:58.35]       Stack Trace:&#xD;
+[xUnit.net 00:06:58.35]         &#xD;
+[xUnit.net 00:06:58.35]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:06:58.35]         &#xD;
+[xUnit.net 00:06:58.35]         Server stack trace: &#xD;
+[xUnit.net 00:06:58.35]            at System.Runtime.Remoting.Messaging.StackBuilderSink._PrivateProcessMessage(IntPtr md, Object[] args, Object server, Object[]&amp; outArgs)&#xD;
+[xUnit.net 00:06:58.35]            at System.Runtime.Remoting.Messaging.StackBuilderSink.SyncProcessMessage(IMessage msg)&#xD;
+[xUnit.net 00:06:58.35]         &#xD;
+[xUnit.net 00:06:58.35]         Exception rethrown at [0]: &#xD;
+[xUnit.net 00:06:58.35]            at System.Runtime.Remoting.Proxies.RealProxy.HandleReturnMessage(IMessage reqMsg, IMessage retMsg)&#xD;
+[xUnit.net 00:06:58.35]            at System.Runtime.Remoting.Proxies.RealProxy.PrivateInvoke(MessageData&amp; msgData, Int32 type)&#xD;
+[xUnit.net 00:06:58.35]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.35]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.35]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.35]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.35]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.35]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.35]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.35]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.35]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.35]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.35]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.35]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.35]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.35]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.35]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.36]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.36]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.36]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.36]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.36]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.36]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.36]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.36]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.36]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.36]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.36]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.36]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.36]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:06:58.36]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:06:58.36]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:06:58.36]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:06:58.36]   Finished:    Microsoft.VisualStudio.LanguageServices.New.IntegrationTests&#xD;
+Unhandled Exception: System.InvalidOperationException: Key '32baf57d80adff61d526c42ae9dbf429285c4795576c925d4323442d2939d14e' already exists in the message metadata cache.&#xD;
+Old item: TestClassStarting("32baf57d80adff61d526c42ae9dbf429285c4795576c925d4323442d2939d14e") class="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicIntelliSense"&#xD;
+New item: TestClassStarting("32baf57d80adff61d526c42ae9dbf429285c4795576c925d4323442d2939d14e") class="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicIntelliSense"&#xD;
+Server stack trace: &#xD;
+   at Xunit.Runner.Common.MessageMetadataCache.InternalSet(String uniqueID, Object metadata)&#xD;
+   at Xunit.Sdk.MessageSinkMessageExtensions.DispatchWhen[TMessage](IMessageSinkMessage message, MessageHandler`1 callback)&#xD;
+   at Xunit.Runner.Common.ExecutionEventSink.OnMessage(IMessageSinkMessage message)&#xD;
+   at Xunit.Runner.Common.AggregateMessageSink.OnMessage(IMessageSinkMessage message)&#xD;
+   at Xunit.Runner.VisualStudio.VsExecutionSink.OnMessage(IMessageSinkMessage message)&#xD;
+   at Xunit.Runner.Common.ExecutionSink.OnMessage(IMessageSinkMessage message)&#xD;
+   at System.Runtime.Remoting.Messaging.StackBuilderSink._PrivateProcessMessage(IntPtr md, Object[] args, Object server, Object[]&amp; outArgs)&#xD;
+   at System.Runtime.Remoting.Messaging.StackBuilderSink.SyncProcessMessage(IMessage msg)&#xD;
+Exception rethrown at [0]: &#xD;
+   at System.Runtime.Remoting.Proxies.RealProxy.HandleReturnMessage(IMessage reqMsg, IMessage retMsg)&#xD;
+   at System.Runtime.Remoting.Proxies.RealProxy.PrivateInvoke(MessageData&amp; msgData, Int32 type)&#xD;
+   at Xunit.Runner.v2.IMessageSinkWithTypes.OnMessageWithTypes(IMessageSinkMessage message, HashSet`1 messageTypes)&#xD;
+   at Xunit.Harness.IdeTestAssemblyRunner.&lt;RunTestCollectionAsync&gt;d__5.MoveNext() in Q:\src\roslyn\roslyn-main\src\VisualStudio\IntegrationTest\Harness\XUnitShared\Harness\IdeTestAssemblyRunner.cs:line 125&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at Xunit.Sdk.TestAssemblyRunner`1.&lt;RunTestCollectionsAsync&gt;d__42.MoveNext() in /_/src/xunit.execution/Sdk/Frameworks/Runners/TestAssemblyRunner.cs:line 245&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at Xunit.Sdk.XunitTestAssemblyRunner.&lt;RunTestCollectionsAsync&gt;d__16.MoveNext() in /_/src/xunit.execution/Sdk/Frameworks/Runners/XunitTestAssemblyRunner.cs:line 228&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at Xunit.Sdk.TestAssemblyRunner`1.&lt;RunAsync&gt;d__41.MoveNext() in /_/src/xunit.execution/Sdk/Frameworks/Runners/TestAssemblyRunner.cs:line 210&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()&#xD;
+   at Xunit.Harness.IdeTestFrameworkExecutor.&lt;RunTestCases&gt;d__1.MoveNext() in Q:\src\roslyn\roslyn-main\src\VisualStudio\IntegrationTest\Harness\XUnitShared\Harness\IdeTestFrameworkExecutor.cs:line 25&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state, Boolean preserveSyncCtx)&#xD;
+   at System.Threading.ExecutionContext.Run(ExecutionContext executionContext, ContextCallback callback, Object state, Boolean preserveSyncCtx)&#xD;
+   at System.Threading.QueueUserWorkItemCallback.System.Threading.IThreadPoolWorkItem.ExecuteWorkItem()&#xD;
+   at System.Threading.ThreadPoolWorkQueue.Dispatch()&#xD;
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:55:43.0973580-07:00">
+        <Text>[xUnit.net 00:02:07.48]     Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSquigglesNetCore.VerifySemanticErrorSquiggles (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:55:43.1308560-07:00">
+        <Text>[xUnit.net 00:02:07.52]     Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSquigglesNetCore.VerifySyntaxErrorSquiggles (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:55:43.1845651-07:00">
+        <Text>[xUnit.net 00:02:07.57]     Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSquigglesDesktop.VerifySyntaxErrorSquiggles (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:55:43.2131978-07:00">
+        <Text>[xUnit.net 00:02:07.60]     Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicSquigglesDesktop.VerifySemanticErrorSquiggles (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:56:32.7736711-07:00">
+        <Text>[xUnit.net 00:02:57.16]     Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeCapitalizedRename (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:57:08.3569847-07:00">
+        <Text>[xUnit.net 00:03:32.75]     Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyLocalVariableRename (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:57:08.3981850-07:00">
+        <Text>[xUnit.net 00:03:32.79]     Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyOverloadsUpdated (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:57:08.4289001-07:00">
+        <Text>[xUnit.net 00:03:32.82]     Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyLocalVariableRenameWithStringsUpdated (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:57:44.0596727-07:00">
+        <Text>[xUnit.net 00:04:08.45]     Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRenameWhileRenameAttribute (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:57:44.1164910-07:00">
+        <Text>[xUnit.net 00:04:08.51]     Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeNotCapitalizedRename (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:57:44.1488951-07:00">
+        <Text>[xUnit.net 00:04:08.54]     Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyLocalVariableRenameWithCommentsUpdated (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:58:20.0089847-07:00">
+        <Text>[xUnit.net 00:04:44.40]     Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRename (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:58:55.7737158-07:00">
+        <Text>[xUnit.net 00:05:20.17]     Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRenameWhileRenameClasss (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:59:31.6463474-07:00">
+        <Text>[xUnit.net 00:05:56.04]     Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRenameWhileRenameAttributeClass (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:59:47.7022171-07:00">
+        <Text>[xUnit.net 00:06:12.10]     Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicNavigateTo.NavigateTo (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T12:00:02.8282342-07:00">
+        <Text>[xUnit.net 00:06:27.23]     Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit.CommitOnSave (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T12:00:06.0687698-07:00">
+        <Text>[xUnit.net 00:06:30.47]     Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit.UndoWithoutEndConstruct (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Error" timestamp="2026-09-17T12:00:33.8516386-07:00">
+        <Text>[xUnit.net 00:06:58.25]     Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyLocalVariableRename (VS18) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Error" timestamp="2026-09-17T12:00:33.8691649-07:00">
+        <Text>[xUnit.net 00:06:58.27]     Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRenameWhileRenameClasss (VS18) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Error" timestamp="2026-09-17T12:00:33.8851798-07:00">
+        <Text>[xUnit.net 00:06:58.29]     Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRenameWhileRenameAttributeClass (VS18) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Error" timestamp="2026-09-17T12:00:33.8977107-07:00">
+        <Text>[xUnit.net 00:06:58.30]     Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRenameWhileRenameAttribute (VS18) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Error" timestamp="2026-09-17T12:00:33.9097115-07:00">
+        <Text>[xUnit.net 00:06:58.31]     Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRename (VS18) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Error" timestamp="2026-09-17T12:00:33.9237446-07:00">
+        <Text>[xUnit.net 00:06:58.33]     Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeCapitalizedRename (VS18) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Error" timestamp="2026-09-17T12:00:33.9372810-07:00">
+        <Text>[xUnit.net 00:06:58.34]     Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit.UndoWithoutEndConstruct (VS18) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Error" timestamp="2026-09-17T12:00:33.9528206-07:00">
+        <Text>[xUnit.net 00:06:58.35]     Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit.CommitOnSave (VS18) [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

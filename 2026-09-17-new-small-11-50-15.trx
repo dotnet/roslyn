@@ -1,0 +1,446 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="36f458ac-cd9e-4754-925b-04da48f29c8b" name="mwiemer@CPC-mwiem-JQR2A 2026-09-17 11:47:11" runUser="REDMOND\mwiemer" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-09-17T11:47:11.7719632-07:00" queuing="2026-09-17T11:47:11.7719632-07:00" start="2026-09-17T11:45:40.7457531-07:00" finish="2026-09-17T11:50:15.0880016-07:00" />
+  <TestSettings name="default" id="6e0445ef-466b-4eef-adf1-68a8eea2535e">
+    <Deployment runDeploymentRoot="mwiemer_CPC-mwiem-JQR2A_2026-09-17_11_47_11" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="d1afeab3-6bd5-4920-9e27-a95ea7ec9bdb" testId="1b2ecbd0-5050-0864-0ddc-c08538009313" testName="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo.International (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:01.8770000" startTime="2026-09-17T11:50:05.7202416-07:00" endTime="2026-09-17T11:50:09.4313783-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d1afeab3-6bd5-4920-9e27-a95ea7ec9bdb">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Equal() Failure: Strings differ&#xD;
+Expected: ···"is is an XML doc comment defined in code."&#xD;
+Actual:   ···"s an XML doc comment defined in code.\r\n\r\n"&#xD;
+                                                   ↑ (pos 61)</Message>
+          <StackTrace>   at Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo.&lt;International&gt;d__5.MoveNext() in Q:\src\roslyn\roslyn-main\src\VisualStudio\IntegrationTest\New.IntegrationTests\CSharp\CSharpQuickInfo.cs:line 79&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="ead348e2-caab-4918-9227-a91f094ff15e" testId="c48984dc-88f4-6f4d-a53c-659dab55da25" testName="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo.QuickInfo_Documentation (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:47:59.7789108-07:00" endTime="2026-09-17T11:48:02.3818755-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ead348e2-caab-4918-9227-a91f094ff15e">
+      <Output>
+        <ErrorInfo>
+          <Message>Test will automatically retry.</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="c09c1489-4e6d-4b8f-81c2-eb0742538e8c" testId="c5e94dfe-ba71-5743-9fd7-91938d9ea35b" testName="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpTyping.TypingInPartialType (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:04.7760000" startTime="2026-09-17T11:47:53.8928157-07:00" endTime="2026-09-17T11:47:59.6804691-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c09c1489-4e6d-4b8f-81c2-eb0742538e8c" />
+    <UnitTestResult executionId="ba70919c-0138-4897-83a7-d8e61d7170a7" testId="95d9a10f-5806-b4b2-08ad-ec314ba14711" testName="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo.SectionOrdering (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:48:04.9767751-07:00" endTime="2026-09-17T11:48:08.2574424-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ba70919c-0138-4897-83a7-d8e61d7170a7">
+      <Output>
+        <ErrorInfo>
+          <Message>Test will automatically retry.</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="ee95b36f-b781-45b3-8978-22d4ddd6d875" testId="c822a9d7-8b3b-ec33-c16c-c954f6483580" testName="Roslyn.VisualStudio.IntegrationTests.VisualBasic.BasicClassification.Semantic_Classification (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.2630000" startTime="2026-09-17T11:47:46.7859421-07:00" endTime="2026-09-17T11:47:48.2826216-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ee95b36f-b781-45b3-8978-22d4ddd6d875" />
+    <UnitTestResult executionId="e8ac5e65-cf5e-4dea-b1dd-5ff9b1ba896c" testId="55e9d2b6-d286-b0e3-9c93-438be1286780" testName="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesNetCore.OpenCSharpThenVBSolution (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:17.0290000" startTime="2026-09-17T11:47:10.3764447-07:00" endTime="2026-09-17T11:47:29.2741931-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e8ac5e65-cf5e-4dea-b1dd-5ff9b1ba896c" />
+    <UnitTestResult executionId="7a3bcbcc-0ecf-4401-9461-058477226b76" testId="c48984dc-88f4-6f4d-a53c-659dab55da25" testName="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo.QuickInfo_Documentation (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:07.4080000" startTime="2026-09-17T11:49:49.6376412-07:00" endTime="2026-09-17T11:50:05.6585397-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7a3bcbcc-0ecf-4401-9461-058477226b76">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Equal() Failure: Strings differ&#xD;
+Expected: "class Program\r\nHello!"&#xD;
+Actual:   "class Program\r\nHello!\r\n\r\n"&#xD;
+                                  ↑ (pos 21)</Message>
+          <StackTrace>   at Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo.&lt;QuickInfo_Documentation&gt;d__4.MoveNext() in Q:\src\roslyn\roslyn-main\src\VisualStudio\IntegrationTest\New.IntegrationTests\CSharp\CSharpQuickInfo.cs:line 58&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="d66ab2d5-b30d-48af-ba91-67980eba8da5" testId="2550540d-6c09-af77-3f88-44fb2a7dc67d" testName="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesDesktop.RenamingOpenFiles (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:01.2840000" startTime="2026-09-17T11:47:33.8988781-07:00" endTime="2026-09-17T11:47:35.5024723-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d66ab2d5-b30d-48af-ba91-67980eba8da5" />
+    <UnitTestResult executionId="eb7cc306-60f3-47dd-b592-69d490c8830e" testId="9186254d-11a2-1544-4116-dea1b52f1ecc" testName="Roslyn.VisualStudio.IntegrationTests.VisualBasic.BasicQuickInfo.International (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:01.5390000" startTime="2026-09-17T11:47:35.9231127-07:00" endTime="2026-09-17T11:47:38.8547359-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="eb7cc306-60f3-47dd-b592-69d490c8830e" />
+    <UnitTestResult executionId="71d0ecbf-5a5d-4956-b534-c4408385d0c6" testId="c33974c0-125e-38b2-4bb8-f463cb1d251e" testName="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo.QuickInfo_MetadataDocumentation (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.2040000" startTime="2026-09-17T11:48:08.2967632-07:00" endTime="2026-09-17T11:48:09.7434281-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="71d0ecbf-5a5d-4956-b534-c4408385d0c6" />
+    <UnitTestResult executionId="d4e4168b-ee1c-43ba-af26-862b27ab8fbc" testId="83a6e4e2-c00b-95c7-028e-0a72ce16febf" testName="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesNetCore.ProjectProperties (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:47:10.2754780-07:00" endTime="2026-09-17T11:47:10.2947150-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d4e4168b-ee1c-43ba-af26-862b27ab8fbc">
+      <Output>
+        <ErrorInfo>
+          <Message>https://github.com/dotnet/roslyn/issues/64672</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="377e9518-8ce9-4695-b582-e9e8310a2ae4" testId="28c053df-6898-6b91-7061-b45d9bb82b26" testName="Roslyn.VisualStudio.NewIntegrationTests.MefCompositionTests.AssertNoCompositionFailures (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0280000" startTime="2026-09-17T11:47:35.6352670-07:00" endTime="2026-09-17T11:47:35.8220329-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="377e9518-8ce9-4695-b582-e9e8310a2ae4" />
+    <UnitTestResult executionId="41733e7f-2d63-42e2-add7-9f62562a7c8c" testId="b38bd60f-28ef-76a1-1731-25429b69a1cf" testName="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesDesktop.MetadataReference (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:01.4730000" startTime="2026-09-17T11:47:29.5134494-07:00" endTime="2026-09-17T11:47:31.2920507-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="41733e7f-2d63-42e2-add7-9f62562a7c8c" />
+    <UnitTestResult executionId="9c97fcc8-61bc-4615-9710-d431e01e35ea" testId="137ccb99-0505-16fe-8cdb-33cf9524927d" testName="Roslyn.VisualStudio.IntegrationTests.VisualBasic.BasicBuild.BuildProject (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:02.4700000" startTime="2026-09-17T11:47:50.1877143-07:00" endTime="2026-09-17T11:47:53.8412779-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="9c97fcc8-61bc-4615-9710-d431e01e35ea" />
+    <UnitTestResult executionId="7dd62bb8-46e6-42e1-b8d4-54dd8247851b" testId="7c375c7e-b0f3-e05d-6800-16294d38b4f1" testName="Roslyn.VisualStudio.IntegrationTests.VisualBasic.BasicQuickInfo.QuickInfo1 (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.2440000" startTime="2026-09-17T11:47:38.9013901-07:00" endTime="2026-09-17T11:47:40.4186528-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7dd62bb8-46e6-42e1-b8d4-54dd8247851b" />
+    <UnitTestResult executionId="1c159a8b-3028-4e75-925b-86b123339c0a" testId="4ac2100e-fb3c-282b-a864-1608ee5b90b7" testName="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesNetCore.MetadataReference (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:47:29.3194224-07:00" endTime="2026-09-17T11:47:29.3244194-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1c159a8b-3028-4e75-925b-86b123339c0a">
+      <Output>
+        <ErrorInfo>
+          <Message>https://github.com/dotnet/roslyn/issues/72018</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="5b066ffd-6b7e-4292-8577-1293076f1d9d" testId="95d9a10f-5806-b4b2-08ad-ec314ba14711" testName="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo.SectionOrdering (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:01.7240000" startTime="2026-09-17T11:50:09.4761502-07:00" endTime="2026-09-17T11:50:12.5032098-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5b066ffd-6b7e-4292-8577-1293076f1d9d">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Equal() Failure: Strings differ&#xD;
+Expected: ···"sk&lt;int&gt; C.M()\r\n\r\nExceptions:\r\n  Exception"&#xD;
+Actual:   ···"nt&gt; C.M()\r\n\r\nExceptions:\r\n  Exception\r\n\r\n"&#xD;
+                                                         ↑ (pos 55)</Message>
+          <StackTrace>   at Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo.&lt;SectionOrdering&gt;d__6.MoveNext() in Q:\src\roslyn\roslyn-main\src\VisualStudio\IntegrationTest\New.IntegrationTests\CSharp\CSharpQuickInfo.cs:line 105&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable.ConfiguredTaskAwaiter.GetResult()&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+--- End of stack trace from previous location where exception was thrown ---&#xD;
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="557ba30b-9737-4900-93d3-e223e536efe3" testId="65350d5d-d09e-96f9-0f05-4957afcd446b" testName="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpClassification.VerifyColorOfSomeTokens (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.5720000" startTime="2026-09-17T11:48:11.8440702-07:00" endTime="2026-09-17T11:48:13.4698539-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="557ba30b-9737-4900-93d3-e223e536efe3" />
+    <UnitTestResult executionId="55e865b1-f195-4c3c-91e3-6ada6efbe809" testId="dbc77e5e-7372-4946-3c2d-ebd20c419a24" testName="Roslyn.VisualStudio.IntegrationTests.VisualBasic.BasicClassification.Verify_Color_Of_Some_Tokens (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.5930000" startTime="2026-09-17T11:47:48.3232176-07:00" endTime="2026-09-17T11:47:50.1268519-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="55e865b1-f195-4c3c-91e3-6ada6efbe809" />
+    <UnitTestResult executionId="77939db6-b06b-4c7f-9681-bbaacad6d3c1" testId="af61363e-6103-cc3d-2f99-faaca6239b09" testName="Roslyn.VisualStudio.IntegrationTests.VisualBasic.BasicGenerateFromUsage.GenerateTypeInNewFile (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:02.8210000" startTime="2026-09-17T11:47:40.4812842-07:00" endTime="2026-09-17T11:47:44.6552987-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="77939db6-b06b-4c7f-9681-bbaacad6d3c1" />
+    <UnitTestResult executionId="907caf51-eb9e-4617-a190-b6b26ba56321" testId="41199c10-d60d-ea7d-afa0-e4e8fdd99cf4" testName="Roslyn.VisualStudio.IntegrationTests.VisualBasic.BasicGenerateFromUsage.GenerateLocal (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.9270000" startTime="2026-09-17T11:47:44.6948753-07:00" endTime="2026-09-17T11:47:46.7234123-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="907caf51-eb9e-4617-a190-b6b26ba56321" />
+    <UnitTestResult executionId="4d679a72-688d-4bef-bbf5-2f076c0c9953" testId="4fa63a69-64b8-5e3f-2a5d-cb0e989b4605" testName="Roslyn.VisualStudio.NewIntegrationTests.Options.GlobalOptionsTest.ValidateAllOptions (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:47:35.5842897-07:00" endTime="2026-09-17T11:47:35.5882886-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4d679a72-688d-4bef-bbf5-2f076c0c9953">
+      <Output>
+        <ErrorInfo>
+          <Message>https://github.com/dotnet/roslyn/issues/79886</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="f84c7af8-1de4-44fe-9df4-bd9d26ee985e" testId="70de8881-6e46-379c-b5d4-531b39a4cf9d" testName="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesDesktop.ProjectProperties (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:47:35.5385621-07:00" endTime="2026-09-17T11:47:35.5425820-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f84c7af8-1de4-44fe-9df4-bd9d26ee985e">
+      <Output>
+        <ErrorInfo>
+          <Message>https://github.com/dotnet/roslyn/issues/64672</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="07dc7bcb-be24-4c40-ab9b-f40bc1ed5996" testId="84b06f2d-89cc-904a-881a-dbc8f4263671" testName="Roslyn.VisualStudio.NewIntegrationTests.InfrastructureTests.CanCloseSaveDialog (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:47:35.8572070-07:00" endTime="2026-09-17T11:47:35.8612278-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="07dc7bcb-be24-4c40-ab9b-f40bc1ed5996">
+      <Output>
+        <ErrorInfo>
+          <Message>https://github.com/dotnet/roslyn/issues/73099</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="77fe4c43-9007-4b39-af99-e5025bf57026" testId="e6ed1f35-1bda-584d-879c-4d0576880a9d" testName="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesDesktop.ProjectReference (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:47:31.3227066-07:00" endTime="2026-09-17T11:47:31.3267052-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="77fe4c43-9007-4b39-af99-e5025bf57026">
+      <Output>
+        <ErrorInfo>
+          <Message>https://github.com/dotnet/roslyn/issues/72018</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="2e84c540-ce81-4679-82e5-cc4c7626ffe3" testId="4d9afad9-ca4a-4ddf-d589-40f9b9252024" testName="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpClassification.SemanticClassification (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.9390000" startTime="2026-09-17T11:48:15.5879776-07:00" endTime="2026-09-17T11:48:17.5741883-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2e84c540-ce81-4679-82e5-cc4c7626ffe3" />
+    <UnitTestResult executionId="c104e866-974d-44a0-9c9b-7bf3ec24ea50" testId="0b3d881c-8a76-3faa-ee26-0bdfe883b92a" testName="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesNetCore.ProjectReference (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:47:29.3867320-07:00" endTime="2026-09-17T11:47:29.3917776-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c104e866-974d-44a0-9c9b-7bf3ec24ea50">
+      <Output>
+        <ErrorInfo>
+          <Message>https://github.com/dotnet/roslyn/issues/72018</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="df732b82-f1e8-48a1-ac0d-423096635517" testId="1b2ecbd0-5050-0864-0ddc-c08538009313" testName="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo.International (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:48:02.4215233-07:00" endTime="2026-09-17T11:48:04.9305448-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="df732b82-f1e8-48a1-ac0d-423096635517">
+      <Output>
+        <ErrorInfo>
+          <Message>Test will automatically retry.</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="029b23aa-a29b-43d2-8910-90e609db2bbb" testId="1b50b1dd-6a72-f5f8-7f9c-817f007d05d6" testName="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpClassification.VerifyProjectConfigChange (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.7200000" startTime="2026-09-17T11:48:13.5085142-07:00" endTime="2026-09-17T11:48:15.5472742-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="029b23aa-a29b-43d2-8910-90e609db2bbb" />
+    <UnitTestResult executionId="e5972797-3017-4999-994f-0b7c879b2ab2" testId="2b0b49a3-71d2-2000-3ace-eaf74dd534d7" testName="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesNetCore.RenamingOpenFiles (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:47:29.3508809-07:00" endTime="2026-09-17T11:47:29.3548761-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e5972797-3017-4999-994f-0b7c879b2ab2">
+      <Output>
+        <ErrorInfo>
+          <Message>https://github.com/dotnet/roslyn/issues/30599</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="503a2dca-ba9e-4df3-972a-1e1849a2b9d9" testId="a064536b-5c91-1338-30cc-4647ca8e8631" testName="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpGenerateFromUsage.GenerateLocal (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.7540000" startTime="2026-09-17T11:48:09.8023038-07:00" endTime="2026-09-17T11:48:11.7724337-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="503a2dca-ba9e-4df3-972a-1e1849a2b9d9" />
+    <UnitTestResult executionId="57fafdf3-ccaa-4bb2-b32d-d4457c494bce" testId="5acc3338-e839-e9e8-030c-6467c4137143" testName="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesDesktop.OpenCSharpThenVBSolution (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:02" startTime="2026-09-17T11:47:31.3628652-07:00" endTime="2026-09-17T11:47:33.8541062-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="57fafdf3-ccaa-4bb2-b32d-d4457c494bce" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="Roslyn.VisualStudio.IntegrationTests.VisualBasic.BasicClassification.Verify_Color_Of_Some_Tokens (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="dbc77e5e-7372-4946-3c2d-ebd20c419a24">
+      <Execution id="55e865b1-f195-4c3c-91e3-6ada6efbe809" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.IntegrationTests.VisualBasic.BasicClassification" name="Verify_Color_Of_Some_Tokens" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo.QuickInfo_MetadataDocumentation (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="c33974c0-125e-38b2-4bb8-f463cb1d251e">
+      <Execution id="71d0ecbf-5a5d-4956-b534-c4408385d0c6" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo" name="QuickInfo_MetadataDocumentation" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.InfrastructureTests.CanCloseSaveDialog (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="84b06f2d-89cc-904a-881a-dbc8f4263671">
+      <Execution id="07dc7bcb-be24-4c40-ab9b-f40bc1ed5996" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.InfrastructureTests" name="CanCloseSaveDialog" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesNetCore.ProjectProperties (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="83a6e4e2-c00b-95c7-028e-0a72ce16febf">
+      <Execution id="d4e4168b-ee1c-43ba-af26-862b27ab8fbc" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesNetCore" name="ProjectProperties" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesDesktop.RenamingOpenFiles (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="2550540d-6c09-af77-3f88-44fb2a7dc67d">
+      <Execution id="d66ab2d5-b30d-48af-ba91-67980eba8da5" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesDesktop" name="RenamingOpenFiles" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.IntegrationTests.VisualBasic.BasicGenerateFromUsage.GenerateLocal (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="41199c10-d60d-ea7d-afa0-e4e8fdd99cf4">
+      <Execution id="907caf51-eb9e-4617-a190-b6b26ba56321" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.IntegrationTests.VisualBasic.BasicGenerateFromUsage" name="GenerateLocal" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesNetCore.MetadataReference (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="4ac2100e-fb3c-282b-a864-1608ee5b90b7">
+      <Execution id="1c159a8b-3028-4e75-925b-86b123339c0a" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesNetCore" name="MetadataReference" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesNetCore.RenamingOpenFiles (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="2b0b49a3-71d2-2000-3ace-eaf74dd534d7">
+      <Execution id="e5972797-3017-4999-994f-0b7c879b2ab2" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesNetCore" name="RenamingOpenFiles" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.IntegrationTests.VisualBasic.BasicQuickInfo.International (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="9186254d-11a2-1544-4116-dea1b52f1ecc">
+      <Execution id="eb7cc306-60f3-47dd-b592-69d490c8830e" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.IntegrationTests.VisualBasic.BasicQuickInfo" name="International" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesNetCore.OpenCSharpThenVBSolution (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="55e9d2b6-d286-b0e3-9c93-438be1286780">
+      <Execution id="e8ac5e65-cf5e-4dea-b1dd-5ff9b1ba896c" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesNetCore" name="OpenCSharpThenVBSolution" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpTyping.TypingInPartialType (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="c5e94dfe-ba71-5743-9fd7-91938d9ea35b">
+      <Execution id="c09c1489-4e6d-4b8f-81c2-eb0742538e8c" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpTyping" name="TypingInPartialType" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesDesktop.ProjectProperties (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="70de8881-6e46-379c-b5d4-531b39a4cf9d">
+      <Execution id="f84c7af8-1de4-44fe-9df4-bd9d26ee985e" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesDesktop" name="ProjectProperties" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.IntegrationTests.VisualBasic.BasicQuickInfo.QuickInfo1 (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="7c375c7e-b0f3-e05d-6800-16294d38b4f1">
+      <Execution id="7dd62bb8-46e6-42e1-b8d4-54dd8247851b" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.IntegrationTests.VisualBasic.BasicQuickInfo" name="QuickInfo1" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.IntegrationTests.VisualBasic.BasicBuild.BuildProject (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="137ccb99-0505-16fe-8cdb-33cf9524927d">
+      <Execution id="9c97fcc8-61bc-4615-9710-d431e01e35ea" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.IntegrationTests.VisualBasic.BasicBuild" name="BuildProject" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpClassification.SemanticClassification (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="4d9afad9-ca4a-4ddf-d589-40f9b9252024">
+      <Execution id="2e84c540-ce81-4679-82e5-cc4c7626ffe3" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpClassification" name="SemanticClassification" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo.International (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="1b2ecbd0-5050-0864-0ddc-c08538009313">
+      <Execution id="df732b82-f1e8-48a1-ac0d-423096635517" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo" name="International" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesDesktop.MetadataReference (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="b38bd60f-28ef-76a1-1731-25429b69a1cf">
+      <Execution id="41733e7f-2d63-42e2-add7-9f62562a7c8c" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesDesktop" name="MetadataReference" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpGenerateFromUsage.GenerateLocal (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="a064536b-5c91-1338-30cc-4647ca8e8631">
+      <Execution id="503a2dca-ba9e-4df3-972a-1e1849a2b9d9" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpGenerateFromUsage" name="GenerateLocal" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesDesktop.OpenCSharpThenVBSolution (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="5acc3338-e839-e9e8-030c-6467c4137143">
+      <Execution id="57fafdf3-ccaa-4bb2-b32d-d4457c494bce" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesDesktop" name="OpenCSharpThenVBSolution" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpClassification.VerifyColorOfSomeTokens (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="65350d5d-d09e-96f9-0f05-4957afcd446b">
+      <Execution id="557ba30b-9737-4900-93d3-e223e536efe3" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpClassification" name="VerifyColorOfSomeTokens" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo.QuickInfo_Documentation (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="c48984dc-88f4-6f4d-a53c-659dab55da25">
+      <Execution id="ead348e2-caab-4918-9227-a91f094ff15e" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo" name="QuickInfo_Documentation" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesNetCore.ProjectReference (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="0b3d881c-8a76-3faa-ee26-0bdfe883b92a">
+      <Execution id="c104e866-974d-44a0-9c9b-7bf3ec24ea50" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesNetCore" name="ProjectReference" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.IntegrationTests.VisualBasic.BasicGenerateFromUsage.GenerateTypeInNewFile (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="af61363e-6103-cc3d-2f99-faaca6239b09">
+      <Execution id="77939db6-b06b-4c7f-9681-bbaacad6d3c1" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.IntegrationTests.VisualBasic.BasicGenerateFromUsage" name="GenerateTypeInNewFile" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.Options.GlobalOptionsTest.ValidateAllOptions (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="4fa63a69-64b8-5e3f-2a5d-cb0e989b4605">
+      <Execution id="4d679a72-688d-4bef-bbf5-2f076c0c9953" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.Options.GlobalOptionsTest" name="ValidateAllOptions" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.MefCompositionTests.AssertNoCompositionFailures (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="28c053df-6898-6b91-7061-b45d9bb82b26">
+      <Execution id="377e9518-8ce9-4695-b582-e9e8310a2ae4" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.MefCompositionTests" name="AssertNoCompositionFailures" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpClassification.VerifyProjectConfigChange (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="1b50b1dd-6a72-f5f8-7f9c-817f007d05d6">
+      <Execution id="029b23aa-a29b-43d2-8910-90e609db2bbb" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpClassification" name="VerifyProjectConfigChange" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesDesktop.ProjectReference (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="e6ed1f35-1bda-584d-879c-4d0576880a9d">
+      <Execution id="77fe4c43-9007-4b39-af99-e5025bf57026" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesDesktop" name="ProjectReference" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.IntegrationTests.VisualBasic.BasicClassification.Semantic_Classification (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="c822a9d7-8b3b-ec33-c16c-c954f6483580">
+      <Execution id="ee95b36f-b781-45b3-8978-22d4ddd6d875" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.IntegrationTests.VisualBasic.BasicClassification" name="Semantic_Classification" />
+    </UnitTest>
+    <UnitTest name="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo.SectionOrdering (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\microsoft.visualstudio.languageservices.new.integrationtests\debug\net472\microsoft.visualstudio.languageservices.new.integrationtests.dll" id="95d9a10f-5806-b4b2-08ad-ec314ba14711">
+      <Execution id="ba70919c-0138-4897-83a7-d8e61d7170a7" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\Debug\net472\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo" name="SectionOrdering" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="1b2ecbd0-5050-0864-0ddc-c08538009313" executionId="d1afeab3-6bd5-4920-9e27-a95ea7ec9bdb" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c48984dc-88f4-6f4d-a53c-659dab55da25" executionId="ead348e2-caab-4918-9227-a91f094ff15e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c5e94dfe-ba71-5743-9fd7-91938d9ea35b" executionId="c09c1489-4e6d-4b8f-81c2-eb0742538e8c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="95d9a10f-5806-b4b2-08ad-ec314ba14711" executionId="ba70919c-0138-4897-83a7-d8e61d7170a7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c822a9d7-8b3b-ec33-c16c-c954f6483580" executionId="ee95b36f-b781-45b3-8978-22d4ddd6d875" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="55e9d2b6-d286-b0e3-9c93-438be1286780" executionId="e8ac5e65-cf5e-4dea-b1dd-5ff9b1ba896c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c48984dc-88f4-6f4d-a53c-659dab55da25" executionId="7a3bcbcc-0ecf-4401-9461-058477226b76" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2550540d-6c09-af77-3f88-44fb2a7dc67d" executionId="d66ab2d5-b30d-48af-ba91-67980eba8da5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9186254d-11a2-1544-4116-dea1b52f1ecc" executionId="eb7cc306-60f3-47dd-b592-69d490c8830e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c33974c0-125e-38b2-4bb8-f463cb1d251e" executionId="71d0ecbf-5a5d-4956-b534-c4408385d0c6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="83a6e4e2-c00b-95c7-028e-0a72ce16febf" executionId="d4e4168b-ee1c-43ba-af26-862b27ab8fbc" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="28c053df-6898-6b91-7061-b45d9bb82b26" executionId="377e9518-8ce9-4695-b582-e9e8310a2ae4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b38bd60f-28ef-76a1-1731-25429b69a1cf" executionId="41733e7f-2d63-42e2-add7-9f62562a7c8c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="137ccb99-0505-16fe-8cdb-33cf9524927d" executionId="9c97fcc8-61bc-4615-9710-d431e01e35ea" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7c375c7e-b0f3-e05d-6800-16294d38b4f1" executionId="7dd62bb8-46e6-42e1-b8d4-54dd8247851b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4ac2100e-fb3c-282b-a864-1608ee5b90b7" executionId="1c159a8b-3028-4e75-925b-86b123339c0a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="95d9a10f-5806-b4b2-08ad-ec314ba14711" executionId="5b066ffd-6b7e-4292-8577-1293076f1d9d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="65350d5d-d09e-96f9-0f05-4957afcd446b" executionId="557ba30b-9737-4900-93d3-e223e536efe3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="dbc77e5e-7372-4946-3c2d-ebd20c419a24" executionId="55e865b1-f195-4c3c-91e3-6ada6efbe809" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="af61363e-6103-cc3d-2f99-faaca6239b09" executionId="77939db6-b06b-4c7f-9681-bbaacad6d3c1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="41199c10-d60d-ea7d-afa0-e4e8fdd99cf4" executionId="907caf51-eb9e-4617-a190-b6b26ba56321" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4fa63a69-64b8-5e3f-2a5d-cb0e989b4605" executionId="4d679a72-688d-4bef-bbf5-2f076c0c9953" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="70de8881-6e46-379c-b5d4-531b39a4cf9d" executionId="f84c7af8-1de4-44fe-9df4-bd9d26ee985e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="84b06f2d-89cc-904a-881a-dbc8f4263671" executionId="07dc7bcb-be24-4c40-ab9b-f40bc1ed5996" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e6ed1f35-1bda-584d-879c-4d0576880a9d" executionId="77fe4c43-9007-4b39-af99-e5025bf57026" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4d9afad9-ca4a-4ddf-d589-40f9b9252024" executionId="2e84c540-ce81-4679-82e5-cc4c7626ffe3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0b3d881c-8a76-3faa-ee26-0bdfe883b92a" executionId="c104e866-974d-44a0-9c9b-7bf3ec24ea50" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1b2ecbd0-5050-0864-0ddc-c08538009313" executionId="df732b82-f1e8-48a1-ac0d-423096635517" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1b50b1dd-6a72-f5f8-7f9c-817f007d05d6" executionId="029b23aa-a29b-43d2-8910-90e609db2bbb" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2b0b49a3-71d2-2000-3ace-eaf74dd534d7" executionId="e5972797-3017-4999-994f-0b7c879b2ab2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a064536b-5c91-1338-30cc-4647ca8e8631" executionId="503a2dca-ba9e-4df3-972a-1e1849a2b9d9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5acc3338-e839-e9e8-030c-6467c4137143" executionId="57fafdf3-ccaa-4bb2-b32d-d4457c494bce" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="32" executed="21" passed="18" failed="3" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.01] xUnit.net VSTest Adapter v3.1.3+b1b99bdeb3 (64-bit .NET Framework 4.8.9345.0)&#xD;
+[xUnit.net 00:00:01.29]   Starting:    Microsoft.VisualStudio.LanguageServices.New.IntegrationTests&#xD;
+[xUnit.net 00:01:28.54]       https://github.com/dotnet/roslyn/issues/64672&#xD;
+Test 'Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesNetCore.ProjectProperties (VS18)' was skipped in the test run.&#xD;
+[xUnit.net 00:01:47.57]       https://github.com/dotnet/roslyn/issues/72018&#xD;
+[xUnit.net 00:01:47.60]       https://github.com/dotnet/roslyn/issues/30599&#xD;
+[xUnit.net 00:01:47.64]       https://github.com/dotnet/roslyn/issues/72018&#xD;
+Test 'Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesNetCore.MetadataReference (VS18)' was skipped in the test run.&#xD;
+Test 'Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesNetCore.RenamingOpenFiles (VS18)' was skipped in the test run.&#xD;
+Test 'Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesNetCore.ProjectReference (VS18)' was skipped in the test run.&#xD;
+[xUnit.net 00:01:49.57]       https://github.com/dotnet/roslyn/issues/72018&#xD;
+Test 'Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesDesktop.ProjectReference (VS18)' was skipped in the test run.&#xD;
+[xUnit.net 00:01:53.79]       https://github.com/dotnet/roslyn/issues/64672&#xD;
+[xUnit.net 00:01:53.83]       https://github.com/dotnet/roslyn/issues/79886&#xD;
+[xUnit.net 00:01:54.11]       https://github.com/dotnet/roslyn/issues/73099&#xD;
+Test 'Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesDesktop.ProjectProperties (VS18)' was skipped in the test run.&#xD;
+Test 'Roslyn.VisualStudio.NewIntegrationTests.Options.GlobalOptionsTest.ValidateAllOptions (VS18)' was skipped in the test run.&#xD;
+Test 'Roslyn.VisualStudio.NewIntegrationTests.InfrastructureTests.CanCloseSaveDialog (VS18)' was skipped in the test run.&#xD;
+[xUnit.net 00:02:20.63]       Test will automatically retry.&#xD;
+Test 'Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo.QuickInfo_Documentation (VS18)' was skipped in the test run.&#xD;
+[xUnit.net 00:02:23.18]       Test will automatically retry.&#xD;
+Test 'Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo.International (VS18)' was skipped in the test run.&#xD;
+[xUnit.net 00:02:26.50]       Test will automatically retry.&#xD;
+Test 'Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo.SectionOrdering (VS18)' was skipped in the test run.&#xD;
+[xUnit.net 00:04:23.92]       Assert.Equal() Failure: Strings differ&#xD;
+[xUnit.net 00:04:23.92]       Expected: "class Program\r\nHello!"&#xD;
+[xUnit.net 00:04:23.92]       Actual:   "class Program\r\nHello!\r\n\r\n"&#xD;
+[xUnit.net 00:04:23.92]                                         ↑ (pos 21)&#xD;
+[xUnit.net 00:04:23.92]       Stack Trace:&#xD;
+[xUnit.net 00:04:23.92]         src\VisualStudio\IntegrationTest\New.IntegrationTests\CSharp\CSharpQuickInfo.cs(58,0): at Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo.&lt;QuickInfo_Documentation&gt;d__4.MoveNext()&#xD;
+[xUnit.net 00:04:23.92]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:04:23.92]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:04:23.92]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:04:23.92]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:04:23.92]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:04:23.92]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:04:23.92]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:04:23.92]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:04:23.92]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:04:23.92]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:04:27.68]       Assert.Equal() Failure: Strings differ&#xD;
+[xUnit.net 00:04:27.68]       Expected: ···"is is an XML doc comment defined in code."&#xD;
+[xUnit.net 00:04:27.68]       Actual:   ···"s an XML doc comment defined in code.\r\n\r\n"&#xD;
+[xUnit.net 00:04:27.68]                                                          ↑ (pos 61)&#xD;
+[xUnit.net 00:04:27.68]       Stack Trace:&#xD;
+[xUnit.net 00:04:27.68]         src\VisualStudio\IntegrationTest\New.IntegrationTests\CSharp\CSharpQuickInfo.cs(79,0): at Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo.&lt;International&gt;d__5.MoveNext()&#xD;
+[xUnit.net 00:04:27.68]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:04:27.68]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:04:27.68]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:04:27.68]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:04:27.68]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:04:27.68]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:04:27.68]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:04:27.68]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:04:27.68]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:04:27.68]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:04:30.76]       Assert.Equal() Failure: Strings differ&#xD;
+[xUnit.net 00:04:30.76]       Expected: ···"sk&lt;int&gt; C.M()\r\n\r\nExceptions:\r\n  Exception"&#xD;
+[xUnit.net 00:04:30.76]       Actual:   ···"nt&gt; C.M()\r\n\r\nExceptions:\r\n  Exception\r\n\r\n"&#xD;
+[xUnit.net 00:04:30.76]                                                                ↑ (pos 55)&#xD;
+[xUnit.net 00:04:30.76]       Stack Trace:&#xD;
+[xUnit.net 00:04:30.76]         src\VisualStudio\IntegrationTest\New.IntegrationTests\CSharp\CSharpQuickInfo.cs(105,0): at Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo.&lt;SectionOrdering&gt;d__6.MoveNext()&#xD;
+[xUnit.net 00:04:30.76]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:04:30.76]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:04:30.76]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:04:30.76]            at System.Runtime.CompilerServices.ConfiguredTaskAwaitable.ConfiguredTaskAwaiter.GetResult()&#xD;
+[xUnit.net 00:04:30.76]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:04:30.76]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:04:30.76]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:04:30.76]         --- End of stack trace from previous location where exception was thrown ---&#xD;
+[xUnit.net 00:04:30.76]            at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#xD;
+[xUnit.net 00:04:30.76]            at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)&#xD;
+[xUnit.net 00:04:33.25]   Finished:    Microsoft.VisualStudio.LanguageServices.New.IntegrationTests&#xD;
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:47:10.2987575-07:00">
+        <Text>[xUnit.net 00:01:28.54]     Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesNetCore.ProjectProperties (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:47:29.3254169-07:00">
+        <Text>[xUnit.net 00:01:47.57]     Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesNetCore.MetadataReference (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:47:29.3558807-07:00">
+        <Text>[xUnit.net 00:01:47.60]     Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesNetCore.RenamingOpenFiles (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:47:29.3927783-07:00">
+        <Text>[xUnit.net 00:01:47.64]     Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesNetCore.ProjectReference (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:47:31.3277278-07:00">
+        <Text>[xUnit.net 00:01:49.57]     Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesDesktop.ProjectReference (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:47:35.5435838-07:00">
+        <Text>[xUnit.net 00:01:53.79]     Roslyn.VisualStudio.NewIntegrationTests.Workspaces.WorkspacesDesktop.ProjectProperties (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:47:35.5892897-07:00">
+        <Text>[xUnit.net 00:01:53.83]     Roslyn.VisualStudio.NewIntegrationTests.Options.GlobalOptionsTest.ValidateAllOptions (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:47:35.8622339-07:00">
+        <Text>[xUnit.net 00:01:54.10]     Roslyn.VisualStudio.NewIntegrationTests.InfrastructureTests.CanCloseSaveDialog (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:48:02.3828938-07:00">
+        <Text>[xUnit.net 00:02:20.63]     Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo.QuickInfo_Documentation (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:48:04.9315434-07:00">
+        <Text>[xUnit.net 00:02:23.18]     Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo.International (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:48:08.2574424-07:00">
+        <Text>[xUnit.net 00:02:26.50]     Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo.SectionOrdering (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Error" timestamp="2026-09-17T11:50:05.6651265-07:00">
+        <Text>[xUnit.net 00:04:23.92]     Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo.QuickInfo_Documentation (VS18) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Error" timestamp="2026-09-17T11:50:09.4334036-07:00">
+        <Text>[xUnit.net 00:04:27.68]     Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo.International (VS18) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Error" timestamp="2026-09-17T11:50:12.5042103-07:00">
+        <Text>[xUnit.net 00:04:30.76]     Roslyn.VisualStudio.IntegrationTests.CSharp.CSharpQuickInfo.SectionOrdering (VS18) [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

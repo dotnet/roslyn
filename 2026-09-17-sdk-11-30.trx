@@ -1,0 +1,120 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="6730fe94-a553-484e-83e9-c6cdeb9c4af0" name="mwiemer@CPC-mwiem-JQR2A 2026-09-17 11:30:17" runUser="REDMOND\mwiemer" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-09-17T11:30:17.0573864-07:00" queuing="2026-09-17T11:30:17.0573864-07:00" start="2026-09-17T11:28:09.3915833-07:00" finish="2026-09-17T11:30:37.8691509-07:00" />
+  <TestSettings name="default" id="c11c8722-6835-414f-9b82-a9c4da462aa5">
+    <Deployment runDeploymentRoot="mwiemer_CPC-mwiem-JQR2A_2026-09-17_11_30_17" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="d83d8b2a-55b6-4115-b07d-b4714c12bdfe" testId="ec04d255-07bf-d1eb-346d-4256d5156e05" testName="Microsoft.CodeAnalysis.Testing.CreateProjectTests.CreateAnalyzerFromCSharpTemplateAsync (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:30:36.6410002-07:00" endTime="2026-09-17T11:30:36.6481461-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d83d8b2a-55b6-4115-b07d-b4714c12bdfe">
+      <Output>
+        <ErrorInfo>
+          <Message>https://github.com/dotnet/roslyn-sdk/issues/1198</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="783b7da1-66ad-4ac0-bf90-6053367a1287" testId="8f39fc7e-9e58-8d75-7a7e-aca269f47031" testName="Xunit.Instances.VisualStudio (VS18, Exp)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:30:37.7774867-07:00" endTime="2026-09-17T11:30:37.7795077-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="783b7da1-66ad-4ac0-bf90-6053367a1287" />
+    <UnitTestResult executionId="31025258-6dac-41fa-a3ca-549c7be7f068" testId="f07adde3-68f7-be51-2dd7-54a0d17bb8d3" testName="Microsoft.CodeAnalysis.Testing.CreateProjectTests.CreateStandaloneToolFromCSharpTemplateAsync (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:04.2680000" startTime="2026-09-17T11:30:26.5794759-07:00" endTime="2026-09-17T11:30:31.0001820-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="31025258-6dac-41fa-a3ca-549c7be7f068" />
+    <UnitTestResult executionId="b4b8714f-99d0-4c7a-9cb6-01a928a5bfa4" testId="a18b2273-db61-8958-2521-7d19289db48c" testName="Microsoft.CodeAnalysis.Testing.CreateProjectTests.CreateFromTemplateAsync (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:05.4030000" startTime="2026-09-17T11:30:31.0414714-07:00" endTime="2026-09-17T11:30:36.6036850-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b4b8714f-99d0-4c7a-9cb6-01a928a5bfa4" />
+    <UnitTestResult executionId="0ef448dd-193d-4ab2-a355-6344c9ae26be" testId="bf0d3bc8-819d-6d19-ea0b-2d14b3ab04e8" testName="Microsoft.CodeAnalysis.Testing.CreateProjectTests.CreateRefactoringFromVisualBasicTemplateAsync (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:30:15.6456786-07:00" endTime="2026-09-17T11:30:15.6535864-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0ef448dd-193d-4ab2-a355-6344c9ae26be">
+      <Output>
+        <ErrorInfo>
+          <Message>https://github.com/dotnet/roslyn-sdk/issues/1198</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="9a56e6dc-cf18-40eb-8f71-a3643a6706e0" testId="ee01a81d-6f96-e3eb-7bf1-731911ac518b" testName="Microsoft.CodeAnalysis.Testing.CreateProjectTests.CreateAnalyzerFromVisualBasicTemplateAsync (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:30:15.6973661-07:00" endTime="2026-09-17T11:30:15.7043621-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="9a56e6dc-cf18-40eb-8f71-a3643a6706e0">
+      <Output>
+        <ErrorInfo>
+          <Message>https://github.com/dotnet/roslyn-sdk/issues/1198</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="24521c58-bf79-41ae-86f0-49160adb306c" testId="1bbe133c-b02a-4941-68e6-38d9ac31c163" testName="Microsoft.CodeAnalysis.Testing.CreateProjectTests.CreateRefactoringFromCSharpTemplateAsync (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:00.0010000" startTime="2026-09-17T11:30:15.5552479-07:00" endTime="2026-09-17T11:30:15.5722642-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="24521c58-bf79-41ae-86f0-49160adb306c">
+      <Output>
+        <ErrorInfo>
+          <Message>https://github.com/dotnet/roslyn-sdk/issues/1198</Message>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="74a83383-61ad-48a4-b871-07c83e21c8f9" testId="6f523896-23d1-2a8b-a4a8-f085a82878aa" testName="Microsoft.CodeAnalysis.Testing.CreateProjectTests.CreateStandaloneToolFromVisualBasicTemplateAsync (VS18)" computerName="CPC-mwiem-JQR2A" duration="00:00:10.4490000" startTime="2026-09-17T11:30:15.7527614-07:00" endTime="2026-09-17T11:30:26.5278263-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="74a83383-61ad-48a4-b871-07c83e21c8f9" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="Microsoft.CodeAnalysis.Testing.CreateProjectTests.CreateStandaloneToolFromCSharpTemplateAsync (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\roslyn.sdk.integrationtests\debug\net472\roslyn.sdk.integrationtests.dll" id="f07adde3-68f7-be51-2dd7-54a0d17bb8d3">
+      <Execution id="31025258-6dac-41fa-a3ca-549c7be7f068" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Roslyn.SDK.IntegrationTests\Debug\net472\Roslyn.SDK.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Microsoft.CodeAnalysis.Testing.CreateProjectTests" name="CreateStandaloneToolFromCSharpTemplateAsync" />
+    </UnitTest>
+    <UnitTest name="Microsoft.CodeAnalysis.Testing.CreateProjectTests.CreateFromTemplateAsync (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\roslyn.sdk.integrationtests\debug\net472\roslyn.sdk.integrationtests.dll" id="a18b2273-db61-8958-2521-7d19289db48c">
+      <Execution id="b4b8714f-99d0-4c7a-9cb6-01a928a5bfa4" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Roslyn.SDK.IntegrationTests\Debug\net472\Roslyn.SDK.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Microsoft.CodeAnalysis.Testing.CreateProjectTests" name="CreateFromTemplateAsync" />
+    </UnitTest>
+    <UnitTest name="Microsoft.CodeAnalysis.Testing.CreateProjectTests.CreateStandaloneToolFromVisualBasicTemplateAsync (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\roslyn.sdk.integrationtests\debug\net472\roslyn.sdk.integrationtests.dll" id="6f523896-23d1-2a8b-a4a8-f085a82878aa">
+      <Execution id="74a83383-61ad-48a4-b871-07c83e21c8f9" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Roslyn.SDK.IntegrationTests\Debug\net472\Roslyn.SDK.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Microsoft.CodeAnalysis.Testing.CreateProjectTests" name="CreateStandaloneToolFromVisualBasicTemplateAsync" />
+    </UnitTest>
+    <UnitTest name="Microsoft.CodeAnalysis.Testing.CreateProjectTests.CreateRefactoringFromVisualBasicTemplateAsync (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\roslyn.sdk.integrationtests\debug\net472\roslyn.sdk.integrationtests.dll" id="bf0d3bc8-819d-6d19-ea0b-2d14b3ab04e8">
+      <Execution id="0ef448dd-193d-4ab2-a355-6344c9ae26be" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Roslyn.SDK.IntegrationTests\Debug\net472\Roslyn.SDK.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Microsoft.CodeAnalysis.Testing.CreateProjectTests" name="CreateRefactoringFromVisualBasicTemplateAsync" />
+    </UnitTest>
+    <UnitTest name="Xunit.Instances.VisualStudio (VS18, Exp)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\roslyn.sdk.integrationtests\debug\net472\roslyn.sdk.integrationtests.dll" id="8f39fc7e-9e58-8d75-7a7e-aca269f47031">
+      <Execution id="783b7da1-66ad-4ac0-bf90-6053367a1287" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Roslyn.SDK.IntegrationTests\Debug\net472\Roslyn.SDK.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Xunit.Instances" name="VisualStudio" />
+    </UnitTest>
+    <UnitTest name="Microsoft.CodeAnalysis.Testing.CreateProjectTests.CreateAnalyzerFromCSharpTemplateAsync (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\roslyn.sdk.integrationtests\debug\net472\roslyn.sdk.integrationtests.dll" id="ec04d255-07bf-d1eb-346d-4256d5156e05">
+      <Execution id="d83d8b2a-55b6-4115-b07d-b4714c12bdfe" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Roslyn.SDK.IntegrationTests\Debug\net472\Roslyn.SDK.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Microsoft.CodeAnalysis.Testing.CreateProjectTests" name="CreateAnalyzerFromCSharpTemplateAsync" />
+    </UnitTest>
+    <UnitTest name="Microsoft.CodeAnalysis.Testing.CreateProjectTests.CreateAnalyzerFromVisualBasicTemplateAsync (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\roslyn.sdk.integrationtests\debug\net472\roslyn.sdk.integrationtests.dll" id="ee01a81d-6f96-e3eb-7bf1-731911ac518b">
+      <Execution id="9a56e6dc-cf18-40eb-8f71-a3643a6706e0" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Roslyn.SDK.IntegrationTests\Debug\net472\Roslyn.SDK.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Microsoft.CodeAnalysis.Testing.CreateProjectTests" name="CreateAnalyzerFromVisualBasicTemplateAsync" />
+    </UnitTest>
+    <UnitTest name="Microsoft.CodeAnalysis.Testing.CreateProjectTests.CreateRefactoringFromCSharpTemplateAsync (VS18)" storage="q:\src\roslyn\roslyn-main\artifacts\bin\roslyn.sdk.integrationtests\debug\net472\roslyn.sdk.integrationtests.dll" id="1bbe133c-b02a-4941-68e6-38d9ac31c163">
+      <Execution id="24521c58-bf79-41ae-86f0-49160adb306c" />
+      <TestMethod codeBase="Q:\src\roslyn\roslyn-main\artifacts\bin\Roslyn.SDK.IntegrationTests\Debug\net472\Roslyn.SDK.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netfx/" className="Microsoft.CodeAnalysis.Testing.CreateProjectTests" name="CreateRefactoringFromCSharpTemplateAsync" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="ec04d255-07bf-d1eb-346d-4256d5156e05" executionId="d83d8b2a-55b6-4115-b07d-b4714c12bdfe" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8f39fc7e-9e58-8d75-7a7e-aca269f47031" executionId="783b7da1-66ad-4ac0-bf90-6053367a1287" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f07adde3-68f7-be51-2dd7-54a0d17bb8d3" executionId="31025258-6dac-41fa-a3ca-549c7be7f068" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a18b2273-db61-8958-2521-7d19289db48c" executionId="b4b8714f-99d0-4c7a-9cb6-01a928a5bfa4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="bf0d3bc8-819d-6d19-ea0b-2d14b3ab04e8" executionId="0ef448dd-193d-4ab2-a355-6344c9ae26be" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ee01a81d-6f96-e3eb-7bf1-731911ac518b" executionId="9a56e6dc-cf18-40eb-8f71-a3643a6706e0" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1bbe133c-b02a-4941-68e6-38d9ac31c163" executionId="24521c58-bf79-41ae-86f0-49160adb306c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6f523896-23d1-2a8b-a4a8-f085a82878aa" executionId="74a83383-61ad-48a4-b871-07c83e21c8f9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="8" executed="4" passed="4" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.01] xUnit.net VSTest Adapter v3.1.3+b1b99bdeb3 (64-bit .NET Framework 4.8.9345.0)&#xD;
+[xUnit.net 00:00:00.87]   Starting:    Roslyn.SDK.IntegrationTests&#xD;
+[xUnit.net 00:02:05.03]       https://github.com/dotnet/roslyn-sdk/issues/1198&#xD;
+[xUnit.net 00:02:05.11]       https://github.com/dotnet/roslyn-sdk/issues/1198&#xD;
+[xUnit.net 00:02:05.16]       https://github.com/dotnet/roslyn-sdk/issues/1198&#xD;
+Test 'Microsoft.CodeAnalysis.Testing.CreateProjectTests.CreateRefactoringFromCSharpTemplateAsync (VS18)' was skipped in the test run.&#xD;
+Test 'Microsoft.CodeAnalysis.Testing.CreateProjectTests.CreateRefactoringFromVisualBasicTemplateAsync (VS18)' was skipped in the test run.&#xD;
+Test 'Microsoft.CodeAnalysis.Testing.CreateProjectTests.CreateAnalyzerFromVisualBasicTemplateAsync (VS18)' was skipped in the test run.&#xD;
+[xUnit.net 00:02:26.10]       https://github.com/dotnet/roslyn-sdk/issues/1198&#xD;
+[xUnit.net 00:02:27.24]   Finished:    Roslyn.SDK.IntegrationTests&#xD;
+Test 'Microsoft.CodeAnalysis.Testing.CreateProjectTests.CreateAnalyzerFromCSharpTemplateAsync (VS18)' was skipped in the test run.&#xD;
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:30:15.5752726-07:00">
+        <Text>[xUnit.net 00:02:05.03]     Microsoft.CodeAnalysis.Testing.CreateProjectTests.CreateRefactoringFromCSharpTemplateAsync (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:30:15.6545760-07:00">
+        <Text>[xUnit.net 00:02:05.10]     Microsoft.CodeAnalysis.Testing.CreateProjectTests.CreateRefactoringFromVisualBasicTemplateAsync (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:30:15.7058842-07:00">
+        <Text>[xUnit.net 00:02:05.16]     Microsoft.CodeAnalysis.Testing.CreateProjectTests.CreateAnalyzerFromVisualBasicTemplateAsync (VS18) [SKIP]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-mwiem-JQR2A" outcome="Warning" timestamp="2026-09-17T11:30:36.6491487-07:00">
+        <Text>[xUnit.net 00:02:26.10]     Microsoft.CodeAnalysis.Testing.CreateProjectTests.CreateAnalyzerFromCSharpTemplateAsync (VS18) [SKIP]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>
