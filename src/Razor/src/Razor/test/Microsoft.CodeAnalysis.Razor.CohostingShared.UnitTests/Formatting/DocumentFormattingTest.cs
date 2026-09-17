@@ -4,7 +4,6 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Xunit;
@@ -14,6 +13,177 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 
 public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentFormattingTestBase(testOutput)
 {
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
+    public Task DocumentFormatting_UsesNestedEditorConfigs_Razor()
+        => RunFormattingTestAsync(
+            input: """
+                @code {
+                class C
+                {
+                    void M()
+                    {
+                        if (true)
+                        {
+                        }
+                    }
+                }
+                }
+                """,
+            htmlFormatted: """
+                @code {
+                class C
+                {
+                    void M()
+                    {
+                        if (true)
+                        {
+                        }
+                    }
+                }
+                }
+                """,
+            expected: """
+                @code {
+                    class C {
+                        void M() {
+                            if(true) {
+                            }
+                        }
+                    }
+                }
+                """,
+            validateHtmlFormattedMatchesWebTools: false,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_new_line_before_open_brace = none
+                    """),
+                ("Nested/.editorconfig", """
+                    [*.razor]
+                    csharp_space_after_keywords_in_control_flow_statements = false
+                    """)
+            ],
+            documentFilePath: FilePath("Nested/File1.razor"));
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
+    public Task DocumentFormatting_UsesEditorConfig_Cshtml()
+        => RunFormattingTestAsync(
+            input: """
+                @functions {
+                class C
+                {
+                    void M()
+                    {
+                    }
+                }
+                }
+                """,
+            htmlFormatted: """
+                @functions {
+                class C
+                {
+                    void M()
+                    {
+                    }
+                }
+                }
+                """,
+            expected: """
+                @functions {
+                    class C {
+                        void M() {
+                        }
+                    }
+                }
+                """,
+            fileKind: RazorFileKind.Legacy,
+            validateHtmlFormattedMatchesWebTools: false,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.cshtml]
+                    csharp_new_line_before_open_brace = none
+                    """)
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
+    public Task RangeFormatting_UsesEditorConfig_Razor()
+        => RunFormattingTestAsync(
+            input: """
+                @code {
+                    private void M(string [|value|])
+                    {
+                    }
+                }
+                """,
+            htmlFormatted: """
+                @code {
+                    private void M(string value)
+                    {
+                    }
+                }
+                """,
+            expected: """
+                @code {
+                    private void M(string value) {
+                    }
+                }
+                """,
+            validateHtmlFormattedMatchesWebTools: false,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_new_line_before_open_brace = none
+                    """)
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
+    public Task RangeFormatting_UsesEditorConfig_Cshtml()
+        => RunFormattingTestAsync(
+            input: """
+                @functions {
+                    private void M(string [|value|])
+                    {
+                    }
+                }
+                """,
+            htmlFormatted: """
+                @functions {
+                    private void M(string value)
+                    {
+                    }
+                }
+                """,
+            expected: """
+                @functions {
+                    private void M(string value) {
+                    }
+                }
+                """,
+            fileKind: RazorFileKind.Legacy,
+            validateHtmlFormattedMatchesWebTools: false,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.cshtml]
+                    csharp_new_line_before_open_brace = none
+                    """)
+            ]);
+
     [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/9658#issuecomment-3943605712")]
     public async Task MultilineIfStatement()
@@ -811,10 +981,15 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 
                 </div>
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                Spacing = SpacePlacement.AfterDot
-            });
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_space_after_dot = true
+                    """)
+            ]);
     }
 
     [Fact]
@@ -872,10 +1047,15 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                Spacing = SpacePlacement.AfterMethodCallName
-            });
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_space_between_method_call_name_and_opening_parenthesis = true
+                    """)
+            ]);
     }
 
     [Fact]
@@ -933,10 +1113,16 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                Spacing = SpacePlacement.AfterMethodCallName | SpacePlacement.AfterMethodDeclarationName
-            });
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_space_between_method_call_name_and_opening_parenthesis = true
+                    csharp_space_between_method_declaration_name_and_open_parenthesis = true
+                    """)
+            ]);
     }
 
     [Fact]
@@ -990,10 +1176,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = default
-            });
+            additionalFiles: GetNewLinesEditorConfig(openBracePlacement: "none"));
     }
 
     [Fact]
@@ -1046,10 +1229,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = default
-            });
+            additionalFiles: GetNewLinesEditorConfig(openBracePlacement: "none"));
     }
 
     [Fact]
@@ -1083,10 +1263,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = NewLinePlacement.BeforeOpenBraceInMethods
-            });
+            additionalFiles: GetNewLinesEditorConfig(openBracePlacement: "methods"));
     }
 
     [Fact]
@@ -1123,10 +1300,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = NewLinePlacement.BeforeOpenBraceInMethods
-            });
+            additionalFiles: GetNewLinesEditorConfig(openBracePlacement: "methods"));
     }
 
     [Fact]
@@ -1163,10 +1337,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = NewLinePlacement.BeforeOpenBraceInMethods
-            });
+            additionalFiles: GetNewLinesEditorConfig(openBracePlacement: "methods"));
     }
 
     [Fact]
@@ -1209,10 +1380,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 }
                 </div>
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = NewLinePlacement.BeforeOpenBraceInMethods
-            });
+            additionalFiles: GetNewLinesEditorConfig(openBracePlacement: "methods"));
     }
 
     [Fact]
@@ -1245,10 +1413,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = default
-            });
+            additionalFiles: GetNewLinesEditorConfig(openBracePlacement: "none"));
     }
 
     [Fact]
@@ -1407,6 +1572,616 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 </script>
                 """,
             fileKind: RazorFileKind.Legacy,
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task ScriptBlock_RootLevel_PreservesHtmlFormatterIndentation()
+    {
+        const string expected = """
+            <script>
+                function initialize() {
+                    if (ready) {
+                        start();
+                    }
+                }
+            </script>
+            """;
+
+        return RunFormattingTestAsync(
+            input: expected,
+            htmlFormatted: expected,
+            expected: expected,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task ScriptBlock_RootLevel_FormatsIncorrectJavaScriptIndentation()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <script>
+                function initialize() {
+                if (ready) {
+                start();
+                }
+                }
+                </script>
+                """,
+            htmlFormatted: """
+                <script>
+                    function initialize() {
+                        if (ready) {
+                            start();
+                        }
+                    }
+                </script>
+                """,
+            expected: """
+                <script>
+                    function initialize() {
+                        if (ready) {
+                            start();
+                        }
+                    }
+                </script>
+                """,
+            fileKind: RazorFileKind.Legacy,
+            // The test WebTools host does not run the JavaScript formatter needed to produce these edits.
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task ScriptBlock_InsideElement_PreservesHtmlFormatterIndentation()
+    {
+        const string expected = """
+            <div>
+                <script>
+                    function initialize() {
+                        if (ready) {
+                            start();
+                        }
+                    }
+                </script>
+            </div>
+            """;
+
+        return RunFormattingTestAsync(
+            input: expected,
+            htmlFormatted: expected,
+            expected: expected,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task ScriptBlock_InsideElement_FormatsIncorrectJavaScriptIndentation()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    <script>
+                function initialize() {
+                if (ready) {
+                start();
+                }
+                }
+                    </script>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <script>
+                        function initialize() {
+                            if (ready) {
+                                start();
+                            }
+                        }
+                    </script>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <script>
+                        function initialize() {
+                            if (ready) {
+                                start();
+                            }
+                        }
+                    </script>
+                </div>
+                """,
+            fileKind: RazorFileKind.Legacy,
+            // The test WebTools host does not run the JavaScript formatter needed to produce these edits.
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task ScriptBlock_InsideMultipleElements_PreservesHtmlFormatterIndentation()
+    {
+        const string expected = """
+            <main>
+                <section>
+                    <div>
+                        <script>
+                            function initialize() {
+                                if (ready) {
+                                    start();
+                                }
+                            }
+                        </script>
+                    </div>
+                </section>
+            </main>
+            """;
+
+        return RunFormattingTestAsync(
+            input: expected,
+            htmlFormatted: expected,
+            expected: expected,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task ScriptBlock_InsideTwoElements_FormatsIncorrectJavaScriptIndentation()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <main>
+                    <section>
+                        <script>
+                function initialize() {
+                if (ready) {
+                start();
+                }
+                }
+                        </script>
+                    </section>
+                </main>
+                """,
+            htmlFormatted: """
+                <main>
+                    <section>
+                        <script>
+                            function initialize() {
+                                if (ready) {
+                                    start();
+                                }
+                            }
+                        </script>
+                    </section>
+                </main>
+                """,
+            expected: """
+                <main>
+                    <section>
+                        <script>
+                            function initialize() {
+                                if (ready) {
+                                    start();
+                                }
+                            }
+                        </script>
+                    </section>
+                </main>
+                """,
+            fileKind: RazorFileKind.Legacy,
+            // The test WebTools host does not run the JavaScript formatter needed to produce these edits.
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task ScriptBlocks_AtDifferentNestingLevels_PreservesHtmlFormatterIndentation()
+    {
+        const string expected = """
+            <script>
+                root();
+            </script>
+
+            <div>
+                <script>
+                    nested();
+                </script>
+            </div>
+
+            <script>
+                rootAgain();
+            </script>
+            """;
+
+        return RunFormattingTestAsync(
+            input: expected,
+            htmlFormatted: expected,
+            expected: expected,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task Section_ScriptBlock_PreservesHtmlFormatterIndentation()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @section Scripts {
+                    <script>
+                        function initialize() {
+                            if (ready) {
+                                start();
+                            }
+                        }
+                    </script>
+                }
+                """,
+            htmlFormatted: """
+                @section Scripts {
+                <script>
+                    function initialize() {
+                        if (ready) {
+                            start();
+                        }
+                    }
+                </script>
+                }
+                """,
+            expected: """
+                @section Scripts {
+                    <script>
+                        function initialize() {
+                            if (ready) {
+                                start();
+                            }
+                        }
+                    </script>
+                }
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task Section_ScriptBlock_FormatsIncorrectJavaScriptIndentation()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @section Scripts {
+                    <script>
+                function initialize() {
+                if (ready) {
+                start();
+                }
+                }
+                    </script>
+                }
+                """,
+            htmlFormatted: """
+                @section Scripts {
+                <script>
+                    function initialize() {
+                        if (ready) {
+                            start();
+                        }
+                    }
+                </script>
+                }
+                """,
+            expected: """
+                @section Scripts {
+                    <script>
+                        function initialize() {
+                            if (ready) {
+                                start();
+                            }
+                        }
+                    </script>
+                }
+                """,
+            fileKind: RazorFileKind.Legacy,
+            // The test WebTools host does not run the JavaScript formatter needed to produce these edits.
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task Section_ScriptBlockInsideElement_PreservesHtmlFormatterIndentation()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @section Scripts {
+                    <div>
+                        <script>
+                            function initialize() {
+                                if (ready) {
+                                    start();
+                                }
+                            }
+                        </script>
+                    </div>
+                }
+                """,
+            htmlFormatted: """
+                @section Scripts {
+                <div>
+                    <script>
+                        function initialize() {
+                            if (ready) {
+                                start();
+                            }
+                        }
+                    </script>
+                </div>
+                }
+                """,
+            expected: """
+                @section Scripts {
+                    <div>
+                        <script>
+                            function initialize() {
+                                if (ready) {
+                                    start();
+                                }
+                            }
+                        </script>
+                    </div>
+                }
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task Section_ScriptBlockInsideElement_FormatsIncorrectJavaScriptIndentation()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @section Scripts {
+                    <div>
+                        <script>
+                function initialize() {
+                if (ready) {
+                start();
+                }
+                }
+                        </script>
+                    </div>
+                }
+                """,
+            htmlFormatted: """
+                @section Scripts {
+                <div>
+                    <script>
+                        function initialize() {
+                            if (ready) {
+                                start();
+                            }
+                        }
+                    </script>
+                </div>
+                }
+                """,
+            expected: """
+                @section Scripts {
+                    <div>
+                        <script>
+                            function initialize() {
+                                if (ready) {
+                                    start();
+                                }
+                            }
+                        </script>
+                    </div>
+                }
+                """,
+            fileKind: RazorFileKind.Legacy,
+            // The test WebTools host does not run the JavaScript formatter needed to produce these edits.
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task Section_ScriptBlockInsideMultipleElements_PreservesHtmlFormatterIndentation()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @section Scripts {
+                    <main>
+                        <section>
+                            <script>
+                                function initialize() {
+                                    if (ready) {
+                                        start();
+                                    }
+                                }
+                            </script>
+                        </section>
+                    </main>
+                }
+                """,
+            htmlFormatted: """
+                @section Scripts {
+                <main>
+                    <section>
+                        <script>
+                            function initialize() {
+                                if (ready) {
+                                    start();
+                                }
+                            }
+                        </script>
+                    </section>
+                </main>
+                }
+                """,
+            expected: """
+                @section Scripts {
+                    <main>
+                        <section>
+                            <script>
+                                function initialize() {
+                                    if (ready) {
+                                        start();
+                                    }
+                                }
+                            </script>
+                        </section>
+                    </main>
+                }
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task StyleBlock_InsideMultipleElements_PreservesHtmlFormatterIndentation()
+    {
+        const string expected = """
+            <main>
+                <section>
+                    <style>
+                        .card {
+                            color: red;
+                        }
+                    </style>
+                </section>
+            </main>
+            """;
+
+        return RunFormattingTestAsync(
+            input: expected,
+            htmlFormatted: expected,
+            expected: expected,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task StyleBlock_InsideMultipleElements_FormatsIncorrectCssIndentation()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <main>
+                    <section>
+                        <style>
+                .card {
+                color: red;
+                }
+                        </style>
+                    </section>
+                </main>
+                """,
+            htmlFormatted: """
+                <main>
+                    <section>
+                        <style>
+                            .card {
+                                color: red;
+                            }
+                        </style>
+                    </section>
+                </main>
+                """,
+            expected: """
+                <main>
+                    <section>
+                        <style>
+                            .card {
+                                color: red;
+                            }
+                        </style>
+                    </section>
+                </main>
+                """,
+            fileKind: RazorFileKind.Legacy,
+            // The test WebTools host does not run the CSS formatter needed to produce these edits.
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task Section_StyleBlockInsideElement_PreservesHtmlFormatterIndentation()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @section Styles {
+                    <div>
+                        <style>
+                            .card {
+                                color: red;
+                            }
+                        </style>
+                    </div>
+                }
+                """,
+            htmlFormatted: """
+                @section Styles {
+                <div>
+                    <style>
+                        .card {
+                            color: red;
+                        }
+                    </style>
+                </div>
+                }
+                """,
+            expected: """
+                @section Styles {
+                    <div>
+                        <style>
+                            .card {
+                                color: red;
+                            }
+                        </style>
+                    </div>
+                }
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13262")]
+    public Task Section_StyleBlockInsideElement_FormatsIncorrectCssIndentation()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @section Styles {
+                    <div>
+                        <style>
+                .card {
+                color: red;
+                }
+                        </style>
+                    </div>
+                }
+                """,
+            htmlFormatted: """
+                @section Styles {
+                <div>
+                    <style>
+                        .card {
+                            color: red;
+                        }
+                    </style>
+                </div>
+                }
+                """,
+            expected: """
+                @section Styles {
+                    <div>
+                        <style>
+                            .card {
+                                color: red;
+                            }
+                        </style>
+                    </div>
+                }
+                """,
+            fileKind: RazorFileKind.Legacy,
+            // The test WebTools host does not run the CSS formatter needed to produce these edits.
             validateHtmlFormattedMatchesWebTools: false);
     }
 
@@ -5862,7 +6637,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             fileKind: RazorFileKind.Component);
     }
 
@@ -5887,7 +6662,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: false),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: false),
             fileKind: RazorFileKind.Component);
     }
 
@@ -5916,7 +6691,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             fileKind: RazorFileKind.Component);
     }
 
@@ -5944,7 +6719,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: false),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: false),
             fileKind: RazorFileKind.Component);
     }
 
@@ -5979,7 +6754,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </button>
                 </div>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             fileKind: RazorFileKind.Component);
     }
 
@@ -6013,7 +6788,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </button>
                 </div>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: false),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: false),
             fileKind: RazorFileKind.Component);
     }
 
@@ -6048,7 +6823,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </button>
                 </div>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             fileKind: RazorFileKind.Component);
     }
 
@@ -6082,7 +6857,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </button>
                 </div>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: false),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: false),
             fileKind: RazorFileKind.Component);
     }
 
@@ -6110,7 +6885,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             fileKind: RazorFileKind.Component);
     }
 
@@ -6137,7 +6912,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: false),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: false),
             fileKind: RazorFileKind.Component);
     }
 
@@ -6174,7 +6949,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </button>
                 </div>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             fileKind: RazorFileKind.Component);
     }
 
@@ -6210,7 +6985,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </button>
                 </div>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: false),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: false),
             fileKind: RazorFileKind.Component);
     }
 
@@ -6237,7 +7012,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             fileKind: RazorFileKind.Component);
     }
 
@@ -6263,7 +7038,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: false),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: false),
             fileKind: RazorFileKind.Component);
     }
 
@@ -6284,7 +7059,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <button @onclick="() => { foo(); }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             fileKind: RazorFileKind.Component);
     }
 
@@ -6305,7 +7080,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <button @onclick="() => { foo(); }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: false),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: false),
             fileKind: RazorFileKind.Component);
     }
 
@@ -11064,12 +11839,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         </text>;
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = newLineBeforeBraceInLambda
-                    ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-            });
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda));
     }
 
     [Theory]
@@ -11150,12 +11920,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         </PageTitle>;
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = newLineBeforeBraceInLambda
-                    ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-            });
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda));
     }
 
     [Theory]
@@ -11233,12 +11998,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </text>;
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = newLineBeforeBraceInLambda
-                    ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-            });
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda));
     }
 
     [Theory]
@@ -11316,12 +12076,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </text>;
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = newLineBeforeBraceInLambda
-                    ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-            });
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda));
     }
 
     [Theory]
@@ -11399,12 +12154,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </text>;
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = newLineBeforeBraceInLambda
-                    ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-            });
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda));
     }
 
     [Theory]
@@ -11488,12 +12238,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 ;
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = newLineBeforeBraceInLambda
-                    ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-            });
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda));
     }
 
     [Theory]
@@ -11553,12 +12298,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 ;
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = newLineBeforeBraceInLambda
-                    ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-            });
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda));
     }
 
     [Fact]
@@ -12521,7 +13261,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true));
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true));
     }
 
     [Fact]
@@ -12555,7 +13295,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             attributeIndentStyle: AttributeIndentStyle.IndentByOne);
     }
 
@@ -12590,7 +13330,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
     }
 
@@ -12625,7 +13365,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true));
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true));
     }
 
     [Fact]
@@ -12659,7 +13399,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             attributeIndentStyle: AttributeIndentStyle.IndentByOne);
     }
 
@@ -12694,7 +13434,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
     }
 
@@ -12753,7 +13493,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
             additionalFiles: GetCheckBoxButtonComponentFiles());
     }
 
@@ -12812,7 +13551,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
             attributeIndentStyle: AttributeIndentStyle.IndentByOne,
             additionalFiles: GetCheckBoxButtonComponentFiles());
     }
@@ -12872,7 +13610,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
             attributeIndentStyle: AttributeIndentStyle.IndentByTwo,
             additionalFiles: GetCheckBoxButtonComponentFiles());
     }
@@ -12932,7 +13669,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
             additionalFiles: GetCheckBoxButtonComponentFiles());
     }
 
@@ -12991,7 +13727,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
             attributeIndentStyle: AttributeIndentStyle.IndentByOne,
             additionalFiles: GetCheckBoxButtonComponentFiles());
     }
@@ -13051,7 +13786,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
             attributeIndentStyle: AttributeIndentStyle.IndentByTwo,
             additionalFiles: GetCheckBoxButtonComponentFiles());
     }
@@ -13111,7 +13845,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
             additionalFiles: GetCheckBoxButtonComponentFiles());
     }
 
@@ -13170,7 +13903,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
             attributeIndentStyle: AttributeIndentStyle.IndentByOne,
             additionalFiles: GetCheckBoxButtonComponentFiles());
     }
@@ -13230,7 +13962,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
             attributeIndentStyle: AttributeIndentStyle.IndentByTwo,
             additionalFiles: GetCheckBoxButtonComponentFiles());
     }
@@ -15239,10 +15970,15 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     <div></div>
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers
-            });
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_new_line_before_open_brace = accessors, types, methods, properties, anonymous_methods, control_blocks, anonymous_types, lambdas
+                    """)
+            ]);
 
     [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/12622")]
@@ -15277,10 +16013,15 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     <div></div>
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers
-            });
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_new_line_before_open_brace = accessors, types, methods, properties, anonymous_methods, control_blocks, anonymous_types, lambdas
+                    """)
+            ]);
 
     [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/12622")]
@@ -15721,9 +16462,122 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """);
     }
 
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84601")]
+    public Task RazorCommentWithInternalBlankLine()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    @* Comment
+
+                    More comment *@
+                }
+                <div></div>
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                    @* Comment
+
+                    More comment *@
+                }
+                <div></div>
+                """,
+            expected: """
+                @if (true)
+                {
+                    @* Comment
+
+                    More comment *@
+                }
+                <div></div>
+                """,
+            fileKind: RazorFileKind.Legacy,
+            validateHtmlFormattedMatchesWebTools: true);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84601")]
+    public Task RazorCommentWithInternalBlankLine_NestedInHtml()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                @* Comment
+
+                More comment *@
+                @if (true)
+                {
+                <span></span>
+                }
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    @* Comment
+
+                    More comment *@
+                    @if (true)
+                    {
+                    <span></span>
+                    }
+                </div>
+                """,
+            expected: """
+                <div>
+                    @* Comment
+
+                More comment *@
+                    @if (true)
+                    {
+                        <span></span>
+                    }
+                </div>
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84601")]
+    public Task WhitespaceOnlyLineBeforeCodeBlockClose()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @{
+                    Method();
+                  
+                }
+                <div></div>
+                """,
+            htmlFormatted: """
+                @{
+                    Method();
+
+                }
+                <div></div>
+                """,
+            expected: """
+                @{
+                    Method();
+                  
+                }
+                <div></div>
+                """,
+            fileKind: RazorFileKind.Legacy,
+            validateHtmlFormattedMatchesWebTools: true);
+    }
+
     private (string fileName, string contents)[] GetCheckBoxButtonComponentFiles()
         =>
         [
+            (".editorconfig", """
+                root = true
+
+                [*.razor]
+                csharp_new_line_before_open_brace = all
+                """),
             (FilePath("CheckBoxButton.razor"), """
                 @using Microsoft.AspNetCore.Components
 
@@ -15735,11 +16589,37 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """)
         ];
 
-    private static CSharpSyntaxFormattingOptions GetNewLineBeforeBraceInLambdaExpressionOptions(bool newLineBeforeBraceInLambda)
-        => CSharpSyntaxFormattingOptions.Default with
-        {
-            NewLines = newLineBeforeBraceInLambda
-                ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-        };
+    private static (string fileName, string contents)[] GetNewLineBeforeBraceInLambdaExpressionEditorConfig(bool newLineBeforeBraceInLambda)
+    {
+        var openBracePlacement = newLineBeforeBraceInLambda
+            ? "all"
+            : "accessors, types, methods, properties, anonymous_methods, control_blocks, anonymous_types, object_collection_array_initializers";
+
+        return
+        [
+            (".editorconfig", $"""
+                root = true
+
+                [*.razor]
+                csharp_new_line_before_open_brace = {openBracePlacement}
+                """)
+        ];
+    }
+
+    private static (string fileName, string contents)[] GetNewLinesEditorConfig(string openBracePlacement)
+        =>
+        [
+            (".editorconfig", $"""
+                root = true
+
+                [*.razor]
+                csharp_new_line_before_members_in_object_initializers = false
+                csharp_new_line_before_members_in_anonymous_types = false
+                csharp_new_line_before_else = false
+                csharp_new_line_before_catch = false
+                csharp_new_line_before_finally = false
+                csharp_new_line_before_open_brace = {openBracePlacement}
+                csharp_new_line_between_query_expression_clauses = false
+                """)
+        ];
 }

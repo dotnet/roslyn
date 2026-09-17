@@ -26,7 +26,7 @@ From `.editorconfig`:
 - File-scoped namespaces and `var`/expression-body preferences are enforced via editorconfig analyzers — follow the file you are editing.
 
 Running the formatter:
-- `dotnet format whitespace --folder . --include <path>` (the `--folder .`/`--include` form avoids a slow design-time build).
+- `dotnet format whitespace --folder . --include <path>` (the `--folder .`/`--include` form avoids a slow design-time build). Folder mode does not queue a restore, so `--no-restore` is not applicable and cannot be combined with `--folder`.
 
 ## Patterns in Active Use
 
@@ -46,6 +46,12 @@ var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
 - Keep each change focused on one coherent concern. Split independently reviewable, validatable, mergeable, or revertible work instead of combining it into a broad diff.
 - Judge change size by cognitive load and validation boundaries, not an arbitrary line count; generated and mechanical updates may be large while still representing one focused change.
 - A change is complete only after applicable formatting, analyzers, affected builds, targeted tests, generated/resource/API updates, final diff review, and documentation freshness work are complete. The canonical ordered checklist is the **Definition of Done** in `.github/copilot-instructions.md`.
+
+### CodeAnalysis testing-library dependencies
+
+- Compatible internal repository build and test projects reference the testing-library projects under `src/RoslynSdk/Microsoft.CodeAnalysis.Testing` so source changes are exercised directly.
+- The testing-library projects do not copy NuGet runtime dependencies into their .NET Framework output directories. Final test projects resolve and copy the unified dependency graph.
+- Roslyn SDK samples and Visual Studio SDK project templates retain NuGet package references because they model standalone consumers outside the repository source graph.
 
 ## Patterns Explicitly Avoided
 

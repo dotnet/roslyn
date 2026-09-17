@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0"
+            Type="Project"
+            xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+  <TemplateData>
+    <Name>CodeFixProvider</Name>
+    <Description>&lt;No description available&gt;</Description>
+    <Icon></Icon>
+    <ProjectType>CSharp</ProjectType>
+    <RequiredFrameworkVersion>2.0</RequiredFrameworkVersion>
+    <SortOrder>952</SortOrder>
+    <TemplateID>bb967cab-2ca5-4dac-8809-65b2b28a6350</TemplateID>
+    <CreateNewFolder>true</CreateNewFolder>
+    <CreateInPlace>true</CreateInPlace>
+    <DefaultName>CodeFixProvider</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+    <PromptForSaveOnCreation>true</PromptForSaveOnCreation>
+  </TemplateData>
+  <TemplateContent>
+    <Project TargetFileName="$projectname$.csproj" File="CodeFixProvider.csproj" ReplaceParameters="true">
+      <ProjectItem ReplaceParameters="true" TargetFileName="$saferootidentifiername$CodeFixProvider.cs" OpenInEditor="true" OpenOrder="3" >CodeFixProvider.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="CodeFixResources.resx">CodeFixResources.resx</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="CodeFixResources.Designer.cs">CodeFixResources.Designer.cs</ProjectItem>
+    </Project>
+  </TemplateContent>
+  <WizardExtension>
+    <Assembly>Roslyn.SDK.Template.Wizard, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35</Assembly>
+    <FullClassName>RoslynSDKCodeFixTemplateWizard</FullClassName>
+  </WizardExtension>
+</VSTemplate>

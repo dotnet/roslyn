@@ -2511,19 +2511,17 @@ class Program
             verifier.VerifyIL("Program.Test2", @"
 {
   // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000e
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""object C1.Value.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  br.s       IL_000f
+  IL_000e:  ldc.i4.0
   IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
+  IL_0010:  ceq
   IL_0012:  ret
 }
 ");
@@ -2531,24 +2529,22 @@ class Program
             verifier.VerifyIL("Program.Test1", @"
 {
   // Code size       34 (0x22)
-  .maxstack  1
-  .locals init (S1 V_0,
-                bool V_1)
+  .maxstack  2
+  .locals init (S1 V_0)
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""bool S1?.HasValue.get""
-  IL_0007:  brfalse.s  IL_001a
+  IL_0007:  brfalse.s  IL_001d
   IL_0009:  ldarga.s   V_0
   IL_000b:  call       ""S1 S1?.GetValueOrDefault()""
   IL_0010:  stloc.0
   IL_0011:  ldloca.s   V_0
   IL_0013:  call       ""object S1.Value.get""
-  IL_0018:  brtrue.s   IL_001e
-  IL_001a:  ldc.i4.1
-  IL_001b:  stloc.1
-  IL_001c:  br.s       IL_0020
+  IL_0018:  ldnull
+  IL_0019:  cgt.un
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldc.i4.0
   IL_001e:  ldc.i4.0
-  IL_001f:  stloc.1
-  IL_0020:  ldloc.1
+  IL_001f:  ceq
   IL_0021:  ret
 }
 ");
@@ -3186,19 +3182,17 @@ class Program
 @"
 {
   // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000e
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""object S1.Value.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  br.s       IL_000f
+  IL_000e:  ldc.i4.0
   IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
+  IL_0010:  ceq
   IL_0012:  ret
 }
 ");
@@ -4722,73 +4716,59 @@ class Program
 
             verifier.VerifyIL("Program.Test1", @"
 {
-  // Code size       37 (0x25)
+  // Code size       30 (0x1e)
   .maxstack  2
-  .locals init (S1 V_0,
-            bool V_1)
+  .locals init (S1 V_0)
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""bool S1?.HasValue.get""
-  IL_0007:  brfalse.s  IL_001a
+  IL_0007:  brfalse.s  IL_001c
   IL_0009:  ldarga.s   V_0
   IL_000b:  call       ""S1 S1?.GetValueOrDefault()""
   IL_0010:  stloc.0
   IL_0011:  ldloca.s   V_0
   IL_0013:  call       ""object S1.Value.get""
-  IL_0018:  brtrue.s   IL_001e
-  IL_001a:  ldc.i4.1
-  IL_001b:  stloc.1
-  IL_001c:  br.s       IL_0020
-  IL_001e:  ldc.i4.0
-  IL_001f:  stloc.1
-  IL_0020:  ldloc.1
-  IL_0021:  ldc.i4.0
-  IL_0022:  ceq
-  IL_0024:  ret
+  IL_0018:  ldnull
+  IL_0019:  cgt.un
+  IL_001b:  ret
+  IL_001c:  ldc.i4.0
+  IL_001d:  ret
 }
 ");
 
             verifier.VerifyIL("Program.Test2", @"
 {
-  // Code size       22 (0x16)
+  // Code size       15 (0xf)
   .maxstack  2
-  .locals init (bool V_0)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000d
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""object C1.Value.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ldc.i4.0
-  IL_0013:  ceq
-  IL_0015:  ret
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  ret
+  IL_000d:  ldc.i4.0
+  IL_000e:  ret
 }
 ");
             var test3 = @"
 {
   // Code size       34 (0x22)
-  .maxstack  1
-  .locals init (S1 V_0,
-            bool V_1)
+  .maxstack  2
+  .locals init (S1 V_0)
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""bool S1?.HasValue.get""
-  IL_0007:  brfalse.s  IL_001a
+  IL_0007:  brfalse.s  IL_001d
   IL_0009:  ldarga.s   V_0
   IL_000b:  call       ""S1 S1?.GetValueOrDefault()""
   IL_0010:  stloc.0
   IL_0011:  ldloca.s   V_0
   IL_0013:  call       ""object S1.Value.get""
-  IL_0018:  brtrue.s   IL_001e
-  IL_001a:  ldc.i4.1
-  IL_001b:  stloc.1
-  IL_001c:  br.s       IL_0020
+  IL_0018:  ldnull
+  IL_0019:  cgt.un
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldc.i4.0
   IL_001e:  ldc.i4.0
-  IL_001f:  stloc.1
-  IL_0020:  ldloc.1
+  IL_001f:  ceq
   IL_0021:  ret
 }
 ";
@@ -4796,19 +4776,17 @@ class Program
             var test4 = @"
 {
   // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000e
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""object C1.Value.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  br.s       IL_000f
+  IL_000e:  ldc.i4.0
   IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
+  IL_0010:  ceq
   IL_0012:  ret
 }
 ";
@@ -7217,19 +7195,17 @@ class C<T>
             verifier.VerifyIL("C<T>.Test2(C<T>)", @"
 {
   // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000e
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""object C<T>.Value.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  br.s       IL_000f
+  IL_000e:  ldc.i4.0
   IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
+  IL_0010:  ceq
   IL_0012:  ret
 }
 ");
@@ -7319,24 +7295,22 @@ struct C<T>
             verifier.VerifyIL("C<T>.Test1(C<T>?)", @"
 {
   // Code size       34 (0x22)
-  .maxstack  1
-  .locals init (C<T> V_0,
-            bool V_1)
+  .maxstack  2
+  .locals init (C<T> V_0)
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""bool C<T>?.HasValue.get""
-  IL_0007:  brfalse.s  IL_001a
+  IL_0007:  brfalse.s  IL_001d
   IL_0009:  ldarga.s   V_0
   IL_000b:  call       ""C<T> C<T>?.GetValueOrDefault()""
   IL_0010:  stloc.0
   IL_0011:  ldloca.s   V_0
   IL_0013:  call       ""object C<T>.Value.get""
-  IL_0018:  brtrue.s   IL_001e
-  IL_001a:  ldc.i4.1
-  IL_001b:  stloc.1
-  IL_001c:  br.s       IL_0020
+  IL_0018:  ldnull
+  IL_0019:  cgt.un
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldc.i4.0
   IL_001e:  ldc.i4.0
-  IL_001f:  stloc.1
-  IL_0020:  ldloc.1
+  IL_001f:  ceq
   IL_0021:  ret
 }
 ");
@@ -7482,19 +7456,17 @@ class C<T>
             verifier.VerifyIL("C<T>.Test2(C<T>)", @"
 {
   // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000e
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""object C<T>.Value.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  br.s       IL_000f
+  IL_000e:  ldc.i4.0
   IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
+  IL_0010:  ceq
   IL_0012:  ret
 }
 ");
@@ -25003,43 +24975,31 @@ class S1
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  // Code size       16 (0x10)
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool S1.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ret
+  IL_0009:  br.s       IL_000c
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ceq
+  IL_000f:  ret
 }
 ");
 
             verifier.VerifyIL("S1.Test2", @"
 {
-  // Code size       22 (0x16)
-  .maxstack  2
-  .locals init (bool V_0)
+  // Code size       12 (0xc)
+  .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000a
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool S1.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ldc.i4.0
-  IL_0013:  ceq
-  IL_0015:  ret
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
 }
 ");
         }
@@ -25085,42 +25045,34 @@ class S1
             verifier.VerifyIL("S1.Test1", @"
 {
   // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000e
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""object S1.Value.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  br.s       IL_000f
+  IL_000e:  ldc.i4.0
   IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
+  IL_0010:  ceq
   IL_0012:  ret
 }
 ");
 
             verifier.VerifyIL("S1.Test2", @"
 {
-  // Code size       22 (0x16)
+  // Code size       15 (0xf)
   .maxstack  2
-  .locals init (bool V_0)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000d
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""object S1.Value.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ldc.i4.0
-  IL_0013:  ceq
-  IL_0015:  ret
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  ret
+  IL_000d:  ldc.i4.0
+  IL_000e:  ret
 }
 ");
         }
@@ -25361,21 +25313,17 @@ class Program
 
             verifier.VerifyIL("Program.Test1", @"
 {
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  // Code size       16 (0x10)
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool C2.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ret
+  IL_0009:  br.s       IL_000c
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ceq
+  IL_000f:  ret
 }
 ");
         }
@@ -25457,61 +25405,49 @@ class Program
 
             verifier.VerifyIL("Program.Test1", @"
 {
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  // Code size       16 (0x10)
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool C1.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ret
+  IL_0009:  br.s       IL_000c
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ceq
+  IL_000f:  ret
 }
 ");
 
             verifier.VerifyIL("Program.Test2", @"
 {
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  // Code size       16 (0x10)
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool C1.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ret
+  IL_0009:  br.s       IL_000c
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ceq
+  IL_000f:  ret
 }
 ");
 
             verifier.VerifyIL("Program.Test3", @"
 {
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  // Code size       16 (0x10)
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool C1.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ret
+  IL_0009:  br.s       IL_000c
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ceq
+  IL_000f:  ret
 }
 ");
         }
@@ -33947,43 +33883,31 @@ class S1 : S1.IUnionMembers
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  // Code size       16 (0x10)
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool S1.IUnionMembers.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ret
+  IL_0009:  br.s       IL_000c
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ceq
+  IL_000f:  ret
 }
 ");
 
             verifier.VerifyIL("S1.Test2", @"
 {
-  // Code size       22 (0x16)
-  .maxstack  2
-  .locals init (bool V_0)
+  // Code size       12 (0xc)
+  .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000a
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool S1.IUnionMembers.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ldc.i4.0
-  IL_0013:  ceq
-  IL_0015:  ret
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
 }
 ");
         }
@@ -34378,21 +34302,17 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalseFalse").VerifyDiagnostics();
             verifier.VerifyIL("Program.Test1", @"
 {
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  // Code size       16 (0x10)
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool S1.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ret
+  IL_0009:  br.s       IL_000c
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ceq
+  IL_000f:  ret
 }
 ");
         }
@@ -34633,23 +34553,15 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseTrueTrue" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
             verifier.VerifyIL("Program.Test1", @"
 {
-  // Code size       22 (0x16)
-  .maxstack  2
-  .locals init (bool V_0)
+  // Code size       12 (0xc)
+  .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000a
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool S1.IUnionMembers.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ldc.i4.0
-  IL_0013:  ceq
-  IL_0015:  ret
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
 }
 ");
         }
@@ -35444,21 +35356,17 @@ class Program
 
             verifier.VerifyIL("Program.Test1", @"
 {
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  // Code size       16 (0x10)
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool S1.IUnionMembersBase.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ret
+  IL_0009:  br.s       IL_000c
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ceq
+  IL_000f:  ret
 }
 ");
         }

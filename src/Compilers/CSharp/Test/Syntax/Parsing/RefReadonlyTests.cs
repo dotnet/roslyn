@@ -178,22 +178,7 @@ class Program
                 }
                 """;
 
-            UsingTree(source,
-                // (3,40): error CS1519: Invalid token 'operator' in a member declaration
-                //     public static ref readonly Program operator +(Program x, Program y)
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "operator").WithArguments("operator").WithLocation(3, 40),
-                // (3,40): error CS1519: Invalid token 'operator' in a member declaration
-                //     public static ref readonly Program operator +(Program x, Program y)
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "operator").WithArguments("operator").WithLocation(3, 40),
-                // (3,72): error CS1001: Identifier expected
-                //     public static ref readonly Program operator +(Program x, Program y)
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 72),
-                // (5,9): error CS1014: A get or set accessor expected
-                //         throw null;
-                Diagnostic(ErrorCode.ERR_GetOrSetExpected, "throw").WithLocation(5, 9),
-                // (5,19): error CS1014: A get or set accessor expected
-                //         throw null;
-                Diagnostic(ErrorCode.ERR_GetOrSetExpected, ";").WithLocation(5, 19));
+            UsingTree(source, TestOptions.Regular9);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -202,26 +187,22 @@ class Program
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "Program");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.OperatorDeclaration);
                     {
                         N(SyntaxKind.PublicKeyword);
                         N(SyntaxKind.StaticKeyword);
-                        N(SyntaxKind.RefType);
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.ReadOnlyKeyword);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Program");
-                            }
+                            N(SyntaxKind.IdentifierToken, "Program");
                         }
-                    }
-                    N(SyntaxKind.PropertyDeclaration);
-                    {
-                        N(SyntaxKind.TupleType);
+                        N(SyntaxKind.OperatorKeyword);
+                        N(SyntaxKind.PlusToken);
+                        N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.TupleElement);
+                            N(SyntaxKind.Parameter);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
@@ -230,7 +211,7 @@ class Program
                                 N(SyntaxKind.IdentifierToken, "x");
                             }
                             N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.TupleElement);
+                            N(SyntaxKind.Parameter);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
@@ -240,13 +221,16 @@ class Program
                             }
                             N(SyntaxKind.CloseParenToken);
                         }
-                        M(SyntaxKind.IdentifierToken);
-                        N(SyntaxKind.AccessorList);
+                        N(SyntaxKind.Block);
                         {
                             N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.UnknownAccessorDeclaration);
+                            N(SyntaxKind.ThrowStatement);
                             {
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.ThrowKeyword);
+                                N(SyntaxKind.NullLiteralExpression);
+                                {
+                                    N(SyntaxKind.NullKeyword);
+                                }
                                 N(SyntaxKind.SemicolonToken);
                             }
                             N(SyntaxKind.CloseBraceToken);
@@ -258,25 +242,13 @@ class Program
             }
             EOF();
 
-            CreateCompilation(source).VerifyDiagnostics(
-                // (3,40): error CS1519: Invalid token 'operator' in a member declaration
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (3,49): error CS0106: The modifier 'readonly' is not valid for this item
                 //     public static ref readonly Program operator +(Program x, Program y)
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "operator").WithArguments("operator").WithLocation(3, 40),
-                // (3,40): error CS1519: Invalid token 'operator' in a member declaration
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("readonly").WithLocation(3, 49),
+                // (3,49): error CS0106: The modifier 'ref' is not valid for this item
                 //     public static ref readonly Program operator +(Program x, Program y)
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "operator").WithArguments("operator").WithLocation(3, 40),
-                // (3,72): error CS1001: Identifier expected
-                //     public static ref readonly Program operator +(Program x, Program y)
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 72),
-                // (4,1): error CS0548: 'Program.': property or indexer must have at least one accessor
-                //     {
-                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "").WithArguments("Program.").WithLocation(4, 1),
-                // (5,9): error CS1014: A get or set accessor expected
-                //         throw null;
-                Diagnostic(ErrorCode.ERR_GetOrSetExpected, "throw").WithLocation(5, 9),
-                // (5,19): error CS1014: A get or set accessor expected
-                //         throw null;
-                Diagnostic(ErrorCode.ERR_GetOrSetExpected, ";").WithLocation(5, 19));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("ref").WithLocation(3, 49));
         }
 
         [Fact]
@@ -292,7 +264,7 @@ class Program
                 }
                 """;
 
-            UsingTree(source);
+            UsingTree(source, TestOptions.Regular9);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -350,7 +322,7 @@ class Program
             }
             EOF();
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (3,18): error CS1073: Unexpected token 'ref'
                 //     static async ref readonly Task M<T>()
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(3, 18),
@@ -369,10 +341,7 @@ class Program
                 }
                 """;
 
-            UsingTree(source,
-                // (3,25): error CS1031: Type expected
-                //     public ref readonly virtual int* P1 => throw null;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "virtual").WithLocation(3, 25));
+            UsingTree(source, TestOptions.Regular9);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -381,21 +350,11 @@ class Program
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "Program");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.PublicKeyword);
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.ReadOnlyKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                    }
                     N(SyntaxKind.PropertyDeclaration);
                     {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
                         N(SyntaxKind.VirtualKeyword);
                         N(SyntaxKind.PointerType);
                         {
@@ -426,13 +385,16 @@ class Program
             }
             EOF();
 
-            CreateCompilation(source).VerifyDiagnostics(
-                // (3,25): error CS1031: Type expected
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (3,33): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     public ref readonly virtual int* P1 => throw null;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "virtual").WithLocation(3, 25),
-                // (3,38): error CS0621: 'Program.P1': virtual or abstract members cannot be private
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 33),
+                // (3,38): error CS0106: The modifier 'readonly' is not valid for this item
                 //     public ref readonly virtual int* P1 => throw null;
-                Diagnostic(ErrorCode.ERR_VirtualPrivate, "P1").WithArguments("Program.P1").WithLocation(3, 38));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("readonly").WithLocation(3, 38),
+                // (3,38): error CS0106: The modifier 'ref' is not valid for this item
+                //     public ref readonly virtual int* P1 => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("ref").WithLocation(3, 38));
         }
 
         [Fact]
@@ -693,23 +655,74 @@ class Test
         [Fact]
         public void RefReadOnlyReturnIllegalInOperators()
         {
-            CreateCompilation(@"
+            const string source = @"
 public class Test
 {
     public static ref readonly bool operator!(Test obj) => throw null;
-}").GetParseDiagnostics().Verify(
-                // (4,37): error CS1519: Invalid token 'operator' in class, record, struct, or interface member declaration
+}";
+
+            UsingTree(source);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Test");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.OperatorDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.StaticKeyword);
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.BoolKeyword);
+                        }
+                        N(SyntaxKind.OperatorKeyword);
+                        N(SyntaxKind.ExclamationToken);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Test");
+                                }
+                                N(SyntaxKind.IdentifierToken, "obj");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.ThrowExpression);
+                            {
+                                N(SyntaxKind.ThrowKeyword);
+                                N(SyntaxKind.NullLiteralExpression);
+                                {
+                                    N(SyntaxKind.NullKeyword);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (4,45): error CS0106: The modifier 'readonly' is not valid for this item
                 //     public static ref readonly bool operator!(Test obj) => throw null;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "operator").WithArguments("operator").WithLocation(4, 37),
-                // (4,37): error CS1519: Invalid token 'operator' in class, record, struct, or interface member declaration
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "!").WithArguments("readonly").WithLocation(4, 45),
+                // (4,45): error CS0106: The modifier 'ref' is not valid for this item
                 //     public static ref readonly bool operator!(Test obj) => throw null;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "operator").WithArguments("operator").WithLocation(4, 37),
-                // (4,55): error CS8124: Tuple must contain at least two elements.
-                //     public static ref readonly bool operator!(Test obj) => throw null;
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 55),
-                // (4,57): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
-                //     public static ref readonly bool operator!(Test obj) => throw null;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(4, 57));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "!").WithArguments("ref").WithLocation(4, 45));
         }
 
         [Fact]

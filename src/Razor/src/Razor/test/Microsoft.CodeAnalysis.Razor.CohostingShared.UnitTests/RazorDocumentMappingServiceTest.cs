@@ -7,7 +7,6 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -20,7 +19,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 {
     private IDocumentMappingService CreateMappingService()
     {
-        var snapshotManager = new RemoteSnapshotManager(NoOpTelemetryReporter.Instance);
+        var snapshotManager = new RemoteSnapshotManager();
         return new DocumentMappingService(snapshotManager, LoggerFactory);
     }
 

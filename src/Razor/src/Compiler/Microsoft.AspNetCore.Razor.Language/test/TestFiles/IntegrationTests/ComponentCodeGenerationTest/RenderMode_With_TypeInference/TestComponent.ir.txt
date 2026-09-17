@@ -12,8 +12,6 @@
                         IntermediateToken - (127:2,28 [15] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - RenderModeParam
                     ComponentAttribute - (161:2,62 [64] x:\dir\subdir\Test\TestComponent.cshtml) - RenderModeParam - RenderModeParam - AttributeStructure.DoubleQuotes
                         IntermediateToken - (161:2,62 [64] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
-            CSharpCode - (241:5,1 [67] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (241:5,1 [67] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter] public TRenderMode RenderModeParam { get; set;}\n
     NamespaceDeclaration -  - __Blazor.Test.TestComponent
         ClassDeclaration -  - internal static - TypeInference -  - 
             ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateTestComponent_0

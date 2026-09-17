@@ -24,7 +24,8 @@ internal abstract class AbstractDocumentSyntaxAndSemanticDiagnosticSourceProvide
 
     public async ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        return [new DocumentDiagnosticSource(kind, context.GetRequiredDocument())];
+        var document = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
+        return [new DocumentDiagnosticSource(kind, document)];
     }
 
     [Export(typeof(IDiagnosticSourceProvider)), Shared]

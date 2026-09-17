@@ -5280,22 +5280,17 @@ forLowering: false);
 
             const string expectedInt32IL = """
                 {
-                  // Code size       18 (0x12)
+                  // Code size       13 (0xd)
                   .maxstack  2
-                  .locals init (bool V_0)
                   IL_0000:  ldarg.0
                   IL_0001:  ldc.i4.s   10
-                  IL_0003:  beq.s      IL_000a
+                  IL_0003:  beq.s      IL_000b
                   IL_0005:  ldarg.0
                   IL_0006:  ldc.i4.s   50
-                  IL_0008:  bne.un.s   IL_000e
-                  IL_000a:  ldc.i4.1
-                  IL_000b:  stloc.0
-                  IL_000c:  br.s       IL_0010
-                  IL_000e:  ldc.i4.0
-                  IL_000f:  stloc.0
-                  IL_0010:  ldloc.0
-                  IL_0011:  ret
+                  IL_0008:  ceq
+                  IL_000a:  ret
+                  IL_000b:  ldc.i4.1
+                  IL_000c:  ret
                 }
                 """;
             verifier.VerifyIL("C.SByte", expectedInt32IL);
@@ -5307,125 +5302,87 @@ forLowering: false);
             verifier.VerifyIL("C.Enum", expectedInt32IL);
             verifier.VerifyIL("C.Int64", """
                 {
-                  // Code size       20 (0x14)
+                  // Code size       15 (0xf)
                   .maxstack  2
-                  .locals init (bool V_0)
                   IL_0000:  ldarg.0
                   IL_0001:  ldc.i4.s   10
                   IL_0003:  conv.i8
-                  IL_0004:  beq.s      IL_000c
+                  IL_0004:  beq.s      IL_000d
                   IL_0006:  ldarg.0
                   IL_0007:  ldc.i4.s   50
                   IL_0009:  conv.i8
-                  IL_000a:  bne.un.s   IL_0010
-                  IL_000c:  ldc.i4.1
-                  IL_000d:  stloc.0
-                  IL_000e:  br.s       IL_0012
-                  IL_0010:  ldc.i4.0
-                  IL_0011:  stloc.0
-                  IL_0012:  ldloc.0
-                  IL_0013:  ret
+                  IL_000a:  ceq
+                  IL_000c:  ret
+                  IL_000d:  ldc.i4.1
+                  IL_000e:  ret
                 }
                 """);
             verifier.VerifyIL("C.UInt64", """
                 {
-                  // Code size       20 (0x14)
+                  // Code size       15 (0xf)
                   .maxstack  2
-                  .locals init (bool V_0)
                   IL_0000:  ldarg.0
                   IL_0001:  ldc.i4.s   10
                   IL_0003:  conv.i8
-                  IL_0004:  beq.s      IL_000c
+                  IL_0004:  beq.s      IL_000d
                   IL_0006:  ldarg.0
                   IL_0007:  ldc.i4.s   50
                   IL_0009:  conv.i8
-                  IL_000a:  bne.un.s   IL_0010
-                  IL_000c:  ldc.i4.1
-                  IL_000d:  stloc.0
-                  IL_000e:  br.s       IL_0012
-                  IL_0010:  ldc.i4.0
-                  IL_0011:  stloc.0
-                  IL_0012:  ldloc.0
-                  IL_0013:  ret
+                  IL_000a:  ceq
+                  IL_000c:  ret
+                  IL_000d:  ldc.i4.1
+                  IL_000e:  ret
                 }
                 """);
             verifier.VerifyIL("C.Char", """
                 {
-                  // Code size       18 (0x12)
+                  // Code size       13 (0xd)
                   .maxstack  2
-                  .locals init (bool V_0)
                   IL_0000:  ldarg.0
                   IL_0001:  ldc.i4.s   97
-                  IL_0003:  beq.s      IL_000a
+                  IL_0003:  beq.s      IL_000b
                   IL_0005:  ldarg.0
                   IL_0006:  ldc.i4.s   122
-                  IL_0008:  bne.un.s   IL_000e
-                  IL_000a:  ldc.i4.1
-                  IL_000b:  stloc.0
-                  IL_000c:  br.s       IL_0010
-                  IL_000e:  ldc.i4.0
-                  IL_000f:  stloc.0
-                  IL_0010:  ldloc.0
-                  IL_0011:  ret
+                  IL_0008:  ceq
+                  IL_000a:  ret
+                  IL_000b:  ldc.i4.1
+                  IL_000c:  ret
                 }
                 """);
             verifier.VerifyIL("C.NInt", """
                 {
-                  // Code size       23 (0x17)
+                  // Code size       13 (0xd)
                   .maxstack  2
-                  .locals init (bool V_0,
-                                long V_1)
                   IL_0000:  ldarg.0
-                  IL_0001:  conv.i8
-                  IL_0002:  stloc.1
-                  IL_0003:  ldloc.1
-                  IL_0004:  ldc.i4.s   10
-                  IL_0006:  conv.i8
-                  IL_0007:  beq.s      IL_000f
-                  IL_0009:  ldloc.1
-                  IL_000a:  ldc.i4.s   50
-                  IL_000c:  conv.i8
-                  IL_000d:  bne.un.s   IL_0013
-                  IL_000f:  ldc.i4.1
-                  IL_0010:  stloc.0
-                  IL_0011:  br.s       IL_0015
-                  IL_0013:  ldc.i4.0
-                  IL_0014:  stloc.0
-                  IL_0015:  ldloc.0
-                  IL_0016:  ret
+                  IL_0001:  ldc.i4.s   10
+                  IL_0003:  beq.s      IL_000b
+                  IL_0005:  ldarg.0
+                  IL_0006:  ldc.i4.s   50
+                  IL_0008:  ceq
+                  IL_000a:  ret
+                  IL_000b:  ldc.i4.1
+                  IL_000c:  ret
                 }
                 """);
             verifier.VerifyIL("C.NUInt", """
                 {
-                  // Code size       23 (0x17)
+                  // Code size       13 (0xd)
                   .maxstack  2
-                  .locals init (bool V_0,
-                                ulong V_1)
                   IL_0000:  ldarg.0
-                  IL_0001:  conv.u8
-                  IL_0002:  stloc.1
-                  IL_0003:  ldloc.1
-                  IL_0004:  ldc.i4.s   10
-                  IL_0006:  conv.i8
-                  IL_0007:  beq.s      IL_000f
-                  IL_0009:  ldloc.1
-                  IL_000a:  ldc.i4.s   50
-                  IL_000c:  conv.i8
-                  IL_000d:  bne.un.s   IL_0013
-                  IL_000f:  ldc.i4.1
-                  IL_0010:  stloc.0
-                  IL_0011:  br.s       IL_0015
-                  IL_0013:  ldc.i4.0
-                  IL_0014:  stloc.0
-                  IL_0015:  ldloc.0
-                  IL_0016:  ret
+                  IL_0001:  ldc.i4.s   10
+                  IL_0003:  beq.s      IL_000b
+                  IL_0005:  ldarg.0
+                  IL_0006:  ldc.i4.s   50
+                  IL_0008:  ceq
+                  IL_000a:  ret
+                  IL_000b:  ldc.i4.1
+                  IL_000c:  ret
                 }
                 """);
             verifier.VerifyIL("C.Decimal", """
                 {
-                  // Code size       58 (0x3a)
+                  // Code size       51 (0x33)
                   .maxstack  6
-                  .locals init (bool V_0)
                   IL_0000:  ldarg.0
                   IL_0001:  ldc.i4.0
                   IL_0002:  ldc.i4.0
@@ -5434,7 +5391,7 @@ forLowering: false);
                   IL_0005:  ldc.i4.s   28
                   IL_0007:  newobj     "decimal..ctor(int, int, int, bool, byte)"
                   IL_000c:  call       "bool decimal.op_Equality(decimal, decimal)"
-                  IL_0011:  brtrue.s   IL_0032
+                  IL_0011:  brtrue.s   IL_0031
                   IL_0013:  ldarg.0
                   IL_0014:  ldc.i4     0x10000000
                   IL_0019:  ldc.i4     0x3e250261
@@ -5443,54 +5400,39 @@ forLowering: false);
                   IL_0024:  ldc.i4.s   28
                   IL_0026:  newobj     "decimal..ctor(int, int, int, bool, byte)"
                   IL_002b:  call       "bool decimal.op_Equality(decimal, decimal)"
-                  IL_0030:  brfalse.s  IL_0036
-                  IL_0032:  ldc.i4.1
-                  IL_0033:  stloc.0
-                  IL_0034:  br.s       IL_0038
-                  IL_0036:  ldc.i4.0
-                  IL_0037:  stloc.0
-                  IL_0038:  ldloc.0
-                  IL_0039:  ret
+                  IL_0030:  ret
+                  IL_0031:  ldc.i4.1
+                  IL_0032:  ret
                 }
                 """);
             verifier.VerifyIL("C.Single", """
                 {
-                  // Code size       24 (0x18)
+                  // Code size       19 (0x13)
                   .maxstack  2
-                  .locals init (bool V_0)
                   IL_0000:  ldarg.0
                   IL_0001:  ldc.r4     10
-                  IL_0006:  beq.s      IL_0010
+                  IL_0006:  beq.s      IL_0011
                   IL_0008:  ldarg.0
                   IL_0009:  ldc.r4     50
-                  IL_000e:  bne.un.s   IL_0014
-                  IL_0010:  ldc.i4.1
-                  IL_0011:  stloc.0
-                  IL_0012:  br.s       IL_0016
-                  IL_0014:  ldc.i4.0
-                  IL_0015:  stloc.0
-                  IL_0016:  ldloc.0
-                  IL_0017:  ret
+                  IL_000e:  ceq
+                  IL_0010:  ret
+                  IL_0011:  ldc.i4.1
+                  IL_0012:  ret
                 }
                 """);
             verifier.VerifyIL("C.Double", """
                 {
-                  // Code size       32 (0x20)
+                  // Code size       27 (0x1b)
                   .maxstack  2
-                  .locals init (bool V_0)
                   IL_0000:  ldarg.0
                   IL_0001:  ldc.r8     10
-                  IL_000a:  beq.s      IL_0018
+                  IL_000a:  beq.s      IL_0019
                   IL_000c:  ldarg.0
                   IL_000d:  ldc.r8     50
-                  IL_0016:  bne.un.s   IL_001c
-                  IL_0018:  ldc.i4.1
-                  IL_0019:  stloc.0
-                  IL_001a:  br.s       IL_001e
-                  IL_001c:  ldc.i4.0
-                  IL_001d:  stloc.0
-                  IL_001e:  ldloc.0
-                  IL_001f:  ret
+                  IL_0016:  ceq
+                  IL_0018:  ret
+                  IL_0019:  ldc.i4.1
+                  IL_001a:  ret
                 }
                 """);
         }
@@ -5526,72 +5468,54 @@ forLowering: false);
 
             verifier.VerifyIL("C.String", """
                 {
-                  // Code size       34 (0x22)
+                  // Code size       27 (0x1b)
                   .maxstack  2
-                  .locals init (bool V_0)
                   IL_0000:  ldarg.0
                   IL_0001:  ldstr      "z"
                   IL_0006:  call       "bool string.op_Equality(string, string)"
-                  IL_000b:  brtrue.s   IL_001a
+                  IL_000b:  brtrue.s   IL_0019
                   IL_000d:  ldarg.0
                   IL_000e:  ldstr      "a"
                   IL_0013:  call       "bool string.op_Equality(string, string)"
-                  IL_0018:  brfalse.s  IL_001e
-                  IL_001a:  ldc.i4.1
-                  IL_001b:  stloc.0
-                  IL_001c:  br.s       IL_0020
-                  IL_001e:  ldc.i4.0
-                  IL_001f:  stloc.0
-                  IL_0020:  ldloc.0
-                  IL_0021:  ret
+                  IL_0018:  ret
+                  IL_0019:  ldc.i4.1
+                  IL_001a:  ret
                 }
                 """);
             verifier.VerifyIL("C.Span", """
                 {
-                  // Code size       44 (0x2c)
+                  // Code size       37 (0x25)
                   .maxstack  2
-                  .locals init (bool V_0)
                   IL_0000:  ldarg.0
                   IL_0001:  ldstr      "a"
                   IL_0006:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
                   IL_000b:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
-                  IL_0010:  brtrue.s   IL_0024
+                  IL_0010:  brtrue.s   IL_0023
                   IL_0012:  ldarg.0
                   IL_0013:  ldstr      "z"
                   IL_0018:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
                   IL_001d:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
-                  IL_0022:  brfalse.s  IL_0028
-                  IL_0024:  ldc.i4.1
-                  IL_0025:  stloc.0
-                  IL_0026:  br.s       IL_002a
-                  IL_0028:  ldc.i4.0
-                  IL_0029:  stloc.0
-                  IL_002a:  ldloc.0
-                  IL_002b:  ret
+                  IL_0022:  ret
+                  IL_0023:  ldc.i4.1
+                  IL_0024:  ret
                 }
                 """);
             verifier.VerifyIL("C.ReadOnlySpan", """
                 {
-                  // Code size       44 (0x2c)
+                  // Code size       37 (0x25)
                   .maxstack  2
-                  .locals init (bool V_0)
                   IL_0000:  ldarg.0
                   IL_0001:  ldstr      "a"
                   IL_0006:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
                   IL_000b:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-                  IL_0010:  brtrue.s   IL_0024
+                  IL_0010:  brtrue.s   IL_0023
                   IL_0012:  ldarg.0
                   IL_0013:  ldstr      "z"
                   IL_0018:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
                   IL_001d:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-                  IL_0022:  brfalse.s  IL_0028
-                  IL_0024:  ldc.i4.1
-                  IL_0025:  stloc.0
-                  IL_0026:  br.s       IL_002a
-                  IL_0028:  ldc.i4.0
-                  IL_0029:  stloc.0
-                  IL_002a:  ldloc.0
-                  IL_002b:  ret
+                  IL_0022:  ret
+                  IL_0023:  ldc.i4.1
+                  IL_0024:  ret
                 }
                 """);
             verifier.VerifyIL("C.LargeString", """

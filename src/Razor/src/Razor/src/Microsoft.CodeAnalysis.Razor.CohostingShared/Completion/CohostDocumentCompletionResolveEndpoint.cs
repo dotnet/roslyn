@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Threading;
@@ -9,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Razor.CohostingShared;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
@@ -22,12 +20,6 @@ using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 #pragma warning disable RS0030 // Do not use banned APIs
-#if !VSCODE
-// Visual Studio requires us to register for every method name, VS Code correctly realises that if you
-// register for code actions, and say you have resolve support, then registering for resolve is unnecessary.
-// In fact it's an error.
-[Export(typeof(IDynamicRegistrationProvider))]
-#endif
 [Shared]
 [CohostEndpoint(Methods.TextDocumentCompletionResolveName)]
 [ExportRazorStatelessLspService(typeof(CohostDocumentCompletionResolveEndpoint))]
@@ -44,7 +36,7 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
     [Import(AllowDefault = true)] ISnippetCompletionItemProvider? snippetCompletionItemProvider,
 #pragma warning restore RS0030 // Do not use banned APIs
     ILoggerFactory loggerFactory)
-    : AbstractCohostDocumentEndpoint<VSInternalCompletionItem, VSInternalCompletionItem?>(incompatibleProjectService), IDynamicRegistrationProvider
+    : AbstractCohostDocumentEndpoint<VSInternalCompletionItem, VSInternalCompletionItem?>(incompatibleProjectService)
 {
     private readonly CompletionListCache _completionListCache = completionListCache;
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
@@ -57,23 +49,6 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
     protected override bool MutatesSolutionState => false;
 
     protected override bool RequiresLSPSolution => true;
-
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
-    {
-        if (clientCapabilities.TextDocument?.Completion?.DynamicRegistration is true)
-        {
-            return [new Registration()
-            {
-                Method = Methods.TextDocumentCompletionResolveName,
-                RegisterOptions = new CompletionRegistrationOptions()
-                {
-                    ResolveProvider = true
-                }
-            }];
-        }
-
-        return [];
-    }
 
     protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalCompletionItem request)
     {
@@ -90,7 +65,7 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
         TextDocument razorDocument,
         CancellationToken cancellationToken)
     {
-        var csharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument.Project.Solution.Services);
+        var csharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument, cancellationToken);
         return HandleRequestAsync(completionItem, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
     }
 
@@ -195,8 +170,7 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
         public Task<VSInternalCompletionItem?> HandleRequestAsync(
             VSInternalCompletionItem request,
             TextDocument razorDocument,
-            CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions,
             CancellationToken cancellationToken)
-                => instance.HandleRequestAsync(request, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
+                => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
     }
 }

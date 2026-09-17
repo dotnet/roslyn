@@ -117,6 +117,9 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
                 {
                     builder.NewLine = LineEnding;
                 }
+
+                // Tests assert against split output, so they opt in like the source generator does.
+                builder.EnableMarkupSplit = true;
             });
 
             b.Features.Add(new TestImportProjectFeature(ImportItems.ToImmutable()));

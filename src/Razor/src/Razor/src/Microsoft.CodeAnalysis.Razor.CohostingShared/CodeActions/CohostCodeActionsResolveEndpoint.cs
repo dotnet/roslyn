@@ -1,12 +1,10 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -24,12 +22,6 @@ using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 #pragma warning disable RS0030 // Do not use banned APIs
-#if !VSCODE
-// Visual Studio requires us to register for every method name, VS Code correctly realises that if you
-// register for code actions, and say you have resolve support, then registering for resolve is unnecessary.
-// In fact it's an error.
-[Export(typeof(IDynamicRegistrationProvider))]
-#endif
 [Shared]
 [CohostEndpoint(Methods.CodeActionResolveName)]
 [ExportRazorStatelessLspService(typeof(CohostCodeActionsResolveEndpoint))]
@@ -41,7 +33,7 @@ internal sealed class CohostCodeActionsResolveEndpoint(
     IClientCapabilitiesService clientCapabilitiesService,
     IClientSettingsManager clientSettingsManager,
     IHtmlRequestInvoker requestInvoker)
-    : AbstractCohostDocumentEndpoint<CodeAction, CodeAction?>(incompatibleProjectService), IDynamicRegistrationProvider
+    : AbstractCohostDocumentEndpoint<CodeAction, CodeAction?>(incompatibleProjectService)
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
@@ -52,20 +44,6 @@ internal sealed class CohostCodeActionsResolveEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
-    {
-        if (clientCapabilities.TextDocument?.CodeAction?.DynamicRegistration == true)
-        {
-            return [new Registration
-            {
-                Method = Methods.CodeActionResolveName,
-                RegisterOptions = new CodeActionRegistrationOptions().EnableCodeActions()
-            }];
-        }
-
-        return [];
-    }
-
     protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(CodeAction request)
     {
         var resolveParams = RazorCodeActionResolutionParams.Unwrap(request);
@@ -74,7 +52,7 @@ internal sealed class CohostCodeActionsResolveEndpoint(
 
     protected override Task<CodeAction?> HandleRequestAsync(CodeAction request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        var csharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument.Project.Solution.Services);
+        var csharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument, cancellationToken);
         return HandleRequestAsync(request, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
     }
 
@@ -208,8 +186,8 @@ internal sealed class CohostCodeActionsResolveEndpoint(
 
     internal readonly struct TestAccessor(CohostCodeActionsResolveEndpoint instance)
     {
-        public Task<CodeAction?> HandleRequestAsync(TextDocument razorDocument, CodeAction request, CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions, CancellationToken cancellationToken)
-            => instance.HandleRequestAsync(request, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
+        public Task<CodeAction?> HandleRequestAsync(TextDocument razorDocument, CodeAction request, CancellationToken cancellationToken)
+            => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
 
         public static Task<CodeAction> ResolveCodeActionAsync(Document document, CodeAction codeAction, ResourceOperationKind[] resourceOperations, CancellationToken cancellationToken)
             => CohostCodeActionsResolveEndpoint.ResolveCodeActionAsync(document, codeAction, resourceOperations, cancellationToken);

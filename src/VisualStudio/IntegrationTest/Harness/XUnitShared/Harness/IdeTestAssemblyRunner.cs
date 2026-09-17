@@ -8,6 +8,7 @@ namespace Xunit.Harness
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
+    using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Threading;
@@ -328,8 +329,13 @@ namespace Xunit.Harness
                     continue;
                 }
 
-                var requiredExtensions = assemblyInfo.GetCustomAttributes(typeof(RequireExtensionAttribute));
-                extensionFiles = extensionFiles.Union(requiredExtensions.Select(attributeInfo => attributeInfo.GetConstructorArguments().First().ToString()));
+                var assemblyDirectory = Path.GetDirectoryName(assemblyInfo.AssemblyPath);
+                var requiredExtensions = assemblyInfo.GetCustomAttributes(typeof(RequireExtensionAttribute))
+                    .Select(attributeInfo => attributeInfo.GetConstructorArguments().First().ToString())
+                    .Select(extensionFile => Path.IsPathRooted(extensionFile)
+                        ? extensionFile
+                        : Path.Combine(assemblyDirectory, extensionFile));
+                extensionFiles = extensionFiles.Union(requiredExtensions);
             }
 
             return extensionFiles.ToImmutableList();

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.TestPlatform.VsTestConsole.TranslationLayer;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
 [ExportCSharpVisualBasicLspServiceFactory(typeof(RunTestsHandler)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class RunTestsHandlerFactory(ServerConfiguration serverConfiguration) : ILspServiceFactory
+internal sealed class RunTestsHandlerFactory(ServerConfiguration serverConfiguration, IGlobalOptionService globalOptionService) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
@@ -25,12 +26,17 @@ internal sealed class RunTestsHandlerFactory(ServerConfiguration serverConfigura
         return new RunTestsHandler(
             new TestDiscoverer(loggerFactory),
             new TestRunner(loggerFactory),
-            serverConfiguration);
+            serverConfiguration,
+            globalOptionService);
     }
 }
 
 [Method(RunTestsMethodName)]
-internal sealed class RunTestsHandler(TestDiscoverer testDiscoverer, TestRunner testRunner, ServerConfiguration serverConfiguration)
+internal sealed class RunTestsHandler(
+    TestDiscoverer testDiscoverer,
+    TestRunner testRunner,
+    ServerConfiguration serverConfiguration,
+    IGlobalOptionService globalOptionService)
     : ILspServiceDocumentRequestHandler<RunTestsParams, RunTestsPartialResult[]>
 {
     private const string RunTestsMethodName = "textDocument/runTests";
@@ -46,14 +52,14 @@ internal sealed class RunTestsHandler(TestDiscoverer testDiscoverer, TestRunner 
 
     public async Task<RunTestsPartialResult[]> HandleRequestAsync(RunTestsParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(context.Document);
+        var document = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
         using var progress = BufferedProgress.Create(request.PartialResultToken);
         var dotnetCliHelper = context.GetRequiredService<DotnetCliHelper>();
 
         // First, build to make sure we have a relatively up to date project.
-        await BuildAsync(context.Document, progress, dotnetCliHelper, cancellationToken);
+        await BuildAsync(document, progress, dotnetCliHelper, cancellationToken);
 
-        var projectOutputPath = context.Document.Project.OutputFilePath;
+        var projectOutputPath = document.Project.OutputFilePath;
         Contract.ThrowIfFalse(File.Exists(projectOutputPath), $"Output path {projectOutputPath} is missing");
         var projectOutputDirectory = Path.GetDirectoryName(projectOutputPath);
         Contract.ThrowIfNull(projectOutputDirectory, $"Could not get project output directory from {projectOutputPath}");
@@ -80,7 +86,9 @@ internal sealed class RunTestsHandler(TestDiscoverer testDiscoverer, TestRunner 
 
         var runSettingsPath = request.RunSettingsPath;
         var runSettings = await GetRunSettingsAsync(runSettingsPath, progress, context, cancellationToken);
-        var testCases = await testDiscoverer.DiscoverTestsAsync(request.Range, context.Document, projectOutputPath, runSettings, progress, vsTestConsoleWrapper, cancellationToken);
+        var useSemanticTestDiscovery = globalOptionService.GetOption(LspOptionsStorage.LspUseSemanticTestDiscovery, document.Project.Language);
+        var testCases = await testDiscoverer.DiscoverTestsAsync(
+            request.Range, document, projectOutputPath, runSettings, progress, vsTestConsoleWrapper, useSemanticTestDiscovery, cancellationToken);
         if (!testCases.IsEmpty)
         {
             var clientLanguageServerManager = context.GetRequiredLspService<IClientLanguageServerManager>();
