@@ -3,14 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting;
 using Microsoft.Internal.VisualStudio.PlatformUI;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
@@ -26,7 +27,8 @@ internal sealed partial class CpsDiagnosticItemSource : BaseDiagnosticAndGenerat
 
     public CpsDiagnosticItemSource(
         IThreadingContext threadingContext,
-        VisualStudioWorkspaceImpl workspace,
+        Workspace workspace,
+        ImmutableArray<IAnalyzerAssemblyRedirector> analyzerAssemblyRedirectors,
         ProjectId projectId,
         IVsHierarchyItem item,
         IAnalyzersCommandHandler commandHandler,
@@ -41,7 +43,8 @@ internal sealed partial class CpsDiagnosticItemSource : BaseDiagnosticAndGenerat
         var analyzerFilePath = _item.CanonicalName;
         if (analyzerFilePath is not null)
         {
-            analyzerFilePath = workspace.TryRedirectAnalyzerAssembly(projectId, analyzerFilePath) ?? analyzerFilePath;
+            analyzerFilePath = AnalyzerAssemblyRedirectorUtilities.TryRedirectAnalyzerAssembly(
+                analyzerFilePath, analyzerAssemblyRedirectors, logProjectName: null) ?? analyzerFilePath;
         }
 
         _analyzerFilePath = analyzerFilePath;

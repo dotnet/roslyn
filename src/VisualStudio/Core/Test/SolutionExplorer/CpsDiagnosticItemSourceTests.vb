@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.[Shared].TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting
 Imports Microsoft.Internal.VisualStudio.PlatformUI
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
@@ -39,6 +40,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 Dim source As IAttachedCollectionSource = New CpsDiagnosticItemSource(
                     environment.ThreadingContext,
                     environment.Workspace,
+                    ImmutableArray(Of IAnalyzerAssemblyRedirector).Empty,
                     project.Id,
                     New MockHierarchyItem() With {.CanonicalName = analyzerPath},
                     New FakeAnalyzersCommandHandler(),
@@ -74,9 +76,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 Assert.Equal(redirectedAnalyzerPath, analyzerReference.FullPath)
 
                 Dim listenerProvider = environment.ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)()
+                Dim analyzerAssemblyRedirectors = environment.ExportProvider.GetExportedValues(Of IAnalyzerAssemblyRedirector)().ToImmutableArray()
                 Dim source As IAttachedCollectionSource = New CpsDiagnosticItemSource(
                     environment.ThreadingContext,
                     environment.Workspace,
+                    analyzerAssemblyRedirectors,
                     project.Id,
                     New MockHierarchyItem() With {.CanonicalName = analyzerPath.ToLowerInvariant()},
                     New FakeAnalyzersCommandHandler(),

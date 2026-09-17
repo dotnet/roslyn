@@ -3,13 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting;
 using Microsoft.Internal.VisualStudio.PlatformUI;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Shell;
@@ -18,6 +21,7 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
 using OrderAttribute = Microsoft.VisualStudio.Utilities.OrderAttribute;
+using Workspace = Microsoft.CodeAnalysis.Workspace;
 
 [Export(typeof(IAttachedCollectionSourceProvider))]
 [Name(nameof(CpsDiagnosticItemSourceProvider))]
@@ -28,13 +32,15 @@ using OrderAttribute = Microsoft.VisualStudio.Utilities.OrderAttribute;
 internal sealed class CpsDiagnosticItemSourceProvider(
     IThreadingContext threadingContext,
     [Import(typeof(AnalyzersCommandHandler))] IAnalyzersCommandHandler commandHandler,
-    VisualStudioWorkspaceImpl workspace,
+    VisualStudioWorkspace workspace,
+    [ImportMany] IEnumerable<IAnalyzerAssemblyRedirector> analyzerAssemblyRedirectors,
     IAsynchronousOperationListenerProvider listenerProvider)
     : AttachedCollectionSourceProvider<IVsHierarchyItem>
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly IAnalyzersCommandHandler _commandHandler = commandHandler;
-    private readonly VisualStudioWorkspaceImpl _workspace = workspace;
+    private readonly Workspace _workspace = workspace;
+    private readonly ImmutableArray<IAnalyzerAssemblyRedirector> _analyzerAssemblyRedirectors = analyzerAssemblyRedirectors.AsImmutableOrEmpty();
     private readonly IAsynchronousOperationListenerProvider _listenerProvider = listenerProvider;
 
     private IHierarchyItemToProjectIdMap? _projectMap;
@@ -55,7 +61,7 @@ internal sealed class CpsDiagnosticItemSourceProvider(
                         hierarchyMapper.TryGetProjectId(projectRootItem, targetFrameworkMoniker, out var projectId))
                     {
                         return new CpsDiagnosticItemSource(
-                            _threadingContext, _workspace, projectId, item, _commandHandler, _listenerProvider);
+                            _threadingContext, _workspace, _analyzerAssemblyRedirectors, projectId, item, _commandHandler, _listenerProvider);
                     }
                 }
             }

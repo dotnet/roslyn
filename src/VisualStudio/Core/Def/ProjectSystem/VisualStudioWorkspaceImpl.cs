@@ -331,12 +331,6 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     }
 
     internal bool IsPrimaryProject(ProjectId projectId)
-        => GetProjectSystemProject(projectId)?.IsPrimary ?? true;
-
-    internal string? TryRedirectAnalyzerAssembly(ProjectId projectId, string fullPath)
-        => GetProjectSystemProject(projectId)?.TryRedirectAnalyzerAssembly(fullPath);
-
-    private ProjectSystemProject? GetProjectSystemProject(ProjectId projectId)
     {
         using (_gate.DisposableWait())
         {
@@ -345,12 +339,12 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
                 foreach (var project in projects)
                 {
                     if (project.Id == projectId)
-                        return project;
+                        return project.IsPrimary;
                 }
             }
         }
 
-        return null;
+        return true;
     }
 
     public override bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, CodeAnalysis.Project project)
