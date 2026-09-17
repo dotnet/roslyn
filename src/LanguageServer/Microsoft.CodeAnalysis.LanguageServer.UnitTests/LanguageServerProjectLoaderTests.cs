@@ -203,7 +203,8 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
 
         var loadTask = loader.StartLoadingAsync(uri);
         Assert.Same(loadTask, loader.StartLoadingAsync(uri));
-        var workspaceLoadTask = await loader.GetWorkspaceLoadTaskAsync();
+        var workspaceLoadSnapshot = await loader.CaptureWorkspaceLoadSnapshotAsync();
+        var workspaceLoadTask = workspaceLoadSnapshot.Completion;
         Assert.False(workspaceLoadTask.IsCompleted);
         Assert.Equal(rootPath, await rootBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout));
         rootBuild.CompleteSuccessfully(
@@ -631,6 +632,32 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         Assert.Equal(1, loader.CacheLoadCount);
 
         designTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
+    }
+
+    [Fact]
+    public async Task WorkspaceLoadSnapshotIncludesExplicitLoadsButNotLaterLoads()
+    {
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var projectLoader = server.GetRequiredLspService<TestProjectLoader>();
+        var loader = server.GetRequiredLspService<IOnDemandProjectLoader>();
+        var firstBuild = projectLoader.QueueDesignTimeBuild();
+        var laterBuild = projectLoader.QueueDesignTimeBuild();
+        var firstPath = Path.Combine(TempRoot.Root, "First.csproj");
+        var laterPath = Path.Combine(TempRoot.Root, "Later.csproj");
+        await projectLoader.BeginLoadAsync(firstPath);
+        await firstBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+
+        var snapshot = await loader.CaptureWorkspaceLoadSnapshotAsync().AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout);
+        Assert.False(snapshot.Completion.IsCompleted);
+
+        var laterProject = await projectLoader.BeginLoadAsync(laterPath);
+        firstBuild.CompleteSuccessfully(projectLoader.WorkspaceFactory.HostProjectFactory, firstPath);
+        await snapshot.Completion.WaitAsync(TestHelpers.HangMitigatingTimeout);
+
+        Assert.False(laterProject.WaitForLoadAsync(CancellationToken.None).AsTask().IsCompleted);
+        await laterBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        laterBuild.CompleteSuccessfully(projectLoader.WorkspaceFactory.HostProjectFactory, laterPath);
+        Assert.True(await laterProject.WaitForLoadAsync(CancellationToken.None).AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout));
     }
 
     [Fact]

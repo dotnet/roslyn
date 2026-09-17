@@ -118,8 +118,8 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         await loader.ShutdownAsync();
         await LoadDocumentAsync(server, workspace.RootPath, workspace.GetFullPath("Program.cs"));
 
-        var workspaceLoadTask = await loader.GetWorkspaceLoadTaskAsync();
-        Assert.True(workspaceLoadTask.IsCompleted);
+        var workspaceLoadSnapshot = await loader.CaptureWorkspaceLoadSnapshotAsync();
+        Assert.True(workspaceLoadSnapshot.Completion.IsCompleted);
         Assert.Empty(server.GetRequiredLspService<LanguageServerWorkspaceFactory>().HostWorkspace.CurrentSolution.Projects);
     }
 

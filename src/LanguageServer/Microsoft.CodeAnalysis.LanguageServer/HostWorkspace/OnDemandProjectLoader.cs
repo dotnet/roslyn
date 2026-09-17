@@ -54,8 +54,18 @@ internal sealed partial class OnDemandProjectLoader(
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<OnDemandProjectLoader>();
     private readonly CancellationTokenSource _shutdownSource = new();
+
+    /// <summary>
+    /// Protects <see cref="_activeLoads"/>, its entries' project-path sets, and <see cref="_shutdownTask"/>.
+    /// </summary>
     private readonly object _activeLoadsGate = new();
 
+    /// <summary>
+    /// Coalesces demands from the same directory for the lifetime of discovery and the complete project-reference
+    /// traversal. Each project-path set is also the traversal's visited set, allowing documents in other directories
+    /// to join an operation that already includes their project. Individual project loads remain owned by
+    /// <see cref="LanguageServerProjectLoader"/>.
+    /// </summary>
     private readonly Dictionary<string, (Task Task, HashSet<string> ProjectPaths)> _activeLoads = new(PathUtilities.Comparer);
     private Task? _shutdownTask;
 
@@ -99,7 +109,7 @@ internal sealed partial class OnDemandProjectLoader(
         }
     }
 
-    public async ValueTask<Task> GetWorkspaceLoadTaskAsync()
+    public async ValueTask<ProjectLoadSnapshot> CaptureWorkspaceLoadSnapshotAsync()
     {
         Task[] activeLoads;
         CancellationToken shutdownToken;
@@ -107,13 +117,14 @@ internal sealed partial class OnDemandProjectLoader(
         {
             activeLoads = [.. _activeLoads.Values.Select(load => load.Task)];
             if (_shutdownTask is not null)
-                return Task.WhenAll(activeLoads);
+                return new(Task.WhenAll(activeLoads));
 
             shutdownToken = _shutdownSource.Token;
         }
 
-        var projectLoads = await projectSystem.GetWaitForAllProjectLoadsTaskAsync(shutdownToken);
-        return Task.WhenAll([projectLoads, .. activeLoads]);
+        var projectLoads = await projectSystem.CaptureProjectLoadSnapshotAsync(shutdownToken);
+        // Active operations include discovery and children not yet registered with the project system.
+        return new(Task.WhenAll([projectLoads.Completion, .. activeLoads]));
     }
 
     private async Task LoadDiscoveredProjectsAsync(
@@ -183,6 +194,7 @@ internal sealed partial class OnDemandProjectLoader(
             cancellationToken.ThrowIfCancellationRequested();
 
             projectPath = Path.GetFullPath(projectPath);
+            // StartLoadingAsync also reads this visited set when matching a document to an active traversal.
             lock (_activeLoadsGate)
             {
                 if (!visitedProjectPaths.Add(projectPath))

@@ -85,8 +85,8 @@ internal sealed class RequestContextFactory : AbstractRequestContextFactory<Requ
         }
         else if (requiresLSPSolution && !methodHandler.MutatesSolutionState && onDemandProjectLoader is not null)
         {
-            var workspaceLoadTask = await onDemandProjectLoader.GetWorkspaceLoadTaskAsync().ConfigureAwait(false);
-            startProjectLoad = () => workspaceLoadTask;
+            var workspaceLoadSnapshot = await onDemandProjectLoader.CaptureWorkspaceLoadSnapshotAsync().ConfigureAwait(false);
+            startProjectLoad = () => workspaceLoadSnapshot.Completion;
         }
 
         var trackedDocuments = _lspServices.GetRequiredService<LspWorkspaceManager>().GetTrackedLspText();

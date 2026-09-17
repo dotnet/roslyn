@@ -277,6 +277,57 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     }
 
     [Fact]
+    public async Task WorkspaceLoadCapturePrecedesLaterChangesWithoutBlockingOnCompletion()
+    {
+        var composition = Composition.AddParts(
+            typeof(TestOnDemandProjectLoaderFactory), typeof(TestWorkspaceSnapshotHandler));
+        await using var server = await CreateTestLspServerAsync(
+            "request text",
+            mutatingLspWorkspace: false,
+            new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer },
+            composition);
+        var documentUri = server.GetCurrentSolution().Projects.Single().Documents.Single().GetURI();
+        await server.OpenDocumentAsync(documentUri, "request text");
+        var loader = (TestOnDemandProjectLoader)server.GetServerAccessor().GetLspServices()
+            .GetRequiredService<IOnDemandProjectLoader>();
+        var captureStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseCapture = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var loadCompletion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        loader.CaptureWorkspaceLoadSnapshot = async () =>
+        {
+            captureStarted.SetResult(true);
+            await releaseCapture.Task;
+            return new ProjectLoadSnapshot(loadCompletion.Task);
+        };
+
+        var request = server.ExecuteRequestAsync<TestRequestTypeThree, string>(
+            TestWorkspaceSnapshotHandler.MethodName, new TestRequestTypeThree("request"), CancellationToken.None);
+        try
+        {
+            await captureStarted.Task.WithTimeout(TestHelpers.HangMitigatingTimeout);
+            var laterChange = server.InsertTextAsync(documentUri, (0, 0, "later "));
+            Assert.False(laterChange.IsCompleted);
+            releaseCapture.SetResult(true);
+            await laterChange.WithTimeout(TestHelpers.HangMitigatingTimeout);
+
+            var unrelatedResponse = await server.ExecuteRequestAsync<TestRequestTypeOne, string>(
+                TestNonMutatingDocumentHandler.MethodName,
+                new TestRequestTypeOne(new TextDocumentIdentifier { DocumentUri = documentUri }),
+                CancellationToken.None).WithTimeout(TestHelpers.HangMitigatingTimeout);
+            Assert.Equal(nameof(TestNonMutatingDocumentHandler), unrelatedResponse);
+            Assert.False(request.IsCompleted);
+
+            loadCompletion.SetResult(true);
+            Assert.Equal("request text", await request.WithTimeout(TestHelpers.HangMitigatingTimeout));
+        }
+        finally
+        {
+            releaseCapture.TrySetResult(true);
+            loadCompletion.TrySetResult(true);
+        }
+    }
+
+    [Fact]
     public async Task CancelingAccessorWaitDoesNotCancelSharedLoading()
     {
         await using var server = await CreateTestLspServerAsync(
@@ -982,6 +1033,25 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         }
     }
 
+    [ExportCSharpVisualBasicStatelessLspService(typeof(TestWorkspaceSnapshotHandler)), PartNotDiscoverable, Shared]
+    [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class TestWorkspaceSnapshotHandler() : ILspServiceRequestHandler<TestRequestTypeThree, string>
+    {
+        public const string MethodName = nameof(TestWorkspaceSnapshotHandler);
+
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
+
+        public async Task<string> HandleRequestAsync(TestRequestTypeThree request, RequestContext context, CancellationToken cancellationToken)
+        {
+            var solution = await context.GetRequiredSolutionAsync(cancellationToken);
+            var document = solution.Projects.Single().Documents.Single();
+            return (await document.GetTextAsync(cancellationToken)).ToString();
+        }
+    }
+
     [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
     internal sealed class TestNotificationHandler() : ILspServiceNotificationHandler<TestRequestTypeOne>
     {
@@ -1052,6 +1122,8 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     internal sealed class TestOnDemandProjectLoader : IOnDemandProjectLoader
     {
         public int StartLoadingCount { get; private set; }
+        public Func<ValueTask<ProjectLoadSnapshot>> CaptureWorkspaceLoadSnapshot { get; set; }
+            = static () => new(new ProjectLoadSnapshot(Task.CompletedTask));
 
         public Task StartLoadingAsync(DocumentUri uri)
         {
@@ -1059,8 +1131,8 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
             return Task.CompletedTask;
         }
 
-        public ValueTask<Task> GetWorkspaceLoadTaskAsync()
-            => new(Task.CompletedTask);
+        public ValueTask<ProjectLoadSnapshot> CaptureWorkspaceLoadSnapshotAsync()
+            => CaptureWorkspaceLoadSnapshot();
     }
 
     /// <summary>

@@ -12,8 +12,8 @@ internal interface IOnDemandProjectLoader : ILspService
     Task StartLoadingAsync(DocumentUri uri);
 
     /// <summary>
-    /// Captures current discovery and project-load operations. Await the returned task outside serialized request
-    /// dispatch; awaiting this method only captures the snapshot.
+    /// Captures current discovery and project-load operations. Await capture during serialized request dispatch,
+    /// before later requests can start more loads. Await <see cref="ProjectLoadSnapshot.Completion"/> outside dispatch.
     /// </summary>
-    ValueTask<Task> GetWorkspaceLoadTaskAsync();
+    ValueTask<ProjectLoadSnapshot> CaptureWorkspaceLoadSnapshotAsync();
 }
