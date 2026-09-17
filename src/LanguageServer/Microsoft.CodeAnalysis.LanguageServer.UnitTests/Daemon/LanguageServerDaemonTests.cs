@@ -6,8 +6,12 @@ using System.IO.Pipes;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
+using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Telemetry;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit.Abstractions;
@@ -72,6 +76,83 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
         // Both clients have their own independent server, and the daemon stays up.
         Assert.False(daemon.DaemonExitTask.IsCompleted);
         Assert.Equal(2, daemon.GetStartedServers().Length);
+    }
+
+    [Fact]
+    public async Task Daemon_EachServerHasAnIsolatedTelemetrySession()
+    {
+        var configuration = DefaultServerConfiguration with { IsDaemon = true, TelemetryLevel = "error" };
+        await using var daemon = await CreateDaemonServerAsync(serverConfiguration: configuration);
+        var daemonClientDisconnected = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var daemonEvents = new RecordingEventSink(onLog: functionId =>
+        {
+            if (functionId == FunctionId.VSCode_LanguageServer_Daemon_Client_Disconnected)
+                daemonClientDisconnected.TrySetResult(true);
+        });
+        using var daemonEventRegistration = daemon.DaemonTelemetry.AddEventSink(daemonEvents);
+
+        var first = await daemon.CreateClientAsync();
+        await using var second = await daemon.CreateClientAsync();
+
+        var firstTelemetry = first.GetRequiredLspService<RoslynTelemetry>();
+        var secondTelemetry = second.GetRequiredLspService<RoslynTelemetry>();
+        var firstSession = Assert.IsType<TelemetrySession>(TelemetryReporterWrapper.GetSession(firstTelemetry));
+        var secondSession = Assert.IsType<TelemetrySession>(TelemetryReporterWrapper.GetSession(secondTelemetry));
+
+        // Each server has a distinct child session correlated to the shared daemon session.
+        Assert.NotNull(daemon.DaemonSessionId);
+        Assert.NotEqual(firstSession.SessionId, secondSession.SessionId);
+        Assert.Equal(
+            daemon.DaemonSessionId,
+            GetDaemonSessionId(firstSession));
+        Assert.Equal(
+            daemon.DaemonSessionId,
+            GetDaemonSessionId(secondSession));
+
+        var firstEvents = new RecordingEventSink();
+        var secondEvents = new RecordingEventSink();
+        var firstTelemetryFlushed = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var firstMetrics = new RecordingMetricSink(onFlush: () => firstTelemetryFlushed.TrySetResult(true));
+        var secondMetrics = new RecordingMetricSink();
+        using var firstEventRegistration = firstTelemetry.AddEventSink(firstEvents);
+        using var secondEventRegistration = secondTelemetry.AddEventSink(secondEvents);
+        using var firstMetricRegistration = firstTelemetry.AddMetricSink(firstMetrics);
+        using var secondMetricRegistration = secondTelemetry.AddMetricSink(secondMetrics);
+
+        var firstDocumentUri = LoadProjectWithDocument(
+            first.GetRequiredLspService<LanguageServerWorkspaceFactory>(),
+            "FirstTelemetryServer");
+        var hover = await first.ExecuteRequestAsync<HoverParams, Hover>(
+            Methods.TextDocumentHoverName,
+            new HoverParams
+            {
+                TextDocument = new TextDocumentIdentifier { DocumentUri = firstDocumentUri },
+                Position = new Position(0, 6),
+            },
+            CancellationToken.None);
+
+        // A request handled by the first server records metrics only in that server's sink.
+        Assert.NotNull(hover);
+        Assert.True(firstMetrics.MeasurementCount > 0);
+        Assert.Equal(0, secondMetrics.MeasurementCount);
+
+        var daemonEventsBeforeDisconnect = daemonEvents.Events.Length;
+        await first.DisposeAsync();
+        await Task.WhenAll(firstTelemetryFlushed.Task, daemonClientDisconnected.Task);
+
+        // Disconnecting the first server flushes it, preserves the second, and attributes lifecycle telemetry to the daemon.
+        Assert.Null(TelemetryReporterWrapper.GetSession(firstTelemetry));
+        Assert.Equal(0, secondMetrics.FlushCount);
+        Assert.Equal(daemonEventsBeforeDisconnect + 1, daemonEvents.Events.Length);
+        Assert.Equal(FunctionId.VSCode_LanguageServer_Daemon_Client_Disconnected, daemonEvents.Events[^1]);
+        Assert.DoesNotContain(FunctionId.VSCode_LanguageServer_Daemon_Client_Disconnected, firstEvents.Events);
+        Assert.DoesNotContain(FunctionId.VSCode_LanguageServer_Daemon_Client_Disconnected, secondEvents.Events);
+
+        static string GetDaemonSessionId(TelemetrySession telemetrySession)
+        {
+            Assert.True(telemetrySession.TryGetCommonPropertyValue(LanguageServerTelemetry.DaemonSessionIdPropertyName, out var daemonSessionId));
+            return Assert.IsType<string>(daemonSessionId);
+        }
     }
 
     // Each connected client gets its own server with its own Host workspace. A project loaded into one server's

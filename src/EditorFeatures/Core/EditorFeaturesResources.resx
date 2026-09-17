@@ -551,9 +551,6 @@
   <data name="Preview_changes2" xml:space="preserve">
     <value>Preview changes</value>
   </data>
-  <data name="Refine_using_Copilot" xml:space="preserve">
-    <value>Refine using Copilot</value>
-  </data>
   <data name="IntelliSense" xml:space="preserve">
     <value>IntelliSense</value>
   </data>
