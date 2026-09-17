@@ -57,6 +57,7 @@ internal sealed class RoslynPackage : AbstractPackage
     private RuleSetEventHandler? _ruleSetEventHandler;
     private SolutionEventMonitor? _solutionEventMonitor;
     private PdbMatchingSourceTextProvider? _sourceTextProvider;
+    private IDisposable? _hotReloadService;
 
     internal static async ValueTask<RoslynPackage?> GetOrLoadAsync(IThreadingContext threadingContext, IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
@@ -144,6 +145,8 @@ internal sealed class RoslynPackage : AbstractPackage
         await hotReloadService.InitializeAsync(serviceBroker, cancellationToken).ConfigureAwait(false);
 
         serviceBrokerContainer.Proffer(ManagedHotReloadLanguageServiceFactory.ServiceDescriptor, async (_, _, _, _) => hotReloadService);
+
+        _hotReloadService = hotReloadService;
     }
 
     protected override async Task LoadComponentsInBackgroundAfterSolutionFullyLoadedAsync(CancellationToken cancellationToken)
@@ -199,6 +202,8 @@ internal sealed class RoslynPackage : AbstractPackage
         _solutionEventMonitor = null;
         _sourceTextProvider?.Dispose();
         _sourceTextProvider = null;
+        _hotReloadService?.Dispose();
+        _hotReloadService = null;
 
         base.Dispose(disposing);
     }
