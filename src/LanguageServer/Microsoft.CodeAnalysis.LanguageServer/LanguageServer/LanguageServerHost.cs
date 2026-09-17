@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
@@ -17,6 +19,8 @@ internal sealed class LanguageServerHost
 {
     private readonly AbstractLanguageServer<RequestContext> _roslynLanguageServer;
     private readonly JsonRpc _jsonRpc;
+    private readonly RoslynTelemetry _telemetry;
+    private LanguageServerTelemetry? _ownedTelemetry;
     private volatile bool _hasStarted;
 
     internal ILogger GlobalLogger { get; }
@@ -26,7 +30,8 @@ internal sealed class LanguageServerHost
         Stream inputStream,
         Stream outputStream,
         ExportProvider exportProvider,
-        AbstractTypeRefResolver typeRefResolver)
+        AbstractTypeRefResolver typeRefResolver,
+        string? daemonSessionId)
     {
         var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
 
@@ -40,6 +45,31 @@ internal sealed class LanguageServerHost
 
         try
         {
+            var serverConfiguration = exportProvider.GetExportedValue<ServerConfiguration>();
+
+            if (serverConfiguration.IsDaemon)
+            {
+                // Every daemon server needs an isolated router even when VS telemetry is disabled, so sinks
+                // registered by one server cannot receive another server's events.
+                _telemetry = new RoslynTelemetry();
+                _ownedTelemetry = LanguageServerTelemetry.CreateSession(
+                    serverConfiguration,
+                    exportProvider.GetExportedValue<ILoggerFactory>(),
+                    _telemetry,
+                    sessionId: null,
+                    isDefaultSession: false,
+                    daemonSessionId: daemonSessionId);
+            }
+            else
+            {
+                _telemetry = RoslynTelemetry.Current;
+            }
+
+            // In daemon mode the ambient here is the process owner, not this server, so establish the server's
+            // instance for everything constructed below that captures it - the RoslynTelemetry LSP service, and the
+            // request queue's processing loop, which runs for the life of the server on this context.
+            using var telemetryScope = RoslynTelemetry.SetCurrent(_telemetry);
+
             var roslynLspFactory = exportProvider.GetExportedValue<CSharpVisualBasicLanguageServerFactory>();
 
             var hostServices = exportProvider.GetExportedValue<HostServicesProvider>().HostServices;
@@ -55,12 +85,18 @@ internal sealed class LanguageServerHost
         catch
         {
             _jsonRpc.Dispose();
+            DisposeOwnedTelemetry();
             throw;
         }
     }
 
     public void Start()
     {
+        // StreamJsonRpc captures the execution context at StartListening (not at construction), and dispatches
+        // every inbound message on it, so this scope - not the constructor's - is what attributes LSP requests to
+        // this server. The daemon calls Start on its own context, so the ambient here is not yet this server's.
+        using var telemetryScope = RoslynTelemetry.SetCurrent(_telemetry);
+
         Contract.ThrowIfTrue(_hasStarted);
 
         // Eagerly resolve the workspace factory from the per-server LSP services, since right now the language server
@@ -72,8 +108,12 @@ internal sealed class LanguageServerHost
         _hasStarted = true;
     }
 
-    public Task WaitForExitAsync()
+    public async Task WaitForExitAsync()
     {
+        // The daemon supervises every server from its own context, so attribute this server's shutdown - including
+        // the telemetry session flush in DisposeOwnedTelemetry - to the server rather than to the daemon.
+        using var telemetryScope = RoslynTelemetry.SetCurrent(_telemetry);
+
         // Wait until the server exits.  Once complete, we can return and proceed with shutdown.
         // The server is responsible for cleaning up its resources and disposing of the `_jsonRpc` instance.
         //
@@ -83,27 +123,48 @@ internal sealed class LanguageServerHost
         //   2.  On some platforms (Unix), `_jsonRpc.Completion` will not complete until the client closes its end of the transport or sends new data
         //       even if the `_jsonRpc` instance has been disposed of (due to a synchronous read syscall that does not observe disposal).  The server
         //       should still shutdown regardless - we've been told to exit, so exit.
-        return _roslynLanguageServer.WaitForExitAsync();
+        try
+        {
+            await _roslynLanguageServer.WaitForExitAsync().ConfigureAwait(false);
+        }
+        finally
+        {
+            DisposeOwnedTelemetry();
+        }
     }
 
     public async Task AbortAsync()
     {
-        Exception? shutdownException = null;
+        // Startup is aborted from the daemon's context, so attribute the shutdown/exit of this server - which
+        // never began listening, and so has no context of its own to inherit - to the server itself.
+        using var telemetryScope = RoslynTelemetry.SetCurrent(_telemetry);
+
         try
         {
-            await _roslynLanguageServer.ShutdownAsync("Aborting language server startup").ConfigureAwait(false);
+            Exception? shutdownException = null;
+            try
+            {
+                await _roslynLanguageServer.ShutdownAsync("Aborting language server startup").ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                shutdownException = ex;
+            }
+
+            await _roslynLanguageServer.ExitAsync().ConfigureAwait(false);
+
+            if (shutdownException is not null)
+                throw new InvalidOperationException("Language server cleanup failed during startup abort.", shutdownException);
         }
-        catch (Exception ex)
+        finally
         {
-            shutdownException = ex;
+            DisposeOwnedTelemetry();
         }
-
-        await _roslynLanguageServer.ExitAsync().ConfigureAwait(false);
-
-        if (shutdownException is not null)
-            throw new InvalidOperationException("Language server cleanup failed during startup abort.", shutdownException);
     }
 
     public ILspServices GetLspServices()
         => _roslynLanguageServer.GetLspServices();
+
+    private void DisposeOwnedTelemetry()
+        => Interlocked.Exchange(ref _ownedTelemetry, null)?.Dispose();
 }
