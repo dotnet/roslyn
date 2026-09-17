@@ -348,6 +348,55 @@ public sealed class TargetsFileSmokeTests : IDisposable
 	}
 
 	[Fact]
+	public async Task ProjectDataBuild_ContinuesAfterFailingTargets()
+	{
+		string completionMarkerFromFailingTarget1 = Path.Combine(this.workDir, "triggered-target1-completed.txt");
+		string completionMarkerFromFailingTarget2 = Path.Combine(this.workDir, "triggered-target2-completed.txt");
+		string completionMarkerFromSuccessfulTarget = Path.Combine(this.workDir, "triggered-target3-completed.txt");
+		string projectFile = this.WriteProject(
+			"App.csproj",
+			multiTargeting: true,
+			extraProperties:
+			"""
+              <TargetsTriggeredByCompilation>FailingTargetTriggeredByCompilation;SuccessfulTargetTriggeredByCompilation</TargetsTriggeredByCompilation>
+            """,
+			extraXml:
+			$$"""
+              <Target Name="FailingTargetTriggeredByCompilation">
+                <Error Text="Simulated compilation-triggered target failure." />
+                <WriteLinesToFile File="{{completionMarkerFromFailingTarget1}}" Lines="completed" Overwrite="true" />
+              </Target>
+              <Target Name="SuccessfulTargetTriggeredByCompilation">
+                <WriteLinesToFile File="{{completionMarkerFromSuccessfulTarget}}" Lines="completed" Overwrite="true" />
+              </Target>
+              <Target Name="FailingTargetAfterCoreCompile" AfterTargets="CoreCompile">
+                <Error Text="Simulated target failure after CoreCompile." />
+                <WriteLinesToFile File="{{completionMarkerFromFailingTarget2}}" Lines="completed" Overwrite="true" />
+              </Target>
+            """);
+		string cacheFile = projectFile + ".lscache";
+
+		ProcessResult result = await RunDotnetMsbuildAsync(
+			projectFile,
+			extraArgs:
+			[
+				"/t:ProjectDataBuild",
+				"/p:DesignTimeBuild=true",
+				"/p:BuildingProject=false",
+				"/p:EnableProjectDataInProjectFolder=true",
+			]);
+
+		Assert.Contains("Simulated compilation-triggered target failure.", result.Output);
+		Assert.Contains("Simulated target failure after CoreCompile.", result.Output);
+		Assert.False(File.Exists(completionMarkerFromFailingTarget1), $"Expected task after the error in same target not to run.\n{result.Output}");
+		Assert.False(File.Exists(completionMarkerFromFailingTarget2), $"Expected task after the error in same target not to run.\n{result.Output}");
+		Assert.True(File.Exists(completionMarkerFromSuccessfulTarget), $"Expected compilation-triggered target to run despite error in other targets.\n{result.Output}");
+		Assert.True(File.Exists(cacheFile), $"Expected ProjectDataBuild to produce {cacheFile} despite the triggered-target failure.\n{result.Output}");
+		Assert.Contains("[commandLineArguments]", File.ReadAllText(cacheFile));
+		Assert.NotEqual(0, result.ExitCode);
+	}
+
+	[Fact]
 	public async Task DirectWriteTarget_DoesNotProduceCacheWithoutCommandLineArguments()
 	{
 		string projectFile = this.WriteProject("App.csproj", multiTargeting: false);
