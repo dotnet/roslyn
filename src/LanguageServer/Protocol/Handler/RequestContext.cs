@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -54,7 +53,7 @@ internal readonly partial struct RequestContext
     /// <remarks>
     /// This field is only initialized for handlers that request solution context.
     /// </remarks>
-    private readonly StrongBox<Task<LspWorkspaceManager.LspContext>?>? _solutionContext;
+    private readonly SolutionContextState? _solutionContext;
 
     public ILspLogger Logger { get; }
 
@@ -76,7 +75,7 @@ internal readonly partial struct RequestContext
     public readonly CancellationToken QueueCancellationToken;
 
     private RequestContext(
-        StrongBox<Task<LspWorkspaceManager.LspContext>?>? solutionContext,
+        SolutionContextState? solutionContext,
         ILspLogger logger,
         string method,
         ClientCapabilities? clientCapabilities,
@@ -130,15 +129,10 @@ internal readonly partial struct RequestContext
             ? null
             : (await GetSolutionContextAsync(cancellationToken).ConfigureAwait(false)).Document;
 
-    private async ValueTask<LspWorkspaceManager.LspContext> GetSolutionContextAsync(CancellationToken cancellationToken)
+    private ValueTask<LspWorkspaceManager.LspContext> GetSolutionContextAsync(CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(_solutionContext);
-        var task = Volatile.Read(ref _solutionContext.Value) ?? throw new InvalidOperationException();
-        var value = await task.WithCancellation(cancellationToken).ConfigureAwait(false);
-        if (Volatile.Read(ref _solutionContext.Value) is null)
-            throw new InvalidOperationException();
-
-        return value;
+        return _solutionContext.GetValueAsync(cancellationToken);
     }
 
     public async ValueTask<TextDocument> GetRequiredTextDocumentAsync(CancellationToken cancellationToken)
@@ -169,8 +163,7 @@ internal readonly partial struct RequestContext
         ILspServices lspServices,
         ILspLogger logger,
         string method,
-        Func<Task>? startProjectLoad,
-        ImmutableDictionary<DocumentUri, TrackedDocumentInfo>? trackedDocuments,
+        bool allowProjectLoading,
         CancellationToken cancellationToken)
     {
         var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
@@ -178,7 +171,7 @@ internal readonly partial struct RequestContext
 
         // Retrieve the current LSP tracked text as of this request.
         // This is safe as all creation of request contexts cannot happen concurrently.
-        trackedDocuments ??= lspWorkspaceManager.GetTrackedLspText();
+        var trackedDocuments = lspWorkspaceManager.GetTrackedLspText();
 
         // If the handler doesn't need an LSP solution we do two important things:
         // 1. We don't bother building the LSP solution for perf reasons
@@ -195,10 +188,10 @@ internal readonly partial struct RequestContext
         else
         {
             var solutionContext = textDocument is null
-                ? await lspWorkspaceManager.GetLspSolutionInfoAsync(
-                    trackedDocuments, startProjectLoad, cancellationToken).ConfigureAwait(false)
-                : await lspWorkspaceManager.GetLspDocumentInfoAsync(
-                    textDocument, trackedDocuments, startProjectLoad, cancellationToken).ConfigureAwait(false);
+                ? await lspWorkspaceManager.CaptureLspSolutionContextAsync(
+                    trackedDocuments, allowProjectLoading, cancellationToken).ConfigureAwait(false)
+                : await lspWorkspaceManager.CaptureLspDocumentContextAsync(
+                    textDocument, trackedDocuments, allowProjectLoading, cancellationToken).ConfigureAwait(false);
             if (solutionContext is null)
             {
                 logger.LogError($"Could not find appropriate workspace or solution on {method}");
@@ -206,10 +199,10 @@ internal readonly partial struct RequestContext
                     $"Could not find appropriate workspace or solution on {method}"), ErrorSeverity.Critical);
             }
 
-            Contract.ThrowIfNull(solutionContext);
+            Contract.ThrowIfFalse(solutionContext.HasValue);
 
             context = new RequestContext(
-                new StrongBox<Task<LspWorkspaceManager.LspContext>?>(solutionContext),
+                new SolutionContextState(solutionContext.Value),
                 logger,
                 method,
                 clientCapabilities,
@@ -255,11 +248,55 @@ internal readonly partial struct RequestContext
         => _trackedDocuments.ContainsKey(documentUri);
 
     public void ClearSolutionContext()
-    {
-        if (_solutionContext is null)
-            return;
+        => _solutionContext?.Clear();
 
-        Interlocked.Exchange(ref _solutionContext.Value, null);
+    /// <summary>
+    /// Shares a completed value or one resolution task across context copies, until any copy clears it.
+    /// </summary>
+    private sealed class SolutionContextState
+    {
+        private LspWorkspaceManager.LspContext? _value;
+        private Task<LspWorkspaceManager.LspContext>? _task;
+
+        public SolutionContextState(ValueTask<LspWorkspaceManager.LspContext> context)
+        {
+            // Consume the ValueTask once; it may be backed by a single-consumer IValueTaskSource.
+            if (context.IsCompletedSuccessfully)
+                _value = context.Result;
+            else
+                _task = context.AsTask();
+        }
+
+        public async ValueTask<LspWorkspaceManager.LspContext> GetValueAsync(CancellationToken cancellationToken)
+        {
+            Task<LspWorkspaceManager.LspContext> task;
+            // This private state never escapes RequestContext, so it also serves as the gate.
+            lock (this)
+            {
+                if (_value is { } value)
+                    return value;
+
+                task = _task ?? throw new InvalidOperationException();
+            }
+
+            var result = await task.WithCancellation(cancellationToken).ConfigureAwait(false);
+            lock (this)
+            {
+                if (_task is null)
+                    throw new InvalidOperationException();
+            }
+
+            return result;
+        }
+
+        public void Clear()
+        {
+            lock (this)
+            {
+                _value = null;
+                _task = null;
+            }
+        }
     }
 
     public void TraceDebug(string message)

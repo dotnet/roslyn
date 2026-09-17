@@ -68,28 +68,12 @@ internal sealed class RequestContextFactory : AbstractRequestContextFactory<Requ
             throw new InvalidOperationException($"{nameof(IMethodHandler)} implementation {methodHandler.GetType()} does not implement {nameof(ISolutionRequiredHandler)}");
         }
 
-        Func<Task>? startProjectLoad = null;
-        var onDemandProjectLoader = _lspServices.GetService<IOnDemandProjectLoader>();
         // didOpen initiates project discovery even though text sync handlers do not require a solution. didChange and
         // didClose only update already-tracked state and should not start new project loads.
         if (textDocumentIdentifier is not null && queueItem.MethodName == Methods.TextDocumentDidOpenName)
         {
-            _ = onDemandProjectLoader?.StartLoadingAsync(textDocumentIdentifier.DocumentUri);
+            _lspServices.GetRequiredService<LspWorkspaceManager>().StartLoadingProject(textDocumentIdentifier.DocumentUri);
         }
-        else if (requiresLSPSolution &&
-            !methodHandler.MutatesSolutionState &&
-            textDocumentIdentifier is not null &&
-            onDemandProjectLoader is not null)
-        {
-            startProjectLoad = () => onDemandProjectLoader.StartLoadingAsync(textDocumentIdentifier.DocumentUri);
-        }
-        else if (requiresLSPSolution && !methodHandler.MutatesSolutionState && onDemandProjectLoader is not null)
-        {
-            var workspaceLoadSnapshot = await onDemandProjectLoader.CaptureWorkspaceLoadSnapshotAsync().ConfigureAwait(false);
-            startProjectLoad = () => workspaceLoadSnapshot.Completion;
-        }
-
-        var trackedDocuments = _lspServices.GetRequiredService<LspWorkspaceManager>().GetTrackedLspText();
 
         return await RequestContext.CreateAsync(
             methodHandler.MutatesSolutionState,
@@ -101,8 +85,7 @@ internal sealed class RequestContextFactory : AbstractRequestContextFactory<Requ
             _lspServices,
             logger,
             queueItem.MethodName,
-            startProjectLoad,
-            trackedDocuments,
+            allowProjectLoading: !methodHandler.MutatesSolutionState && queueItem.MethodName != Methods.TextDocumentDidOpenName,
             cancellationToken).ConfigureAwait(false);
     }
 }
