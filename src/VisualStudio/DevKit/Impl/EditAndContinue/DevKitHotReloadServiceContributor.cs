@@ -78,5 +78,8 @@ internal sealed class DevKitHotReloadServiceContributor : IServiceBrokerInitiali
         => _service.InitializeAsync(serviceBroker, cancellationToken);
 
     public void Dispose()
-        => _sourceTextProvider.Dispose();
+    {
+        _sourceTextProvider.Dispose();
+        _service.Dispose();
+    }
 }
