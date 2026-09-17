@@ -3,17 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.ComponentModel.Composition
+Imports System.IO
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
-Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.[Shared].TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting
 Imports Microsoft.Internal.VisualStudio.PlatformUI
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
+Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 Imports Microsoft.VisualStudio.Shell
 Imports Roslyn.Test.Utilities
@@ -36,7 +35,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 Const analyzerPath = "C:\Analyzer.dll"
                 environment.Workspace.OnAnalyzerReferenceAdded(project.Id, New TestAnalyzerReferenceByLanguage(analyzers, analyzerPath))
 
-                Dim listenerProvider = environment.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)()
+                Dim listenerProvider = environment.ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)()
                 Dim source As IAttachedCollectionSource = New CpsDiagnosticItemSource(
                     environment.ThreadingContext,
                     environment.Workspace,
@@ -47,7 +46,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
 
                 Assert.True(source.HasItems)
 
-                Dim waiter = DirectCast(listenerProvider.GetListener(FeatureAttribute.SourceGenerators), IAsynchronousOperationWaiter)
+                Dim waiter = listenerProvider.GetWaiter(FeatureAttribute.SourceGenerators)
                 Await waiter.ExpeditedWaitAsync()
 
                 Dim diagnostic = Assert.IsAssignableFrom(Of ITreeDisplayItem)(Assert.Single(source.Items))
@@ -61,42 +60,34 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
                     "Project", LanguageNames.CSharp, CancellationToken.None)
 
-                project.AddAnalyzerReference(AnalyzerPath)
+                Dim analyzerPath = Path.Combine(
+                    TempRoot.Root, Guid.NewGuid().ToString(), "Microsoft.NET.Sdk", "Analyzer.dll")
+                Dim redirectedAnalyzerPath = Path.ChangeExtension(analyzerPath, ".redirected.dll")
+
+                Directory.CreateDirectory(Path.GetDirectoryName(analyzerPath))
+                File.Copy(GetType(DoNothingGenerator).Assembly.Location, redirectedAnalyzerPath)
+
+                project.AddAnalyzerReference(analyzerPath)
 
                 Dim analyzerReference = Assert.Single(
                     environment.Workspace.CurrentSolution.GetProject(project.Id).AnalyzerReferences)
-                Assert.Equal(GetType(DoNothingGenerator).Assembly.Location, analyzerReference.FullPath)
+                Assert.Equal(redirectedAnalyzerPath, analyzerReference.FullPath)
 
-                Dim listenerProvider = environment.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)()
+                Dim listenerProvider = environment.ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)()
                 Dim source As IAttachedCollectionSource = New CpsDiagnosticItemSource(
                     environment.ThreadingContext,
                     environment.Workspace,
                     project.Id,
-                    New MockHierarchyItem() With {.CanonicalName = AnalyzerPath.ToLowerInvariant()},
+                    New MockHierarchyItem() With {.CanonicalName = analyzerPath.ToLowerInvariant()},
                     New FakeAnalyzersCommandHandler(),
                     listenerProvider)
 
-                Dim waiter = DirectCast(listenerProvider.GetListener(FeatureAttribute.SourceGenerators), IAsynchronousOperationWaiter)
+                Dim waiter = listenerProvider.GetWaiter(FeatureAttribute.SourceGenerators)
                 Await waiter.ExpeditedWaitAsync()
 
                 Dim generatorItem = Assert.IsType(Of SourceGeneratorItem)(Assert.Single(source.Items))
                 Assert.Equal(GetType(DoNothingGenerator).FullName, generatorItem.Text)
             End Using
         End Function
-
-        Private Const AnalyzerPath = "C:\Analyzer.dll"
-
-        <Export(GetType(IAnalyzerAssemblyRedirector))>
-        Private NotInheritable Class TestAnalyzerAssemblyRedirector
-            Implements IAnalyzerAssemblyRedirector
-
-            <ImportingConstructor, Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-            Public Sub New()
-            End Sub
-
-            Public Function RedirectPath(fullPath As String) As String Implements IAnalyzerAssemblyRedirector.RedirectPath
-                Return If(String.Equals(fullPath, AnalyzerPath, StringComparison.OrdinalIgnoreCase), GetType(DoNothingGenerator).Assembly.Location, Nothing)
-            End Function
-        End Class
     End Class
 End Namespace
