@@ -61,6 +61,8 @@ $buildArgs = @(
   $solutionPath
   "-c", $configuration
   "--no-incremental"
+  "--warnaserror"
+  "/p:RunAnalyzersDuringBuild=true"
 )
 
 if ($ci) {

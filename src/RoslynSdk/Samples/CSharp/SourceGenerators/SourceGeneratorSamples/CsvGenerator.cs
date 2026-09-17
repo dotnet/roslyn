@@ -77,7 +77,6 @@ namespace CSV {
             //// Class Definition
             sb.Append($"    public class {className} {{\n");
 
-
             if (loadTime == CsvLoadType.Startup)
             {
                 sb.Append(@$"
@@ -136,7 +135,6 @@ namespace CSV {
             return sb.ToString();
 
         }
-
 
         static string StringToValidPropertyName(string s)
         {

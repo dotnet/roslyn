@@ -37,14 +37,6 @@ internal sealed class DeleteFile : IAnnotatedChange
         set;
     }
 
-    [Obsolete("Use DocumentUri instead. This property will be removed in a future version.")]
-    [JsonIgnore]
-    public Uri Uri
-    {
-        get => DocumentUri.GetRequiredParsedUri();
-        set => DocumentUri = new DocumentUri(value);
-    }
-
     /// <summary>
     /// Gets or sets the additional options.
     /// </summary>

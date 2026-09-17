@@ -2510,6 +2510,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadAwaitInFixed = 9398,
         ERR_FeatureNotAvailableInVersion15 = 9399,
 
+        ERR_BadCompilationOptionValueAccepted = 9400,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  2) Add message to CSharpResources.resx

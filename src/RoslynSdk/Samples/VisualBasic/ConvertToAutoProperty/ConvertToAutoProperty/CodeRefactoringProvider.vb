@@ -66,7 +66,7 @@ Class ConvertToAutoPropertyCodeRefactoringProvider
         Dim backingField = Await GetBackingFieldAsync(document, propertyAnnotation, cancellationToken).ConfigureAwait(False)
 
         ' Retrieve the initializer of the backing field
-        Dim modifiedIdentifier = CType(backingField.DeclaringSyntaxReferences.Single().GetSyntax(), ModifiedIdentifierSyntax)
+        Dim modifiedIdentifier = CType(backingField.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken), ModifiedIdentifierSyntax)
         Dim variableDeclarator = CType(modifiedIdentifier.Parent, VariableDeclaratorSyntax)
         Dim initializer = variableDeclarator.Initializer
 
@@ -93,14 +93,14 @@ Class ConvertToAutoPropertyCodeRefactoringProvider
         Dim propertyGetter = propertyBlock.Accessors.FirstOrDefault(Function(node) node.Kind() = SyntaxKind.GetAccessorBlock)
 
         Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
-        Dim containingType = semanticModel.GetDeclaredSymbol(propertyBlock).ContainingType
+        Dim containingType = semanticModel.GetDeclaredSymbol(propertyBlock, cancellationToken).ContainingType
 
         Dim statements = propertyGetter.Statements
         If statements.Count = 1 Then
             Dim returnStatement = TryCast(statements.FirstOrDefault(), ReturnStatementSyntax)
 
             If returnStatement IsNot Nothing AndAlso returnStatement.Expression IsNot Nothing Then
-                Dim symbol = semanticModel.GetSymbolInfo(returnStatement.Expression).Symbol
+                Dim symbol = semanticModel.GetSymbolInfo(returnStatement.Expression, cancellationToken).Symbol
                 Dim fieldSymbol = TryCast(symbol, IFieldSymbol)
 
                 If fieldSymbol IsNot Nothing AndAlso fieldSymbol.ContainingType.Equals(containingType) Then
@@ -132,7 +132,7 @@ Class ConvertToAutoPropertyCodeRefactoringProvider
             Return document
         End If
 
-        Dim modifiedIdentifier = CType(backingField.DeclaringSyntaxReferences.Single().GetSyntax(), ModifiedIdentifierSyntax)
+        Dim modifiedIdentifier = CType(backingField.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken), ModifiedIdentifierSyntax)
         Dim variableDeclarator = CType(modifiedIdentifier.Parent, VariableDeclaratorSyntax)
         Dim fieldDeclaration = CType(variableDeclarator.Parent, FieldDeclarationSyntax)
 

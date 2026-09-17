@@ -34,7 +34,6 @@ Namespace APISampleUnitTestsVB
             End Sub
         End Class
 
-
         Private _Mscorlib As MetadataReference
 
         Public ReadOnly Property Mscorlib As MetadataReference
@@ -1487,7 +1486,7 @@ i (position 0)</text>.Value, results)
             End Function
         End Class
 
-        Public Class MyAnnotation
+        Public NotInheritable Class MyAnnotation
             Public Const Kind As String = "MyAnnotation"
 
             Public Shared Function Create(position As Integer) As SyntaxAnnotation

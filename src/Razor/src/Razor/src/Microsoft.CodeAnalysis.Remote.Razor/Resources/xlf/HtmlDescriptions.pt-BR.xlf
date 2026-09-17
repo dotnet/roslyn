@@ -647,7 +647,7 @@ Define um [cookie](https://developer.mozilla.org/en-US/docs/cookie) para a pági
 * `chapters`
 * Títulos de capítulo devem ser usados quando o usuário estiver navegando pelo recurso de mídia.
 * `metadata`
-* Faixas usadas por scripts. Não visível para o usuário.</target>
+* Faixas usadas por scripts. Não é visível para o usuário.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_label">
@@ -1635,7 +1635,7 @@ Consulte também: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS
 **Note:** According to the HTML5 specification, the default value for size should be 1; however, in practice, this has been found to break some web sites, and no other browser currently does that, so Mozilla has opted to continue to return 0 for the time being with Firefox.</source>
         <target state="translated">Se o controle for apresentado como uma caixa de lista com rolagem (por exemplo, quando `multiple` é especificado), este atributo representa o número de linhas da lista que devem estar visíveis ao mesmo tempo. Os navegadores não são obrigados a apresentar um elemento select como uma caixa de lista com rolagem. O valor padrão é 0.
 
-**Observação:** de acordo com a especificação do HTML5, o valor padrão de tamanho deveria ser 0; no entanto, na prática, isso foi observado como algo que quebra alguns sites, e nenhum outro navegador atualmente adota esse comportamento, então a Mozilla optou por continuar retornando 0 por enquanto no Firefox.</target>
+**Observação:** de acordo com a especificação do HTML5, o valor padrão de tamanho deveria ser 1; no entanto, na prática, isso foi observado como algo que quebra alguns sites, e nenhum outro navegador atualmente adota esse comportamento, então a Mozilla optou por continuar retornando 0 por enquanto no Firefox.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_sizes">

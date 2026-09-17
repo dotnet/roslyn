@@ -20,7 +20,7 @@ namespace Sample.Analyzers
     public class SymbolAnalyzer : DiagnosticAnalyzer
     {
         private const string Title = "Do not declare members with same name as containing type";
-        public const string MessageFormat = "Type '{0}' has one or more members with the same name, considering renaming the type or the members.";
+        public const string MessageFormat = "Type '{0}' has one or more members with the same name, considering renaming the type or the members";
         private const string Description = "Do not declare members with same name as containing type.";
 
         internal static DiagnosticDescriptor Rule =

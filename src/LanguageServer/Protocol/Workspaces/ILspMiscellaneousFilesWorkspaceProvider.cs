@@ -17,11 +17,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 internal interface ILspMiscellaneousFilesWorkspaceProvider : ILspService
 {
     /// <summary>
-    /// Adds the document to an appropriate workspace. May initiate work to load a project for the document.
+    /// Gets a miscellaneous document for the given URI. If <paramref name="trackedDocumentInfo"/> is provided,
+    /// adds the document to an appropriate workspace and may initiate work to load a project for it. Otherwise,
+    /// the provider may return a transient document without updating a workspace.
     /// Note that the implementation of this method should not depend on anything expensive such as RPC calls.
     /// async is used here to allow taking locks asynchronously and "relatively fast" stuff like that.
     /// </summary>
-    ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo trackedDocumentInfo);
+    ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo? trackedDocumentInfo);
 
     /// <summary>
     /// Removes the document with the given <paramref name="uri"/> from the miscellaneous files workspace.

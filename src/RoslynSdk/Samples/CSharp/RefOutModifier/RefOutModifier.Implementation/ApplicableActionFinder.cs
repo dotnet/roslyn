@@ -17,7 +17,7 @@ namespace Roslyn.Samples.AddOrRemoveRefOutModifier
 {
     internal class ApplicableActionFinder
     {
-        private Document document;
+        private readonly Document document;
         private readonly int position;
         private readonly CancellationToken cancellationToken;
 
@@ -128,7 +128,7 @@ namespace Roslyn.Samples.AddOrRemoveRefOutModifier
 
             InvocationExpressionSyntax invocation = result.Single()
                                                           .Locations
-                                                          .Cast<Location>()
+                                                          .Select(location => location.Location)
                                                           .Select(l => l.FindToken().AncestorAndSelf<InvocationExpressionSyntax>())
                                                           .Single();
 

@@ -11,13 +11,201 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class TypeMapTests : CSharpTestBase
     {
+        [Theory]
+        [InlineData("C")]
+        [InlineData("C<string>")]
+        [InlineData("C<string, int>")]
+        [InlineData("C<string, int, byte, char, long, short, bool, object>")]
+        public void SubstituteNamedType_NoChange(string type)
+        {
+            var (map, previous, _) = CreateSubstitution(type, type);
+
+            Assert.Same(previous, map.SubstituteNamedType(previous));
+        }
+
+        [Theory]
+        [InlineData("C<T>", "C<int>")]
+        [InlineData("C<T, string>", "C<int, string>")]
+        [InlineData("C<string, T>", "C<string, int>")]
+        [InlineData("C<T, string, byte, char, long, short, bool, object>", "C<int, string, byte, char, long, short, bool, object>")]
+        [InlineData("C<string, byte, char, long, short, bool, object, T>", "C<string, byte, char, long, short, bool, object, int>")]
+        [InlineData("C<string, C<T, T>>", "C<string, C<int, int>>")]
+        [InlineData("Outer<T>.C<C<string, T>>", "Outer<int>.C<C<string, int>>")]
+        public void SubstituteNamedType_ChangedArguments(string type, string substitutedType)
+        {
+            var (map, previous, expected) = CreateSubstitution(type, substitutedType);
+
+            var actual = map.SubstituteNamedType(previous);
+
+            Assert.NotSame(previous, actual);
+            Assert.True(TypeSymbol.Equals(expected, actual, TypeCompareKind.ConsiderEverything));
+            Assert.Same(previous.OriginalDefinition, actual.OriginalDefinition);
+            Assert.True(TypeSymbol.Equals(actual, map.SubstituteNamedType(actual), TypeCompareKind.ConsiderEverything));
+        }
+
+        [Theory]
+        [InlineData("Outer<T>.C", "Outer<int>.C")]
+        [InlineData("Outer<T>.C<string>", "Outer<int>.C<string>")]
+        [InlineData("Outer<T>.C<string, byte>", "Outer<int>.C<string, byte>")]
+        [InlineData("Outer<T>.C<string, byte, char, long, short, bool, object, double>", "Outer<int>.C<string, byte, char, long, short, bool, object, double>")]
+        public void SubstituteNamedType_ContainingTypeOnly(string type, string substitutedType)
+        {
+            var (map, previous, expected) = CreateSubstitution(type, substitutedType);
+
+            var actual = map.SubstituteNamedType(previous);
+
+            Assert.NotSame(previous, actual);
+            Assert.True(TypeSymbol.Equals(expected, actual, TypeCompareKind.ConsiderEverything));
+            Assert.Same(previous.OriginalDefinition, actual.OriginalDefinition);
+            Assert.Equal(SpecialType.System_Int32, actual.ContainingType.TypeArguments().Single().SpecialType);
+            var oldArguments = previous.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+            var newArguments = actual.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+            Assert.Equal(oldArguments.Length, newArguments.Length);
+            for (int i = 0; i < oldArguments.Length; i++)
+            {
+                Assert.True(oldArguments[i].Equals(newArguments[i], TypeCompareKind.ConsiderEverything));
+            }
+        }
+
+        private static (TypeMap map, NamedTypeSymbol previous, NamedTypeSymbol expected) CreateSubstitution(string type, string substitutedType)
+        {
+            var compilation = CreateCompilation($$"""
+                public class C { }
+                public class C<T> { }
+                public class C<T1, T2> { }
+                public class C<T1, T2, T3, T4, T5, T6, T7, T8> { }
+                public class Outer<T>
+                {
+                    public class C { }
+                    public class C<T1> { }
+                    public class C<T1, T2> { }
+                    public class C<T1, T2, T3, T4, T5, T6, T7, T8> { }
+                }
+                public class Context<T>
+                {
+                    public {{type}} Previous { get; set; }
+                    public {{substitutedType}} Expected { get; set; }
+                }
+                """);
+            compilation.VerifyEmitDiagnostics();
+            var context = compilation.GetTypeByMetadataName("Context`1");
+            var map = new TypeMap(context.TypeParameters,
+                ImmutableArray.Create(TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Int32))));
+            var previous = (NamedTypeSymbol)((PropertySymbol)context.GetMembers("Previous").Single()).Type;
+            var expected = (NamedTypeSymbol)((PropertySymbol)context.GetMembers("Expected").Single()).Type;
+            return (map, previous, expected);
+        }
+
+        [Fact]
+        public void SubstituteNamedType_TupleNamesAndNullableArguments()
+        {
+            var compilation = CreateCompilation("""
+                #nullable enable
+                public class C<T1, T2> { }
+                public class Context<T> where T : class
+                {
+                    public C<string?, (T? first, C<string?, T> second)> Previous => throw null!;
+                    public C<string?, (object? first, C<string?, object> second)> Expected => throw null!;
+                }
+                """, targetFramework: TargetFramework.NetCoreApp);
+            compilation.VerifyEmitDiagnostics();
+            var context = compilation.GetTypeByMetadataName("Context`1");
+            var previous = (NamedTypeSymbol)((PropertySymbol)context.GetMembers("Previous").Single()).Type;
+            var expected = (NamedTypeSymbol)((PropertySymbol)context.GetMembers("Expected").Single()).Type;
+            var map = new TypeMap(context.TypeParameters,
+                ImmutableArray.Create(TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Object), NullableAnnotation.NotAnnotated)));
+
+            var actual = map.SubstituteNamedType(previous);
+
+            Assert.True(TypeSymbol.Equals(expected, actual, TypeCompareKind.ConsiderEverything));
+            var arguments = actual.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+            Assert.Equal(NullableAnnotation.Annotated, arguments[0].NullableAnnotation);
+            var tuple = (NamedTypeSymbol)arguments[1].Type;
+            Assert.Equal(new[] { "first", "second" }, tuple.TupleElementNames);
+            Assert.Equal(NullableAnnotation.Annotated, tuple.TupleElements[0].TypeWithAnnotations.NullableAnnotation);
+            Assert.Equal(SpecialType.System_Object, tuple.TupleElements[0].Type.SpecialType);
+        }
+
+        [Fact]
+        public void SubstituteNamedType_NullabilityOnly()
+        {
+            var compilation = CreateCompilation("""
+                #nullable enable
+                public class C<T1, T2> { }
+                public class Context<T> where T : class
+                {
+                    public C<string?, T> Previous => throw null!;
+                    public C<string?, T?> Expected => throw null!;
+                }
+                """);
+            compilation.VerifyEmitDiagnostics();
+            var context = compilation.GetTypeByMetadataName("Context`1");
+            var previous = (NamedTypeSymbol)((PropertySymbol)context.GetMembers("Previous").Single()).Type;
+            var expected = (NamedTypeSymbol)((PropertySymbol)context.GetMembers("Expected").Single()).Type;
+            var map = new TypeMap(context.TypeParameters,
+                ImmutableArray.Create(TypeWithAnnotations.Create(context.TypeParameters.Single(), NullableAnnotation.Annotated)));
+
+            var actual = map.SubstituteNamedType(previous);
+
+            Assert.NotSame(previous, actual);
+            Assert.True(TypeSymbol.Equals(expected, actual, TypeCompareKind.ConsiderEverything));
+            var oldArgument = previous.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[1];
+            var newArgument = actual.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[1];
+            Assert.Same(oldArgument.Type, newArgument.Type);
+            Assert.Equal(NullableAnnotation.NotAnnotated, oldArgument.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, newArgument.NullableAnnotation);
+            Assert.False(oldArgument.IsSameAs(newArgument));
+        }
+
+        [Fact]
+        public void SubstituteNamedType_CustomModifierOnly()
+        {
+            var compilation = CreateCompilation("""
+                public class C<T1, T2> { }
+                public class Modifier<T> { }
+                """);
+            compilation.VerifyEmitDiagnostics();
+            var definition = compilation.GetTypeByMetadataName("C`2");
+            var modifier = compilation.GetTypeByMetadataName("Modifier`1");
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32);
+            var stringType = compilation.GetSpecialType(SpecialType.System_String);
+            var previous = definition.Construct(ImmutableArray.Create(
+                TypeWithAnnotations.Create(stringType, NullableAnnotation.Annotated),
+                TypeWithAnnotations.Create(intType, customModifiers: ImmutableArray.Create<CustomModifier>(
+                    CSharpCustomModifier.CreateOptional(modifier),
+                    CSharpCustomModifier.CreateRequired(stringType)))));
+            var map = new TypeMap(modifier.TypeParameters, ImmutableArray.Create(TypeWithAnnotations.Create(intType)));
+
+            var actual = map.SubstituteNamedType(previous);
+
+            Assert.NotSame(previous, actual);
+            var arguments = actual.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+            Assert.Same(stringType, arguments[0].Type);
+            Assert.Equal(NullableAnnotation.Annotated, arguments[0].NullableAnnotation);
+            Assert.Same(intType, arguments[1].Type);
+            Assert.Collection(arguments[1].CustomModifiers,
+                m =>
+                {
+                    Assert.True(m.IsOptional);
+                    Assert.True(TypeSymbol.Equals(modifier.Construct(intType), ((CSharpCustomModifier)m).ModifierSymbol, TypeCompareKind.ConsiderEverything));
+                },
+                m =>
+                {
+                    Assert.False(m.IsOptional);
+                    Assert.Same(stringType, ((CSharpCustomModifier)m).ModifierSymbol);
+                });
+            Assert.False(previous.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[1].IsSameAs(arguments[1]));
+        }
+
         // take a type of the form Something<X> and return the type X.
         private TypeSymbol TypeArg(TypeSymbol t)
         {

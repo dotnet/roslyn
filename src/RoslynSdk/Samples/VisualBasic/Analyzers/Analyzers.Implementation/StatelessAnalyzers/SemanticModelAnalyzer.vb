@@ -18,7 +18,7 @@ Namespace BasicAnalyzers
 
 #Region "Descriptor fields"
         Friend Shared ReadOnly Title As LocalizableString = "Source file declaration diagnostics count"
-        Friend Shared ReadOnly MessageFormat As LocalizableString = "Source file '{0}' has '{1}' declaration diagnostic(s)."
+        Friend Shared ReadOnly MessageFormat As LocalizableString = "Source file '{0}' has '{1}' declaration diagnostic(s)"
         Friend Shared ReadOnly Description As LocalizableString = "Source file declaration diagnostic count."
 
         Friend Shared Rule As New DiagnosticDescriptor(DiagnosticIds.SemanticModelAnalyzerRuleId, Title, MessageFormat, DiagnosticCategories.Stateless, DiagnosticSeverity.Warning, isEnabledByDefault:=True, description:=Description)
@@ -31,6 +31,8 @@ Namespace BasicAnalyzers
         End Property
 
         Public Overrides Sub Initialize(context As AnalysisContext)
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None)
+            context.EnableConcurrentExecution()
             context.RegisterSemanticModelAction(AddressOf AnalyzeSemanticModel)
         End Sub
 

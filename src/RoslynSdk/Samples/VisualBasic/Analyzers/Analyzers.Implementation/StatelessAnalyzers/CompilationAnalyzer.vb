@@ -20,7 +20,7 @@ Namespace BasicAnalyzers
 
 #Region "Descriptor fields"
         Friend Shared ReadOnly Title As LocalizableString = "Dont suppress analyzer diagnostics"
-        Friend Shared ReadOnly MessageFormat As LocalizableString = "Analyzer diagnostic '{0}' is suppressed, consider removing this compilation wide suppression."
+        Friend Shared ReadOnly MessageFormat As LocalizableString = "Analyzer diagnostic '{0}' is suppressed, consider removing this compilation wide suppression"
         Friend Shared ReadOnly Description As LocalizableString = "Do not suppress analyzer diagnostics."
 
         Friend Shared Rule As New DiagnosticDescriptor(DiagnosticIds.CompilationAnalyzerRuleId, Title, MessageFormat, DiagnosticCategories.Stateless, DiagnosticSeverity.Warning, isEnabledByDefault:=True, description:=Description, Nothing, WellKnownDiagnosticTags.CompilationEnd)
@@ -33,6 +33,8 @@ Namespace BasicAnalyzers
         End Property
 
         Public Overrides Sub Initialize(context As AnalysisContext)
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None)
+            context.EnableConcurrentExecution()
             context.RegisterCompilationAction(AddressOf AnalyzeCompilation)
         End Sub
 

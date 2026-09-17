@@ -7,6 +7,7 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -276,9 +277,44 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         DeferDeleteCacheDirectory(testLspServer, tempDir.Path);
 
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
-        await discovery.FindAndLoadEntryPointsAsync();
+        await discovery.FindAndLoadEntryPointsAsync(CancellationToken.None);
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
         var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(CreateAbsoluteDocumentUri(appFile.Path), testLspServer);
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        Assert.NotNull(document);
+    }
+
+    [Fact]
+    public async Task TestDiscovery_WorkspaceFoldersChangedRefreshes()
+    {
+        var removedWorkspace = _tempRoot.CreateDirectory();
+        var addedWorkspace = _tempRoot.CreateDirectory();
+
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            OptionUpdater = options => options.SetGlobalOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms, true),
+            WorkspaceFolders =
+            [
+                new() { DocumentUri = CreateAbsoluteDocumentUri(removedWorkspace.Path), Name = "removed" }
+            ]
+        });
+        DeferDeleteCacheDirectory(testLspServer, removedWorkspace.Path);
+        DeferDeleteCacheDirectory(testLspServer, addedWorkspace.Path);
+        await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+
+        var appText = "#!/usr/bin/env dotnet";
+        var removedApp = removedWorkspace.CreateFile("Removed.cs").WriteAllText(appText);
+        var addedApp = addedWorkspace.CreateFile("Added.cs").WriteAllText(appText);
+        var workspaceFolderTracker = testLspServer.GetRequiredLspService<IWorkspaceFolderTracker>();
+        workspaceFolderTracker.Update(
+            [new() { DocumentUri = CreateAbsoluteDocumentUri(addedWorkspace.Path), Name = "added" }],
+            [new() { DocumentUri = CreateAbsoluteDocumentUri(removedWorkspace.Path), Name = "removed" }]);
+
+        await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+
+        AssertDocumentNotPersisted(testLspServer, CreateAbsoluteDocumentUri(removedApp.Path));
+        var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(CreateAbsoluteDocumentUri(addedApp.Path), testLspServer);
         Assert.Equal(WorkspaceKind.Host, workspace.Kind);
         Assert.NotNull(document);
     }
@@ -309,11 +345,9 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         DeferDeleteCacheDirectory(testLspServer, tempDir.Path);
 
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
-        await discovery.FindAndLoadEntryPointsAsync();
+        await discovery.FindAndLoadEntryPointsAsync(CancellationToken.None);
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
-        var (workspace, document) = await GetLspWorkspaceAndDocumentAsync(CreateAbsoluteDocumentUri(appFile.Path), testLspServer);
-        Assert.Null(workspace);
-        Assert.Null(document);
+        AssertDocumentNotPersisted(testLspServer, CreateAbsoluteDocumentUri(appFile.Path));
     }
 
     [Fact]
@@ -333,11 +367,9 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
 
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
-        await discovery.FindAndLoadEntryPointsAsync();
+        await discovery.FindAndLoadEntryPointsAsync(CancellationToken.None);
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
-        var (workspace, document) = await GetLspWorkspaceAndDocumentAsync(CreateAbsoluteDocumentUri(appFile.Path), testLspServer);
-        Assert.Null(workspace);
-        Assert.Null(document);
+        AssertDocumentNotPersisted(testLspServer, CreateAbsoluteDocumentUri(appFile.Path));
     }
 
     [Fact]
@@ -376,6 +408,13 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         });
         DeferDeleteCacheDirectory(testLspServer, workspacePath);
         return testLspServer;
+    }
+
+    private static void AssertDocumentNotPersisted(TestLspServer testLspServer, DocumentUri documentUri)
+    {
+        var workspaceFactory = testLspServer.GetRequiredLspService<LanguageServerWorkspaceFactory>();
+        Assert.Empty(workspaceFactory.HostWorkspace.CurrentSolution.GetDocumentIds(documentUri));
+        Assert.Empty(workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace.CurrentSolution.GetDocumentIds(documentUri));
     }
 
     private static async Task<(Workspace? workspace, Document? document)> GetLspWorkspaceAndDocumentAsync(DocumentUri uri, TestLspServer testLspServer)

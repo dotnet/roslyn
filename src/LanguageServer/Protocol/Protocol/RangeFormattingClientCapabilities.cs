@@ -4,6 +4,8 @@
 
 namespace Roslyn.LanguageServer.Protocol;
 
+using System.Text.Json.Serialization;
+
 /// <summary>
 /// Capabilities specific to the `textDocument/rangeFormatting` request.
 /// <para>
@@ -12,4 +14,11 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </summary>
 internal sealed class RangeFormattingClientCapabilities : DynamicRegistrationSetting
 {
+    /// <summary>
+    /// Whether the client supports formatting multiple ranges at once.
+    /// </summary>
+    /// <remarks>Since LSP 3.18</remarks>
+    [JsonPropertyName("rangesSupport")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool RangesSupport { get; init; }
 }

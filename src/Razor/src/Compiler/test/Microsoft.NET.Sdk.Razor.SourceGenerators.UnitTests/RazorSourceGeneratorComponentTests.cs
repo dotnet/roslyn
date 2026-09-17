@@ -215,7 +215,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert
         Assert.Empty(result.Diagnostics);
-        // Component1.razor (@inject -> fallback, shell decl + impl) = 2
+        // Component1.razor (@inject -> split, decl + impl) = 2
         Assert.Equal(2, result.GeneratedSources.Length);
         result.VerifyOutputsMatchBaseline();
     }

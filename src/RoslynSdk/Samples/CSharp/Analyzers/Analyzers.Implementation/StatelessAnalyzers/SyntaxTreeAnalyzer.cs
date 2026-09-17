@@ -17,7 +17,7 @@ namespace Sample.Analyzers
     public class SyntaxTreeAnalyzer : DiagnosticAnalyzer
     {
         private const string Title = "Do not suppress documentation comment diagnostics";
-        public const string MessageFormat = "Enable documentation comment diagnostics on source file '{0}'.";
+        public const string MessageFormat = "Enable documentation comment diagnostics on source file '{0}'";
         private const string Description = "Do not suppress documentation comment diagnostics.";
 
         internal static DiagnosticDescriptor Rule =

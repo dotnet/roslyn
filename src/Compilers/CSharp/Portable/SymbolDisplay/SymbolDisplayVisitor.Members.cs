@@ -933,59 +933,64 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (Format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeModifiers) &&
                 (containingType == null ||
-                 (containingType.TypeKind != TypeKind.Interface && !IsEnumMember(symbol) && !IsLocalFunction(symbol))))
+                 (!IsEnumMember(symbol) && !IsLocalFunction(symbol))))
             {
-                var isConst = symbol is IFieldSymbol { IsConst: true };
-                var isRequired = symbol is IFieldSymbol { IsRequired: true } or IPropertySymbol { IsRequired: true };
-                if (symbol.IsStatic && !isConst)
+                if (containingType?.TypeKind != TypeKind.Interface)
                 {
-                    AddKeyword(SyntaxKind.StaticKeyword);
-                    AddSpace();
-                }
+                    var isConst = symbol is IFieldSymbol { IsConst: true };
+                    if (symbol.IsStatic && !isConst)
+                    {
+                        AddKeyword(SyntaxKind.StaticKeyword);
+                        AddSpace();
+                    }
 
-                if (symbol.IsOverride)
-                {
-                    AddKeyword(SyntaxKind.OverrideKeyword);
-                    AddSpace();
-                }
+                    if (symbol.IsOverride)
+                    {
+                        AddKeyword(SyntaxKind.OverrideKeyword);
+                        AddSpace();
+                    }
 
-                if (symbol.IsAbstract)
-                {
-                    AddKeyword(SyntaxKind.AbstractKeyword);
-                    AddSpace();
-                }
+                    if (symbol.IsAbstract)
+                    {
+                        AddKeyword(SyntaxKind.AbstractKeyword);
+                        AddSpace();
+                    }
 
-                if (symbol.IsSealed)
-                {
-                    AddKeyword(SyntaxKind.SealedKeyword);
-                    AddSpace();
+                    if (symbol.IsSealed)
+                    {
+                        AddKeyword(SyntaxKind.SealedKeyword);
+                        AddSpace();
+                    }
                 }
 
                 // unsafe is added only for new code (code that opts into unsafe evolution and uses the keyword to annotate caller-unsafe members)
                 if (symbol.RequiresUnsafeContext &&
-                    // https://github.com/dotnet/roslyn/issues/82546: use public API for this when available
-                    symbol is Symbols.PublicModel.Symbol { UnderlyingSymbol.ContainingModule.UseUpdatedMemorySafetyRules: true })
+                    symbol.ContainingModule.MemorySafetyRulesVersion == MemorySafetyRulesVersion.Version2)
                 {
                     AddKeyword(SyntaxKind.UnsafeKeyword);
                     AddSpace();
                 }
 
-                if (symbol.IsExtern)
+                if (containingType?.TypeKind != TypeKind.Interface)
                 {
-                    AddKeyword(SyntaxKind.ExternKeyword);
-                    AddSpace();
-                }
+                    if (symbol.IsExtern)
+                    {
+                        AddKeyword(SyntaxKind.ExternKeyword);
+                        AddSpace();
+                    }
 
-                if (symbol.IsVirtual)
-                {
-                    AddKeyword(SyntaxKind.VirtualKeyword);
-                    AddSpace();
-                }
+                    if (symbol.IsVirtual)
+                    {
+                        AddKeyword(SyntaxKind.VirtualKeyword);
+                        AddSpace();
+                    }
 
-                if (isRequired)
-                {
-                    AddKeyword(SyntaxKind.RequiredKeyword);
-                    AddSpace();
+                    var isRequired = symbol is IFieldSymbol { IsRequired: true } or IPropertySymbol { IsRequired: true };
+                    if (isRequired)
+                    {
+                        AddKeyword(SyntaxKind.RequiredKeyword);
+                        AddSpace();
+                    }
                 }
             }
         }

@@ -151,7 +151,6 @@ End Class
         End Function
     End Class
 
-
     <Fact>
     Public Sub TransformTreeUsingSyntaxRewriter()
         Dim code =

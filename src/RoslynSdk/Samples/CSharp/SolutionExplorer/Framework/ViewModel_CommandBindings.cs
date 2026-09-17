@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 
@@ -45,6 +46,18 @@ namespace MSBuildWorkspaceTester.Framework
         {
             return RegisterCommand(text, name, inputGestures,
                 executed: (s, e) => executed(),
+                canExecute: (s, e) => e.CanExecute = canExecute());
+        }
+
+        protected ICommand RegisterCommand(string text, string name, Func<Task> executed, Func<bool> canExecute, params InputGesture[] inputGestures)
+        {
+#pragma warning disable VSTHRD100 // WPF command handlers must return void.
+            async void OnExecuted(object sender, ExecutedRoutedEventArgs e)
+                => await executed().ConfigureAwait(true);
+#pragma warning restore VSTHRD100
+
+            return RegisterCommand(text, name, inputGestures,
+                executed: OnExecuted,
                 canExecute: (s, e) => e.CanExecute = canExecute());
         }
 

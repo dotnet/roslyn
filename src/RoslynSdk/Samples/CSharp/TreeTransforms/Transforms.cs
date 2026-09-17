@@ -38,7 +38,7 @@ namespace TreeTransforms
         IntTypeToLongType,
     }
 
-    public class Transforms
+    public static class Transforms
     {
         /// <summary>
         /// Performs a syntax transform of the source code which is passed in as a string. The transform to be performed is also passed as an argument

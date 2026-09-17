@@ -37,9 +37,12 @@ namespace Roslyn.Utilities
             }
         }
 
-        internal static void PrependFeatureFlagFromEnvironment(List<string> arguments, Action<string>? log = null)
+        internal static void PrependFeatureFlagFromEnvironment(
+            List<string> arguments,
+            Func<string, string?> getEnvironmentVariable,
+            Action<string>? log = null)
         {
-            if (Environment.GetEnvironmentVariable(CachePathEnvironmentVariable) is not { Length: > 0 } cachePath)
+            if (getEnvironmentVariable(CachePathEnvironmentVariable) is not { Length: > 0 } cachePath)
             {
                 return;
             }
