@@ -41,6 +41,14 @@ internal abstract class AbstractAddFileBannerNewDocumentFormattingProvider : INe
         else if (hintDocument is not null)
         {
             // If there is no file header preference, see if we can use the one in the hint document
+
+            // If the hint document is generated, then ignore it. Since this function runs on new documents added by
+            // a user, they are not generated, so copying the header from a generated file can be problematic.
+            if (await hintDocument.IsGeneratedCodeAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return document;
+            }
+
             var bannerService = hintDocument.GetRequiredLanguageService<IFileBannerFactsService>();
             var hintSyntaxRoot = await hintDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var fileBanner = bannerService.GetFileBanner(hintSyntaxRoot);
