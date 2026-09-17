@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     {
                         clientMutex?.Dispose();
                     }
-                    catch (Exception e) when (e is ApplicationException || e is InvalidOperationException)
+                    catch (Exception e) when (e is ApplicationException or InvalidOperationException)
                     {
                         var releaseThreadId = Environment.CurrentManagedThreadId;
                         var message = $"ReleaseMutex failed. WaitOne Id: {originalThreadId} Release Id: {releaseThreadId}";
