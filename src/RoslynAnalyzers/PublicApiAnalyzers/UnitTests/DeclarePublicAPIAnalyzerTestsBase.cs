@@ -3269,6 +3269,37 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 updatedMemorySafetyRules: updatedRules);
 
         [Fact]
+        public async Task UnsafeEvolution_Method_Interface_CallerUnsafe()
+        {
+            var source = $$"""
+                {{EnabledModifierCSharp}} interface {|{{AddNewApiId}}:I|}
+                {
+                    {{EnabledModifierCSharp}} unsafe void {|{{AddNewApiId}}:M|}();
+                }
+                """;
+
+            await VerifyRequiresUnsafeAdditionalFileFixAsync(
+                source: source,
+                shippedApiText: "",
+                oldUnshippedApiText: "",
+                newUnshippedApiText: """
+                    I
+                    unsafe I.M() -> void
+                    """,
+                updatedMemorySafetyRules: true);
+
+            await VerifyRequiresUnsafeAdditionalFileFixAsync(
+                source: source,
+                shippedApiText: "",
+                oldUnshippedApiText: "",
+                newUnshippedApiText: """
+                    I
+                    I.M() -> void
+                    """,
+                updatedMemorySafetyRules: false);
+        }
+
+        [Fact]
         public async Task UnsafeEvolution_Property_CallerUnsafe()
         {
             var source = $$"""
