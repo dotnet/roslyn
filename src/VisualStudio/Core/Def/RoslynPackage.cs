@@ -137,7 +137,11 @@ internal sealed class RoslynPackage : AbstractPackage
         var hostWorkspaceProvider = ComponentModel.GetService<IHostWorkspaceProvider>();
 
         _sourceTextProvider = new PdbMatchingSourceTextProvider(hostWorkspaceProvider.Workspace);
-        var hotReloadService = await hotReloadFactory.CreateAsync(serviceBroker, solutionSnapshotProvider, hostWorkspaceProvider, _sourceTextProvider, cancellationToken).ConfigureAwait(false);
+
+        var hotReloadService = new ManagedHotReloadLanguageService(
+            serviceBroker => hotReloadFactory.CreateImplementation(serviceBroker, solutionSnapshotProvider, hostWorkspaceProvider, _sourceTextProvider));
+
+        await hotReloadService.InitializeAsync(serviceBroker, cancellationToken).ConfigureAwait(false);
 
         serviceBrokerContainer.Proffer(ManagedHotReloadLanguageServiceFactory.ServiceDescriptor, async (_, _, _, _) => hotReloadService);
     }
