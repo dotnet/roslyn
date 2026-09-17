@@ -31,6 +31,22 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             return _discoverer.GetTagHelpers(assembly, cancellationToken);
         }
 
+        public TagHelperCollection GetTagHelpers(ImmutableArray<INamedTypeSymbol> types, CancellationToken cancellationToken)
+        {
+            if (_discoveryService is null)
+            {
+                return [];
+            }
+
+            if (_discoverer is null &&
+                !_discoveryService.TryGetDiscoverer(compilation, out _discoverer))
+            {
+                return [];
+            }
+
+            return _discoverer.GetTagHelpers(types, cancellationToken);
+        }
+
         TagHelperCollection ITagHelperFeature.GetTagHelpers(CancellationToken cancellationToken)
         {
             if (_discoveryService is null)

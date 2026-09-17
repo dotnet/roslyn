@@ -3824,15 +3824,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 ArrayBuilder<SynthesizedSimpleProgramEntryPointSymbol>? builder = null;
 
+                bool reportMultipleUnits = declaration.Declarations.Count(static d => d.IsSimpleProgram) > 1;
+
                 foreach (var singleDecl in declaration.Declarations)
                 {
                     if (singleDecl.IsSimpleProgram)
                     {
-                        if (builder is null)
-                        {
-                            builder = ArrayBuilder<SynthesizedSimpleProgramEntryPointSymbol>.GetInstance();
-                        }
-                        else
+                        builder ??= ArrayBuilder<SynthesizedSimpleProgramEntryPointSymbol>.GetInstance();
+
+                        if (reportMultipleUnits)
                         {
                             Binder.Error(diagnostics, ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, singleDecl.NameLocation);
                         }

@@ -50,7 +50,8 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         SourceGeneratorExecutionPreference: SourceGeneratorExecutionPreference.Balanced,
         ClientProcessId: null);
 
-    internal static ServerConfiguration ServerConfigurationWithoutDevKit => DefaultServerConfiguration with { DevKitDependencyPath = null };
+    internal static ServerConfiguration ServerConfigurationWithoutDevKit
+        => DefaultServerConfiguration with { DevKitDependencyPath = null };
 
     private protected virtual Task<ExportProvider> CreateExportProviderAsync(
         ServerConfiguration serverConfiguration,

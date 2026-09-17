@@ -125,6 +125,57 @@ public partial class CohostDocumentPullDiagnosticsTest
             }]);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/13251")]
+    public Task FilterTypeScriptExpressionExpectedAfterRazorExpression()
+    {
+        TestCode input = """
+            <script>
+                const values = @Html.Raw("[]");
+                const next = 0;
+            </script>
+            """;
+
+        return VerifyDiagnosticsAsync(
+            input,
+            htmlResponse: [new VSInternalDiagnosticReport
+            {
+                Diagnostics =
+                [
+                    new LspDiagnostic
+                    {
+                        Code = "TS1109",
+                        Range = SourceText.From(input.Text).GetRange(new TextSpan(input.Text.IndexOf(';'), 1))
+                    }
+                ]
+            }],
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/13251")]
+    public Task DoNotFilterTypeScriptExpressionExpectedInJavaScript()
+    {
+        TestCode input = """
+            <script>
+                const values = {|TS1109:;|}
+            </script>
+            """;
+
+        return VerifyDiagnosticsAsync(
+            input,
+            htmlResponse: [new VSInternalDiagnosticReport
+            {
+                Diagnostics =
+                [
+                    new LspDiagnostic
+                    {
+                        Code = "TS1109",
+                        Range = SourceText.From(input.Text).GetRange(input.NamedSpans["TS1109"].First())
+                    }
+                ]
+            }],
+            fileKind: RazorFileKind.Legacy);
+    }
+
     [Fact]
     public Task Html()
     {
@@ -660,6 +711,10 @@ public partial class CohostDocumentPullDiagnosticsTest
 
             // TODO: This isn't C#
 
+            @{
+                // {|TODO:|}TODO: This is C# in an impl document
+            }
+
             TODO: Nor is this
 
             <div>
@@ -672,8 +727,29 @@ public partial class CohostDocumentPullDiagnosticsTest
 
             @code {
                 // This looks different because Roslyn only reports zero width ranges for task lists
-                // {|TODO:|}TODO: Write some C# code too
+                // {|TODO:|}TODO: Write some C# code in a decl document too
             }
+            """,
+            taskListRequest: true);
+
+    [Fact]
+    public Task TODOComments_NoDecl()
+        => VerifyDiagnosticsAsync("""
+            @using System.Threading.Tasks;
+
+            @{
+                // {|TODO:|}TODO: This is C# in an impl document
+            }
+
+            TODO: Nor is this
+
+            <div>
+
+                @*{|TODO: TODO: This does |}*@
+
+                @* TODONT: This doesn't *@
+
+            </div>
             """,
             taskListRequest: true);
 

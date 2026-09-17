@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "Roslyn.SyntaxVisualizer.Extension": {
+      "commandName": "Executable",
+      "executablePath": "$(DevEnvDir)devenv.exe",
+      "commandLineArgs": "/rootsuffix $(VSSDKTargetPlatformRegRootSuffix) /log"
+    }
+  }
+}

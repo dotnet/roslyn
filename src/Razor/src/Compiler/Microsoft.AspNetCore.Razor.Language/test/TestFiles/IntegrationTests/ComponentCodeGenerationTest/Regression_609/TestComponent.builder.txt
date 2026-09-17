@@ -1,0 +1,5 @@
+﻿[0000] OpenComponent<global::Test.User>()
+[0001] AddComponentParameter("Name", UserName)
+[0002] AddComponentParameter("NameChanged", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => UserName = __value, UserName))
+[0003] AddComponentParameter("IsActive", UserIsActive)
+[0004] AddComponentParameter("IsActiveChanged", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => UserIsActive = __value, UserIsActive))

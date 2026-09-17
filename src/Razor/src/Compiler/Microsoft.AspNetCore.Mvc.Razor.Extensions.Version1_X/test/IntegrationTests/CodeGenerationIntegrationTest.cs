@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -44,11 +44,11 @@ public class MyService<TModel>
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetImplCSharpDocument());
         AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
 
         // We expect this test to generate a bunch of errors.
-        Assert.True(compiled.CodeDocument.GetCSharpDocument().Diagnostics.Length > 0);
+        Assert.True(compiled.CodeDocument.GetImplCSharpDocument().Diagnostics.Length > 0);
     }
 
     [Fact]
@@ -69,7 +69,7 @@ public class MyService<TModel>
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetImplCSharpDocument());
         AssertLinePragmas(compiled.CodeDocument);
         AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
     }
@@ -101,7 +101,7 @@ public class MyService<TModel>
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetImplCSharpDocument());
         AssertLinePragmas(compiled.CodeDocument);
         AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
     }
@@ -134,7 +134,7 @@ public class MyService<TModel>
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetImplCSharpDocument());
         AssertLinePragmas(compiled.CodeDocument);
         AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
     }

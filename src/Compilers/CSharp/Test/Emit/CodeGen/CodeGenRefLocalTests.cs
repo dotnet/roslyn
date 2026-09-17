@@ -483,6 +483,186 @@ class C
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84733")]
+        public void ReassignmentWithReorderedRefVariableArgument()
+        {
+            var source = """
+                using System;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        TestRefLocal();
+
+                        int x = 1;
+                        int y = 2;
+                        TestRefParameter(ref x, ref y);
+                    }
+
+                    static void TestRefLocal()
+                    {
+                        int x = 1;
+                        int y = 2;
+                        ref int z = ref x;
+
+                        M(b: ref z, a: (z = ref y));
+                    }
+
+                    static void TestRefParameter(ref int z, ref int y)
+                    {
+                        M(b: ref z, a: (z = ref y));
+                    }
+
+                    static void M(int a, ref int b)
+                    {
+                        Console.Write(a);
+                        Console.Write(b);
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "2121")
+                .VerifyDiagnostics();
+
+            verifier.VerifyIL("C.TestRefLocal", """
+                {
+                  // Code size       15 (0xf)
+                  .maxstack  2
+                  .locals init (int V_0, //x
+                                int V_1, //y
+                                int& V_2)
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  stloc.0
+                  IL_0002:  ldc.i4.2
+                  IL_0003:  stloc.1
+                  IL_0004:  ldloca.s   V_0
+                  IL_0006:  stloc.2
+                  IL_0007:  ldloc.1
+                  IL_0008:  ldloc.2
+                  IL_0009:  call       "void C.M(int, ref int)"
+                  IL_000e:  ret
+                }
+                """);
+            verifier.VerifyIL("C.TestRefParameter", """
+                {
+                  // Code size       14 (0xe)
+                  .maxstack  2
+                  .locals init (int& V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldarg.1
+                  IL_0003:  dup
+                  IL_0004:  starg.s    V_0
+                  IL_0006:  ldind.i4
+                  IL_0007:  ldloc.0
+                  IL_0008:  call       "void C.M(int, ref int)"
+                  IL_000d:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84733")]
+        public void ReassignmentWithReorderedRefReadonlyVariableArgument()
+        {
+            var source = """
+                using System;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        TestRefReadonlyLocal();
+
+                        int x = 1;
+                        int y = 2;
+                        TestInParameter(in x, in y);
+                        TestRefReadonlyParameter(in x, in y);
+                    }
+
+                    static void TestRefReadonlyLocal()
+                    {
+                        int x = 1;
+                        int y = 2;
+                        ref readonly int z = ref x;
+
+                        M(b: in z, a: (z = ref y));
+                    }
+
+                    static void TestInParameter(in int z, in int y)
+                    {
+                        M(b: in z, a: (z = ref y));
+                    }
+
+                    static void TestRefReadonlyParameter(ref readonly int z, ref readonly int y)
+                    {
+                        M(b: in z, a: (z = ref y));
+                    }
+
+                    static void M(int a, in int b)
+                    {
+                        Console.Write(a);
+                        Console.Write(b);
+                    }
+                }
+                """;
+
+            CompileAndVerify(source, expectedOutput: "212121")
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84733")]
+        public void ReassignmentWithReorderedOutVariableArgument()
+        {
+            var source = """
+                using System;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        TestRefLocal();
+
+                        int x = 1;
+                        int y = 2;
+                        TestOutParameter(out x, ref y);
+                        Console.Write(x);
+                        Console.Write(y);
+                    }
+
+                    static void TestRefLocal()
+                    {
+                        int x = 1;
+                        int y = 2;
+                        ref int z = ref x;
+
+                        M(b: out z, a: (z = ref y));
+                        Console.Write(x);
+                        Console.Write(y);
+                    }
+
+                    static void TestOutParameter(out int z, ref int y)
+                    {
+                        z = 0;
+                        M(b: out z, a: (z = ref y));
+                        z = 4;
+                    }
+
+                    static void M(int a, out int b)
+                    {
+                        Console.Write(a);
+                        b = 3;
+                    }
+                }
+                """;
+
+            CompileAndVerify(source, expectedOutput: "232234")
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
         public void InReassignmentWithConversion()
         {
             var verifier = CompileAndVerify(@"

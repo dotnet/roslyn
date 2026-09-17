@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(TestingLibraryTargetFrameworks)</TargetFrameworks>
+    <AssemblyName>Microsoft.CodeAnalysis.Analyzer.Testing</AssemblyName>
+    <RootNamespace>Microsoft.CodeAnalysis.Testing</RootNamespace>
+    <DefineConstants>$(DefineConstants);NUGET_SIGNING</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <Description>Roslyn Analyzer Test Framework Common Types.</Description>
+    <PackageReleaseNotes>Roslyn Analyzer Test Framework Common Types</PackageReleaseNotes>
+    <PackageTags>Roslyn Analyzer Test Framework Common</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CodeFix.Testing" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CodeRefactoring.Testing" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.SourceGenerators.Testing" />
+
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Analyzer.Testing.UnitTests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" />
+    <PackageReference Include="Microsoft.VisualBasic" Condition="'$(TargetFrameworkIdentifier)' == '.NETStandard'" />
+    <PackageReference Include="Microsoft.VisualStudio.Composition" VersionOverride="16.1.8" />
+    <PackageReference Include="Nullable" PrivateAssets="all" />
+    <PackageReference Include="System.Formats.Asn1" />
+    <!-- Use PrivateAssets=compile to avoid exposing our NuGet dependencies downstream as public API. -->
+    <PackageReference Include="NuGet.Common" PrivateAssets="compile" />
+    <PackageReference Include="NuGet.Protocol" PrivateAssets="compile" />
+    <PackageReference Include="NuGet.Resolver" PrivateAssets="compile" />
+    <PackageReference Include="NuGet.Packaging" PrivateAssets="compile" />
+
+    <!-- Use PrivateAssets=compile to avoid exposing our DiffPlex dependency downstream as public API. -->
+    <PackageReference Include="DiffPlex" PrivateAssets="compile" />
+  </ItemGroup>
+</Project>

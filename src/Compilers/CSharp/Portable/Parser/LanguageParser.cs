@@ -875,27 +875,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.NamespaceKeyword:
                     return true;
                 case SyntaxKind.IdentifierToken:
-                    return IsPartialInNamespaceMemberDeclaration();
+                    // `onlyForTypeDeclarations: true`: A type member such as 'partial int M()' cannot start a namespace body.
+                    return this.IsCurrentTokenDefinitelyPartialModifier(onlyForTypeDeclarations: true);
                 default:
                     return IsPossibleStartOfTypeDeclaration(this.CurrentToken.Kind);
             }
-        }
-
-        private bool IsPartialInNamespaceMemberDeclaration()
-        {
-            if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
-            {
-                if (this.IsPartialType())
-                {
-                    return true;
-                }
-                else if (this.PeekToken(1).Kind == SyntaxKind.NamespaceKeyword)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         public bool IsEndOfNamespace()
@@ -1360,10 +1344,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private void ParseModifiers(SyntaxListBuilder tokens, bool forAccessors, bool forTopLevelStatements, out bool isPossibleTypeDeclaration)
+        private void ParseModifiers(SyntaxListBuilder tokens, bool forTopLevelStatements, out bool isPossibleTypeDeclaration)
         {
-            Debug.Assert(!(forAccessors && forTopLevelStatements));
-
             isPossibleTypeDeclaration = true;
 
             while (true)
@@ -1373,15 +1355,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 Debug.Assert(newMod != DeclarationModifiers.Scoped);
                 if (newMod == DeclarationModifiers.None)
                 {
-                    if (!forAccessors)
+                    SyntaxToken scopedKeyword = ParsePossibleScopedKeyword(isFunctionPointerParameter: false, isLambdaParameter: false);
+                    if (scopedKeyword != null)
                     {
-                        SyntaxToken scopedKeyword = ParsePossibleScopedKeyword(isFunctionPointerParameter: false, isLambdaParameter: false);
-
-                        if (scopedKeyword != null)
-                        {
-                            isPossibleTypeDeclaration = false;
-                            tokens.Add(scopedKeyword);
-                        }
+                        isPossibleTypeDeclaration = false;
+                        tokens.Add(scopedKeyword);
                     }
 
                     break;
@@ -1391,67 +1369,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 switch (newMod)
                 {
                     case DeclarationModifiers.Partial:
-                        var nextToken = PeekToken(1);
-                        if (this.IsPartialType() || this.IsPartialMember())
-                        {
-                            // Standard legal cases.
-                            modTok = ConvertToKeyword(this.EatToken());
-                        }
-                        else if (nextToken.Kind == SyntaxKind.NamespaceKeyword)
-                        {
-                            // Error reported in binding
-                            modTok = ConvertToKeyword(this.EatToken());
-                        }
-                        else if (
-                            nextToken.Kind is SyntaxKind.EnumKeyword or SyntaxKind.DelegateKeyword ||
-                            (IsPossibleStartOfTypeDeclaration(nextToken.Kind) && GetModifierExcludingScoped(nextToken) != DeclarationModifiers.None))
-                        {
-                            // Error reported in ModifierUtils.
-                            modTok = ConvertToKeyword(this.EatToken());
-                        }
-                        else
-                        {
+                        // `onlyForTypeDeclarations: false`: ParseModifiers is shared by types and members, such as
+                        // 'partial class C' and 'partial void M()'.
+                        if (!this.IsCurrentTokenDefinitelyPartialModifier(onlyForTypeDeclarations: false))
                             return;
-                        }
 
+                        modTok = ConvertToKeyword(this.EatToken());
                         break;
 
                     case DeclarationModifiers.Ref:
-                        // 'ref' is only a modifier if used on a ref struct
-                        // it must be either immediately before the 'struct'
-                        // keyword, or immediately before 'partial struct' if
-                        // this is a partial ref struct declaration
                         {
-                            var next = PeekToken(1);
-                            if (isStructOrRecordOrUnionKeyword(next) ||
-                                (next.ContextualKind == SyntaxKind.PartialKeyword &&
-                                 isStructOrRecordOrUnionKeyword(PeekToken(2))))
-                            {
-                                modTok = this.EatToken();
-                            }
-                            else if (forAccessors && this.IsPossibleAccessorModifier())
-                            {
-                                // Accept ref as a modifier for properties and event accessors, to produce an error later during binding.
-                                modTok = this.EatToken();
-                            }
-                            else
+                            // In a member such as `ref int M()`, `ref int` is the return type. Stop parsing modifiers
+                            // so the member parser can consume `ref` as part of that type.
+                            if (isRefReturningMember())
                             {
                                 return;
                             }
+
+                            // At the top level, only consume 'ref' as a modifier when the following
+                            // modifier chain actually leads to a type declaration. Otherwise, leave
+                            // it for return-type/statement parsing so malformed declarations remain
+                            // split into useful syntax nodes rather than swallowing subsequent tokens.
+                            if (forTopLevelStatements && !shouldConsumeRefAtTopLevel())
+                            {
+                                return;
+                            }
+
+                            modTok = this.EatToken();
                             break;
                         }
-
-                    case DeclarationModifiers.File:
-                        if (!parseAsModifier(MessageID.IDS_FeatureFileTypes, out modTok))
-                            return;
-
-                        break;
-
-                    case DeclarationModifiers.Closed:
-                        if (!parseAsModifier(MessageID.IDS_FeatureClosedClasses, out modTok))
-                            return;
-
-                        break;
 
                     case DeclarationModifiers.Async:
                         if (!ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: false))
@@ -1462,28 +1408,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         modTok = ConvertToKeyword(this.EatToken());
                         break;
 
+                    case DeclarationModifiers.File:
+                    case DeclarationModifiers.Closed:
                     case DeclarationModifiers.Required:
-                        if (!parseAsModifier(MessageID.IDS_FeatureRequiredMembers, out modTok))
-                            return;
-
-                        break;
-
                     case DeclarationModifiers.Safe:
-                        if (forAccessors)
                         {
-                            if (!this.IsPossibleAccessorModifier())
+                            var requiredFeature = newMod switch
+                            {
+                                DeclarationModifiers.File => MessageID.IDS_FeatureFileTypes,
+                                DeclarationModifiers.Closed => MessageID.IDS_FeatureClosedClasses,
+                                DeclarationModifiers.Required => MessageID.IDS_FeatureRequiredMembers,
+                                DeclarationModifiers.Safe => MessageID.IDS_FeatureUnsafeEvolution,
+                                _ => throw ExceptionUtilities.UnexpectedValue(newMod),
+                            };
+
+                            // Outside top-level statements, an enabled contextual modifier is unambiguous.
+                            // Otherwise, it may be an identifier, so use the usual contextual-keyword heuristic.
+                            var needsDisambiguation = !IsFeatureEnabled(requiredFeature) || forTopLevelStatements;
+                            if (needsDisambiguation &&
+                                !ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: false))
                             {
                                 return;
                             }
 
-                            modTok = ConvertToKeyword(this.EatToken());
+                            // LangVersion errors for contextual modifiers are given during binding.
+                            modTok = ConvertToKeyword(EatToken());
+                            break;
                         }
-                        else if (!parseAsModifier(MessageID.IDS_FeatureUnsafeEvolution, out modTok))
-                        {
-                            return;
-                        }
-
-                        break;
 
                     default:
                         modTok = this.EatToken();
@@ -1494,52 +1445,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 tokens.Add(modTok);
             }
 
-            bool parseAsModifier(MessageID requiredFeature, [NotNullWhen(true)] out SyntaxToken? modTok)
+            bool isRefReturningMember()
             {
-                // When 'requiredFeature' is enabled, the associated contextual keyword is always a keyword if not escaped. Otherwise, we reuse the async detection
-                // machinery to make a conservative guess as to whether the user meant it to be a keyword, so that they get a good langver
-                // diagnostic and all the machinery to upgrade their project kicks in. The only exception to this rule is top level statements,
-                // where the user could conceivably have a local with the same name as the modifier. For these locations, we need to disambiguate as well.
-                if ((!IsFeatureEnabled(requiredFeature) || forTopLevelStatements) && !ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: false))
+                Debug.Assert(this.CurrentToken.Kind == SyntaxKind.RefKeyword);
+
+                // For back compatibility, parse 'ref record' and 'ref union' as type declarations
+                // when the corresponding feature is enabled.
+                var nextToken = this.PeekToken(1);
+                if (this.IsEnabledRecordOrUnionKeyword(nextToken))
                 {
-                    modTok = null;
                     return false;
                 }
 
-                // LangVersion errors for contextual modifiers are given during binding.
-                modTok = ConvertToKeyword(EatToken());
-                return true;
+                // Speculatively scan the complete ref type and check for a following member name.
+                // If both are present, leave 'ref' unconsumed so the return-type parser handles it.
+                return this.IsTypeFollowedByMemberName();
             }
 
-            bool isStructOrRecordOrUnionKeyword(SyntaxToken token)
+            bool shouldConsumeRefAtTopLevel()
             {
-                if (token.Kind == SyntaxKind.StructKeyword)
+                Debug.Assert(this.CurrentToken.Kind == SyntaxKind.RefKeyword);
+
+                using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+                this.EatToken();
+
+                while (GetModifierExcludingScoped(this.CurrentToken) != DeclarationModifiers.None)
                 {
-                    return true;
+                    this.EatToken();
                 }
 
-                switch (token.ContextualKind)
-                {
-                    case SyntaxKind.RecordKeyword:
-                        {
-                            // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                            // does not support a feature, but in this case we are effectively making a language breaking
-                            // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
-                            // older code that is not using C# 9 we conditionally parse based on langversion
-                            return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
-                        }
+                // Preserve existing recovery for contextual declaration keywords in older language
+                // versions. isRefReturningMember() has already handled cases where one of these is
+                // instead the type of a ref-returning member.
+                return this.CurrentToken.ContextualKind is
+                    SyntaxKind.RecordKeyword or SyntaxKind.UnionKeyword or SyntaxKind.ExtensionKeyword ||
+                    this.IsTypeDeclarationStart();
+            }
+        }
 
-                    case SyntaxKind.UnionKeyword:
-                        {
-                            // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                            // does not support a feature, but in this case we are effectively making a language breaking
-                            // change to consider "union" a type declaration in all ambiguous cases. To avoid breaking
-                            // older code that is not using C# 15 we conditionally parse based on langversion
-                            return IsFeatureEnabled(MessageID.IDS_FeatureUnions);
-                        }
-                }
-
-                return false;
+        private void ParseAccessorModifiers(SyntaxListBuilder tokens)
+        {
+            // We intentionally avoid using ParseModifiers here because that method must disambiguate
+            // contextual keywords that may instead be type names, such as `async M()` declaring a
+            // method that returns `async`, and tokens such as `ref` that may be a modifier or part of
+            // a ref return type. An accessor has no type before its name, so consume all modifier-like
+            // tokens here for better recovery. Binding reports any modifiers that are invalid on the accessor.
+            while (GetModifierExcludingScoped(this.CurrentToken) != DeclarationModifiers.None ||
+                   this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
+            {
+                var token = this.EatToken();
+                tokens.Add(token.Kind == SyntaxKind.IdentifierToken ? ConvertToKeyword(token) : token);
             }
         }
 
@@ -1563,10 +1518,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             this.EatToken(); //move past contextual token
 
+            // If 'partial' starts a declaration, the preceding token is also a modifier,
+            // as in 'closed partial ref struct'.
+            // `onlyForTypeDeclarations: false`: The preceding modifier may belong to either a type or a member, such as
+            // 'public partial class C' or 'public partial void M()'.
             if (!parsingStatementNotDeclaration &&
-                (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword))
+                this.IsCurrentTokenDefinitelyPartialModifier(onlyForTypeDeclarations: false))
             {
-                this.EatToken(); // "partial" doesn't affect our decision, so look past it.
+                return true;
             }
 
             // ... 'TOKEN' [partial] <typedecl> ...
@@ -1633,16 +1592,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return true;
                 }
 
-                // "TOKEN TypeName class". In this case, we just have an incomplete member before
-                // an existing type declaration.  Treat this 'TOKEN' as a keyword.
-                if (IsTypeDeclarationStart())
-                {
-                    return true;
-                }
-
-                // "TOKEN TypeName namespace". In this case, we just have an incomplete member before
-                // an existing namespace declaration.  Treat this 'TOKEN' as a keyword.
-                if (currentTokenKind == SyntaxKind.NamespaceKeyword)
+                // "TOKEN TypeName class" or "TOKEN TypeName namespace". In this case, we just have
+                // an incomplete member before an existing declaration. Treat this 'TOKEN' as a keyword.
+                if (this.IsTypeOrNamespaceDeclarationStart())
                 {
                     return true;
                 }
@@ -1656,78 +1608,131 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return false;
         }
 
+        private bool IsTypeOrNamespaceDeclarationStart()
+            => this.IsTypeDeclarationStart() || this.CurrentToken.Kind == SyntaxKind.NamespaceKeyword;
+
         private static bool IsNonContextualModifier(SyntaxToken nextToken)
         {
             return !SyntaxFacts.IsContextualKeyword(nextToken.ContextualKind) && GetModifierExcludingScoped(nextToken) != DeclarationModifiers.None;
         }
 
-        private bool IsPartialType()
+        private bool IsEnabledRecordOrUnionKeyword(SyntaxToken token)
         {
-            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
-            var nextToken = this.PeekToken(1);
-            switch (nextToken.Kind)
+            // Normally the parser recognizes unsupported features and binding reports a language-version
+            // diagnostic. Record and union are contextual keywords, however, so treating them as type
+            // declarations in every ambiguous context would break older code. Only recognize them here
+            // when the corresponding feature is enabled.
+            return token.ContextualKind switch
             {
-                case SyntaxKind.StructKeyword:
-                case SyntaxKind.ClassKeyword:
-                case SyntaxKind.InterfaceKeyword:
-                    return true;
-            }
-
-            switch (nextToken.ContextualKind)
-            {
-                case SyntaxKind.RecordKeyword:
-                    {
-                        // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                        // does not support a feature, but in this case we are effectively making a language breaking
-                        // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
-                        // older code that is not using C# 9 we conditionally parse based on langversion
-                        return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
-                    }
-
-                case SyntaxKind.UnionKeyword:
-                    {
-                        // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                        // does not support a feature, but in this case we are effectively making a language breaking
-                        // change to consider "union" a type declaration in all ambiguous cases. To avoid breaking
-                        // older code that is not using C# 15 we conditionally parse based on langversion
-                        return IsFeatureEnabled(MessageID.IDS_FeatureUnions);
-                    }
-            }
-
-            return false;
+                SyntaxKind.RecordKeyword => IsFeatureEnabled(MessageID.IDS_FeatureRecords),
+                SyntaxKind.UnionKeyword => IsFeatureEnabled(MessageID.IDS_FeatureUnions),
+                _ => false,
+            };
         }
 
-        private bool IsPartialMember()
+        /// <summary>
+        /// Determines whether the current token is definitely a <c>partial</c> modifier,
+        /// including misplaced forms for binding to diagnose.
+        /// </summary>
+        private bool IsCurrentTokenDefinitelyPartialModifier(bool onlyForTypeDeclarations)
         {
-            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
-
-            // Check for:
-            //   partial event
-            if (this.PeekToken(1).Kind == SyntaxKind.EventKeyword)
-            {
-                return true;
-            }
-
-            // Check for constructor:
-            //   partial Identifier(
-            if (this.PeekToken(1).Kind == SyntaxKind.IdentifierToken &&
-                this.PeekToken(2).Kind == SyntaxKind.OpenParenToken)
-            {
-                return IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors);
-            }
-
-            // Check for method/property:
-            //   partial ReturnType MemberName
-            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
-
-            this.EatToken(); // partial
-
-            if (this.ScanType() == ScanTypeFlags.NotType)
-            {
+            if (this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword)
                 return false;
+
+            // A leading 'partial' followed by anonymous-function modifiers and '(', such as
+            // 'partial static () => ...' or 'partial async static () => ...', begins a lambda.
+            if (this.IsUnambiguousAnonymousFunctionModifierListFollowedByOpenParen())
+                return false;
+
+            return isPartialModifierInTypeOrNamespaceDeclaration() ||
+                   isPartialModifierInMemberDeclaration();
+
+            bool isPartialModifierInTypeOrNamespaceDeclaration()
+            {
+                using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+
+                Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
+
+                // Type and namespace declarations are straightforward: skip the modifier list and
+                // require a well-known declaration keyword such as 'class', 'struct', or 'namespace'.
+                while (GetModifierExcludingScoped(this.CurrentToken) != DeclarationModifiers.None)
+                    this.EatToken();
+
+                return this.IsTypeOrNamespaceDeclarationStart();
             }
 
-            return IsPossibleMemberName();
+            bool isPartialModifierInMemberDeclaration()
+            {
+                if (onlyForTypeDeclarations)
+                    return false;
+
+                using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+
+                Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
+
+                // Consume the 'partial' and determine if what follows is definitively a member.
+                this.EatToken();
+
+                // With partial constructors enabled, 'partial Identifier(' starts a constructor.
+                // In earlier versions, 'partial' is the return type and the identifier is the member name.
+                if (isIdentifierFollowedByOpenParen(peekIndex: 0))
+                    return IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors);
+
+                while (GetModifierExcludingScoped(this.CurrentToken) != DeclarationModifiers.None)
+                {
+                    // Before a non-contextual modifier, as in 'partial static', the initial
+                    // 'partial' is unambiguously a modifier.
+                    if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
+                        return true;
+
+                    // A contextual modifier followed by 'Identifier(' either starts a method
+                    // return type, as in 'partial async C()', or is another modifier on a partial
+                    // constructor, as in 'partial partial C()'. Either way, the initial 'partial' is
+                    // a modifier. For the latter form in C# 14, scanning the second 'partial' as a type
+                    // reenters this helper and classifies it as a modifier, so IsTypeFollowedByMemberName()
+                    // returns false.
+                    if (isIdentifierFollowedByOpenParen(peekIndex: 1))
+                        return true;
+
+                    // A contextual modifier may otherwise be the member's return type, such as
+                    // the second 'partial' in 'partial partial P { get; }'.
+                    if (this.IsTypeFollowedByMemberName())
+                        return true;
+
+                    this.EatToken();
+                }
+
+                // No modifier-like token remains, so the current token must start the member itself.
+
+                // 'event' cannot begin another member form, so parse 'partial event' as an event in
+                // every language version. Binding reports the feature diagnostic when necessary.
+                if (this.CurrentToken.Kind == SyntaxKind.EventKeyword)
+                    return true;
+
+                // 'implicit' and 'explicit' can only start conversion operators, so 'partial' is a
+                // modifier even when the operator declaration is incomplete.
+                if (this.CurrentToken.Kind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword)
+                    return true;
+
+                // Otherwise, require a return type followed by a member name, as in 'partial int M()'.
+                return this.IsTypeFollowedByMemberName();
+            }
+
+            bool isIdentifierFollowedByOpenParen(int peekIndex)
+            {
+                return this.PeekToken(peekIndex).Kind == SyntaxKind.IdentifierToken &&
+                    this.PeekToken(peekIndex + 1).Kind == SyntaxKind.OpenParenToken;
+            }
+        }
+
+        /// <summary>
+        /// Checks for a type followed by a possible member name without advancing the parser.
+        /// Examples include <c>int M()</c> and <c>int this[int i]</c>.
+        /// </summary>
+        private bool IsTypeFollowedByMemberName()
+        {
+            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+            return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
         }
 
         private bool IsPossibleMemberName()
@@ -2180,14 +2185,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 : _syntaxFactory.SimpleBaseType(firstType));
 
             // Parse any optional base types that follow.
-            while (true)
+            while (this.CurrentToken.Kind is not (SyntaxKind.OpenBraceToken or SyntaxKind.SemicolonToken) &&
+                !this.IsCurrentTokenWhereOfConstraintClause())
             {
-                if (this.CurrentToken.Kind is SyntaxKind.OpenBraceToken or SyntaxKind.SemicolonToken ||
-                    this.IsCurrentTokenWhereOfConstraintClause())
-                {
-                    break;
-                }
-
                 if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
                     list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
@@ -2493,25 +2493,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 case SyntaxKind.IdentifierToken:
 
-                    switch (CurrentToken.ContextualKind)
+                    if (this.IsEnabledRecordOrUnionKeyword(this.CurrentToken))
                     {
-                        case SyntaxKind.RecordKeyword:
-                            {
-                                // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                                // does not support a feature, but in this case we are effectively making a language breaking
-                                // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
-                                // older code that is not using C# 9 we conditionally parse based on langversion
-                                return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
-                            }
-
-                        case SyntaxKind.UnionKeyword:
-                            {
-                                // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                                // does not support a feature, but in this case we are effectively making a language breaking
-                                // change to consider "union" a type declaration in all ambiguous cases. To avoid breaking
-                                // older code that is not using C# 15 we conditionally parse based on langversion
-                                return IsFeatureEnabled(MessageID.IDS_FeatureUnions);
-                            }
+                        return true;
                     }
 
                     if (IsExtensionContainerStart())
@@ -2685,7 +2669,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 // All modifiers that might start an expression are processed above.
                 bool isPossibleTypeDeclaration;
-                this.ParseModifiers(modifiers, forAccessors: false, forTopLevelStatements: true, out isPossibleTypeDeclaration);
+                this.ParseModifiers(modifiers, forTopLevelStatements: true, out isPossibleTypeDeclaration);
                 bool haveModifiers = (modifiers.Count > 0);
                 MemberDeclarationSyntax result;
 
@@ -3272,7 +3256,7 @@ parse_member_name:;
                 var attributes = this.ParseAttributeDeclarations(inExpressionContext: false);
 
                 bool isPossibleTypeDeclaration;
-                this.ParseModifiers(modifiers, forAccessors: false, forTopLevelStatements: false, out isPossibleTypeDeclaration);
+                this.ParseModifiers(modifiers, forTopLevelStatements: false, out isPossibleTypeDeclaration);
 
                 if (IsExtensionContainerStart())
                 {
@@ -3789,48 +3773,39 @@ parse_member_name:;
                     {
                         // Scan possible ExplicitInterfaceSpecifier
 
-                        while (true)
+                        while (this.CurrentToken.Kind != SyntaxKind.OperatorKeyword)
                         {
                             // now, scan past the next name.  if it's followed by a dot then
                             // it's part of the explicit name we're building up.  Otherwise,
                             // it should be an operator token
 
-                            if (this.CurrentToken.Kind == SyntaxKind.OperatorKeyword)
-                            {
-                                // We're past any explicit interface portion
-                                break;
-                            }
-                            else
-                            {
-                                using var scanNamePartPoint = GetDisposableResetPoint(resetOnDispose: false);
+                            using var scanNamePartPoint = GetDisposableResetPoint(resetOnDispose: false);
 
-                                int lastTokenPosition = -1;
-                                IsMakingProgress(ref lastTokenPosition, assertIfFalse: true);
-                                ScanNamedTypePart();
+                            int lastTokenPosition = -1;
+                            IsMakingProgress(ref lastTokenPosition, assertIfFalse: true);
+                            ScanNamedTypePart();
 
-                                if (IsDotOrColonColon() ||
-                                    (IsMakingProgress(ref lastTokenPosition, assertIfFalse: false) && this.CurrentToken.Kind != SyntaxKind.OpenParenToken))
+                            if (IsDotOrColonColon() ||
+                                (IsMakingProgress(ref lastTokenPosition, assertIfFalse: false) && this.CurrentToken.Kind != SyntaxKind.OpenParenToken))
+                            {
+                                haveExplicitInterfaceName = true;
+
+                                if (IsDotOrColonColon())
                                 {
-                                    haveExplicitInterfaceName = true;
-
-                                    if (IsDotOrColonColon())
-                                    {
-                                        separatorKind = this.CurrentToken.Kind;
-                                        EatToken();
-                                    }
-                                    else
-                                    {
-                                        separatorKind = SyntaxKind.None;
-                                    }
-
+                                    separatorKind = this.CurrentToken.Kind;
+                                    EatToken();
                                 }
                                 else
                                 {
-                                    scanNamePartPoint.Reset();
-
-                                    // We're past any explicit interface portion
-                                    break;
+                                    separatorKind = SyntaxKind.None;
                                 }
+                            }
+                            else
+                            {
+                                scanNamePartPoint.Reset();
+
+                                // We're past any explicit interface portion
+                                break;
                             }
                         }
                     }
@@ -4407,13 +4382,9 @@ parse_member_name:;
                 // parse property accessors
                 var builder = _pool.Allocate<AccessorDeclarationSyntax>();
 
-                while (true)
+                while (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
                 {
-                    if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
-                    {
-                        break;
-                    }
-                    else if (this.IsPossibleAccessor())
+                    if (this.IsPossibleAccessor())
                     {
                         var acc = this.ParseAccessorDeclaration(declaringKind);
                         builder.Add(acc);
@@ -4462,63 +4433,50 @@ parse_member_name:;
 
         private bool IsPossibleAccessor()
         {
-            return this.CurrentToken.Kind == SyntaxKind.IdentifierToken
-                || IsPossibleAttributeDeclaration()
-                || SyntaxFacts.GetAccessorDeclarationKind(this.CurrentToken.ContextualKind) != SyntaxKind.None
-                || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken  // for accessor blocks w/ missing keyword
-                || this.CurrentToken.Kind == SyntaxKind.SemicolonToken // for empty body accessors w/ missing keyword
-                || IsPossibleAccessorModifier();
-        }
+            // An attribute list can begin an accessor declaration.
+            if (IsPossibleAttributeDeclaration())
+                return true;
 
-        private bool IsPossibleAccessorModifier()
-        {
-            // We only want to accept a modifier as the start of an accessor if the modifiers are
-            // actually followed by "get/set/add/remove".  Otherwise, we might thing think we're 
-            // starting an accessor when we're actually starting a normal class member.  For example:
-            //
-            //      class C {
-            //          public int Prop { get { this.
-            //          private DateTime x;
-            //
-            // We don't want to think of the "private" in "private DateTime x" as starting an accessor
-            // here.  If we do, we'll get totally thrown off in parsing the remainder and that will
-            // throw off the rest of the features that depend on a good syntax tree.
-            // 
-            // Note: we allow all modifiers here.  That's because we want to parse things like
-            // "abstract get" as an accessor.  This way we can provide a good error message
-            // to the user that this is not allowed.
+            // There may be an arbitrary number of modifiers before the accessor, as in
+            // `{ private readonly get; }`. Look past all of them before checking what follows,
+            // retaining even invalid modifiers on the accessor so they can be diagnosed during binding.
+            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+            var modifiers = _pool.Allocate();
+            this.ParseAccessorModifiers(modifiers);
+            var parsedModifiers = modifiers.Count > 0;
+            _pool.Free(modifiers);
 
-            if (GetModifierExcludingScoped(this.CurrentToken) == DeclarationModifiers.None)
+            // A recognized accessor name is always sufficient.
+            if (SyntaxFacts.GetAccessorDeclarationKind(this.CurrentToken.ContextualKind) != SyntaxKind.None)
+                return true;
+
+            // Recover an accessor with a missing name when its body is present.
+            if (IsAccessorBodyStart(this.CurrentToken))
+                return true;
+
+            if (parsedModifiers)
             {
+                // In `{ protected }`, parsing an accessor consumes `protected` and creates a missing name.
+                if (this.CurrentToken.Kind is SyntaxKind.CloseBraceToken or SyntaxKind.EndOfFileToken)
+                    return true;
+
+                // In `{ partial unknown; }`, `unknown` is an accessor with a modifier. Conversely,
+                // `{ private int F;` should remain a following member.
+                if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && IsAccessorBodyStart(PeekToken(1)))
+                    return true;
+
                 return false;
             }
-
-            var peekIndex = 1;
-            while (GetModifierExcludingScoped(this.PeekToken(peekIndex)) != DeclarationModifiers.None)
+            else
             {
-                peekIndex++;
-            }
-
-            var token = this.PeekToken(peekIndex);
-            if (token.Kind is SyntaxKind.CloseBraceToken or SyntaxKind.EndOfFileToken)
-            {
-                // If we see "{ get { } public }
-                // then we will think that "public" likely starts an accessor.
-                return true;
-            }
-
-            switch (token.ContextualKind)
-            {
-                case SyntaxKind.GetKeyword:
-                case SyntaxKind.SetKeyword:
-                case SyntaxKind.InitKeyword:
-                case SyntaxKind.AddKeyword:
-                case SyntaxKind.RemoveKeyword:
-                    return true;
-                default:
-                    return false;
+                // Without modifiers, an arbitrary identifier can be consumed as an unknown accessor,
+                // as in `{ unknown; }`.
+                return this.CurrentToken.Kind == SyntaxKind.IdentifierToken;
             }
         }
+
+        private static bool IsAccessorBodyStart(SyntaxToken token)
+            => token.Kind is SyntaxKind.OpenBraceToken or SyntaxKind.SemicolonToken or SyntaxKind.EqualsGreaterThanToken;
 
         private enum PostSkipAction
         {
@@ -4683,7 +4641,7 @@ parse_member_name:;
             var accMods = _pool.Allocate();
 
             var accAttrs = this.ParseAttributeDeclarations(inExpressionContext: false);
-            this.ParseModifiers(accMods, forAccessors: true, forTopLevelStatements: false, isPossibleTypeDeclaration: out _);
+            this.ParseAccessorModifiers(accMods);
 
             var accessorName = this.EatToken(SyntaxKind.IdentifierToken,
                 declaringKind == AccessorDeclaringKind.Event ? ErrorCode.ERR_AddOrRemoveExpected : ErrorCode.ERR_GetOrSetExpected);
@@ -4733,22 +4691,22 @@ parse_member_name:;
             }
             else
             {
-                // We didn't get something we recognized.  If we got an accessor type we 
-                // recognized (i.e. get/set/init/add/remove) then try to parse out a block.
-                // Only do this if it doesn't seem like we're at the end of the accessor/property.
-                // for example, if we have "get set", don't actually try to parse out the 
-                // block.  Otherwise we'll consume the 'set'.  In that case, just end the
-                // current accessor with a semicolon so we can properly consume the next
-                // in the calling method's loop.
                 if (accessorKind != SyntaxKind.UnknownAccessorDeclaration)
                 {
-                    if (!IsTerminator())
+                    if (IsTerminator())
                     {
-                        blockBody = this.ParseMethodOrAccessorBodyBlock(attributes: default, isAccessorBody: true);
+                        // The accessor has no body before the list ends, as in `{ get }`.
+                        semicolon = EatAccessorSemicolon();
+                    }
+                    else if (IsPossibleAccessor())
+                    {
+                        // Keep a following accessor separate, as in `{ get set { } }`.
+                        semicolon = EatAccessorSemicolon();
                     }
                     else
                     {
-                        semicolon = EatAccessorSemicolon();
+                        // Recover a body with a missing `{`, as in `{ get return 0; }`.
+                        blockBody = this.ParseMethodOrAccessorBodyBlock(attributes: default, isAccessorBody: true);
                     }
                 }
                 else
@@ -5361,13 +5319,9 @@ parse_member_name:;
                 return;
             }
 
-            while (true)
+            while (this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
             {
-                if (this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
-                {
-                    break;
-                }
-                else if (stopOnCloseParen && this.CurrentToken.Kind == SyntaxKind.CloseParenToken)
+                if (stopOnCloseParen && this.CurrentToken.Kind == SyntaxKind.CloseParenToken)
                 {
                     break;
                 }
@@ -6066,7 +6020,7 @@ parse_member_name:;
         {
             if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
             {
-                if (!IsCurrentTokenPartialKeywordOfPartialMemberOrType() &&
+                if (!IsCurrentTokenDefinitelyPartialModifier(onlyForTypeDeclarations: false) &&
                     !IsCurrentTokenQueryKeywordInQuery() &&
                     !IsCurrentTokenWhereOfConstraintClause())
                 {
@@ -6113,7 +6067,7 @@ parse_member_name:;
                 // show the correct parameter help in this case.  So, when we see "partial" we check if it's being used
                 // as an identifier or as a contextual keyword.  If it's the latter then we bail out.  See
                 // Bug: vswhidbey/542125
-                if (IsCurrentTokenPartialKeywordOfPartialMemberOrType() || IsCurrentTokenQueryKeywordInQuery())
+                if (this.IsCurrentTokenDefinitelyPartialModifier(onlyForTypeDeclarations: false) || IsCurrentTokenQueryKeywordInQuery())
                 {
                     var result = CreateMissingIdentifierToken();
                     result = this.AddError(result, ErrorCode.ERR_InvalidExprTerm, this.CurrentToken.Text);
@@ -6138,19 +6092,6 @@ parse_member_name:;
         private bool IsCurrentTokenQueryKeywordInQuery()
         {
             return this.IsInQuery && this.IsCurrentTokenQueryContextualKeyword;
-        }
-
-        private bool IsCurrentTokenPartialKeywordOfPartialMemberOrType()
-        {
-            if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
-            {
-                if (this.IsPartialType() || this.IsPartialMember())
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private bool IsCurrentTokenFieldInKeywordContext()
@@ -6223,7 +6164,7 @@ parse_member_name:;
             }
 
             if (this.IsCurrentTokenWhereOfConstraintClause() ||
-                this.IsCurrentTokenPartialKeywordOfPartialMemberOrType())
+                this.IsCurrentTokenDefinitelyPartialModifier(onlyForTypeDeclarations: false))
             {
                 return _syntaxFactory.TypeParameter(
                     attrs,
@@ -6628,13 +6569,8 @@ parse_member_name:;
             types.Add(this.ParseTypeArgument());
 
             // remaining types & commas
-            while (true)
+            while (this.CurrentToken.Kind != SyntaxKind.GreaterThanToken)
             {
-                if (this.CurrentToken.Kind == SyntaxKind.GreaterThanToken)
-                {
-                    break;
-                }
-
                 // We prefer early terminating the argument list over parsing until exhaustion
                 // for better error recovery
                 if (tokenBreaksTypeArgumentList(this.CurrentToken))
@@ -13150,6 +13086,9 @@ done:
                     return false;
             }
 
+            if (this.IsUnambiguousAnonymousFunctionModifierListFollowedByOpenParen())
+                return true;
+
             bool seenStatic;
             if (this.CurrentToken.Kind == SyntaxKind.StaticKeyword)
             {
@@ -13848,8 +13787,22 @@ done:
         {
             var modifiers = _pool.Allocate();
 
+            // A leading 'partial' is treated as a recovery modifier only when a later 'static'
+            // makes the lambda shape unambiguous, as in 'partial async static () => ...'.
+            // In 'partial () => ...' and 'partial async()', it remains a type or member name.
+            var allowPartial = this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword &&
+                isStaticModifierAhead();
+
             while (true)
             {
+                // 'partial' is not a valid anonymous-function modifier. Consume it for better
+                // error recovery and let binding report the invalid modifier.
+                if (allowPartial && this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
+                {
+                    modifiers.Add(this.EatContextualToken(SyntaxKind.PartialKeyword));
+                    continue;
+                }
+
                 if (this.CurrentToken.Kind == SyntaxKind.StaticKeyword)
                 {
                     modifiers.Add(this.EatToken(SyntaxKind.StaticKeyword));
@@ -13867,6 +13820,35 @@ done:
             }
 
             return _pool.ToTokenListAndFree(modifiers);
+
+            bool isStaticModifierAhead()
+            {
+                for (var i = 1; ; i++)
+                {
+                    var token = this.PeekToken(i);
+                    if (token.Kind == SyntaxKind.StaticKeyword)
+                        return true;
+
+                    if (token.ContextualKind is not (SyntaxKind.PartialKeyword or SyntaxKind.AsyncKeyword))
+                        return false;
+                }
+            }
+        }
+
+        private bool IsUnambiguousAnonymousFunctionModifierListFollowedByOpenParen()
+        {
+            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+            var modifiers = this.ParseAnonymousFunctionModifiers();
+
+            if (this.CurrentToken.Kind != SyntaxKind.OpenParenToken)
+                return false;
+
+            // Without 'static', 'partial' and 'async' are contextual identifiers and may instead be
+            // a return type or member name. For example, 'partial async()' can be a constructor, and
+            // 'async partial () => ...' is an async lambda with the explicit return type 'partial'.
+            // 'async (' alone is intentionally left to the regular lambda lookahead, which must also
+            // distinguish an async lambda from an invocation of a method named 'async'.
+            return modifiers.Any((int)SyntaxKind.StaticKeyword);
         }
 
         private bool IsAnonymousFunctionAsyncModifier()

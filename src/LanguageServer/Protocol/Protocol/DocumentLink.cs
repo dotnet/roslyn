@@ -39,14 +39,6 @@ internal sealed class DocumentLink
         set;
     }
 
-    [Obsolete("Use DocumentTarget instead. This property will be removed in a future version.")]
-    [JsonIgnore]
-    public Uri Target
-    {
-        get => DocumentTarget.GetRequiredParsedUri();
-        set => DocumentTarget = new DocumentUri(value);
-    }
-
     /// <summary>
     /// The tooltip text when you hover over this link.
     /// <para>

@@ -9568,6 +9568,29 @@ a
             CleanupAllGeneratedFiles(dir.Path)
         End Sub
 
+        <Fact>
+        Public Sub RefOnly_EmbeddedDebugInformation()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("a.vb")
+            src.WriteAllText("Public Class C
+End Class")
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path,
+                {"/define:_MYTYPE=""Empty"" ", "/nologo", "/target:library", "/out:a.dll", "/refonly", "/debug:embedded", "/deterministic", "a.vb"})
+
+            Assert.Equal(0, vbc.Run(outWriter))
+            Assert.Equal("", outWriter.ToString())
+
+            Using peReader = New PEReader(File.OpenRead(Path.Combine(dir.Path, "a.dll")))
+                AssertEx.Equal(
+                    {DebugDirectoryEntryType.Reproducible},
+                    peReader.ReadDebugDirectory().Select(Function(entry) entry.Type))
+            End Using
+
+            CleanupAllGeneratedFiles(dir.Path)
+        End Sub
+
         <WorkItem(13681, "https://github.com/dotnet/roslyn/issues/13681")>
         <Theory()>
         <InlineData("/t:exe", "/out:goo.dll", "goo.dll", "goo.dll.exe")>                                'Output with known but different extension
@@ -9733,7 +9756,7 @@ End Module
             result = ProcessUtilities.Run(vbcPath, arguments:="/nologo /t:library unknown.vb", workingDirectory:=dir.Path)
             Assert.Equal(1, result.ExitCode)
             AssertEx.Equal(
-                $"Could not load file or assembly '{GetType(ImmutableArray).Assembly.FullName.Replace(".8", ".0")}' or one of its dependencies. The system cannot find the file specified.",
+                $"Could not load file or assembly '{GetType(ImmutableArray).Assembly.FullName.Replace(".10", ".0")}' or one of its dependencies. The system cannot find the file specified.",
                 result.Output.Trim())
         End Sub
 

@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -5771,6 +5772,45 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         Assert.Empty(await debuggingSession.GetDocumentDiagnosticsAsync(document, s_noActiveSpans, CancellationToken.None));
         Assert.Empty(await debuggingSession.GetAdjustedActiveStatementSpansAsync(document, s_noActiveSpans, CancellationToken.None));
         Assert.True((await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [], CancellationToken.None)).IsDefault);
+    }
+
+    [Fact]
+    public Task Disposal_PortablePdbReader()
+        => Disposal_PdbReader(DebugInformationFormat.PortablePdb);
+
+    [ConditionalFact(typeof(WindowsOnly))]
+    public Task Disposal_WindowsPdbReader()
+        => Disposal_PdbReader(DebugInformationFormat.Pdb);
+
+    private async Task Disposal_PdbReader(DebugInformationFormat pdbFormat)
+    {
+        var source1 = "class C1 { void M() { System.Console.WriteLine(1); } }";
+
+        var dir = Temp.CreateDirectory();
+        var sourceFile = dir.CreateFile("a.cs").WriteAllText(source1, Encoding.UTF8);
+
+        using var _1 = CreateWorkspace(out var solution, out var service);
+        (solution, _) = AddDefaultTestProject(solution, "class C { }");
+
+        var document1 = solution.
+            AddTestProject("test").
+            AddDocument("a.cs", SourceText.From(source1, Encoding.UTF8, SourceHashAlgorithm.Sha1), filePath: sourceFile.Path);
+
+        var project = document1.Project;
+        solution = project.Solution;
+
+        var moduleId = EmitAndLoadLibraryToDebuggee(project.Id, source1, sourceFilePath: sourceFile.Path, checksumAlgorithm: SourceHashAlgorithms.Default, pdbFormat: pdbFormat);
+
+        var debuggingSession = StartDebuggingSession(service, solution, initialState: CommittedSolution.DocumentState.None);
+
+        // change the source:
+        solution = solution.WithDocumentText(document1.Id, CreateText("class C1 { void M() { System.Console.WriteLine(2); } }"));
+        var document2 = solution.GetDocument(document1.Id);
+
+        // error not reported here since it might be intermittent and will be reported if the issue persist when applying the update:
+        var docDiagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
+
+        EndDebuggingSession(debuggingSession);
     }
 
     [Fact]

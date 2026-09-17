@@ -171,6 +171,28 @@ When `ROSLYN_CACHE_PATH` is used, the client also logs that it normalized the en
 
 On a miss, Roslyn may also log diffs against recent prior key files for the same output name. This is intended to help explain why two apparently similar builds did not reuse the same cached result.
 
+### Telemetry
+
+When the compilation runs on the server through the MSBuild `Csc`/`Vbc` task and the cache is enabled, the server also produces a structured telemetry event that the task forwards to the host via [`IBuildEngine5.LogTelemetry`](https://learn.microsoft.com/dotnet/api/microsoft.build.framework.ibuildengine5.logtelemetry). This is separate from the diagnostic log above and is intended for aggregate analysis.
+
+The event name is `roslyn/compilercache`. Host telemetry pipelines prefix it:
+
+- Visual Studio: `vs/roslyn/compilercache`
+- dotnet CLI: `dotnet/cli/msbuild/roslyn/compilercache`
+
+The event carries these properties:
+
+| Property | Meaning |
+|----------|---------|
+| `cachestatus` | `hit` or `miss` (always present) |
+| `storeresult` | `none`, `stored`, `skippedrace`, `skippedexists`, or `failed` (always present) |
+| `compileresult` | `succeeded` or `failed`; omitted on a cache hit |
+| `language` | the compiler language (`C#` / `Visual Basic`) (always present) |
+| `keycomputems` | milliseconds spent computing the deterministic key (always present) |
+| `restorems` | milliseconds spent attempting to restore a cached result (always present) |
+| `storems` | milliseconds spent storing the result; omitted when no store was attempted (a hit, or a miss whose compilation failed) |
+| `compilems` | milliseconds spent compiling and emitting on a miss; omitted on a hit |
+
 ## Cache management
 
 The compiler server binary (`VBCSCompiler`) exposes commands for inspecting and cleaning up the on-disk cache. These are intended for local use and CI integration while the experiment is being evaluated.

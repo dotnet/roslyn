@@ -55,15 +55,6 @@ value1
             );
         }
         #pragma warning restore 1998
-#nullable restore
-#line (8,8)-(10,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    private string value1 = "true";
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 namespace __Blazor.Test.TestComponent

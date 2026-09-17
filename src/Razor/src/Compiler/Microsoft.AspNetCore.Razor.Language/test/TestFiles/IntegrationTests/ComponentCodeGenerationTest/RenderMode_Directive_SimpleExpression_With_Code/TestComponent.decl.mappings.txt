@@ -1,0 +1,11 @@
+﻿Source Location: (91:3,1 [55] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    [Parameter]
+    public int Count { get; set; }
+|
+Generated Location: (557:18,0 [55] )
+|
+    [Parameter]
+    public int Count { get; set; }
+|
+

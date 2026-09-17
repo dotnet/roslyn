@@ -19,20 +19,6 @@ namespace Test
         {
         }
         #pragma warning restore 1998
-#nullable restore
-#line (1,8)-(8,1) "x:\dir\subdir\Test\TestComponent.razor"
-
-    [System.Runtime.CompilerServices.SkipLocalsInit]
-    public static int GetValue()
-    {
-        var value = 1;
-        return value;
-    }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

@@ -12,5 +12,3 @@
                         IntermediateToken - (16:0,16 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - MyType
                     ComponentAttribute - (33:0,33 [9] x:\dir\subdir\Test\TestComponent.cshtml) - OnClick - OnClick - AttributeStructure.DoubleQuotes
                         IntermediateToken - (33:0,33 [9] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Increment
-            CSharpCode - (56:2,7 [84] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (56:2,7 [84] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private int counter;\n\n    public void Increment(MyType type) => counter++;\n

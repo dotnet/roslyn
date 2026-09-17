@@ -36,16 +36,6 @@ UpdateValue
             , ParentValue)));
         }
         #pragma warning restore 1998
-#nullable restore
-#line (2,8)-(5,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    public CustomValue ParentValue { get; set; } = new CustomValue();
-    public EventCallback<CustomValue> UpdateValue { get; set; }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 namespace __Blazor.Test.TestComponent

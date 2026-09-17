@@ -124,6 +124,11 @@ internal sealed class HotReloadService
         /// Projects whose dependencies need to be deployed to their output directory, if not already present.
         /// </summary>
         public required ImmutableArray<ProjectId> ProjectsToRedeploy { get; init; }
+
+        /// <summary>
+        /// True if <see cref="CommitUpdate"/> or <see cref="DiscardUpdate"/> is expected to be called to complete the update.
+        /// </summary>
+        public required bool HasPendingUpdates { get; init; }
     }
 
     private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
@@ -227,6 +232,7 @@ internal sealed class HotReloadService
             ProjectsToRestart = results.ProjectsToRestart,
             ProjectsToRebuild = results.ProjectsToRebuild,
             ProjectsToRedeploy = results.ProjectsToRedeploy,
+            HasPendingUpdates = results.SolutionAction == SolutionAction.PendingUpdate,
         };
     }
 

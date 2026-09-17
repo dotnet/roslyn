@@ -72,7 +72,7 @@ internal class CodeActionResolveHandler : ILspServiceDocumentRequestHandler<LSP.
             return codeAction;
         }
 
-        var document = context.GetRequiredTextDocument();
+        var document = await context.GetRequiredTextDocumentAsync(cancellationToken).ConfigureAwait(false);
         var solution = document.Project.Solution;
         var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
             document,

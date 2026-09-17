@@ -3,7 +3,7 @@
 
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor.AutoInsert;
+using Microsoft.CodeAnalysis.Remote.Razor.AutoInsert;
 using Xunit;
 using Xunit.Abstractions;
 

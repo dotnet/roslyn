@@ -1,0 +1,51 @@
+<Solution>
+  <Folder Name="/CSharp/">
+    <Project Path="CSharp/Analyzers/Analyzers.Implementation/Analyzers.CSharp.csproj" />
+    <Project Path="CSharp/Analyzers/Analyzers.Test/Analyzers.CSharp.UnitTests.csproj" />
+    <Project Path="CSharp/Analyzers/Analyzers.Vsix/Analyzers.CSharp.Vsix.csproj" />
+    <Project Path="CSharp/APISamples/APISamples.CSharp.UnitTests.csproj" />
+    <Project Path="CSharp/ConsoleClassifier/ConsoleClassifier.CSharp.csproj" />
+    <Project Path="CSharp/ConvertToAutoProperty/ConvertToAutoProperty.Implementation/ConvertToAutoProperty.CSharp.csproj" />
+    <Project Path="CSharp/ConvertToAutoProperty/ConvertToAutoProperty.Vsix/ConvertToAutoProperty.CSharp.Vsix.csproj" />
+    <Project Path="CSharp/ConvertToConditional/ConvertToConditional.Implementation/ConvertToConditional.CSharp.csproj" />
+    <Project Path="CSharp/ConvertToConditional/ConvertToConditional.Test/ConvertToConditional.CSharp.UnitTests.csproj" />
+    <Project Path="CSharp/ConvertToConditional/ConvertToConditional.Vsix/ConvertToConditional.CSharp.Vsix.csproj" />
+    <Project Path="CSharp/CSharpToVisualBasicConverter/CSharpToVisualBasicConverter.Lib/CSharpToVisualBasicConverter.csproj" />
+    <Project Path="CSharp/CSharpToVisualBasicConverter/CSharpToVisualBasicConverter.Test/CSharpToVisualBasicConverter.UnitTests.csproj" />
+    <Project Path="CSharp/FormatSolution/FormatSolution.CSharp.csproj" />
+    <Project Path="CSharp/ImplementNotifyPropertyChanged/ImplementNotifyPropertyChanged/ImplementNotifyPropertyChanged.CSharp.csproj" />
+    <Project Path="CSharp/ImplementNotifyPropertyChanged/ImplementNotifyPropertyChanged.Vsix/ImplementNotifyPropertyChanged.CSharp.Vsix.csproj" />
+    <Project Path="CSharp/MakeConst/MakeConst.Implementation/MakeConst.CSharp.csproj" />
+    <Project Path="CSharp/MakeConst/MakeConst.Vsix/MakeConst.CSharp.Vsix.csproj" />
+    <Project Path="CSharp/RefOutModifier/RefOutModifier.Implementation/RefOutModifier.CSharp.csproj" />
+    <Project Path="CSharp/RefOutModifier/RefOutModifier.Vsix/RefOutModifier.CSharp.Vsix.csproj" />
+    <Project Path="CSharp/SolutionExplorer/SolutionExplorer.csproj" />
+    <Project Path="CSharp/SourceGenerators/GeneratedDemo/CSharpGeneratedDemo.csproj" />
+    <Project Path="CSharp/SourceGenerators/SourceGeneratorSamples/CSharpSourceGeneratorSamples.csproj" />
+    <Project Path="CSharp/TreeTransforms/TreeTransforms.CSharp.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/Shared/">
+    <Project Path="Shared/UnitTestFramework/Roslyn.UnitTestFramework.csproj" />
+  </Folder>
+  <Folder Name="/VisualBasic/">
+    <Project Path="VisualBasic/Analyzers/Analyzers.Implementation/Analyzers.VisualBasic.vbproj" />
+    <Project Path="VisualBasic/Analyzers/Analyzers.Vsix/Analyzers.VisualBasic.Vsix.vbproj" />
+    <Project Path="VisualBasic/APISamples/APISamples.VisualBasic.UnitTests.vbproj" />
+    <Project Path="VisualBasic/ConsoleClassifier/ConsoleClassifier.VisualBasic.vbproj" />
+    <Project Path="VisualBasic/ConvertToAutoProperty/ConvertToAutoProperty/ConvertToAutoProperty.VisualBasic.vbproj" />
+    <Project Path="VisualBasic/ConvertToAutoProperty/ConvertToAutoProperty.Vsix/ConvertToAutoProperty.VisualBasic.Vsix.vbproj" />
+    <Project Path="VisualBasic/FormatSolution/FormatSolution.VisualBasic.vbproj" />
+    <Project Path="VisualBasic/ImplementNotifyPropertyChanged/ImplementNotifyPropertyChanged/ImplementNotifyPropertyChanged.VisualBasic.vbproj" />
+    <Project Path="VisualBasic/ImplementNotifyPropertyChanged/ImplementNotifyPropertyChanged.Vsix/ImplementNotifyPropertyChanged.VisualBasic.Vsix.vbproj" />
+    <Project Path="VisualBasic/MakeConst/MakeConst/MakeConst.VisualBasic.vbproj" />
+    <Project Path="VisualBasic/MakeConst/MakeConst.Test/MakeConst.VisualBasic.UnitTests.vbproj" />
+    <Project Path="VisualBasic/MakeConst/MakeConst.Vsix/MakeConst.VisualBasic.Vsix.vbproj" />
+    <Project Path="VisualBasic/RemoveByVal/RemoveByVal/RemoveByVal.VisualBasic.vbproj" />
+    <Project Path="VisualBasic/RemoveByVal/RemoveByVal.Vsix/RemoveByVal.VisualBasic.Vsix.vbproj" />
+    <Project Path="VisualBasic/SourceGenerators/GeneratedDemo/VisualBasicGeneratedDemo.vbproj" />
+    <Project Path="VisualBasic/SourceGenerators/SourceGeneratorSamples/VisualBasicSourceGeneratorSamples.vbproj" />
+    <Project Path="VisualBasic/TreeTransforms/TreeTransforms.VisualBasic.UnitTests.vbproj" />
+    <Project Path="VisualBasic/VisualBasicToCSharpConverter/VisualBasicToCSharpConverter.Lib/VisualBasicToCSharpConverter.Lib.vbproj" />
+    <Project Path="VisualBasic/VisualBasicToCSharpConverter/VisualBasicToCSharpConverter.Test/VisualBasicToCSharpConverter.UnitTests.vbproj" />
+  </Folder>
+</Solution>

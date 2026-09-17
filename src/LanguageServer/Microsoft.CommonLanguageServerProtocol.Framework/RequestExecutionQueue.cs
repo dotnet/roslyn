@@ -15,6 +15,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
+using StreamJsonRpc.Protocol;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
@@ -212,9 +213,9 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
                 {
                     queueItem = await _queue.DequeueAsync(_cancelSource.Token).ConfigureAwait(false);
                 }
-                catch (OperationCanceledException ex) when (ex.CancellationToken == _cancelSource.Token)
+                catch (OperationCanceledException) when (_cancelSource.IsCancellationRequested || _queue.IsCompleted)
                 {
-                    // The queue's cancellation token was invoked which means we are shutting down the queue.
+                    // The queue was cancelled or completed which means we are shutting down the queue.
                     // Exit out of the loop so we stop processing new items.
                     return;
                 }
@@ -267,7 +268,9 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
                         // 1. We were unable to determine the language and there is no default handler for this method.
                         // 2. A client sends a request for a method the server does not handle for this language.
                         // In either case, we should not crash - just fail the request gracefully.
-                        work.FailRequest($"Missing handler for {work.MethodName} and language {resolvedLanguage}");
+                        work.FailRequest(
+                            $"Missing handler for {work.MethodName} and language {resolvedLanguage}",
+                            (int)JsonRpcErrorCode.MethodNotFound);
                         continue;
                     }
 
@@ -412,9 +415,9 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
 
     private bool TryGetHandlerForRequest(QueueItem<TRequestContext> work, string language, out (RequestHandlerMetadata Metadata, IMethodHandler Handler, ProcessQueueCoreAsyncDelegate ProcessQueueCoreAsync) result)
     {
-        var handlersForMethod = _handlerInfoMap[work.MethodName];
-        if (handlersForMethod.TryGetValue(language, out var lazyData) ||
-            handlersForMethod.TryGetValue(LanguageServerConstants.DefaultLanguageName, out lazyData))
+        if (_handlerInfoMap.TryGetValue(work.MethodName, out var handlersForMethod) &&
+            (handlersForMethod.TryGetValue(language, out var lazyData) ||
+             handlersForMethod.TryGetValue(LanguageServerConstants.DefaultLanguageName, out lazyData)))
         {
             result = lazyData.Value;
             return true;

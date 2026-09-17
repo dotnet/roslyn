@@ -10,14 +10,17 @@ strict: true
 
 permissions:
   contents: read
-  copilot-requests: write
 
 network:
   allowed: [defaults]
 
+engine: copilot
+model: gpt-5-mini
+
 safe-outputs:
   mentions: false
   allowed-github-references: []
+  report-failure-as-issue: false
   noop:
     report-as-issue: false
   create-issue:

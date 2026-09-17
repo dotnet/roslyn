@@ -23,12 +23,3 @@ Source Location: (169:1,125 [5] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (1812:56,0 [5] )
 |false|
 
-Source Location: (202:2,7 [30] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    bool Foo { get; set; }
-|
-Generated Location: (2103:68,0 [30] )
-|
-    bool Foo { get; set; }
-|
-

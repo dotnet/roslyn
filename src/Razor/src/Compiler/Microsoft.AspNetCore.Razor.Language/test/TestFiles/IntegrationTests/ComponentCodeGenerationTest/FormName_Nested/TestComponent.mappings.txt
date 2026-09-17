@@ -33,12 +33,3 @@ Source Location: (346:7,35 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (3888:82,0 [9] )
 |() => { }|
 
-Source Location: (405:9,7 [68] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    [Parameter] public RenderFragment ChildContent { get; set; }
-|
-Generated Location: (4424:98,0 [68] )
-|
-    [Parameter] public RenderFragment ChildContent { get; set; }
-|
-

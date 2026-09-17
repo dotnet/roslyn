@@ -1,0 +1,3 @@
+﻿[0000] OpenComponent<global::Test.ComponentWithEditorRequiredChildContent>()
+[0001] AddAttribute("ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => { __builder2.AddContent(2, "This is some text"); } ))
+[0002] AddContent("This is some text")

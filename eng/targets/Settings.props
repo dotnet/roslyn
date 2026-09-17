@@ -65,6 +65,9 @@
     <NoWarn Condition="'$(DefineConstants.Contains(`CODE_STYLE`))' == 'false'">$(NoWarn);RS1041;RS1038</NoWarn>
 
     <EnableNetAnalyzers>true</EnableNetAnalyzers>
+
+    <!-- Workaround for https://github.com/NuGet/Home/issues/14731 -->
+    <RestoreSerializeGlobalProperties>true</RestoreSerializeGlobalProperties>
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)TargetFrameworks.props" />
@@ -171,11 +174,6 @@
   -->
   <PropertyGroup Condition="'$(GeneratePerformanceSensitiveAttribute)' == ''">
     <GeneratePerformanceSensitiveAttribute>false</GeneratePerformanceSensitiveAttribute>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(RoslynEnforceCodeStyle)' != 'true'">
-    <!-- Don't treat FormattingAnalyzer as an error, even when TreatWarningsAsErrors is specified. -->
-    <WarningsNotAsErrors>$(WarningsNotAsErrors);IDE0055</WarningsNotAsErrors>
   </PropertyGroup>
 
   <!--

@@ -967,6 +967,7 @@ namespace Microsoft.CodeAnalysis
                     return cachedExitCode.Value;
                 }
 
+                OnCompilationStarted();
                 CompileAndEmit(
                     touchedFilesLogger,
                     ref compilation,
@@ -1015,6 +1016,8 @@ namespace Microsoft.CodeAnalysis
                 {
                     ReportIVTInfos(consoleOutput, errorLogger, compilation, diagnostics.ToReadOnly());
                 }
+
+                OnCompilationCompleted(exitCode == Succeeded);
 
                 if (exitCode == Succeeded)
                 {
@@ -1317,6 +1320,7 @@ namespace Microsoft.CodeAnalysis
                     diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.FTL_InvalidInputFileName, Location.None, finalPdbFilePath));
                 }
 
+                bool emitPdb = Arguments.EmitPdb && !emitOptions.EmitMetadataOnly;
                 var moduleBeingBuilt = compilation.CheckOptionsAndCreateModuleBuilder(
                     diagnostics,
                     Arguments.ManifestResources,
@@ -1335,7 +1339,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         success = compilation.CompileMethods(
                             moduleBeingBuilt,
-                            Arguments.EmitPdb,
+                            emitPdb,
                             diagnostics,
                             filterOpt: null,
                             cancellationToken: cancellationToken);
@@ -1454,7 +1458,7 @@ namespace Microsoft.CodeAnalysis
                     if (success)
                     {
                         var peStreamProvider = new CompilerEmitStreamProvider(this, finalPeFilePath);
-                        var pdbStreamProviderOpt = Arguments.EmitPdbFile ? new CompilerEmitStreamProvider(this, finalPdbFilePath) : null;
+                        var pdbStreamProviderOpt = emitPdb && Arguments.EmitPdbFile ? new CompilerEmitStreamProvider(this, finalPdbFilePath) : null;
 
                         string? finalRefPeFilePath = Arguments.OutputRefFilePath;
                         var refPeStreamProviderOpt = finalRefPeFilePath != null ? new CompilerEmitStreamProvider(this, finalRefPeFilePath) : null;
@@ -1778,6 +1782,20 @@ namespace Microsoft.CodeAnalysis
         {
             cacheState = null;
             return null;
+        }
+
+        /// <summary>
+        /// Notifies the compiler that compilation and emit are about to begin.
+        /// </summary>
+        protected virtual void OnCompilationStarted()
+        {
+        }
+
+        /// <summary>
+        /// Notifies the compiler that compilation and emit have completed.
+        /// </summary>
+        protected virtual void OnCompilationCompleted(bool succeeded)
+        {
         }
 
         /// <summary>

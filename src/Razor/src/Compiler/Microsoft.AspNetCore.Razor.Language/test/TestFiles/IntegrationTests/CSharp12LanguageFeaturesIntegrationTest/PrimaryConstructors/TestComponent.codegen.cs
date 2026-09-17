@@ -19,18 +19,6 @@ namespace Test
         {
         }
         #pragma warning restore 1998
-#nullable restore
-#line (1,8)-(6,1) "x:\dir\subdir\Test\TestComponent.razor"
-
-    public class Person(string name)
-    {
-        public string Name => name;
-    }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

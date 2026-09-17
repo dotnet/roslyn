@@ -9,5 +9,3 @@
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 CSharpCode - (2:0,2 [79] x:\dir\subdir\Test\TestComponent.razor)
                     LazyIntermediateToken - (2:0,2 [79] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n    var counter = new Counter();\n    counter += 1;\n    _ = counter.Value;\n
-            CSharpCode - (93:6,7 [191] x:\dir\subdir\Test\TestComponent.razor)
-                LazyIntermediateToken - (93:6,7 [191] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n    public class Counter\n    {\n        public int Value { get; private set; }\n    \n        public void operator +=(int value)\n        {\n            Value += value;\n        }\n    }\n

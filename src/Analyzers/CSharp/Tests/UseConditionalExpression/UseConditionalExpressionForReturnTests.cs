@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseConditionalExpression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -15,6 +16,10 @@ using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpression;
+
+using VerifyCS = CSharpCodeFixVerifier<
+    CSharpUseConditionalExpressionForReturnDiagnosticAnalyzer,
+    CSharpUseConditionalExpressionForReturnCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
 public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper logger)
@@ -2372,5 +2377,62 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
             	bool ThisMethodNameIsVeryLongForTestingWithManyWords(out int x) { x = 0; return true; }
             }
             """, new TestParameters(options: Option(FormattingOptions2.UseTabs, true)));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71403")]
+    public async Task TestGlobalStatements()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                int x = 0;
+
+                [|if|] (x > 0)
+                {
+                    return 1;
+                }
+                else
+                {
+                    return 0;
+                }
+                """,
+            FixedCode = """
+                int x = 0;
+
+                return x > 0 ? 1 : 0;
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = {
+                OutputKind = OutputKind.ConsoleApplication,
+            }
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71403")]
+    public async Task TestGlobalStatementsWithFollowingReturn()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                int x = 0;
+
+                [|if|] (x > 0)
+                {
+                    return 1;
+                }
+
+                return 0;
+                """,
+            FixedCode = """
+                int x = 0;
+
+                return x > 0 ? 1 : 0;
+
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = {
+                OutputKind = OutputKind.ConsoleApplication,
+            }
+        }.RunAsync();
     }
 }

@@ -43,7 +43,10 @@
   </ItemGroup>
 
   <ItemGroup Label="Shared runtime host helper">
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\EnvironmentExtensions.cs" LinkBase="Shared" />
+    <Compile Include="..\..\Compilers\Shared\IBuildEnvironment.cs" LinkBase="Shared" />
     <Compile Include="..\..\Compilers\Shared\RuntimeHostInfo.cs" LinkBase="Shared" />
+    <Compile Include="..\..\Compilers\Shared\StandardBuildEnvironment.cs" LinkBase="Shared" />
   </ItemGroup>
 
   <!--

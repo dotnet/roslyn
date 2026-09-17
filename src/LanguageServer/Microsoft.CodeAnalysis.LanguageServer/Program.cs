@@ -8,11 +8,11 @@ using System.IO.Pipes;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
+using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using RoslynLog = Microsoft.CodeAnalysis.Internal.Log;
@@ -128,9 +128,12 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
         Directory.CreateDirectory(serverConfiguration.ExtensionLogDirectory);
     }
 
-    // Initialize the fault handler if it's available
-    var telemetryReporter = exportProvider.GetExports<ITelemetryReporter>().SingleOrDefault()?.Value;
-    RoslynLogger.Initialize(telemetryReporter, serverConfiguration.TelemetryLevel, serverConfiguration.SessionId);
+    var telemetryLevel = LanguageServerTelemetry.GetTelemetryLevel(serverConfiguration);
+    if (telemetryLevel is not null)
+    {
+        var telemetryService = exportProvider.GetExportedValue<LanguageServerTelemetry>();
+        telemetryService.InitializeSession(telemetryLevel, serverConfiguration.SessionId, isDefaultSession: true);
+    }
 
     // Build the connection source for the configured mode. Single-server mode (stdio / connect-out pipe) yields
     // exactly one connection; daemon mode accepts many and manages its own idle timeout. Both run through the same
@@ -187,17 +190,9 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
     logger.LogInformation("Language server initialized");
     RoslynLog.Logger.Log(RoslynLog.FunctionId.VSCode_LanguageServer_Started, logLevel: RoslynLog.LogLevel.Information);
 
-    try
+    using (connectionSource as IDisposable)
     {
-        using (connectionSource as IDisposable)
-        {
-            await connectionManager.RunAsync(connectionSource, exportProvider, typeRefResolver, logger, cancellationToken);
-        }
-    }
-    finally
-    {
-        // After the LSP server shutdown, report session wide telemetry
-        RoslynLogger.ShutdownAndReportSessionTelemetry();
+        await connectionManager.RunAsync(connectionSource, exportProvider, typeRefResolver, logger, cancellationToken);
     }
 
     return ServerExitCodes.Success;

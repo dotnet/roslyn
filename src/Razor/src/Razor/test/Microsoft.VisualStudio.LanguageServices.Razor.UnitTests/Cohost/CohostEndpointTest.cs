@@ -111,7 +111,7 @@ public class CohostEndpointTest(ITestOutputHelper testOutputHelper) : ToolingTes
 
         foreach (var endpoint in providers)
         {
-            if (endpoint is CohostSemanticTokensRegistration)
+            if (endpoint is CohostSemanticTokensRangeEndpoint)
             {
                 // We can't currently test this, as the GetRegistrations method calls requestContext.GetRequiredService
                 // and we can't create a request context ourselves

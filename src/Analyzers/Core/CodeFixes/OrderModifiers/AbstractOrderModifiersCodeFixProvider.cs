@@ -74,6 +74,8 @@ internal abstract class AbstractOrderModifiersCodeFixProvider(
             => GetOrder(t1) - GetOrder(t2);
 
         int GetOrder(SyntaxToken token)
-            => preferredOrder.TryGetValue(token.RawKind, out var value) ? value : int.MaxValue;
+            // Keep unconfigured modifiers after configured modifiers, but before any modifier
+            // that the language helper explicitly requires to be last.
+            => preferredOrder.TryGetValue(token.RawKind, out var value) ? value : int.MaxValue - 1;
     }
 }

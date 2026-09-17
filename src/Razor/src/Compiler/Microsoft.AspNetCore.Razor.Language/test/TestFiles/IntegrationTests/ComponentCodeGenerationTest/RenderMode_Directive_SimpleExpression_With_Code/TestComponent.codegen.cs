@@ -20,16 +20,6 @@ namespace Test
         {
         }
         #pragma warning restore 1998
-#nullable restore
-#line (4,2)-(7,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    [Parameter]
-    public int Count { get; set; }
-
-#line default
-#line hidden
-#nullable disable
-
         private sealed class __PrivateComponentRenderModeAttribute : global::Microsoft.AspNetCore.Components.RenderModeAttribute
         {
             private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl => 

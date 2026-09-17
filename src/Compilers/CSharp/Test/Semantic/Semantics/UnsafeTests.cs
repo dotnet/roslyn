@@ -870,11 +870,11 @@ unsafe class C
                 }
                 """;
 
-            // https://github.com/dotnet/roslyn/issues/73280 - these should ideally be langversion errors
+            // https://github.com/dotnet/roslyn/issues/73280 - these should ideally be langversion errors for 'ref and unsafe in async and iterator methods'
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (8,31): error CS4004: Cannot await in an unsafe context
+                // (8,31): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var lam = async () => await Task.Yield();
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(8, 31));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("updated memory safety rules").WithLocation(8, 31));
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
@@ -897,11 +897,11 @@ unsafe class C
                 }
                 """;
 
-            // https://github.com/dotnet/roslyn/issues/73280 - these should ideally be langversion errors
+            // https://github.com/dotnet/roslyn/issues/73280 - these should ideally be langversion errors for 'ref and unsafe in async and iterator methods'
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (9,30): error CS4004: Cannot await in an unsafe context
+                // (9,30): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         async void local() { await Task.Yield(); }
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(9, 30));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("updated memory safety rules").WithLocation(9, 30));
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();

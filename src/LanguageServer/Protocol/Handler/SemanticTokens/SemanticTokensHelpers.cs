@@ -29,7 +29,7 @@ internal static class SemanticTokensHelpers
         RequestContext context,
         CancellationToken cancellationToken)
     {
-        var contextDocument = context.GetRequiredDocument();
+        var contextDocument = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         // If the client didn't provide any ranges, we'll just return the entire document.
         var text = await contextDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);

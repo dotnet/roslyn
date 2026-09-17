@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 
         private static int MainCore(string[] args)
         {
-            using var logger = new CompilerServerLogger($"vbc {Process.GetCurrentProcess().Id}");
+            using var logger = new CompilerServerLogger($"vbc {Process.GetCurrentProcess().Id}", StandardBuildEnvironment.Instance);
 
 #if BOOTSTRAP
             ExitingTraceListener.Install(logger);

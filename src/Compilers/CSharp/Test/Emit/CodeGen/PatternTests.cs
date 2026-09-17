@@ -5505,23 +5505,18 @@ class C
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.M1", """
 {
-  // Code size       26 (0x1a)
-  .maxstack  1
-  .locals init (bool V_0)
+  // Code size       21 (0x15)
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  isinst     "int"
-  IL_0006:  brtrue.s   IL_0012
+  IL_0006:  brtrue.s   IL_0013
   IL_0008:  ldarg.0
   IL_0009:  isinst     "long"
-  IL_000e:  brtrue.s   IL_0012
-  IL_0010:  br.s       IL_0016
-  IL_0012:  ldc.i4.1
-  IL_0013:  stloc.0
-  IL_0014:  br.s       IL_0018
-  IL_0016:  ldc.i4.0
-  IL_0017:  stloc.0
-  IL_0018:  ldloc.0
-  IL_0019:  ret
+  IL_000e:  ldnull
+  IL_000f:  cgt.un
+  IL_0011:  br.s       IL_0014
+  IL_0013:  ldc.i4.1
+  IL_0014:  ret
 }
 """);
             compVerifier.VerifyIL("C.M2", """
@@ -5546,22 +5541,18 @@ class C
             compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.M1", """
 {
-  // Code size       24 (0x18)
-  .maxstack  1
-  .locals init (bool V_0)
+  // Code size       20 (0x14)
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  isinst     "int"
-  IL_0006:  brtrue.s   IL_0010
+  IL_0006:  brtrue.s   IL_0012
   IL_0008:  ldarg.0
   IL_0009:  isinst     "long"
-  IL_000e:  brfalse.s  IL_0014
-  IL_0010:  ldc.i4.1
-  IL_0011:  stloc.0
-  IL_0012:  br.s       IL_0016
-  IL_0014:  ldc.i4.0
-  IL_0015:  stloc.0
-  IL_0016:  ldloc.0
-  IL_0017:  ret
+  IL_000e:  ldnull
+  IL_000f:  cgt.un
+  IL_0011:  ret
+  IL_0012:  ldc.i4.1
+  IL_0013:  ret
 }
 """);
             compVerifier.VerifyIL("C.M2", @"
@@ -5605,27 +5596,18 @@ class C
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.M1", """
 {
-  // Code size       40 (0x28)
+  // Code size       29 (0x1d)
   .maxstack  1
-  .locals init (bool V_0)
   IL_0000:  ldarg.0
   IL_0001:  isinst     "int"
-  IL_0006:  brtrue.s   IL_0012
+  IL_0006:  brtrue.s   IL_0017
   IL_0008:  ldarg.0
   IL_0009:  isinst     "long"
-  IL_000e:  brtrue.s   IL_0012
-  IL_0010:  br.s       IL_0016
-  IL_0012:  ldc.i4.1
-  IL_0013:  stloc.0
-  IL_0014:  br.s       IL_0018
-  IL_0016:  ldc.i4.0
-  IL_0017:  stloc.0
-  IL_0018:  ldloc.0
-  IL_0019:  brtrue.s   IL_0022
-  IL_001b:  ldstr      "False"
-  IL_0020:  br.s       IL_0027
-  IL_0022:  ldstr      "True"
-  IL_0027:  ret
+  IL_000e:  brtrue.s   IL_0017
+  IL_0010:  ldstr      "False"
+  IL_0015:  br.s       IL_001c
+  IL_0017:  ldstr      "True"
+  IL_001c:  ret
 }
 """);
             compVerifier.VerifyIL("C.M2", """
@@ -5650,26 +5632,18 @@ class C
             compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.M1", """
 {
-  // Code size       37 (0x25)
+  // Code size       28 (0x1c)
   .maxstack  1
-  .locals init (bool V_0)
   IL_0000:  ldarg.0
   IL_0001:  isinst     "int"
-  IL_0006:  brtrue.s   IL_0010
+  IL_0006:  brtrue.s   IL_0016
   IL_0008:  ldarg.0
   IL_0009:  isinst     "long"
-  IL_000e:  brfalse.s  IL_0014
-  IL_0010:  ldc.i4.1
-  IL_0011:  stloc.0
-  IL_0012:  br.s       IL_0016
-  IL_0014:  ldc.i4.0
-  IL_0015:  stloc.0
-  IL_0016:  ldloc.0
-  IL_0017:  brtrue.s   IL_001f
-  IL_0019:  ldstr      "False"
-  IL_001e:  ret
-  IL_001f:  ldstr      "True"
-  IL_0024:  ret
+  IL_000e:  brtrue.s   IL_0016
+  IL_0010:  ldstr      "False"
+  IL_0015:  ret
+  IL_0016:  ldstr      "True"
+  IL_001b:  ret
 }
 """);
             compVerifier.VerifyIL("C.M2", @"
@@ -6155,6 +6129,276 @@ class C
       IL_0017:  ret
     }
 ");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80052")]
+        public void IsPatternDisjunct_OrPatternInAndExpression()
+        {
+            var source = """
+                using System;
+
+                class C
+                {
+                    static bool M1(int x, char c) => x > 0 && c is '/' or '\\';
+                    static bool M2(int x, char c) => x > 0 && (c == '/' || c == '\\');
+
+                    public static void Main()
+                    {
+                        Console.Write(M1(1, '/'));
+                        Console.Write(M1(1, '\\'));
+                        Console.Write(M1(1, 'a'));
+                        Console.Write(M1(0, '/'));
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "TrueTrueFalseFalse", options: TestOptions.ReleaseExe);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M1", """
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ble.s      IL_0011
+  IL_0004:  ldarg.1
+  IL_0005:  ldc.i4.s   47
+  IL_0007:  beq.s      IL_000f
+  IL_0009:  ldarg.1
+  IL_000a:  ldc.i4.s   92
+  IL_000c:  ceq
+  IL_000e:  ret
+  IL_000f:  ldc.i4.1
+  IL_0010:  ret
+  IL_0011:  ldc.i4.0
+  IL_0012:  ret
+}
+""");
+            verifier.VerifyIL("C.M2", """
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ble.s      IL_0011
+  IL_0004:  ldarg.1
+  IL_0005:  ldc.i4.s   47
+  IL_0007:  beq.s      IL_000f
+  IL_0009:  ldarg.1
+  IL_000a:  ldc.i4.s   92
+  IL_000c:  ceq
+  IL_000e:  ret
+  IL_000f:  ldc.i4.1
+  IL_0010:  ret
+  IL_0011:  ldc.i4.0
+  IL_0012:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80052")]
+        public void IsPatternDisjunct_InvertedLinearSequenceThreshold()
+        {
+            var source = """
+                using System;
+
+                class C
+                {
+                    static bool Pattern2(byte value) => value is not ((byte)'E' or (byte)'e');
+                    static bool Comparison2(byte value) => value != 'E' && value != 'e';
+
+                    static bool Pattern3(byte value) => value is not ((byte)'.' or (byte)'E' or (byte)'e');
+                    static bool Comparison3(byte value) => value != '.' && value != 'E' && value != 'e';
+
+                    static bool Pattern4(byte value) => value is not (1 or 3 or 4 or 6);
+                    static bool Comparison4(byte value) => value != 1 && value != 3 && value != 4 && value != 6;
+
+                    static bool Pattern5(byte value) => value is not (1 or 3 or 4 or 6 or 7);
+
+                    public static void Main()
+                    {
+                        foreach (byte value in new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, (byte)'.', (byte)'E', (byte)'e' })
+                        {
+                            if (Pattern2(value) != Comparison2(value) ||
+                                Pattern3(value) != Comparison3(value) ||
+                                Pattern4(value) != Comparison4(value))
+                            {
+                                throw new Exception();
+                            }
+                        }
+
+                        Console.Write(Pattern5(0));
+                        Console.Write(Pattern5(3));
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "TrueFalse", options: TestOptions.ReleaseExe);
+            verifier.VerifyDiagnostics();
+
+            var expectedIL = """
+                {
+                  // Code size       16 (0x10)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.s   69
+                  IL_0003:  beq.s      IL_000e
+                  IL_0005:  ldarg.0
+                  IL_0006:  ldc.i4.s   101
+                  IL_0008:  ceq
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  ceq
+                  IL_000d:  ret
+                  IL_000e:  ldc.i4.0
+                  IL_000f:  ret
+                }
+                """;
+            verifier.VerifyIL("C.Comparison2", expectedIL);
+            verifier.VerifyIL("C.Pattern2", expectedIL);
+
+            expectedIL = """
+                {
+                  // Code size       21 (0x15)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.s   46
+                  IL_0003:  beq.s      IL_0013
+                  IL_0005:  ldarg.0
+                  IL_0006:  ldc.i4.s   69
+                  IL_0008:  beq.s      IL_0013
+                  IL_000a:  ldarg.0
+                  IL_000b:  ldc.i4.s   101
+                  IL_000d:  ceq
+                  IL_000f:  ldc.i4.0
+                  IL_0010:  ceq
+                  IL_0012:  ret
+                  IL_0013:  ldc.i4.0
+                  IL_0014:  ret
+                }
+                """;
+
+            verifier.VerifyIL("C.Comparison3", expectedIL);
+            verifier.VerifyIL("C.Pattern3", expectedIL);
+
+            verifier.VerifyIL("C.Comparison4", """
+                {
+                  // Code size       22 (0x16)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.1
+                  IL_0002:  beq.s      IL_0014
+                  IL_0004:  ldarg.0
+                  IL_0005:  ldc.i4.3
+                  IL_0006:  beq.s      IL_0014
+                  IL_0008:  ldarg.0
+                  IL_0009:  ldc.i4.4
+                  IL_000a:  beq.s      IL_0014
+                  IL_000c:  ldarg.0
+                  IL_000d:  ldc.i4.6
+                  IL_000e:  ceq
+                  IL_0010:  ldc.i4.0
+                  IL_0011:  ceq
+                  IL_0013:  ret
+                  IL_0014:  ldc.i4.0
+                  IL_0015:  ret
+                }
+                """);
+
+            verifier.VerifyIL("C.Pattern4", """
+                {
+                  // Code size       45 (0x2d)
+                  .maxstack  2
+                  .locals init (bool V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.1
+                  IL_0002:  sub
+                  IL_0003:  switch    (
+                        IL_0022,
+                        IL_0026,
+                        IL_0022,
+                        IL_0022,
+                        IL_0026,
+                        IL_0022)
+                  IL_0020:  br.s       IL_0026
+                  IL_0022:  ldc.i4.1
+                  IL_0023:  stloc.0
+                  IL_0024:  br.s       IL_0028
+                  IL_0026:  ldc.i4.0
+                  IL_0027:  stloc.0
+                  IL_0028:  ldloc.0
+                  IL_0029:  ldc.i4.0
+                  IL_002a:  ceq
+                  IL_002c:  ret
+                }
+                """);
+
+            verifier.VerifyIL("C.Pattern5", """
+                {
+                  // Code size       49 (0x31)
+                  .maxstack  2
+                  .locals init (bool V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.1
+                  IL_0002:  sub
+                  IL_0003:  switch    (
+                        IL_0026,
+                        IL_002a,
+                        IL_0026,
+                        IL_0026,
+                        IL_002a,
+                        IL_0026,
+                        IL_0026)
+                  IL_0024:  br.s       IL_002a
+                  IL_0026:  ldc.i4.1
+                  IL_0027:  stloc.0
+                  IL_0028:  br.s       IL_002c
+                  IL_002a:  ldc.i4.0
+                  IL_002b:  stloc.0
+                  IL_002c:  ldloc.0
+                  IL_002d:  ldc.i4.0
+                  IL_002e:  ceq
+                  IL_0030:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80052")]
+        public void IsPatternDisjunct_WithBinding()
+        {
+            var source = """
+                using System;
+
+                class A
+                {
+                    public A(int value) => Value = value;
+                    public int Value { get; }
+                }
+
+                sealed class B : A
+                {
+                    public B(int value) : base(value)
+                    {
+                    }
+                }
+
+                sealed class C : A
+                {
+                    public C(int value) : base(value)
+                    {
+                    }
+                }
+
+                class Program
+                {
+                    static int M(A value) => value is (B or C) and var match ? match.Value : -1;
+
+                    public static void Main()
+                    {
+                        Console.Write(M(new B(1)));
+                        Console.Write(M(new C(2)));
+                        Console.Write(M(new A(3)));
+                    }
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: "12-1", options: TestOptions.ReleaseExe).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(46536, "https://github.com/dotnet/roslyn/issues/46536")]

@@ -38,15 +38,6 @@ Gutter
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (1,8)-(3,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    [Parameter] public (int Horizontal, int Vertical) Gutter { get; set; }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

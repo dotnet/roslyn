@@ -32,6 +32,7 @@ internal sealed partial class TestDiscoverer(ILoggerFactory loggerFactory)
         string? runSettings,
         BufferedProgress<RunTestsPartialResult> progress,
         VsTestConsoleWrapper vsTestConsoleWrapper,
+        bool useSemanticTestDiscovery,
         CancellationToken cancellationToken)
     {
         var partialResult = new RunTestsPartialResult(LanguageServerResources.Discovering_tests, $"{Environment.NewLine}{LanguageServerResources.Starting_test_discovery}", Progress: null);
@@ -40,7 +41,7 @@ internal sealed partial class TestDiscoverer(ILoggerFactory loggerFactory)
         var testMethodFinder = document.GetRequiredLanguageService<ITestMethodFinder>();
 
         // Find any potential test methods (based on attributes) that exist in the input range.
-        var potentialTestMethods = await GetPotentialTestMethodsAsync(range, document, testMethodFinder, cancellationToken);
+        var potentialTestMethods = await GetPotentialTestMethodsAsync(range, document, testMethodFinder, useSemanticTestDiscovery, cancellationToken);
         if (potentialTestMethods.IsEmpty)
         {
             progress.Report(partialResult with { Message = LanguageServerResources.No_test_methods_found_in_requested_range });
@@ -71,11 +72,17 @@ internal sealed partial class TestDiscoverer(ILoggerFactory loggerFactory)
 
         return matchedTests;
 
-        async Task<ImmutableArray<SyntaxNode>> GetPotentialTestMethodsAsync(LSP.Range range, Document document, ITestMethodFinder testMethodFinder, CancellationToken cancellationToken)
+        async Task<ImmutableArray<SyntaxNode>> GetPotentialTestMethodsAsync(
+            LSP.Range range,
+            Document document,
+            ITestMethodFinder testMethodFinder,
+            bool useSemanticTestDiscovery,
+            CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken);
             var textSpan = ProtocolConversions.RangeToTextSpan(range, text);
-            var potentialTestMethods = await testMethodFinder.GetPotentialTestMethodsAsync(document, textSpan, cancellationToken);
+            var potentialTestMethods = await testMethodFinder.GetPotentialTestMethodsAsync(
+                document, textSpan, useSemanticTestDiscovery, cancellationToken);
             _logger.LogDebug(message: $"Potential test methods in range: {string.Join(Environment.NewLine, potentialTestMethods)}");
             return potentialTestMethods;
         }

@@ -51,7 +51,7 @@ internal abstract class AbstractSpellCheckHandler<TParams, TReport>
     /// <summary>
     /// Returns all the documents that should be processed in the desired order to process them in.
     /// </summary>
-    protected abstract ImmutableArray<Document> GetOrderedDocuments(RequestContext context, CancellationToken cancellationToken);
+    protected abstract ValueTask<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, CancellationToken cancellationToken);
 
     /// <summary>
     /// Creates the <see cref="VSInternalSpellCheckableRangeReport"/> instance we'll report back to clients to let them know our
@@ -83,7 +83,7 @@ internal abstract class AbstractSpellCheckHandler<TParams, TReport>
 
         // Next process each file in priority order. Determine if spans are changed or unchanged since the
         // last time we notified the client.  Report back either to the client so they can update accordingly.
-        var orderedDocuments = GetOrderedDocuments(context, cancellationToken);
+        var orderedDocuments = await GetOrderedDocumentsAsync(context, cancellationToken).ConfigureAwait(false);
         context.TraceDebug($"Processing {orderedDocuments.Length} documents");
 
         foreach (var document in orderedDocuments)
@@ -135,14 +135,14 @@ internal abstract class AbstractSpellCheckHandler<TParams, TReport>
     private static async Task<Dictionary<Document, PreviousPullResult>> GetDocumentToPreviousParamsAsync(
         RequestContext context, ImmutableArray<PreviousPullResult> previousResults, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(context.Solution);
+        var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
 
         var result = new Dictionary<Document, PreviousPullResult>();
         foreach (var requestParams in previousResults)
         {
             if (requestParams.TextDocument != null)
             {
-                var document = await context.Solution.GetDocumentAsync(requestParams.TextDocument, cancellationToken).ConfigureAwait(false);
+                var document = await solution.GetDocumentAsync(requestParams.TextDocument, cancellationToken).ConfigureAwait(false);
                 if (document != null)
                     result[document] = requestParams;
             }
@@ -202,14 +202,14 @@ internal abstract class AbstractSpellCheckHandler<TParams, TReport>
     private async Task HandleRemovedDocumentsAsync(
         RequestContext context, ImmutableArray<PreviousPullResult> previousResults, BufferedProgress<TReport[]> progress, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(context.Solution);
+        var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
 
         foreach (var previousResult in previousResults)
         {
             var textDocument = previousResult.TextDocument;
             if (textDocument != null)
             {
-                var document = await context.Solution.GetTextDocumentAsync(textDocument, cancellationToken).ConfigureAwait(false);
+                var document = await solution.GetTextDocumentAsync(textDocument, cancellationToken).ConfigureAwait(false);
                 if (document == null)
                 {
                     context.TraceDebug($"Clearing spans for removed document: {textDocument.DocumentUri}");

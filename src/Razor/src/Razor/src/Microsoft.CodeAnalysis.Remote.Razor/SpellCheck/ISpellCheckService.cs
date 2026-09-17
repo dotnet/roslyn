@@ -9,5 +9,5 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.SpellCheck;
 
 internal interface ISpellCheckService
 {
-    Task<int[]> GetSpellCheckRangeTriplesAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken);
+    Task<int[]> GetSpellCheckRangeTriplesAsync(RemoteDocumentSnapshot documentSnapshot, CancellationToken cancellationToken);
 }

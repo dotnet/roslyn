@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing;
 
 public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingTests(output)
 {
-    public static readonly TheoryData<LanguageVersion> CollectionArgumentsLanguageVersions = new([LanguageVersion.CSharp14, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext]);
+    public static readonly TheoryData<LanguageVersion> CollectionArgumentsLanguageVersions = new([LanguageVersion.CSharp14, LanguageVersion.Preview, LanguageVersion.CSharp15]);
 
     [Fact]
     public void TestSyntaxFacts()

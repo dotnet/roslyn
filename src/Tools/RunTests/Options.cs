@@ -76,7 +76,7 @@ namespace RunTests
         public bool Sequential { get; set; }
 
         /// <summary>
-        /// Whether to run test partitions as Helix work items.
+        /// Whether to submit test partitions as Helix work items for the external job monitor.
         /// </summary>
         public bool UseHelix { get; set; }
 
@@ -113,8 +113,6 @@ namespace RunTests
         public string? ProjectUri { get; set; }
 
         public string? PipelineDefinitionId { get; set; }
-
-        public string? PhaseName { get; set; }
 
         public string? TargetBranchName { get; set; }
 
@@ -158,7 +156,6 @@ namespace RunTests
             string? accessToken = null;
             string? projectUri = null;
             string? pipelineDefinitionId = null;
-            string? phaseName = null;
             string? targetBranchName = null;
             var optionSet = new OptionSet()
             {
@@ -170,7 +167,7 @@ namespace RunTests
                 { "arch=", "Architecture to test on: x86, x64 or arm64", s => architecture = s },
                 { "html", "Include HTML file output", o => includeHtml = o is object },
                 { "sequential", "Run tests sequentially", o => sequential = o is object },
-                { "helix", "Run tests on Helix", o => helix = o is object },
+                { "helix", "Submit tests to Helix for the external job monitor", o => helix = o is object },
                 { "helixQueueName=", "Name of the Helix queue to run tests on", s => helixQueueName = s },
                 { "helixApiAccessToken=", "Access token for internal helix queues", s => helixApiAccessToken = s },
                 { "testfilter=", "xUnit string to pass to --filter, e.g. FullyQualifiedName~TestClass1|Category=CategoryA", s => testFilter = s },
@@ -184,7 +181,6 @@ namespace RunTests
                 { "accessToken=", "Pipeline access token with permissions to view test history", s => accessToken = s },
                 { "projectUri=", "ADO project containing the pipeline", s => projectUri = s },
                 { "pipelineDefinitionId=", "Pipeline definition id", s => pipelineDefinitionId = s },
-                { "phaseName=", "Pipeline phase name associated with this test run", s => phaseName = s },
                 { "targetBranchName=", "Target branch of this pipeline run", s => targetBranchName = s },
             };
 
@@ -254,7 +250,6 @@ namespace RunTests
                 AccessToken = accessToken,
                 ProjectUri = projectUri,
                 PipelineDefinitionId = pipelineDefinitionId,
-                PhaseName = phaseName,
                 TargetBranchName = targetBranchName,
             };
 
