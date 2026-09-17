@@ -141,12 +141,12 @@ internal sealed class RoslynPackage : AbstractPackage
 
         var hotReloadService = new ManagedHotReloadLanguageService(
             serviceBroker => hotReloadFactory.CreateImplementation(serviceBroker, solutionSnapshotProvider, hostWorkspaceProvider, _sourceTextProvider));
+        
+        _hotReloadService = hotReloadService;
 
         await hotReloadService.InitializeAsync(serviceBroker, cancellationToken).ConfigureAwait(false);
 
         serviceBrokerContainer.Proffer(ManagedHotReloadLanguageServiceFactory.ServiceDescriptor, async (_, _, _, _) => hotReloadService);
-
-        _hotReloadService = hotReloadService;
     }
 
     protected override async Task LoadComponentsInBackgroundAfterSolutionFullyLoadedAsync(CancellationToken cancellationToken)
