@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 internal sealed class LanguageServerTelemetry : IDisposable
 {
     internal const string DaemonSessionIdPropertyName = "vs.roslyn.languageserver.daemonsessionid";
+    internal const string HostModePropertyName = "vs.roslyn.languageserver.hostmode";
 
     /// <summary>
     /// Collector key used by C# Dev Kit to send language server telemetry to the VS Code cluster.
@@ -103,6 +104,8 @@ internal sealed class LanguageServerTelemetry : IDisposable
 
         if (daemonSessionId is not null)
             Contract.ThrowIfFalse(session.TryAddCommonProperty(DaemonSessionIdPropertyName, daemonSessionId));
+        else
+            Contract.ThrowIfFalse(session.TryAddCommonProperty(HostModePropertyName, _serverConfiguration.IsDaemon ? "Daemon" : "Standalone"));
 
         if (isDefaultSession)
             VisualStudio.Telemetry.TelemetryService.SetDefaultSession(session);
