@@ -10,11 +10,14 @@ description: >-
   or the analysis comment was dismissed.
 
 on:
-  slash_command:
-    name: analyze-build-failure
-    events: [pull_request_comment]
+  # Parse command position once in fetch-binlog. The slash_command trigger's
+  # generated activation predicate does not accept all JavaScript whitespace.
+  issue_comment:
+    types: [created, edited]
   roles: [admin, maintainer, write]
   reaction: "eyes"
+  # Keep the run-link and completion status for explicit comment events.
+  status-comment: true
   # Gate the AI pipeline on the fetch job so the agent only runs when a binlog
   # was actually retrieved from a failed Azure DevOps build.
   needs: [fetch-binlog]
@@ -42,10 +45,13 @@ concurrency:
   # workflows cancel each other for the same PR: a newly failing build would
   # kill an on-demand analysis a maintainer had just asked for. Command-like
   # invocations for a PR are serialized instead of canceling an active run.
-  # Unrelated comments get a run-unique group; slash-command authorization
-  # runs only after concurrency is evaluated.
-  group: ${{ (github.event.comment.body == '/analyze-build-failure' || startsWith(github.event.comment.body, '/analyze-build-failure ') || startsWith(github.event.comment.body, format('/analyze-build-failure{0}', fromJSON('"\n"')))) && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) && format('build-failure-analysis-cmd-{0}', github.event.issue.number) || format('build-failure-analysis-cmd-run-{0}', github.run_id) }}
+  # Concurrency runs before the exact command/permission check. This is only
+  # a coarse filter, not another command-position parser. Most unrelated
+  # comments get a run-unique group; queue: max ensures even a quoted/embedded
+  # command in a trusted comment cannot evict a pending real command.
+  group: ${{ github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.comment.body, '/analyze-build-failure') && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) && format('build-failure-analysis-cmd-{0}', github.event.issue.number) || format('build-failure-analysis-cmd-run-{0}', github.run_id) }}
   cancel-in-progress: false
+  queue: max
 
 timeout-minutes: 30
 
@@ -53,6 +59,8 @@ network:
   allowed:
     - defaults
     - dotnet
+    # Also preserves Azure build links in sanitized safe outputs.
+    - dev.azure.com
 
 imports:
   - shared/build-failure-analysis-shared.md
@@ -77,19 +85,20 @@ jobs:
   fetch-binlog:
     name: Fetch binlogs (Azure Pipelines)
     # Cheap pre-gate. This job is a dependency of gh-aw's `pre_activation`, so
-    # it runs BEFORE the authoritative role and command-position check; without
+    # it runs BEFORE the generated role check; without
     # a guard any commenter could make it download hundreds of MB on every
     # comment. It is deliberately an over-approximation — `contains()` is the
     # only substring test available in an `if:` — and the first step of the job
-    # narrows it to gh-aw's real rules before anything is downloaded.
+    # applies the exact command-position and permission rules before any
+    # checkout or download. Activation depends only on the resulting fetch.
     #
     # KEEP IN SYNC with `roles:` above: the author_association list here and the
     # permission step below restate that policy by hand, because only
     # `pre_activation` is generated from the frontmatter.
     #
-    # `github.event.issue.pull_request` is what keeps plain issue comments out;
-    # gh-aw emits no such filter of its own despite `pull_request_comment`.
+    # `github.event.issue.pull_request` keeps plain issue comments out.
     if: >-
+      github.event_name == 'issue_comment' &&
       github.event.repository.fork == false &&
       github.event.issue.pull_request &&
       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) &&
@@ -118,7 +127,6 @@ jobs:
       # `maintainer` while inheriting read would pass.
       - name: Verify the comment invokes the command and the commenter has write access
         id: perm
-        if: github.event_name == 'issue_comment'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -128,18 +136,18 @@ jobs:
         run: |
           set +e
           # --- 1. Command position (free; do this before the API call) ------
-          # gh-aw trims the body and requires the command to be the FIRST token
-          # (`/^\/([a-zA-Z0-9][a-zA-Z0-9._-]*)(?=$|\s)/`), but that check runs
-          # after this job by construction, so reproduce it here. `awk 'NF
-          # {print $1; exit}'` is the same rule, and `tr -d '\r'` is needed
-          # because JS treats CR as whitespace while awk's field splitting does
-          # not. KEEP IN SYNC with `on.slash_command.name`.
-          first_word=$(printf '%s' "${COMMENT_BODY}" | tr -d '\r' | awk 'NF {print $1; exit}')
-          if [ "${first_word}" != "/${COMMAND_NAME}" ]; then
-            # Never echo the raw token: it is attacker-controlled and `::`-
-            # prefixed text is interpreted by the runner as a workflow command.
-            safe_word=$(printf '%s' "${first_word}" | tr -cd 'A-Za-z0-9/._-' | cut -c1-40)
-            echo "Comment does not start with '/${COMMAND_NAME}' (first token: '${safe_word}'); skipping the binlog download."
+          # Match gh-aw's runtime rule exactly, including trim() and all JS
+          # whitespace. This is the sole command-position predicate; neither
+          # activation nor concurrency duplicates it with startsWith().
+          command_matches=$(node -e '
+            const match = process.env.COMMENT_BODY.trim().match(/^\/([a-zA-Z0-9][a-zA-Z0-9._-]*)(?=$|\s)/);
+            console.log(match?.[1] === process.env.COMMAND_NAME);
+          ') || {
+            echo "::error::Unable to check command position."
+            exit 1
+          }
+          if [ "${command_matches}" != "true" ]; then
+            echo "Comment does not start with '/${COMMAND_NAME}'; skipping the binlog download."
             echo "authorized=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -168,18 +176,20 @@ jobs:
           fi
           echo "authorized=${authorized}" >> "$GITHUB_OUTPUT"
 
-      # Checks out this workflow's own scripts at the event ref, never the PR
-      # head, so no PR-authored code is fetched or run.
+      # issue_comment uses the default-branch workflow. Fetch scripts likewise
+      # come explicitly from that branch, never the PR's base/head or event ref.
+      # See the automatic workflow's trust model for the YAML trust boundary.
       - name: Check out analysis scripts
-        if: github.event_name != 'issue_comment' || steps.perm.outputs.authorized == 'true'
+        if: steps.perm.outputs.authorized == 'true'
         uses: actions/checkout@v7.0.1
         with:
+          ref: refs/heads/${{ github.event.repository.default_branch }}
           sparse-checkout: .github/workflows/scripts
           persist-credentials: false
 
       - name: Download binlogs from the PR's latest failed Azure Pipelines build
         id: fetch
-        if: github.event_name != 'issue_comment' || steps.perm.outputs.authorized == 'true'
+        if: steps.perm.outputs.authorized == 'true'
         shell: bash
         # One wall-clock bound for the whole fetch; see the step below.
         continue-on-error: true
@@ -193,7 +203,7 @@ jobs:
           # No `check_run` payload exists on a slash command, so locate the
           # build by the PR's merge branch instead.
           RESOLVE_MODE: latest
-          PR_NUMBER: ${{ github.event.issue.number || fromJSON(github.event.inputs.aw_context || github.event.client_payload.aw_context || '{}').item_number }}
+          PR_NUMBER: ${{ github.event.issue.number }}
           BINLOG_DIR: /tmp/binlogs
           SCRIPT_DIR: ${{ github.workspace }}/.github/workflows/scripts
         # `dotnet run` evaluates the fetcher as an MSBuild project, so it picks
@@ -276,6 +286,10 @@ steps:
 
 tools:
   github:
+    # Maintainer commands must also read first-time external PRs and revision
+    # metadata. Treat those inputs as untrusted; retain read-only tools and
+    # revision-checked safe outputs bound to the triggering PR.
+    min-integrity: none
     toolsets: [pull_requests, repos]
   bash:
     - "cat"

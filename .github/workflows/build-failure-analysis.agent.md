@@ -19,13 +19,19 @@ description: >-
 # contents, and therefore the agent's own input — is attacker-controlled on any
 # PR. The workflow does not try to make that content trustworthy; it contains
 # the blast radius instead:
-#   * no PR code is built or executed (gh-aw checks out the PR head so the agent
-#     can read the diff, then restores `.agents`, `.github` and `AGENTS.md` from
-#     the base branch, so the agent's own configuration is never PR-controlled);
+#   * no PR code is built or executed; fetch scripts come from the repository
+#     default branch, never the event ref or the PR's base/head ref;
+#   * when gh-aw checks out PR source for reading, it restores `.agents`,
+#     `.github` and `AGENTS.md` from the base branch;
 #   * extraction bounds only where bytes land and how many, in one script;
 #   * the agent job holds no write permission and cannot post anything;
 #   * writes happen in a separate safe-outputs job, restricted to a fixed set of
 #     schema-validated outputs aimed at the PR from the trigger event.
+#
+# This policy trusts the workflow YAML and the repository default branch.
+# Manual dispatches of this version are refused on other refs. A dispatcher
+# deliberately choosing modified YAML can remove that guard; dispatch access
+# and branch protection remain administrative trust boundaries.
 
 on:
   # `check_run` fires for every check on a commit, so `fetch-binlog` filters
@@ -37,7 +43,7 @@ on:
   # (and on `check_run` the actor is the pipeline app anyway). Safe because the
   # agent only reads artifacts and cannot write.
   roles: all
-  # Manual entry point for reruns and testing.
+  # Manual entry point for reruns and testing, from the default branch only.
   workflow_dispatch:
     inputs:
       ado-build-id:
@@ -75,7 +81,7 @@ concurrency:
   # newer analysis supersedes a running one. Every other completed check_run on
   # the PR gets a unique group, so cancel-in-progress can't abort a real
   # analysis.
-  group: ${{ (github.event_name == 'check_run' && github.event.check_run.name == 'roslyn-CI' && format('build-failure-analysis-{0}', github.event.check_run.pull_requests[0].number || github.event.check_run.head_sha)) || (github.event_name == 'workflow_dispatch' && format('build-failure-analysis-{0}', inputs['pr-number'])) || format('build-failure-analysis-run-{0}', github.run_id) }}
+  group: ${{ (github.event_name == 'check_run' && github.event.check_run.name == 'roslyn-CI' && format('build-failure-analysis-{0}', github.event.check_run.pull_requests[0].number || github.event.check_run.head_sha)) || (github.event_name == 'workflow_dispatch' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && format('build-failure-analysis-{0}', inputs['pr-number'])) || format('build-failure-analysis-run-{0}', github.run_id) }}
   cancel-in-progress: true
 
 timeout-minutes: 30
@@ -84,6 +90,8 @@ network:
   allowed:
     - defaults
     - dotnet
+    # Also preserves Azure build links in sanitized safe outputs.
+    - dev.azure.com
 
 imports:
   - shared/build-failure-analysis-shared.md
@@ -114,10 +122,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     # `check_run` fires for every check; only act on the Roslyn PR build check
-    # reporting failure (or a manual dispatch).
+    # reporting failure (or a manual dispatch, whose ref is checked before
+    # checkout). Fork execution is disabled; external contributors' PRs still
+    # run in the upstream repo.
     if: >
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.check_run.name == 'roslyn-CI' && github.event.check_run.conclusion == 'failure')
+      github.event.repository.fork == false &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event_name == 'check_run' &&
+        github.event.check_run.name == 'roslyn-CI' && github.event.check_run.conclusion == 'failure'))
     permissions:
       contents: read
       pull-requests: read
@@ -129,11 +141,26 @@ jobs:
       ado-build-id: ${{ steps.fetch.outputs.ado-build-id }}
       ado-build-url: ${{ steps.fetch.outputs.ado-build-url }}
     steps:
-      # Checks out this workflow's own scripts at the event ref, never the PR
-      # head, so no PR-authored code is fetched or run.
+      # Fail the job before checkout or download. A separate conditional job
+      # would become an agent dependency and skip valid runs when it is skipped.
+      - name: Require the default branch for manual dispatch
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          # Branch names are case-sensitive; Actions expression equality is not.
+          if [ "$GITHUB_REF" != "refs/heads/${DEFAULT_BRANCH}" ]; then
+            echo "::error::Manual build-failure analysis must run from the repository default branch."
+            exit 1
+          fi
+
+      # Fetch scripts always come from the repository default branch, not an
+      # event ref, a user-supplied ref, or the PR's base/head branch.
       - name: Check out analysis scripts
         uses: actions/checkout@v7.0.1
         with:
+          ref: refs/heads/${{ github.event.repository.default_branch }}
           sparse-checkout: .github/workflows/scripts
           persist-credentials: false
 
@@ -242,6 +269,10 @@ steps:
 
 tools:
   github:
+    # First-time external PRs must be readable, including revision metadata.
+    # Treat their content as untrusted, just like binlogs: read-only tools and
+    # revision-checked, target-bound safe outputs are the security boundary.
+    min-integrity: none
     toolsets: [pull_requests, repos]
   bash:
     - "cat"

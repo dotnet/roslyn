@@ -798,8 +798,9 @@ static int RunExtractOnly(string[] extractArgs)
 // names are generated here rather than taken from the archive, so a traversal or
 // absolute path cannot choose where bytes land; writing stops as soon as the
 // remaining budget is exceeded, so a zip bomb cannot fill the runner disk; and
-// the entry and binlog counts are capped, so an archive cannot turn a modest
-// byte budget into millions of filesystem operations.
+// metadata reads, entry counts and binlog counts are capped, so an archive
+// cannot turn a modest byte budget into unbounded metadata allocations or
+// millions of filesystem operations.
 // Paths and types are validated up front because an archive containing a
 // traversal path or a link entry is hostile rather than merely odd, so the whole
 // artifact is rejected instead of partially extracted.
@@ -813,6 +814,7 @@ static class Extractor
     // a handful of binlogs among the leg's logs - is nowhere near them.
     private const int MaxEntries = 65536;
     private const int MaxBinlogs = 256;
+    private const long MaxMetadataBytes = 16 * 1024 * 1024;
 
     public static (int Count, long Written) Extract(
         string archivePath, string destination, string prefix, long budgetBytes, string label)
@@ -820,14 +822,19 @@ static class Extractor
         // Re-sanitize rather than trusting the caller.
         var safeLabel = Sanitize(label);
 
-        using var zip = ZipFile.OpenRead(archivePath);
+        using var archive = File.OpenRead(archivePath);
+        using var metadata = new MetadataReadStream(archive);
+        using var zip = new ZipArchive(metadata, ZipArchiveMode.Read);
 
-        // Refuse an oversized archive before the validation pass below walks it
-        // and before anything is selected or written.
+        // Entries materializes the central directory. Bound the reads used by
+        // .NET's parser itself, rather than trusting ZIP-declared sizes/counts
+        // or implementing a second parser whose interpretation could differ.
         if (zip.Entries.Count > MaxEntries)
         {
             throw new InvalidDataException($"archive holds {zip.Entries.Count} entries, above the {MaxEntries} allowed");
         }
+
+        metadata.CompleteMetadataRead();
 
         for (var i = 0; i < zip.Entries.Count; i++)
         {
@@ -876,6 +883,43 @@ static class Extractor
         }
 
         return (selected.Length, written);
+    }
+
+    private sealed class MetadataReadStream(Stream source) : Stream
+    {
+        private long _remaining = MaxMetadataBytes;
+
+        public void CompleteMetadataRead() => _remaining = long.MaxValue;
+
+        public override bool CanRead => true;
+        public override bool CanSeek => true;
+        public override bool CanWrite => false;
+        public override long Length => source.Length;
+        public override long Position
+        {
+            get => source.Position;
+            set => source.Position = value;
+        }
+
+        public override int Read(byte[] buffer, int offset, int count)
+            => Read(buffer.AsSpan(offset, count));
+
+        public override int Read(Span<byte> buffer)
+        {
+            if (buffer.Length != 0 && _remaining == 0)
+            {
+                throw new InvalidDataException($"archive metadata exceeds the {MaxMetadataBytes}-byte read budget");
+            }
+
+            var read = source.Read(buffer[..(int)Math.Min(buffer.Length, _remaining)]);
+            _remaining -= read;
+            return read;
+        }
+
+        public override long Seek(long offset, SeekOrigin origin) => source.Seek(offset, origin);
+        public override void Flush() { }
+        public override void SetLength(long value) => throw new NotSupportedException();
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
     }
 
     // Maps anything PR-controlled to a conservative set before it reaches a file
