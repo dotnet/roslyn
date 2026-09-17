@@ -182,7 +182,7 @@ internal sealed partial class LoadedProject : IAsyncDisposable
             if (_projectDirectory is null)
                 return [];
 
-            var references = ImmutableHashSet.CreateBuilder(PathUtilities.Comparer);
+            var references = new HashSet<string>(PathUtilities.Comparer);
             foreach (var target in _targets)
             {
                 foreach (var projectReference in target.GetProjectReferences())

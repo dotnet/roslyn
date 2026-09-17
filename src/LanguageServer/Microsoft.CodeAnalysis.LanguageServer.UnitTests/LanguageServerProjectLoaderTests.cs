@@ -184,6 +184,28 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
     }
 
     [Fact]
+    public async Task ProjectReferencePathsAreResolvedAndDeduplicated()
+    {
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var loader = server.GetRequiredLspService<TestProjectLoader>();
+        var directory = TempRoot.CreateDirectory();
+        var projectPath = directory.CreateFile("Root.csproj").Path;
+        var dependencyPath = directory.CreateFile("Dependency.csproj").Path;
+        var otherDependencyPath = directory.CreateFile("Other.csproj").Path;
+        var build = loader.QueueDesignTimeBuild();
+        var project = await loader.BeginLoadAsync(projectPath);
+        await build.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        build.CompleteSuccessfully(
+            loader.WorkspaceFactory.HostProjectFactory, projectPath,
+            references: ["Dependency.csproj", "Dependency.csproj", dependencyPath, "Other.csproj"]);
+        Assert.True(await project.WaitForLoadAsync(CancellationToken.None).AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout));
+
+        var references = await project.GetProjectReferencePathsAsync(CancellationToken.None);
+        Assert.Equal(2, references.Length);
+        AssertEx.SetEqual([dependencyPath, otherDependencyPath], references);
+    }
+
+    [Fact]
     public async Task OnDemandRequestsJoinClosureAfterRootLoads()
     {
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
