@@ -47,7 +47,7 @@ internal sealed class ServiceBrokerFactory : ILspService
     /// <summary>
     /// Creates a service broker instance without connecting via a pipe to another process.
     /// </summary>
-    public async Task<BrokeredServiceContainer> CreateAsync(Workspace workspace)
+    internal async Task<BrokeredServiceContainer> CreateAsync(Workspace workspace)
     {
         var cancellationToken = _cancellationTokenSource.Token;
 
@@ -67,20 +67,7 @@ internal sealed class ServiceBrokerFactory : ILspService
         // Proffer might request dependent remote services from the container,
         // so we need to proffer after the container is set up and services registered.
         foreach (var initializer in _initializers)
-        {
-            await initializer.ProfferAsync(container, cancellationToken).ConfigureAwait(false);
-        }
-
-        foreach (var initializer in _initializers)
-        {
-            try
-            {
-                initializer.OnServiceBrokerInitialized(container.GetFullAccessServiceBroker(), cancellationToken);
-            }
-            catch (Exception)
-            {
-            }
-        }
+            initializer.Proffer(container);
 
         return container;
 
@@ -102,10 +89,26 @@ internal sealed class ServiceBrokerFactory : ILspService
 
     public async Task CreateAndConnectAsync(string brokeredServicePipeName, Workspace workspace)
     {
-        var container = await CreateAsync(workspace);
+        _bridgeCompletionTask = ImplAsync(_cancellationTokenSource.Token);
 
-        var bridgeProvider = _exportProvider.GetExportedValue<BrokeredServiceBridgeProvider>();
-        _bridgeCompletionTask = bridgeProvider.SetupBrokeredServicesBridgeAsync(brokeredServicePipeName, container, _loggerFactory, _cancellationTokenSource.Token);
+        async Task ImplAsync(CancellationToken cancellationToken)
+        {
+            var container = await CreateAsync(workspace);
+
+            var bridgeProvider = _exportProvider.GetExportedValue<BrokeredServiceBridgeProvider>();
+            await bridgeProvider.SetupBrokeredServicesBridgeAsync(brokeredServicePipeName, container, _loggerFactory, cancellationToken);
+
+            foreach (var initializer in _initializers)
+            {
+                try
+                {
+                    await initializer.OnServiceBrokerInitializedAsync(container.GetFullAccessServiceBroker(), cancellationToken);
+                }
+                catch (Exception)
+                {
+                }
+            }
+        }
     }
 
     public async Task ShutdownAndWaitForCompletionAsync()
