@@ -402,7 +402,7 @@ public class GoToDefinitionTests(ITestOutputHelper testOutputHelper) : AbstractR
         await TestServices.Editor.WaitForCurrentLineTextAsync("public string? MyProperty { get; set; }", ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/84862")]
     public async Task GoToDefinition_ComponentFromCSharp()
     {
         // Open the file
