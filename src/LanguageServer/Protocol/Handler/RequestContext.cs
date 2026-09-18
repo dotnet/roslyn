@@ -282,8 +282,19 @@ internal readonly partial struct RequestContext
             var result = await task.WithCancellation(cancellationToken).ConfigureAwait(false);
             lock (this)
             {
-                if (_task is null)
+                if (ReferenceEquals(_task, task))
+                {
+                    _value = result;
+                    _task = null;
+                }
+                else if (_value is { } value)
+                {
+                    return value;
+                }
+                else
+                {
                     throw new InvalidOperationException();
+                }
             }
 
             return result;

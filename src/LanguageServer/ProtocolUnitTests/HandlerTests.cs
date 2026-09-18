@@ -621,6 +621,34 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     }
 
     [Fact]
+    public async Task DeferredSolutionContextSupportsConcurrentRepeatedAccess()
+    {
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace: false);
+
+        var loadSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var context = await CreateRequestContextAsync(
+            server,
+            textDocumentIdentifier: null,
+            mutatesSolutionState: false,
+            loadSource.Task);
+        var contextCopy = context;
+        var firstAccess = context.GetRequiredSolutionAsync(CancellationToken.None).AsTask();
+        var secondAccess = contextCopy.GetRequiredSolutionAsync(CancellationToken.None).AsTask();
+        Assert.False(firstAccess.IsCompleted);
+        Assert.False(secondAccess.IsCompleted);
+
+        loadSource.SetResult(true);
+
+        var firstSolution = await firstAccess.WithTimeout(TestHelpers.HangMitigatingTimeout);
+        Assert.Same(firstSolution, await secondAccess.WithTimeout(TestHelpers.HangMitigatingTimeout));
+        Assert.Same(firstSolution, await context.GetRequiredSolutionAsync(CancellationToken.None));
+
+        contextCopy.ClearSolutionContext();
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await context.GetSolutionAsync(CancellationToken.None).ConfigureAwait(false));
+    }
+
+    [Fact]
     public async Task WorkspaceContextRefreshesWhenLoadFinishesBeforeResolutionStarts()
     {
         await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace: false);
