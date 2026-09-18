@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <!-- Source-built NuGet.Versioning targets the current .NET framework. -->
+    <TargetFramework Condition="'$(DotNetBuildSourceOnly)' == 'true'">$(NetRoslyn)</TargetFramework>
     <!-- AOT/trim analyzers require net7.0+; not applicable to this netstandard2.0 task assembly. -->
     <EnableAotAnalyzer>false</EnableAotAnalyzer>
     <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
@@ -10,7 +12,7 @@
     <IsPackable>true</IsPackable>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <!-- These members are used by source files that are intentionally not linked into this
-         netstandard2.0 task assembly, so Roslyn's partial view reports them as unused. -->
+         task assembly, so Roslyn's partial view reports them as unused. -->
     <NoWarn>$(NoWarn);IDE0051;IDE0060</NoWarn>
   </PropertyGroup>
 
@@ -43,7 +45,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- The Tasks project targets netstandard2.0, so it cannot reference Roslyn's net10.0
+    <!-- Outside source-build, the Tasks project targets netstandard2.0, so it cannot reference Roslyn's net10.0
          Microsoft.NET.ProjectData assembly. Source-link only the writer-side donor-index
          contract and repository discovery; reader selection and Git process code remain
          in Microsoft.NET.ProjectData. Remove these links and reference that assembly
