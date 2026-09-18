@@ -13,17 +13,21 @@ using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 
 [Trait(Traits.Feature, Traits.Features.GoToDefinition)]
 public partial class CSharpGoToDefinition : AbstractEditorTest
 {
+    private readonly ITestOutputHelper _output;
+
     protected override string LanguageName => LanguageNames.CSharp;
 
-    public CSharpGoToDefinition()
+    public CSharpGoToDefinition(ITestOutputHelper output)
         : base(nameof(CSharpGoToDefinition))
     {
+        _output = output;
     }
 
     [IdeFact]
@@ -87,6 +91,7 @@ public partial class CSharpGoToDefinition : AbstractEditorTest
     [IdeFact]
     public async Task GoToDefinitionWithMultipleResults()
     {
+        _output.WriteLine("CSharpGoToDefinition.GoToDefinitionWithMultipleResults: action 1");
         await SetUpEditorAsync(
             """
             partial class /*Marker*/ $$PartialClass { }
@@ -94,24 +99,34 @@ public partial class CSharpGoToDefinition : AbstractEditorTest
             partial class PartialClass { int i = 0; }
             """, HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpGoToDefinition.GoToDefinitionWithMultipleResults: action 2");
         await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpGoToDefinition.GoToDefinitionWithMultipleResults: action 3");
         Assert.Equal("'PartialClass' declarations - Entire solution", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
 
+        _output.WriteLine("CSharpGoToDefinition.GoToDefinitionWithMultipleResults: action 4");
         var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpGoToDefinition.GoToDefinitionWithMultipleResults: action 5");
         Assert.Collection(
             results,
             [
                 reference =>
                 {
+                    _output.WriteLine("CSharpGoToDefinition.GoToDefinitionWithMultipleResults: action 6");
                     Assert.Equal(expected: "partial class /*Marker*/ PartialClass { }", actual: reference.GetText());
+                    _output.WriteLine("CSharpGoToDefinition.GoToDefinitionWithMultipleResults: action 7");
                     Assert.Equal(expected: 0, actual: reference.GetLine());
+                    _output.WriteLine("CSharpGoToDefinition.GoToDefinitionWithMultipleResults: action 8");
                     Assert.Equal(expected: 25, actual: reference.GetColumn());
                 },
                 reference =>
                 {
+                    _output.WriteLine("CSharpGoToDefinition.GoToDefinitionWithMultipleResults: action 9");
                     Assert.Equal(expected: "partial class PartialClass { int i = 0; }", actual: reference.GetText());
+                    _output.WriteLine("CSharpGoToDefinition.GoToDefinitionWithMultipleResults: action 10");
                     Assert.Equal(expected: 2, actual: reference.GetLine());
+                    _output.WriteLine("CSharpGoToDefinition.GoToDefinitionWithMultipleResults: action 11");
                     Assert.Equal(expected: 14, actual: reference.GetColumn());
                 }
             ]);

@@ -16,12 +16,15 @@ using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using WindowsInput.Native;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 
 [Trait(Traits.Feature, Traits.Features.Rename)]
-public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
+public sealed class CSharpRename(ITestOutputHelper output) : AbstractEditorTest(nameof(CSharpRename))
 {
+    private readonly ITestOutputHelper _output = output;
+
     protected override string LanguageName => LanguageNames.CSharp;
 
     public override async Task InitializeAsync()
@@ -40,6 +43,7 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
     [IdeFact]
     public async Task VerifyLocalVariableRename()
     {
+        _output.WriteLine("CSharpRename.VerifyLocalVariableRename: action 1");
         var markup = """
             using System;
             using System.Collections.Generic;
@@ -60,17 +64,27 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
                 }
             }
             """;
+        _output.WriteLine("CSharpRename.VerifyLocalVariableRename: action 2");
         await using var telemetry = await TestServices.Telemetry.EnableTestTelemetryChannelAsync(HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyLocalVariableRename: action 3");
         await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyLocalVariableRename: action 4");
         await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRename.VerifyLocalVariableRename: action 5");
         MarkupTestFile.GetSpans(markup, out var _, out var renameSpans);
+        _output.WriteLine("CSharpRename.VerifyLocalVariableRename: action 6");
         var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyLocalVariableRename: action 7");
         var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
+        _output.WriteLine("CSharpRename.VerifyLocalVariableRename: action 8");
         AssertEx.SetEqual(renameSpans, tagSpans);
 
+        _output.WriteLine("CSharpRename.VerifyLocalVariableRename: action 9");
         await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyLocalVariableRename: action 10");
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyLocalVariableRename: action 11");
         await TestServices.EditorVerifier.TextEqualsAsync("""
                 using System;
                 using System.Collections.Generic;
@@ -91,6 +105,7 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
                     }
                 }
                 """, HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyLocalVariableRename: action 12");
         await telemetry.VerifyFiredAsync(["vs/ide/vbcs/rename/inlinesession/session", "vs/ide/vbcs/rename/commitcore"], HangMitigatingCancellationToken);
     }
 
@@ -126,6 +141,7 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
     [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
     public async Task VerifyAttributeRenameWhileRenameClasss()
     {
+        _output.WriteLine("CSharpRename.VerifyAttributeRenameWhileRenameClasss: action 1");
         var markup = """
             using System;
 
@@ -133,17 +149,27 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
             {
             }
             """;
+        _output.WriteLine("CSharpRename.VerifyAttributeRenameWhileRenameClasss: action 2");
         await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyAttributeRenameWhileRenameClasss: action 3");
         await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRename.VerifyAttributeRenameWhileRenameClasss: action 4");
         MarkupTestFile.GetSpans(markup, out var _, out var renameSpans);
+        _output.WriteLine("CSharpRename.VerifyAttributeRenameWhileRenameClasss: action 5");
         var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyAttributeRenameWhileRenameClasss: action 6");
         var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
+        _output.WriteLine("CSharpRename.VerifyAttributeRenameWhileRenameClasss: action 7");
         AssertEx.SetEqual(renameSpans, tagSpans);
 
+        _output.WriteLine("CSharpRename.VerifyAttributeRenameWhileRenameClasss: action 8");
         await TestServices.Input.SendWithoutActivateAsync("Custom", HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyAttributeRenameWhileRenameClasss: action 9");
         await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyAttributeRenameWhileRenameClasss: action 10");
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyAttributeRenameWhileRenameClasss: action 11");
         await TestServices.EditorVerifier.TextEqualsAsync("""
             using System;
 
@@ -196,6 +222,7 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
     [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
     public async Task VerifyAttributeRenameWhileRenameAttributeClass()
     {
+        _output.WriteLine("CSharpRename.VerifyAttributeRenameWhileRenameAttributeClass: action 1");
         var markup = """
             using System;
 
@@ -208,17 +235,27 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
             {
             }
             """;
+        _output.WriteLine("CSharpRename.VerifyAttributeRenameWhileRenameAttributeClass: action 2");
         await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyAttributeRenameWhileRenameAttributeClass: action 3");
         await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRename.VerifyAttributeRenameWhileRenameAttributeClass: action 4");
         MarkupTestFile.GetSpans(markup, out _, out var renameSpans);
+        _output.WriteLine("CSharpRename.VerifyAttributeRenameWhileRenameAttributeClass: action 5");
         var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyAttributeRenameWhileRenameAttributeClass: action 6");
         var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
+        _output.WriteLine("CSharpRename.VerifyAttributeRenameWhileRenameAttributeClass: action 7");
         AssertEx.SetEqual(renameSpans, tagSpans);
 
+        _output.WriteLine("CSharpRename.VerifyAttributeRenameWhileRenameAttributeClass: action 8");
         await TestServices.Input.SendWithoutActivateAsync("Custom", HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyAttributeRenameWhileRenameAttributeClass: action 9");
         await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyAttributeRenameWhileRenameAttributeClass: action 10");
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyAttributeRenameWhileRenameAttributeClass: action 11");
         await TestServices.EditorVerifier.TextEqualsAsync("""
             using System;
 
@@ -415,13 +452,17 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
     [IdeFact]
     public async Task VerifyMultiFileRename()
     {
+        _output.WriteLine("CSharpRename.VerifyMultiFileRename: action 1");
         await SetUpEditorAsync("""
             class $$Program
             {
             }
             """, HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyMultiFileRename: action 2");
         await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Class2.cs", @"", cancellationToken: HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyMultiFileRename: action 3");
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class2.cs", HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyMultiFileRename: action 4");
         MarkupTestFile.GetSpans("""
             class SomeOtherClass
             {
@@ -432,17 +473,26 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
             }
             """, out var code, out var renameSpans);
 
+        _output.WriteLine("CSharpRename.VerifyMultiFileRename: action 5");
         await TestServices.Editor.SetTextAsync(code, HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyMultiFileRename: action 6");
         await TestServices.Editor.PlaceCaretAsync("Program", charsOffset: 0, HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRename.VerifyMultiFileRename: action 7");
         await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRename.VerifyMultiFileRename: action 8");
         var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyMultiFileRename: action 9");
         var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
+        _output.WriteLine("CSharpRename.VerifyMultiFileRename: action 10");
         AssertEx.SetEqual(renameSpans, tagSpans);
 
+        _output.WriteLine("CSharpRename.VerifyMultiFileRename: action 11");
         await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyMultiFileRename: action 12");
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyMultiFileRename: action 13");
         await TestServices.EditorVerifier.TextEqualsAsync("""
             class SomeOtherClass
             {
@@ -453,7 +503,9 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
             }
             """, HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRename.VerifyMultiFileRename: action 14");
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs", HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyMultiFileRename: action 15");
         await TestServices.EditorVerifier.TextEqualsAsync("""
             class y$$
             {
@@ -464,14 +516,18 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
     [IdeFact]
     public async Task VerifyRenameCancellation()
     {
+        _output.WriteLine("CSharpRename.VerifyRenameCancellation: action 1");
         await SetUpEditorAsync("""
             class $$Program
             {
             }
             """, HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRename.VerifyRenameCancellation: action 2");
         await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Class2.cs", @"", cancellationToken: HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyRenameCancellation: action 3");
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class2.cs", HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyRenameCancellation: action 4");
         await TestServices.Editor.SetTextAsync("""
             class SomeOtherClass
             {
@@ -481,12 +537,17 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
                 }
             }
             """, HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyRenameCancellation: action 5");
         await TestServices.Editor.PlaceCaretAsync("Program", charsOffset: 0, HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRename.VerifyRenameCancellation: action 6");
         await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRename.VerifyRenameCancellation: action 7");
         await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.VK_Y, HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyRenameCancellation: action 8");
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyRenameCancellation: action 9");
         await TestServices.EditorVerifier.TextEqualsAsync("""
             class SomeOtherClass
             {
@@ -497,22 +558,29 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
             }
             """, HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRename.VerifyRenameCancellation: action 10");
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs", HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyRenameCancellation: action 11");
         await TestServices.EditorVerifier.TextEqualsAsync("""
             class y$$
             {
             }
             """, HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRename.VerifyRenameCancellation: action 12");
         await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.ESCAPE, HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyRenameCancellation: action 13");
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyRenameCancellation: action 14");
         await TestServices.EditorVerifier.TextEqualsAsync("""
             class Program$$
             {
             }
             """, HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRename.VerifyRenameCancellation: action 15");
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class2.cs", HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyRenameCancellation: action 16");
         await TestServices.EditorVerifier.TextEqualsAsync("""
             class SomeOtherClass
             {
@@ -527,6 +595,7 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
     [IdeFact]
     public async Task VerifyCrossProjectRename()
     {
+        _output.WriteLine("CSharpRename.VerifyCrossProjectRename: action 1");
         await SetUpEditorAsync("""
             $$class RenameRocks 
             {
@@ -537,26 +606,39 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
                 }
             }
             """, HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyCrossProjectRename: action 2");
         var project1 = ProjectName;
+        _output.WriteLine("CSharpRename.VerifyCrossProjectRename: action 3");
         var project2 = "Project2";
 
+        _output.WriteLine("CSharpRename.VerifyCrossProjectRename: action 4");
         await TestServices.SolutionExplorer.AddProjectAsync(project2, WellKnownProjectTemplates.ClassLibrary, LanguageName, HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyCrossProjectRename: action 5");
         await TestServices.SolutionExplorer.AddProjectReferenceAsync(projectName: project1, projectToReferenceName: project2, HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRename.VerifyCrossProjectRename: action 6");
         await TestServices.SolutionExplorer.AddFileAsync(project2, "Class2.cs", @"", cancellationToken: HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyCrossProjectRename: action 7");
         await TestServices.SolutionExplorer.OpenFileAsync(project2, "Class2.cs", HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRename.VerifyCrossProjectRename: action 8");
         await TestServices.Editor.SetTextAsync("""
 
             public class Class2 { static void Main(string [] args) { } }
             """, HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRename.VerifyCrossProjectRename: action 9");
         await TestServices.SolutionExplorer.OpenFileAsync(project1, "Class1.cs", HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyCrossProjectRename: action 10");
         await TestServices.Editor.PlaceCaretAsync("Class2", charsOffset: 0, HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRename.VerifyCrossProjectRename: action 11");
         await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyCrossProjectRename: action 12");
         await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyCrossProjectRename: action 13");
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyCrossProjectRename: action 14");
         await TestServices.EditorVerifier.TextEqualsAsync("""
             class RenameRocks 
             {
@@ -568,7 +650,9 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
             }
             """, HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRename.VerifyCrossProjectRename: action 15");
         await TestServices.SolutionExplorer.OpenFileAsync(project2, "y.cs", HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyCrossProjectRename: action 16");
         await TestServices.EditorVerifier.TextEqualsAsync("""
 
             public class y { static void Main(string [] args) { } }$$
@@ -578,16 +662,22 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
     [IdeFact]
     public async Task VerifyRenameUndo()
     {
+        _output.WriteLine("CSharpRename.VerifyRenameUndo: action 1");
         await VerifyCrossProjectRename();
 
+        _output.WriteLine("CSharpRename.VerifyRenameUndo: action 2");
         await TestServices.Input.SendWithoutActivateAsync((VirtualKeyCode.VK_Z, VirtualKeyCode.CONTROL), HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyRenameUndo: action 3");
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyRenameUndo: action 4");
         await TestServices.EditorVerifier.TextEqualsAsync("""
 
             public class Class2 { static void Main(string [] args) { } }$$
             """, HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRename.VerifyRenameUndo: action 5");
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs", HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyRenameUndo: action 6");
         await TestServices.EditorVerifier.TextEqualsAsync("""
             class RenameRocks 
             {
@@ -636,6 +726,7 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
     [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/39617")]
     public async Task VerifyRenameCaseChange()
     {
+        _output.WriteLine("CSharpRename.VerifyRenameCaseChange: action 1");
         await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Program.cs",
             """
             class Program
@@ -646,14 +737,20 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
             }
             """, cancellationToken: HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRename.VerifyRenameCaseChange: action 2");
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Program.cs", HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyRenameCaseChange: action 3");
         await TestServices.Editor.PlaceCaretAsync("Program", charsOffset: 0, HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRename.VerifyRenameCaseChange: action 4");
         await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRename.VerifyRenameCaseChange: action 5");
         await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.HOME, VirtualKeyCode.DELETE, VirtualKeyCode.VK_P, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyRenameCaseChange: action 6");
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRename.VerifyRenameCaseChange: action 7");
         await TestServices.EditorVerifier.TextEqualsAsync(
             """
             class p$$rogram
@@ -668,6 +765,7 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
     [IdeFact]
     public async Task VerifyTextSync()
     {
+        _output.WriteLine("CSharpRename.VerifyTextSync: action 1");
         await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Program.cs",
             """
             public class Class2
@@ -676,11 +774,17 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
             }
             """, cancellationToken: HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRename.VerifyTextSync: action 2");
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Program.cs", HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyTextSync: action 3");
         await TestServices.Editor.PlaceCaretAsync("Field123", charsOffset: 0, HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyTextSync: action 4");
         await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyTextSync: action 5");
         await TestServices.Input.SendWithoutActivateAsync(["F", "i"], HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyTextSync: action 6");
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyTextSync: action 7");
         await TestServices.EditorVerifier.TextEqualsAsync(
             """
             public class Class2
@@ -688,11 +792,15 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
                 public int Fi$$;
             }
             """, HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyTextSync: action 8");
         await TestServices.InlineRename.VerifyStringInFlyout("Fi", HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyTextSync: action 9");
         await TestServices.Input.SendWithoutActivateAsync(["e", "l", "d", "3", "2", "1"], HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRename.VerifyTextSync: action 10");
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRename.VerifyTextSync: action 11");
         await TestServices.EditorVerifier.TextEqualsAsync(
             """
             public class Class2
@@ -700,12 +808,14 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
                 public int Field321$$;
             }
             """, HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyTextSync: action 12");
         await TestServices.InlineRename.VerifyStringInFlyout("Field321", HangMitigatingCancellationToken);
     }
 
     [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/68374")]
     public async Task VerifySelectionAsync()
     {
+        _output.WriteLine("CSharpRename.VerifySelectionAsync: action 1");
         await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Program.cs",
             """
             public class Class2
@@ -714,23 +824,34 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
             }
             """, cancellationToken: HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRename.VerifySelectionAsync: action 2");
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Program.cs", HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifySelectionAsync: action 3");
         await TestServices.Editor.PlaceCaretAsync("LongLongField", charsOffset: 0, HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifySelectionAsync: action 4");
         await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRename.VerifySelectionAsync: action 5");
         await TestServices.Editor.SendExplicitFocusAsync(HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifySelectionAsync: action 6");
         await TestServices.Editor.PlaceCaretAsync("LongLongField", charsOffset: "Long".Length, HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifySelectionAsync: action 7");
         MarkupTestFile.GetPositionAndSpans("""
             public class Class2
             {
                 public int Long{|selection:Long|}Field;
             }
             """, out var _, out int? _, out var spans);
+        _output.WriteLine("CSharpRename.VerifySelectionAsync: action 8");
         var selectedSpan = spans["selection"].Single();
+        _output.WriteLine("CSharpRename.VerifySelectionAsync: action 9");
         await TestServices.Editor.SetSelectionAsync(selectedSpan, HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifySelectionAsync: action 10");
         await TestServices.Input.SendWithoutActivateAsync(
             new InputKey(VirtualKeyCode.BACK, []), HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifySelectionAsync: action 11");
         await TestServices.Input.SendWithoutActivateAsync(["Other", "Stuff"], HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifySelectionAsync: action 12");
         await TestServices.EditorVerifier.TextEqualsAsync(
             """
             public class Class2
@@ -795,6 +916,7 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
     [IdeFact]
     public async Task VerifyAsyncRename()
     {
+        _output.WriteLine("CSharpRename.VerifyAsyncRename: action 1");
         await SetUpEditorAsync("""
             class Program
             {
@@ -810,9 +932,13 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
                 }
             }
             """, HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyAsyncRename: action 2");
         await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyAsyncRename: action 3");
         await TestServices.Input.SendWithoutActivateAsync(["AsyncRenameMethod", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyAsyncRename: action 4");
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRename.VerifyAsyncRename: action 5");
         await TestServices.EditorVerifier.TextEqualsAsync(
             """
             class Program
