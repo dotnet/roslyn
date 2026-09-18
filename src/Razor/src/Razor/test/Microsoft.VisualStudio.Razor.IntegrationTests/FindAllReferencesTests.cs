@@ -89,7 +89,7 @@ public class FindAllReferencesTests(ITestOutputHelper testOutputHelper) : Abstra
         await TestServices.FindReferencesWindow.CloseToolWindowAsync(ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85699")]
+    [IdeFact/*(Skip = "https://github.com/dotnet/roslyn/issues/85699")*/]
     public async Task FindAllReferences_Component_FromCSharp()
     {
         // Open the file
