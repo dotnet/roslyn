@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek;
@@ -72,6 +73,7 @@ internal class PeekableItemFactory
 
         var symbolNavigationService = solution.Services.GetService<ISymbolNavigationService>();
         var result = await symbolNavigationService.GetExternalNavigationSymbolLocationAsync(definitionItem, cancellationToken).ConfigureAwait(false);
+        result ??= await GetCrossLanguageFileLocationAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
 
         using var _ = ArrayBuilder<IPeekableItem>.GetInstance(out var results);
         if (result is var (filePath, linePosition))
@@ -94,5 +96,35 @@ internal class PeekableItemFactory
         }
 
         return results.ToImmutableAndClear();
+    }
+
+    /// <summary>
+    /// The source file of a symbol another .Net language owns, for example F#.  It is metadata to us, and
+    /// metadata-as-source would show it decompiled, so that language is asked first - as navigating to the
+    /// symbol asks it in <c>VisualStudioSymbolNavigationService</c>.
+    /// </summary>
+    private async Task<(string filePath, LinePosition linePosition)?> GetCrossLanguageFileLocationAsync(
+        Solution solution, ISymbol symbol, CancellationToken cancellationToken)
+    {
+        if (symbol.Locations.Any(static location => location.IsInSource) ||
+            !_metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
+        {
+            return null;
+        }
+
+        var docCommentId = symbol.GetDocumentationCommentId();
+        var assemblyName = symbol.ContainingAssembly.Identity.Name;
+        if (docCommentId == null || assemblyName == null)
+            return null;
+
+        foreach (var lazyService in solution.Services.ExportProvider.GetExports<ICrossLanguageSymbolNavigationService>())
+        {
+            var location = await lazyService.Value.TryGetNavigableFileLocationAsync(
+                assemblyName, docCommentId, cancellationToken).ConfigureAwait(false);
+            if (location != null)
+                return location;
+        }
+
+        return null;
     }
 }
