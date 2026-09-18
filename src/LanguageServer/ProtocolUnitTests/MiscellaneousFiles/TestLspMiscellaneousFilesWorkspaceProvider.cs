@@ -27,7 +27,7 @@ internal sealed class TestLspMiscellaneousFilesWorkspaceProviderFactory() : ILsp
         return new TestLspMiscellaneousFilesWorkspaceProvider(hostServices);
     }
 
-    private class TestLspMiscellaneousFilesWorkspaceProvider(HostServices host) : Workspace(host, WorkspaceKind.MiscellaneousFiles), ILspMiscellaneousFilesWorkspaceProvider
+    internal sealed class TestLspMiscellaneousFilesWorkspaceProvider(HostServices host) : Workspace(host, WorkspaceKind.MiscellaneousFiles), ILspMiscellaneousFilesWorkspaceProvider
     {
         public ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo? trackedDocumentInfo)
         {
