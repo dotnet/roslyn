@@ -37,10 +37,7 @@ public class RazorSemanticTokensTests(ITestOutputHelper testOutputHelper) : Abst
     public async Task GenericTypeParameters_Work()
     {
         // Arrange
-        testOutputHelper.WriteLine("GenericTypeParameters_Work: open MainLayout.razor");
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.MainLayoutFile, ControlledHangMitigatingCancellationToken);
-
-        testOutputHelper.WriteLine("GenericTypeParameters_Work: set generic type parameter text");
         await TestServices.Editor.SetTextAsync($@"@page ""/counter""
 @using Microsoft.AspNetCore.Components.Forms
 
@@ -48,14 +45,10 @@ public class RazorSemanticTokensTests(ITestOutputHelper testOutputHelper) : Abst
 <h1></h1>", ControlledHangMitigatingCancellationToken);
 
         // Act
-        testOutputHelper.WriteLine("GenericTypeParameters_Work: wait for component classification");
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken, count: 1);
 
         // Assert
-        testOutputHelper.WriteLine("GenericTypeParameters_Work: get expected classifications");
         var expectedClassifications = await GetExpectedClassificationSpansAsync(ControlledHangMitigatingCancellationToken);
-
-        testOutputHelper.WriteLine("GenericTypeParameters_Work: verify classifications");
         await TestServices.Editor.VerifyGetClassificationsAsync(expectedClassifications, ControlledHangMitigatingCancellationToken);
     }
 
@@ -78,27 +71,17 @@ public class RazorSemanticTokensTests(ITestOutputHelper testOutputHelper) : Abst
     public async Task Edits_UpdateColors()
     {
         // Arrange
-        testOutputHelper.WriteLine("Edits_UpdateColors: open MainLayout.razor");
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.MainLayoutFile, ControlledHangMitigatingCancellationToken);
-
-        testOutputHelper.WriteLine("Edits_UpdateColors: set main layout content");
         await TestServices.Editor.SetTextAsync(RazorProjectConstants.MainLayoutContent, ControlledHangMitigatingCancellationToken);
 
         // Act
-        testOutputHelper.WriteLine("Edits_UpdateColors: wait for initial component classifications");
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken, count: 3);
 
-        testOutputHelper.WriteLine("Edits_UpdateColors: set index page content");
         await TestServices.Editor.SetTextAsync(RazorProjectConstants.IndexPageContent, ControlledHangMitigatingCancellationToken);
-
-        testOutputHelper.WriteLine("Edits_UpdateColors: wait for updated component classifications");
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken, count: 3);
 
         // Assert
-        testOutputHelper.WriteLine("Edits_UpdateColors: get expected classifications");
         var expectedClassifications = await GetExpectedClassificationSpansAsync(ControlledHangMitigatingCancellationToken);
-
-        testOutputHelper.WriteLine("Edits_UpdateColors: verify classifications");
         await TestServices.Editor.VerifyGetClassificationsAsync(expectedClassifications, ControlledHangMitigatingCancellationToken);
     }
 
@@ -106,17 +89,11 @@ public class RazorSemanticTokensTests(ITestOutputHelper testOutputHelper) : Abst
     public async Task Directives_AreColored()
     {
         // Arrange
-        testOutputHelper.WriteLine("Directives_AreColored: open Counter.razor");
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
-
-        testOutputHelper.WriteLine("Directives_AreColored: wait for component classification");
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
 
         // Act and Assert
-        testOutputHelper.WriteLine("Directives_AreColored: get expected classifications");
         var expectedClassifications = await GetExpectedClassificationSpansAsync(ControlledHangMitigatingCancellationToken);
-
-        testOutputHelper.WriteLine("Directives_AreColored: verify classifications");
         await TestServices.Editor.VerifyGetClassificationsAsync(expectedClassifications, ControlledHangMitigatingCancellationToken);
     }
 
