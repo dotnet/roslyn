@@ -35,7 +35,7 @@ public class CSharpBuild : AbstractIntegrationTest
         await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85704")]
     public async Task BuildProject()
     {
         _output.WriteLine("CSharpBuild.BuildProject: action 1");

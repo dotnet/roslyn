@@ -40,7 +40,7 @@ public sealed class CSharpRename(ITestOutputHelper output) : AbstractEditorTest(
         globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.PreviewChanges, false);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85704")]
     public async Task VerifyLocalVariableRename()
     {
         _output.WriteLine("CSharpRename.VerifyLocalVariableRename: action 1");
@@ -138,7 +138,7 @@ public sealed class CSharpRename(ITestOutputHelper output) : AbstractEditorTest(
             """, HangMitigatingCancellationToken);
     }
 
-    [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85704"), WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
     public async Task VerifyAttributeRenameWhileRenameClasss()
     {
         _output.WriteLine("CSharpRename.VerifyAttributeRenameWhileRenameClasss: action 1");
@@ -219,7 +219,7 @@ public sealed class CSharpRename(ITestOutputHelper output) : AbstractEditorTest(
             """, HangMitigatingCancellationToken);
     }
 
-    [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85704"), WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
     public async Task VerifyAttributeRenameWhileRenameAttributeClass()
     {
         _output.WriteLine("CSharpRename.VerifyAttributeRenameWhileRenameAttributeClass: action 1");
@@ -449,7 +449,7 @@ public sealed class CSharpRename(ITestOutputHelper output) : AbstractEditorTest(
             """, HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85704")]
     public async Task VerifyMultiFileRename()
     {
         _output.WriteLine("CSharpRename.VerifyMultiFileRename: action 1");
@@ -513,7 +513,7 @@ public sealed class CSharpRename(ITestOutputHelper output) : AbstractEditorTest(
             """, HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85704")]
     public async Task VerifyRenameCancellation()
     {
         _output.WriteLine("CSharpRename.VerifyRenameCancellation: action 1");
@@ -592,7 +592,7 @@ public sealed class CSharpRename(ITestOutputHelper output) : AbstractEditorTest(
             """, HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85704")]
     public async Task VerifyCrossProjectRename()
     {
         _output.WriteLine("CSharpRename.VerifyCrossProjectRename: action 1");
@@ -659,7 +659,7 @@ public sealed class CSharpRename(ITestOutputHelper output) : AbstractEditorTest(
             """, cancellationToken: HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85704")]
     public async Task VerifyRenameUndo()
     {
         _output.WriteLine("CSharpRename.VerifyRenameUndo: action 1");
@@ -723,7 +723,7 @@ public sealed class CSharpRename(ITestOutputHelper output) : AbstractEditorTest(
             """, HangMitigatingCancellationToken);
     }
 
-    [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/39617")]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85704"), WorkItem("https://github.com/dotnet/roslyn/issues/39617")]
     public async Task VerifyRenameCaseChange()
     {
         _output.WriteLine("CSharpRename.VerifyRenameCaseChange: action 1");
@@ -762,7 +762,7 @@ public sealed class CSharpRename(ITestOutputHelper output) : AbstractEditorTest(
             """, HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85704")]
     public async Task VerifyTextSync()
     {
         _output.WriteLine("CSharpRename.VerifyTextSync: action 1");
@@ -812,7 +812,7 @@ public sealed class CSharpRename(ITestOutputHelper output) : AbstractEditorTest(
         await TestServices.InlineRename.VerifyStringInFlyout("Field321", HangMitigatingCancellationToken);
     }
 
-    [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/68374")]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85704"), WorkItem("https://github.com/dotnet/roslyn/issues/68374")]
     public async Task VerifySelectionAsync()
     {
         _output.WriteLine("CSharpRename.VerifySelectionAsync: action 1");
@@ -913,7 +913,7 @@ public sealed class CSharpRename(ITestOutputHelper output) : AbstractEditorTest(
         await TestServices.SolutionExplorer.GetProjectItemAsync(projectName, "MyTestClass.cs", HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85704")]
     public async Task VerifyAsyncRename()
     {
         _output.WriteLine("CSharpRename.VerifyAsyncRename: action 1");

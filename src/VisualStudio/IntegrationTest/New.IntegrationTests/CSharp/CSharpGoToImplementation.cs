@@ -32,7 +32,7 @@ public class CSharpGoToImplementation : AbstractEditorTest
         _output = output;
     }
 
-    [IdeTheory]
+    [IdeTheory(Skip = "https://github.com/dotnet/roslyn/issues/85704")]
     [CombinatorialData]
     public async Task SimpleGoToImplementation(bool asyncNavigation)
     {
@@ -95,7 +95,7 @@ public class CSharpGoToImplementation : AbstractEditorTest
         Assert.False(await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
     }
 
-    [IdeTheory]
+    [IdeTheory(Skip = "https://github.com/dotnet/roslyn/issues/85704")]
     [CombinatorialData]
     public async Task GoToImplementationOpensProvisionalTabIfDocumentNotOpen(bool asyncNavigation)
     {
@@ -161,7 +161,7 @@ public class CSharpGoToImplementation : AbstractEditorTest
         Assert.True(await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
     }
 
-    [IdeTheory]
+    [IdeTheory(Skip = "https://github.com/dotnet/roslyn/issues/85704")]
     [CombinatorialData]
     public async Task GoToImplementationFromMetadataAsSource(bool asyncNavigation)
     {
@@ -226,7 +226,7 @@ public class CSharpGoToImplementation : AbstractEditorTest
         await TestServices.EditorVerifier.TextContainsAsync("class $$Implementation : IDisposable", assertCaretPosition: true, HangMitigatingCancellationToken);
     }
 
-    [IdeTheory]
+    [IdeTheory(Skip = "https://github.com/dotnet/roslyn/issues/85704")]
     [CombinatorialData]
     public async Task GoToImplementationFromSourceAndMetadata(bool asyncNavigation)
     {

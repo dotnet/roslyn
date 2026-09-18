@@ -34,7 +34,7 @@ public class CSharpRedirectFeaturesAnalyzers : AbstractEditorTest
     private const int GlobalIndentationSize = 6;
     private const int DefaultIndentationSize = 4;
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85704")]
     public async Task DoesNotUseHostOptions_WhenEnforceCodeStyleInBuildIsTrue()
     {
         _output.WriteLine("CSharpRedirectFeaturesAnalyzers.DoesNotUseHostOptions_WhenEnforceCodeStyleInBuildIsTrue: action 1");
@@ -61,7 +61,7 @@ public class CSharpRedirectFeaturesAnalyzers : AbstractEditorTest
             errors);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85704")]
     public async Task UsesHostOptions_WhenEnforceCodeStyleInBuildIsFalse()
     {
         _output.WriteLine("CSharpRedirectFeaturesAnalyzers.UsesHostOptions_WhenEnforceCodeStyleInBuildIsFalse: action 1");

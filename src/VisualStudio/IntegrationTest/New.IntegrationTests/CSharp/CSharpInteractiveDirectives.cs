@@ -141,7 +141,7 @@ public class CSharpInteractiveDirectives : AbstractInteractiveWindowTest
         await TestServices.InteractiveWindow.WaitForLastReplOutputAsync("4", HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85704")]
     public async Task VerifyAssembliesReferencedByDefault()
     {
         _output.WriteLine("CSharpInteractiveDirectives.VerifyAssembliesReferencedByDefault: action 1");

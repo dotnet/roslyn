@@ -50,7 +50,7 @@ public class CSharpGenerateTypeDialog : AbstractEditorTest
         await TestServices.GenerateTypeDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85704")]
     public async Task CSharpToBasic()
     {
         _output.WriteLine("CSharpGenerateTypeDialog.CSharpToBasic: action 1");

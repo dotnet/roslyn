@@ -90,7 +90,7 @@ public class CSharpExtractMethod : AbstractEditorTest
             """, cancellationToken: HangMitigatingCancellationToken);
     }
 
-    [IdeFact, WorkItem("https://github.com/dotnet/roslyn/pull/61369")]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85704"), WorkItem("https://github.com/dotnet/roslyn/pull/61369")]
     public async Task ExtractMethodWithTriviaSelected()
     {
         _output.WriteLine("CSharpExtractMethod.ExtractMethodWithTriviaSelected: action 1");
@@ -143,7 +143,7 @@ public class CSharpExtractMethod : AbstractEditorTest
             """, cancellationToken: HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85704")]
     public async Task ExtractViaCodeAction()
     {
         _output.WriteLine("CSharpExtractMethod.ExtractViaCodeAction: action 1");

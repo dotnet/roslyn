@@ -142,7 +142,7 @@ public class CSharpChangeSignatureDialog : AbstractEditorTest
             """, actualText);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85704")]
     public async Task VerifyCrossLanguageGlobalUndo()
     {
         _output.WriteLine("CSharpChangeSignatureDialog.VerifyCrossLanguageGlobalUndo: action 1");

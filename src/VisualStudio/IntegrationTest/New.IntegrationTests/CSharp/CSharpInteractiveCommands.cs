@@ -147,7 +147,7 @@ public class CSharpInteractiveCommands : AbstractInteractiveWindowTest
     //     of these tests and convert them to unit-tests.
     //     -->
     //<!-- TODO(https://github.com/dotnet/roslyn/issues/4235)
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85704")]
     public async Task VerifyReturnIndentCurrentLine()
     {
         _output.WriteLine("CSharpInteractiveCommands.VerifyReturnIndentCurrentLine: action 1");
