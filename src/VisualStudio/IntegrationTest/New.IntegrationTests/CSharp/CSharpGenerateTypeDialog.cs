@@ -9,21 +9,17 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
 public class CSharpGenerateTypeDialog : AbstractEditorTest
 {
-    private readonly ITestOutputHelper _output;
-
     protected override string LanguageName => LanguageNames.CSharp;
 
-    public CSharpGenerateTypeDialog(ITestOutputHelper output)
+    public CSharpGenerateTypeDialog()
                 : base(nameof(CSharpGenerateTypeDialog))
     {
-        _output = output;
     }
 
     [IdeFact]
@@ -53,17 +49,12 @@ public class CSharpGenerateTypeDialog : AbstractEditorTest
     [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85704")]
     public async Task CSharpToBasic()
     {
-        _output.WriteLine("CSharpGenerateTypeDialog.CSharpToBasic: action 1");
         var vbProj = "VBProj";
-        _output.WriteLine("CSharpGenerateTypeDialog.CSharpToBasic: action 2");
         await TestServices.SolutionExplorer.AddProjectAsync(vbProj, WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic, HangMitigatingCancellationToken);
 
-        _output.WriteLine("CSharpGenerateTypeDialog.CSharpToBasic: action 3");
         var project = ProjectName;
-        _output.WriteLine("CSharpGenerateTypeDialog.CSharpToBasic: action 4");
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Class1.cs", HangMitigatingCancellationToken);
 
-        _output.WriteLine("CSharpGenerateTypeDialog.CSharpToBasic: action 5");
         await SetUpEditorAsync("""
             class C
             {
@@ -75,43 +66,29 @@ public class CSharpGenerateTypeDialog : AbstractEditorTest
 
             """, HangMitigatingCancellationToken);
 
-        _output.WriteLine("CSharpGenerateTypeDialog.CSharpToBasic: action 6");
         await TestServices.EditorVerifier.CodeActionAsync("Generate new type...",
             applyFix: true,
             blockUntilComplete: false,
             cancellationToken: HangMitigatingCancellationToken);
 
-        _output.WriteLine("CSharpGenerateTypeDialog.CSharpToBasic: action 7");
         await TestServices.GenerateTypeDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
-        _output.WriteLine("CSharpGenerateTypeDialog.CSharpToBasic: action 8");
         await TestServices.GenerateTypeDialog.SetAccessibilityAsync("public", HangMitigatingCancellationToken);
-        _output.WriteLine("CSharpGenerateTypeDialog.CSharpToBasic: action 9");
         await TestServices.GenerateTypeDialog.SetKindAsync("interface", HangMitigatingCancellationToken);
-        _output.WriteLine("CSharpGenerateTypeDialog.CSharpToBasic: action 10");
         await TestServices.GenerateTypeDialog.SetTargetProjectAsync("VBProj", HangMitigatingCancellationToken);
-        _output.WriteLine("CSharpGenerateTypeDialog.CSharpToBasic: action 11");
         await TestServices.GenerateTypeDialog.SetTargetFileToNewNameAsync("GenerateTypeTest", HangMitigatingCancellationToken);
-        _output.WriteLine("CSharpGenerateTypeDialog.CSharpToBasic: action 12");
         await TestServices.GenerateTypeDialog.ClickOKAsync(HangMitigatingCancellationToken);
-        _output.WriteLine("CSharpGenerateTypeDialog.CSharpToBasic: action 13");
         await TestServices.GenerateTypeDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
 
-        _output.WriteLine("CSharpGenerateTypeDialog.CSharpToBasic: action 14");
         await TestServices.SolutionExplorer.OpenFileAsync(vbProj, "GenerateTypeTest.vb", HangMitigatingCancellationToken);
-        _output.WriteLine("CSharpGenerateTypeDialog.CSharpToBasic: action 15");
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        _output.WriteLine("CSharpGenerateTypeDialog.CSharpToBasic: action 16");
         Assert.Contains("""
             Public Interface A
             End Interface
 
             """, actualText);
 
-        _output.WriteLine("CSharpGenerateTypeDialog.CSharpToBasic: action 17");
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Class1.cs", HangMitigatingCancellationToken);
-        _output.WriteLine("CSharpGenerateTypeDialog.CSharpToBasic: action 18");
         actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        _output.WriteLine("CSharpGenerateTypeDialog.CSharpToBasic: action 19");
         Assert.Contains("""
             using VBProj;
 

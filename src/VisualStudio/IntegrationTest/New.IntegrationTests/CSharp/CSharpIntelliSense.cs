@@ -16,21 +16,17 @@ using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using WindowsInput.Native;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
 public class CSharpIntelliSense : AbstractEditorTest
 {
-    private readonly ITestOutputHelper _output;
-
     protected override string LanguageName => LanguageNames.CSharp;
 
-    public CSharpIntelliSense(ITestOutputHelper output)
+    public CSharpIntelliSense()
         : base(nameof(CSharpIntelliSense))
     {
-        _output = output;
     }
 
     public override async Task InitializeAsync()
@@ -49,24 +45,16 @@ public class CSharpIntelliSense : AbstractEditorTest
     [IdeTheory(Skip = "https://github.com/dotnet/roslyn/issues/85704"), CombinatorialData]
     public async Task AtNamespaceLevel(bool showCompletionInArgumentLists)
     {
-        _output.WriteLine($"CSharpIntelliSense.AtNamespaceLevel(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 1");
         await SetUpEditorAsync(@"$$", HangMitigatingCancellationToken);
 
-        _output.WriteLine($"CSharpIntelliSense.AtNamespaceLevel(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 2");
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-        _output.WriteLine($"CSharpIntelliSense.AtNamespaceLevel(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 3");
         globalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists);
-        _output.WriteLine($"CSharpIntelliSense.AtNamespaceLevel(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 4");
         globalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.VisualBasic, showCompletionInArgumentLists);
 
-        _output.WriteLine($"CSharpIntelliSense.AtNamespaceLevel(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 5");
         await TestServices.Input.SendAsync("usi", HangMitigatingCancellationToken);
-        _output.WriteLine($"CSharpIntelliSense.AtNamespaceLevel(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 6");
         Assert.Contains("using", (await TestServices.Editor.GetCompletionItemsAsync(HangMitigatingCancellationToken)).Select(completion => completion.DisplayText));
 
-        _output.WriteLine($"CSharpIntelliSense.AtNamespaceLevel(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 7");
         await TestServices.Input.SendAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
-        _output.WriteLine($"CSharpIntelliSense.AtNamespaceLevel(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 8");
         await TestServices.EditorVerifier.CurrentLineTextAsync("using$$", assertCaretPosition: true, HangMitigatingCancellationToken);
     }
 
@@ -110,7 +98,6 @@ HangMitigatingCancellationToken);
     [IdeTheory(Skip = "https://github.com/dotnet/roslyn/issues/85704"), CombinatorialData]
     public async Task VerifyCompletionListMembersOnStaticTypesAndCompleteThem(bool showCompletionInArgumentLists)
     {
-        _output.WriteLine($"CSharpIntelliSense.VerifyCompletionListMembersOnStaticTypesAndCompleteThem(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 1");
         await SetUpEditorAsync("""
 
             public class Program
@@ -128,110 +115,70 @@ HangMitigatingCancellationToken);
             }
             """, HangMitigatingCancellationToken);
 
-        _output.WriteLine($"CSharpIntelliSense.VerifyCompletionListMembersOnStaticTypesAndCompleteThem(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 2");
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-        _output.WriteLine($"CSharpIntelliSense.VerifyCompletionListMembersOnStaticTypesAndCompleteThem(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 3");
         globalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists);
-        _output.WriteLine($"CSharpIntelliSense.VerifyCompletionListMembersOnStaticTypesAndCompleteThem(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 4");
         globalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.VisualBasic, showCompletionInArgumentLists);
 
-        _output.WriteLine($"CSharpIntelliSense.VerifyCompletionListMembersOnStaticTypesAndCompleteThem(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 5");
         await TestServices.Input.SendAsync('.', HangMitigatingCancellationToken);
-        _output.WriteLine($"CSharpIntelliSense.VerifyCompletionListMembersOnStaticTypesAndCompleteThem(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 6");
         Assert.Contains("Search", (await TestServices.Editor.GetCompletionItemsAsync(HangMitigatingCancellationToken)).Select(completion => completion.DisplayText));
-        _output.WriteLine($"CSharpIntelliSense.VerifyCompletionListMembersOnStaticTypesAndCompleteThem(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 7");
         Assert.Contains("Navigate", (await TestServices.Editor.GetCompletionItemsAsync(HangMitigatingCancellationToken)).Select(completion => completion.DisplayText));
 
-        _output.WriteLine($"CSharpIntelliSense.VerifyCompletionListMembersOnStaticTypesAndCompleteThem(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 8");
         await TestServices.Input.SendAsync(['S', VirtualKeyCode.TAB], HangMitigatingCancellationToken);
-        _output.WriteLine($"CSharpIntelliSense.VerifyCompletionListMembersOnStaticTypesAndCompleteThem(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 9");
         await TestServices.EditorVerifier.CurrentLineTextAsync("        NavigateTo.Search$$", assertCaretPosition: true, HangMitigatingCancellationToken);
     }
 
     [IdeTheory(Skip = "https://github.com/dotnet/roslyn/issues/85704"), CombinatorialData]
     public async Task CtrlAltSpace(bool showCompletionInArgumentLists)
     {
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 1");
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 2");
         globalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists);
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 3");
         globalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.VisualBasic, showCompletionInArgumentLists);
 
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 4");
         await TestServices.Editor.SetUseSuggestionModeAsync(false, HangMitigatingCancellationToken);
 
         // Note: the completion needs to be unambiguous for the test to be deterministic.
         // Otherwise the result might depend on the state of MRU list.
 
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 5");
         await TestServices.Input.SendAsync("names", HangMitigatingCancellationToken);
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 6");
         Assert.True(await TestServices.Editor.IsCompletionActiveAsync(HangMitigatingCancellationToken));
 
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 7");
         await TestServices.Input.SendAsync([" Goo", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 8");
         await TestServices.Input.SendAsync(['{', VirtualKeyCode.RETURN, '}', VirtualKeyCode.UP, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
 
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 9");
         await TestServices.Input.SendAsync("pu", HangMitigatingCancellationToken);
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 10");
         Assert.True(await TestServices.Editor.IsCompletionActiveAsync(HangMitigatingCancellationToken));
 
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 11");
         await TestServices.Input.SendAsync(" cla", HangMitigatingCancellationToken);
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 12");
         Assert.True(await TestServices.Editor.IsCompletionActiveAsync(HangMitigatingCancellationToken));
 
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 13");
         await TestServices.Input.SendAsync([" Program", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 14");
         await TestServices.Input.SendAsync(['{', VirtualKeyCode.RETURN, '}', VirtualKeyCode.UP, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
 
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 15");
         await TestServices.Input.SendAsync("pub", HangMitigatingCancellationToken);
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 16");
         Assert.True(await TestServices.Editor.IsCompletionActiveAsync(HangMitigatingCancellationToken));
 
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 17");
         await TestServices.Input.SendAsync(" stati", HangMitigatingCancellationToken);
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 18");
         Assert.True(await TestServices.Editor.IsCompletionActiveAsync(HangMitigatingCancellationToken));
 
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 19");
         await TestServices.Input.SendAsync(" voi", HangMitigatingCancellationToken);
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 20");
         Assert.True(await TestServices.Editor.IsCompletionActiveAsync(HangMitigatingCancellationToken));
 
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 21");
         await TestServices.Input.SendAsync([" Main(string[] args)", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 22");
         await TestServices.Input.SendAsync(['{', VirtualKeyCode.RETURN, '}', VirtualKeyCode.UP, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
 
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 23");
         await TestServices.Input.SendAsync("System.Console.", HangMitigatingCancellationToken);
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 24");
         Assert.True(await TestServices.Editor.IsCompletionActiveAsync(HangMitigatingCancellationToken));
 
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 25");
         await TestServices.Input.SendAsync("writeline();", HangMitigatingCancellationToken);
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 26");
         await TestServices.EditorVerifier.CurrentLineTextAsync("            System.Console.WriteLine();$$", assertCaretPosition: true, HangMitigatingCancellationToken);
 
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 27");
         await TestServices.Input.SendAsync([VirtualKeyCode.HOME, (VirtualKeyCode.END, VirtualKeyCode.SHIFT), VirtualKeyCode.DELETE], HangMitigatingCancellationToken);
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 28");
         await TestServices.Input.SendAsync(new InputKey(VirtualKeyCode.SPACE, [VirtualKeyCode.CONTROL, VirtualKeyCode.MENU]), HangMitigatingCancellationToken);
 
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 29");
         await TestServices.Input.SendAsync("System.Console.", HangMitigatingCancellationToken);
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 30");
         Assert.True(await TestServices.Editor.IsCompletionActiveAsync(HangMitigatingCancellationToken));
 
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 31");
         await TestServices.Input.SendAsync("writeline();", HangMitigatingCancellationToken);
-        _output.WriteLine($"CSharpIntelliSense.CtrlAltSpace(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 32");
         await TestServices.EditorVerifier.CurrentLineTextAsync("            System.Console.writeline();$$", assertCaretPosition: true, HangMitigatingCancellationToken);
     }
 
@@ -294,7 +241,6 @@ HangMitigatingCancellationToken);
     [IdeTheory(Skip = "https://github.com/dotnet/roslyn/issues/85704"), CombinatorialData]
     public async Task XmlDocCommentIntelliSense(bool showCompletionInArgumentLists)
     {
-        _output.WriteLine($"CSharpIntelliSense.XmlDocCommentIntelliSense(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 1");
         await SetUpEditorAsync("""
 
             class Class1
@@ -307,43 +253,27 @@ HangMitigatingCancellationToken);
             }
             """, HangMitigatingCancellationToken);
 
-        _output.WriteLine($"CSharpIntelliSense.XmlDocCommentIntelliSense(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 2");
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-        _output.WriteLine($"CSharpIntelliSense.XmlDocCommentIntelliSense(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 3");
         globalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists);
-        _output.WriteLine($"CSharpIntelliSense.XmlDocCommentIntelliSense(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 4");
         globalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.VisualBasic, showCompletionInArgumentLists);
 
-        _output.WriteLine($"CSharpIntelliSense.XmlDocCommentIntelliSense(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 5");
         await TestServices.Input.SendAsync("<s", HangMitigatingCancellationToken);
-        _output.WriteLine($"CSharpIntelliSense.XmlDocCommentIntelliSense(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 6");
         Assert.Contains("see", (await TestServices.Editor.GetCompletionItemsAsync(HangMitigatingCancellationToken)).Select(completion => completion.DisplayText));
-        _output.WriteLine($"CSharpIntelliSense.XmlDocCommentIntelliSense(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 7");
         Assert.Contains("seealso", (await TestServices.Editor.GetCompletionItemsAsync(HangMitigatingCancellationToken)).Select(completion => completion.DisplayText));
-        _output.WriteLine($"CSharpIntelliSense.XmlDocCommentIntelliSense(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 8");
         Assert.Contains("summary", (await TestServices.Editor.GetCompletionItemsAsync(HangMitigatingCancellationToken)).Select(completion => completion.DisplayText));
 
         // 🐛 Workaround for https://github.com/dotnet/roslyn/issues/33824
-        _output.WriteLine($"CSharpIntelliSense.XmlDocCommentIntelliSense(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 9");
         var completionItems = (await TestServices.Editor.GetCompletionItemsAsync(HangMitigatingCancellationToken)).SelectAsArray(item => item.DisplayText);
-        _output.WriteLine($"CSharpIntelliSense.XmlDocCommentIntelliSense(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 10");
         var targetIndex = completionItems.IndexOf("see");
-        _output.WriteLine($"CSharpIntelliSense.XmlDocCommentIntelliSense(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 11");
         var currentIndex = completionItems.IndexOf((await TestServices.Editor.GetCurrentCompletionItemAsync(HangMitigatingCancellationToken)).DisplayText);
-        _output.WriteLine($"CSharpIntelliSense.XmlDocCommentIntelliSense(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 12");
         if (currentIndex != targetIndex)
         {
-            _output.WriteLine($"CSharpIntelliSense.XmlDocCommentIntelliSense(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 13");
             InputKey key = currentIndex < targetIndex ? VirtualKeyCode.DOWN : VirtualKeyCode.UP;
-            _output.WriteLine($"CSharpIntelliSense.XmlDocCommentIntelliSense(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 14");
             var keys = Enumerable.Repeat(key, Math.Abs(currentIndex - targetIndex)).ToArray();
-            _output.WriteLine($"CSharpIntelliSense.XmlDocCommentIntelliSense(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 15");
             await TestServices.Input.SendAsync(keys, HangMitigatingCancellationToken);
         }
 
-        _output.WriteLine($"CSharpIntelliSense.XmlDocCommentIntelliSense(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 16");
         await TestServices.Input.SendAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
-        _output.WriteLine($"CSharpIntelliSense.XmlDocCommentIntelliSense(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 17");
         await TestServices.EditorVerifier.CurrentLineTextAsync("    ///<see cref=\"$$\"/>", assertCaretPosition: true, HangMitigatingCancellationToken);
     }
 
@@ -576,11 +506,8 @@ HangMitigatingCancellationToken);
     [WorkItem("https://github.com/dotnet/roslyn/issues/33822")]
     public async Task EnsureTheCaretIsVisibleAfterALongEdit(bool showCompletionInArgumentLists)
     {
-        _output.WriteLine($"CSharpIntelliSense.EnsureTheCaretIsVisibleAfterALongEdit(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 1");
         var visibleColumns = await TestServices.Editor.GetVisibleColumnCountAsync(HangMitigatingCancellationToken);
-        _output.WriteLine($"CSharpIntelliSense.EnsureTheCaretIsVisibleAfterALongEdit(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 2");
         var variableName = new string('a', (int)(0.75 * visibleColumns));
-        _output.WriteLine($"CSharpIntelliSense.EnsureTheCaretIsVisibleAfterALongEdit(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 3");
         await SetUpEditorAsync($$"""
 
             public class Program
@@ -593,16 +520,11 @@ HangMitigatingCancellationToken);
             }
             """, HangMitigatingCancellationToken);
 
-        _output.WriteLine($"CSharpIntelliSense.EnsureTheCaretIsVisibleAfterALongEdit(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 4");
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-        _output.WriteLine($"CSharpIntelliSense.EnsureTheCaretIsVisibleAfterALongEdit(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 5");
         globalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists);
-        _output.WriteLine($"CSharpIntelliSense.EnsureTheCaretIsVisibleAfterALongEdit(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 6");
         globalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.VisualBasic, showCompletionInArgumentLists);
 
-        _output.WriteLine($"CSharpIntelliSense.EnsureTheCaretIsVisibleAfterALongEdit(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 7");
         Assert.True(variableName.Length > 0);
-        _output.WriteLine($"CSharpIntelliSense.EnsureTheCaretIsVisibleAfterALongEdit(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 8");
         await TestServices.Input.SendAsync(
             [
                 VirtualKeyCode.DELETE,
@@ -610,13 +532,9 @@ HangMitigatingCancellationToken);
                 VirtualKeyCode.TAB,
             ],
             HangMitigatingCancellationToken);
-        _output.WriteLine($"CSharpIntelliSense.EnsureTheCaretIsVisibleAfterALongEdit(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 9");
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        _output.WriteLine($"CSharpIntelliSense.EnsureTheCaretIsVisibleAfterALongEdit(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 10");
         Assert.Contains($"{variableName} = {variableName}", actualText);
-        _output.WriteLine($"CSharpIntelliSense.EnsureTheCaretIsVisibleAfterALongEdit(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 11");
         Assert.True(await TestServices.Editor.IsCaretOnScreenAsync(HangMitigatingCancellationToken));
-        _output.WriteLine($"CSharpIntelliSense.EnsureTheCaretIsVisibleAfterALongEdit(showCompletionInArgumentLists: {showCompletionInArgumentLists}): action 12");
         Assert.True(await TestServices.Editor.GetCaretColumnAsync(HangMitigatingCancellationToken) > visibleColumns, "This test is inconclusive if the view didn't need to move to keep the caret on screen.");
     }
 

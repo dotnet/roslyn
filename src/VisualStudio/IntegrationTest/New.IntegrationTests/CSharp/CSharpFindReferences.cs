@@ -14,19 +14,15 @@ using Microsoft.VisualStudio.Shell.TableManager;
 using Roslyn.VisualStudio.IntegrationTests;
 using WindowsInput.Native;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 
 [Trait(Traits.Feature, Traits.Features.FindReferences)]
 public class CSharpFindReferences : AbstractEditorTest
 {
-    private readonly ITestOutputHelper _output;
-
-    public CSharpFindReferences(ITestOutputHelper output)
+    public CSharpFindReferences()
         : base(nameof(CSharpFindReferences))
     {
-        _output = output;
     }
 
     protected override string LanguageName => LanguageNames.CSharp;
@@ -34,7 +30,6 @@ public class CSharpFindReferences : AbstractEditorTest
     [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85704")]
     public async Task FindReferencesToCtor()
     {
-        _output.WriteLine("CSharpFindReferences.FindReferencesToCtor: action 1");
         await SetUpEditorAsync("""
 
             class Program
@@ -42,12 +37,9 @@ public class CSharpFindReferences : AbstractEditorTest
             }$$
 
             """, HangMitigatingCancellationToken);
-        _output.WriteLine("CSharpFindReferences.FindReferencesToCtor: action 2");
         await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "File2.cs", cancellationToken: HangMitigatingCancellationToken);
-        _output.WriteLine("CSharpFindReferences.FindReferencesToCtor: action 3");
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "File2.cs", HangMitigatingCancellationToken);
 
-        _output.WriteLine("CSharpFindReferences.FindReferencesToCtor: action 4");
         await SetUpEditorAsync("""
 
             class SomeOtherClass
@@ -60,54 +52,39 @@ public class CSharpFindReferences : AbstractEditorTest
 
             """, HangMitigatingCancellationToken);
 
-        _output.WriteLine("CSharpFindReferences.FindReferencesToCtor: action 5");
         await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
 
-        _output.WriteLine("CSharpFindReferences.FindReferencesToCtor: action 6");
         var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
 
-        _output.WriteLine("CSharpFindReferences.FindReferencesToCtor: action 7");
         Assert.Collection(
             results,
             [
                 reference =>
                 {
-                    _output.WriteLine("CSharpFindReferences.FindReferencesToCtor: action 8");
                     Assert.Equal(expected: "class Program", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
-                    _output.WriteLine("CSharpFindReferences.FindReferencesToCtor: action 9");
                     Assert.Equal(expected: 1, actual: reference.TryGetValue(StandardTableKeyNames.Line, out int line) ? line : -1);
-                    _output.WriteLine("CSharpFindReferences.FindReferencesToCtor: action 10");
                     Assert.Equal(expected: 6, actual: reference.TryGetValue(StandardTableKeyNames.Column, out int column) ? column : -1);
                 },
                 reference =>
                 {
-                    _output.WriteLine("CSharpFindReferences.FindReferencesToCtor: action 11");
                     Assert.Equal(expected: "Program p = new Program();", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
-                    _output.WriteLine("CSharpFindReferences.FindReferencesToCtor: action 12");
                     Assert.Equal(expected: 5, actual: reference.TryGetValue(StandardTableKeyNames.Line, out int line) ? line : -1);
-                    _output.WriteLine("CSharpFindReferences.FindReferencesToCtor: action 13");
                     Assert.Equal(expected: 24, actual: reference.TryGetValue(StandardTableKeyNames.Column, out int column) ? column : -1);
                 }
             ]);
 
-        _output.WriteLine("CSharpFindReferences.FindReferencesToCtor: action 14");
         results[0].NavigateTo(isPreview: false, shouldActivate: true);
-        _output.WriteLine("CSharpFindReferences.FindReferencesToCtor: action 15");
         await WaitForNavigateAsync(HangMitigatingCancellationToken);
 
         // Assert we are in the right file now
-        _output.WriteLine("CSharpFindReferences.FindReferencesToCtor: action 16");
         Assert.Equal($"Class1.cs", await TestServices.Shell.GetActiveDocumentFileNameAsync(HangMitigatingCancellationToken));
-        _output.WriteLine("CSharpFindReferences.FindReferencesToCtor: action 17");
         Assert.Equal("Program", await TestServices.Editor.GetLineTextAfterCaretAsync(HangMitigatingCancellationToken));
     }
 
     [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85704")]
     public async Task FindReferencesToLocals()
     {
-        _output.WriteLine("CSharpFindReferences.FindReferencesToLocals: action 1");
         await using var telemetry = await TestServices.Telemetry.EnableTestTelemetryChannelAsync(HangMitigatingCancellationToken);
-        _output.WriteLine("CSharpFindReferences.FindReferencesToLocals: action 2");
         await SetUpEditorAsync("""
 
             class Program
@@ -121,37 +98,27 @@ public class CSharpFindReferences : AbstractEditorTest
 
             """, HangMitigatingCancellationToken);
 
-        _output.WriteLine("CSharpFindReferences.FindReferencesToLocals: action 3");
         await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
 
-        _output.WriteLine("CSharpFindReferences.FindReferencesToLocals: action 4");
         var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
 
-        _output.WriteLine("CSharpFindReferences.FindReferencesToLocals: action 5");
         Assert.Collection(
             results,
             [
                 reference =>
                 {
-                    _output.WriteLine("CSharpFindReferences.FindReferencesToLocals: action 6");
                     Assert.Equal(expected: "int local = 1;", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
-                    _output.WriteLine("CSharpFindReferences.FindReferencesToLocals: action 7");
                     Assert.Equal(expected: 5, actual: reference.TryGetValue(StandardTableKeyNames.Line, out int line) ? line : -1);
-                    _output.WriteLine("CSharpFindReferences.FindReferencesToLocals: action 8");
                     Assert.Equal(expected: 12, actual: reference.TryGetValue(StandardTableKeyNames.Column, out int column) ? column : -1);
                 },
                 reference =>
                 {
-                    _output.WriteLine("CSharpFindReferences.FindReferencesToLocals: action 9");
                     Assert.Equal(expected: "Console.WriteLine(local);", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
-                    _output.WriteLine("CSharpFindReferences.FindReferencesToLocals: action 10");
                     Assert.Equal(expected: 6, actual: reference.TryGetValue(StandardTableKeyNames.Line, out int line) ? line : -1);
-                    _output.WriteLine("CSharpFindReferences.FindReferencesToLocals: action 11");
                     Assert.Equal(expected: 26, actual: reference.TryGetValue(StandardTableKeyNames.Column, out int column) ? column : -1);
                 }
             ]);
 
-        _output.WriteLine("CSharpFindReferences.FindReferencesToLocals: action 12");
         await telemetry.VerifyFiredAsync(["vs/platform/findallreferences/search", "vs/ide/vbcs/commandhandler/findallreference"], HangMitigatingCancellationToken);
     }
 

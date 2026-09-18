@@ -10,21 +10,17 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 
 [Trait(Traits.Feature, Traits.Features.ChangeSignature)]
 public class CSharpChangeSignatureDialog : AbstractEditorTest
 {
-    private readonly ITestOutputHelper _output;
-
     protected override string LanguageName => LanguageNames.CSharp;
 
-    public CSharpChangeSignatureDialog(ITestOutputHelper output)
+    public CSharpChangeSignatureDialog()
         : base(nameof(CSharpChangeSignatureDialog))
     {
-        _output = output;
     }
 
     [IdeFact]
@@ -145,7 +141,6 @@ public class CSharpChangeSignatureDialog : AbstractEditorTest
     [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85704")]
     public async Task VerifyCrossLanguageGlobalUndo()
     {
-        _output.WriteLine("CSharpChangeSignatureDialog.VerifyCrossLanguageGlobalUndo: action 1");
         await SetUpEditorAsync("""
             using VBProject;
 
@@ -160,15 +155,10 @@ public class CSharpChangeSignatureDialog : AbstractEditorTest
             }
             """, HangMitigatingCancellationToken);
 
-        _output.WriteLine("CSharpChangeSignatureDialog.VerifyCrossLanguageGlobalUndo: action 2");
         var vbProject = "VBProject";
-        _output.WriteLine("CSharpChangeSignatureDialog.VerifyCrossLanguageGlobalUndo: action 3");
         var vbProjectReference = vbProject;
-        _output.WriteLine("CSharpChangeSignatureDialog.VerifyCrossLanguageGlobalUndo: action 4");
         var project = ProjectName;
-        _output.WriteLine("CSharpChangeSignatureDialog.VerifyCrossLanguageGlobalUndo: action 5");
         await TestServices.SolutionExplorer.AddProjectAsync(vbProject, WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic, HangMitigatingCancellationToken);
-        _output.WriteLine("CSharpChangeSignatureDialog.VerifyCrossLanguageGlobalUndo: action 6");
         await TestServices.Editor.SetTextAsync("""
 
             Public Class VBClass
@@ -177,49 +167,29 @@ public class CSharpChangeSignatureDialog : AbstractEditorTest
             End Class
             """, HangMitigatingCancellationToken);
 
-        _output.WriteLine("CSharpChangeSignatureDialog.VerifyCrossLanguageGlobalUndo: action 7");
         await TestServices.SolutionExplorer.SaveAllAsync(HangMitigatingCancellationToken);
-        _output.WriteLine("CSharpChangeSignatureDialog.VerifyCrossLanguageGlobalUndo: action 8");
         await TestServices.SolutionExplorer.AddProjectReferenceAsync(projectName: project, projectToReferenceName: vbProjectReference, HangMitigatingCancellationToken);
-        _output.WriteLine("CSharpChangeSignatureDialog.VerifyCrossLanguageGlobalUndo: action 9");
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Class1.cs", HangMitigatingCancellationToken);
 
-        _output.WriteLine("CSharpChangeSignatureDialog.VerifyCrossLanguageGlobalUndo: action 10");
         await TestServices.ChangeSignatureDialog.InvokeAsync(HangMitigatingCancellationToken);
-        _output.WriteLine("CSharpChangeSignatureDialog.VerifyCrossLanguageGlobalUndo: action 11");
         await TestServices.ChangeSignatureDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
-        _output.WriteLine("CSharpChangeSignatureDialog.VerifyCrossLanguageGlobalUndo: action 12");
         await TestServices.ChangeSignatureDialog.SelectParameterAsync("String y", HangMitigatingCancellationToken);
-        _output.WriteLine("CSharpChangeSignatureDialog.VerifyCrossLanguageGlobalUndo: action 13");
         await TestServices.ChangeSignatureDialog.ClickUpButtonAsync(HangMitigatingCancellationToken);
-        _output.WriteLine("CSharpChangeSignatureDialog.VerifyCrossLanguageGlobalUndo: action 14");
         await TestServices.ChangeSignatureDialog.ClickOKAsync(HangMitigatingCancellationToken);
-        _output.WriteLine("CSharpChangeSignatureDialog.VerifyCrossLanguageGlobalUndo: action 15");
         await TestServices.ChangeSignatureDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
-        _output.WriteLine("CSharpChangeSignatureDialog.VerifyCrossLanguageGlobalUndo: action 16");
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        _output.WriteLine("CSharpChangeSignatureDialog.VerifyCrossLanguageGlobalUndo: action 17");
         Assert.Contains(@"vb.Method(y: ""hello"", x: 1);", actualText);
 
-        _output.WriteLine("CSharpChangeSignatureDialog.VerifyCrossLanguageGlobalUndo: action 18");
         await TestServices.SolutionExplorer.OpenFileAsync(vbProject, "Class1.vb", HangMitigatingCancellationToken);
-        _output.WriteLine("CSharpChangeSignatureDialog.VerifyCrossLanguageGlobalUndo: action 19");
         actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        _output.WriteLine("CSharpChangeSignatureDialog.VerifyCrossLanguageGlobalUndo: action 20");
         Assert.Contains(@"Public Sub Method(y As String, x As Integer)", actualText);
 
-        _output.WriteLine("CSharpChangeSignatureDialog.VerifyCrossLanguageGlobalUndo: action 21");
         await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Undo, HangMitigatingCancellationToken);
-        _output.WriteLine("CSharpChangeSignatureDialog.VerifyCrossLanguageGlobalUndo: action 22");
         actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        _output.WriteLine("CSharpChangeSignatureDialog.VerifyCrossLanguageGlobalUndo: action 23");
         Assert.Contains(@"Public Sub Method(x As Integer, y As String)", actualText);
 
-        _output.WriteLine("CSharpChangeSignatureDialog.VerifyCrossLanguageGlobalUndo: action 24");
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Class1.cs", HangMitigatingCancellationToken);
-        _output.WriteLine("CSharpChangeSignatureDialog.VerifyCrossLanguageGlobalUndo: action 25");
         actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        _output.WriteLine("CSharpChangeSignatureDialog.VerifyCrossLanguageGlobalUndo: action 26");
         Assert.Contains(@"vb.Method(2, ""world"");", actualText);
     }
 
