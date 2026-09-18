@@ -33,7 +33,7 @@ public class RazorSemanticTokensTests(ITestOutputHelper testOutputHelper) : Abst
         Assert.False(GenerateBaselines, "Don't forget to set this back to false before you open a PR :)");
     }
 
-    [IdeFact/*(Skip = "https://github.com/dotnet/roslyn/issues/85699")*/]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85699")]
     public async Task GenericTypeParameters_Work()
     {
         // Arrange
@@ -74,7 +74,7 @@ public class RazorSemanticTokensTests(ITestOutputHelper testOutputHelper) : Abst
         await TestServices.Editor.VerifyGetClassificationsAsync(expectedClassifications, ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact/*(Skip = "https://github.com/dotnet/roslyn/issues/85699")*/]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85699")]
     public async Task Edits_UpdateColors()
     {
         // Arrange
@@ -102,7 +102,7 @@ public class RazorSemanticTokensTests(ITestOutputHelper testOutputHelper) : Abst
         await TestServices.Editor.VerifyGetClassificationsAsync(expectedClassifications, ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact/*(Skip = "https://github.com/dotnet/roslyn/issues/85699")*/]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85699")]
     public async Task Directives_AreColored()
     {
         // Arrange

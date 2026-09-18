@@ -14,7 +14,7 @@ public class MultiTargetProjectTests(ITestOutputHelper testOutputHelper) : Abstr
 
     protected override string TargetFrameworkElement => $"""<TargetFrameworks>{OtherTargetFramework};{TargetFramework}</TargetFrameworks>""";
 
-    [IdeFact/*(Skip = "https://github.com/dotnet/roslyn/issues/85699")*/]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85699")]
     public async Task OpenExistingProject()
     {
         testOutputHelper.WriteLine("OpenExistingProject: get solution directory");
