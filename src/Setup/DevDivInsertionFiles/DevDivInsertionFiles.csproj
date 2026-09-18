@@ -111,6 +111,7 @@
       <_Dependency Remove="Microsoft.Diagnostics.Tracing.EventSource.Redist"/>
       <_Dependency Remove="Microsoft.Extensions.DependencyInjection"/>
       <_Dependency Remove="Microsoft.Extensions.DependencyInjection.Abstractions"/>
+      <_Dependency Remove="Microsoft.Extensions.Logging.Abstractions"/>
       <_Dependency Remove="Microsoft.Internal.Performance.CodeMarkers.DesignTime"/>
       <_Dependency Remove="Microsoft.ML.Tokenizers"/>
       <_Dependency Remove="Microsoft.MSXML"/>
