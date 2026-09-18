@@ -32,7 +32,23 @@
     <LangVersion Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">$(_MaxSupportedLangVersion)</LangVersion>
   </PropertyGroup>
 
-  <Target Name="CoreCompile"
+  <Target Name="CoreCompile"          
+          DependsOnTargets="$(CoreCompileDependsOn);_BeforeVBCSCoreCompile;_RoslynCoreCompile;_InvokeTargetsTriggeredByCompilation"          
+          Returns="@(CscCommandLineArgs)">
+  </Target>
+
+  <PropertyGroup>
+    <TargetsTriggeredByCompilationContinueOnError Condition="'$(TargetsTriggeredByCompilationContinueOnError)' == ''">false</TargetsTriggeredByCompilationContinueOnError>
+  </PropertyGroup>
+
+  <Target Name="_InvokeTargetsTriggeredByCompilation"
+          Condition="'$(TargetsTriggeredByCompilation)' != ''">
+    <CallTarget Targets="$(TargetsTriggeredByCompilation)"
+                RunEachTargetSeparately="true"
+                ContinueOnError="$(TargetsTriggeredByCompilationContinueOnError)" />
+  </Target>
+
+  <Target Name="_RoslynCoreCompile"
           Inputs="$(MSBuildAllProjects);
                   @(Compile);
                   @(_CoreCompileResourceInputs);
@@ -185,8 +201,6 @@
     <ItemGroup>
       <_CoreCompileResourceInputs Remove="@(_CoreCompileResourceInputs)" />
     </ItemGroup>
-
-    <CallTarget Targets="$(TargetsTriggeredByCompilation)" Condition="'$(TargetsTriggeredByCompilation)' != ''" />
   </Target>
 
   <!-- When we load a project in Visual Studio, the project system first does an evaluation pass of the
