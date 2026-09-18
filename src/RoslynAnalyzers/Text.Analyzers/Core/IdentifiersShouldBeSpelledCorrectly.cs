@@ -373,7 +373,8 @@ namespace Text.Analyzers
                     reportDiagnostic(GetMisspelledWordDiagnostic(symbol, misspelledWord));
                 }
 
-                if (checkForUnmeaningful && symbolName.Length == 1)
+                // A single digit is what remains of names like 'T1' after the prefix was removed; GetMisspelledWords ignores those too.
+                if (checkForUnmeaningful && symbolName.Length == 1 && !IsWordNumeric(symbolName))
                 {
                     reportDiagnostic(GetUnmeaningfulIdentifierDiagnostic(symbol, symbolName));
                 }
