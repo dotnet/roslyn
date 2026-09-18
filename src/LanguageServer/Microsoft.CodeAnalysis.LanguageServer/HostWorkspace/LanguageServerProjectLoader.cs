@@ -386,6 +386,8 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
     /// </summary>
     /// <remarks>
     /// High-priority requests also promote an existing queued load. Other requests leave its priority unchanged.
+    /// Cancellation may prevent gate acquisition or stop cache initialization. Once a project is registered,
+    /// cancellation does not unregister it or cancel its independently owned queued build.
     /// </remarks>
     internal async Task<LoadedProject> BeginLoadingProjectAsync(
         string projectPath,
