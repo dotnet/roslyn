@@ -14,10 +14,8 @@ public class DiagnosticTests(ITestOutputHelper testOutputHelper) : AbstractRazor
     public async Task Diagnostics_ShowErrors_Razor()
     {
         // Arrange
-        testOutputHelper.WriteLine("Diagnostics_ShowErrors_Razor: open Counter.razor");
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
 
-        testOutputHelper.WriteLine("Diagnostics_ShowErrors_Razor: set Razor errors text");
         await TestServices.Editor.SetTextAsync(@"
 <h1>
 <PageTitle>
@@ -30,30 +28,24 @@ public class DiagnosticTests(ITestOutputHelper testOutputHelper) : AbstractRazor
 ", ControlledHangMitigatingCancellationToken);
 
         // Act
-        testOutputHelper.WriteLine("Diagnostics_ShowErrors_Razor: wait for Counter.razor errors");
         var errors = await TestServices.ErrorList.WaitForErrorsAsync("Counter.razor", expectedCount: 3, ControlledHangMitigatingCancellationToken);
 
         // Assert
-        testOutputHelper.WriteLine("Diagnostics_ShowErrors_Razor: assert Razor diagnostics");
         Assert.Collection(errors,
             (error) =>
             {
-                testOutputHelper.WriteLine("Diagnostics_ShowErrors_Razor: assert unclosed h1 diagnostic");
                 AssertEx.EqualOrDiff("Counter.razor(2, 1): error RZ9980: Unclosed tag 'h1' with no matching end tag.", error);
             },
             (error) =>
             {
-                testOutputHelper.WriteLine("Diagnostics_ShowErrors_Razor: assert malformed PageTitle diagnostic");
                 AssertEx.EqualOrDiff("Counter.razor(3, 2): error RZ1034: Found a malformed 'PageTitle' tag helper. Tag helpers must have a start and end tag or be self closing.", error);
             },
             (error) =>
             {
-                testOutputHelper.WriteLine("Diagnostics_ShowErrors_Razor: assert missing semicolon diagnostic");
                 AssertEx.EqualOrDiff("Counter.razor(7, 18): error CS1002: ; expected", error);
             },
             (error) =>
             {
-                testOutputHelper.WriteLine("Diagnostics_ShowErrors_Razor: assert void return diagnostic");
                 AssertEx.EqualOrDiff("Counter.razor(7, 9): error CS0127: Since 'Counter.Function()' returns void, a return keyword must not be followed by an object expression", error);
             });
     }
@@ -62,10 +54,8 @@ public class DiagnosticTests(ITestOutputHelper testOutputHelper) : AbstractRazor
     public async Task Diagnostics_ShowErrors_Html()
     {
         // Arrange
-        testOutputHelper.WriteLine("Diagnostics_ShowErrors_Html: open Error.cshtml");
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ErrorCshtmlFile, ControlledHangMitigatingCancellationToken);
 
-        testOutputHelper.WriteLine("Diagnostics_ShowErrors_Html: set Html errors text");
         await TestServices.Editor.SetTextAsync(@"
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
@@ -82,20 +72,16 @@ public class DiagnosticTests(ITestOutputHelper testOutputHelper) : AbstractRazor
 ", ControlledHangMitigatingCancellationToken);
 
         // Act
-        testOutputHelper.WriteLine("Diagnostics_ShowErrors_Html: wait for Error.cshtml errors");
         var errors = await TestServices.ErrorList.WaitForErrorsAsync("Error.cshtml", expectedCount: 1, ControlledHangMitigatingCancellationToken);
 
         // Assert
-        testOutputHelper.WriteLine("Diagnostics_ShowErrors_Html: assert Html diagnostics");
         Assert.Collection(errors,
             (error) =>
             {
-                testOutputHelper.WriteLine("Diagnostics_ShowErrors_Html: assert missing angle bracket diagnostic");
                 AssertEx.EqualOrDiff("Error.cshtml(10, 6): warning HTML0001: Element start tag is missing closing angle bracket.", error);
             },
             (error) =>
             {
-                testOutputHelper.WriteLine("Diagnostics_ShowErrors_Html: assert unnecessary addTagHelper diagnostic");
                 AssertEx.EqualOrDiff("Error.cshtml(2, 1): warning RZ0005: @addTagHelper directive is unnecessary.", error);
             });
     }
@@ -104,10 +90,8 @@ public class DiagnosticTests(ITestOutputHelper testOutputHelper) : AbstractRazor
     public async Task Diagnostics_ShowErrors_CSharp()
     {
         // Arrange
-        testOutputHelper.WriteLine("Diagnostics_ShowErrors_CSharp: open Error.cshtml");
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ErrorCshtmlFile, ControlledHangMitigatingCancellationToken);
 
-        testOutputHelper.WriteLine("Diagnostics_ShowErrors_CSharp: set CSharp errors text");
         await TestServices.Editor.SetTextAsync(@"
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
@@ -124,15 +108,12 @@ public class DiagnosticTests(ITestOutputHelper testOutputHelper) : AbstractRazor
 ", ControlledHangMitigatingCancellationToken);
 
         // Act
-        testOutputHelper.WriteLine("Diagnostics_ShowErrors_CSharp: wait for Error.cshtml CSharp errors");
         var errors = await TestServices.ErrorList.WaitForErrorsAsync("Error.cshtml", expectedCount: 1, ControlledHangMitigatingCancellationToken);
 
         // Assert
-        testOutputHelper.WriteLine("Diagnostics_ShowErrors_CSharp: assert CSharp diagnostics");
         Assert.Collection(errors,
             (error) =>
             {
-                testOutputHelper.WriteLine("Diagnostics_ShowErrors_CSharp: assert dynamic expression tree diagnostic");
                 AssertEx.EqualOrDiff("Error.cshtml(10, 21): error CS1963: An expression tree may not contain a dynamic operation", error);
             });
     }
@@ -150,10 +131,8 @@ public class DiagnosticTests(ITestOutputHelper testOutputHelper) : AbstractRazor
         // is value in having a range of tests to make sure nothing regresses.
 
         // Arrange
-        testOutputHelper.WriteLine("Diagnostics_ShowErrors_CSharp_NoDocType: open Error.cshtml");
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ErrorCshtmlFile, ControlledHangMitigatingCancellationToken);
 
-        testOutputHelper.WriteLine("Diagnostics_ShowErrors_CSharp_NoDocType: set no-doctype CSharp errors text");
         await TestServices.Editor.SetTextAsync(@"
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
@@ -169,15 +148,12 @@ public class DiagnosticTests(ITestOutputHelper testOutputHelper) : AbstractRazor
 ", ControlledHangMitigatingCancellationToken);
 
         // Act
-        testOutputHelper.WriteLine("Diagnostics_ShowErrors_CSharp_NoDocType: wait for Error.cshtml no-doctype CSharp errors");
         var errors = await TestServices.ErrorList.WaitForErrorsAsync("Error.cshtml", expectedCount: 1, ControlledHangMitigatingCancellationToken);
 
         // Assert
-        testOutputHelper.WriteLine("Diagnostics_ShowErrors_CSharp_NoDocType: assert no-doctype CSharp diagnostics");
         Assert.Collection(errors,
             (error) =>
             {
-                testOutputHelper.WriteLine("Diagnostics_ShowErrors_CSharp_NoDocType: assert dynamic expression tree diagnostic");
                 AssertEx.EqualOrDiff("Error.cshtml(9, 21): error CS1963: An expression tree may not contain a dynamic operation", error);
             });
     }

@@ -238,7 +238,6 @@ public class CodeFoldingTests(ITestOutputHelper testOutputHelper) : AbstractRazo
     [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/84862")]
     public async Task CodeFolding_ForEach()
     {
-        testOutputHelper.WriteLine("CodeFolding_ForEach: add Test.razor");
         await TestServices.SolutionExplorer.AddFileAsync(
             RazorProjectConstants.BlazorProjectName,
             "Test.razor",
@@ -263,13 +262,10 @@ public class CodeFoldingTests(ITestOutputHelper testOutputHelper) : AbstractRazo
             open: true,
             ControlledHangMitigatingCancellationToken);
 
-        testOutputHelper.WriteLine("CodeFolding_ForEach: wait for component classification");
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
 
-        testOutputHelper.WriteLine("CodeFolding_ForEach: send enter");
         TestServices.Input.Send("{ENTER}");
 
-        testOutputHelper.WriteLine("CodeFolding_ForEach: assert foldable blocks");
         await AssertFoldableBlocksAsync(
             """
             @foreach (var s in GetStuff())

@@ -406,11 +406,9 @@ public class GoToDefinitionTests(ITestOutputHelper testOutputHelper) : AbstractR
     public async Task GoToDefinition_ComponentFromCSharp()
     {
         // Open the file
-        testOutputHelper.WriteLine("GoToDefinition_ComponentFromCSharp: open Program.cs");
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, "Program.cs", ControlledHangMitigatingCancellationToken);
 
         // Change text to refer back to Program class
-        testOutputHelper.WriteLine("GoToDefinition_ComponentFromCSharp: set Program.cs component reference text");
         await TestServices.Editor.SetTextAsync("""
             using BlazorProject.Shared;
 
@@ -418,14 +416,11 @@ public class GoToDefinitionTests(ITestOutputHelper testOutputHelper) : AbstractR
             """, ControlledHangMitigatingCancellationToken);
 
         // Act
-        testOutputHelper.WriteLine("GoToDefinition_ComponentFromCSharp: invoke go to definition");
         await TestServices.Editor.InvokeGoToDefinitionAsync(ControlledHangMitigatingCancellationToken);
 
         // Assert
-        testOutputHelper.WriteLine("GoToDefinition_ComponentFromCSharp: wait for SurveyPrompt.razor active window");
         await TestServices.Editor.WaitForActiveWindowAsync("SurveyPrompt.razor", ControlledHangMitigatingCancellationToken);
 
-        testOutputHelper.WriteLine("GoToDefinition_ComponentFromCSharp: close Program.cs without saving");
         await TestServices.Editor.CloseCodeFileAsync(RazorProjectConstants.BlazorProjectName, "Program.cs", saveFile: false, ControlledHangMitigatingCancellationToken);
     }
 
