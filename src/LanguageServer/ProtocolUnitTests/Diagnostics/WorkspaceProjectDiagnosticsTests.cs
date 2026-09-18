@@ -56,9 +56,9 @@ public sealed class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTes
 
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
         Assert.Equal(2, results2.Length);
-        Assert.Equal(useVSDiagnostics ? null : [], results2[0].Diagnostics);
+        Assert.Empty(results2[0].Diagnostics!);
         Assert.Null(results2[0].ResultId);
-        Assert.Equal(useVSDiagnostics ? null : [], results2[1].Diagnostics);
+        Assert.Empty(results2[1].Diagnostics!);
         Assert.Null(results2[1].ResultId);
     }
 

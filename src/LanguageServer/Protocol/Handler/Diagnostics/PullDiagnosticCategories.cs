@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Roslyn.LanguageServer.Protocol;
-
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 internal static class PullDiagnosticCategories
@@ -11,12 +9,12 @@ internal static class PullDiagnosticCategories
     /// <summary>
     /// Task list items.  Can be for Document or Workspace pull requests.
     /// </summary>
-    public static readonly string Task = VSInternalDiagnosticKind.Task.Value;
+    public const string Task = "task";
 
     /// <summary>
     /// Edit and Continue diagnostics. Can be for Document or Workspace pull requests.
     /// </summary>
-    public static readonly string EditAndContinue = VSInternalDiagnosticKind.EditAndContinue.Value;
+    public const string EditAndContinue = "enc";
 
     // Workspace categories
 
@@ -28,8 +26,7 @@ internal static class PullDiagnosticCategories
     // Fine-grained document pull categories to allow diagnostics to more quickly reach the user.
 
     // VSLanguageServerClient's RemoteDocumentDiagnosticBroker uses this exact string to determine
-    // when syntax errors are being provided via pull diagnostics. Alternatively when 17.9 preview 1 packages
-    // are consumable by Roslyn, this could be updated to reference VSInternalDiagnosticKind.Syntax.Value directly.
+    // when syntax errors are being provided via pull diagnostics.
     public const string DocumentCompilerSyntax = "syntax";
 
     public const string DocumentCompilerSemantic = nameof(DocumentCompilerSemantic);
