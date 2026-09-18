@@ -42,6 +42,25 @@ public sealed class LanguageServerTargetTests : AbstractLanguageServerProtocolTe
     }
 
     [Theory, CombinatorialData]
+    public async Task StandaloneServerDoesNotOmitDidOpenText(bool mutatingLspWorkspace)
+    {
+        var initializationOptions = new InitializationOptions
+        {
+            ClientCapabilities = new VSInternalClientCapabilities
+            {
+                SupportsVisualStudioExtensions = true,
+                SupportsNotIncludingTextInTextDocumentDidOpen = true,
+            },
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+        };
+
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace, initializationOptions);
+        var serverCapabilities = Assert.IsType<VSInternalServerCapabilities>(server.GetServerCapabilities());
+
+        Assert.False(serverCapabilities.DoNotIncludeTextInTextDocumentDidOpen);
+    }
+
+    [Theory, CombinatorialData]
     public async Task LanguageServerQueueEmptyOnShutdownMessage(bool mutatingLspWorkspace)
     {
         await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
