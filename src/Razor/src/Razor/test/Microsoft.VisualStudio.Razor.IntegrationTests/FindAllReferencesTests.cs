@@ -93,8 +93,10 @@ public class FindAllReferencesTests(ITestOutputHelper testOutputHelper) : Abstra
     public async Task FindAllReferences_Component_FromCSharp()
     {
         // Open the file
+        testOutputHelper.WriteLine("FindAllReferences_Component_FromCSharp: open Program.cs");
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, "Program.cs", ControlledHangMitigatingCancellationToken);
 
+        testOutputHelper.WriteLine("FindAllReferences_Component_FromCSharp: set Program.cs reference text");
         await TestServices.Editor.SetTextAsync("""
             using BlazorProject.Shared;
 
@@ -102,33 +104,47 @@ public class FindAllReferencesTests(ITestOutputHelper testOutputHelper) : Abstra
             """, ControlledHangMitigatingCancellationToken);
 
         // Act
+        testOutputHelper.WriteLine("FindAllReferences_Component_FromCSharp: invoke find all references");
         await TestServices.Editor.InvokeFindAllReferencesAsync(ControlledHangMitigatingCancellationToken);
 
         // Assert
+        testOutputHelper.WriteLine("FindAllReferences_Component_FromCSharp: wait for references window contents");
         var results = await TestServices.FindReferencesWindow.WaitForContentsAsync(ControlledHangMitigatingCancellationToken, expected: 2);
 
         // Don't care about order, but Assert.Collection does
+        testOutputHelper.WriteLine("FindAllReferences_Component_FromCSharp: order reference results");
         var orderedResults = OrderResults(results);
 
+        testOutputHelper.WriteLine("FindAllReferences_Component_FromCSharp: assert reference results");
         Assert.Collection(
             orderedResults,
             reference =>
             {
+                testOutputHelper.WriteLine("FindAllReferences_Component_FromCSharp: assert Index.razor reference document");
                 Assert.Equal("Index.razor", reference.DocumentName);
+
+                testOutputHelper.WriteLine("FindAllReferences_Component_FromCSharp: assert Index.razor reference code");
                 Assert.Equal("<SurveyPrompt Title=\"How is Blazor working for you?\" />", reference.Code);
             },
             reference =>
             {
+                testOutputHelper.WriteLine("FindAllReferences_Component_FromCSharp: assert Program.cs reference document");
                 Assert.Equal("Program.cs", reference.DocumentName);
+
+                testOutputHelper.WriteLine("FindAllReferences_Component_FromCSharp: assert Program.cs reference code");
                 Assert.Equal("typeof(SurveyPrompt).ToString();", reference.Code);
             },
             reference =>
             {
+                testOutputHelper.WriteLine("FindAllReferences_Component_FromCSharp: assert SurveyPrompt.razor reference document");
                 Assert.Equal("SurveyPrompt.razor", reference.DocumentName);
+
+                testOutputHelper.WriteLine("FindAllReferences_Component_FromCSharp: assert SurveyPrompt.razor reference code");
                 Assert.Equal("<div class=\"alert alert-secondary mt-4\">", reference.Code);
             }
         );
 
+        testOutputHelper.WriteLine("FindAllReferences_Component_FromCSharp: close references window");
         await TestServices.FindReferencesWindow.CloseToolWindowAsync(ControlledHangMitigatingCancellationToken);
     }
 

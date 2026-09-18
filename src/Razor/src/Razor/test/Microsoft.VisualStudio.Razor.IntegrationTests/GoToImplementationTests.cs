@@ -47,8 +47,10 @@ public class GoToImplementationTests(ITestOutputHelper testOutputHelper) : Abstr
     public async Task GoToImplementation_FromCSharp()
     {
         // Open the file
+        testOutputHelper.WriteLine("GoToImplementation_FromCSharp: open Program.cs");
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, "Program.cs", ControlledHangMitigatingCancellationToken);
 
+        testOutputHelper.WriteLine("GoToImplementation_FromCSharp: set Program.cs component reference text");
         await TestServices.Editor.SetTextAsync("""
             using BlazorProject.Shared;
 
@@ -56,9 +58,11 @@ public class GoToImplementationTests(ITestOutputHelper testOutputHelper) : Abstr
             """, ControlledHangMitigatingCancellationToken);
 
         // Act
+        testOutputHelper.WriteLine("GoToImplementation_FromCSharp: invoke go to implementation");
         await TestServices.Editor.InvokeGoToImplementationAsync(ControlledHangMitigatingCancellationToken);
 
         // Assert
+        testOutputHelper.WriteLine("GoToImplementation_FromCSharp: wait for SurveyPrompt.razor active window");
         await TestServices.Editor.WaitForActiveWindowAsync("SurveyPrompt.razor", ControlledHangMitigatingCancellationToken);
     }
 }
