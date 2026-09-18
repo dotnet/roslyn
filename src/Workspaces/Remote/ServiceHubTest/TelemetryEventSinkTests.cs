@@ -59,8 +59,12 @@ public sealed class TelemetryEventSinkTests
             "vs.ide.vbcs.debugging.encsession.editsession.emitdeltaerrorid.test2=PII(2)",
             "vs.ide.vbcs.debugging.encsession.editsession.emitdeltaerrorid.test3=Complex[3,PII(4)]",
         }, InspectProperties(postedEvent));
+    }
 
-        logger.PostedEvents.Clear();
+    [Fact]
+    public void ReportFault()
+    {
+        var logger = new TestTelemetryEventSink();
         logger.ReportFault(new InvalidOperationException(), ErrorSeverity.General, forceDump: false);
 
         var fault = Assert.IsType<FaultEvent>(Assert.Single(logger.PostedEvents));

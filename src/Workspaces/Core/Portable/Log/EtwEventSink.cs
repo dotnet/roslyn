@@ -24,6 +24,8 @@ internal sealed class EtwEventSink(Func<FunctionId, bool> isEnabledPredicate) : 
 
     public void ReportFault(Exception exception, ErrorSeverity severity, bool forceDump)
     {
+        if (IsEnabled(FunctionId.NonFatalWatson))
+            _source.Log(exception.ToString(), FunctionId.NonFatalWatson);
     }
 
     public void Log(FunctionId functionId, LogMessage logMessage)

@@ -20,10 +20,12 @@ internal sealed class TraceEventSink(Func<FunctionId, bool> isEnabledPredicate) 
 
     public void ReportFault(Exception exception, ErrorSeverity severity, bool forceDump)
     {
+        if (IsEnabled(FunctionId.NonFatalWatson))
+            Log(FunctionId.NonFatalWatson, exception.ToString());
     }
 
     public void Log(FunctionId functionId, LogMessage logMessage)
-        => Trace.WriteLine(string.Format("[{0}] {1} - {2}", Environment.CurrentManagedThreadId, functionId.ToString(), logMessage.GetMessage()));
+        => Log(functionId, logMessage.GetMessage());
 
     public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken)
         => Trace.WriteLine(string.Format("[{0}] Start({1}) : {2} - {3}", Environment.CurrentManagedThreadId, uniquePairId, functionId.ToString(), logMessage.GetMessage()));
@@ -33,4 +35,8 @@ internal sealed class TraceEventSink(Func<FunctionId, bool> isEnabledPredicate) 
         var functionString = functionId.ToString() + (cancellationToken.IsCancellationRequested ? " Canceled" : string.Empty);
         Trace.WriteLine(string.Format("[{0}] End({1}) : [{2}ms] {3}", Environment.CurrentManagedThreadId, uniquePairId, delta, functionString));
     }
+
+    [Conditional("TRACE")]
+    private static void Log(FunctionId functionId, string message)
+        => Trace.WriteLine(string.Format("[{0}] {1} - {2}", Environment.CurrentManagedThreadId, functionId.ToString(), message));
 }

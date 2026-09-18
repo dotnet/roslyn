@@ -117,16 +117,17 @@ internal sealed class LanguageServerTelemetry : IDisposable
 
         TelemetryReporterWrapper.RegisterSession(_telemetry, session);
 
+        var eventSink = TelemetryEventSink.Create(session, logDelta: true);
+        eventSink.IncludeServiceHubLogFiles = false;
         var metricSink = new VSMetricSink(session);
         _registrations =
         [
-            _telemetry.AddEventSink(TelemetryEventSink.Create(session, logDelta: true)),
+            _telemetry.AddEventSink(eventSink),
             _telemetry.AddMetricSink(metricSink),
             metricSink,
         ];
 
         FaultReporter.InitializeFatalErrorHandlers();
-        TelemetryEventSink.IncludeServiceHubLogFiles = false;
     }
 
     internal static bool IsCopilotCliTelemetryEnabled(string? telemetryLevel)

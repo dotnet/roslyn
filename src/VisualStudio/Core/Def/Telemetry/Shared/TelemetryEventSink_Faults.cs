@@ -27,7 +27,7 @@ internal abstract partial class TelemetryEventSink
 
     private static int s_dumpsSubmitted;
 
-    public static bool IncludeServiceHubLogFiles = true;
+    public bool IncludeServiceHubLogFiles = true;
 
     /// <summary>
     /// The bucket parameter for the blamed module.
@@ -71,7 +71,7 @@ internal abstract partial class TelemetryEventSink
             PostEvent(CreateFaultEvent(exception, severity, forceDump));
     }
 
-    private static FaultEvent CreateFaultEvent(Exception exception, ErrorSeverity severity, bool forceDump)
+    private FaultEvent CreateFaultEvent(Exception exception, ErrorSeverity severity, bool forceDump)
     {
         var currentProcess = Process.GetCurrentProcess();
         var description = GetDescription(exception);
