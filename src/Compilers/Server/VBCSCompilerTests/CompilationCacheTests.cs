@@ -1012,9 +1012,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             public CollectingLogger(List<string> messages) => _messages = messages;
 
-            public bool IsLogging => true;
+            public bool IsEnabled(CompilerServerLogKind kind) => true;
 
-            public void Log(string message) => _messages.Add(message);
+            public void Log(CompilerServerLogKind kind, string message) => _messages.Add(message);
         }
     }
 }

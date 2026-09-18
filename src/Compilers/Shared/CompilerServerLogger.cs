@@ -14,6 +14,20 @@ using System.Text;
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
+    internal enum CompilerServerLogKind
+    {
+        /// <summary>
+        /// Detailed tracing intended for diagnosing compiler client and server implementation behavior.
+        /// </summary>
+        Trace,
+
+        /// <summary>
+        /// Client-side lifecycle and failure information useful for diagnosing compiler selection and fallback.
+        /// This classification indicates operational significance, not error severity.
+        /// </summary>
+        Operational,
+    }
+
     /// <summary>
     /// Used to log information from within the compiler server
     /// </summary>
@@ -23,31 +37,55 @@ namespace Microsoft.CodeAnalysis.CommandLine
     /// </remarks>
     internal interface ICompilerServerLogger
     {
-        bool IsLogging { get; }
-        void Log(string message);
+        bool IsEnabled(CompilerServerLogKind kind);
+        void Log(CompilerServerLogKind kind, string message);
     }
 
     internal static class CompilerServerLoggerExtensions
     {
+        internal static void Log(this ICompilerServerLogger logger, string message)
+        {
+            if (logger.IsEnabled(CompilerServerLogKind.Trace))
+            {
+                logger.Log(CompilerServerLogKind.Trace, message);
+            }
+        }
+
         internal static void Log(this ICompilerServerLogger logger, string format, params object?[] arguments)
         {
-            if (logger.IsLogging)
+            if (logger.IsEnabled(CompilerServerLogKind.Trace))
             {
-                logger.Log(string.Format(format, arguments));
+                logger.Log(CompilerServerLogKind.Trace, string.Format(format, arguments));
+            }
+        }
+
+        internal static void LogOperational(this ICompilerServerLogger logger, string message)
+        {
+            if (logger.IsEnabled(CompilerServerLogKind.Operational))
+            {
+                logger.Log(CompilerServerLogKind.Operational, message);
+            }
+        }
+
+        internal static void LogOperational(this ICompilerServerLogger logger, string format, params object?[] arguments)
+        {
+            if (logger.IsEnabled(CompilerServerLogKind.Operational))
+            {
+                logger.Log(CompilerServerLogKind.Operational, string.Format(format, arguments));
             }
         }
 
         internal static void LogError(this ICompilerServerLogger logger, string message)
         {
-            if (logger.IsLogging)
+            if (logger.IsEnabled(CompilerServerLogKind.Trace))
             {
-                logger.Log($"Error: {message}");
+                logger.Log(CompilerServerLogKind.Trace, $"Error: {message}");
             }
         }
 
         internal static void LogError(this ICompilerServerLogger logger, string format, params object?[] arguments)
         {
-            if (logger.IsLogging)
+            if (logger.IsEnabled(CompilerServerLogKind.Trace))
             {
                 logger.Log($"Error: {format}", arguments);
             }
@@ -57,8 +95,21 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// Log an exception. Also logs information about inner exceptions.
         /// </summary>
         internal static void LogException(this ICompilerServerLogger logger, Exception exception, string reason)
+            => LogException(logger, CompilerServerLogKind.Trace, exception, reason);
+
+        /// <summary>
+        /// Log an operational exception. Also logs information about inner exceptions.
+        /// </summary>
+        internal static void LogOperationalException(this ICompilerServerLogger logger, Exception exception, string reason)
+            => LogException(logger, CompilerServerLogKind.Operational, exception, reason);
+
+        private static void LogException(
+            ICompilerServerLogger logger,
+            CompilerServerLogKind kind,
+            Exception exception,
+            string reason)
         {
-            if (!logger.IsLogging)
+            if (!logger.IsEnabled(kind))
             {
                 return;
             }
@@ -76,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 innerExceptionLevel += 1;
             }
 
-            logger.Log(builder.ToString());
+            logger.Log(kind, builder.ToString());
 
             void AppendException(Exception exception)
             {
@@ -103,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         private Stream? _loggingStream;
         private readonly string _identifier;
 
-        public bool IsLogging => _loggingStream is object;
+        public bool IsEnabled(CompilerServerLogKind kind) => _loggingStream is object;
 
         public CompilerServerLogger(string identifier, IBuildEnvironment buildEnvironment)
             : this(identifier, GetLoggingFilePath(buildEnvironment))
@@ -139,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             _loggingStream = null;
         }
 
-        public void Log(string message)
+        public void Log(CompilerServerLogKind kind, string message)
         {
             if (_loggingStream is object)
             {
@@ -196,13 +247,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
     {
         public static EmptyCompilerServerLogger Instance { get; } = new EmptyCompilerServerLogger();
 
-        public bool IsLogging => false;
+        public bool IsEnabled(CompilerServerLogKind kind) => false;
 
         private EmptyCompilerServerLogger()
         {
         }
 
-        public void Log(string message)
+        public void Log(CompilerServerLogKind kind, string message)
         {
         }
     }
