@@ -215,6 +215,13 @@ internal sealed partial class OnDemandProjectLoader(
     }
 
     public Task ShutdownAsync()
+        => CancelAndDrainLoadsAsync();
+
+    /// <summary>
+    /// Stops and drains on-demand loading while the project system and workspace services are still available.
+    /// <see cref="DisposeAsync"/> also calls this as an idempotent fallback when disposal occurs without server shutdown.
+    /// </summary>
+    private Task CancelAndDrainLoadsAsync()
     {
         lock (_activeLoadsGate)
         {
@@ -222,7 +229,7 @@ internal sealed partial class OnDemandProjectLoader(
                 return _shutdownTask;
 
             var activeLoads = Task.WhenAll(_activeLoads.Values.Select(load => load.Task));
-            // Cancel outside the gate, and make concurrent shutdown/disposal callers await cancellation too.
+            // Cancel outside the gate, and make concurrent shutdown/disposal callers await the complete drain.
             return _shutdownTask = Task.Run(async () =>
             {
                 try
@@ -242,7 +249,7 @@ internal sealed partial class OnDemandProjectLoader(
 
     public async ValueTask DisposeAsync()
     {
-        await ShutdownAsync().ConfigureAwait(false);
+        await CancelAndDrainLoadsAsync().ConfigureAwait(false);
         _shutdownSource.Dispose();
     }
 }
