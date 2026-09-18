@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
-  <Source Uri="https://github.com/dotnet/dotnet" Mapping="roslyn" Sha="fb92951eceabe91c5015b35e49acdbc9c867aaf8" BarId="331753" />
+  <Source Uri="https://github.com/dotnet/dotnet" Mapping="roslyn" Sha="4361ea30ba1845a072ae2d31a011ca867c0d2e0d" BarId="332554" />
   <ProductDependencies>
     <!-- RoslynAnalyzers reference older builds of Roslyn and this is necessary for SourceBuild. -->
     <Dependency Name="Microsoft.CodeAnalysis" Version="5.12.0-1.26465.4">
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>dc837b145342723b197e3d5639029ae82d861103</Sha>
     </Dependency>
-    <Dependency Name="System.CommandLine" Version="3.0.0-rc.2.26461.115">
+    <Dependency Name="System.CommandLine" Version="3.0.0-rc.2.26467.104">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>fb92951eceabe91c5015b35e49acdbc9c867aaf8</Sha>
+      <Sha>4361ea30ba1845a072ae2d31a011ca867c0d2e0d</Sha>
     </Dependency>
     <!-- Necessary for source-build. This allows the live version of the package to be used by source-build. -->
     <Dependency Name="Microsoft.Bcl.AsyncInterfaces" Version="10.0.10">
@@ -120,6 +120,10 @@
     <Dependency Name="System.Threading.Channels" Version="10.0.10">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
+    </Dependency>
+    <Dependency Name="NuGet.Versioning" Version="7.12.0-rc.46804">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>4361ea30ba1845a072ae2d31a011ca867c0d2e0d</Sha>
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
