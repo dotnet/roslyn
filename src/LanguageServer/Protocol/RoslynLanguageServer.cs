@@ -12,6 +12,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
@@ -132,12 +133,14 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         AddLazyService<AbstractRequestContextFactory<RequestContext>>(lspServices => new RequestContextFactory(lspServices));
         AddLazyService<AbstractTelemetryService>(lspServices => new TelemetryService(lspServices));
         AddLazyService<AbstractHandlerProvider>(_ => HandlerProvider);
+        AddService<IWorkspaceFolderTracker>(new WorkspaceFolderTracker());
         AddService<IInitializeManager>(new InitializeManager());
         AddService<IMethodHandler>(new InitializeHandler());
         AddService<IMethodHandler>(new InitializedHandler());
         AddService<IOnInitialized>(this);
         AddService<ILanguageInfoProvider>(new LanguageInfoProvider());
         AddService<HostServices>(hostServices);
+        AddService(RoslynTelemetry.Current);
 
         return baseServiceMap.ToFrozenDictionary(
             keySelector: kvp => kvp.Key,

@@ -116,6 +116,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override Symbol AssociatedSymbol
             => _property;
 
+        internal SourcePropertySymbolBase AssociatedProperty
+            => _property;
+
         public override ImmutableArray<Location> Locations
             => _property.Locations;
 

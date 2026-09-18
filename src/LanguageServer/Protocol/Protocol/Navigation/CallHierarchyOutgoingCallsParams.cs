@@ -8,9 +8,9 @@ using System.Text.Json.Serialization;
 namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
-/// The params sent in a 'callHierarchy/incomingCalls' request.
+/// The params sent in a 'callHierarchy/outgoingCalls' request.
 /// <para>
-/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#callHierarchyIncomingCallsParams">Language Server Protocol specification</see> for additional information.
+/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#callHierarchyOutgoingCallsParams">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
@@ -29,9 +29,6 @@ internal sealed class CallHierarchyOutgoingCallsParams : IWorkDoneProgressParams
     public IProgress<WorkDoneProgress>? WorkDoneToken { get; set; }
 
     /// <inheritdoc/>
-    /// <remarks>
-    /// <see cref="LocationLink"/> may only be used if the client opts in via <see cref="DefinitionClientCapabilities.LinkSupport"/>
-    /// </remarks>
     [JsonPropertyName(Methods.PartialResultTokenName)]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IProgress<CallHierarchyOutgoingCall[]>? PartialResultToken { get; set; }

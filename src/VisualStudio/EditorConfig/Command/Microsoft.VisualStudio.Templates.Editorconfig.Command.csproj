@@ -4,6 +4,7 @@
     <TargetFramework>net472</TargetFramework>
     <IsTestProject>false</IsTestProject>
     <Nullable>enable</Nullable>
+    <PublishWindowsPdb>true</PublishWindowsPdb>
   </PropertyGroup>
 
   <!-- VSIX Properties -->

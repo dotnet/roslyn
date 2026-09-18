@@ -3,7 +3,7 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Packages.props', '$(MSBuildThisFileDirectory)../'))" />
 
   <PropertyGroup>
-    <RoslynSdkNuGetApiVersion Condition="'$(TargetFramework)' == 'net472' OR '$(TargetFramework)' == '$(NetRoslyn)'">7.0.3</RoslynSdkNuGetApiVersion>
+    <RoslynSdkNuGetApiVersion Condition="'$(TargetFramework)' == 'net472' OR '$(TargetFramework)' == '$(NetRoslyn)'">6.14.3</RoslynSdkNuGetApiVersion>
     <RoslynSdkNuGetApiVersion Condition="'$(RoslynSdkNuGetApiVersion)' == ''">6.3.4</RoslynSdkNuGetApiVersion>
   </PropertyGroup>
 

@@ -4,11 +4,16 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Microsoft.VisualStudio.InteractiveWindow.Shell;
 using Microsoft.VisualStudio.LanguageServices.Interactive;
+using Microsoft.VisualStudio.Shell;
 using LanguageServiceGuids = Microsoft.VisualStudio.LanguageServices.Guids;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive;
 
+[PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
+[ProvideInteractiveWindow(IdString, Orientation = ToolWindowOrientation.Bottom, Style = VsDockStyle.Tabbed, Window = "34e76e81-ee4a-11d0-ae2e-00a0c90fffc3")]
+[ProvideMenuResource("Menus.ctmenu", 17)]
 [Guid(LanguageServiceGuids.CSharpReplPackageIdString)]
 internal sealed partial class CSharpVsInteractiveWindowPackage : VsInteractiveWindowPackage<CSharpVsInteractiveWindowProvider>
 {

@@ -10,14 +10,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Internal.Log;
 
-internal static partial class RoslynTelemetry
+internal sealed partial class RoslynTelemetry
 {
     // Regardless of how many tasks we can run in parallel on the machine, we likely won't need more than 256
     // instrumentation points in flight at a given time.
     // Use an object pool since we may be logging up to 1-10k events/second
     private static readonly ObjectPool<RoslynLogBlock> s_pool = new(() => new RoslynLogBlock(s_pool!), Math.Min(Environment.ProcessorCount * 8, 256));
 
-    public static IDisposable CreateLogBlock(ImmutableArray<IEventSink> sinks, FunctionId functionId, LogMessage message, int blockId, CancellationToken cancellationToken)
+    private static IDisposable CreateLogBlock(ImmutableArray<IEventSink> sinks, FunctionId functionId, LogMessage message, int blockId, CancellationToken cancellationToken)
     {
         var block = s_pool.Allocate();
         block.Construct(sinks, functionId, message, blockId, cancellationToken);

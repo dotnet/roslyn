@@ -283,13 +283,14 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
     public async ValueTask<ImmutableArray<TextDocument>> GetOrLoadEntryPointDocumentAsync(string documentFilePath, TextLoader textLoader, LanguageInformation languageInformation, SourceHashAlgorithm checksumAlgorithm, bool doDesignTimeBuild)
     {
+        documentFilePath = NormalizeProjectPath(documentFilePath);
         var projects = await base.GetOrLoadProjectAsync(documentFilePath, _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory, CreatePrimordialProjectInfo, doDesignTimeBuild);
         return projects.Select(p => LookupExistingDocument(p)).WhereNotNull().ToImmutableArray();
 
         TextDocument? LookupExistingDocument(Project project)
         {
-            var document = project.Documents.FirstOrDefault(document => document.FilePath == documentFilePath)
-                ?? project.AdditionalDocuments.FirstOrDefault(document => document.FilePath == documentFilePath);
+            var document = project.Documents.FirstOrDefault(document => PathUtilities.Comparer.Equals(document.FilePath, documentFilePath))
+                ?? project.AdditionalDocuments.FirstOrDefault(document => PathUtilities.Comparer.Equals(document.FilePath, documentFilePath));
             if (document is null)
             {
                 _logger.LogWarning("Could not get a document for '{documentFilePath}' because its project doesn't contain a document for it", documentFilePath);
@@ -298,11 +299,11 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             return document;
         }
 
-        ProjectInfo CreatePrimordialProjectInfo(ProjectSystemProjectFactory projectFactory)
+        ProjectInfo CreatePrimordialProjectInfo(ProjectSystemProjectFactory projectFactory, string normalizedDocumentFilePath)
         {
             var enableFileBasedPrograms = GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms);
             return MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
-                projectFactory.Workspace, documentFilePath, textLoader, languageInformation, checksumAlgorithm, projectFactory.Workspace.Services.SolutionServices, [], enableFileBasedPrograms);
+                projectFactory.Workspace, normalizedDocumentFilePath, textLoader, languageInformation, checksumAlgorithm, projectFactory.Workspace.Services.SolutionServices, [], enableFileBasedPrograms);
         }
     }
 
@@ -374,7 +375,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
         const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
         var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, documentPath, dotnetPath: null, cancellationToken);
-        var loadedFile = await FileBasedProgramsProjectLoader.LoadFileBasedAppProjectAsync(
+        await using var loadedFile = await FileBasedProgramsProjectLoader.LoadFileBasedAppProjectAsync(
             buildHost,
             _workspaceFactory.HostWorkspace.Services.GetRequiredService<IFileBasedProgramService>(),
             documentPath,

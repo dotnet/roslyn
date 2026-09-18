@@ -182,7 +182,7 @@ Bei den meisten modernen Browsern, einschließlich Firefox 38+, Google Chrome 34
 * Die deklarierte Zeichencodierung muss mit der Codierung übereinstimmen, mit der die Seite gespeichert wurde, um verstümmelte Zeichen und Sicherheitslücken zu vermeiden.
 * Das [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "Das HTML-&lt;meta&gt;element stellt Metadaten dar, die nicht durch andere HTML-Metaelemente dargestellt werden können, wie &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; oder &lt;title&gt;.")-Element, das die Codierung deklariert, muss sich innerhalb des [`&lt;head&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/head "The HTML &lt;head&gt; element provides general information (metadata) about the document, including its title and links to its scripts and style sheets.")-Elements und **innerhalb der ersten 1024 Byte** des HTML befinden, da einige Browser vor der Auswahl einer Codierung nur diese Byte lesen.
 * Dieses [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "Das HTML-&lt;meta&gt;element stellt Metadaten dar, die nicht durch andere HTML-Metaelemente dargestellt werden können, wie &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; oder &lt;title&gt;.")-Element ist nur ein Teil des [Algorithmus zum Ermitteln des Zeichensatzes einer Seite](https://www.whatwg.org/specs/web-apps/current-work/multipage/parsing.html#encoding-sniffing-algorithm "Algorithm charset page"). Der [`Content-Type`-Header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type) und alle [Bytereihenfolgemarken](https://developer.mozilla.org/en-US/docs/Glossary/Byte-Order_Mark "Die Definition dieses Ausdrucks (Bytereihenfolgemarken) wurde noch nicht geschrieben; bitte erwägen Sie, sie beisteuern!") dieses Element überschreiben. * Es wird dringend empfohlen, die Zeichencodierung zu definieren.
-* Es wird dringend empfohlen, die Zeichencodierung zu definieren. Wenn die Codierung einer Seite nicht definiert ist, sind Cross-Scripting-Techniken möglich, z. B. die [`UTF-7`-Fallback-Cross-Scripting-Technik](https://code.google.com/p/doctype-mirror/wiki/HTML5).
+* Es wird dringend empfohlen, die Zeichencodierung zu definieren. Wenn die Codierung einer Seite nicht definiert ist, sind Cross-Scripting-Techniken möglich, z. B. die [`UTF-7`-Fallback-Cross-Scripting-Technik](https://code.google.com/p/doctype-mirror/wiki/ArticleUtf7).
 * Das [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "Das HTML-&lt;meta&gt;element stellt Metadaten dar, die nicht durch andere HTML-Metaelemente dargestellt werden können, wie &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; oder &lt;title&gt;.")-Element mit einem `charset`-Attribut ist ein Synonym für das prä-HTML5 `&lt;meta http-equiv="Content-Type" content="text/html; charset=_IANAcharset_"&gt;`, wobei _`IANAcharset`_ den Wert des entsprechenden [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset)-Attributs enthält. Diese Syntax ist weiterhin zulässig, wird aber nicht mehr empfohlen.</target>
         <note />
       </trans-unit>
@@ -647,7 +647,7 @@ Definiert ein [Cookie](https://developer.mozilla.org/en-US/docs/cookie) für die
 * `chapters`
 * Kapitelüberschriften sind für die Navigation in der Medienressource gedacht.
 * `metadata`
-* Von Skripts verwendete Spuren. Für die zuschauende Person nicht sichtbar.</target>
+* Von Skripts verwendete Spuren. Für den Benutzer nicht sichtbar.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_label">
@@ -1635,7 +1635,7 @@ Siehe auch: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@view
 **Note:** According to the HTML5 specification, the default value for size should be 1; however, in practice, this has been found to break some web sites, and no other browser currently does that, so Mozilla has opted to continue to return 0 for the time being with Firefox.</source>
         <target state="translated">Wenn das Steuerelement als scrollbares Listenfeld dargestellt wird, etwa wenn `multiple` angegeben ist, gibt dieses Attribut die Anzahl der Zeilen in der Liste an, die gleichzeitig sichtbar sein sollen. Browser müssen ein select-Element nicht als scrollbares Listenfeld darstellen. Der Standardwert ist 0.
 
-**Hinweis:** Laut HTML5-Spezifikation sollte der Standardwert für size 0 sein; in der Praxis hat sich jedoch gezeigt, dass dies einige Websites beeinträchtigt, und kein anderer Browser macht dies derzeit, daher gibt Mozilla in Firefox vorerst weiterhin 0 zurück.</target>
+**Hinweis:** Laut HTML5-Spezifikation sollte der Standardwert für size 1 sein; in der Praxis hat sich jedoch gezeigt, dass dies einige Websites beeinträchtigt, und kein anderer Browser macht dies derzeit, daher gibt Mozilla in Firefox vorerst weiterhin 0 zurück.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_sizes">

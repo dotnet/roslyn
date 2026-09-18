@@ -249,7 +249,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadCompilationOptionValueAccepted">
         <source>Invalid '{0}' value: '{1}'. Accepted values are: {2}</source>
-        <target state="new">Invalid '{0}' value: '{1}'. Accepted values are: {2}</target>
+        <target state="translated">Valore '{0}' non valido: '{1}'. I valori accettati sono: {2}</target>
         <note>{2} is a comma-separated list.</note>
       </trans-unit>
       <trans-unit id="ERR_BadCompoundAssignmentOpArgs">
@@ -2979,7 +2979,7 @@
       </trans-unit>
       <trans-unit id="ICoalesceOperationIsNotCSharpCoalesceOperation">
         <source>{0} is not a valid C# coalesce operation</source>
-        <target state="new">{0} is not a valid C# coalesce operation</target>
+        <target state="translated">{0} non è un'operazione di coalescenza C# valida</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">

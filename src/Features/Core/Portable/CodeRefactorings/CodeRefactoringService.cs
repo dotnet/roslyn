@@ -183,7 +183,7 @@ internal sealed class CodeRefactoringService(
         CodeActionRequestPriority? priority,
         CancellationToken cancellationToken)
     {
-        using (RoslynTelemetry.RecordBlockTime(FunctionId.CodeRefactoring_Summary, $"Pri{priority.GetPriorityInt()}"))
+        using (RoslynTelemetry.Current.RecordBlockTime(FunctionId.CodeRefactoring_Summary, $"Pri{priority.GetPriorityInt()}"))
         using (Logger.LogBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, cancellationToken))
         {
             using var _ = PooledDictionary<CodeRefactoringProvider, int>.GetInstance(out var providerToIndex);
@@ -213,7 +213,7 @@ internal sealed class CodeRefactoringService(
                     }, (providerName, document));
 
                     using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
-                    using (RoslynTelemetry.LogBlockTime(FunctionId.CodeRefactoring_Delay, logMessage, CodeRefactoringTelemetryDelay))
+                    using (RoslynTelemetry.Current.LogBlockTime(FunctionId.CodeRefactoring_Delay, logMessage, CodeRefactoringTelemetryDelay))
                     {
                         var refactoring = await @this.GetRefactoringFromProviderAsync(
                             document, state, provider, cancellationToken).ConfigureAwait(false);

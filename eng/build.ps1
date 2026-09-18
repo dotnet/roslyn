@@ -659,7 +659,6 @@ function Deploy-VsixViaTool() {
         "Microsoft.VisualStudio.RazorExtension.Dependencies.vsix",
         "Microsoft.VisualStudio.RazorExtension.vsix",
         "ExpressionEvaluatorPackage.vsix",
-        "Roslyn.VisualStudio.DiagnosticsWindow.vsix",
         "Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
 
       foreach ($vsixFileName in $orderedVsixFileNames) {

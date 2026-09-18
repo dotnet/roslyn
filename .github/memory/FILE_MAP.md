@@ -19,11 +19,12 @@ This file is a **top-level map only**. For per-area directory detail, read the m
 | `Dependencies/` | compiler | High-performance pooled collections & threading. |
 | `ExpressionEvaluator/` | compiler | Debugger expression evaluator. |
 | `Tools/` | compiler | Compiler and infrastructure tooling (including `dotnet-roslyn-tools`) and benchmark harnesses. |
-| `Workspaces/` | ide | Solution/Project/Document model, MSBuild loading, Remote (OOP). |
+| `Workspaces/` | ide | Solution/Project/Document model, core utilities, MSBuild loading, Remote (OOP). |
 | `Features/`, `EditorFeatures/` | ide | IDE feature logic and editor integration. |
 | `Analyzers/`, `CodeStyle/` | ide | IDE0xxx code-style analyzers & fixes. |
 | `LanguageServer/` | ide | LSP server. |
-| `VisualStudio/` | ide | VS language services, UI, and EditorConfig template/wizard/command packaging under `EditorConfig/`. |
+| `ProjectData/` | — | Project-data reader, schema generator, MSBuild tasks, and their tests. Kept outside `LanguageServer/` to avoid inheriting its source-only build exclusion. |
+| `VisualStudio/` | ide | VS language services, UI, EditorConfig template/wizard/command packaging under `EditorConfig/`, and integration-test infrastructure under `IntegrationTest/`. |
 | `Razor/src/` | razor | Razor compiler + tooling (own sub-tree layout). |
 | `Scripting/`, `Interactive/` | — | C#/VB scripting engine and REPL. |
 | `RoslynAnalyzers/` | — | Shipping `Microsoft.CodeAnalysis.*` analyzer packages. |
@@ -34,6 +35,6 @@ This file is a **top-level map only**. For per-area directory detail, read the m
 
 | Path | Status | Purpose |
 |------|--------|---------|
-| `eng/` | Config / Generated | Arcade build engineering. Pipeline definitions and templates live in `eng/pipelines/`; `eng/common/` is DARC-synced and must not be hand-edited. `eng/generate-compiler-code.cs` regenerates compiler code. |
+| `eng/` | Config / Generated | Arcade build engineering. Shared project and solution build targets live in `eng/targets/`; pipeline definitions and templates live in `eng/pipelines/`; `eng/common/` is DARC-synced and must not be hand-edited. `eng/generate-compiler-code.cs` regenerates compiler code. |
 | `docs/` | Active | Contributor & design docs. New docs use kebab-case filenames in the right subdirectory. |
 | Root | Config | Entry points & solution filters: `build.sh`/`Build.cmd`, `test.sh`/`Test.cmd`, `Roslyn.slnx`, `Compilers.slnf`, `Ide.slnf`, `Razor.slnf`, `global.json`, `Directory.*.props/targets`, `Directory.Packages.props`. |

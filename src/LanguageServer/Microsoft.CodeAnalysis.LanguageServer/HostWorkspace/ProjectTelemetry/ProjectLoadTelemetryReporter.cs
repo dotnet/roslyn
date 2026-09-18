@@ -25,9 +25,10 @@ internal sealed class ProjectLoadTelemetryReporterFactory(ServerConfiguration se
 
 internal sealed class ProjectLoadTelemetryReporter(IClientLanguageServerManager clientLanguageServerManager, ILoggerFactory loggerFactory, ServerConfiguration serverConfiguration) : ILspService
 {
-    private static readonly string s_hashedSessionId = VsTfmAndFileExtHashingAlgorithm.HashInput(Guid.NewGuid().ToString());
-
     private readonly ILogger _logger = loggerFactory.CreateLogger<ProjectLoadTelemetryReporter>();
+
+    // An anonymous, per-server correlation id for the project-load events below.
+    private readonly string _hashedSessionId = VsTfmAndFileExtHashingAlgorithm.HashInput(Guid.NewGuid().ToString());
 
     public sealed record TelemetryInfo
     {
@@ -82,7 +83,7 @@ internal sealed class ProjectLoadTelemetryReporter(IClientLanguageServerManager 
 
             var projectEvent = new ProjectLoadTelemetryEvent(
                 ProjectId: projectId,
-                SessionId: s_hashedSessionId,
+                SessionId: _hashedSessionId,
                 OutputKind: (int)telemetryInfo.OutputKind,
                 ProjectCapabilities: projectCapabilities,
                 TargetFrameworks: targetFrameworks,
