@@ -12,12 +12,15 @@ using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using WindowsInput.Native;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 
 [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
 public class CSharpExtractMethod : AbstractEditorTest
 {
+    private readonly ITestOutputHelper _output;
+
     private const string TestSource = """
 
         using System;
@@ -38,9 +41,10 @@ public class CSharpExtractMethod : AbstractEditorTest
 
     protected override string LanguageName => LanguageNames.CSharp;
 
-    public CSharpExtractMethod()
+    public CSharpExtractMethod(ITestOutputHelper output)
         : base(nameof(CSharpExtractMethod))
     {
+        _output = output;
     }
 
     [IdeFact]
@@ -89,11 +93,17 @@ public class CSharpExtractMethod : AbstractEditorTest
     [IdeFact, WorkItem("https://github.com/dotnet/roslyn/pull/61369")]
     public async Task ExtractMethodWithTriviaSelected()
     {
+        _output.WriteLine("CSharpExtractMethod.ExtractMethodWithTriviaSelected: action 1");
         await TestServices.Editor.SetTextAsync(TestSource, HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpExtractMethod.ExtractMethodWithTriviaSelected: action 2");
         await TestServices.Editor.PlaceCaretAsync("int result", charsOffset: -8, HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpExtractMethod.ExtractMethodWithTriviaSelected: action 3");
         await TestServices.Editor.PlaceCaretAsync("result;", charsOffset: 4, occurrence: 0, extendSelection: true, selectBlock: false, HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpExtractMethod.ExtractMethodWithTriviaSelected: action 4");
         await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Refactor.ExtractMethod, HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpExtractMethod.ExtractMethodWithTriviaSelected: action 5");
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ExtractMethod, HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpExtractMethod.ExtractMethodWithTriviaSelected: action 6");
         MarkupTestFile.GetSpans("""
 
             using System;
@@ -115,11 +125,16 @@ public class CSharpExtractMethod : AbstractEditorTest
                 }
             }
             """, out var expectedText, out var spans);
+        _output.WriteLine("CSharpExtractMethod.ExtractMethodWithTriviaSelected: action 7");
         Assert.Equal(expectedText, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+        _output.WriteLine("CSharpExtractMethod.ExtractMethodWithTriviaSelected: action 8");
         var tags = (await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken)).SelectAsArray(tag => tag.Span.Span.ToTextSpan());
+        _output.WriteLine("CSharpExtractMethod.ExtractMethodWithTriviaSelected: action 9");
         AssertEx.SetEqual(spans, tags);
 
+        _output.WriteLine("CSharpExtractMethod.ExtractMethodWithTriviaSelected: action 10");
         await TestServices.Input.SendAsync(["SayHello", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpExtractMethod.ExtractMethodWithTriviaSelected: action 11");
         await TestServices.EditorVerifier.TextContainsAsync("""
             private static int SayHello(int a, int b)
                 {
@@ -131,10 +146,15 @@ public class CSharpExtractMethod : AbstractEditorTest
     [IdeFact]
     public async Task ExtractViaCodeAction()
     {
+        _output.WriteLine("CSharpExtractMethod.ExtractViaCodeAction: action 1");
         await TestServices.Editor.SetTextAsync(TestSource, HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpExtractMethod.ExtractViaCodeAction: action 2");
         await TestServices.Editor.PlaceCaretAsync("a = 5", charsOffset: -1, HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpExtractMethod.ExtractViaCodeAction: action 3");
         await TestServices.Editor.PlaceCaretAsync("a * b", charsOffset: 1, occurrence: 0, extendSelection: true, selectBlock: false, HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpExtractMethod.ExtractViaCodeAction: action 4");
         await TestServices.EditorVerifier.CodeActionAsync("Extract method", applyFix: true, blockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpExtractMethod.ExtractViaCodeAction: action 5");
         MarkupTestFile.GetSpans("""
 
             using System;
@@ -158,8 +178,11 @@ public class CSharpExtractMethod : AbstractEditorTest
                 }
             }
             """, out var expectedText, out var spans);
+        _output.WriteLine("CSharpExtractMethod.ExtractViaCodeAction: action 6");
         Assert.Equal(expectedText, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+        _output.WriteLine("CSharpExtractMethod.ExtractViaCodeAction: action 7");
         var tags = (await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken)).SelectAsArray(tag => tag.Span.Span.ToTextSpan());
+        _output.WriteLine("CSharpExtractMethod.ExtractViaCodeAction: action 8");
         AssertEx.SetEqual(spans, tags);
     }
 }

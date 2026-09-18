@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Playlist Version="1.0">
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpBuild.BuildProject" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpChangeSignatureDialog.VerifyCrossLanguageGlobalUndo" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpExtractMethod.ExtractMethodWithTriviaSelected" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpExtractMethod.ExtractViaCodeAction" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpFindReferences.FindReferencesToCtor" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpFindReferences.FindReferencesToLocals" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpGenerateTypeDialog.CSharpToBasic" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpGoToDefinition.GoToDefinitionWithMultipleResults" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpGoToImplementation.SimpleGoToImplementation" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpGoToImplementation.GoToImplementationOpensProvisionalTabIfDocumentNotOpen" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpGoToImplementation.GoToImplementationFromMetadataAsSource" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpGoToImplementation.GoToImplementationFromSourceAndMetadata" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpIntelliSense.AtNamespaceLevel" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpIntelliSense.CtrlAltSpace" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpIntelliSense.EnsureTheCaretIsVisibleAfterALongEdit" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpIntelliSense.VerifyCompletionListMembersOnStaticTypesAndCompleteThem" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpIntelliSense.XmlDocCommentIntelliSense" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpInteractiveCommands.VerifyReturnIndentCurrentLine" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpInteractiveDirectives.VerifyAssembliesReferencedByDefault" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpRedirectFeaturesAnalyzers.DoesNotUseHostOptions_WhenEnforceCodeStyleInBuildIsTrue" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpRedirectFeaturesAnalyzers.UsesHostOptions_WhenEnforceCodeStyleInBuildIsFalse" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpRename.VerifyLocalVariableRename" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpRename.VerifyRenameCancellation" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpRename.VerifyAttributeRenameWhileRenameClasss" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpRename.VerifyMultiFileRename" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpRename.VerifyCrossProjectRename" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpRename.VerifyAttributeRenameWhileRenameAttributeClass" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpRename.VerifySelectionAsync" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpRename.VerifyRenameCaseChange" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpRename.VerifyAsyncRename" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpRename.VerifyRenameUndo" />
+  <Add Test="Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpRename.VerifyTextSync" />
+</Playlist>

@@ -16,11 +16,19 @@ using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 
 public class CSharpRedirectFeaturesAnalyzers : AbstractEditorTest
 {
+    private readonly ITestOutputHelper _output;
+
+    public CSharpRedirectFeaturesAnalyzers(ITestOutputHelper output)
+    {
+        _output = output;
+    }
+
     protected override string LanguageName => LanguageNames.CSharp;
 
     private const int GlobalIndentationSize = 6;
@@ -29,16 +37,21 @@ public class CSharpRedirectFeaturesAnalyzers : AbstractEditorTest
     [IdeFact]
     public async Task DoesNotUseHostOptions_WhenEnforceCodeStyleInBuildIsTrue()
     {
+        _output.WriteLine("CSharpRedirectFeaturesAnalyzers.DoesNotUseHostOptions_WhenEnforceCodeStyleInBuildIsTrue: action 1");
         await SetupSolutionAsync(
             enforceCodeStyleInBuild: true,
             GlobalIndentationSize,
             HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRedirectFeaturesAnalyzers.DoesNotUseHostOptions_WhenEnforceCodeStyleInBuildIsTrue: action 2");
         var code = GenerateTestCode(GlobalIndentationSize);
 
+        _output.WriteLine("CSharpRedirectFeaturesAnalyzers.DoesNotUseHostOptions_WhenEnforceCodeStyleInBuildIsTrue: action 3");
         await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "C.cs", code, open: true, cancellationToken: HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRedirectFeaturesAnalyzers.DoesNotUseHostOptions_WhenEnforceCodeStyleInBuildIsTrue: action 4");
         var errors = await GetErrorsFromErrorListAsync(HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRedirectFeaturesAnalyzers.DoesNotUseHostOptions_WhenEnforceCodeStyleInBuildIsTrue: action 5");
         AssertEx.Equal(
             [
                 "C.cs(3, 5): error IDE0055: Fix formatting",
@@ -51,16 +64,21 @@ public class CSharpRedirectFeaturesAnalyzers : AbstractEditorTest
     [IdeFact]
     public async Task UsesHostOptions_WhenEnforceCodeStyleInBuildIsFalse()
     {
+        _output.WriteLine("CSharpRedirectFeaturesAnalyzers.UsesHostOptions_WhenEnforceCodeStyleInBuildIsFalse: action 1");
         await SetupSolutionAsync(
             enforceCodeStyleInBuild: false,
             GlobalIndentationSize,
             HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRedirectFeaturesAnalyzers.UsesHostOptions_WhenEnforceCodeStyleInBuildIsFalse: action 2");
         var code = GenerateTestCode(DefaultIndentationSize);
 
+        _output.WriteLine("CSharpRedirectFeaturesAnalyzers.UsesHostOptions_WhenEnforceCodeStyleInBuildIsFalse: action 3");
         await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "C.cs", code, open: true, cancellationToken: HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpRedirectFeaturesAnalyzers.UsesHostOptions_WhenEnforceCodeStyleInBuildIsFalse: action 4");
         var errors = await GetErrorsFromErrorListAsync(HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpRedirectFeaturesAnalyzers.UsesHostOptions_WhenEnforceCodeStyleInBuildIsFalse: action 5");
         AssertEx.Equal(
             [
                 "C.cs(3, 5): error IDE0055: Fix formatting",

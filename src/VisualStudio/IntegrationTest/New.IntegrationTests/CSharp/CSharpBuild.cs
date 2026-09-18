@@ -13,12 +13,20 @@ using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 
 [Trait(Traits.Feature, Traits.Features.Build)]
 public class CSharpBuild : AbstractIntegrationTest
 {
+    private readonly ITestOutputHelper _output;
+
+    public CSharpBuild(ITestOutputHelper output)
+    {
+        _output = output;
+    }
+
     public override async Task InitializeAsync()
     {
         await base.InitializeAsync().ConfigureAwait(true);
@@ -30,6 +38,7 @@ public class CSharpBuild : AbstractIntegrationTest
     [IdeFact]
     public async Task BuildProject()
     {
+        _output.WriteLine("CSharpBuild.BuildProject: action 1");
         await TestServices.Editor.SetTextAsync("""
             using System;
 
@@ -42,12 +51,17 @@ public class CSharpBuild : AbstractIntegrationTest
             }
             """, HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpBuild.BuildProject: action 2");
         var succeed = await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpBuild.BuildProject: action 3");
         Assert.True(succeed);
 
+        _output.WriteLine("CSharpBuild.BuildProject: action 4");
         await TestServices.ErrorList.ShowBuildErrorsAsync(HangMitigatingCancellationToken);
 
+        _output.WriteLine("CSharpBuild.BuildProject: action 5");
         var errors = await TestServices.ErrorList.GetBuildErrorsAsync(HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpBuild.BuildProject: action 6");
         AssertEx.EqualOrDiff(string.Empty, string.Join(Environment.NewLine, errors));
     }
 

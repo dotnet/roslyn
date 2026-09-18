@@ -7,11 +7,19 @@ using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using WindowsInput.Native;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 
 public class CSharpInteractiveCommands : AbstractInteractiveWindowTest
 {
+    private readonly ITestOutputHelper _output;
+
+    public CSharpInteractiveCommands(ITestOutputHelper output)
+    {
+        _output = output;
+    }
+
     [IdeFact]
     public async Task VerifyPreviousAndNextHistory()
     {
@@ -142,11 +150,17 @@ public class CSharpInteractiveCommands : AbstractInteractiveWindowTest
     [IdeFact]
     public async Task VerifyReturnIndentCurrentLine()
     {
+        _output.WriteLine("CSharpInteractiveCommands.VerifyReturnIndentCurrentLine: action 1");
         await TestServices.InteractiveWindow.ClearScreenAsync(HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpInteractiveCommands.VerifyReturnIndentCurrentLine: action 2");
         await TestServices.Input.SendWithoutActivateAsync(" (", HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpInteractiveCommands.VerifyReturnIndentCurrentLine: action 3");
         await TestServices.Input.SendWithoutActivateAsync(")", HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpInteractiveCommands.VerifyReturnIndentCurrentLine: action 4");
         await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.LEFT, HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpInteractiveCommands.VerifyReturnIndentCurrentLine: action 5");
         await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpInteractiveCommands.VerifyReturnIndentCurrentLine: action 6");
         Assert.Equal(12, (await TestServices.InteractiveWindow.GetCaretPositionAsync(HangMitigatingCancellationToken)).BufferPosition.Position);
     }
 }

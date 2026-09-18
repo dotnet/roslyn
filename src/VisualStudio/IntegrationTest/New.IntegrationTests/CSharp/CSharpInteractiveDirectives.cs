@@ -9,11 +9,19 @@ using Roslyn.Utilities;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using WindowsInput.Native;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 
 public class CSharpInteractiveDirectives : AbstractInteractiveWindowTest
 {
+    private readonly ITestOutputHelper _output;
+
+    public CSharpInteractiveDirectives(ITestOutputHelper output)
+    {
+        _output = output;
+    }
+
     [IdeFact]
     public async Task VerifyHostCommandsCompletionList()
     {
@@ -136,10 +144,12 @@ public class CSharpInteractiveDirectives : AbstractInteractiveWindowTest
     [IdeFact]
     public async Task VerifyAssembliesReferencedByDefault()
     {
+        _output.WriteLine("CSharpInteractiveDirectives.VerifyAssembliesReferencedByDefault: action 1");
         await TestServices.InteractiveWindow.SubmitTextAsync("""
             using System.Diagnostics;
             Process.GetCurrentProcess().ProcessName
             """, HangMitigatingCancellationToken);
+        _output.WriteLine("CSharpInteractiveDirectives.VerifyAssembliesReferencedByDefault: action 2");
         await TestServices.InteractiveWindow.WaitForLastReplOutputAsync("""
             "InteractiveHost64"
             """, HangMitigatingCancellationToken);
