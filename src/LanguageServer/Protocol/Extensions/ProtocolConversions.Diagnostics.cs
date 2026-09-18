@@ -36,16 +36,15 @@ internal static partial class ProtocolConversions
     /// <param name="diagnosticData">The diagnostic to convert</param>
     /// <param name="supportsVisualStudioExtensions">Whether the client is Visual Studio</param>
     /// <param name="project">The project the diagnostic is relevant to</param>
-    /// <param name="potentialDuplicate">Whether the diagnostic is potentially a duplicate to a build diagnostic</param>
     /// <param name="globalOptionService">The global options service</param>
-    public static ImmutableArray<LSP.Diagnostic> ConvertDiagnostic(DiagnosticData diagnosticData, bool supportsVisualStudioExtensions, Project project, bool potentialDuplicate, IGlobalOptionService globalOptionService)
+    public static ImmutableArray<LSP.Diagnostic> ConvertDiagnostic(DiagnosticData diagnosticData, bool supportsVisualStudioExtensions, Project project, IGlobalOptionService globalOptionService)
     {
         if (!ShouldIncludeHiddenDiagnostic(diagnosticData, supportsVisualStudioExtensions))
         {
             return [];
         }
 
-        var diagnostic = CreateLspDiagnostic(diagnosticData, project, potentialDuplicate, supportsVisualStudioExtensions);
+        var diagnostic = CreateLspDiagnostic(diagnosticData, project, supportsVisualStudioExtensions);
 
         // Check if we need to handle the unnecessary tag (fading).
         if (!diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
@@ -79,7 +78,7 @@ internal static partial class ProtocolConversions
             diagnosticsBuilder.Add(diagnostic);
             foreach (var location in unnecessaryLocations)
             {
-                var additionalDiagnostic = CreateLspDiagnostic(diagnosticData, project, potentialDuplicate, supportsVisualStudioExtensions);
+                var additionalDiagnostic = CreateLspDiagnostic(diagnosticData, project, supportsVisualStudioExtensions);
                 additionalDiagnostic.Severity = LSP.DiagnosticSeverity.Hint;
                 additionalDiagnostic.Range = GetRange(location);
                 additionalDiagnostic.Tags = [DiagnosticTag.Unnecessary, VSDiagnosticTags.HiddenInEditor, VSDiagnosticTags.HiddenInErrorList, VSDiagnosticTags.SuppressEditorToolTip];
@@ -108,7 +107,6 @@ internal static partial class ProtocolConversions
     private static LSP.VSDiagnostic CreateLspDiagnostic(
         DiagnosticData diagnosticData,
         Project project,
-        bool potentialDuplicate,
         bool supportsVisualStudioExtensions)
     {
         Contract.ThrowIfNull(diagnosticData.Message, $"Got a document diagnostic that did not have a {nameof(diagnosticData.Message)}");
@@ -121,7 +119,7 @@ internal static partial class ProtocolConversions
             CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(diagnosticData.HelpLink),
             Message = diagnosticData.Message,
             Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),
-            Tags = ConvertTags(diagnosticData, potentialDuplicate),
+            Tags = ConvertTags(diagnosticData),
             DiagnosticRank = ConvertRank(diagnosticData),
             Range = GetRange(diagnosticData.DataLocation)
         };
@@ -232,11 +230,7 @@ internal static partial class ProtocolConversions
             _ => throw ExceptionUtilities.UnexpectedValue(severity),
         };
 
-    /// <summary>
-    /// If you make change in this method, please also update the corresponding file in
-    /// src\VisualStudio\Xaml\Impl\Implementation\LanguageServer\Handler\Diagnostics\AbstractPullDiagnosticHandler.cs
-    /// </summary>
-    private static DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool potentialDuplicate)
+    private static DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
     {
         using var _ = ArrayBuilder<DiagnosticTag>.GetInstance(out var result);
 
@@ -253,11 +247,6 @@ internal static partial class ProtocolConversions
 
         if (diagnosticData.CustomTags.Contains(PullDiagnosticConstants.TaskItemCustomTag))
             result.Add(VSDiagnosticTags.TaskItem);
-
-        // Let the host know that these errors represent potentially stale information from the past that should
-        // be superseded by fresher info.
-        if (potentialDuplicate)
-            result.Add(VSDiagnosticTags.PotentialDuplicate);
 
         // If tagged as build, mark this also as a build error.  That way an explicitly kicked off build from a source like CPS can
         // override it.

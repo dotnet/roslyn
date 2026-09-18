@@ -26,7 +26,7 @@ public sealed class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTes
     {
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(string.Empty, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
-        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
+        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
 
         Assert.Equal(2, results.Length);
         AssertEx.Empty(results[0].Diagnostics);
@@ -34,7 +34,7 @@ public sealed class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTes
         Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(testLspServer.GetCurrentSolution().Projects.First().FilePath!), results[1].Uri);
 
         // Asking again should give us back an unchanged diagnostic.
-        var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
+        var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
         Assert.Empty(results2);
     }
 
@@ -43,7 +43,7 @@ public sealed class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTes
     {
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(string.Empty, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
-        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
+        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
 
         Assert.Equal(2, results.Length);
         AssertEx.Empty(results[0].Diagnostics);
@@ -54,11 +54,11 @@ public sealed class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTes
         var newSolution = initialSolution.RemoveProject(initialSolution.Projects.First().Id);
         await testLspServer.TestWorkspace.ChangeSolutionAsync(newSolution);
 
-        var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
+        var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
         Assert.Equal(2, results2.Length);
-        Assert.Equal(useVSDiagnostics ? null : [], results2[0].Diagnostics);
+        Assert.Empty(results2[0].Diagnostics!);
         Assert.Null(results2[0].ResultId);
-        Assert.Equal(useVSDiagnostics ? null : [], results2[1].Diagnostics);
+        Assert.Empty(results2[1].Diagnostics!);
         Assert.Null(results2[1].ResultId);
     }
 
@@ -72,7 +72,7 @@ public sealed class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTes
         var project = workspace.CurrentSolution.Projects.First().AddAnalyzerReference(new TestGeneratorReference(razorGenerator));
         workspace.TryApplyChanges(project.Solution);
 
-        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
+        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
 
         var generatedDocument = (await testLspServer.GetCurrentSolution().Projects.First().GetSourceGeneratedDocumentsAsync()).First();
 

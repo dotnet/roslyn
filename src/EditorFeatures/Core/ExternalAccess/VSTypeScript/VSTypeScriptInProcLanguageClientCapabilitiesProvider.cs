@@ -35,7 +35,6 @@ internal sealed class VSTypeScriptInProcLanguageClientCapabilitiesProvider() : I
 
             ProjectContextProvider = true,
 
-            SupportsDiagnosticRequests = true,
             DiagnosticProvider = new()
             {
                 SupportsMultipleContextsDiagnostics = true,
