@@ -126,12 +126,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // Based on benchmarks, the previous hashcode-based approach arguably performs better
-        // when buckets have 6 candidates or more.
+        // Prefer length-based dispatch when it avoids either a hash-based switch or a linear
+        // sequence of comparisons without leaving more than five candidates in a final bucket.
         internal bool ShouldGenerateLengthBasedSwitch(int labelsCount)
         {
-            return SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(labelsCount) &&
-                StringBasedJumpTables.All(t => t.StringCaseLabels.Length <= 5);
+            // Hash-based dispatch is cheaper when a final string bucket has more than five candidates.
+            if (StringBasedJumpTables.Any(table => table.StringCaseLabels.Length > 5))
+            {
+                return false;
+            }
+
+            // Large switches already qualify for the existing length-based strategy.
+            if (SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(labelsCount))
+            {
+                return true;
+            }
+
+            // Smaller switches need at least three cases, all sharing a single non-null string length.
+            // This lets one length check send every differently sized input directly to the default case.
+            int nonNullLabelsCount = labelsCount - (LengthBasedJumpTable.NullCaseLabel is null ? 0 : 1);
+            return nonNullLabelsCount >= 3 && LengthBasedJumpTable.LengthCaseLabels.Length == 1;
         }
 
         internal static LengthBasedStringSwitchData Create(ImmutableArray<(ConstantValue value, LabelSymbol label)> inputCases)
