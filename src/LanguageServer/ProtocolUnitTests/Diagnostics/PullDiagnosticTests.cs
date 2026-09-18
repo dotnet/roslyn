@@ -46,26 +46,12 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
         var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
-        if (useVSDiagnostics)
-        {
-            Assert.Empty(results);
-        }
-        else
-        {
-            Assert.Empty(results.Single().Diagnostics!);
-        }
+        Assert.Empty(results.Single().Diagnostics!);
 
         // Verify document pull diagnostics are unaffected by running code analysis.
         await testLspServer.RunCodeAnalysisAsync(document.Project.Id);
         results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
-        if (useVSDiagnostics)
-        {
-            Assert.Empty(results);
-        }
-        else
-        {
-            Assert.Empty(results.Single().Diagnostics!);
-        }
+        Assert.Empty(results.Single().Diagnostics!);
     }
 
     [Theory, CombinatorialData]
@@ -265,8 +251,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics, results.Single().ResultId).ConfigureAwait(false);
 
-        // VS represents removal with null diagnostics, VS code represents with an empty diagnostics array.
-        Assert.Equal(useVSDiagnostics ? null : [], results.Single().Diagnostics);
+        Assert.Empty(results.Single().Diagnostics!);
         Assert.Null(results.Single().ResultId);
     }
 
@@ -1065,6 +1050,8 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         Assert.Equal(3, results.Length);
         Assert.Equal("CS1513", results[0].Diagnostics!.Single().Code);
+        if (useVSDiagnostics)
+            Assert.Contains(VSDiagnosticTags.PotentialDuplicate, results[0].Diagnostics!.Single().Tags!);
         AssertEx.Empty(results[1].Diagnostics);
         AssertEx.Empty(results[2].Diagnostics);
     }
@@ -1626,8 +1613,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         // First doc should show up as removed.
         Assert.Equal(1, results2.Length);
-        // VS represents removal with null diagnostics, VS code represents with an empty diagnostics array.
-        Assert.Equal(useVSDiagnostics ? null : [], results2[0].Diagnostics);
+        Assert.Empty(results2[0].Diagnostics!);
         Assert.Null(results2[0].ResultId);
     }
 
@@ -2334,17 +2320,8 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         Assert.Null(results[0].ResultId);
         Assert.Null(results[1].ResultId);
 
-        // VS represents removal with null diagnostics, VS code represents with an empty diagnostics array.
-        if (useVSDiagnostics)
-        {
-            Assert.Null(results[0].Diagnostics);
-            Assert.Null(results[1].Diagnostics);
-        }
-        else
-        {
-            AssertEx.Empty(results[0].Diagnostics);
-            AssertEx.Empty(results[1].Diagnostics);
-        }
+        AssertEx.Empty(results[0].Diagnostics);
+        AssertEx.Empty(results[1].Diagnostics);
     }
 
     [Theory, CombinatorialData]

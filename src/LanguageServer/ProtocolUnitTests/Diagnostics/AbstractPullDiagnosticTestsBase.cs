@@ -64,60 +64,11 @@ public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutp
         string? category = null,
         bool triggerConnectionClose = true)
     {
+        _ = useVSDiagnostics;
+
         var optionService = testLspServer.TestWorkspace.GetService<IGlobalOptionService>();
         optionService.SetGlobalOption(TaskListOptionsStorage.ComputeTaskListItemsForClosedFiles, includeTaskListItems);
 
-        if (useVSDiagnostics)
-        {
-            return await RunVSGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults, useProgress, category, triggerConnectionClose);
-        }
-        else
-        {
-            return await RunPublicGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults, useProgress, category, triggerConnectionClose);
-        }
-    }
-
-    private protected static async Task<ImmutableArray<TestDiagnosticResult>> RunVSGetWorkspacePullDiagnosticsAsync(
-        TestLspServer testLspServer,
-        ImmutableArray<(string resultId, TextDocumentIdentifier identifier)>? previousResults,
-        bool useProgress,
-        string? category,
-        bool triggerConnectionClose)
-    {
-        await testLspServer.WaitForDiagnosticsAsync();
-
-        BufferedProgress<VSInternalWorkspaceDiagnosticReport[]>? progress = useProgress ? BufferedProgress.Create<VSInternalWorkspaceDiagnosticReport[]>(null) : null;
-        var diagnosticsTask = testLspServer.ExecuteRequestAsync<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[]>(
-            VSInternalMethods.WorkspacePullDiagnosticName,
-            CreateWorkspaceDiagnosticParams(previousResults, progress, category),
-            CancellationToken.None).ConfigureAwait(false);
-
-        if (triggerConnectionClose)
-        {
-            // Workspace diagnostics wait for a change before closing the connection so we manually tell it to close here to let the test finish.
-            var service = testLspServer.GetRequiredLspService<WorkspacePullDiagnosticHandler>();
-            service.GetTestAccessor().TriggerConnectionClose();
-        }
-
-        var diagnostics = await diagnosticsTask;
-
-        if (useProgress)
-        {
-            Assert.Null(diagnostics);
-            diagnostics = progress!.Value.GetFlattenedValues();
-        }
-
-        Assert.NotNull(diagnostics);
-        return [.. diagnostics.Select(d => new TestDiagnosticResult(d.TextDocument!, d.ResultId!, d.Diagnostics))];
-    }
-
-    private protected static async Task<ImmutableArray<TestDiagnosticResult>> RunPublicGetWorkspacePullDiagnosticsAsync(
-        TestLspServer testLspServer,
-        ImmutableArray<(string resultId, TextDocumentIdentifier identifier)>? previousResults,
-        bool useProgress,
-        string? category,
-        bool triggerConnectionClose)
-    {
         await testLspServer.WaitForDiagnosticsAsync();
 
         BufferedProgress<WorkspaceDiagnosticPartialReport>? progress = useProgress ? BufferedProgress.Create<WorkspaceDiagnosticPartialReport>(null) : null;
@@ -156,6 +107,7 @@ public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutp
         var previousResultsLsp = previousResults?.Select(r => new PreviousResultId
         {
             Uri = r.identifier.DocumentUri,
+            ProjectContext = (r.identifier as VSTextDocumentIdentifier)?.ProjectContext,
             Value = r.resultId
         }).ToArray() ?? [];
         return new WorkspaceDiagnosticParams
@@ -170,12 +122,18 @@ public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutp
     {
         if (workspaceReport.Value is WorkspaceFullDocumentDiagnosticReport fullReport)
         {
-            return new TestDiagnosticResult(new TextDocumentIdentifier { DocumentUri = fullReport.Uri }, fullReport.ResultId, fullReport.Items);
+            return new TestDiagnosticResult(
+                new VSTextDocumentIdentifier { DocumentUri = fullReport.Uri, ProjectContext = fullReport.ProjectContext },
+                fullReport.ResultId,
+                fullReport.Items);
         }
         else
         {
             var unchangedReport = (WorkspaceUnchangedDocumentDiagnosticReport)workspaceReport.Value!;
-            return new TestDiagnosticResult(new TextDocumentIdentifier { DocumentUri = unchangedReport.Uri }, unchangedReport.ResultId, null);
+            return new TestDiagnosticResult(
+                new VSTextDocumentIdentifier { DocumentUri = unchangedReport.Uri, ProjectContext = unchangedReport.ProjectContext },
+                unchangedReport.ResultId,
+                null);
         }
     }
 
@@ -185,34 +143,6 @@ public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutp
     {
         // If there was no resultId provided in the response, we cannot create previous results for it.
         return results.SelectAsArray(r => r.ResultId != null, r => (r.ResultId!, r.TextDocument));
-    }
-
-    private protected static VSInternalDocumentDiagnosticsParams CreateDocumentDiagnosticParams(
-        VSTextDocumentIdentifier vsTextDocumentIdentifier,
-        string? previousResultId = null,
-        IProgress<VSInternalDiagnosticReport[]>? progress = null,
-        string? category = null)
-    {
-        return new VSInternalDocumentDiagnosticsParams
-        {
-            TextDocument = vsTextDocumentIdentifier,
-            PreviousResultId = previousResultId,
-            PartialResultToken = progress,
-            QueryingDiagnosticKind = category == null ? null : new(category),
-        };
-    }
-
-    private protected static VSInternalWorkspaceDiagnosticsParams CreateWorkspaceDiagnosticParams(
-        ImmutableArray<(string resultId, TextDocumentIdentifier identifier)>? previousResults = null,
-        IProgress<VSInternalWorkspaceDiagnosticReport[]>? progress = null,
-        string? category = null)
-    {
-        return new VSInternalWorkspaceDiagnosticsParams
-        {
-            PreviousResults = previousResults?.Select(r => new VSInternalDiagnosticParams { PreviousResultId = r.resultId, TextDocument = r.identifier }).ToArray(),
-            PartialResultToken = progress,
-            QueryingDiagnosticKind = category == null ? null : new(category),
-        };
     }
 
     private protected static async Task InsertTextAsync(
@@ -248,51 +178,29 @@ public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutp
         bool useProgress = false,
         string? category = null)
     {
+        _ = useVSDiagnostics;
+
         await testLspServer.WaitForDiagnosticsAsync();
 
-        if (useVSDiagnostics)
+        BufferedProgress<DocumentDiagnosticPartialReport>? progress = useProgress ? BufferedProgress.Create<DocumentDiagnosticPartialReport>(null) : null;
+        var diagnostics = await testLspServer.ExecuteRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>>(
+            Methods.TextDocumentDiagnosticName,
+            CreateProposedDocumentDiagnosticParams(vsTextDocumentIdentifier, previousResultId, category, progress),
+            CancellationToken.None).ConfigureAwait(false);
+        if (useProgress)
         {
-            Assert.False(category == PublicDocumentNonLocalDiagnosticSourceProvider.NonLocal, "NonLocalDiagnostics are only supported for public DocumentPullHandler");
-            BufferedProgress<VSInternalDiagnosticReport[]>? progress = useProgress ? BufferedProgress.Create<VSInternalDiagnosticReport[]>(null) : null;
-            var diagnostics = await testLspServer.ExecuteRequestAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
-                VSInternalMethods.DocumentPullDiagnosticName,
-                CreateDocumentDiagnosticParams(vsTextDocumentIdentifier, previousResultId, progress, category),
-                CancellationToken.None).ConfigureAwait(false);
-
-            if (useProgress)
-            {
-                Assert.Null(diagnostics);
-                diagnostics = progress!.Value.GetFlattenedValues();
-            }
-
-            Assert.NotNull(diagnostics);
-            return [.. diagnostics.Select(d => new TestDiagnosticResult(vsTextDocumentIdentifier, d.ResultId!, d.Diagnostics))];
+            Assert.IsType<FullDocumentDiagnosticReport>(diagnostics.Value);
+            Assert.Empty(diagnostics.First.Items);
+            Assert.NotNull(progress);
+            diagnostics = progress.Value.GetValues()!.Single().First;
         }
-        else
+
+        if (diagnostics.Value is UnchangedDocumentDiagnosticReport)
         {
-            BufferedProgress<DocumentDiagnosticPartialReport>? progress = useProgress ? BufferedProgress.Create<DocumentDiagnosticPartialReport>(null) : null;
-            var diagnostics = await testLspServer.ExecuteRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>>(
-                Methods.TextDocumentDiagnosticName,
-                CreateProposedDocumentDiagnosticParams(vsTextDocumentIdentifier, previousResultId, category, progress),
-                CancellationToken.None).ConfigureAwait(false);
-            if (useProgress)
-            {
-                Assert.IsType<FullDocumentDiagnosticReport>(diagnostics.Value);
-                Assert.Empty(diagnostics.First.Items);
-                Assert.NotNull(progress);
-                diagnostics = progress.Value.GetValues()!.Single().First;
-            }
-
-            if (diagnostics.Value is UnchangedDocumentDiagnosticReport)
-            {
-                // The public LSP spec returns different types when unchanged in contrast to VS which just returns null diagnostic array.
-                return [new TestDiagnosticResult(vsTextDocumentIdentifier, diagnostics.Second.ResultId!, null)];
-            }
-            else
-            {
-                return [new TestDiagnosticResult(vsTextDocumentIdentifier, diagnostics.First.ResultId!, diagnostics.First.Items)];
-            }
+            return [new TestDiagnosticResult(vsTextDocumentIdentifier, diagnostics.Second.ResultId!, null)];
         }
+
+        return [new TestDiagnosticResult(vsTextDocumentIdentifier, diagnostics.First.ResultId!, diagnostics.First.Items)];
 
         static DocumentDiagnosticParams CreateProposedDocumentDiagnosticParams(
             VSTextDocumentIdentifier vsTextDocumentIdentifier,

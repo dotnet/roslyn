@@ -41,7 +41,7 @@ internal static class WorkspaceDiagnosticSourceHelpers
 
     public static bool ShouldSkipDocument(RequestContext context, TextDocument document)
     {
-        // Only consider closed documents here (and only open ones in the DocumentPullDiagnosticHandler).
+        // Only consider closed documents here (and only open ones in the document pull diagnostic handler).
         // Each handler treats those as separate worlds that they are responsible for.
         if (context.IsTracking(document.GetURI()))
         {

@@ -131,7 +131,7 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
 
         // We should get a single report for the removed additional file, the rest are unchanged and do not report.
         Assert.Equal(1, results2.Length);
-        Assert.Equal(useVSDiagnostics ? null : [], results2[0].Diagnostics);
+        Assert.Empty(results2[0].Diagnostics!);
         Assert.Null(results2[0].ResultId);
     }
 

@@ -32,7 +32,7 @@ internal abstract class AbstractDocumentPullDiagnosticHandler<TDiagnosticsParams
         // since removed from the workspace.  In this case, we don't really have anything to process.
         // GetPreviousResults will be used to properly realize this and notify the client that the doc is gone.
         //
-        // Only consider open documents here (and only closed ones in the WorkspacePullDiagnosticHandler).  Each
+        // Only consider open documents here (and only closed ones in the workspace pull diagnostic handler).  Each
         // handler treats those as separate worlds that they are responsible for.
         var identifier = GetTextDocumentIdentifier(diagnosticsParams);
         var textDocument = await context.GetTextDocumentAsync(cancellationToken).ConfigureAwait(false);
