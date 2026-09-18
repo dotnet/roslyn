@@ -35,7 +35,10 @@ public class CSharpCodeActionsTests(ITestOutputHelper testOutputHelper) : Abstra
     public async Task CSharpCodeActionsTests_FullyQualify()
     {
         // Open the file
+        testOutputHelper.WriteLine("CSharpCodeActionsTests_FullyQualify: open Counter.razor");
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
+
+        testOutputHelper.WriteLine("CSharpCodeActionsTests_FullyQualify: set conflict option text");
         await TestServices.Editor.SetTextAsync("""
 
             @{
@@ -44,18 +47,23 @@ public class CSharpCodeActionsTests(ITestOutputHelper testOutputHelper) : Abstra
 
             """, ControlledHangMitigatingCancellationToken);
 
+        testOutputHelper.WriteLine("CSharpCodeActionsTests_FullyQualify: place caret on ConflictOption");
         await TestServices.Editor.PlaceCaretAsync("ConflictOption", charsOffset: 0, occurrence: 1, extendSelection: false, selectBlock: false, ControlledHangMitigatingCancellationToken);
 
         // Act
+        testOutputHelper.WriteLine("CSharpCodeActionsTests_FullyQualify: invoke code action list");
         var codeActions = await TestServices.Editor.InvokeCodeActionListAsync(ControlledHangMitigatingCancellationToken);
 
         // Assert
+        testOutputHelper.WriteLine("CSharpCodeActionsTests_FullyQualify: verify fully qualify action");
         var codeAction = VerifyAndGetFirst(codeActions,
             "System.Data.ConflictOption",
             "@using System.Data");
 
+        testOutputHelper.WriteLine("CSharpCodeActionsTests_FullyQualify: invoke fully qualify action");
         await TestServices.Editor.InvokeCodeActionAsync(codeAction, ControlledHangMitigatingCancellationToken);
 
+        testOutputHelper.WriteLine("CSharpCodeActionsTests_FullyQualify: wait for fully qualified line");
         await TestServices.Editor.WaitForCurrentLineTextAsync("var x = System.Data.ConflictOption.CompareAllSearchableValues;", ControlledHangMitigatingCancellationToken);
     }
 
@@ -63,7 +71,10 @@ public class CSharpCodeActionsTests(ITestOutputHelper testOutputHelper) : Abstra
     public async Task CSharpCodeActionsTests_AddUsing()
     {
         // Open the file
+        testOutputHelper.WriteLine("CSharpCodeActionsTests_AddUsing: open Counter.razor");
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
+
+        testOutputHelper.WriteLine("CSharpCodeActionsTests_AddUsing: set conflict option text");
         await TestServices.Editor.SetTextAsync("""
 
             @{
@@ -72,18 +83,23 @@ public class CSharpCodeActionsTests(ITestOutputHelper testOutputHelper) : Abstra
 
             """, ControlledHangMitigatingCancellationToken);
 
+        testOutputHelper.WriteLine("CSharpCodeActionsTests_AddUsing: place caret on ConflictOption");
         await TestServices.Editor.PlaceCaretAsync("ConflictOption", charsOffset: 0, occurrence: 1, extendSelection: false, selectBlock: false, ControlledHangMitigatingCancellationToken);
 
         // Act
+        testOutputHelper.WriteLine("CSharpCodeActionsTests_AddUsing: invoke code action list");
         var codeActions = await TestServices.Editor.InvokeCodeActionListAsync(ControlledHangMitigatingCancellationToken);
 
         // Assert
+        testOutputHelper.WriteLine("CSharpCodeActionsTests_AddUsing: verify add using action");
         var codeAction = VerifyAndGetFirst(codeActions,
             "@using System.Data",
             "System.Data.ConflictOption");
 
+        testOutputHelper.WriteLine("CSharpCodeActionsTests_AddUsing: invoke add using action");
         await TestServices.Editor.InvokeCodeActionAsync(codeAction, ControlledHangMitigatingCancellationToken);
 
+        testOutputHelper.WriteLine("CSharpCodeActionsTests_AddUsing: wait for using text change");
         await TestServices.Editor.WaitForTextChangeAsync("""
             @using System.Data
 
@@ -98,7 +114,10 @@ public class CSharpCodeActionsTests(ITestOutputHelper testOutputHelper) : Abstra
     public async Task CSharpCodeActionsTests_AddUsing_WithTypo()
     {
         // Open the file
+        testOutputHelper.WriteLine("CSharpCodeActionsTests_AddUsing_WithTypo: open Counter.razor");
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
+
+        testOutputHelper.WriteLine("CSharpCodeActionsTests_AddUsing_WithTypo: set typo text");
         await TestServices.Editor.SetTextAsync("""
 
             @{
@@ -107,17 +126,22 @@ public class CSharpCodeActionsTests(ITestOutputHelper testOutputHelper) : Abstra
 
             """, ControlledHangMitigatingCancellationToken);
 
+        testOutputHelper.WriteLine("CSharpCodeActionsTests_AddUsing_WithTypo: place caret on typo");
         await TestServices.Editor.PlaceCaretAsync("Conflictoption", charsOffset: 0, occurrence: 1, extendSelection: false, selectBlock: false, ControlledHangMitigatingCancellationToken);
 
         // Act
+        testOutputHelper.WriteLine("CSharpCodeActionsTests_AddUsing_WithTypo: invoke code action list");
         var codeActions = await TestServices.Editor.InvokeCodeActionListAsync(ControlledHangMitigatingCancellationToken);
 
         // Assert
+        testOutputHelper.WriteLine("CSharpCodeActionsTests_AddUsing_WithTypo: verify typo add using action");
         var codeAction = VerifyAndGetFirst(codeActions,
             "ConflictOption - @using System.Data");
 
+        testOutputHelper.WriteLine("CSharpCodeActionsTests_AddUsing_WithTypo: invoke typo add using action");
         await TestServices.Editor.InvokeCodeActionAsync(codeAction, ControlledHangMitigatingCancellationToken);
 
+        testOutputHelper.WriteLine("CSharpCodeActionsTests_AddUsing_WithTypo: wait for corrected using text");
         await TestServices.Editor.WaitForTextChangeAsync("""
             @using System.Data
 
