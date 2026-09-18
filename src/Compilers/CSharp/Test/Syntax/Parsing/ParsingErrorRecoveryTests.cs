@@ -6952,16 +6952,16 @@ class C
             Assert.True(decl.SemicolonToken.IsMissing);
             Assert.Equal(2, decl.Declaration.Variables.Count);
             Assert.Equal("x", decl.Declaration.Variables[0].Identifier.ToString());
-            Assert.True(decl.Declaration.Variables[1].Identifier.IsMissing);
-            Assert.Equal(3, subitem1.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, subitem1.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, subitem1.Errors()[1].Code);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, subitem1.Errors()[2].Code);
+            Assert.Equal("partial", decl.Declaration.Variables[1].Identifier.ToString());
+            Assert.False(decl.Declaration.Variables[1].Identifier.IsMissing);
+            Assert.Equal(2, subitem1.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, subitem1.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, subitem1.Errors()[1].Code);
 
             var subitem2 = (TypeDeclarationSyntax)item1.Members[1];
             Assert.Equal(SyntaxKind.ClassDeclaration, item1.Members[1].Kind());
             Assert.Equal("y", subitem2.Identifier.ToString());
-            Assert.Equal(SyntaxKind.PartialKeyword, subitem2.Modifiers[0].ContextualKind());
+            Assert.Empty(subitem2.Modifiers);
             Assert.True(subitem2.OpenBraceToken.IsMissing);
             Assert.True(subitem2.CloseBraceToken.IsMissing);
             Assert.Equal(3, subitem2.Errors().Length);
