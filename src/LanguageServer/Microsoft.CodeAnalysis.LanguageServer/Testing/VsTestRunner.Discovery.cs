@@ -16,16 +16,14 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
 
-internal sealed partial class TestDiscoverer(ILoggerFactory loggerFactory)
+internal sealed partial class VsTestRunner
 {
-    private readonly ILogger _logger = loggerFactory.CreateLogger<TestDiscoverer>();
-
     /// <summary>
     /// Finds tests in the specified document in the specified range.
     ///
     /// Note that since tests run against the last built dll,
     /// </summary>
-    public async Task<ImmutableArray<TestCase>> DiscoverTestsAsync(
+    private async Task<ImmutableArray<TestCase>> DiscoverTestsAsync(
         LSP.Range range,
         Document document,
         string projectOutputPath,
