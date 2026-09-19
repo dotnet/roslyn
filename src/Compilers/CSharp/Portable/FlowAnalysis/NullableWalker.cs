@@ -13724,8 +13724,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitRvalue(argument);
             _ = CheckPossibleNullReceiver(argument);
 
-            // Compat: report nullability warning for `lock (null)` in legacy mode
-            // that would normally be reported if `null` was converted to a non-nullable reference type
+            // Note: CheckPossibleNullReceiver does not report on a typeless expression such as a null literal.
             if (argument is { Type: null, ConstantValueOpt.IsNull: true, IsSuppressed: false } && !compilation.FeatureStrictEnabled)
             {
                 ReportDiagnostic(ErrorCode.WRN_NullReferenceReceiver, argument.Syntax);
