@@ -6,6 +6,7 @@
 param(
   [string]$configuration = "Debug",
   [switch]$ci = $false,
+  [switch]$warnAsError = $ci,
   [switch]$prepareMachine = $false,
   [switch]$useGlobalNuGetCache = $true,
   [switch]$bootstrap = $false,
@@ -18,6 +19,7 @@ function Print-Usage() {
   Write-Host "Usage: test-rebuild.ps1"
   Write-Host "  -configuration            Build configuration ('Debug' or 'Release')"
   Write-Host "  -ci                       Set when running on CI server"
+  Write-Host "  -warnAsError              Treat all warnings as errors (default: true with -ci)"
   Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
   Write-Host "  -bootstrap                Do a bootstrap build before running the build validatior"
   Write-Host "  -help                     Print help and exit"
@@ -34,7 +36,7 @@ try {
 
   if ($bootstrap) {
     Write-Host "Building Roslyn"
-    & eng/build.ps1 -restore -build -bootstrap -prepareMachine:$prepareMachine -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog
+    & eng/build.ps1 -restore -build -bootstrap -prepareMachine:$prepareMachine -ci:$ci -warnAsError:$warnAsError -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog
     Test-LastExitCode
   }
 
