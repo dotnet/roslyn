@@ -73,6 +73,11 @@ internal sealed partial class SolutionState
         // for both for big-endian and for little-endian.
         private const uint NormalizeToLowercase = 0x0020_0020u;
 
+        // Simple helper for bit rotation when BitOperations is not available (netstandard2.0)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static uint RotateLeft(uint value, int offset)
+            => (value << offset) | (value >> (32 - offset));
+
         private unsafe int GetNonRandomizedHashCodeOrdinalIgnoreCase(string obj)
         {
             uint hash1 = (5381 << 16) + 5381;
@@ -96,8 +101,8 @@ internal sealed partial class SolutionState
                     }
 
                     length -= 4;
-                    hash1 = (RuntimeBitOperations.RotateLeft(hash1, 5) + hash1) ^ (p0 | NormalizeToLowercase);
-                    hash2 = (RuntimeBitOperations.RotateLeft(hash2, 5) + hash2) ^ (p1 | NormalizeToLowercase);
+                    hash1 = (RotateLeft(hash1, 5) + hash1) ^ (p0 | NormalizeToLowercase);
+                    hash2 = (RotateLeft(hash2, 5) + hash2) ^ (p1 | NormalizeToLowercase);
                     ptr += 2;
                 }
 
@@ -109,7 +114,7 @@ internal sealed partial class SolutionState
                         goto NotAscii;
                     }
 
-                    hash2 = (RuntimeBitOperations.RotateLeft(hash2, 5) + hash2) ^ (p0 | NormalizeToLowercase);
+                    hash2 = (RotateLeft(hash2, 5) + hash2) ^ (p0 | NormalizeToLowercase);
                 }
             }
 
