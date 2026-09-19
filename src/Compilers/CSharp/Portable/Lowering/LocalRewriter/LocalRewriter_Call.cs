@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (thisRefKind != RefKind.None
                     && !CodeGenerator.HasHome(
                         receiverOpt,
-                        thisRefKind == RefKind.Ref ? CodeGenerator.AddressKind.Writeable : CodeGenerator.AddressKind.ReadOnlyStrict,
+                        thisRefKind == RefKind.Ref ? CodeGenerator.AddressKind.Writeable : CodeGenerator.AddressKind.ReadOnly,
                         _factory.CurrentFunction,
                         peVerifyCompatEnabled: false,
                         stackLocalsOpt: null))
@@ -968,7 +968,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isReceiverTakenByValue)
             {
                 if (CodeGenerator.HasHome(rewrittenReceiver,
-                                    CodeGenerator.AddressKind.ReadOnlyStrict,
+                                    CodeGenerator.AddressKind.ReadOnly,
                                     _factory.CurrentFunction,
                                     peVerifyCompatEnabled: false,
                                     stackLocalsOpt: null))
@@ -982,7 +982,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind refKind = ExtensionMethodReferenceRewriter.ReceiverArgumentRefKindFromReceiverRefKind(receiverRefKind);
 
             if (CodeGenerator.HasHome(rewrittenReceiver,
-                                CodeGenerator.GetArgumentAddressKind(refKind),
+                                getArgumentAddressKind(refKind),
                                 _factory.CurrentFunction,
                                 peVerifyCompatEnabled: false,
                                 stackLocalsOpt: null))
@@ -991,6 +991,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return RefKind.None;
+
+            static CodeGenerator.AddressKind getArgumentAddressKind(RefKind refKind)
+            {
+                switch (refKind)
+                {
+                    case RefKind.None:
+                        throw ExceptionUtilities.UnexpectedValue(refKind);
+
+                    case RefKind.In:
+                    case RefKindExtensions.StrictIn:
+                        Debug.Assert(refKind != RefKindExtensions.StrictIn);
+                        return CodeGenerator.AddressKind.ReadOnly;
+
+                    default:
+                        Debug.Assert(refKind is RefKind.Ref);
+                        return CodeGenerator.AddressKind.Writeable;
+                }
+            }
         }
 
         private void ReferToTempIfReferenceTypeReceiver(BoundLocal receiverTemp, ref BoundAssignmentOperator assignmentToTemp, out BoundAssignmentOperator? extraRefInitialization, ArrayBuilder<LocalSymbol> temps)
