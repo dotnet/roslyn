@@ -229,7 +229,7 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
             FeaturesSessionTelemetry.Report();
         }
 
-        exitReason = cancellationToken.IsCancellationRequested ? "Canceled" : "Normal";
+        exitReason = "Normal";
         return ServerExitCodes.Success;
     }
     catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
