@@ -24,4 +24,11 @@ internal record RazorCompletionContext(
     /// Null when local HTML completions were not produced for this context (e.g., non-HTML position or no element completions).
     /// </summary>
     public HashSet<string>? HtmlLabels { get; init; }
+
+    /// <summary>
+    /// The opted-in element/attribute pairs and static web asset keys for the containing project, or
+    /// <see langword="null"/> when the position isn't one where an asset path could be offered.
+    /// Resolved by the caller because it is project-scoped and asynchronous, while providers are not.
+    /// </summary>
+    public AssetPathCompletionInfo? AssetPathInfo { get; init; }
 }
