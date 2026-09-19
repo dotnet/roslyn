@@ -539,7 +539,9 @@ namespace Microsoft.Cci
             SymUnmanagedWriter symWriter;
             try
             {
+#pragma warning disable CA1416 // PdbWriter is only used when native Windows PDB format is explicitly requested
                 symWriter = (_symWriterFactory != null) ? _symWriterFactory(metadataProvider) : SymUnmanagedWriterFactory.CreateWriter(metadataProvider, options);
+#pragma warning restore CA1416
             }
             catch (DllNotFoundException e)
             {

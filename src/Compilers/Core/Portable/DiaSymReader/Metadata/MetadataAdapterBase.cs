@@ -8,9 +8,16 @@ using System;
 using System.Runtime.InteropServices;
 using System.Reflection;
 
+#if NET
+using System.Runtime.InteropServices.Marshalling;
+#endif
+
 namespace Microsoft.DiaSymReader
 {
-    internal unsafe class MetadataAdapterBase : IMetadataImport, IMetadataEmit
+#if NET
+    [GeneratedComClass]
+#endif
+    internal unsafe partial class MetadataAdapterBase : IMetadataImport, IMetadataEmit
     {
         public virtual int GetTokenFromSig(byte* voidPointerSig, int byteCountSig)
             => throw new NotImplementedException();
@@ -86,13 +93,13 @@ namespace Microsoft.DiaSymReader
         int IMetadataImport.EnumMethodSemantics(ref void* enumHandle, int methodDef, int* eventsAndProperties, int bufferLength, int* count) => throw new NotImplementedException();
         int IMetadataImport.GetMethodSemantics(int methodDef, int eventOrProperty, int* semantics) => throw new NotImplementedException();
         int IMetadataImport.GetClassLayout(int typeDef, int* packSize, MetadataImportFieldOffset* fieldOffsets, int bufferLength, int* count, int* typeSize) => throw new NotImplementedException();
-        int IMetadataImport.GetFieldMarshal(int fieldDef, byte** nativeTypeSignature, int* nativeTypeSignatureLengvth) => throw new NotImplementedException();
+        int IMetadataImport.GetFieldMarshal(int fieldDef, byte** nativeTypeSignature, int* nativeTypeSignatureLength) => throw new NotImplementedException();
         int IMetadataImport.GetRVA(int methodDef, int* relativeVirtualAddress, int* implAttributes) => throw new NotImplementedException();
         int IMetadataImport.GetPermissionSetProps(int declSecurity, uint* action, byte** permissionBlob, int* permissionBlobLength) => throw new NotImplementedException();
         int IMetadataImport.GetModuleRefProps(int moduleRef, char* name, int nameBufferLength, int* nameLength) => throw new NotImplementedException();
         int IMetadataImport.EnumModuleRefs(ref void* enumHandle, int* moduleRefs, int bufferLength, int* count) => throw new NotImplementedException();
         int IMetadataImport.GetTypeSpecFromToken(int typeSpec, byte** signature, int* signatureLength) => throw new NotImplementedException();
-        int IMetadataImport.GetNameFromToken(int token, byte* nameUtf8) => throw new NotImplementedException();
+        int IMetadataImport.GetNameFromToken(int token, byte* nameUTF8) => throw new NotImplementedException();
         int IMetadataImport.EnumUnresolvedMethods(ref void* enumHandle, int* methodDefs, int bufferLength, int* count) => throw new NotImplementedException();
         int IMetadataImport.GetUserString(int userStringToken, char* buffer, int bufferLength, int* length) => throw new NotImplementedException();
         int IMetadataImport.GetPinvokeMap(int memberDef, int* attributes, char* importName, int importNameBufferLength, int* importNameLength, int* moduleRef) => throw new NotImplementedException();
