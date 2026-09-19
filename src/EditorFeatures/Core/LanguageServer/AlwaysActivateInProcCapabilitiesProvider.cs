@@ -48,6 +48,8 @@ internal sealed class AlwaysActivateInProcCapabilitiesProvider(
         serverCapabilities.DataTipRangeProvider = true;
 
         serverCapabilities.SupportsDiagnosticRequests = true;
+        serverCapabilities.DoNotIncludeTextInTextDocumentDidOpen =
+            clientCapabilities is VSInternalClientCapabilities { SupportsNotIncludingTextInTextDocumentDidOpen: true };
 
         var diagnosticOptions = (serverCapabilities.DiagnosticOptions ??= new DiagnosticOptions());
         diagnosticOptions.Unify().WorkspaceDiagnostics = true;
