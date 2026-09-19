@@ -240,6 +240,30 @@ Before pushing a relevant fix to CI, you can validate locally using the `-testUs
    C:\Source> dotnet format analyzers .\roslyn\Compilers.slnf --diagnostics=RS0016 --no-restore --include-generated -v diag
    ```
 
+## Troubleshooting
+
+If you hit an unexpected build failure, especially one that doesn't reproduce on a clean
+clone, a good first step is to delete the `artifacts` folder and rebuild. If that doesn't
+help, the bigger hammer is `git clean -xdfn` (dry run) followed by `git clean -xdf`. Note
+that this also deletes the locally-provisioned `.dotnet` SDK, forcing a full restore and
+rebuild, so prefer just deleting `artifacts` first.
+
+For example, renaming or moving your clone can leave stale cached files under
+`artifacts\obj\...\*.xlf\` referencing the old path, which causes `Build.cmd` to fail with
+errors like:
+
+```
+error MSB3103: Invalid Resx file. Could not find a part of the path
+'<OLD-PATH>\src\RoslynAnalyzers\Text.Analyzers\Core\Dictionary.dic'. [Text.Analyzers.csproj]
+```
+
+This happens because the [XliffTasks](https://github.com/dotnet/xliff-tasks) MSBuild tasks
+bake the **absolute** path of `ResXFileRef` entries into those cached translated `.resx`
+files, and MSBuild's incremental-build check doesn't detect the rename because the file
+timestamps and contents haven't changed. Deleting `artifacts\obj` (or just the affected
+`.xlf` folders) as described above resolves it. This is being tracked upstream in
+[dotnet/xliff-tasks](https://github.com/dotnet/xliff-tasks).
+
 ## Contributing
 
 Please see [Contributing Code](https://github.com/dotnet/roslyn/blob/main/CONTRIBUTING.md) for details on contributing changes back to the code.
