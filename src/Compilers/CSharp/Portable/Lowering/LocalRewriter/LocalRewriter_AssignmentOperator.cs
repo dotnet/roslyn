@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    CanChangeValueBetweenReads(rewrittenReceiver, localsMayBeAssignedOrCaptured: true, structThisCanChangeValueBetweenReads: true) &&
                    IsExtensionBlockMemberWithByValPossiblyStructReceiver(symbol) &&
                    CodeGen.CodeGenerator.HasHome(rewrittenReceiver,
-                                       CodeGen.CodeGenerator.AddressKind.ReadOnlyStrict,
+                                       CodeGen.CodeGenerator.AddressKind.ReadOnly,
                                        _factory.CurrentFunction,
                                        peVerifyCompatEnabled: false,
                                        stackLocalsOpt: null);

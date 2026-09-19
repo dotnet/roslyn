@@ -719,7 +719,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 default:
                     Debug.Assert(refKind is RefKind.In or RefKind.Ref or RefKind.Out or RefKindExtensions.StrictIn);
-                    var temp = EmitAddress(argument, GetArgumentAddressKind(refKind));
+                    var temp = EmitAddress(argument, getArgumentAddressKind(refKind));
                     if (temp != null)
                     {
                         // interestingly enough "ref dynamic" sometimes is passed via a clone
@@ -730,23 +730,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                     break;
             }
-        }
 
-        internal static AddressKind GetArgumentAddressKind(RefKind refKind)
-        {
-            switch (refKind)
+            static AddressKind getArgumentAddressKind(RefKind refKind)
             {
-                case RefKind.None:
-                    throw ExceptionUtilities.UnexpectedValue(refKind);
+                switch (refKind)
+                {
+                    case RefKind.None:
+                        throw ExceptionUtilities.UnexpectedValue(refKind);
 
-                case RefKind.In:
-                    return AddressKind.ReadOnly;
+                    case RefKind.In:
+                        return AddressKind.ReadOnly;
 
-                default:
-                    Debug.Assert(refKind is RefKind.Ref or RefKind.Out or RefKindExtensions.StrictIn);
-                    // NOTE: returning "ReadOnlyStrict" here. 
-                    //       we should not get an address of a copy if at all possible
-                    return refKind == RefKindExtensions.StrictIn ? AddressKind.ReadOnlyStrict : AddressKind.Writeable;
+                    default:
+                        Debug.Assert(refKind is RefKind.Ref or RefKind.Out or RefKindExtensions.StrictIn);
+                        // NOTE: returning "ReadOnlyStrict" here. 
+                        //       we should not get an address of a copy if at all possible
+                        return refKind == RefKindExtensions.StrictIn ? AddressKind.ReadOnlyStrict : AddressKind.Writeable;
+                }
             }
         }
 
