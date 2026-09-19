@@ -92,9 +92,12 @@ internal static class FieldGenerator
             return reusableSyntax;
         }
 
-        var initializer = CodeGenerationFieldInfo.GetInitializer(field) is ExpressionSyntax initializerNode
-            ? EqualsValueClause(initializerNode)
-            : GenerateEqualsValue(field);
+        var initializer = CodeGenerationFieldInfo.GetInitializer(field) switch
+        {
+            EqualsValueClauseSyntax equalsValue => equalsValue,
+            ExpressionSyntax expr => EqualsValueClause(expr),
+            _ => GenerateEqualsValue(field)
+        };
 
         var fieldDeclaration = FieldDeclaration(
             AttributeGenerator.GenerateAttributeLists(field.GetAttributes(), info),
