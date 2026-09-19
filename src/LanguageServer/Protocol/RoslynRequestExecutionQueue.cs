@@ -4,7 +4,6 @@
 
 using System;
 using System.Globalization;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 
@@ -23,19 +22,6 @@ internal sealed class RoslynRequestExecutionQueue : RequestExecutionQueue<Reques
         : base(languageServer, handlerProvider)
     {
         _initializeManager = languageServer.GetLspServices().GetRequiredService<IInitializeManager>();
-    }
-
-    public override async Task WrapStartRequestTaskAsync(Task requestTask, bool rethrowExceptions)
-    {
-        try
-        {
-            await requestTask.ConfigureAwait(false);
-        }
-        catch (Exception) when (!rethrowExceptions)
-        {
-            // The caller has asked us to not rethrow, so swallow the exception to avoid bringing down the queue.
-            // The queue item task itself already handles reporting the exception (if any).
-        }
     }
 
     protected internal override void BeforeRequest<TRequest>(TRequest request)
