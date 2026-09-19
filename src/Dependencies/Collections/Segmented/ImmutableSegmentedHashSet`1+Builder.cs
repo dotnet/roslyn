@@ -50,15 +50,16 @@ namespace Microsoft.CodeAnalysis.Collections
             /// <inheritdoc cref="ImmutableHashSet{T}.Builder.ExceptWith(IEnumerable{T})"/>
             public void ExceptWith(IEnumerable<T> other)
             {
-                if (other == this)
+                var self = this;
+                if (other == self)
                 {
                     // The ValueBuilder knows how to optimize for this case by calling Clear, provided it does not need
                     // to access properties of the wrapping Builder instance.
-                    _builder.ExceptWith(_builder.ReadOnlySet);
+                    self._builder.ExceptWith(self._builder.ReadOnlySet);
                 }
                 else
                 {
-                    _builder.ExceptWith(other);
+                    self._builder.ExceptWith(other);
                 }
             }
 

@@ -58,7 +58,8 @@ namespace Microsoft.CodeAnalysis.Collections
 
             public bool All<TArg>(Func<TValue, TArg, bool> predicate, TArg arg)
             {
-                foreach (var item in this)
+                var self = this;
+                foreach (var item in self)
                 {
                     if (!predicate(item, arg))
                     {
