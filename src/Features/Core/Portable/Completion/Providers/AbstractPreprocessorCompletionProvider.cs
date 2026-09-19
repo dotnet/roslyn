@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -35,6 +36,15 @@ internal abstract class AbstractPreprocessorCompletionProvider : LSPCompletionPr
             var currentSyntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
             preprocessorNames.AddRange(currentSyntaxTree.Options.PreprocessorSymbolNames);
+
+            var root = await currentSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
+            {
+                if (DefinesPreprocessingSymbolName(trivia, out var definedName))
+                {
+                    preprocessorNames.Add(definedName);
+                }
+            }
         }
 
         // Keep all the preprocessor symbol names together.  We don't want to intermingle them with any keywords we
@@ -49,4 +59,6 @@ internal abstract class AbstractPreprocessorCompletionProvider : LSPCompletionPr
                 sortText: "_0_" + name));
         }
     }
+
+    protected abstract bool DefinesPreprocessingSymbolName(SyntaxTrivia trivia, [NotNullWhen(true)] out string? definedName);
 }
