@@ -104,9 +104,9 @@ public class C1
 ";
             string expectedOperationTree = @"
 ILockOperation (OperationKind.Lock, Type: null) (Syntax: 'lock (null) ... }')
-  Expression:
+  Expression: 
     ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
-  Body:
+  Body: 
     IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
