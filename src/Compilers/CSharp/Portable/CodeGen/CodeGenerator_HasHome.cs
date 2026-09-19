@@ -40,9 +40,9 @@ internal partial class CodeGenerator
         /// with those APIs should be limited to <see cref="CodeGenerator"/>. In other words, it should not be used
         /// with those APIs to determine whether expression is a valid "readonly variable" (refers to a location for
         /// which it is valid to obtain a readonly reference). Usages like that in <see cref="CodeGenerator"/> are
-        /// valid under ussumption that ability to obtain a refernce was checked during earlier phases, or in cases
-        /// when taking a refernce is not subject to validity constraints.
-        /// So, this kind is strict for the purpose of emiting code to get an address (i.e. get it, if at all possible),
+        /// valid under the assumption that the ability to obtain a reference was checked during earlier phases, or in cases
+        /// when taking a reference is not subject to validity constraints.
+        /// So, this kind is strict for the purpose of emitting code to get an address (i.e. get it, if at all possible),
         /// but relaxed for the purpose of checking if an expression has a home.
         /// </summary>
         ReadOnlyStrict,
