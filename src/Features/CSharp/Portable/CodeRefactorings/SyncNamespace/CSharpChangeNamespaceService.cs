@@ -87,6 +87,9 @@ internal sealed class CSharpChangeNamespaceService() :
         throw ExceptionUtilities.Unreachable();
     }
 
+    protected override SimpleNameSyntax? GetRightmostName(NameSyntax name)
+        => name.GetRightmostName();
+
     protected override SyntaxList<MemberDeclarationSyntax> GetMemberDeclarationsInContainer(SyntaxNode container)
     {
         if (container is BaseNamespaceDeclarationSyntax namespaceDecl)

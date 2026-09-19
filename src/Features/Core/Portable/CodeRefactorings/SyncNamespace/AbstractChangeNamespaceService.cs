@@ -95,6 +95,8 @@ internal abstract partial class AbstractChangeNamespaceService<
 
     protected abstract string GetDeclaredNamespace(SyntaxNode container);
 
+    protected abstract TSimpleNameSyntax? GetRightmostName(TNameSyntax name);
+
     /// <summary>
     /// Decide if we can change the namespace for provided <paramref name="container"/> based on the criteria listed for 
     /// <see cref="IChangeNamespaceService.CanChangeNamespaceAsync(Document, SyntaxNode, CancellationToken)"/>
@@ -399,6 +401,153 @@ internal abstract partial class AbstractChangeNamespaceService<
         return builder.ToImmutableAndFree();
     }
 
+    private static INamespaceSymbol? TryGetNamespaceSymbol(Compilation compilation, string? @namespace)
+    {
+        if (string.IsNullOrEmpty(@namespace))
+            return null;
+
+        var current = compilation.GlobalNamespace;
+        foreach (var part in GetNamespaceParts(@namespace))
+        {
+            current = current.GetNamespaceMembers().FirstOrDefault(member => member.Name == part);
+            if (current is null)
+                return null;
+        }
+
+        return current;
+    }
+
+    private static bool IsTransitivelyContainedWithin(INamespaceSymbol namespaceSymbol, INamespaceSymbol containingNamespaceSymbol)
+    {
+        for (var current = namespaceSymbol.ContainingNamespace; !current.IsGlobalNamespace; current = current.ContainingNamespace)
+        {
+            if (SymbolEqualityComparer.Default.Equals(current, containingNamespaceSymbol))
+                return true;
+        }
+
+        return false;
+    }
+
+    private static SyntaxNode GetHighestNameOrCref(TNameSyntax name)
+    {
+        while (name.Parent is TNameSyntax parentName)
+            name = parentName;
+
+        return name.Parent is TCrefSyntax ? name.Parent : name;
+    }
+
+    private static SyntaxNode SimplifyChildNamespaceQualifiedNames(
+        SyntaxNode root,
+        ISyntaxFactsService syntaxFacts,
+        ImmutableArray<ImmutableArray<string>> relativeChildNamespaceParts)
+    {
+        if (relativeChildNamespaceParts.Length == 0)
+            return root;
+
+        // After moving the declaration out of its original namespace, a reference that used to bind through the
+        // declaration's namespace can become over-qualified. For example, `Inner.Data` in namespace `Tests` should
+        // become `Data` once we add `using Tests.Inner;`. The simplifier will not infer that rewrite by itself here,
+        // so trim names that start with one of the imported child namespace paths and let normal simplification finish.
+        using var _1 = PooledHashSet<SyntaxNode>.GetInstance(out var processedNames);
+        using var _2 = PooledDictionary<SyntaxNode, SyntaxNode>.GetInstance(out var replacements);
+
+        foreach (var node in root.DescendantNodes())
+        {
+            if (node is not TNameSyntax nameSyntax)
+                continue;
+
+            if (nameSyntax.Parent is TNameSyntax)
+                continue;
+
+            if (!processedNames.Add(nameSyntax))
+                continue;
+
+            var simpleNames = nameSyntax.DescendantNodesAndSelf().OfType<TSimpleNameSyntax>().ToImmutableArray();
+            foreach (var relativeChildNamespace in relativeChildNamespaceParts)
+            {
+                if (simpleNames.Length <= relativeChildNamespace.Length)
+                    continue;
+
+                var prefixMatches = true;
+                for (var i = 0; i < relativeChildNamespace.Length; i++)
+                {
+                    if (syntaxFacts.GetIdentifierOfSimpleName(simpleNames[i]).ValueText != relativeChildNamespace[i])
+                    {
+                        prefixMatches = false;
+                        break;
+                    }
+                }
+
+                if (!prefixMatches)
+                    continue;
+
+                replacements[nameSyntax] = simpleNames[^1]
+                    .WithTriviaFrom(nameSyntax)
+                    .WithAdditionalAnnotations(Simplifier.Annotation);
+                break;
+            }
+        }
+
+        return replacements.Count == 0
+            ? root
+            : root.ReplaceNodes(replacements.Keys, (original, _) => replacements[original]);
+    }
+
+    /// <summary>
+    /// Enumerates the distinct "highest" name nodes within <paramref name="container"/> whose bound symbol lives in a
+    /// namespace strictly nested under <paramref name="oldNamespaceSymbol"/> (the namespace the declaration is moving
+    /// out of). These are the references that may need an import and/or simplification once the declaration moves,
+    /// since a name that used to bind through the old namespace can become over- or under-qualified afterwards.
+    /// </summary>
+    private static IEnumerable<(SyntaxNode highestName, ISymbol symbol, INamespaceSymbol containingNamespace)> EnumerateChildNamespaceReferences(
+        SemanticModel semanticModel,
+        SyntaxNode container,
+        INamespaceSymbol oldNamespaceSymbol,
+        CancellationToken cancellationToken)
+    {
+        using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var processedNames);
+
+        foreach (var node in container.DescendantNodes())
+        {
+            if (node is not TNameSyntax nameSyntax)
+                continue;
+
+            var highestName = GetHighestNameOrCref(nameSyntax);
+            if (!processedNames.Add(highestName))
+                continue;
+
+            var nameForBinding = highestName as TNameSyntax ?? nameSyntax;
+            var symbolInfo = semanticModel.GetSymbolInfo(nameForBinding, cancellationToken);
+            var symbol = symbolInfo.GetAnySymbol()
+                ?? semanticModel.GetTypeInfo(nameForBinding, cancellationToken).Type;
+            if (symbol?.ContainingNamespace is not { IsGlobalNamespace: false } containingNamespace ||
+                !IsTransitivelyContainedWithin(containingNamespace, oldNamespaceSymbol))
+            {
+                continue;
+            }
+
+            yield return (highestName, symbol, containingNamespace);
+        }
+    }
+
+    private static async Task<ImmutableArray<string>> GetChildNamespaceImportsAsync(
+        Document document,
+        SyntaxNode container,
+        INamespaceSymbol oldNamespaceSymbol,
+        CancellationToken cancellationToken)
+    {
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        using var _ = PooledHashSet<string>.GetInstance(out var imports);
+
+        foreach (var (_, _, containingNamespace) in EnumerateChildNamespaceReferences(
+            semanticModel, container, oldNamespaceSymbol, cancellationToken))
+        {
+            imports.Add(containingNamespace.ToDisplayString());
+        }
+
+        return [.. imports];
+    }
+
     private static ImmutableArray<SyntaxNode> CreateImports(Document document, ImmutableArray<string> names, bool withFormatterAnnotation)
     {
         var generator = SyntaxGenerator.GetGenerator(document);
@@ -581,6 +730,20 @@ internal abstract partial class AbstractChangeNamespaceService<
         var oldNamespaceParts = GetNamespaceParts(oldNamespace);
         var newNamespaceParts = GetNamespaceParts(newNamespace);
 
+        var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+        var oldNamespaceSymbol = TryGetNamespaceSymbol(compilation, oldNamespace);
+        var rootBeforeImports = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var containerBeforeImports = rootBeforeImports.GetAnnotatedNodes(ContainerAnnotation).Single();
+        var childNamespaceImports = oldNamespaceSymbol is null
+            ? []
+            : await GetChildNamespaceImportsAsync(document, containerBeforeImports, oldNamespaceSymbol, cancellationToken).ConfigureAwait(false);
+        var relativeChildNamespaceParts = childNamespaceImports
+            .Select(importName => GetNamespaceParts(importName))
+            .Where(parts => parts.Length > oldNamespaceParts.Length && parts.Take(oldNamespaceParts.Length).SequenceEqual(oldNamespaceParts))
+            .Select(parts => parts.Skip(oldNamespaceParts.Length).ToImmutableArray())
+            .Where(parts => parts.Length > 0)
+            .ToImmutableArray();
+
         if (refLocations.Count > 0)
         {
             (document, containersToAddImports) = await FixReferencesAsync(
@@ -599,7 +762,10 @@ internal abstract partial class AbstractChangeNamespaceService<
         // namespace). Include the new namespace in case there are multiple namespace declarations in the declaring
         // document. They may need a using statement added to correctly keep references to the type inside it's new
         // namespace
-        var namesToImport = GetAllNamespaceImportsForDeclaringDocument(oldNamespace, newNamespace);
+        using var _1 = PooledHashSet<string>.GetInstance(out var namesToImportBuilder);
+        namesToImportBuilder.AddRange(GetAllNamespaceImportsForDeclaringDocument(oldNamespace, newNamespace));
+        namesToImportBuilder.AddRange(childNamespaceImports);
+        var namesToImport = namesToImportBuilder.ToImmutableArray();
 
         var documentOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
 
@@ -612,6 +778,19 @@ internal abstract partial class AbstractChangeNamespaceService<
             cancellationToken).ConfigureAwait(false);
 
         var root = await documentWithAddedImports.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var containerAfterImports = root.GetAnnotatedNodes(ContainerAnnotation).Single();
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+        root = await AddSimplifierAnnotationToPotentialReferencesAsync(
+            documentWithAddedImports,
+            root,
+            syntaxFacts,
+            containerAfterImports,
+            oldNamespaceSymbol,
+            allNamespaceNameParts: null,
+            cancellationToken).ConfigureAwait(false);
+
+        documentWithAddedImports = documentWithAddedImports.WithSyntaxRoot(root);
 
         root = ChangeNamespaceDeclaration((TCompilationUnitSyntax)root, oldNamespaceParts, newNamespaceParts);
 
@@ -623,29 +802,81 @@ internal abstract partial class AbstractChangeNamespaceService<
         // Need to invoke formatter explicitly since we are doing the diff merge ourselves.
         var services = documentWithAddedImports.Project.Solution.Services;
         root = Formatter.Format(root, Formatter.Annotation, services, documentOptions.FormattingOptions, cancellationToken);
+        root = SimplifyChildNamespaceQualifiedNames(root, syntaxFacts, relativeChildNamespaceParts);
 
         using var _ = PooledHashSet<string>.GetInstance(out var allNamespaceNameParts);
         allNamespaceNameParts.AddRange(oldNamespaceParts);
         allNamespaceNameParts.AddRange(newNamespaceParts);
+        foreach (var childNamespaceImport in childNamespaceImports)
+        {
+            allNamespaceNameParts.AddRange(GetNamespaceParts(childNamespaceImport));
+        }
 
-        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-        root = AddSimplifierAnnotationToPotentialReferences(syntaxFacts, root, allNamespaceNameParts);
+        root = await AddSimplifierAnnotationToPotentialReferencesAsync(
+            documentWithAddedImports,
+            root,
+            syntaxFacts,
+            container: null,
+            oldNamespaceSymbol: null,
+            allNamespaceNameParts,
+            cancellationToken).ConfigureAwait(false);
 
         var formattedDocument = documentWithAddedImports.WithSyntaxRoot(root);
+        formattedDocument = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
+            formattedDocument, documentOptions.AddImportOptions, cancellationToken).ConfigureAwait(false);
         return await SimplifyTypeNamesAsync(formattedDocument, documentOptions, cancellationToken).ConfigureAwait(false);
     }
 
-    private static SyntaxNode AddSimplifierAnnotationToPotentialReferences(
-        ISyntaxFactsService syntaxFacts, SyntaxNode root, HashSet<string> allNamespaceNameParts)
+    private async Task<SyntaxNode> AddSimplifierAnnotationToPotentialReferencesAsync(
+        Document document,
+        SyntaxNode root,
+        ISyntaxFactsService syntaxFacts,
+        SyntaxNode? container,
+        INamespaceSymbol? oldNamespaceSymbol,
+        HashSet<string>? allNamespaceNameParts,
+        CancellationToken cancellationToken)
     {
+        if (container is not null && oldNamespaceSymbol is not null)
+        {
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            using var _1 = PooledDictionary<SyntaxNode, SyntaxNode>.GetInstance(out var replacements);
+
+            foreach (var (highestName, symbol, _) in EnumerateChildNamespaceReferences(
+                semanticModel, container, oldNamespaceSymbol, cancellationToken))
+            {
+                if (highestName is TNameSyntax highestNameSyntax)
+                {
+                    var rightmostSimpleName = GetRightmostName(highestNameSyntax);
+                    if (rightmostSimpleName is not null && !ReferenceEquals(rightmostSimpleName, highestNameSyntax))
+                    {
+                        replacements[highestName] = rightmostSimpleName
+                            .WithTriviaFrom(highestName)
+                            .WithAdditionalAnnotations(Simplifier.Annotation);
+                        continue;
+                    }
+                }
+
+                var expanded = await Simplifier.ExpandAsync(
+                    highestName, document, cancellationToken: cancellationToken).ConfigureAwait(false);
+                replacements[highestName] = expanded.WithAdditionalAnnotations(
+                    Simplifier.Annotation,
+                    Simplifier.AddImportsAnnotation,
+                    SymbolAnnotation.Create(symbol));
+            }
+
+            if (replacements.Count > 0)
+            {
+                root = root.ReplaceNodes(
+                    replacements.Keys,
+                    (original, _) => replacements[original]);
+            }
+        }
+
+        if (allNamespaceNameParts is null)
+            return root;
+
         // Find all identifiers in this tree that use at least one of the namespace names of either the old or new
         // namespace.  Mark those as needing potential complexification/simplification to preserve meaning.
-        //
-        // Note: we could go further here and actually bind these nodes to make sure they are actually references
-        // to one of the namespaces in question.  But that doesn't seem super necessary as the chance that these names
-        // are actually to something else *and* they would reduce without issue seems very low.  This can be revisited
-        // if we get feedback on this.
-
         using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var namesToUpdate);
         foreach (var descendent in root.DescendantNodes(descendIntoTrivia: true))
         {
@@ -659,14 +890,6 @@ internal abstract partial class AbstractChangeNamespaceService<
         return root.ReplaceNodes(
             namesToUpdate,
             (_, current) => current.WithAdditionalAnnotations(Simplifier.Annotation));
-
-        static SyntaxNode GetHighestNameOrCref(TNameSyntax name)
-        {
-            while (name.Parent is TNameSyntax parentName)
-                name = parentName;
-
-            return name.Parent is TCrefSyntax ? name.Parent : name;
-        }
     }
 
     private static async Task<Document> FixReferencingDocumentAsync(
