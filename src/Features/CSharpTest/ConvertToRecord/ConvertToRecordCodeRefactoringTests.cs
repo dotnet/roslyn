@@ -3028,7 +3028,7 @@ public sealed class ConvertToRecordCodeRefactoringTests
             }
             """);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     public Task TestMovePropertiesWithMultilineDocComments_NoClassSummary()
         => TestRefactoringAsync("""
             namespace N
@@ -3182,7 +3182,7 @@ public sealed class ConvertToRecordCodeRefactoringTests
             }
             """);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     public Task TestMovePropertiesWithDocComments_NoClassSummary()
         => TestRefactoringAsync("""
             namespace N
