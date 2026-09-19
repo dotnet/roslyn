@@ -449,6 +449,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         CheckMemberDistinctness((NamedTypeSymbol)symbol);
                     }
+
+                    CheckForAttributeWithArrayArgument(symbol);
                 }
                 else if (GetDeclaredOrInheritedCompliance(symbol.ContainingAssembly) == Compliance.DeclaredTrue && IsTrue(GetInheritedCompliance(symbol)))
                 {
@@ -459,12 +461,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 this.AddDiagnostic(ErrorCode.WRN_CLS_MeaninglessOnPrivateType, symbol.GetFirstLocation(), symbol);
                 return false; // Don't cascade from this failure.
-            }
-
-            if (isCompliant)
-            {
-                // Independent of accessibility.
-                CheckForAttributeWithArrayArgument(symbol);
             }
 
             // These checks are independent of accessibility and compliance.
