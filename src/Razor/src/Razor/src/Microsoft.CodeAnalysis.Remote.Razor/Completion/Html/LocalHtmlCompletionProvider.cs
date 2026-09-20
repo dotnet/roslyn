@@ -193,12 +193,17 @@ internal static partial class LocalHtmlCompletionProvider
     private static bool TryGetCloseTagPositionContext(
         RazorSyntaxNode owner, int absoluteIndex, SourceText sourceText, out PositionContext context)
     {
-        if (owner is BaseMarkupEndTagSyntax &&
-            HtmlFacts.TryGetElementInfo(owner, out var endTagNameToken, out _, out _) &&
+        if (owner is BaseMarkupEndTagSyntax endTag &&
+            HtmlFacts.TryGetElementInfo(endTag, out var endTagNameToken, out _, out _) &&
             endTagNameToken.Span.IntersectsWith(absoluteIndex))
         {
-            var closeTagRange = sourceText.GetRange(owner.Position, owner.Span.End);
-            context = new(PositionKind.CloseTag, closeTagRange, owner);
+            // Razor error recovery can include following C# and markup in an incomplete end tag's span.
+            // Stop at the name in that case; otherwise include the existing '>' so completion replaces it.
+            var closeTagEnd = endTag.CloseAngle.IsMissing
+                ? endTagNameToken.Span.End
+                : endTag.CloseAngle.Span.End;
+            var closeTagRange = sourceText.GetRange(endTag.Position, closeTagEnd);
+            context = new(PositionKind.CloseTag, closeTagRange, endTag);
             return true;
         }
 
