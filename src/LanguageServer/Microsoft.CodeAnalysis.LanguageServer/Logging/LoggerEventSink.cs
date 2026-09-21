@@ -11,13 +11,13 @@ using TelemetryLogLevel = Microsoft.CodeAnalysis.Internal.Log.LogLevel;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Logging;
 
+/// <summary>
+/// Logs telemetry events only when Trace is enabled. Faults retain their own severity-based filtering.
+/// </summary>
 internal sealed class LoggerEventSink(ILogger logger) : IEventSink
 {
     public bool IsEnabled(FunctionId functionId)
-        => logger.IsEnabled(LogLevel.Trace) ||
-           logger.IsEnabled(LogLevel.Warning) ||
-           logger.IsEnabled(LogLevel.Error) ||
-           logger.IsEnabled(LogLevel.Critical);
+        => logger.IsEnabled(LogLevel.Trace);
 
     public void ReportFault(Exception exception, ErrorSeverity severity, bool forceDump)
     {
