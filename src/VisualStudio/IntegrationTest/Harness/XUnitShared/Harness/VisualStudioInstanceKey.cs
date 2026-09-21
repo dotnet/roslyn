@@ -109,7 +109,7 @@ namespace Xunit.Harness
             return new VisualStudioInstanceKey(
                 version: (VisualStudioVersion)int.Parse(elements[0]),
                 rootSuffix: elements[1],
-                maxAttempts: 1,
+                maxAttempts: int.Parse(elements[2]),
                 environmentVariables: environmentVariables);
         }
     }
