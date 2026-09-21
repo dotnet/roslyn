@@ -100,6 +100,54 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComme
                 initialMarkup)
         End Sub
 
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/17383")>
+        <InlineData("A & B", "A &amp; B")>
+        <InlineData("A & B" & vbCrLf & "Line 2", "A &amp; B" & vbCrLf & "    ''' Line 2")>
+        Public Sub Paste_MultilineSelectionWithinDocumentationComment(pastedText As String, adjustedText As String)
+            VerifyPaste(
+                JoinLines(vbCrLf,
+                    "    ''' <summary>[|first",
+                    "        ''' second|]$$</summary>",
+                    "Class C",
+                    "End Class"),
+                pastedText,
+                JoinLines(vbCrLf,
+                    "    ''' <summary>" & adjustedText & "$$</summary>",
+                    "Class C",
+                    "End Class"))
+        End Sub
+
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/17383")>
+        <InlineData("Class Other : End Class")>
+        <InlineData("' ordinary comment")>
+        <InlineData("")>
+        <InlineData("    ")>
+        Public Sub Paste_MultilineSelectionCrossingNonDocumentationUsesNormalEditorBehavior(interveningLine As String)
+            VerifyPaste(
+                JoinLines(vbCrLf,
+                    "''' <summary>[|first",
+                    interveningLine,
+                    "''' second|]$$</summary>",
+                    "Class C",
+                    "End Class"),
+                "A & B" & vbCrLf & "Line 2",
+                JoinLines(vbCrLf,
+                    "''' <summary>A & B",
+                    "Line 2$$</summary>",
+                    "Class C",
+                    "End Class"))
+        End Sub
+
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/17383")>
+        <InlineData("", "Class C")>
+        <InlineData("Class", " C")>
+        Public Sub Paste_MultilineSelectionExtendingIntoCodeUsesNormalEditorBehavior(selectedCode As String, remainingCode As String)
+            VerifyPaste(
+                JoinLines(vbCrLf, "''' [|text", selectedCode & "|]$$" & remainingCode, "End Class"),
+                "A & B" & vbCrLf & "Line 2",
+                JoinLines(vbCrLf, "''' A & B", "Line 2$$" & remainingCode, "End Class"))
+        End Sub
+
         Private Shared Function JoinLines(newLine As String, ParamArray lines As String()) As String
             Return String.Join(newLine, lines)
         End Function

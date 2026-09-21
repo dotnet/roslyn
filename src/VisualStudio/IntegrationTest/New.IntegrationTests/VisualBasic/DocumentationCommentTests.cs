@@ -202,6 +202,46 @@ public sealed class DocumentationCommentTests() : AbstractEditorTest(nameof(Docu
             await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
     }
 
+    [IdeTheory, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    [InlineData("A & B", "A &amp; B")]
+    [InlineData("A & B\r\nLine 2", "A &amp; B\r\n''' Line 2")]
+    public async Task Paste_MultilineSelectionWithinDocumentationComment(string pastedText, string adjustedText)
+    {
+        await SetUpEditorAsync(
+            JoinLines("\r\n", "", "''' <summary>{|selection:first", "''' second|}</summary>", "Public Class C", "End Class", ""),
+            HangMitigatingCancellationToken);
+
+        await TestServices.Editor.PasteAsync(pastedText, HangMitigatingCancellationToken);
+        AssertEx.EqualOrDiff(
+            JoinLines("\r\n", "", "''' <summary>" + adjustedText + "</summary>", "Public Class C", "End Class", ""),
+            await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+
+        await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Undo, HangMitigatingCancellationToken);
+        AssertEx.EqualOrDiff(
+            JoinLines("\r\n", "", "''' <summary>" + pastedText + "</summary>", "Public Class C", "End Class", ""),
+            await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+
+        await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Undo, HangMitigatingCancellationToken);
+        AssertEx.EqualOrDiff(
+            JoinLines("\r\n", "", "''' <summary>first", "''' second</summary>", "Public Class C", "End Class", ""),
+            await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+    }
+
+    [IdeTheory, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    [InlineData("", "Class C")]
+    [InlineData("Class", " C")]
+    public async Task Paste_MultilineSelectionExtendingIntoCode(string selectedCode, string remainingCode)
+    {
+        await SetUpEditorAsync(
+            JoinLines("\r\n", "", "''' {|selection:text", selectedCode + "|}" + remainingCode, "End Class", ""),
+            HangMitigatingCancellationToken);
+
+        await TestServices.Editor.PasteAsync("A & B\r\nLine 2", HangMitigatingCancellationToken);
+        AssertEx.EqualOrDiff(
+            JoinLines("\r\n", "", "''' A & B", "Line 2" + remainingCode, "End Class", ""),
+            await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+    }
+
     private static string JoinLines(string newLine, params string[] lines)
         => string.Join(newLine, lines);
 }

@@ -106,20 +106,7 @@ internal abstract partial class AbstractDocumentationCommentCommandHandler
     {
         pasteContext = default;
 
-        // A selection contained in one line, such as "    /// [|text|]", leaves that line's comment marker
-        // intact, so we can reuse "    /// " for continuation lines. A selection crossing a line break can
-        // also replace comment markers or code, for example:
-        //   /// <summary>[|first
-        //   /// second|]</summary>
-        // or:
-        //   /// [|text
-        //   class|] C { }
-        // Preserve the editor's normal paste in these cases rather than reconstructing comment structure or
-        // extending documentation formatting into code that the selection also replaces.
         var line = text.Lines.GetLineFromPosition(selection.Start.Position);
-        if (selection.End.Position > line.End)
-            return false;
-
         // For a line such as "    /// text", capture "    " as indentation and "    /// " as the prefix.
         // Blank lines and lines without this language's exterior trivia are not documentation-comment contexts.
         var lineText = line.ToString();
@@ -136,6 +123,22 @@ internal abstract partial class AbstractDocumentationCommentCommandHandler
         // leave this selection to the editor rather than applying documentation-comment formatting.
         if (selection.Start.Position < line.Start + exteriorTriviaEnd)
             return false;
+
+        // A selection such as:
+        //   /// <summary>[|first
+        //   /// second|]</summary>
+        // keeps the first line's marker, so pasted text still belongs to documentation. Escape it and reuse
+        // that line's prefix for any pasted continuation lines, even though selected markers are replaced.
+        // Check every subsequent line to avoid applying XML formatting across code, ordinary comments, or
+        // blank lines. For example, preserve normal paste for "/// [|text\nclass|] C { }".
+        // Include the endpoint's line even when the selection ends at its start: the selected newline
+        // separates the pasted text from surviving code, so this is also a paste across that boundary.
+        var lastLine = text.Lines.GetLineFromPosition(selection.End.Position);
+        for (var lineNumber = line.LineNumber + 1; lineNumber <= lastLine.LineNumber; lineNumber++)
+        {
+            if (!LineStartsWithExteriorTrivia(text.Lines[lineNumber]))
+                return false;
+        }
 
         // Preserve the exact whitespace already used after the exterior trivia instead of synthesizing a prefix.
         var prefixEnd = exteriorTriviaEnd;

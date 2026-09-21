@@ -2503,12 +2503,37 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 "}"));
     }
 
-    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
-    public void Paste_MultilineSelectionUsesNormalEditorBehavior()
+    [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    [InlineData("A & B", "A &amp; B")]
+    [InlineData("A & B\r\nLine 2", "A &amp; B\r\n    /// Line 2")]
+    public void Paste_MultilineSelectionWithinDocumentationComment(string pastedText, string adjustedText)
+    {
+        VerifyPaste(
+            JoinLines("\r\n",
+                "    /// <summary>[|first",
+                "        /// second|]$$</summary>",
+                "class C",
+                "{",
+                "}"),
+            pastedText,
+            JoinLines("\r\n",
+                "    /// <summary>" + adjustedText + "$$</summary>",
+                "class C",
+                "{",
+                "}"));
+    }
+
+    [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    [InlineData("class Other { }")]
+    [InlineData("// ordinary comment")]
+    [InlineData("")]
+    [InlineData("    ")]
+    public void Paste_MultilineSelectionCrossingNonDocumentationUsesNormalEditorBehavior(string interveningLine)
     {
         VerifyPaste(
             JoinLines("\r\n",
                 "/// <summary>[|first",
+                interveningLine,
                 "/// second|]$$</summary>",
                 "class C",
                 "{",
@@ -2520,6 +2545,17 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
                 "class C",
                 "{",
                 "}"));
+    }
+
+    [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    [InlineData("", "class C { }")]
+    [InlineData("class", " C { }")]
+    public void Paste_MultilineSelectionExtendingIntoCodeUsesNormalEditorBehavior(string selectedCode, string remainingCode)
+    {
+        VerifyPaste(
+            JoinLines("\r\n", "/// [|text", selectedCode + "|]$$" + remainingCode),
+            "A & B\r\nLine 2",
+            JoinLines("\r\n", "/// A & B", "Line 2$$" + remainingCode));
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
