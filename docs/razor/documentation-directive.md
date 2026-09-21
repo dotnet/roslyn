@@ -19,6 +19,11 @@ is emitted as a C# `/** ... */` comment, with source mappings back to the Razor 
 C# handles XML documentation validation and symbol references, including `cref`
 and `typeparamref`.
 
+Directive completion offers both the `documentation` keyword and a
+`documentation directive ...` snippet. The snippet inserts a braced block with
+a multiline `<summary>` element and places the caret inside the summary.
+Both are available in Visual Studio and VS Code when using Razor 12 or later.
+
 Braces are required. `@documentation foo` reports `RZ1017` because it expects an
 opening `{`; it isn't shorthand for a summary.
 
