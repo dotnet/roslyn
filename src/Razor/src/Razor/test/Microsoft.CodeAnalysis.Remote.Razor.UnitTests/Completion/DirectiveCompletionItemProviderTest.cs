@@ -440,7 +440,7 @@ public class DirectiveCompletionItemProviderTest(ITestOutputHelper testOutput) :
 
         if (isSnippet)
         {
-            var (insertText, displayText) = DirectiveCompletionItemProvider.SingleLineDirectiveSnippets[directive.Directive];
+            var (insertText, displayText) = DirectiveCompletionItemProvider.DirectiveSnippets[directive.Directive];
 
             Assert.StartsWith(directive.Directive, item.InsertText);
             Assert.Equal(item.InsertText, insertText);
