@@ -1,0 +1,1 @@
+﻿TestFiles/IntegrationTests/DocumentationDirectiveCodeGenerationTest_Legacy/CommentTerminator.cshtml(2,14): Error RZ1047: The '@documentation' directive cannot contain '*/'. Use an XML character reference instead.

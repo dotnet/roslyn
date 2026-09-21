@@ -1,0 +1,10 @@
+﻿Source Location: (16:0,16 [24] x:\dir\subdir\Test\TestComponent.razor)
+|<summary>Missing end tag|
+Generated Location: (415:14,4 [24] )
+|<summary>Missing end tag|
+
+Source Location: (64:2,7 [36] x:\dir\subdir\Test\TestComponent.razor)
+| /* note */ public int Value => 42; |
+Generated Location: (722:25,0 [36] )
+| /* note */ public int Value => 42; |
+

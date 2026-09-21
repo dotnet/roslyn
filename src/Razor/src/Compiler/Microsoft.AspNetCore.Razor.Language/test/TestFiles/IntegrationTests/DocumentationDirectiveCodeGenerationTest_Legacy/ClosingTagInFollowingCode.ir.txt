@@ -1,0 +1,29 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        Documentation - (16:0,16 [24] ClosingTagInFollowingCode.cshtml)
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_DocumentationDirectiveCodeGenerationTest_Legacy_ClosingTagInFollowingCode - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (43:1,0 [14] ClosingTagInFollowingCode.cshtml)
+                    LazyIntermediateToken - (43:1,0 [2] ClosingTagInFollowingCode.cshtml) - Html - <p
+                    LazyIntermediateToken - (45:1,2 [1] ClosingTagInFollowingCode.cshtml) - Html - >
+                    LazyIntermediateToken - (46:1,3 [5] ClosingTagInFollowingCode.cshtml) - Html - After
+                    LazyIntermediateToken - (51:1,8 [4] ClosingTagInFollowingCode.cshtml) - Html - </p>
+                    LazyIntermediateToken - (55:1,12 [2] ClosingTagInFollowingCode.cshtml) - Html - \n
+            CSharpCode - (69:2,12 [50] ClosingTagInFollowingCode.cshtml)
+                LazyIntermediateToken - (69:2,12 [50] ClosingTagInFollowingCode.cshtml) - CSharp -  public string EndTag => "</summary>"; /* note */ 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 

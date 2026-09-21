@@ -1,0 +1,48 @@
+﻿RazorDocument - [0..83)::83 - [@documentation fooLF@functions {LF    private string documentation => "Value";LF}LF]
+    MarkupBlock - [0..83)::83
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..14)::14
+            CSharpImplicitExpression - [0..14)::14
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpImplicitExpressionBody - [1..14)::13
+                    CSharpCodeBlock - [1..14)::13
+                        CSharpExpressionLiteral - [1..14)::13 - [documentation] - Gen<Expr>
+                            Identifier;[documentation];
+        MarkupTextLiteral - [14..20)::6 - [ fooLF] - Gen<Markup>
+            Whitespace;[ ];
+            Text;[foo];
+            NewLine;[LF];
+        CSharpCodeBlock - [20..83)::63
+            RazorDirective - [20..81)::61 - Directive:{functions;CodeBlock;Unrestricted}
+                CSharpTransition - [20..21)::1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [21..81)::60
+                    RazorMetaCode - [21..30)::9 - Gen<None>
+                        Identifier;[functions];
+                    CSharpCodeBlock - [30..81)::51
+                        UnclassifiedTextLiteral - [30..31)::1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [31..32)::1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [32..80)::48
+                            CSharpStatementLiteral - [32..80)::48 - [LF    private string documentation => "Value";LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[private];
+                                Whitespace;[ ];
+                                Keyword;[string];
+                                Whitespace;[ ];
+                                Identifier;[documentation];
+                                Whitespace;[ ];
+                                CSharpOperator;[=>];
+                                Whitespace;[ ];
+                                StringLiteral;["Value"];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                        RazorMetaCode - [80..81)::1 - Gen<None>
+                            RightBrace;[}];
+            RazorMetaCode - [81..83)::2 - Gen<None>
+                NewLine;[LF];
+    EndOfFile;[];

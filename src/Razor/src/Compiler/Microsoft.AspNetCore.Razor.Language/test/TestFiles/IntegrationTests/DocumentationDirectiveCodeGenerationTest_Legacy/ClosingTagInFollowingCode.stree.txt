@@ -1,0 +1,70 @@
+﻿RazorDocument - [0..122)::122 - [@documentation {<summary>Missing end tag}LF<p>After</p>LF@functions { public string EndTag => "</summary>"; /* note */ }LF]
+    MarkupBlock - [0..122)::122
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..43)::43
+            RazorDocumentationDirective - [0..41)::41 - Directive:{documentation;CodeBlock;FileScopedSinglyOccurring}
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..41)::40
+                    RazorMetaCode - [1..14)::13 - Gen<None>
+                        Identifier;[documentation];
+                    CSharpCodeBlock - [14..41)::27
+                        UnclassifiedTextLiteral - [14..15)::1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [15..16)::1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [16..40)::24
+                            CSharpStatementLiteral - [16..40)::24 - [<summary>Missing end tag] - Gen<Stmt>
+                                Text;[<summary>Missing end tag];
+                        RazorMetaCode - [40..41)::1 - Gen<None>
+                            RightBrace;[}];
+            RazorMetaCode - [41..43)::2 - Gen<None>
+                NewLine;[LF];
+        MarkupElement - [43..55)::12
+            MarkupStartTag - [43..46)::3 - [<p>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                CloseAngle;[>];
+            MarkupTextLiteral - [46..51)::5 - [After] - Gen<Markup>
+                Text;[After];
+            MarkupEndTag - [51..55)::4 - [</p>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[p];
+                CloseAngle;[>];
+        MarkupTextLiteral - [55..57)::2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [57..122)::65
+            RazorDirective - [57..120)::63 - Directive:{functions;CodeBlock;Unrestricted}
+                CSharpTransition - [57..58)::1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [58..120)::62
+                    RazorMetaCode - [58..67)::9 - Gen<None>
+                        Identifier;[functions];
+                    CSharpCodeBlock - [67..120)::53
+                        UnclassifiedTextLiteral - [67..68)::1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [68..69)::1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [69..119)::50
+                            CSharpStatementLiteral - [69..119)::50 - [ public string EndTag => "</summary>"; /* note */ ] - Gen<Stmt>
+                                Whitespace;[ ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Keyword;[string];
+                                Whitespace;[ ];
+                                Identifier;[EndTag];
+                                Whitespace;[ ];
+                                CSharpOperator;[=>];
+                                Whitespace;[ ];
+                                StringLiteral;["</summary>"];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                CSharpComment;[/* note */];
+                                Whitespace;[ ];
+                        RazorMetaCode - [119..120)::1 - Gen<None>
+                            RightBrace;[}];
+            RazorMetaCode - [120..122)::2 - Gen<None>
+                NewLine;[LF];
+    EndOfFile;[];
