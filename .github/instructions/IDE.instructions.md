@@ -111,6 +111,7 @@ var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 - **Cancellation**: Always thread `CancellationToken` through async operations
 - **Performance**: Avoid LINQ in hot paths, prefer `for` loops or `.AsSpan()`, use `ObjectPool<T>`
 - **LanguageServer request context**: Handlers should use the asynchronous `RequestContext.Get*Async` methods for workspace, solution, and document access. Obsolete synchronous members remain only for compatibility with existing external-access consumers and forward to the asynchronous accessors.
+- **LanguageServer telemetry logging**: `LspLoggerFactory` registers `LoggerEventSink` on the server's `RoslynTelemetry` and unregisters it on disposal. Use the per-server logger, not the global MEF logger that broadcasts to all daemon clients. Telemetry at Information or below logs at Trace; higher levels are preserved. Local logging is independent of telemetry-upload consent.
 
 ## Common Gotchas
 
