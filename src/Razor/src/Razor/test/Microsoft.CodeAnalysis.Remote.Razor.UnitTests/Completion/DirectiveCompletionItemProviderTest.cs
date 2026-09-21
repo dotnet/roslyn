@@ -208,6 +208,33 @@ public class DirectiveCompletionItemProviderTest(ITestOutputHelper testOutput) :
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void GetDirectiveCompletionItems_DocumentationIncludesSummarySnippet()
+    {
+        var syntaxTree = CreateSyntaxTree("@", RazorFileKind.Component, DocumentationDirective.Directive);
+
+        var completionItems = DirectiveCompletionItemProvider.GetDirectiveCompletionItems(syntaxTree);
+
+        var keyword = Assert.Single(completionItems, item => item.DisplayText == "documentation");
+        Assert.Equal("documentation", keyword.InsertText);
+        Assert.False(keyword.IsSnippet);
+        Assert.Equal(DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters, keyword.CommitCharacters);
+
+        var snippet = Assert.Single(completionItems, item => item.DisplayText == $"documentation {SR.Directive} ...");
+        Assert.Equal(
+            """
+            documentation {
+                <summary>
+                    $0
+                </summary>
+            }
+            """,
+            snippet.InsertText);
+        Assert.True(snippet.IsSnippet);
+        Assert.Equal(DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters, snippet.CommitCharacters);
+    }
+
+    [Fact]
     public void GetDirectiveCompletionItems_ComponentDocument_ReturnsDefaultComponentDirectivesAsCompletionItems()
     {
         // Arrange
