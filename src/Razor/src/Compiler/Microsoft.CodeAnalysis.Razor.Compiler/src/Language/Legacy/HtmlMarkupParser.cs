@@ -1875,10 +1875,20 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         while (!EndOfFile)
         {
             ParseMarkupNodes(builder, ParseMode.Text, t => t.Kind == endSequence[0]);
-            if (AcceptAll(endSequence))
+
+            // A partial match must not consume a possible overlapping terminator, e.g. "]]]>".
+            var matchLength = 0;
+            while (matchLength < endSequence.Length && Lookahead(matchLength)?.Kind == endSequence[matchLength])
             {
-                return true;
+                matchLength++;
             }
+
+            if (matchLength == endSequence.Length)
+            {
+                return AcceptAll(endSequence);
+            }
+
+            AcceptAndMoveNext();
         }
         Debug.Assert(EndOfFile);
         SetAcceptedCharacters(AcceptedCharactersInternal.Any);

@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -10,6 +11,24 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
 public class HtmlBlockTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
 {
+    [Theory]
+    [InlineData("<![CDATA[[{}]]]>")]
+    [InlineData("<![CDATA[[[{}]]]]>")]
+    [InlineData("<?example ??>")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void HtmlBlockHandlesOverlappingTerminators(string markup)
+    {
+        var source = "@{\n" + markup + "\nvar value = 42;\n}";
+
+        var tree = RazorSyntaxTree.Parse(RazorSourceDocument.Create(source, "test.cshtml"), RazorParserOptions.Default);
+
+        Assert.Empty(tree.Diagnostics);
+        Assert.Equal(source, tree.Root.GetContent());
+        Assert.Contains<CSharpStatementLiteralSyntax>(
+            [.. tree.Root.DescendantNodes().OfType<CSharpStatementLiteralSyntax>()],
+            literal => literal.GetContent().Contains("var value = 42;"));
+    }
+
     [Fact]
     public void HandlesUnbalancedTripleDashHTMLComments()
     {
