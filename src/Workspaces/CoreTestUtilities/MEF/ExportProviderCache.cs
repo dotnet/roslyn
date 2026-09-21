@@ -109,7 +109,7 @@ public static class ExportProviderCache
         var scope = isRemoteHostComposition ? _remoteCompositionScope : _localCompositionScope;
         var configuration = CompositionConfiguration.Create(catalog.WithCompositionService());
         var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
-        var exportProviderFactory = runtimeComposition.CreateExportProviderFactory();
+        var exportProviderFactory = runtimeComposition.CreateExportProviderFactory(joinableTaskFactory: null);
 
         return new SingleExportProviderFactory(scope, catalog, configuration, exportProviderFactory);
     }

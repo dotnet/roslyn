@@ -171,7 +171,10 @@ internal sealed partial class StringCopyPasteCommandHandler(
                 edit.Replace(selection.Span, "");
 
             foreach (var change in textChanges)
+            {
+                Contract.ThrowIfNull(change.NewText);
                 edit.Replace(change.Span.ToSpan(), change.NewText);
+            }
             edit.Apply();
         }
 

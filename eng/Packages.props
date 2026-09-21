@@ -4,7 +4,7 @@
     <_BasicReferenceAssembliesVersion>1.8.8</_BasicReferenceAssembliesVersion>
     <!-- CodeStyleAnalyzerVersion should be updated together with version of SDK in global.json -->
     <CodeStyleAnalyzerVersion>5.9.0</CodeStyleAnalyzerVersion>
-    <VisualStudioEditorPackagesVersion>18.9.179</VisualStudioEditorPackagesVersion>
+    <VisualStudioEditorPackagesVersion>18.12.46</VisualStudioEditorPackagesVersion>
     <ILAsmPackageVersion>9.0.0-rc.2.24462.10</ILAsmPackageVersion>
     <ILDAsmPackageVersion>6.0.0-rtm.21518.12</ILDAsmPackageVersion>
     <MicrosoftILVerificationVersion>7.0.0-alpha.1.22060.1</MicrosoftILVerificationVersion>
@@ -71,42 +71,28 @@
     <!--
       Visual Studio
     -->
-    <PackageVersion Include="EnvDTE" Version="18.9.438" />
-    <PackageVersion Include="EnvDTE80" Version="18.9.438" />
     <PackageVersion Include="Microsoft.Internal.VisualStudio.Interop" Version="18.9.438" />
-    <PackageVersion Include="Microsoft.Internal.VisualStudio.Shell.Framework" Version="18.0.1211-preview.1" />
+    <PackageVersion Include="Microsoft.Internal.VisualStudio.Shell.Framework" Version="18.9.317" />
     <PackageVersion Include="Microsoft.ServiceHub.Client" Version="4.6.3200" />
     <PackageVersion Include="Microsoft.VisualStudio.CallHierarchy.Package.Definitions" Version="15.8.27812-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.CodeAnalysis.Sdk.UI" Version="15.8.27812-alpha" />
-    <!-- Pin ComponentModelHost to match Shell.Framework: in 18.9 the IComponentModel/IComponentModel2/SComponentModel
-         types moved into Shell.Framework, and ComponentModelHost 18.9.x type-forwards them there. Older transitive
-         versions still define those types, which collides with Shell.Framework (CS0433). -->
+    <!-- VsInteractiveWindow still depends on ComponentModelHost 17.x, which defines types now owned by
+         Shell.Framework. Pin the forwarding package to avoid duplicate type definitions. -->
     <PackageVersion Include="Microsoft.VisualStudio.ComponentModelHost" Version="18.9.453" />
     <PackageVersion Include="Microsoft.VisualStudio.Copilot.Roslyn.SemanticSearch" Version="18.11.6" />
-    <PackageVersion Include="Microsoft.VisualStudio.Extensibility" Version="18.0.52-preview1" />
-    <PackageVersion Include="Microsoft.VisualStudio.Extensibility.JsonGenerators.Sdk" Version="18.0.52-preview1" />
-    <PackageVersion Include="Microsoft.VisualStudio.Extensibility.Sdk" Version="18.0.52-preview1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Extensibility" Version="18.12.772" />
+    <PackageVersion Include="Microsoft.VisualStudio.Extensibility.JsonGenerators.Sdk" Version="18.12.772" />
+    <PackageVersion Include="Microsoft.VisualStudio.Extensibility.Sdk" Version="18.12.772" />
     <PackageVersion Include="Microsoft.VisualStudio.InteractiveWindow" Version="4.0.0" />
-    <PackageVersion Include="Microsoft.VisualStudio.Interop" Version="18.10.605" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.CallHierarchy" Version="15.8.27812-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.LiveShare" Version="2.18.6" />
     <PackageVersion Include="Microsoft.VisualStudio.LiveShare.LanguageServices" Version="3.0.6" />
     <PackageVersion Include="Microsoft.VisualStudio.LiveShare.LanguageServices.Guest" Version="3.0.6" />
     <PackageVersion Include="Microsoft.VisualStudio.LiveShare.WebEditors" Version="3.0.8" />
-    <PackageVersion Include="Microsoft.VisualStudio.OLE.Interop" Version="18.9.438" />
     <PackageVersion Include="Microsoft.VisualStudio.ProjectSystem" Version="17.3.195-pre" />
-    <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="18.9.496-Preview" />
-    <PackageVersion Include="Microsoft.VisualStudio.SDK.Analyzers" Version="17.7.122" />
+    <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="18.12.772" />
     <PackageVersion Include="Microsoft.VisualStudio.Search" Version="17.14.39337" />
-    <PackageVersion Include="Microsoft.VisualStudio.Shell.Interop" Version="18.9.438" />
-    <PackageVersion Include="Microsoft.VisualStudio.Shell.Interop.10.0" Version="18.9.438" />
-    <PackageVersion Include="Microsoft.VisualStudio.Shell.Interop.8.0" Version="18.9.438" />
-    <PackageVersion Include="Microsoft.VisualStudio.Shell.Interop.9.0" Version="18.9.438" />
-    <PackageVersion Include="Microsoft.VisualStudio.Shell.Styles" Version="18.9.918" />
     <PackageVersion Include="Microsoft.VisualStudio.TemplateWizardInterface" Version="17.2.32414.248" />
-    <PackageVersion Include="Microsoft.VisualStudio.TextManager.Interop" Version="18.9.438" />
-    <PackageVersion Include="Microsoft.VisualStudio.TextManager.Interop.8.0" Version="18.9.438" />
-    <PackageVersion Include="Microsoft.VisualStudio.Validation" Version="18.7.1" />
     <PackageVersion Include="Microsoft.VisualStudio.VsInteractiveWindow" Version="4.0.0" />
     <PackageVersion Include="Microsoft.VisualStudio.WinForms.Interfaces" Version="17.0.0-previews-4-31709-430" />
     <PackageVersion Include="Microsoft.VisualStudio.Workspace.VSIntegration" Version="17.9.29-preview-0001" />
@@ -114,47 +100,61 @@
     <PackageVersion Include="NuGet.SolutionRestoreManager.Interop" Version="4.8.0" />
     <PackageVersion Include="NuGet.VisualStudio" Version="6.0.0-preview.0.15" />
     <PackageVersion Include="NuGet.VisualStudio.Contracts" Version="6.0.0-preview.0.15" />
-    <PackageVersion Include="VSLangProj" Version="18.9.438" />
     <PackageVersion Include="VsWebSite.Interop" Version="8.0.50727" />
 
     <!-- TODO: Move these to the generate-vssdk-versions.csx-generated versions (https://github.com/dotnet/roslyn/issues/71691) -->
     <PackageVersion Include="Microsoft.VisualStudio.Platform.VSEditor" Version="$(VisualStudioEditorPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Internal" Version="$(VisualStudioEditorPackagesVersion)" />
+    <PackageVersion Include="UpdateTemplateVersion" Version="1.0.0" />
 
     <!--
       Subset of Microsoft.VisualStudio.Sdk meta-package (run `dotnet run generate-vssdk-versions.cs` to update based on VSSDK meta-package).
       See https://github.com/dotnet/arcade/blob/main/Documentation/MirroringPackages.md if any of these packages fail to restore.
     -->
+    <PackageVersion Include="envdte" Version="18.12.772" />
+    <PackageVersion Include="envdte80" Version="18.12.772" />
     <PackageVersion Include="MessagePack" Version="2.5.302" />
-    <PackageVersion Include="Microsoft.ServiceHub.Framework" Version="4.10.147" />
-    <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="18.9.20" />
-    <PackageVersion Include="Microsoft.VisualStudio.Composition.Analyzers" Version="18.9.20" />
+    <PackageVersion Include="Microsoft.ServiceHub.Framework" Version="4.11.156" />
+    <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="18.9.78" />
+    <PackageVersion Include="Microsoft.VisualStudio.Composition.Analyzers" Version="18.9.78" />
     <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="$(VisualStudioEditorPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Editor" Version="$(VisualStudioEditorPackagesVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.ImageCatalog" Version="18.9.915" />
-    <PackageVersion Include="Microsoft.VisualStudio.Imaging" Version="18.9.918" />
-    <PackageVersion Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="18.10.605" />
     <PackageVersion Include="Microsoft.VisualStudio.Language" Version="$(VisualStudioEditorPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="$(VisualStudioEditorPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(VisualStudioEditorPackagesVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client" Version="18.9.6" />
+    <PackageVersion Include="Microsoft.VisualStudio.ImageCatalog" Version="18.12.772" />
+    <PackageVersion Include="Microsoft.VisualStudio.Imaging" Version="18.12.772" />
+    <PackageVersion Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="18.12.772" />
+    <PackageVersion Include="Microsoft.VisualStudio.Interop" Version="18.12.772" />
+    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client" Version="18.12.48" />
+    <PackageVersion Include="Microsoft.VisualStudio.OLE.Interop" Version="18.12.772" />
     <PackageVersion Include="Microsoft.VisualStudio.RemoteControl" Version="16.3.52" />
-    <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="18.9.918" />
-    <PackageVersion Include="Microsoft.VisualStudio.Shell.15.0" Version="18.9.918" />
-    <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="18.3.124" />
+    <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="18.12.772" />
+    <PackageVersion Include="Microsoft.VisualStudio.SDK.Analyzers" Version="17.7.175" />
+    <PackageVersion Include="Microsoft.VisualStudio.Shell.15.0" Version="18.12.772" />
+    <PackageVersion Include="Microsoft.VisualStudio.Shell.Framework" Version="18.12.772" />
+    <PackageVersion Include="Microsoft.VisualStudio.Shell.Interop" Version="18.12.772" />
+    <PackageVersion Include="Microsoft.VisualStudio.Shell.Interop.10.0" Version="18.12.772" />
+    <PackageVersion Include="Microsoft.VisualStudio.Shell.Interop.8.0" Version="18.12.772" />
+    <PackageVersion Include="Microsoft.VisualStudio.Shell.Interop.9.0" Version="18.12.772" />
+    <PackageVersion Include="Microsoft.VisualStudio.Shell.Styles" Version="18.12.772" />
+    <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="18.3.193" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="$(VisualStudioEditorPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="$(VisualStudioEditorPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.UI" Version="$(VisualStudioEditorPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(VisualStudioEditorPackagesVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="18.7.23" />
-    <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="18.7.23" />
-    <PackageVersion Include="Microsoft.VisualStudio.Utilities" Version="18.9.918" />
-    <PackageVersion Include="Microsoft.VisualStudio.Utilities.Internal" Version="16.3.90" />
+    <PackageVersion Include="Microsoft.VisualStudio.TextManager.Interop" Version="18.12.772" />
+    <PackageVersion Include="Microsoft.VisualStudio.TextManager.Interop.8.0" Version="18.12.772" />
+    <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="18.7.131" />
+    <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="18.7.131" />
+    <PackageVersion Include="Microsoft.VisualStudio.Utilities" Version="18.12.772" />
+    <PackageVersion Include="Microsoft.VisualStudio.Utilities.Internal" Version="16.3.170" />
+    <PackageVersion Include="Microsoft.VisualStudio.Validation" Version="18.7.19" />
     <PackageVersion Include="Nerdbank.Streams" Version="2.13.16" />
     <PackageVersion Include="Nerdbank.MessagePack" Version="1.2.34" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageVersion Include="StreamJsonRpc" Version="2.26.10" />
-    <PackageVersion Include="UpdateTemplateVersion" Version="1.0.0" />
+    <PackageVersion Include="StreamJsonRpc" Version="2.26.114" />
+    <PackageVersion Include="VSLangProj" Version="18.12.772" />
 
     <!--
       VS Debugger
@@ -181,7 +181,7 @@
     <!--
       Language Server
     -->
-    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" Version="17.10.72-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" Version="18.12.48" />
     <PackageVersion Include="NuGet.ProjectModel" Version="6.14.3" />
     <PackageVersion Include="NuGet.Versioning" Version="6.14.3" />
     <PackageVersion Include="Microsoft.TestPlatform.TranslationLayer" Version="$(MicrosoftNETTestSdkVersion)" />

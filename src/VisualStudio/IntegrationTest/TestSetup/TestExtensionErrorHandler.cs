@@ -20,7 +20,7 @@ public sealed class TestExtensionErrorHandler : IExtensionErrorHandler
     {
     }
 
-    public void HandleError(object sender, Exception exception)
+    public void HandleError(object? sender, Exception exception)
     {
         FatalError.ReportAndPropagate(exception);
         TestTraceListener.Instance.AddException(exception);

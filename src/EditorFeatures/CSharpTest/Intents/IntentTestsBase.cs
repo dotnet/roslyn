@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents;
@@ -72,6 +73,7 @@ public abstract class IntentTestsBase
             using var edit = documentBuffer.CreateEdit();
             foreach (var change in documentChange.Value)
             {
+                Contract.ThrowIfNull(change.NewText);
                 edit.Replace(change.Span.ToSpan(), change.NewText);
             }
 

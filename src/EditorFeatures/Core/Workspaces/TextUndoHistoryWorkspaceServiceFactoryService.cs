@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -25,7 +26,7 @@ internal sealed class TextUndoHistoryWorkspaceServiceFactoryService(ITextUndoHis
     {
         private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry = textUndoHistoryRegistry;
 
-        public bool TryGetTextUndoHistory(Workspace editorWorkspace, ITextBuffer textBuffer, out ITextUndoHistory undoHistory)
+        public bool TryGetTextUndoHistory(Workspace editorWorkspace, ITextBuffer textBuffer, [NotNullWhen(true)] out ITextUndoHistory? undoHistory)
             => _textUndoHistoryRegistry.TryGetHistory(textBuffer, out undoHistory);
     }
 }

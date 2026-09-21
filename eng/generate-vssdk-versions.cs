@@ -3,6 +3,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -48,6 +50,8 @@ foreach (var node in vssdkPackageSpec.Descendants())
         if (!id.StartsWith("Microsoft.VisualStudio") &&
             !id.StartsWith("Microsoft.ServiceHub") &&
             !id.StartsWith("Microsoft.Build") &&
+            !id.StartsWith("VSLangProj") &&
+            !id.StartsWith("envdte") &&
             id != "Newtonsoft.Json" &&
             id != "StreamJsonRpc" &&
             id != "Nerdbank.Streams")

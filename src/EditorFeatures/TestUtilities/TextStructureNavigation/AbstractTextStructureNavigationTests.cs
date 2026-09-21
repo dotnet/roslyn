@@ -31,6 +31,7 @@ public abstract class AbstractTextStructureNavigatorTests
         var provider = workspace.GetService<ITextStructureNavigatorProvider>(this.ContentType);
 
         var navigator = provider.CreateTextStructureNavigator(buffer);
+        Assert.NotNull(navigator);
 
         var position = document.CursorPosition!.Value;
         var extent = navigator.GetExtentOfWord(new SnapshotPoint(buffer.CurrentSnapshot, position));

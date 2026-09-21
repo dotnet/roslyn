@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 
@@ -84,6 +85,7 @@ internal sealed class CaretPreservingEditTransaction : IDisposable
         }
     }
 
+    [DisallowNull]
     public IMergeTextUndoTransactionPolicy? MergePolicy
     {
         get
