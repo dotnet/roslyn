@@ -44,6 +44,10 @@ text ` foo`. Warning `RZ1048` flags this syntax when `RazorWarningLevel` is 11 o
 higher because it changes meaning in Razor 12. Projects using older language
 versions can opt in by raising their warning level. Use an explicit expression such as
 `@(documentation) foo` or `@(documentation.Length)` to preserve the expression.
+The **Use explicit expression** quick fix wraps the whole expression, including
+calls and member access. Any following braces, XML or text stay outside the
+parentheses and keep their existing meaning. The fix is not offered for Razor 12
+documentation directives.
 
 The body is documentation text, not Razor markup or C# code. Razor transitions,
 braces inside XML elements, XML comments, and CDATA are preserved. The body is
