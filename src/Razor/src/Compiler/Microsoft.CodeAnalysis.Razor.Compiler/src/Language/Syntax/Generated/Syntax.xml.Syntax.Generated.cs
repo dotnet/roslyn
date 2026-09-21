@@ -2263,6 +2263,60 @@ internal sealed partial class RazorUsingDirectiveSyntax : BaseRazorDirectiveSynt
     public RazorUsingDirectiveSyntax WithDirectiveDescriptor(DirectiveDescriptor directiveDescriptor) => Update(Transition, Body, directiveDescriptor);
 }
 
+internal sealed partial class RazorDocumentationDirectiveSyntax : BaseRazorDirectiveSyntax
+{
+    private CSharpTransitionSyntax _transition;
+    private CSharpSyntaxNode _body;
+
+    internal RazorDocumentationDirectiveSyntax(GreenNode green, SyntaxNode parent, int position)
+        : base(green, parent, position)
+    {
+    }
+
+    public override CSharpTransitionSyntax Transition  => GetRedAtZero(ref _transition);
+    public override CSharpSyntaxNode Body  => GetRed(ref _body, 1);
+    public override DirectiveDescriptor DirectiveDescriptor => ((InternalSyntax.RazorDocumentationDirectiveSyntax)Green).DirectiveDescriptor;
+
+    internal override SyntaxNode GetNodeSlot(int index)
+        => index switch
+        {
+            0 => GetRedAtZero(ref _transition),
+            1 => GetRed(ref _body, 1),
+            _ => null
+        };
+
+    internal override SyntaxNode GetCachedSlot(int index)
+        => index switch
+        {
+            0 => this._transition,
+            1 => this._body,
+            _ => null
+        };
+
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitRazorDocumentationDirective(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitRazorDocumentationDirective(this);
+
+    public RazorDocumentationDirectiveSyntax Update(CSharpTransitionSyntax transition, CSharpSyntaxNode body, DirectiveDescriptor directiveDescriptor)
+    {
+        if (transition != Transition || body != Body || directiveDescriptor != DirectiveDescriptor)
+        {
+            var newNode = SyntaxFactory.RazorDocumentationDirective(transition, body, directiveDescriptor);
+            var diagnostics = GetDiagnostics();
+            if (diagnostics != null && diagnostics.Length > 0)
+                newNode = newNode.WithDiagnostics(diagnostics);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override CSharpRazorBlockSyntax WithTransitionCore(CSharpTransitionSyntax transition) => WithTransition(transition);
+    public new RazorDocumentationDirectiveSyntax WithTransition(CSharpTransitionSyntax transition) => Update(transition, Body, DirectiveDescriptor);
+    internal override CSharpRazorBlockSyntax WithBodyCore(CSharpSyntaxNode body) => WithBody(body);
+    public new RazorDocumentationDirectiveSyntax WithBody(CSharpSyntaxNode body) => Update(Transition, body, DirectiveDescriptor);
+    public RazorDocumentationDirectiveSyntax WithDirectiveDescriptor(DirectiveDescriptor directiveDescriptor) => Update(Transition, Body, directiveDescriptor);
+}
+
 internal sealed partial class RazorDirectiveBodySyntax : CSharpSyntaxNode
 {
     private RazorSyntaxNode _keyword;

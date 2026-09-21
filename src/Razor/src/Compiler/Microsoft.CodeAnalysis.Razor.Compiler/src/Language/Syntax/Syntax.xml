@@ -407,6 +407,16 @@
     </Field>
     <Field Name="DirectiveDescriptor" Type="DirectiveDescriptor" Optional="true" Override="true" />
   </Node>
+  <Node Name="RazorDocumentationDirectiveSyntax" Base="BaseRazorDirectiveSyntax">
+    <Kind Name="RazorDocumentationDirective" />
+    <Field Name="Transition" Type="CSharpTransitionSyntax" Override="true">
+      <Kind Name="CSharpTransition" />
+    </Field>
+    <Field Name="Body" Type="CSharpSyntaxNode" Override="true">
+      <Kind Name="RazorDirectiveBody" />
+    </Field>
+    <Field Name="DirectiveDescriptor" Type="DirectiveDescriptor" Optional="true" Override="true" />
+  </Node>
   <Node Name="RazorDirectiveBodySyntax" Base="CSharpSyntaxNode">
     <Kind Name="RazorDirectiveBody" />
     <Field Name="Keyword" Type="RazorSyntaxNode" />

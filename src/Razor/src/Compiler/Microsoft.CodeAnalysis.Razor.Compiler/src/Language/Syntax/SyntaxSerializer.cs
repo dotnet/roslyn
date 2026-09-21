@@ -54,6 +54,10 @@ internal abstract partial class SyntaxSerializer(StringBuilder builder) : Syntax
                 WriteRazorDirective(razorDirective);
                 break;
 
+            case RazorDocumentationDirectiveSyntax documentationDirective:
+                WriteRazorDirective(documentationDirective);
+                break;
+
             case MarkupTagHelperElementSyntax tagHelperElement:
                 WriteTagHelperElement(tagHelperElement);
                 break;
