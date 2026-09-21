@@ -26,6 +26,7 @@ internal static class RazorCodeActionFactory
     private static readonly Guid s_sortAndConsolidateUsingsTelemetryId = new("a3dc8f52-7e1b-4a09-9c6d-2f5e7a8b3c01");
     private static readonly Guid s_escapeDocumentationCommentTerminatorTelemetryId = new("acbdb5a5-1f56-4e67-8c5d-813eb2648bf7");
     private static readonly Guid s_useExplicitExpressionTelemetryId = new("1f4efe49-f5ee-4db0-868b-7d6f3455b5c3");
+    private static readonly Guid s_wrapDocumentationInSummaryTelemetryId = new("ddd4fd06-3e96-42e6-abf1-8ca9f13c7600");
 
     public static RazorVSInternalCodeAction CreateUseExplicitExpression(WorkspaceEdit workspaceEdit)
         => new()
@@ -45,6 +46,16 @@ internal static class RazorCodeActionFactory
             Kind = CodeActionKind.QuickFix,
             TelemetryId = s_escapeDocumentationCommentTerminatorTelemetryId,
             Name = LanguageServerConstants.CodeActions.EscapeDocumentationCommentTerminator,
+        };
+
+    public static RazorVSInternalCodeAction CreateWrapDocumentationInSummary(WorkspaceEdit workspaceEdit)
+        => new()
+        {
+            Title = SR.Wrap_in_summary,
+            Edit = workspaceEdit,
+            Kind = CodeActionKind.QuickFix,
+            TelemetryId = s_wrapDocumentationInSummaryTelemetryId,
+            Name = LanguageServerConstants.CodeActions.WrapDocumentationInSummary,
         };
 
     public static RazorVSInternalCodeAction CreateWrapAttributes(RazorCodeActionResolutionParams resolutionParams)
