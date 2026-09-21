@@ -1,4 +1,7 @@
-﻿#r "System.Xml.Linq"
+﻿#!/usr/bin/env dotnet
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -13,7 +16,7 @@ if (!Directory.Exists(nugetPackageDir))
     nugetPackageDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
 }
 
-var versions = XDocument.Parse(File.ReadAllText(Path.Combine(GetScriptDirectory(), "Directory.Packages.props")));
+var versions = XDocument.Parse(File.ReadAllText(Path.Combine(GetScriptDirectory(), "Packages.props")));
 var vssdkVersion = versions.Descendants().First(n => n.Name.LocalName == "PackageVersion" && n.Attribute("Include").Value == "Microsoft.VisualStudio.SDK").Attribute("Version").Value;
 
 var vssdkPackageSpecPath = Path.Combine(nugetPackageDir, "microsoft.visualstudio.sdk", vssdkVersion, "microsoft.visualstudio.sdk.nuspec");

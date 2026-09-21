@@ -122,7 +122,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.Text.Internal" Version="$(VisualStudioEditorPackagesVersion)" />
 
     <!--
-      Subset of Microsoft.VisualStudio.Sdk meta-package (run `csi generate-vssdk-versions.csx` to update based on VSSDK meta-package).
+      Subset of Microsoft.VisualStudio.Sdk meta-package (run `dotnet run generate-vssdk-versions.cs` to update based on VSSDK meta-package).
       See https://github.com/dotnet/arcade/blob/main/Documentation/MirroringPackages.md if any of these packages fail to restore.
     -->
     <PackageVersion Include="MessagePack" Version="2.5.302" />
