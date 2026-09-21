@@ -82,6 +82,10 @@ A literal `*/` in the parsed documentation body would end the generated C#
 comment, so it produces error `RZ1047` and the block isn't emitted. In XML text,
 use a character reference such as `*&#47;` instead.
 
+The **Escape documentation comment terminator** quick fix makes this change for
+the reported occurrence. Inside CDATA, it closes and reopens the section around
+the character reference so the displayed documentation stays unchanged.
+
 The directive is file-local. It works in `.razor` and `.cshtml` files, but can't be
 imported from `_Imports.razor` or `_ViewImports.cshtml`.
 

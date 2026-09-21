@@ -26,6 +26,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\CohostCodeActionsEndpointTestBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\CreateComponentFromTagTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\CSharpCodeActionTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\EscapeDocumentationCommentTerminatorTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\ExtractToCodeBehindTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\ExtractToComponentTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\ExtractToCssTests.cs" />

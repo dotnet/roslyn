@@ -94,6 +94,11 @@
         <target state="translated">Editar em {0} exclui o conteúdo que não é espaço em branco ''{1}''.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Escape_documentation_comment_terminator">
+        <source>Escape documentation comment terminator</source>
+        <target state="new">Escape documentation comment terminator</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ExtractTo_CodeBehind_Title">
         <source>Extract block to code behind</source>
         <target state="translated">Extrair o bloco para codificar atrás</target>
