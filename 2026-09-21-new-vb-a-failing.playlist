@@ -1,0 +1,77 @@
+<Playlist Version="2.0">
+  <Rule Name="Includes" Match="Any">
+    <Rule Match="All">
+      <Property Name="Solution" />
+      <Rule Match="Any">
+        <Rule Match="All">
+          <Property Name="Project" Value="Microsoft.VisualStudio.LanguageServices.New.IntegrationTests" />
+          <Rule Match="Any">
+            <Rule Match="All">
+              <Property Name="Namespace" Value="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic" />
+              <Rule Match="Any">
+                <Rule Match="All">
+                  <Property Name="Class" Value="BasicLineCommit" />
+                  <Rule Match="Any">
+                    <Rule Match="All">
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit.UndoWithoutEndConstruct" />
+                      <Rule Match="Any">
+                        <Property Name="DisplayName" Value="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit.UndoWithoutEndConstruct (VS18)" />
+                      </Rule>
+                    </Rule>
+                    <Rule Match="All">
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit.CommitOnSave" />
+                      <Rule Match="Any">
+                        <Property Name="DisplayName" Value="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit.CommitOnSave (VS18)" />
+                      </Rule>
+                    </Rule>
+                  </Rule>
+                </Rule>
+                <Rule Match="All">
+                  <Property Name="Class" Value="BasicRename" />
+                  <Rule Match="Any">
+                    <Rule Match="All">
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyLocalVariableRename" />
+                      <Rule Match="Any">
+                        <Property Name="DisplayName" Value="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyLocalVariableRename (VS18)" />
+                      </Rule>
+                    </Rule>
+                    <Rule Match="All">
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRename" />
+                      <Rule Match="Any">
+                        <Property Name="DisplayName" Value="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRename (VS18)" />
+                      </Rule>
+                    </Rule>
+                    <Rule Match="All">
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRenameWhileRenameClasss" />
+                      <Rule Match="Any">
+                        <Property Name="DisplayName" Value="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRenameWhileRenameClasss (VS18)" />
+                      </Rule>
+                    </Rule>
+                    <Rule Match="All">
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRenameWhileRenameAttribute" />
+                      <Rule Match="Any">
+                        <Property Name="DisplayName" Value="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRenameWhileRenameAttribute (VS18)" />
+                      </Rule>
+                    </Rule>
+                    <Rule Match="All">
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRenameWhileRenameAttributeClass" />
+                      <Rule Match="Any">
+                        <Property Name="DisplayName" Value="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRenameWhileRenameAttributeClass (VS18)" />
+                      </Rule>
+                    </Rule>
+                    <Rule Match="All">
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeCapitalizedRename" />
+                      <Rule Match="Any">
+                        <Property Name="DisplayName" Value="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeCapitalizedRename (VS18)" />
+                      </Rule>
+                    </Rule>
+                  </Rule>
+                </Rule>
+              </Rule>
+            </Rule>
+          </Rule>
+        </Rule>
+      </Rule>
+    </Rule>
+  </Rule>
+</Playlist>
