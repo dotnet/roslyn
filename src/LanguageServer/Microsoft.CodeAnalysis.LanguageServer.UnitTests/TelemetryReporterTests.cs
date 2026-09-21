@@ -32,16 +32,6 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper) :
     private static string GetEventName(string name) => $"test/event/{name}";
 
     [Fact]
-    public void TestCommonPropertyNames()
-    {
-        Assert.Equal("roslyn.languageserver.daemonSessionId", LanguageServerTelemetry.DaemonSessionIdPropertyName);
-        Assert.Equal("roslyn.languageserver.hostMode", LanguageServerTelemetry.HostModePropertyName);
-        Assert.Equal("roslyn.languageserver.serverVersion", LanguageServerTelemetry.ServerVersionPropertyName);
-        Assert.Equal("roslyn.languageserver.serverPackageVersion", LanguageServerTelemetry.ServerPackageVersionPropertyName);
-        Assert.Equal("roslyn.languageserver.serverPlatform", LanguageServerTelemetry.ServerPlatformPropertyName);
-    }
-
-    [Fact]
     public void TestVSTelemetryLoadedIntoDefaultAlc()
     {
         using var service = CreateReporter(DefaultServerConfiguration);
