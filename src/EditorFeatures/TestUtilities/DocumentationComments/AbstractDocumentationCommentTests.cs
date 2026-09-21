@@ -27,6 +27,9 @@ public abstract class AbstractDocumentationCommentTests
 
     internal abstract ICommandHandler CreateCommandHandler(EditorTestWorkspace workspace);
 
+    internal virtual ICommandHandler CreatePasteCommandHandler(EditorTestWorkspace workspace)
+        => CreateCommandHandler(workspace);
+
     protected abstract EditorTestWorkspace CreateTestWorkspace(string code);
 
     internal void VerifyTypingCharacter(string initialMarkup, string expectedMarkup, bool useTabs = false, string newLine = "\r\n", bool trimTrailingWhiteSpace = false, OptionsCollection globalOptions = null)
@@ -102,7 +105,7 @@ public abstract class AbstractDocumentationCommentTests
         IEditorOperationsFactoryService editorOperationsFactoryService,
         string pastedText)
     {
-        var commandHandler = CreateCommandHandler(workspace);
+        var commandHandler = CreatePasteCommandHandler(workspace);
         var commandArgs = new PasteCommandArgs(view, view.TextBuffer);
         var editorOperations = editorOperationsFactoryService.GetEditorOperations(view);
 

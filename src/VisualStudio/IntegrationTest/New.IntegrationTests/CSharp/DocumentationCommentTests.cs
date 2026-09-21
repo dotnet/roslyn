@@ -91,6 +91,74 @@ public sealed class DocumentationCommentTests : AbstractEditorTest
             await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
     }
 
+    [IdeTheory, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    [InlineData("//", "", "A & B")]
+    [InlineData("///", "/// ", "A &amp; B")]
+    public async Task Paste_ReplacesMultipleSelections(string commentPrefix, string continuationPrefix, string escapedFirstLine)
+    {
+        await SetUpEditorAsync(
+            JoinLines("\r\n",
+                "",
+                $"{commentPrefix} <summary>Replace {{|selection:first|}}</summary>",
+                $"{commentPrefix} <remarks>Replace {{|selection:second|}}</remarks>",
+                "class C",
+                "{",
+                "}",
+                ""),
+            HangMitigatingCancellationToken);
+
+        // With three clipboard lines and two selections, the editor inserts the full text at each selection.
+        // Compare ordinary comments with documentation comments to isolate the XML formatting adjustment.
+        await TestServices.Editor.PasteAsync("A & B\r\nLine 2\r\nLine 3", HangMitigatingCancellationToken);
+
+        AssertEx.EqualOrDiff(
+            JoinLines("\r\n",
+                "",
+                $"{commentPrefix} <summary>Replace {escapedFirstLine}",
+                $"{continuationPrefix}Line 2",
+                $"{continuationPrefix}Line 3</summary>",
+                $"{commentPrefix} <remarks>Replace {escapedFirstLine}",
+                $"{continuationPrefix}Line 2",
+                $"{continuationPrefix}Line 3</remarks>",
+                "class C",
+                "{",
+                "}",
+                ""),
+            await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+    }
+
+    [IdeTheory, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    [InlineData("//", "A & B")]
+    [InlineData("///", "A &amp; B")]
+    public async Task Paste_DistributesLinesAcrossSelections(string commentPrefix, string escapedFirstLine)
+    {
+        await SetUpEditorAsync(
+            JoinLines("\r\n",
+                "",
+                $"{commentPrefix} <summary>Replace {{|selection:first|}}</summary>",
+                $"{commentPrefix} <remarks>Replace {{|selection:second|}}</remarks>",
+                "class C",
+                "{",
+                "}",
+                ""),
+            HangMitigatingCancellationToken);
+
+        // With two clipboard lines and two selections, the editor distributes one line to each selection.
+        // Documentation formatting must preserve that distribution and only escape the inserted text.
+        await TestServices.Editor.PasteAsync("A & B\r\nLine 2", HangMitigatingCancellationToken);
+
+        AssertEx.EqualOrDiff(
+            JoinLines("\r\n",
+                "",
+                $"{commentPrefix} <summary>Replace {escapedFirstLine}</summary>",
+                $"{commentPrefix} <remarks>Replace Line 2</remarks>",
+                "class C",
+                "{",
+                "}",
+                ""),
+            await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+    }
+
     [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
     public async Task Paste_MixedSelections()
     {

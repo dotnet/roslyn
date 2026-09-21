@@ -35,6 +35,9 @@ public class MyTests
   test source code.
 - Keep tests focused — avoid unnecessary intermediary assertions; use `.Single()`
   rather than asserting a count then indexing.
+- Documentation-comment tests select the paste handler through `CreatePasteCommandHandler`.
+  Visual Basic exports a separate paste handler before line commit so XML adjustments
+  have their own Undo step; typing and Return continue using the normal documentation handler.
 - Language Server orchestration tests can pass additional MEF parts to
   `LanguageServerTestComposition.GetSharedExportProvider`. A controllable
   `PartNotDiscoverable` project loader can provide deterministic design-time

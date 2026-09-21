@@ -59,12 +59,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComme
                     "' Replace [|ordinary|]$$",
                     "Class C",
                     "End Class"),
-                "A & B" & vbCrLf & "Line 2",
+                "A & B" & vbCrLf & "Line 2" & vbCrLf & "Line 3",
                 JoinLines(vbCrLf,
                     "''' <summary>Replace A &amp; B",
-                    "''' Line 2</summary>",
+                    "''' Line 2",
+                    "''' Line 3</summary>",
                     "' Replace A & B",
-                    "Line 2$$",
+                    "Line 2",
+                    "Line 3$$",
                     "Class C",
                     "End Class"))
         End Sub
@@ -1449,6 +1451,10 @@ End Class
 
         Friend Overrides Function CreateCommandHandler(workspace As EditorTestWorkspace) As ICommandHandler
             Return workspace.ExportProvider.GetCommandHandler(Of DocumentationCommentCommandHandler)(PredefinedCommandHandlerNames.DocumentationComments, ContentTypeNames.VisualBasicContentType)
+        End Function
+
+        Friend Overrides Function CreatePasteCommandHandler(workspace As EditorTestWorkspace) As ICommandHandler
+            Return workspace.ExportProvider.GetCommandHandler(Of DocumentationCommentPasteCommandHandler)(PredefinedCommandHandlerNames.DocumentationCommentsPaste, ContentTypeNames.VisualBasicContentType)
         End Function
 
         Protected Overrides Function CreateTestWorkspace(code As String) As EditorTestWorkspace
