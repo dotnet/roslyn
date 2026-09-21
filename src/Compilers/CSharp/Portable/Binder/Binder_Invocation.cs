@@ -1430,7 +1430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var valueKind = method.IsEffectivelyReadOnly
                 ? BindValueKind.RefersToLocation
-                : BindValueKind.RefersToLocation | BindValueKind.Assignable;
+                : BindValueKind.MutableReceiver;
             var result = !CheckValueKind(receiver.Syntax, receiver, valueKind, checkingReceiver: true, BindingDiagnosticBag.Discarded);
             return result.ToThreeState();
         }

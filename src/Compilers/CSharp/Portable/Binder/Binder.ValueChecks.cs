@@ -538,6 +538,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             NullCoalescingAssignment = CompoundAssignment + 2,
 
             /// <summary>
+            /// Expression is the receiver of a non-readonly instance member.
+            /// Unlike assignment, this permits using and foreach variables.
+            /// </summary>
+            MutableReceiver = (RefersToLocation | Assignable) + 1,
+
+            /// <summary>
             /// Expression is a r/o reference.
             /// </summary>
             ReadonlyRef = RefersToLocation | RValue,
@@ -1328,7 +1334,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // IsWritable means the variable is writable. If this is a ref variable, IsWritable
                 // does not imply anything about the storage location
                 if (localSymbol.RefKind == RefKind.RefReadOnly ||
-                    (localSymbol.RefKind == RefKind.None && !localSymbol.IsWritableVariable))
+                    (localSymbol.RefKind == RefKind.None &&
+                     !localSymbol.IsWritableVariable &&
+                     !(valueKind == BindValueKind.MutableReceiver && (localSymbol.IsUsing || localSymbol.IsForEach))))
                 {
                     ReportReadonlyLocalError(node, localSymbol, valueKind, checkingReceiver, diagnostics);
                     return false;

@@ -11743,6 +11743,303 @@ public struct Vec4
                 );
         }
 
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_Using_RefAssignment(
+            [CombinatorialValues(".Self", ".GetSelf()", "[0]")] string access,
+            bool throughField,
+            bool usingStatement)
+        {
+            var type = throughField ? "Wrapper" : "S";
+            var receiver = throughField ? ".Field" : "";
+            var declarations = usingStatement
+                ? $"using ({type} a = default, b = default)"
+                : $"using {type} a = default, b = default;";
+            var source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                struct S : IDisposable
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                    [UnscopedRef] public ref S GetSelf() => ref this;
+                    [UnscopedRef] public ref S this[int i] => ref this;
+                    public void Dispose() { }
+                }
+
+                struct Wrapper : IDisposable
+                {
+                    public S Field = default;
+                    public Wrapper() { }
+                    public void Dispose() { }
+                }
+
+                class C
+                {
+                    static void M(bool condition)
+                    {
+                        {{declarations}}
+                        {
+                            ref var c = ref a{{receiver}}{{access}};
+                            if (condition) c = ref b{{receiver}}{{access}};
+                            if (condition)
+                            {
+                                c = ref b{{receiver}}{{access}};
+                            }
+
+                            ref var d = ref b{{receiver}}{{access}};
+                            if (condition)
+                            {
+                                d = ref a{{receiver}}{{access}};
+                            }
+                        }
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_ForEach_RefAssignment(
+            [CombinatorialValues(".Self", ".GetSelf()", "[0]")] string access,
+            bool throughField)
+        {
+            var type = throughField ? "Wrapper" : "S";
+            var receiver = throughField ? ".Field" : "";
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                struct S
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                    [UnscopedRef] public ref S GetSelf() => ref this;
+                    [UnscopedRef] public ref S this[int i] => ref this;
+                }
+
+                struct Wrapper
+                {
+                    public S Field = default;
+                    public Wrapper() { }
+                }
+
+                class C
+                {
+                    static void M()
+                    {
+                        foreach (var a in new {{type}}[1])
+                        {
+                            ref var c = ref a{{receiver}}{{access}};
+                            {
+                                c = ref a{{receiver}}{{access}};
+                            }
+                        }
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_Using_EscapeErrors()
+        {
+            var source = """
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                struct S : IDisposable
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                    public void Dispose() { }
+                }
+
+                class C
+                {
+                    static readonly S field;
+
+                    static ref S M()
+                    {
+                        using var a = new S();
+                        ref var c = ref a.Self;
+                        ref readonly var r = ref a;
+                        {
+                            using var b = new S();
+                            c = ref b.Self;
+                            c = ref r.Self;
+                            c = ref field.Self;
+                        }
+                        return ref a.Self;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(
+                // (21,13): error CS8374: Cannot ref-assign 'b.Self' to 'c' because 'b.Self' has a narrower escape scope than 'c'.
+                //             c = ref b.Self;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "c = ref b.Self").WithArguments("c", "b.Self").WithLocation(21, 13),
+                // (22,13): error CS8374: Cannot ref-assign 'r.Self' to 'c' because 'r.Self' has a narrower escape scope than 'c'.
+                //             c = ref r.Self;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "c = ref r.Self").WithArguments("c", "r.Self").WithLocation(22, 13),
+                // (23,13): error CS8374: Cannot ref-assign 'field.Self' to 'c' because 'field.Self' has a narrower escape scope than 'c'.
+                //             c = ref field.Self;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "c = ref field.Self").WithArguments("c", "field.Self").WithLocation(23, 13),
+                // (25,20): error CS8168: Cannot return local 'a' by reference because it is not a ref local
+                //         return ref a.Self;
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "a").WithArguments("a").WithLocation(25, 20));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_ForEach_EscapeErrors()
+        {
+            var source = """
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                struct S
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                }
+
+                class C
+                {
+                    static void Assign()
+                    {
+                        var s = new S();
+                        ref var c = ref s;
+                        foreach (var a in new S[1])
+                        {
+                            c = ref a.Self;
+                        }
+                    }
+
+                    static ref S Return()
+                    {
+                        foreach (var a in new S[1])
+                        {
+                            return ref a.Self;
+                        }
+                        throw null;
+                    }
+
+                    static void ReadOnly()
+                    {
+                        foreach (ref readonly var a in new Span<S>(new S[1]))
+                        {
+                            ref var c = ref a.Self;
+                            {
+                                c = ref a.Self;
+                            }
+                        }
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(
+                // (17,13): error CS8374: Cannot ref-assign 'a.Self' to 'c' because 'a.Self' has a narrower escape scope than 'c'.
+                //             c = ref a.Self;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "c = ref a.Self").WithArguments("c", "a.Self").WithLocation(17, 13),
+                // (25,24): error CS8168: Cannot return local 'a' by reference because it is not a ref local
+                //             return ref a.Self;
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "a").WithArguments("a").WithLocation(25, 24),
+                // (36,17): error CS8374: Cannot ref-assign 'a.Self' to 'c' because 'a.Self' has a narrower escape scope than 'c'.
+                //                 c = ref a.Self;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "c = ref a.Self").WithArguments("c", "a.Self").WithLocation(36, 17));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_Using_MutatesOriginal([CombinatorialValues(".Self", ".GetSelf()", "[0]")] string access)
+        {
+            var source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        using var a = new S { Value = 1 };
+                        using var b = new S { Value = 2 };
+                        ref var c = ref a{{access}};
+                        c.Value = 3;
+                        {
+                            c = ref b{{access}};
+                            c.Value = 4;
+                        }
+                        Console.WriteLine($"{a.Value} {b.Value}");
+                        {
+                            c = ref a{{access}};
+                            c.Value = 5;
+                        }
+                    }
+                }
+
+                struct S : IDisposable
+                {
+                    public int Value;
+                    [UnscopedRef] public ref S Self => ref this;
+                    [UnscopedRef] public ref S GetSelf() => ref this;
+                    [UnscopedRef] public ref S this[int i] => ref this;
+                    public void Dispose() => Console.WriteLine(Value);
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RefFieldTests.IncludeExpectedOutput("""
+                3 4
+                4
+                5
+                """), verify: Verification.Fails.WithILVerifyMessage("""
+                [get_Self]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                [GetSelf]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                [get_Item]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                """)).VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_ForEach_MutatesIterationVariable([CombinatorialValues(".Self", ".GetSelf()", "[0]")] string access)
+        {
+            var source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        var items = new[] { new S { Value = 1 } };
+                        foreach (var a in items)
+                        {
+                            ref var c = ref a{{access}};
+                            {
+                                c = ref a{{access}};
+                                c.Value = 2;
+                            }
+                            Console.WriteLine(a.Value);
+                        }
+                        Console.WriteLine(items[0].Value);
+                    }
+                }
+
+                struct S
+                {
+                    public int Value;
+                    [UnscopedRef] public ref S Self => ref this;
+                    [UnscopedRef] public ref S GetSelf() => ref this;
+                    [UnscopedRef] public ref S this[int i] => ref this;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RefFieldTests.IncludeExpectedOutput("""
+                2
+                1
+                """), verify: Verification.Fails.WithILVerifyMessage("""
+                [get_Self]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                [GetSelf]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                [get_Item]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                """)).VerifyDiagnostics();
+        }
+
         [Fact]
         public void LocalScope_DeclarationExpression_01()
         {
