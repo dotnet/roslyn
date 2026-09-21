@@ -8,30 +8,22 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
 public class BasicGenerateEqualsAndGetHashCodeDialog : AbstractEditorTest
 {
-    private readonly ITestOutputHelper _testOutputHelper;
-
     protected override string LanguageName => LanguageNames.VisualBasic;
 
-    public BasicGenerateEqualsAndGetHashCodeDialog(ITestOutputHelper testOutputHelper)
+    public BasicGenerateEqualsAndGetHashCodeDialog()
         : base(nameof(BasicGenerateEqualsAndGetHashCodeDialog))
     {
-        _testOutputHelper = testOutputHelper;
     }
-
-    private void Log(string message)
-        => _testOutputHelper.WriteLine(message);
 
     [IdeFact]
     public async Task VerifyCodeRefactoringOfferedAndCanceled()
     {
-        Log("Setting up the editor with the class to generate Equals/GetHashCode for");
         await SetUpEditorAsync("""
 
             Class C
@@ -43,15 +35,10 @@ public class BasicGenerateEqualsAndGetHashCodeDialog : AbstractEditorTest
             End Class
             """, HangMitigatingCancellationToken);
 
-        Log("Invoking the code action list");
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
-        Log("Applying the 'Generate Equals(object)...' code action without blocking");
         await TestServices.EditorVerifier.CodeActionAsync("Generate Equals(object)...", applyFix: true, blockUntilComplete: false, cancellationToken: HangMitigatingCancellationToken);
-        Log("Verifying the Pick Members dialog is open");
         await TestServices.PickMembersDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
-        Log("Clicking Cancel on the Pick Members dialog");
         await TestServices.PickMembersDialog.ClickCancelAsync(HangMitigatingCancellationToken);
-        Log("Getting the resulting editor text");
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
         Assert.Contains("""
 
@@ -68,7 +55,6 @@ public class BasicGenerateEqualsAndGetHashCodeDialog : AbstractEditorTest
     [IdeFact]
     public async Task VerifyCodeRefactoringOfferedAndAccepted()
     {
-        Log("Setting up the editor with the class to generate Equals/GetHashCode for");
         await SetUpEditorAsync("""
 
             Imports TestProj
@@ -82,15 +68,10 @@ public class BasicGenerateEqualsAndGetHashCodeDialog : AbstractEditorTest
             End Class
             """, HangMitigatingCancellationToken);
 
-        Log("Invoking the code action list");
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
-        Log("Applying the 'Generate Equals(object)...' code action without blocking");
         await TestServices.EditorVerifier.CodeActionAsync("Generate Equals(object)...", applyFix: true, blockUntilComplete: false, cancellationToken: HangMitigatingCancellationToken);
-        Log("Verifying the Pick Members dialog is open");
         await TestServices.PickMembersDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
-        Log("Clicking OK on the Pick Members dialog");
         await TestServices.PickMembersDialog.ClickOKAsync(HangMitigatingCancellationToken);
-        Log("Getting the resulting editor text");
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
         Assert.Contains("""
 
