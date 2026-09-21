@@ -29,6 +29,8 @@ internal static class LanguageServerConstants
 
         public const string EditBasedCodeActionCommand = nameof(EditBasedCodeActionCommand);
 
+        public const string EscapeDocumentationCommentTerminator = nameof(EscapeDocumentationCommentTerminator);
+
         public const string ExtractToCodeBehind = nameof(ExtractToCodeBehind);
 
         public const string ExtractToCss = nameof(ExtractToCss);

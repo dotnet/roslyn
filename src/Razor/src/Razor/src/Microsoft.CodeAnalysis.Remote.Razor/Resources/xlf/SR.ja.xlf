@@ -94,6 +94,11 @@
         <target state="translated">{0} で削除すると空白以外のスペース '{1}' が追加されます。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Escape_documentation_comment_terminator">
+        <source>Escape documentation comment terminator</source>
+        <target state="new">Escape documentation comment terminator</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ExtractTo_CodeBehind_Title">
         <source>Extract block to code behind</source>
         <target state="translated">ブロック抽出から分離コード</target>

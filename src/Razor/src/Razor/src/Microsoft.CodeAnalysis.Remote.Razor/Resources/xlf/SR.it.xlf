@@ -94,6 +94,11 @@
         <target state="translated">La modifica in {0} elimina contenuti diversi da spazi vuoti '{1}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Escape_documentation_comment_terminator">
+        <source>Escape documentation comment terminator</source>
+        <target state="new">Escape documentation comment terminator</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ExtractTo_CodeBehind_Title">
         <source>Extract block to code behind</source>
         <target state="translated">Estrai il blocco in code-behind</target>

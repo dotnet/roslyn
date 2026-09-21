@@ -24,6 +24,17 @@ internal static class RazorCodeActionFactory
     private static readonly Guid s_wrapAttributesTelemetryId = new("1df50ba6-4ed1-40d8-8fe2-1c4c1b08e8b5");
     private static readonly Guid s_simplifyFullyQualifiedComponentTelemetryId = new("f8640324-2037-49fd-9697-2227690c33c3");
     private static readonly Guid s_sortAndConsolidateUsingsTelemetryId = new("a3dc8f52-7e1b-4a09-9c6d-2f5e7a8b3c01");
+    private static readonly Guid s_escapeDocumentationCommentTerminatorTelemetryId = new("acbdb5a5-1f56-4e67-8c5d-813eb2648bf7");
+
+    public static RazorVSInternalCodeAction CreateEscapeDocumentationCommentTerminator(WorkspaceEdit workspaceEdit)
+        => new()
+        {
+            Title = SR.Escape_documentation_comment_terminator,
+            Edit = workspaceEdit,
+            Kind = CodeActionKind.QuickFix,
+            TelemetryId = s_escapeDocumentationCommentTerminatorTelemetryId,
+            Name = LanguageServerConstants.CodeActions.EscapeDocumentationCommentTerminator,
+        };
 
     public static RazorVSInternalCodeAction CreateWrapAttributes(RazorCodeActionResolutionParams resolutionParams)
         => new RazorVSInternalCodeAction
