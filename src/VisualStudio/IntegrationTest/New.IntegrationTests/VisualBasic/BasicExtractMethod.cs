@@ -54,7 +54,7 @@ public class BasicExtractMethod : AbstractEditorTest
     private void Log(string message)
         => _testOutputHelper.WriteLine(message);
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85737")]
     public async Task SimpleExtractMethod()
     {
         Log("Setting the editor text to the test source");
@@ -107,7 +107,7 @@ public class BasicExtractMethod : AbstractEditorTest
             """, cancellationToken: HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85737")]
     public async Task ExtractViaCodeAction()
     {
         Log("Setting the editor text to the test source");

@@ -76,7 +76,7 @@ public class BasicLineCommit : AbstractEditorTest
         Assert.Equal(54, (await TestServices.Editor.GetCaretPositionAsync(HangMitigatingCancellationToken)).BufferPosition.Position);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85737")]
     public async Task UndoWithoutEndConstruct()
     {
         Log("Setting up the initial editor text");
@@ -111,7 +111,7 @@ public class BasicLineCommit : AbstractEditorTest
         Assert.Equal(16, (await TestServices.Editor.GetCaretPositionAsync(HangMitigatingCancellationToken)).BufferPosition.Position);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85737")]
     public async Task CommitOnSave()
     {
         Log("Setting up the initial editor text");

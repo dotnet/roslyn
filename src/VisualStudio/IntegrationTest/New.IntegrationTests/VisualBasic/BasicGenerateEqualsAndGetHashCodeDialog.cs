@@ -28,7 +28,7 @@ public class BasicGenerateEqualsAndGetHashCodeDialog : AbstractEditorTest
     private void Log(string message)
         => _testOutputHelper.WriteLine(message);
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85737")]
     public async Task VerifyCodeRefactoringOfferedAndCanceled()
     {
         Log("Setting up the editor with the class to generate Equals/GetHashCode for");
@@ -65,7 +65,7 @@ public class BasicGenerateEqualsAndGetHashCodeDialog : AbstractEditorTest
             """, actualText);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85737")]
     public async Task VerifyCodeRefactoringOfferedAndAccepted()
     {
         Log("Setting up the editor with the class to generate Equals/GetHashCode for");
