@@ -193,6 +193,9 @@
   <data name="Remove_unnecessary_directives" xml:space="preserve">
     <value>Remove unnecessary directives</value>
   </data>
+  <data name="Escape_documentation_comment_terminator" xml:space="preserve">
+    <value>Escape documentation comment terminator</value>
+  </data>
   <data name="Untested" xml:space="preserve">
     <value>Untested</value>
   </data>

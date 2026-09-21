@@ -94,6 +94,11 @@ klawisz [Tab], aby przechodzić pomiędzy elementami, klawisz [Enter], aby zako�
         <target state="translated">Edycja na stronie {0} usuwa zawartość bez białych znaków „{1}”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Escape_documentation_comment_terminator">
+        <source>Escape documentation comment terminator</source>
+        <target state="new">Escape documentation comment terminator</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ExtractTo_CodeBehind_Title">
         <source>Extract block to code behind</source>
         <target state="translated">Wyodrębnij blok do kodu znajdującego się poza</target>
