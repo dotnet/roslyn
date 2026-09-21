@@ -147,73 +147,94 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
         serverConfiguration.SessionId,
         isDefaultSession: true);
 
-    // Build the connection source for the configured mode. Single-server mode (stdio / connect-out pipe) yields
-    // exactly one connection; daemon mode accepts many and manages its own idle timeout. Both run through the same
-    // connection manager loop.
-    ILanguageServerConnectionSource connectionSource;
-
-    if (serverConfiguration.IsDaemon)
-    {
-        if (!NamedPipeDaemonConnectionSource.TryCreate(
-                serverConfiguration.ServerPipeName!, serverConfiguration.DaemonKeepAlive, logger, out var daemonSource))
+    var exitReason = "Faulted";
+    // VS telemetry reads block properties on completion, after the final count and exit reason are known.
+    using var processLifetime = RoslynLog.Logger.LogBlock(
+        RoslynLog.FunctionId.VSCode_LanguageServer_Process_Lifetime,
+        RoslynLog.KeyValueLogMessage.Create(m =>
         {
-            // Another daemon already owns this pipe. With the thin client holding its startup mutex through
-            // the connect, this generally only happens when a '--daemon' process is started outside that
-            // protocol (e.g. manually, or a stale instance). It's recoverable - the client connects to the
-            // existing daemon - so we exit with a distinct non-zero code rather than throwing, which would
-            // surface a stack trace in the editor's output for a benign condition.
-            return ServerExitCodes.DaemonAlreadyRunning;
-        }
-
-        connectionSource = daemonSource;
-    }
-    else if (serverConfiguration.UseStdIo)
-    {
-        connectionSource = new SingleLanguageServerConnectionSource(
-            new LanguageServerConnection(Console.OpenStandardInput(), Console.OpenStandardOutput()));
-    }
-    else
-    {
-        // The VS Code LSP client passes a full pipe path (e.g. \\.\pipe\<guid> on Windows, /tmp/<id>.sock on Unix).
-        // NamedPipeClientStream expects just the pipe name on Windows (it prepends \\.\pipe\ itself),
-        // and the full socket path on Unix.
-        var pipeName = serverConfiguration.ServerPipeName!;
-        const string windowsPipePrefix = @"\\.\pipe\";
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
-            pipeName.StartsWith(windowsPipePrefix, StringComparison.OrdinalIgnoreCase))
-        {
-            pipeName = pipeName[windowsPipePrefix.Length..];
-        }
-
-        var pipeClient = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
-        await pipeClient.ConnectAsync(cancellationToken);
-        connectionSource = new SingleLanguageServerConnectionSource(new LanguageServerConnection(pipeClient, pipeClient, pipeClient));
-    }
-
-    // Monitor the client process in single-server mode only; a shared daemon must not exit when one client
-    // dies (and the thin client doesn't forward --clientProcessId to the daemon).
-    if (!serverConfiguration.IsDaemon &&
-        serverConfiguration.ClientProcessId is int clientProcessId &&
-        RoslynLanguageServer.TryRegisterClientProcessId(clientProcessId))
-    {
-        logger.LogInformation("Monitoring client process {clientProcessId} for exit", clientProcessId);
-    }
-
-    logger.LogInformation("Language server initialized");
-    RoslynLog.Logger.Log(RoslynLog.FunctionId.VSCode_LanguageServer_Started, logLevel: RoslynLog.LogLevel.Information);
+            m["ConnectionsAccepted"] = connectionManager.ConnectionsAccepted;
+            m["ExitReason"] = exitReason;
+        }),
+        cancellationToken);
 
     try
     {
-        using (connectionSource as IDisposable)
-        {
-            await connectionManager.RunAsync(
-                connectionSource, exportProvider, typeRefResolver, logger, telemetryService?.SessionId, cancellationToken);
-        }
-    }
-    finally
-    {
-        FeaturesSessionTelemetry.Report();
-    }
+        // Build the connection source for the configured mode. Single-server mode (stdio / connect-out pipe) yields
+        // exactly one connection; daemon mode accepts many and manages its own idle timeout. Both run through the same
+        // connection manager loop.
+        ILanguageServerConnectionSource connectionSource;
 
-    return ServerExitCodes.Success;
+        if (serverConfiguration.IsDaemon)
+        {
+            if (!NamedPipeDaemonConnectionSource.TryCreate(
+                    serverConfiguration.ServerPipeName!, serverConfiguration.DaemonKeepAlive, logger, out var daemonSource))
+            {
+                // Another daemon already owns this pipe. With the thin client holding its startup mutex through
+                // the connect, this generally only happens when a '--daemon' process is started outside that
+                // protocol (e.g. manually, or a stale instance). It's recoverable - the client connects to the
+                // existing daemon - so we exit with a distinct non-zero code rather than throwing, which would
+                // surface a stack trace in the editor's output for a benign condition.
+                exitReason = "DaemonAlreadyRunning";
+                return ServerExitCodes.DaemonAlreadyRunning;
+            }
+
+            connectionSource = daemonSource;
+        }
+        else if (serverConfiguration.UseStdIo)
+        {
+            connectionSource = new SingleLanguageServerConnectionSource(
+                new LanguageServerConnection(Console.OpenStandardInput(), Console.OpenStandardOutput()));
+        }
+        else
+        {
+            // The VS Code LSP client passes a full pipe path (e.g. \\.\pipe\<guid> on Windows, /tmp/<id>.sock on Unix).
+            // NamedPipeClientStream expects just the pipe name on Windows (it prepends \\.\pipe\ itself),
+            // and the full socket path on Unix.
+            var pipeName = serverConfiguration.ServerPipeName!;
+            const string windowsPipePrefix = @"\\.\pipe\";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
+                pipeName.StartsWith(windowsPipePrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                pipeName = pipeName[windowsPipePrefix.Length..];
+            }
+
+            var pipeClient = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
+            await pipeClient.ConnectAsync(cancellationToken);
+            connectionSource = new SingleLanguageServerConnectionSource(new LanguageServerConnection(pipeClient, pipeClient, pipeClient));
+        }
+
+        // Monitor the client process in single-server mode only; a shared daemon must not exit when one client
+        // dies (and the thin client doesn't forward --clientProcessId to the daemon).
+        if (!serverConfiguration.IsDaemon &&
+            serverConfiguration.ClientProcessId is int clientProcessId &&
+            RoslynLanguageServer.TryRegisterClientProcessId(clientProcessId))
+        {
+            logger.LogInformation("Monitoring client process {clientProcessId} for exit", clientProcessId);
+        }
+
+        logger.LogInformation("Language server initialized");
+        RoslynLog.Logger.Log(RoslynLog.FunctionId.VSCode_LanguageServer_Started, logLevel: RoslynLog.LogLevel.Information);
+
+        try
+        {
+            using (connectionSource as IDisposable)
+            {
+                await connectionManager.RunAsync(
+                    connectionSource, exportProvider, typeRefResolver, logger, telemetryService?.SessionId, cancellationToken);
+            }
+        }
+        finally
+        {
+            FeaturesSessionTelemetry.Report();
+        }
+
+        exitReason = "Normal";
+        return ServerExitCodes.Success;
+    }
+    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+    {
+        exitReason = "Canceled";
+        throw;
+    }
 }
