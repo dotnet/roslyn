@@ -2969,6 +2969,8 @@ internal abstract partial class BaseRazorDirectiveSyntax : CSharpRazorBlockSynta
         : base(kind)
     {
     }
+
+    public abstract DirectiveDescriptor DirectiveDescriptor { get; }
 }
 
 internal sealed partial class RazorDirectiveSyntax : BaseRazorDirectiveSyntax
@@ -3001,7 +3003,7 @@ internal sealed partial class RazorDirectiveSyntax : BaseRazorDirectiveSyntax
 
     public override CSharpTransitionSyntax Transition => _transition;
     public override CSharpSyntaxNode Body => _body;
-    public DirectiveDescriptor DirectiveDescriptor => _directiveDescriptor;
+    public override DirectiveDescriptor DirectiveDescriptor => _directiveDescriptor;
 
     internal override GreenNode GetSlot(int index)
         => index switch
@@ -3064,7 +3066,7 @@ internal sealed partial class RazorUsingDirectiveSyntax : BaseRazorDirectiveSynt
 
     public override CSharpTransitionSyntax Transition => _transition;
     public override CSharpSyntaxNode Body => _body;
-    public DirectiveDescriptor DirectiveDescriptor => _directiveDescriptor;
+    public override DirectiveDescriptor DirectiveDescriptor => _directiveDescriptor;
 
     internal override GreenNode GetSlot(int index)
         => index switch
