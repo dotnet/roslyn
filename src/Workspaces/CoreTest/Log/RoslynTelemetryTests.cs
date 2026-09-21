@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.UnitTests.Logging;
 using Xunit;
@@ -23,8 +24,12 @@ public sealed class RoslynTelemetryTests
         public bool Enabled { get; set; } = true;
 
         public List<(string Kind, int BlockId)> Events { get; } = [];
+        public List<(Exception Exception, ErrorSeverity Severity, bool ForceDump)> Faults { get; } = [];
 
         public bool IsEnabled(FunctionId functionId) => Enabled && functionId == FunctionId.TestEvent_NotUsed;
+
+        public void ReportFault(Exception exception, ErrorSeverity severity, bool forceDump)
+            => Faults.Add((exception, severity, forceDump));
 
         public void Log(FunctionId functionId, LogMessage logMessage)
             => Events.Add(("Log", 0));
@@ -40,7 +45,6 @@ public sealed class RoslynTelemetryTests
     {
         public List<int> CounterTagCounts { get; } = [];
         public List<int> DistributionTagCounts { get; } = [];
-        public int FlushCount { get; private set; }
 
         public void Count(string eventName, string metricName, long delta, ReadOnlySpan<KeyValuePair<string, object?>> tags)
             => CounterTagCounts.Add(tags.Length);
@@ -49,7 +53,8 @@ public sealed class RoslynTelemetryTests
             => DistributionTagCounts.Add(tags.Length);
 
         public void Flush()
-            => FlushCount++;
+        {
+        }
     }
 
     [Fact]
@@ -145,22 +150,6 @@ public sealed class RoslynTelemetryTests
     }
 
     [Fact]
-    public void FlushOnlyFlushesCurrentInstance()
-    {
-        var firstTelemetry = new RoslynTelemetry();
-        var secondTelemetry = new RoslynTelemetry();
-        var firstSink = new RecordingMetricSink();
-        var secondSink = new RecordingMetricSink();
-        using var firstRegistration = firstTelemetry.AddMetricSink(firstSink);
-        using var secondRegistration = secondTelemetry.AddMetricSink(secondSink);
-
-        firstTelemetry.Flush();
-
-        Assert.Equal(1, firstSink.FlushCount);
-        Assert.Equal(0, secondSink.FlushCount);
-    }
-
-    [Fact]
     public void BlockEndUsesSinksCapturedAtStart()
     {
         var firstTelemetry = new RoslynTelemetry();
@@ -215,17 +204,22 @@ public sealed class RoslynTelemetryTests
     }
 
     [Fact]
-    public void NothingIsDeliveredWhenEverySinkIsDisabled()
+    public void EventsAreNotDeliveredWhenEverySinkIsDisabled()
     {
+        var telemetry = new RoslynTelemetry();
         var sink = new RecordingSink { Enabled = false };
-        using var _ = RoslynTelemetry.Current.AddEventSink(sink);
+        using var _ = telemetry.AddEventSink(sink);
 
-        RoslynTelemetry.Current.Log(FunctionId.TestEvent_NotUsed, "message");
-        using (RoslynTelemetry.Current.LogBlock(FunctionId.TestEvent_NotUsed, CancellationToken.None))
+        telemetry.Log(FunctionId.TestEvent_NotUsed, "message");
+        using (telemetry.LogBlock(FunctionId.TestEvent_NotUsed, CancellationToken.None))
         {
         }
 
         Assert.Empty(sink.Events);
+
+        var exception = new InvalidOperationException();
+        telemetry.ReportFault(exception, ErrorSeverity.Critical, forceDump: true);
+        Assert.Equal([(exception, ErrorSeverity.Critical, true)], sink.Faults);
     }
 
     [Fact]

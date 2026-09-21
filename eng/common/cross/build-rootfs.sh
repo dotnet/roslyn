@@ -532,27 +532,33 @@ ensureDownloadTool()
 }
 
 if [[ "$__CodeName" == "alpine" ]]; then
-    __ApkToolsVersion=2.12.11
+    __ApkToolsVersion=2.14.4-r1
     __ApkToolsDir="$(mktemp -d)"
     __ApkKeysDir="$(mktemp -d)"
     arch="$(uname -m)"
     __AlpineRepo="${__AlpineRepoOverride:-https://dl-cdn.alpinelinux.org/alpine}"
 
     ensureDownloadTool
+    __ApkToolsPackage="$__ApkToolsDir/apk-tools-static.apk"
+    __ApkToolsUrl="$__AlpineRepo/v3.20/main/$arch/apk-tools-static-$__ApkToolsVersion.apk"
 
     if [[ "$__hasWget" == 1 ]]; then
-        wget -P "$__ApkToolsDir" "https://gitlab.alpinelinux.org/api/v4/projects/5/packages/generic/v$__ApkToolsVersion/$arch/apk.static"
+        wget -O "$__ApkToolsPackage" "$__ApkToolsUrl"
     else
-        curl -SLO --create-dirs --output-dir "$__ApkToolsDir" "https://gitlab.alpinelinux.org/api/v4/projects/5/packages/generic/v$__ApkToolsVersion/$arch/apk.static"
+        curl -fSL -o "$__ApkToolsPackage" "$__ApkToolsUrl"
     fi
+
     if [[ "$arch" == "x86_64" ]]; then
-      __ApkToolsSHA512SUM="53e57b49230da07ef44ee0765b9592580308c407a8d4da7125550957bb72cb59638e04f8892a18b584451c8d841d1c7cb0f0ab680cc323a3015776affaa3be33"
+        __ApkToolsSHA512SUM="b1b3cc382aa0ec26a2c24b742701a1f9885d0678365f9aea15d3d005926b06ecc802659cec8a7deba2717af99c19c708a17c23e1f0f07742268ee5be5400eb9e"
     elif [[ "$arch" == "aarch64" ]]; then
-      __ApkToolsSHA512SUM="9e2b37ecb2b56c05dad23d379be84fd494c14bd730b620d0d576bda760588e1f2f59a7fcb2f2080577e0085f23a0ca8eadd993b4e61c2ab29549fdb71969afd0"
+        __ApkToolsSHA512SUM="61f9a636c5ac4e96e7a3f69fd65e60fc57b3ec8b23619c4df86f59b89e71d1309b3e406388945bdf0dd9168dac22df376943a70ff3efa179e5687e586f825fb0"
     else
-      echo "WARNING: add missing hash for your host architecture. To find the value, use: 'find /tmp -name apk.static -exec sha512sum {} \;'"
+        >&2 echo "ERROR: Unsupported apk-tools-static host architecture '$arch'."
+        exit 1
     fi
-    echo "$__ApkToolsSHA512SUM $__ApkToolsDir/apk.static" | sha512sum -c
+    echo "$__ApkToolsSHA512SUM $__ApkToolsPackage" | sha512sum -c
+    tar -xzf "$__ApkToolsPackage" -C "$__ApkToolsDir" --strip-components=1 sbin/apk.static
+    rm "$__ApkToolsPackage"
     chmod +x "$__ApkToolsDir/apk.static"
 
     if [[ "$__AlpineVersion" == "edge" ]]; then

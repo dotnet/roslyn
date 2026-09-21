@@ -13783,8 +13783,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitLockStatement(BoundLockStatement node)
         {
-            VisitRvalue(node.Argument);
-            _ = CheckPossibleNullReceiver(node.Argument);
+            var argument = node.Argument;
+            VisitRvalue(argument);
+            _ = CheckPossibleNullReceiver(argument);
+
+            // Note: CheckPossibleNullReceiver does not report on a typeless expression such as a null literal.
+            if (argument is { Type: null, ConstantValueOpt.IsNull: true, IsSuppressed: false } && !compilation.FeatureStrictEnabled)
+            {
+                ReportDiagnostic(ErrorCode.WRN_NullReferenceReceiver, argument.Syntax);
+            }
+
             VisitStatement(node.Body);
             return null;
         }
