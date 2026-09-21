@@ -4,6 +4,7 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
@@ -16,11 +17,16 @@ internal sealed class RecordingEventSink(
     Action<FunctionId>? onLog = null) : IEventSink
 {
     private readonly ConcurrentQueue<FunctionId> _events = new();
+    private readonly ConcurrentQueue<(Exception Exception, ErrorSeverity Severity, bool ForceDump)> _faults = new();
 
     public ImmutableArray<FunctionId> Events => [.. _events];
+    public ImmutableArray<(Exception Exception, ErrorSeverity Severity, bool ForceDump)> Faults => [.. _faults];
 
     public bool IsEnabled(FunctionId functionId)
         => isEnabled?.Invoke(functionId) ?? true;
+
+    public void ReportFault(Exception exception, ErrorSeverity severity, bool forceDump)
+        => _faults.Enqueue((exception, severity, forceDump));
 
     public void Log(FunctionId functionId, LogMessage logMessage)
     {

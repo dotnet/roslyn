@@ -67,8 +67,6 @@
     "Microsoft.CodeAnalysis.Features.ExternalAccess": "vs-impl",
     "Microsoft.CodeAnalysis.ExternalAccess.HotReload": "arcade",
     "Microsoft.CodeAnalysis.LanguageServer.ExternalAccess": "vs-impl",
-    "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp": "arcade",
-    "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp": "arcade",
     "Microsoft.CodeAnalysis.ExternalAccess.AspNetCore": "vs-impl",
     "Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler": "vs-impl",
     "Microsoft.CodeAnalysis.Remote.ServiceHub": "vs-impl",
