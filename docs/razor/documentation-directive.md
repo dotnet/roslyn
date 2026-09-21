@@ -23,6 +23,11 @@ With ordinary `#line` pragmas, Razor puts the comment opener on the preceding
 mapped line when it cannot fit before the body, keeping C# diagnostic columns
 aligned with the original XML.
 
+Directive completion offers both the `documentation` keyword and a
+`documentation directive ...` snippet. The snippet inserts a braced block with
+a multiline `<summary>` element and places the caret inside the summary.
+Both are available in Visual Studio and VS Code when using Razor 12 or later.
+
 Braces are required. `@documentation foo` reports `RZ1017` because it expects an
 opening `{`; it isn't shorthand for a summary.
 
