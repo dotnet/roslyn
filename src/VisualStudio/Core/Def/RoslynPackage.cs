@@ -56,8 +56,6 @@ internal sealed class RoslynPackage : AbstractPackage
     private ThreadSafeMenuCommandService? _menuCommandService;
     private RuleSetEventHandler? _ruleSetEventHandler;
     private SolutionEventMonitor? _solutionEventMonitor;
-    private PdbMatchingSourceTextProvider? _sourceTextProvider;
-    private IDisposable? _hotReloadService;
 
     internal static async ValueTask<RoslynPackage?> GetOrLoadAsync(IThreadingContext threadingContext, IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
@@ -132,21 +130,6 @@ internal sealed class RoslynPackage : AbstractPackage
         serviceBrokerContainer.Proffer(
             WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor,
             (_, _, _, _) => ValueTask.FromResult<object?>(new WorkspaceProjectFactoryService(ComponentModel.GetService<IWorkspaceProjectContextFactory>())));
-
-        var hotReloadFactory = ComponentModel.GetService<ManagedHotReloadLanguageServiceFactory>();
-        var solutionSnapshotProvider = ComponentModel.GetService<ISolutionSnapshotProvider>();
-        var hostWorkspaceProvider = ComponentModel.GetService<IHostWorkspaceProvider>();
-
-        _sourceTextProvider = new PdbMatchingSourceTextProvider(hostWorkspaceProvider.Workspace);
-
-        var hotReloadService = new ManagedHotReloadLanguageService(
-            serviceBroker => hotReloadFactory.CreateImplementation(serviceBroker, solutionSnapshotProvider, hostWorkspaceProvider, _sourceTextProvider));
-
-        _hotReloadService = hotReloadService;
-
-        await hotReloadService.InitializeAsync(serviceBroker, cancellationToken).ConfigureAwait(false);
-
-        serviceBrokerContainer.Proffer(ManagedHotReloadLanguageServiceFactory.ServiceDescriptor, async (_, _, _, _) => hotReloadService);
     }
 
     protected override async Task LoadComponentsInBackgroundAfterSolutionFullyLoadedAsync(CancellationToken cancellationToken)
@@ -200,10 +183,6 @@ internal sealed class RoslynPackage : AbstractPackage
 
         _solutionEventMonitor?.Dispose();
         _solutionEventMonitor = null;
-        _sourceTextProvider?.Dispose();
-        _sourceTextProvider = null;
-        _hotReloadService?.Dispose();
-        _hotReloadService = null;
 
         base.Dispose(disposing);
     }
