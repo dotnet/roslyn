@@ -968,6 +968,41 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/85692")]
+    [InlineData("<Child @rendermode />", false)]
+    [InlineData("<Child @rendermode= />", false)]
+    [InlineData("<Child @rendermode=\" />", true)]
+    [InlineData("<Child @rendermode=\"\" />", false)]
+    public async Task IncompleteRenderModeAttribute_DoesNotCrash(string markup, bool expectMalformedTagDiagnostics)
+    {
+        var project = CreateTestProject(new()
+        {
+            ["Shared/Parent.razor"] = markup,
+            ["Shared/Child.razor"] = """
+                Child
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        var result = RunGenerator(compilation!, ref driver, out var outputCompilation, static _ => { });
+
+        if (expectMalformedTagDiagnostics)
+        {
+            result.Diagnostics.Verify(
+                Diagnostic("RZ1035").WithLocation(1, 2),
+                Diagnostic("RZ1034").WithLocation(1, 2));
+        }
+        else
+        {
+            result.Diagnostics.Verify();
+        }
+
+        Assert.Null(result.Exception);
+        Assert.DoesNotContain(outputCompilation.GetDiagnostics(), diagnostic => diagnostic.Id == "CS8785");
+        Assert.Equal(4, result.GeneratedSources.Length);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/9381")]
     public async Task UnrecognizedComponentName()
     {
