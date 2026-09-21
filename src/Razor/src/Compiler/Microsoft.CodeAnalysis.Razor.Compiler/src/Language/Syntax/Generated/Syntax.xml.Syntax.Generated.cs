@@ -2149,6 +2149,8 @@ internal abstract partial class BaseRazorDirectiveSyntax : CSharpRazorBlockSynta
     {
     }
 
+    public abstract DirectiveDescriptor DirectiveDescriptor { get; }
+
     public new BaseRazorDirectiveSyntax WithTransition(CSharpTransitionSyntax transition) => (BaseRazorDirectiveSyntax)WithTransitionCore(transition);
     public new BaseRazorDirectiveSyntax WithBody(CSharpSyntaxNode body) => (BaseRazorDirectiveSyntax)WithBodyCore(body);
 }
@@ -2165,7 +2167,7 @@ internal sealed partial class RazorDirectiveSyntax : BaseRazorDirectiveSyntax
 
     public override CSharpTransitionSyntax Transition  => GetRedAtZero(ref _transition);
     public override CSharpSyntaxNode Body  => GetRed(ref _body, 1);
-    public DirectiveDescriptor DirectiveDescriptor => ((InternalSyntax.RazorDirectiveSyntax)Green).DirectiveDescriptor;
+    public override DirectiveDescriptor DirectiveDescriptor => ((InternalSyntax.RazorDirectiveSyntax)Green).DirectiveDescriptor;
 
     internal override SyntaxNode GetNodeSlot(int index)
         => index switch
@@ -2219,7 +2221,7 @@ internal sealed partial class RazorUsingDirectiveSyntax : BaseRazorDirectiveSynt
 
     public override CSharpTransitionSyntax Transition  => GetRedAtZero(ref _transition);
     public override CSharpSyntaxNode Body  => GetRed(ref _body, 1);
-    public DirectiveDescriptor DirectiveDescriptor => ((InternalSyntax.RazorUsingDirectiveSyntax)Green).DirectiveDescriptor;
+    public override DirectiveDescriptor DirectiveDescriptor => ((InternalSyntax.RazorUsingDirectiveSyntax)Green).DirectiveDescriptor;
 
     internal override SyntaxNode GetNodeSlot(int index)
         => index switch
