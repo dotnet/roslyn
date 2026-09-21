@@ -53,6 +53,8 @@ internal static class LanguageServerConstants
 
         public const string SortAndConsolidateUsings = nameof(SortAndConsolidateUsings);
 
+        public const string UseExplicitExpression = nameof(UseExplicitExpression);
+
         public const string WrapAttributes = nameof(WrapAttributes);
 
         /// <summary>

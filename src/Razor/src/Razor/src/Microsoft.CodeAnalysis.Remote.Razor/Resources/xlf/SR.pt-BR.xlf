@@ -234,6 +234,11 @@
         <target state="translated">Não testado</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_explicit_expression">
+        <source>Use explicit expression</source>
+        <target state="new">Use explicit expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_attributes">
         <source>Wrap attributes</source>
         <target state="translated">Empacotar características</target>
