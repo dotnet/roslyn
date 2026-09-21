@@ -14,25 +14,18 @@ using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using WindowsInput.Native;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic;
 
 [Trait(Traits.Feature, Traits.Features.LineCommit)]
 public class BasicLineCommit : AbstractEditorTest
 {
-    private readonly ITestOutputHelper _testOutputHelper;
-
     protected override string LanguageName => LanguageNames.VisualBasic;
 
-    public BasicLineCommit(ITestOutputHelper testOutputHelper)
+    public BasicLineCommit()
         : base(nameof(BasicLineCommit))
     {
-        _testOutputHelper = testOutputHelper;
     }
-
-    private void Log(string message)
-        => _testOutputHelper.WriteLine(message);
 
     [IdeFact]
     public async Task CaseCorrection()
@@ -79,7 +72,6 @@ public class BasicLineCommit : AbstractEditorTest
     [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85737")]
     public async Task UndoWithoutEndConstruct()
     {
-        Log("Setting up the initial editor text");
         await TestServices.Editor.SetTextAsync("""
             Module Module1
 
@@ -89,11 +81,8 @@ public class BasicLineCommit : AbstractEditorTest
             End Module
             """, HangMitigatingCancellationToken);
 
-        Log("Placing the caret at 'Module1'");
         await TestServices.Editor.PlaceCaretAsync("Module1", charsOffset: 0, HangMitigatingCancellationToken);
-        Log("Pressing DOWN then RETURN");
         await TestServices.Input.SendAsync([VirtualKeyCode.DOWN, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
-        Log("Verifying the resulting editor text");
         AssertEx.EqualOrDiff("""
             Module Module1
 
@@ -103,18 +92,14 @@ public class BasicLineCommit : AbstractEditorTest
                 End Sub
             End Module
             """, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
-        Log("Verifying the caret position after the edit");
         Assert.Equal(18, (await TestServices.Editor.GetCaretPositionAsync(HangMitigatingCancellationToken)).BufferPosition.Position);
-        Log("Executing Undo");
         await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Undo, HangMitigatingCancellationToken);
-        Log("Verifying the caret position after Undo");
         Assert.Equal(16, (await TestServices.Editor.GetCaretPositionAsync(HangMitigatingCancellationToken)).BufferPosition.Position);
     }
 
     [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85737")]
     public async Task CommitOnSave()
     {
-        Log("Setting up the initial editor text");
         await TestServices.Editor.SetTextAsync("""
             Module Module1
                 Sub Main()
@@ -123,24 +108,17 @@ public class BasicLineCommit : AbstractEditorTest
 
             """, HangMitigatingCancellationToken);
 
-        Log("Placing the caret inside 'Main('");
         await TestServices.Editor.PlaceCaretAsync("(", charsOffset: 1, HangMitigatingCancellationToken);
-        Log("Typing the parameter declaration and pressing TAB");
         await TestServices.Input.SendAsync(["x   As   integer", VirtualKeyCode.TAB], HangMitigatingCancellationToken);
 
-        Log("Verifying the document is not yet saved");
         Assert.False(await TestServices.Editor.IsSavedAsync(HangMitigatingCancellationToken));
-        Log("Sending Ctrl+S to save the document");
         await TestServices.Input.SendAsync((VirtualKeyCode.VK_S, VirtualKeyCode.CONTROL), HangMitigatingCancellationToken);
 
         // Wait for async save operations to complete before proceeding
-        Log("Waiting for async workspace operations to complete");
         await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace], HangMitigatingCancellationToken);
 
-        Log("Verifying the active document is saved");
         await TestServices.SolutionExplorerVerifier.ActiveDocumentIsSavedAsync(HangMitigatingCancellationToken);
         Assert.True(await TestServices.Editor.IsSavedAsync(HangMitigatingCancellationToken));
-        Log("Verifying the committed (formatted) text");
         AssertEx.EqualOrDiff("""
             Module Module1
                 Sub Main(x As Integer)
@@ -149,9 +127,7 @@ public class BasicLineCommit : AbstractEditorTest
 
             """, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
 
-        Log("Executing Undo");
         await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Undo, HangMitigatingCancellationToken);
-        Log("Verifying the text reverted to the uncommitted spacing");
         AssertEx.EqualOrDiff("""
             Module Module1
                 Sub Main(x   As   Integer)
@@ -159,7 +135,6 @@ public class BasicLineCommit : AbstractEditorTest
             End Module
 
             """, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
-        Log("Verifying the caret position after Undo");
         Assert.Equal(45, (await TestServices.Editor.GetCaretPositionAsync(HangMitigatingCancellationToken)).BufferPosition.Position);
     }
 

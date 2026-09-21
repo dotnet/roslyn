@@ -12,18 +12,14 @@ using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using WindowsInput.Native;
 using Xunit;
-using Xunit.Abstractions;
 using Xunit.Sdk;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic;
 
 [Trait(Traits.Feature, Traits.Features.Rename)]
-public sealed class BasicRename(ITestOutputHelper testOutputHelper) : AbstractEditorTest(nameof(BasicRename))
+public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
 {
     protected override string LanguageName => LanguageNames.VisualBasic;
-
-    private void Log(string message)
-        => testOutputHelper.WriteLine(message);
 
     public override async Task InitializeAsync()
     {
@@ -58,22 +54,16 @@ public sealed class BasicRename(ITestOutputHelper testOutputHelper) : AbstractEd
                 End Sub
             End Module
             """;
-        Log("Setting up the editor with the markup for the local variable rename");
         await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
-        Log("Invoking inline rename");
         await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
-        Log("Comparing the expected rename spans against the actual rename tags");
         MarkupTestFile.GetSpans(markup, out var _, out var renameSpans);
         var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
         var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
         AssertEx.SetEqual(renameSpans, tagSpans);
 
-        Log("Typing the new name 'y' and committing the rename");
         await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
-        Log("Waiting for the rename to complete");
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-        Log("Verifying the resulting editor text");
         await TestServices.EditorVerifier.TextEqualsAsync("""
 
             Imports System
@@ -247,22 +237,16 @@ public sealed class BasicRename(ITestOutputHelper testOutputHelper) : AbstractEd
                     Inherits Attribute
             End Class
             """;
-        Log("Setting up the editor with the attribute rename markup");
         await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
-        Log("Invoking inline rename");
         await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
-        Log("Comparing the expected rename spans against the actual rename tags");
         MarkupTestFile.GetSpans(markup, out var _, out var renameSpans);
         var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
         var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
         AssertEx.SetEqual(renameSpans, tagSpans);
 
-        Log("Typing 'Custom' and committing the rename");
         await TestServices.Input.SendWithoutActivateAsync(["Custom", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
-        Log("Waiting for the rename to complete");
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-        Log("Verifying the resulting editor text");
         await TestServices.EditorVerifier.TextEqualsAsync("""
 
             Imports System
@@ -285,22 +269,16 @@ public sealed class BasicRename(ITestOutputHelper testOutputHelper) : AbstractEd
             End Class
             """;
 
-        Log("Setting up the editor with the attribute rename markup");
         await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
-        Log("Invoking inline rename");
         await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
-        Log("Comparing the expected rename spans against the actual rename tags");
         MarkupTestFile.GetSpans(markup, out var _, out var renameSpans);
         var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
         var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
         AssertEx.SetEqual(renameSpans, tagSpans);
 
-        Log("Typing 'Custom' and committing the rename");
         await TestServices.Input.SendWithoutActivateAsync(["Custom", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
-        Log("Waiting for the rename to complete");
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-        Log("Verifying the resulting editor text");
         await TestServices.EditorVerifier.TextEqualsAsync("""
 
             Imports System
@@ -326,22 +304,16 @@ public sealed class BasicRename(ITestOutputHelper testOutputHelper) : AbstractEd
                 Inherits Attribute
             End Class
             """;
-        Log("Setting up the editor with the attribute-usage rename markup");
         await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
-        Log("Invoking inline rename");
         await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
-        Log("Comparing the expected rename spans against the actual rename tags");
         MarkupTestFile.GetSpans(markup, out _, out var renameSpans);
         var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
         var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
         AssertEx.SetEqual(renameSpans, tagSpans);
 
-        Log("Typing 'Custom' and committing the rename");
         await TestServices.Input.SendWithoutActivateAsync(["Custom", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
-        Log("Waiting for the rename to complete");
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-        Log("Verifying the resulting editor text");
         await TestServices.EditorVerifier.TextEqualsAsync("""
 
             Imports System
@@ -371,22 +343,16 @@ public sealed class BasicRename(ITestOutputHelper testOutputHelper) : AbstractEd
                 Inherits Attribute
             End Class
             """;
-        Log("Setting up the editor with the attribute-declaration rename markup");
         await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
-        Log("Invoking inline rename");
         await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
-        Log("Comparing the expected rename spans against the actual rename tags");
         MarkupTestFile.GetSpans(markup, out _, out var renameSpans);
         var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
         var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
         AssertEx.SetEqual(renameSpans, tagSpans);
 
-        Log("Typing 'Custom' and committing the rename");
         await TestServices.Input.SendWithoutActivateAsync(["Custom", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
-        Log("Waiting for the rename to complete");
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-        Log("Verifying the resulting editor text");
         await TestServices.EditorVerifier.TextEqualsAsync("""
 
             Imports System
@@ -412,22 +378,16 @@ public sealed class BasicRename(ITestOutputHelper testOutputHelper) : AbstractEd
                     Inherits Attribute
             End Class
             """;
-        Log("Setting up the editor with the capitalized attribute rename markup");
         await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
-        Log("Invoking inline rename");
         await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
-        Log("Comparing the expected rename spans against the actual rename tags");
         MarkupTestFile.GetSpans(markup, out var _, out var renameSpans);
         var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
         var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
         AssertEx.SetEqual(renameSpans, tagSpans);
 
-        Log("Typing 'Custom' and committing the rename");
         await TestServices.Input.SendWithoutActivateAsync(["Custom", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
-        Log("Waiting for the rename to complete");
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-        Log("Verifying the resulting editor text");
         await TestServices.EditorVerifier.TextEqualsAsync("""
 
             Imports System

@@ -12,15 +12,12 @@ using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using WindowsInput.Native;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic;
 
 [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
 public class BasicExtractMethod : AbstractEditorTest
 {
-    private readonly ITestOutputHelper _testOutputHelper;
-
     private const string TestSource = """
 
         Imports System
@@ -45,10 +42,9 @@ public class BasicExtractMethod : AbstractEditorTest
 
     protected override string LanguageName => LanguageNames.VisualBasic;
 
-    public BasicExtractMethod(ITestOutputHelper testOutputHelper)
+    public BasicExtractMethod()
         : base(nameof(BasicExtractMethod))
     {
-        _testOutputHelper = testOutputHelper;
     }
 
     private void Log(string message)
@@ -57,15 +53,10 @@ public class BasicExtractMethod : AbstractEditorTest
     [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85737")]
     public async Task SimpleExtractMethod()
     {
-        Log("Setting the editor text to the test source");
         await TestServices.Editor.SetTextAsync(TestSource, HangMitigatingCancellationToken);
-        Log("Placing the caret before 'Console'");
         await TestServices.Editor.PlaceCaretAsync("Console", charsOffset: -1, HangMitigatingCancellationToken);
-        Log("Extending the selection to include the WriteLine statement");
         await TestServices.Editor.PlaceCaretAsync("Hello VB!", charsOffset: 3, occurrence: 0, extendSelection: true, selectBlock: false, HangMitigatingCancellationToken);
-        Log("Executing Extract Method");
         await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Refactor.ExtractMethod, HangMitigatingCancellationToken);
-        Log("Waiting for the Extract Method operation to complete");
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ExtractMethod, HangMitigatingCancellationToken);
         MarkupTestFile.GetSpans("""
 
@@ -92,14 +83,11 @@ public class BasicExtractMethod : AbstractEditorTest
                 End Function
             End Module
             """, out var expectedText, out var spans);
-        Log("Verifying the extracted method appears in the editor text");
         await TestServices.EditorVerifier.TextContainsAsync(expectedText, cancellationToken: HangMitigatingCancellationToken);
         var tags = (await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken)).SelectAsArray(tag => tag.Span.Span.ToTextSpan());
         AssertEx.SetEqual(spans, tags);
 
-        Log("Typing the new method name 'SayHello' and committing the rename");
         await TestServices.Input.SendAsync(["SayHello", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
-        Log("Verifying the renamed method appears in the editor text");
         await TestServices.EditorVerifier.TextContainsAsync("""
                 Private Sub SayHello()
                     Console.WriteLine("Hello VB!")
@@ -110,13 +98,9 @@ public class BasicExtractMethod : AbstractEditorTest
     [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85737")]
     public async Task ExtractViaCodeAction()
     {
-        Log("Setting the editor text to the test source");
         await TestServices.Editor.SetTextAsync(TestSource, HangMitigatingCancellationToken);
-        Log("Placing the caret before 'a = 5'");
         await TestServices.Editor.PlaceCaretAsync("a = 5", charsOffset: -1, HangMitigatingCancellationToken);
-        Log("Extending the selection through 'a * b'");
         await TestServices.Editor.PlaceCaretAsync("a * b", charsOffset: 1, occurrence: 0, extendSelection: true, selectBlock: false, HangMitigatingCancellationToken);
-        Log("Applying the 'Extract method' code action");
         await TestServices.EditorVerifier.CodeActionAsync("Extract method", applyFix: true, blockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
         MarkupTestFile.GetSpans("""
 
@@ -144,7 +128,6 @@ public class BasicExtractMethod : AbstractEditorTest
                 End Sub
             End Module
             """, out var expectedText, out var spans);
-        Log("Verifying the resulting editor text matches the expected extraction");
         Assert.Equal(expectedText, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
         var tags = (await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken)).SelectAsArray(tag => tag.Span.Span.ToTextSpan());
         AssertEx.SetEqual(spans, tags);
