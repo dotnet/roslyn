@@ -21,9 +21,6 @@ public class BasicGenerateEqualsAndGetHashCodeDialog : AbstractEditorTest
     {
     }
 
-    private void Log(string message)
-        => _testOutputHelper.WriteLine(message);
-
     [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85737")]
     public async Task VerifyCodeRefactoringOfferedAndCanceled()
     {

@@ -25,9 +25,6 @@ public class BasicGoToImplementation : AbstractEditorTest
     {
     }
 
-    private void Log(string message)
-        => _testOutputHelper.WriteLine(message);
-
     [IdeTheory(Skip = "https://github.com/dotnet/roslyn/issues/85737")]
     [CombinatorialData]
     public async Task SimpleGoToImplementation(bool asyncNavigation)
