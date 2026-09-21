@@ -23,11 +23,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 /// </summary>
 internal sealed class LanguageServerTelemetry : IDisposable
 {
-    internal const string DaemonSessionIdPropertyName = "vs.roslyn.languageserver.daemonsessionid";
-    internal const string HostModePropertyName = "vs.roslyn.languageserver.hostmode";
-    internal const string ServerVersionPropertyName = "serverVersion";
-    internal const string ServerPackageVersionPropertyName = "serverPackageVersion";
-    internal const string ServerPlatformPropertyName = "serverPlatform";
+    private const string CommonPropertyPrefix = "roslyn.languageserver.";
+
+    internal const string DaemonSessionIdPropertyName = CommonPropertyPrefix + "daemonSessionId";
+    internal const string HostModePropertyName = CommonPropertyPrefix + "hostMode";
+    internal const string ServerVersionPropertyName = CommonPropertyPrefix + "serverVersion";
+    internal const string ServerPackageVersionPropertyName = CommonPropertyPrefix + "serverPackageVersion";
+    internal const string ServerPlatformPropertyName = CommonPropertyPrefix + "serverPlatform";
 
     /// <summary>
     /// Collector key used by C# Dev Kit to send language server telemetry to the VS Code cluster.

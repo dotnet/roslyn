@@ -111,7 +111,7 @@ var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 - **Cancellation**: Always thread `CancellationToken` through async operations
 - **Performance**: Avoid LINQ in hot paths, prefer `for` loops or `.AsSpan()`, use `ObjectPool<T>`
 - **LanguageServer request context**: Handlers should use the asynchronous `RequestContext.Get*Async` methods for workspace, solution, and document access. Obsolete synchronous members remain only for compatibility with existing external-access consumers and forward to the asynchronous accessors.
-- **LanguageServer telemetry**: `LanguageServerTelemetry` adds the server informational version, NuGet-compatible package version, and normalized platform as common properties before starting each session. `Microsoft.CodeAnalysis.LanguageServer/ApplicationInsights.config` registers `DeviceContextInitializer` and must remain copied to build and publish outputs so the telemetry client populates standard device context such as the OS.
+- **LanguageServer telemetry**: `LanguageServerTelemetry` adds common properties under the `roslyn.languageserver.*` prefix, including server identity, normalized platform, host mode, and daemon correlation, before starting each session. `Microsoft.CodeAnalysis.LanguageServer/ApplicationInsights.config` registers `DeviceContextInitializer` and must remain copied to build and publish outputs so the telemetry client populates standard device context such as the OS.
 
 ## Common Gotchas
 

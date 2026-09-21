@@ -32,6 +32,16 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper) :
     private static string GetEventName(string name) => $"test/event/{name}";
 
     [Fact]
+    public void TestCommonPropertyNames()
+    {
+        Assert.Equal("roslyn.languageserver.daemonSessionId", LanguageServerTelemetry.DaemonSessionIdPropertyName);
+        Assert.Equal("roslyn.languageserver.hostMode", LanguageServerTelemetry.HostModePropertyName);
+        Assert.Equal("roslyn.languageserver.serverVersion", LanguageServerTelemetry.ServerVersionPropertyName);
+        Assert.Equal("roslyn.languageserver.serverPackageVersion", LanguageServerTelemetry.ServerPackageVersionPropertyName);
+        Assert.Equal("roslyn.languageserver.serverPlatform", LanguageServerTelemetry.ServerPlatformPropertyName);
+    }
+
+    [Fact]
     public void TestVSTelemetryLoadedIntoDefaultAlc()
     {
         using var service = CreateReporter(DefaultServerConfiguration);
@@ -86,7 +96,9 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper) :
         Assert.Contains(configuration.ContextInitializers, static initializer => initializer is DeviceContextInitializer);
 
         var client = new TelemetryClient(configuration);
-        Assert.False(string.IsNullOrEmpty(client.Context.Device.OperatingSystem));
+        Assert.True(SpinWait.SpinUntil(
+            () => !string.IsNullOrEmpty(client.Context.Device.OperatingSystem),
+            TimeSpan.FromSeconds(5)));
     }
 
     /// <summary>
