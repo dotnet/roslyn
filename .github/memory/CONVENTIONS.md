@@ -26,7 +26,7 @@ From `.editorconfig`:
 - File-scoped namespaces and `var`/expression-body preferences are enforced via editorconfig analyzers — follow the file you are editing.
 
 Running the formatter:
-- `dotnet format whitespace --folder . --include <path>` (the `--folder .`/`--include` form avoids a slow design-time build).
+- `dotnet format whitespace --folder . --include <path>` (the `--folder .`/`--include` form avoids a slow design-time build). Folder mode does not queue a restore, so `--no-restore` is not applicable and cannot be combined with `--folder`.
 
 ## Patterns in Active Use
 

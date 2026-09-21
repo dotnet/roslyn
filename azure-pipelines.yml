@@ -207,13 +207,16 @@ stages:
 - stage: Windows_Debug_Tests
   dependsOn: Windows_Debug_Build
   variables:
+  # Use the producer's artifact name even when only the test job is retried.
+  - name: testArtifactName
+    value: $[stageDependencies.Windows_Debug_Build.Build_Windows_Debug.outputs['SetTestArtifactName.testArtifactName']]
   - ${{ if ne(variables['System.TeamProject'], 'public') }}:
     - group: DotNet-HelixApi-Access
   jobs:
   - template: eng/pipelines/test-windows-job.yml
     parameters:
       jobName: Submit_Windows_Debug_Helix_Tests
-      testArtifactName: Transport_Artifacts_Windows_Debug
+      testArtifactName: $(testArtifactName)
       configuration: Debug
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
@@ -251,7 +254,7 @@ stages:
       parameters:
         testRunName: 'Test Windows CoreClr Debug Single Machine'
         jobName: Test_Windows_CoreClr_Debug_Single_Machine
-        testArtifactName: Transport_Artifacts_Windows_Debug
+        testArtifactName: $(testArtifactName)
         configuration: Debug
         poolParameters: ${{ parameters.vs2026PreviewPool }}
         testArguments: -testCoreClr
@@ -263,13 +266,15 @@ stages:
 - stage: Windows_Release_Tests
   dependsOn: Windows_Release_Build
   variables:
+  - name: testArtifactName
+    value: $[stageDependencies.Windows_Release_Build.Build_Windows_Release.outputs['SetTestArtifactName.testArtifactName']]
   - ${{ if ne(variables['System.TeamProject'], 'public') }}:
     - group: DotNet-HelixApi-Access
   jobs:
   - template: eng/pipelines/test-windows-job.yml
     parameters:
       jobName: Submit_Windows_Release_Helix_Tests
-      testArtifactName: Transport_Artifacts_Windows_Release
+      testArtifactName: $(testArtifactName)
       configuration: Release
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
@@ -300,6 +305,8 @@ stages:
 - stage: Unix_Debug_CoreClr
   dependsOn: Unix_Build
   variables:
+  - name: testArtifactName
+    value: $[stageDependencies.Unix_Build.Build_Unix_Debug.outputs['SetTestArtifactName.testArtifactName']]
   - ${{ if ne(variables['System.TeamProject'], 'public') }}:
     - group: DotNet-HelixApi-Access
   jobs:
@@ -307,7 +314,7 @@ stages:
     parameters:
       testRunName: 'Test Linux Debug'
       jobName: Test_Linux_Debug
-      testArtifactName: Transport_Artifacts_Unix_Debug
+      testArtifactName: $(testArtifactName)
       configuration: Debug
       testArguments: --testCoreClr
       poolParameters: ${{ parameters.ubuntuPool }}
@@ -316,7 +323,7 @@ stages:
     parameters:
       testRunName: 'Test Linux Debug Spanish Single Machine'
       jobName: Test_Linux_Debug_Spanish_Single_Machine
-      testArtifactName: Transport_Artifacts_Unix_Debug
+      testArtifactName: $(testArtifactName)
       configuration: Debug
       testArguments: --testCoreClr
       poolParameters: ${{ parameters.ubuntuPool }}
@@ -326,6 +333,8 @@ stages:
   - stage: MacOS_Debug_CoreClr
     dependsOn: MacOS_Build
     variables:
+    - name: testArtifactName
+      value: $[stageDependencies.MacOS_Build.Build_macOS_Debug.outputs['SetTestArtifactName.testArtifactName']]
     - ${{ if ne(variables['System.TeamProject'], 'public') }}:
       - group: DotNet-HelixApi-Access
     jobs:
@@ -333,7 +342,7 @@ stages:
     - template: eng/pipelines/test-unix-job.yml
       parameters:
         jobName: Test_macOS_Debug
-        testArtifactName: Transport_Artifacts_macOS_Debug
+        testArtifactName: $(testArtifactName)
         configuration: Debug
         testArguments: --testCoreClr
         helixQueueName: $(HelixMacOsQueueName)

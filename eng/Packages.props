@@ -82,7 +82,7 @@
          types moved into Shell.Framework, and ComponentModelHost 18.9.x type-forwards them there. Older transitive
          versions still define those types, which collides with Shell.Framework (CS0433). -->
     <PackageVersion Include="Microsoft.VisualStudio.ComponentModelHost" Version="18.9.453" />
-    <PackageVersion Include="Microsoft.VisualStudio.Copilot.Roslyn.SemanticSearch" Version="18.0.634-alpha" />
+    <PackageVersion Include="Microsoft.VisualStudio.Copilot.Roslyn.SemanticSearch" Version="18.11.6" />
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility" Version="18.0.52-preview1" />
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility.JsonGenerators.Sdk" Version="18.0.52-preview1" />
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility.Sdk" Version="18.0.52-preview1" />
