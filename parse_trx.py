@@ -95,7 +95,7 @@ def format_markdown(failures):
             location = f["storage"]
         else:
             location = "unknown location"
-        lines.append(f"- `{f['name']}` - {location}")
+        lines.append(f"- `{f['name']}` — {location}")
     return "\n".join(lines)
 
 

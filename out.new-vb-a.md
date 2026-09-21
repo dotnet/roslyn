@@ -1,8 +1,0 @@
-- `Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit.CommitOnSave (VS18)` - Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit
-- `Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit.UndoWithoutEndConstruct (VS18)` - Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicLineCommit
-- `Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeCapitalizedRename (VS18)` - Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename
-- `Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRename (VS18)` - Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename
-- `Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRenameWhileRenameAttribute (VS18)` - Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename
-- `Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRenameWhileRenameAttributeClass (VS18)` - Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename
-- `Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyAttributeRenameWhileRenameClasss (VS18)` - Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename
-- `Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename.VerifyLocalVariableRename (VS18)` - Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicRename
