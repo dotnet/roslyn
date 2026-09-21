@@ -33,6 +33,10 @@ The warning highlights the first non-whitespace character (`T` in this example).
 It remains plain text in the generated documentation; Razor does not add a
 `<summary>` element. Write the tags explicitly when you want a summary.
 
+The **Wrap in `<summary>`** quick fix wraps the whole documentation body in a
+summary element. Leading and trailing whitespace stay outside the tags; text,
+line breaks and any existing XML inside the body stay unchanged.
+
 The check only requires a leading `<`, ignoring whitespace. Empty bodies don't
 warn, and XML comments, CDATA, processing instructions and incomplete tags satisfy
 the prefix check. C# still handles XML validation. The warning is always on

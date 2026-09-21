@@ -57,6 +57,8 @@ internal static class LanguageServerConstants
 
         public const string WrapAttributes = nameof(WrapAttributes);
 
+        public const string WrapDocumentationInSummary = nameof(WrapDocumentationInSummary);
+
         /// <summary>
         /// Remaps and formats the resolved code action edit
         /// </summary>

@@ -244,6 +244,11 @@
         <target state="translated">將屬性換行</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_in_summary">
+        <source>Wrap in &lt;summary&gt;</source>
+        <target state="new">Wrap in &lt;summary&gt;</target>
+        <note>&lt;summary&gt; is an XML documentation tag and should not be translated.</note>
+      </trans-unit>
     </body>
   </file>
 </xliff>
