@@ -142,15 +142,26 @@ static partial class TrxFailures
 
     private static string FormatMarkdown(IEnumerable<TestFailure> failures)
     {
-        return string.Join(
-            Environment.NewLine,
-            failures.Select(failure =>
-            {
-                var location = failure.File is not null
-                    ? $"{failure.File}:{failure.Line}"
-                    : failure.ClassName ?? failure.Storage ?? "unknown location";
-                return $"- `{failure.Name}` - {location}";
-            }));
+        var lines = new List<string>
+        {
+            "| Test | Location |",
+            "| --- | --- |",
+        };
+
+        foreach (var failure in failures)
+        {
+            var location = failure.File is not null
+                ? $"{failure.File}:{failure.Line}"
+                : failure.ClassName ?? failure.Storage ?? "unknown location";
+            lines.Add($"| `{EscapeTableCell(failure.Name)}` | {EscapeTableCell(location)} |");
+        }
+
+        return string.Join(Environment.NewLine, lines);
+    }
+
+    private static string EscapeTableCell(string value)
+    {
+        return value.Replace("|", "\\|", StringComparison.Ordinal);
     }
 
     private static (string? File, int? Line) LocationFromStack(string stack)

@@ -10,6 +10,52 @@
               <Property Name="Namespace" Value="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic" />
               <Rule Match="Any">
                 <Rule Match="All">
+                  <Property Name="Class" Value="BasicExtractMethod" />
+                  <Rule Match="Any">
+                    <Rule Match="All">
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicExtractMethod.SimpleExtractMethod" />
+                      <Rule Match="Any">
+                        <Property Name="DisplayName" Value="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicExtractMethod.SimpleExtractMethod (VS18)" />
+                      </Rule>
+                    </Rule>
+                    <Rule Match="All">
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicExtractMethod.ExtractViaCodeAction" />
+                      <Rule Match="Any">
+                        <Property Name="DisplayName" Value="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicExtractMethod.ExtractViaCodeAction (VS18)" />
+                      </Rule>
+                    </Rule>
+                  </Rule>
+                </Rule>
+                <Rule Match="All">
+                  <Property Name="Class" Value="BasicGenerateEqualsAndGetHashCodeDialog" />
+                  <Rule Match="Any">
+                    <Rule Match="All">
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicGenerateEqualsAndGetHashCodeDialog.VerifyCodeRefactoringOfferedAndCanceled" />
+                      <Rule Match="Any">
+                        <Property Name="DisplayName" Value="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicGenerateEqualsAndGetHashCodeDialog.VerifyCodeRefactoringOfferedAndCanceled (VS18)" />
+                      </Rule>
+                    </Rule>
+                    <Rule Match="All">
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicGenerateEqualsAndGetHashCodeDialog.VerifyCodeRefactoringOfferedAndAccepted" />
+                      <Rule Match="Any">
+                        <Property Name="DisplayName" Value="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicGenerateEqualsAndGetHashCodeDialog.VerifyCodeRefactoringOfferedAndAccepted (VS18)" />
+                      </Rule>
+                    </Rule>
+                  </Rule>
+                </Rule>
+                <Rule Match="All">
+                  <Property Name="Class" Value="BasicGoToImplementation" />
+                  <Rule Match="Any">
+                    <Rule Match="All">
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicGoToImplementation.SimpleGoToImplementation" />
+                      <Rule Match="Any">
+                        <Property Name="DisplayName" Value="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicGoToImplementation.SimpleGoToImplementation(asyncNavigation: True) (VS18)" />
+                        <Property Name="DisplayName" Value="Roslyn.VisualStudio.NewIntegrationTests.VisualBasic.BasicGoToImplementation.SimpleGoToImplementation(asyncNavigation: False) (VS18)" />
+                      </Rule>
+                    </Rule>
+                  </Rule>
+                </Rule>
+                <Rule Match="All">
                   <Property Name="Class" Value="BasicLineCommit" />
                   <Rule Match="Any">
                     <Rule Match="All">
