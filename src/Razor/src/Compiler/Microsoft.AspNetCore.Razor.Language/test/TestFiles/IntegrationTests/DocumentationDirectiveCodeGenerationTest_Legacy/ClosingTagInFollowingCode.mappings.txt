@@ -1,0 +1,10 @@
+﻿Source Location: (16:0,16 [24] TestFiles/IntegrationTests/DocumentationDirectiveCodeGenerationTest_Legacy/ClosingTagInFollowingCode.cshtml)
+|<summary>Missing end tag|
+Generated Location: (1200:18,4 [24] )
+|<summary>Missing end tag|
+
+Source Location: (69:2,12 [50] TestFiles/IntegrationTests/DocumentationDirectiveCodeGenerationTest_Legacy/ClosingTagInFollowingCode.cshtml)
+| public string EndTag => "</summary>"; /* note */ |
+Generated Location: (2461:38,0 [50] )
+| public string EndTag => "</summary>"; /* note */ |
+
