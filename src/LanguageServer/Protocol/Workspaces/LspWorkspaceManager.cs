@@ -71,6 +71,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     private readonly ILanguageInfoProvider _languageInfoProvider;
     private readonly RequestTelemetryLogger _requestTelemetryLogger;
     private readonly IOnDemandProjectLoader? _onDemandProjectLoader;
+    private Func<Task>? _beforeApplyLspTextAsyncForTest;
 
     public LspWorkspaceManager(
         ILspLogger logger,
@@ -275,15 +276,21 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         ProjectLoadSnapshot? snapshot = allowProjectLoading && _onDemandProjectLoader is not null
             ? await _onDemandProjectLoader.CaptureWorkspaceLoadSnapshotAsync().ConfigureAwait(false)
             : null;
+        var projectLoadTask = snapshot?.Completion;
+        // Preserve whether deferred resolution was required before initial context capture can race with load completion.
+        var requiresDeferredResolution = projectLoadTask is not null &&
+            projectLoadTask.Status != TaskStatus.RanToCompletion;
 
         var initialContext = await GetInitialSolutionContextAsync(cancellationToken).ConfigureAwait(false);
         if (initialContext is null)
             return null;
 
-        return snapshot is null || snapshot.Value.Completion.Status == TaskStatus.RanToCompletion
-            ? new ValueTask<LspContext>(initialContext.Value)
-            : new ValueTask<LspContext>(ResolveSolutionAfterProjectLoadAsync(
-                initialContext.Value, trackedDocuments, snapshot.Value.Completion, cancellationToken));
+        if (!requiresDeferredResolution)
+            return new ValueTask<LspContext>(initialContext.Value);
+
+        Contract.ThrowIfNull(projectLoadTask);
+        return new ValueTask<LspContext>(ResolveSolutionAfterProjectLoadAsync(
+            initialContext.Value, trackedDocuments, projectLoadTask, cancellationToken));
     }
 
     private async Task<LspContext> ResolveDocumentAfterProjectLoadAsync(
@@ -563,6 +570,9 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         // Because the workspace may have been mutated, go back and retrieve its current snapshot so we're operating
         // against that view.
         workspaceCurrentSolution = workspace.CurrentSolution;
+        if (_beforeApplyLspTextAsyncForTest is { } beforeApplyLspTextAsync)
+            await beforeApplyLspTextAsync().ConfigureAwait(false);
+
         var forkedFromVersion = workspaceCurrentSolution.SolutionStateContentVersion;
         var sourceGeneratorChecksum = workspaceCurrentSolution.CompilationState.SourceGeneratorExecutionVersionMap.GetChecksum();
         var cachedFork = cachedSolution.forkedFromVersion == forkedFromVersion &&
@@ -776,6 +786,9 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         public TestAccessor(LspWorkspaceManager manager)
             => _manager = manager;
+
+        public void SetBeforeApplyLspTextCallback(Func<Task> callback)
+            => _manager._beforeApplyLspTextAsyncForTest = callback;
 
         public ValueTask<bool> IsMiscellaneousFilesDocumentAsync(TextDocument document)
         {

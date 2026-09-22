@@ -666,6 +666,47 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     }
 
     [Fact]
+    public async Task WorkspaceContextRefreshesWhenLoadCompletesDuringInitialContextCapture()
+    {
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace: false);
+        var manager = server.GetManager();
+        var loader = (TestOnDemandProjectLoader)server.GetServerAccessor().GetLspServices()
+            .GetRequiredService<IOnDemandProjectLoader>();
+        var loadSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var initialSolutionCaptured = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseInitialContext = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        loader.CaptureWorkspaceLoadSnapshot = () => new(new ProjectLoadSnapshot(loadSource.Task));
+        manager.GetTestAccessor().SetBeforeApplyLspTextCallback(async () =>
+        {
+            initialSolutionCaptured.TrySetResult(true);
+            await releaseInitialContext.Task;
+        });
+
+        var contextCaptureTask = manager.CaptureLspSolutionContextAsync(
+            manager.GetTrackedLspText(),
+            allowProjectLoading: true,
+            CancellationToken.None).AsTask();
+        try
+        {
+            await initialSolutionCaptured.Task.WithTimeout(TestHelpers.HangMitigatingTimeout);
+            await server.TestWorkspace.ChangeSolutionAsync(
+                server.TestWorkspace.CurrentSolution.AddProject("Loaded", "Loaded", LanguageNames.CSharp).Solution);
+            loadSource.SetResult(true);
+            releaseInitialContext.SetResult(true);
+
+            var contextTask = await contextCaptureTask.WithTimeout(TestHelpers.HangMitigatingTimeout);
+            var context = await contextTask!.Value;
+
+            Assert.Equal(2, context.Solution.ProjectIds.Count);
+        }
+        finally
+        {
+            loadSource.TrySetResult(true);
+            releaseInitialContext.TrySetResult(true);
+        }
+    }
+
+    [Fact]
     public async Task WorkspaceContextRefreshesSolutionAfterLoadCompletes()
     {
         await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace: false);
