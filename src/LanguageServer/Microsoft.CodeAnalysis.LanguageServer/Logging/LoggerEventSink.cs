@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging;
 
 /// <summary>
 /// Logs telemetry events only when Trace is enabled. Faults retain their own severity-based filtering.
+/// Properties and collection items marked with <see cref="PiiValue"/> are omitted.
 /// </summary>
 internal sealed class LoggerEventSink(ILogger logger) : IEventSink
 {
@@ -68,14 +69,32 @@ internal sealed class LoggerEventSink(ILogger logger) : IEventSink
         using var _ = PooledStringBuilder.GetInstance(out var builder);
         foreach (var (name, value) in keyValueMessage.Properties)
         {
+            if (value is PiiValue)
+                continue;
+
             if (builder.Length > 0)
                 builder.Append('|');
 
             builder.Append(name).Append('=');
             if (value is IEnumerable<object> items)
-                builder.AppendJoin(',', items);
+            {
+                var first = true;
+                foreach (var item in items)
+                {
+                    if (item is PiiValue)
+                        continue;
+
+                    if (!first)
+                        builder.Append(',');
+
+                    builder.Append(item);
+                    first = false;
+                }
+            }
             else
+            {
                 builder.Append(value);
+            }
         }
 
         return builder.ToString();

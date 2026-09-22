@@ -52,9 +52,17 @@ public sealed class LanguageServerTelemetryLoggingTests(ITestOutputHelper testOu
 
             logConfiguration.UpdateLogLevel(LogLevel.Trace);
             Assert.True(telemetry.IsEnabled(FunctionId.TestEvent_NotUsed));
+            var piiValue = new PiiValue(new ThrowOnToString());
             telemetry.Log(
                 FunctionId.TestEvent_NotUsed,
-                KeyValueLogMessage.Create(properties => properties["Message"] = eventMessage, TelemetryLogLevel.Information));
+                KeyValueLogMessage.Create(properties =>
+                {
+                    properties["PiiBefore"] = piiValue;
+                    properties["Message"] = eventMessage;
+                    properties["Items"] = new object[] { piiValue, "first", piiValue, "second", piiValue };
+                    properties["OnlyPii"] = new[] { piiValue, piiValue };
+                    properties["PiiAfter"] = piiValue;
+                }, TelemetryLogLevel.Information));
             await completion.Task.WaitAsync(TimeSpan.FromSeconds(30));
 
             logConfiguration.UpdateLogLevel(LogLevel.Information);
@@ -63,7 +71,13 @@ public sealed class LanguageServerTelemetryLoggingTests(ITestOutputHelper testOu
         }
 
         var loggedMessage = Assert.Single(messages);
-        Assert.Equal($"[RoslynTelemetry] TestEvent_NotUsed: Message={eventMessage}", loggedMessage.Message);
+        Assert.Equal($"[RoslynTelemetry] TestEvent_NotUsed: Message={eventMessage}|Items=first,second|OnlyPii=", loggedMessage.Message);
         Assert.Equal(MessageType.Debug, loggedMessage.MessageType);
+    }
+
+    private sealed class ThrowOnToString
+    {
+        public override string ToString()
+            => throw new InvalidOperationException("PII values must not be formatted.");
     }
 }
