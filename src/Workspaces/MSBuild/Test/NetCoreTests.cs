@@ -857,21 +857,30 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase, IClassFixture<Proje
         var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessKind.NetCore, CancellationToken.None);
         var errors = new List<string>();
 
-        var result = await FileBasedProgramsProjectLoader.LoadFileBasedAppProjectGraphAsync(
-            buildHost,
-            fileBasedProgramService,
-            sourceFilePath,
-            errors.Add,
-            CancellationToken.None);
+        // Reload on the same host to verify the previous graph released its projects.
+        for (var i = 0; i < 2; i++)
+        {
+            var result = await FileBasedProgramsProjectLoader.LoadFileBasedAppProjectGraphAsync(
+                buildHost,
+                fileBasedProgramService,
+                sourceFilePath,
+                errors.Add,
+                CancellationToken.None);
 
-        Assert.Empty(errors);
-        var results = result.ReferencedProjects.Insert(0, result.Root);
-        var resultsByPath = results.ToDictionary(result => result.EntryPointFilePath, PathUtilities.Comparer);
-        Assert.Equal(3, resultsByPath.Count);
-        Assert.Contains(GetSolutionFileName("Program.cs"), resultsByPath.Keys, PathUtilities.Comparer);
-        Assert.Contains(GetSolutionFileName("Util.cs"), resultsByPath.Keys, PathUtilities.Comparer);
-        Assert.Contains(GetSolutionFileName("Common.cs"), resultsByPath.Keys, PathUtilities.Comparer);
-        Assert.All(results, result => Assert.NotEmpty(result.ProjectFileInfos));
+            Assert.Empty(errors);
+            var results = result.ReferencedProjects.Insert(0, result.Root);
+            var resultsByPath = results.ToDictionary(result => result.EntryPointFilePath, PathUtilities.Comparer);
+            Assert.Equal(3, resultsByPath.Count);
+            Assert.Contains(GetSolutionFileName("Program.cs"), resultsByPath.Keys, PathUtilities.Comparer);
+            Assert.Contains(GetSolutionFileName("Util.cs"), resultsByPath.Keys, PathUtilities.Comparer);
+            Assert.Contains(GetSolutionFileName("Common.cs"), resultsByPath.Keys, PathUtilities.Comparer);
+            Assert.All(results, result =>
+            {
+                var projectInfo = Assert.Single(result.ProjectFileInfos);
+                Assert.Equal(result.EntryPointFilePath, projectInfo.FilePath);
+                Assert.Equal("net10.0", projectInfo.TargetFramework);
+            });
+        }
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]

@@ -70,14 +70,14 @@ internal static class FileBasedProgramsProjectLoader
             entryPointFilePath,
             reportError).ConfigureAwait(false);
 
-        var rootResult = await LoadProjectAsync(rootProject, entryPointFilePath, disposeAfterLoad: false).ConfigureAwait(false);
+        var rootResult = await LoadProjectAsync(rootProject, entryPointFilePath).ConfigureAwait(false);
         var referencedProjectResults = ImmutableArray.CreateBuilder<ProjectLoadResult>(Math.Max(0, buildService.ProjectRoots.Count - 1));
         foreach (var projectRoot in buildService.GetFinalReferencedProjectRoots(entryPointFilePath))
-            referencedProjectResults.Add(await LoadProjectAsync(projectRoot, projectRoot.EntryPointFilePath, disposeAfterLoad: true).ConfigureAwait(false));
+            referencedProjectResults.Add(await LoadProjectAsync(projectRoot, projectRoot.EntryPointFilePath).ConfigureAwait(false));
 
         return new(rootResult, referencedProjectResults.DrainToImmutable());
 
-        async Task<ProjectLoadResult> LoadProjectAsync(ProjectRootElement projectRoot, string physicalFilePath, bool disposeAfterLoad)
+        async Task<ProjectLoadResult> LoadProjectAsync(ProjectRootElement projectRoot, string physicalFilePath)
         {
             var entryPointLastWriteTimeUtc = File.GetLastWriteTimeUtc(physicalFilePath);
             var loadedFile = await buildHost.LoadProjectAsync(
@@ -88,20 +88,15 @@ internal static class FileBasedProgramsProjectLoader
                 globalProperties: fileBasedProgramService.GetGlobalBuildProperties(),
                 cancellationToken).ConfigureAwait(false);
 
-            try
-            {
-                return new(
-                    physicalFilePath,
-                    graphLoadStartTimeUtc,
-                    entryPointLastWriteTimeUtc,
-                    await loadedFile.GetProjectFileInfosAsync(cancellationToken).ConfigureAwait(false),
-                    await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken).ConfigureAwait(false));
-            }
-            finally
-            {
-                if (disposeAfterLoad)
-                    await loadedFile.DisposeAsync().ConfigureAwait(false);
-            }
+            // Keep all virtual projects loaded until every design-time build has completed.
+            buildService.Disposables.Add(loadedFile);
+
+            return new(
+                physicalFilePath,
+                graphLoadStartTimeUtc,
+                entryPointLastWriteTimeUtc,
+                await loadedFile.GetProjectFileInfosAsync(cancellationToken).ConfigureAwait(false),
+                await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken).ConfigureAwait(false));
         }
     }
 }
