@@ -5,10 +5,14 @@
 using System;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Storage;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Storage;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
@@ -28,18 +32,142 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests;
 /// </summary>
 public sealed class FSharpChecksummedPersistentStorageServiceTests
 {
+    // The constructor is [Obsolete(error: true)] to keep production code from bypassing MEF; that is a
+    // compile-time guard only, so a test can still reach it through reflection.
+    private static FSharpChecksummedPersistentStorageService CreateService()
+        => (FSharpChecksummedPersistentStorageService)Activator.CreateInstance(typeof(FSharpChecksummedPersistentStorageService), nonPublic: true)!;
+
     private static (Document document, IFSharpChecksummedPersistentStorage storage) CreateDocumentAndStorage()
     {
         using var workspace = new AdhocWorkspace();
         var projectId = workspace.AddProject("Project", LanguageNames.CSharp).Id;
         var document = workspace.AddDocument(projectId, "Test.cs", SourceText.From(""));
-
-        // The constructor is [Obsolete(error: true)] to keep production code from bypassing MEF; that is a
-        // compile-time guard only, so a test can still reach it through reflection.
-        var service = (FSharpChecksummedPersistentStorageService)Activator.CreateInstance(typeof(FSharpChecksummedPersistentStorageService), nonPublic: true)!;
-
-        var storage = service.GetStorageAsync(document.Project.Solution, CancellationToken.None).AsTask().GetAwaiter().GetResult();
+        var storage = CreateService().GetStorageAsync(document.Project.Solution, CancellationToken.None).AsTask().GetAwaiter().GetResult();
         return (document, storage);
+    }
+
+    /// Wraps <paramref name="storage"/> in the adapter directly, bypassing <see cref="FSharpChecksummedPersistentStorageService.GetStorageAsync"/>
+    /// and the real Roslyn storage it resolves, so the wrapper's own forwarding can be checked against a fake.
+    private static IFSharpChecksummedPersistentStorage CreateAdapter(IChecksummedPersistentStorage storage)
+    {
+        var adapterType = typeof(FSharpChecksummedPersistentStorageService).GetNestedType("FSharpChecksummedPersistentStorage", BindingFlags.NonPublic)!;
+        return (IFSharpChecksummedPersistentStorage)Activator.CreateInstance(adapterType, [storage])!;
+    }
+
+    /// The <see cref="IChecksummedPersistentStorage"/> a live adapter wraps, reached through its one field of that type.
+    private static IChecksummedPersistentStorage UnderlyingStorage(IFSharpChecksummedPersistentStorage storage)
+    {
+        var field = storage.GetType()
+            .GetFields(BindingFlags.NonPublic | BindingFlags.Instance)
+            .Single(f => typeof(IChecksummedPersistentStorage).IsAssignableFrom(f.FieldType));
+
+        return (IChecksummedPersistentStorage)field.GetValue(storage)!;
+    }
+
+    /// Records the arguments of the three Document-level calls the adapter makes and nothing else; every other
+    /// member of <see cref="IChecksummedPersistentStorage"/> is unreachable through <see cref="IFSharpChecksummedPersistentStorage"/>.
+    private sealed class RecordingStorage : IChecksummedPersistentStorage
+    {
+        public SolutionKey SolutionKey { get; init; }
+        public bool ChecksumMatchesResult;
+        public Stream? ReadResult;
+        public bool WriteResult;
+
+        public (Document Document, string Name, Checksum Checksum, CancellationToken CancellationToken)? LastChecksumMatches;
+        public (Document Document, string Name, Checksum? Checksum, CancellationToken CancellationToken)? LastRead;
+        public (Document Document, string Name, Stream Stream, Checksum? Checksum, CancellationToken CancellationToken)? LastWrite;
+
+        public Task<bool> ChecksumMatchesAsync(Document document, string name, Checksum checksum, CancellationToken cancellationToken)
+        {
+            LastChecksumMatches = (document, name, checksum, cancellationToken);
+            return Task.FromResult(ChecksumMatchesResult);
+        }
+
+        public Task<Stream?> ReadStreamAsync(Document document, string name, Checksum? checksum, CancellationToken cancellationToken)
+        {
+            LastRead = (document, name, checksum, cancellationToken);
+            return Task.FromResult(ReadResult);
+        }
+
+        public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
+        {
+            LastWrite = (document, name, stream, checksum, cancellationToken);
+            return Task.FromResult(WriteResult);
+        }
+
+        // The adapter never reaches these: IFSharpChecksummedPersistentStorage has no solution-, project- or
+        // key-level members, and no checksum-less overload.
+        private static NotSupportedException Unreachable() => new("not reachable through IFSharpChecksummedPersistentStorage");
+
+        public Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CancellationToken cancellationToken = default) => throw Unreachable();
+        public Task<bool> ChecksumMatchesAsync(Project project, string name, Checksum checksum, CancellationToken cancellationToken = default) => throw Unreachable();
+        public Task<bool> ChecksumMatchesAsync(ProjectKey project, string name, Checksum checksum, CancellationToken cancellationToken = default) => throw Unreachable();
+        public Task<bool> ChecksumMatchesAsync(DocumentKey document, string name, Checksum checksum, CancellationToken cancellationToken = default) => throw Unreachable();
+
+        public Task<Stream?> ReadStreamAsync(string name, Checksum? checksum = null, CancellationToken cancellationToken = default) => throw Unreachable();
+        public Task<Stream?> ReadStreamAsync(Project project, string name, Checksum? checksum = null, CancellationToken cancellationToken = default) => throw Unreachable();
+        public Task<Stream?> ReadStreamAsync(ProjectKey project, string name, Checksum? checksum = null, CancellationToken cancellationToken = default) => throw Unreachable();
+        public Task<Stream?> ReadStreamAsync(DocumentKey document, string name, Checksum? checksum = null, CancellationToken cancellationToken = default) => throw Unreachable();
+
+        public Task<bool> WriteStreamAsync(string name, Stream stream, Checksum? checksum = null, CancellationToken cancellationToken = default) => throw Unreachable();
+        public Task<bool> WriteStreamAsync(Project project, string name, Stream stream, Checksum? checksum = null, CancellationToken cancellationToken = default) => throw Unreachable();
+        public Task<bool> WriteStreamAsync(ProjectKey projectKey, string name, Stream stream, Checksum? checksum = null, CancellationToken cancellationToken = default) => throw Unreachable();
+        public Task<bool> WriteStreamAsync(DocumentKey documentKey, string name, Stream stream, Checksum? checksum = null, CancellationToken cancellationToken = default) => throw Unreachable();
+
+        public Task<Stream?> ReadStreamAsync(string name, CancellationToken cancellationToken = default) => throw Unreachable();
+        public Task<Stream?> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken = default) => throw Unreachable();
+        public Task<Stream?> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default) => throw Unreachable();
+        public Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken = default) => throw Unreachable();
+        public Task<bool> WriteStreamAsync(Project project, string name, Stream stream, CancellationToken cancellationToken = default) => throw Unreachable();
+        public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken = default) => throw Unreachable();
+    }
+
+    [Fact]
+    public async Task AdapterForwardsTheDocumentNameChecksumStreamAndCancellationTokenItIsGiven()
+    {
+        using var workspace = new AdhocWorkspace();
+        var projectId = workspace.AddProject("Project", LanguageNames.CSharp).Id;
+        var document = workspace.AddDocument(projectId, "Test.cs", SourceText.From(""));
+        var checksumBytes = Enumerable.Range(0, 16).Select(i => (byte)i).ToImmutableArray();
+        var checksum = Checksum.From(checksumBytes);
+        using var cancellationSource = new CancellationTokenSource();
+        var cancellationToken = cancellationSource.Token;
+
+        var recording = new RecordingStorage();
+        var storage = CreateAdapter(recording);
+
+        using var readResult = new MemoryStream();
+        recording.ReadResult = readResult;
+        var actualReadResult = await storage.ReadStreamAsync(document, "read", checksumBytes, cancellationToken);
+        Assert.Same(readResult, actualReadResult);
+        Assert.Equal((document, "read", checksum, cancellationToken), recording.LastRead);
+
+        using var writeStream = new MemoryStream();
+        recording.WriteResult = true;
+        Assert.True(await storage.WriteStreamAsync(document, "write", writeStream, checksumBytes, cancellationToken));
+        Assert.Equal((document, "write", writeStream, checksum, cancellationToken), recording.LastWrite);
+
+        recording.ChecksumMatchesResult = true;
+        Assert.True(await storage.ChecksumMatchesAsync(document, "match", checksumBytes, cancellationToken));
+        Assert.Equal((document, "match", checksum, cancellationToken), recording.LastChecksumMatches);
+    }
+
+    [Fact]
+    public async Task GetStorageAsyncOpensEachSolutionUnderItsOwnKey()
+    {
+        using var workspaceA = new AdhocWorkspace();
+        var solutionA = workspaceA.AddProject("A", LanguageNames.CSharp).Solution;
+
+        using var workspaceB = new AdhocWorkspace();
+        var solutionB = workspaceB.AddProject("B", LanguageNames.CSharp).Solution;
+
+        var service = CreateService();
+        var storageA = await service.GetStorageAsync(solutionA, CancellationToken.None);
+        var storageB = await service.GetStorageAsync(solutionB, CancellationToken.None);
+
+        Assert.Equal(SolutionKey.ToSolutionKey(solutionA), UnderlyingStorage(storageA).SolutionKey);
+        Assert.Equal(SolutionKey.ToSolutionKey(solutionB), UnderlyingStorage(storageB).SolutionKey);
+        Assert.NotEqual(solutionA.Id, solutionB.Id);
     }
 
     [Fact]
