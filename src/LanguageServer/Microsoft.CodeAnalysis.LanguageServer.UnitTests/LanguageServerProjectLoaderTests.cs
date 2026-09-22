@@ -228,11 +228,11 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         var workspaceLoadSnapshot = await loader.CaptureWorkspaceLoadSnapshotAsync();
         var workspaceLoadTask = workspaceLoadSnapshot.Completion;
         Assert.False(workspaceLoadTask.IsCompleted);
-        Assert.Equal(rootPath, await rootBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout));
+        Assert.Equal(rootPath, await rootBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout), PathUtilities.Comparer);
         rootBuild.CompleteSuccessfully(
             projectLoader.WorkspaceFactory.HostProjectFactory, rootPath,
             documents: [documentPath, otherDocumentPath], references: [dependencyPath]);
-        Assert.Equal(dependencyPath, await dependencyBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout));
+        Assert.Equal(dependencyPath, await dependencyBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout), PathUtilities.Comparer);
 
         Assert.NotEmpty(projectLoader.WorkspaceFactory.HostWorkspace.CurrentSolution.GetDocumentIdsWithFilePath(documentPath));
         Assert.Same(loadTask, loader.StartLoadingAsync(uri));
