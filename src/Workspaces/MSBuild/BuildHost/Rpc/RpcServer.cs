@@ -28,8 +28,12 @@ internal sealed class RpcServer
     : MarshalByRefObject
 #endif
 {
-    private readonly TextWriter _streamWriter;
-    private readonly SemaphoreSlim _sendingStreamSemaphore = new(initialCount: 1);
+    private readonly PipeStream _stream;
+
+    /// <summary>
+    /// A semaphore taken to synchronize all writes to <see cref="_stream"/>.
+    /// </summary>
+    private readonly SemaphoreSlim _streamWritingSemaphore = new(initialCount: 1);
     private readonly TextReader _streamReader;
     private readonly RpcMethodInvoker _rpcMethodInvoker;
 
@@ -49,7 +53,7 @@ internal sealed class RpcServer
 
     public RpcServer(PipeStream stream, RpcMethodInvoker methodInvoker)
     {
-        _streamWriter = new StreamWriter(stream, JsonSettings.StreamEncoding);
+        _stream = stream;
         _streamReader = new StreamReader(stream, JsonSettings.StreamEncoding);
         _rpcMethodInvoker = methodInvoker;
     }
@@ -192,10 +196,25 @@ internal sealed class RpcServer
         // Assert we didn't put a newline in this, since if we did the receiving side won't know how to parse it
         Contract.ThrowIfTrue(responseJson.Contains("\r") || responseJson.Contains("\n"));
 #endif
-        using (await _sendingStreamSemaphore.DisposableWaitAsync().ConfigureAwait(false))
+
+        var responseJsonBytes = JsonSettings.StreamEncoding.GetBytes(responseJson + Environment.NewLine);
+
+        try
         {
-            await _streamWriter.WriteLineAsync(responseJson).ConfigureAwait(false);
-            await _streamWriter.FlushAsync().ConfigureAwait(false);
+            using (await _streamWritingSemaphore.DisposableWaitAsync().ConfigureAwait(false))
+            {
+                // Write the response directly to the stream, rather than going through a TextWriter and calling Flush(): PipeStream's Flush()
+                // implementation doesn't do anything other than check if the pipe was disconnected, which can throw an IOException if the other
+                // side has already gone away. Since that's exactly what we'd expect if the client already disconnected (for example, because it
+                // gave up waiting for a response to a shutdown request), we write directly to avoid that spurious failure. See the same reasoning
+                // in RpcClient.InvokeCoreAsync, and https://github.com/dotnet/roslyn/issues/77040 for the original report of this class of race.
+                await _stream.WriteAsync(responseJsonBytes, 0, responseJsonBytes.Length).ConfigureAwait(false);
+            }
+        }
+        catch (IOException)
+        {
+            // The pipe was already broken, which means the other side has disconnected already; there's nobody left to receive the response,
+            // so there's nothing more to do here.
         }
     }
 
