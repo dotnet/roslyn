@@ -28,8 +28,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Components;
 internal sealed class ComponentTildePathPass(RazorLanguageVersion version) : ComponentIntermediateNodePassBase, IRazorOptimizationPass
 {
     private const string TildePrefix = "~/";
-    private TagHelperCollection? _cachedTagHelpers;
-    private Dictionary<string, HashSet<string>>? _cachedAllowedElementAttributes;
 
     public override int Order => 75;
 
@@ -53,21 +51,8 @@ internal sealed class ComponentTildePathPass(RazorLanguageVersion version) : Com
             return;
         }
 
-        var rewriter = new Rewriter(GetAllowedElementAttributes(tagHelpers));
+        var rewriter = new Rewriter(BuildAllowedElementAttributes(tagHelpers));
         rewriter.Visit(documentNode);
-    }
-
-    private Dictionary<string, HashSet<string>> GetAllowedElementAttributes(TagHelperCollection tagHelpers)
-    {
-        if (!ReferenceEquals(_cachedTagHelpers, tagHelpers))
-        {
-            var allowedElementAttributes = BuildAllowedElementAttributes(tagHelpers);
-            _cachedTagHelpers = tagHelpers;
-            _cachedAllowedElementAttributes = allowedElementAttributes;
-            return allowedElementAttributes;
-        }
-
-        return _cachedAllowedElementAttributes!;
     }
 
     private static Dictionary<string, HashSet<string>> BuildAllowedElementAttributes(TagHelperCollection tagHelpers)
