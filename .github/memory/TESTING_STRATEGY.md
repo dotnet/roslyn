@@ -51,6 +51,26 @@ Targeted runs are strongly preferred — the full suite is large and slow. Tests
 ./test.sh        # or Test.cmd on Windows
 ```
 
+### Build-analysis workflow checks
+
+With Python 3, PyYAML, and Node.js installed, run
+`python -m unittest discover -s .github/workflows/tests -p test_command_publication.py`.
+These checks execute the workflow's JavaScript with mocked GitHub APIs, including
+independent summary/review publication failures, partial retries, API errors,
+pagination, and compiled permission/step ordering. They do not post to GitHub.
+Regenerate the command lock with pinned gh-aw v0.86.2:
+`gh aw compile build-failure-analysis-command.agent --strict --validate --schedule-seed dotnet/roslyn`.
+
+Command deduplication requires a completed run attempt with a successful
+`safe_outputs` job and processing step, located by its command-comment ID run
+name. Summary presence alone is not completion evidence. The fetch job alone
+has `actions: read` for that check. API errors and histories beyond GitHub's
+1,000-run search limit stop publication rather than assuming no prior response.
+Partial retries use visible workflow-generated fingerprints to retain one summary
+per request/revision and suppress identical inline findings by request, revision,
+anchor, and body. Submitted reviews, including unanchored fallback bodies, count
+as published; pending reviews do not. Different finding bodies remain distinct.
+
 ### Test types to be aware of
 - VS integration tests (`azure-pipelines-integration*.yml`) require a VS install, so they run only on **Windows** hosts (not CI-only — they can be run locally on Windows). Prefer unit tests for the inner development loop; reach for integration tests when validating end-to-end VS behavior.
 - A handful of tests fail only for environmental reasons:

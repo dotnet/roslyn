@@ -1,5 +1,6 @@
 ---
 name: "Build Failure Analysis (command)"
+run-name: "Build failure analysis command ${{ github.event.comment.id }}"
 description: >-
   Rerun the build-failure analysis on a pull request when a maintainer comments
   `/analyze-build-failure`. Shares its body and its fetch script with
@@ -106,6 +107,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
+      actions: read
       contents: read
       pull-requests: read
     outputs:
@@ -176,11 +178,52 @@ jobs:
           fi
           echo "authorized=${authorized}" >> "$GITHUB_OUTPUT"
 
+      - name: Check for completed command publication
+        id: command
+        if: steps.perm.outputs.authorized == 'true'
+        uses: actions/github-script@v9.0.0
+        env:
+          WORKFLOW_FILE: build-failure-analysis-command.agent.lock.yml
+        with:
+          script: |
+            if (context.eventName !== "issue_comment") {
+              core.setOutput("completed", "false");
+              return;
+            }
+            const comment = context.payload.comment;
+            const title = `Build failure analysis command ${comment.id}`;
+            for (let page = 1; ; page++) {
+              const { data } = await github.rest.actions.listWorkflowRuns({
+                ...context.repo, workflow_id: process.env.WORKFLOW_FILE,
+                event: "issue_comment", status: "completed",
+                created: `>=${comment.created_at}`, per_page: 100, page,
+              });
+              // GitHub caps filtered run searches at 1,000 results. Do not
+              // silently treat an incomplete history as permission to publish.
+              if (data.total_count > 1000) {
+                throw new Error("Command history exceeds the GitHub search limit; post a new command.");
+              }
+              for (const run of data.workflow_runs) {
+                if (run.display_title !== title) continue;
+                const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRunAttempt, {
+                  ...context.repo, run_id: run.id, attempt_number: run.run_attempt, per_page: 100,
+                });
+                if (jobs.some(job => job.name === "safe_outputs" && job.conclusion === "success" &&
+                    job.steps?.some(step => step.name === "Process Safe Outputs" && step.conclusion === "success"))) {
+                  core.notice("This command completed publication; post a new command to rerun.");
+                  core.setOutput("completed", "true");
+                  return;
+                }
+              }
+              if (data.workflow_runs.length < 100 || page * 100 >= data.total_count) break;
+            }
+            core.setOutput("completed", "false");
+
       # issue_comment uses the default-branch workflow. Fetch scripts likewise
       # come explicitly from that branch, never the PR's base/head or event ref.
       # See the automatic workflow's trust model for the YAML trust boundary.
       - name: Check out analysis scripts
-        if: steps.perm.outputs.authorized == 'true'
+        if: steps.command.outputs.completed == 'false'
         uses: actions/checkout@v7.0.1
         with:
           ref: refs/heads/${{ github.event.repository.default_branch }}
@@ -189,7 +232,7 @@ jobs:
 
       - name: Download binlogs from the PR's latest failed Azure Pipelines build
         id: fetch
-        if: steps.perm.outputs.authorized == 'true'
+        if: steps.command.outputs.completed == 'false'
         shell: bash
         # One wall-clock bound for the whole fetch; see the step below.
         continue-on-error: true
@@ -309,6 +352,61 @@ tools:
 safe-outputs:
   needs: [fetch-binlog]
   steps:
+    - name: Prepare retry-safe command outputs
+      if: github.event_name == 'issue_comment' && steps.download-agent-output.outcome == 'success'
+      uses: actions/github-script@v9.0.0
+      env:
+        GH_AW_AGENT_OUTPUT: ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
+        EXPECTED_HEAD: ${{ needs.fetch-binlog.outputs.pr-head-sha }}
+      with:
+        script: |
+          const fs = require("node:fs");
+          const { createHash } = require("node:crypto");
+          const request = context.payload.comment.id;
+          const pullNumber = context.payload.issue.number;
+          const head = process.env.EXPECTED_HEAD;
+          if (!Number.isSafeInteger(request) || !/^[a-f0-9]{40}$/.test(head)) {
+            throw new Error("Missing verified command or revision identity.");
+          }
+          const outputPath = process.env.GH_AW_AGENT_OUTPUT;
+          const output = JSON.parse(fs.readFileSync(outputPath, "utf8"));
+          if (!Array.isArray(output.items)) throw new Error("Expected an output items array.");
+          const comments = await github.paginate(github.rest.issues.listComments, {
+            ...context.repo, issue_number: pullNumber, per_page: 100,
+          });
+          const reviews = await github.paginate(github.rest.pulls.listReviews, {
+            ...context.repo, pull_number: pullNumber, per_page: 100,
+          });
+          const inline = await github.paginate(github.rest.pulls.listReviewComments, {
+            ...context.repo, pull_number: pullNumber, per_page: 100,
+          });
+          const isBot = item => item.user?.login === "github-actions[bot]" && item.user?.type === "Bot";
+          const submitted = reviews.filter(review => isBot(review) && review.state !== "PENDING" && review.submitted_at);
+          const reviewIds = new Set(submitted.map(review => review.id));
+          // Include review bodies: gh-aw moves unanchorable findings there.
+          const published = [...comments.filter(isBot), ...submitted,
+            ...inline.filter(item => isBot(item) && reviewIds.has(item.pull_request_review_id))];
+          const markers = new Set(published.flatMap(item =>
+            [...(item.body || "").matchAll(/^Build-analysis output: `(\d+:[a-f0-9]{64})`$/gm)].map(match => match[1])));
+          output.items = output.items.filter(item => {
+            if (item.type !== "add_comment" && item.type !== "create_pull_request_review_comment") return true;
+            if (typeof item.body !== "string") throw new Error("Expected a comment body.");
+            const body = item.body.replace(/^Build-analysis output: `\d+:[a-f0-9]{64}`\n\n/, "").replace(/\r\n/g, "\n").trim();
+            // There is one summary per request/revision. Inline identity also
+            // includes the full finding and anchor, so distinct findings survive.
+            const identity = item.type === "add_comment" ? [request, head, item.type] :
+              [request, head, item.type, item.path, Number(item.line), item.side || "RIGHT",
+                item.start_line ? Number(item.start_line) : null, body];
+            const key = `${request}:${createHash("sha256").update(JSON.stringify(identity)).digest("hex")}`;
+            if (markers.has(key)) {
+              core.info(`Skipping previously published ${item.type} (${key}).`);
+              return false;
+            }
+            markers.add(key);
+            item.body = `Build-analysis output: \`${key}\`\n\n${body}`;
+            return true;
+          });
+          fs.writeFileSync(outputPath, JSON.stringify(output));
     - name: Revalidate PR revision before applying queued outputs
       shell: bash
       env:
