@@ -29,11 +29,7 @@ internal sealed class RpcServer
 #endif
 {
     private readonly PipeStream _stream;
-
-    /// <summary>
-    /// A semaphore taken to synchronize all writes to <see cref="_stream"/>.
-    /// </summary>
-    private readonly SemaphoreSlim _streamWritingSemaphore = new(initialCount: 1);
+    private readonly SemaphoreSlim _sendingStreamSemaphore = new(initialCount: 1);
     private readonly TextReader _streamReader;
     private readonly RpcMethodInvoker _rpcMethodInvoker;
 
@@ -201,7 +197,7 @@ internal sealed class RpcServer
 
         try
         {
-            using (await _streamWritingSemaphore.DisposableWaitAsync().ConfigureAwait(false))
+            using (await _sendingStreamSemaphore.DisposableWaitAsync().ConfigureAwait(false))
             {
                 // Write the response directly to the stream, rather than going through a TextWriter and calling Flush(): PipeStream's Flush()
                 // implementation doesn't do anything other than check if the pipe was disconnected, which can throw an IOException if the other
