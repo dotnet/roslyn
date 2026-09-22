@@ -11796,7 +11796,21 @@ public struct Vec4
                     }
                 }
                 """;
-            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            if (throughField)
+            {
+                comp.VerifyDiagnostics(
+                    // (29,17): error CS8374: Cannot ref-assign 'b.Field.Self' to 'c' because 'b.Field.Self' has a narrower escape scope than 'c'.
+                    //                 c = ref b.Field.Self;
+                    Diagnostic(ErrorCode.ERR_RefAssignNarrower, $"c = ref b.Field{access}").WithArguments("c", $"b.Field{access}").WithLocation(29, 17),
+                    // (35,17): error CS8374: Cannot ref-assign 'a.Field.Self' to 'd' because 'a.Field.Self' has a narrower escape scope than 'd'.
+                    //                 d = ref a.Field.Self;
+                    Diagnostic(ErrorCode.ERR_RefAssignNarrower, $"d = ref a.Field{access}").WithArguments("d", $"a.Field{access}").WithLocation(35, 17));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
         [Theory, CombinatorialData]
@@ -11837,7 +11851,18 @@ public struct Vec4
                     }
                 }
                 """;
-            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            if (throughField)
+            {
+                comp.VerifyDiagnostics(
+                    // (24,17): error CS8374: Cannot ref-assign 'a.Field.Self' to 'c' because 'a.Field.Self' has a narrower escape scope than 'c'.
+                    //                 c = ref a.Field.Self;
+                    Diagnostic(ErrorCode.ERR_RefAssignNarrower, $"c = ref a.Field{access}").WithArguments("c", $"a.Field{access}").WithLocation(24, 17));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
         [Fact]
@@ -11873,7 +11898,7 @@ public struct Vec4
                     }
                 }
                 """;
-            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
                 // (21,13): error CS8374: Cannot ref-assign 'b.Self' to 'c' because 'b.Self' has a narrower escape scope than 'c'.
                 //             c = ref b.Self;
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "c = ref b.Self").WithArguments("c", "b.Self").WithLocation(21, 13),
@@ -11934,7 +11959,7 @@ public struct Vec4
                     }
                 }
                 """;
-            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
                 // (17,13): error CS8374: Cannot ref-assign 'a.Self' to 'c' because 'a.Self' has a narrower escape scope than 'c'.
                 //             c = ref a.Self;
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "c = ref a.Self").WithArguments("c", "a.Self").WithLocation(17, 13),
@@ -12038,6 +12063,118 @@ public struct Vec4
                 [GetSelf]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
                 [get_Item]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
                 """)).VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_Field_Mutation(
+            [CombinatorialValues(".Self", ".GetSelf()", "[0]")] string access,
+            bool isValueType,
+            bool nested)
+        {
+            var kind = isValueType ? "struct" : "class";
+            var receiver = nested ? ".Nested.Field" : ".Field";
+            var source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        using (var a = new Wrapper())
+                        {
+                            ref var c = ref a{{receiver}}{{access}};
+                            c.Value = 42;
+                            Console.WriteLine($"{c.Value} {a{{receiver}}.Value}");
+                        }
+
+                        var items = new[] { new Wrapper() };
+                        foreach (var a in items)
+                        {
+                            ref var c = ref a{{receiver}}{{access}};
+                            c.Value = 42;
+                            Console.WriteLine($"{c.Value} {a{{receiver}}.Value}");
+                        }
+                        Console.WriteLine(items[0]{{receiver}}.Value);
+                    }
+                }
+
+                {{kind}} Wrapper : IDisposable
+                {
+                    public S Field = default;
+                    public Nested Nested = default;
+                    public Wrapper() { }
+                    public void Dispose() { }
+                }
+
+                struct Nested
+                {
+                    public S Field = default;
+                    public Nested() { }
+                }
+
+                struct S
+                {
+                    public int Value;
+                    [UnscopedRef] public ref S Self => ref this;
+                    [UnscopedRef] public ref S GetSelf() => ref this;
+                    [UnscopedRef] public ref S this[int i] => ref this;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
+            var expectedOutput = isValueType ? """
+                42 0
+                42 0
+                0
+                """ : """
+                42 42
+                42 42
+                42
+                """;
+            CompileAndVerify(comp, expectedOutput: RefFieldTests.IncludeExpectedOutput(expectedOutput),
+                verify: Verification.Fails.WithILVerifyMessage("""
+                    [get_Self]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                    [GetSelf]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                    [get_Item]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                    """)).VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_Using_RefField_RefAssignment([CombinatorialValues(".Self", ".GetSelf()", "[0]")] string access)
+        {
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                struct S
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                    [UnscopedRef] public ref S GetSelf() => ref this;
+                    [UnscopedRef] public ref S this[int i] => ref this;
+                }
+
+                ref struct Wrapper
+                {
+                    public ref S Field;
+                    public Wrapper(ref S value) => Field = ref value;
+                    public void Dispose() { }
+                }
+
+                class C
+                {
+                    static void M()
+                    {
+                        var s = new S();
+                        using var a = new Wrapper(ref s);
+                        ref var c = ref a.Field{{access}};
+                        {
+                            c = ref a.Field{{access}};
+                        }
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
         }
 
         [Fact]

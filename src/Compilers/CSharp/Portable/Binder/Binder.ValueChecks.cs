@@ -1705,6 +1705,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
+            if (valueKind == BindValueKind.MutableReceiver)
+            {
+                // Mutability of using and foreach receivers does not extend to their ordinary struct fields.
+                valueKind = BindValueKind.RefersToLocation | BindValueKind.Assignable;
+            }
+
             // for other fields defer to the receiver.
             return CheckIsValidReceiverForVariable(node, fieldAccess.ReceiverOpt, valueKind, diagnostics);
         }
