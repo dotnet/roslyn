@@ -8,6 +8,8 @@ using System.Text.Json.Nodes;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
+using Microsoft.VisualStudio.ApplicationInsights;
+using Microsoft.VisualStudio.ApplicationInsights.Extensibility;
 using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Telemetry.Metrics;
 using Microsoft.VisualStudio.Telemetry.Metrics.Events;
@@ -38,6 +40,55 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper) :
         var assembly = Assembly.GetAssembly(service.GetType());
         Assert.Contains(AssemblyLoadContext.Default.Assemblies, a => a == assembly);
         Assert.Contains(AssemblyLoadContext.Default.Assemblies, a => a.GetName().Name == "Microsoft.VisualStudio.Telemetry");
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void TestServerCommonProperties(bool useDevKitTelemetry)
+    {
+        var serverConfiguration = useDevKitTelemetry ? DefaultServerConfiguration : ServerConfigurationWithoutDevKit;
+        using var service = CreateReporter(serverConfiguration);
+        service.InitializeSession("off", "test-session", isDefaultSession: false);
+
+        var session = Assert.IsType<TelemetrySession>(TelemetryReporterWrapper.GetSession(service.Telemetry));
+        Assert.True(session.TryGetCommonPropertyValue(LanguageServerTelemetry.ServerVersionPropertyName, out var serverVersion));
+        var expectedServerVersion = typeof(LanguageServerTelemetry).Assembly
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion;
+        Assert.Equal(expectedServerVersion, Assert.IsType<string>(serverVersion));
+
+        Assert.True(session.TryGetCommonPropertyValue(LanguageServerTelemetry.ServerPackageVersionPropertyName, out var serverPackageVersion));
+        Assert.Equal(expectedServerVersion.Split('+')[0], Assert.IsType<string>(serverPackageVersion));
+
+        Assert.True(session.TryGetCommonPropertyValue(LanguageServerTelemetry.ServerPlatformPropertyName, out var serverPlatform));
+        var expectedPlatform = OperatingSystem.IsWindows()
+            ? "windows"
+            : OperatingSystem.IsLinux()
+                ? "linux"
+                : OperatingSystem.IsMacOS()
+                    ? "macos"
+                    : "unknown";
+        Assert.Equal(expectedPlatform, Assert.IsType<string>(serverPlatform));
+    }
+
+    [Theory]
+    [InlineData("5.12.0-1.26426.8+3aeb96c9", "5.12.0-1.26426.8")]
+    [InlineData("5.12.0-1.26426.8", "5.12.0-1.26426.8")]
+    public void TestGetServerPackageVersion(string serverVersion, string expectedPackageVersion)
+        => Assert.Equal(expectedPackageVersion, LanguageServerTelemetry.GetServerPackageVersion(serverVersion));
+
+    [Fact]
+    public void TestDeviceContextInitializerConfigured()
+    {
+        Assert.True(File.Exists(Path.Combine(TestPaths.GetLanguageServerDirectory(), "ApplicationInsights.config")));
+
+        using var configuration = TelemetryConfiguration.CreateDefault();
+        Assert.Contains(configuration.ContextInitializers, static initializer => initializer is DeviceContextInitializer);
+
+        var client = new TelemetryClient(configuration);
+        Assert.True(SpinWait.SpinUntil(
+            () => !string.IsNullOrEmpty(client.Context.Device.OperatingSystem),
+            TimeSpan.FromSeconds(5)));
     }
 
     /// <summary>

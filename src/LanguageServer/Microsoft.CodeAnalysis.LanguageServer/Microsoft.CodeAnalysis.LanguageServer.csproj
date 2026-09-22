@@ -125,6 +125,7 @@
 
   <ItemGroup>
     <EmbeddedResource Update="LanguageServerResources.resx" GenerateSource="true" />
+    <Content Include="ApplicationInsights.config" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <Target Name="WriteRoslynVersion" AfterTargets="Build">
