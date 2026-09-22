@@ -19,6 +19,17 @@ Roslyn uses a **layered service architecture** built on MEF (Managed Extensibili
 - **EditorConfig templates** (`src/VisualStudio/EditorConfig/`): item templates, generation wizard, context-menu command, VSIX projects, and Visual Studio insertion setup
   - The setup insertion component is `Templates.Editorconfig.Setup`, but its SWR package identity must remain `Templates.Editorconfig.SolutionFile.Setup` because existing Visual Studio template packages depend on that ID.
 
+### External Access assemblies
+
+Partner APIs that depend on IDE layers are grouped into one ExternalAccess assembly per layer:
+
+- `src/Features/ExternalAccess/Core/`
+- `src/EditorFeatures/ExternalAccess/Core/`
+- `src/LanguageServer/ExternalAccess/Core/`
+- `src/VisualStudio/ExternalAccess/Core/`
+
+Partner-specific compatibility assembly for ASP.NET remains under `src/Features/ExternalAccess/AspNetCore/`; ExternalAccess projects for APIs that are not part of the unified layer assemblies remain separate.
+
 ### Service Resolution
 ```csharp
 // Workspace services
@@ -61,6 +72,7 @@ public MyService(IDependency dependency) { }
 ## Out-of-Process (OOP) Services
 
 - ServiceHub components live under `src/Workspaces/Remote/` and have special deployment considerations for .NET Core vs .NET Framework — keep both targets in mind when changing remote services
+- `src/Workspaces/Core/Portable/Utilities/StandardHandleInheritance.cs` prevents redirected Windows child processes from inheriting unrelated standard handles. The LanguageServer and MSBuild BuildHost disable inheritance for their lifetimes before launching descendants; dependency-light hosts may source-link this utility.
 
 ## Key Development Patterns
 

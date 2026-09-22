@@ -47,7 +47,9 @@ internal sealed partial class RemoteProcessTelemetryService(
             telemetrySession.Start();
 
             telemetryService.InitializeTelemetrySession(telemetrySession, logDelta);
-            telemetryService.RegisterUnexpectedExceptionLogger(TraceLogger);
+
+            // Keep the fault logger for the remote process lifetime, not just this RPC service.
+            _ = RoslynTelemetry.Current.AddEventSink(new TraceSourceFaultEventSink(TraceLogger));
             FaultReporter.InitializeFatalErrorHandlers();
 
             // log telemetry that service hub started

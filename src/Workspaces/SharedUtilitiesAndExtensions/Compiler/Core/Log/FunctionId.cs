@@ -632,7 +632,7 @@ internal enum FunctionId
     SemanticSearch_QueryExecution = 760,
 
     // 800-850 for Copilot performance logging.
-    Copilot_Suggestion_Dismissed = 800,
+    // obsolete: Copilot_Suggestion_Dismissed = 800,
     Copilot_On_The_Fly_Docs_Showed_Link = 810,
     Copilot_On_The_Fly_Docs_Loading_State_Entered = 811,
     Copilot_On_The_Fly_Docs_Results_Displayed = 812,
@@ -661,6 +661,8 @@ internal enum FunctionId
     VSCode_LanguageServer_Daemon_Started = 863,
     VSCode_LanguageServer_Daemon_Client_Connected = 864,
     VSCode_LanguageServer_Daemon_Client_Disconnected = 865,
+    VSCode_LanguageServer_Process_Lifetime = 866,
+    VSCode_LanguageServer_Lifetime = 867,
 
     GraphQuery_Calls = 870,
     GraphQuery_Contains = 871,

@@ -14,7 +14,7 @@ public class MultiTargetProjectTests(ITestOutputHelper testOutputHelper) : Abstr
 
     protected override string TargetFrameworkElement => $"""<TargetFrameworks>{OtherTargetFramework};{TargetFramework}</TargetFrameworks>""";
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85699")]
     public async Task OpenExistingProject()
     {
         var solutionPath = await TestServices.SolutionExplorer.GetDirectoryNameAsync(ControlledHangMitigatingCancellationToken);

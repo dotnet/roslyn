@@ -1317,13 +1317,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!ignoreComReceiver)
             {
-                NamedTypeSymbol? receiverNamedType = tryGetReceiverNamedType(methodOrIndexer, invokedAsExtensionMethod);
-                isComReceiver = receiverNamedType is { IsComImport: true };
+                isComReceiver = HasComReceiver(methodOrIndexer, invokedAsExtensionMethod);
             }
 
             return rewrittenArguments.Length == methodOrIndexer.GetParameterCount() &&
                 argsToParamsOpt.IsDefault &&
                 !isComReceiver;
+        }
+
+        internal static bool HasComReceiver(Symbol methodOrIndexer, bool invokedAsExtensionMethod)
+        {
+            return tryGetReceiverNamedType(methodOrIndexer, invokedAsExtensionMethod) is { IsComImport: true };
 
             static NamedTypeSymbol? tryGetReceiverNamedType(Symbol methodOrIndexer, bool invokedAsExtensionMethod)
             {
