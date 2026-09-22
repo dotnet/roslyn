@@ -3544,7 +3544,7 @@ class C { }
                 if (kind == IncrementalGeneratorOutputKind.None)
                     continue;
 
-                if (disabledOutput.HasFlag(kind))
+                if ((disabledOutput & kind) == kind)
                 {
                     if (kind == IncrementalGeneratorOutputKind.Host)
                     {
