@@ -967,7 +967,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 {
                     try
                     {
-                        using var mutex = new ServerNamedMutex(mutexName, out var createdNew);
+                        using var mutex = new ServerNamedMutex(mutexName, out var createdNew, currentUserOnly: false);
                         if (!createdNew && !mutex.TryLock(timeoutMs: Timeout.Infinite))
                         {
                             throw new InvalidOperationException("Failed to acquire named mutex.");

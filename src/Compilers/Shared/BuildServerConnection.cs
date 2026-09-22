@@ -11,6 +11,9 @@ using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Runtime.InteropServices;
+#if NETFRAMEWORK
+using System.Security.AccessControl;
+#endif
 using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
@@ -1001,28 +1004,60 @@ namespace Microsoft.CodeAnalysis.CommandLine
         public bool IsDisposed { get; private set; }
         public bool IsLocked { get; private set; }
 
-        public ServerNamedMutex(string mutexName, out bool createdNew)
-            : this(mutexName, initiallyOwned: true, out createdNew)
+        public ServerNamedMutex(string mutexName, out bool createdNew, bool currentUserOnly = true)
+            : this(mutexName, initiallyOwned: true, out createdNew, currentUserOnly)
         {
         }
 
-        internal ServerNamedMutex(string mutexName, bool initiallyOwned, out bool createdNew)
+        internal ServerNamedMutex(string mutexName, bool initiallyOwned, out bool createdNew, bool currentUserOnly = true)
         {
+#if NET
             Mutex = new Mutex(
                 initiallyOwned: initiallyOwned,
                 name: mutexName,
+                options: GetOptions(currentUserOnly),
                 createdNew: out createdNew
             );
+#else
+            Mutex = currentUserOnly
+                ? new Mutex(initiallyOwned, mutexName, out createdNew, CreateMutexSecurity())
+                : new Mutex(initiallyOwned, mutexName, out createdNew);
+            if (currentUserOnly && !createdNew)
+            {
+                try
+                {
+                    if (!IsCurrentUserOnly(Mutex))
+                    {
+                        throw new WaitHandleCannotBeOpenedException($"Mutex '{mutexName}' is not restricted to the current user.");
+                    }
+                }
+                catch
+                {
+                    Mutex.Dispose();
+                    throw;
+                }
+            }
+#endif
             if (initiallyOwned && createdNew)
                 IsLocked = true;
         }
 
-        public static bool WasOpen(string mutexName)
+        public static bool WasOpen(string mutexName, bool currentUserOnly = true)
         {
             Mutex? m = null;
             try
             {
-                return Mutex.TryOpenExisting(mutexName, out m);
+#if NET
+                return Mutex.TryOpenExisting(mutexName, GetOptions(currentUserOnly), out m);
+#else
+                var rights = MutexRights.Synchronize | MutexRights.Modify;
+                if (currentUserOnly)
+                {
+                    rights |= MutexRights.ReadPermissions;
+                }
+
+                return Mutex.TryOpenExisting(mutexName, rights, out m) && (!currentUserOnly || IsCurrentUserOnly(m));
+#endif
             }
             catch
             {
@@ -1035,6 +1070,54 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 m?.Dispose();
             }
         }
+
+#if NET
+        private static NamedWaitHandleOptions GetOptions(bool currentUserOnly) => new()
+        {
+            CurrentUserOnly = currentUserOnly,
+            CurrentSessionOnly = false,
+        };
+#else
+        private static MutexSecurity CreateMutexSecurity()
+        {
+            using var identity = WindowsIdentity.GetCurrent();
+            var security = new MutexSecurity();
+            security.SetOwner(identity.User);
+            security.AddAccessRule(new MutexAccessRule(identity.User, MutexRights.FullControl, AccessControlType.Allow));
+            return security;
+        }
+
+        private static bool IsCurrentUserOnly(Mutex mutex)
+        {
+            using var identity = WindowsIdentity.GetCurrent();
+            var security = mutex.GetAccessControl();
+            if (!identity.User.Equals(security.GetOwner(typeof(SecurityIdentifier))))
+            {
+                return false;
+            }
+
+            // A null DACL permits everyone, even though GetAccessRules returns no rules.
+            var descriptor = new RawSecurityDescriptor(security.GetSecurityDescriptorBinaryForm(), 0);
+            if (descriptor.DiscretionaryAcl is null)
+            {
+                return false;
+            }
+
+            // Match the access checks made by NamedWaitHandleOptions.CurrentUserOnly on modern .NET.
+            const MutexRights restrictedRights = MutexRights.ChangePermissions | MutexRights.TakeOwnership | MutexRights.Synchronize | MutexRights.Modify;
+            foreach (MutexAccessRule rule in security.GetAccessRules(includeExplicit: true, includeInherited: true, typeof(SecurityIdentifier)))
+            {
+                if (rule.AccessControlType == AccessControlType.Allow &&
+                    (rule.MutexRights & restrictedRights) != 0 &&
+                    !identity.User.Equals(rule.IdentityReference))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+#endif
 
         public bool TryLock(int timeoutMs)
         {
