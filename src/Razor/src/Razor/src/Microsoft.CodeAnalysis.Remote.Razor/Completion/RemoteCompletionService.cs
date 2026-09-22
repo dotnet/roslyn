@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -51,6 +52,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
     private readonly IRazorFormattingService _formattingService = args.ExportProvider.GetExportedValue<IRazorFormattingService>();
     private readonly IDocumentMappingService _documentMappingService = args.ExportProvider.GetExportedValue<IDocumentMappingService>();
     private readonly ITelemetryReporter _telemetryReporter = args.ExportProvider.GetExportedValue<ITelemetryReporter>();
+    private readonly AssetPathCompletionInfoProvider _assetPathCompletionInfoProvider = args.ExportProvider.GetExportedValue<AssetPathCompletionInfoProvider>();
 
     public ValueTask<CompletionPositionInfo?> GetPositionInfoAsync(
         JsonSerializableRazorSolutionWrapper solutionInfo,
@@ -106,7 +108,58 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         var shouldIncludeHtmlCompletions = positionInfo.LanguageKind == RazorLanguageKind.Html
             && !DelegatedCompletionHelper.IsInDirectiveAttributeParameterContext(codeDocument, index);
 
+        if (shouldIncludeHtmlCompletions &&
+            await IsAssetPathContextAsync(documentSnapshot, codeDocument, sourceText, index, cancellationToken).ConfigureAwait(false))
+        {
+            // The HTML server offers sibling files here, which are the wrong thing entirely: a '~/'
+            // value resolves against the static web assets manifest, not the file system.
+            shouldIncludeHtmlCompletions = false;
+        }
+
         return new CompletionPositionInfo(ProvisionalTextEdit: null, positionInfo, shouldIncludeSnippets, shouldIncludeHtmlCompletions, isStartTagContext);
+    }
+
+    /// <summary>
+    /// Resolves the project's asset path data, but only once a cheap textual check says the position
+    /// looks like a <c>~/</c> value. Completion runs on most keystrokes and this data is
+    /// project-scoped, so the common case must not pay for it.
+    /// </summary>
+    private async ValueTask<AssetPathCompletionInfo?> TryGetAssetPathInfoAsync(
+        RemoteDocumentSnapshot documentSnapshot,
+        RazorCodeDocument codeDocument,
+        SourceText sourceText,
+        int absoluteIndex,
+        CancellationToken cancellationToken)
+    {
+        if (!AssetPathCompletionFacts.IsSupported(codeDocument.GetRequiredTagHelperRewrittenSyntaxTree().Options) ||
+            !AssetPathCompletionFacts.IsAssetPathCandidate(sourceText, absoluteIndex))
+        {
+            return null;
+        }
+
+        var info = await _assetPathCompletionInfoProvider
+            .GetInfoAsync(documentSnapshot.ProjectSnapshot, cancellationToken)
+            .ConfigureAwait(false);
+
+        return info.IsEmpty ? null : info;
+    }
+
+    private async ValueTask<bool> IsAssetPathContextAsync(
+        RemoteDocumentSnapshot documentSnapshot,
+        RazorCodeDocument codeDocument,
+        SourceText sourceText,
+        int absoluteIndex,
+        CancellationToken cancellationToken)
+    {
+        if (await TryGetAssetPathInfoAsync(documentSnapshot, codeDocument, sourceText, absoluteIndex, cancellationToken).ConfigureAwait(false) is not { } info)
+        {
+            return false;
+        }
+
+        var owner = codeDocument.GetRequiredTagHelperRewrittenSyntaxTree().Root
+            .FindInnermostNode(absoluteIndex, includeWhitespace: true, walkMarkersBack: true);
+
+        return AssetPathCompletionFacts.TryGetAssetPathContext(owner, info, sourceText, absoluteIndex, out _);
     }
 
     /// <summary>
@@ -250,6 +303,15 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             codeDocument,
             out var razorCompletionContext,
             out var localHtmlCompletionList);
+
+        if (isRazorTrigger)
+        {
+            var sourceText = codeDocument.Source.Text;
+            if (await TryGetAssetPathInfoAsync(documentSnapshot, codeDocument, sourceText, documentPositionInfo.HostDocumentIndex, cancellationToken).ConfigureAwait(false) is { } assetPathInfo)
+            {
+                razorCompletionContext = razorCompletionContext with { AssetPathInfo = assetPathInfo };
+            }
+        }
 
         if (!isCSharpTrigger && !isRazorTrigger)
         {
