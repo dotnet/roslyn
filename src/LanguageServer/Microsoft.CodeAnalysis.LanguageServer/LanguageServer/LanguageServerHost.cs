@@ -13,14 +13,16 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 
-#pragma warning disable CA1001 // The JsonRpc instance is disposed of by the AbstractLanguageServer during shutdown
+#pragma warning disable CA1001 // Resources are disposed when the server exits or startup is aborted.
 internal sealed class LanguageServerHost
-#pragma warning restore CA1001 // The JsonRpc instance is disposed of by the AbstractLanguageServer during shutdown
+#pragma warning restore CA1001
 {
     private readonly AbstractLanguageServer<RequestContext> _roslynLanguageServer;
     private readonly JsonRpc _jsonRpc;
     private readonly RoslynTelemetry _telemetry;
     private LanguageServerTelemetry? _ownedTelemetry;
+    private IDisposable? _lifetimeLogBlock;
+    private int _disposeStarted;
     private volatile bool _hasStarted;
 
     internal ILogger GlobalLogger { get; }
@@ -69,6 +71,10 @@ internal sealed class LanguageServerHost
             // instance for everything constructed below that captures it - the RoslynTelemetry LSP service, and the
             // request queue's processing loop, which runs for the life of the server on this context.
             using var telemetryScope = RoslynTelemetry.SetCurrent(_telemetry);
+            _lifetimeLogBlock = _telemetry.LogBlock(
+                FunctionId.VSCode_LanguageServer_Lifetime,
+                KeyValueLogMessage.Create(LogType.Trace),
+                CancellationToken.None);
 
             var roslynLspFactory = exportProvider.GetExportedValue<CSharpVisualBasicLanguageServerFactory>();
 
@@ -84,8 +90,15 @@ internal sealed class LanguageServerHost
         }
         catch
         {
-            _jsonRpc.Dispose();
-            DisposeOwnedTelemetry();
+            try
+            {
+                _jsonRpc.Dispose();
+            }
+            finally
+            {
+                DisposeTelemetry();
+            }
+
             throw;
         }
     }
@@ -111,7 +124,7 @@ internal sealed class LanguageServerHost
     public async Task WaitForExitAsync()
     {
         // The daemon supervises every server from its own context, so attribute this server's shutdown - including
-        // the telemetry session flush in DisposeOwnedTelemetry - to the server rather than to the daemon.
+        // the telemetry session flush in DisposeTelemetry - to the server rather than to the daemon.
         using var telemetryScope = RoslynTelemetry.SetCurrent(_telemetry);
 
         // Wait until the server exits.  Once complete, we can return and proceed with shutdown.
@@ -129,7 +142,7 @@ internal sealed class LanguageServerHost
         }
         finally
         {
-            DisposeOwnedTelemetry();
+            DisposeTelemetry();
         }
     }
 
@@ -158,13 +171,26 @@ internal sealed class LanguageServerHost
         }
         finally
         {
-            DisposeOwnedTelemetry();
+            DisposeTelemetry();
         }
     }
 
     public ILspServices GetLspServices()
         => _roslynLanguageServer.GetLspServices();
 
-    private void DisposeOwnedTelemetry()
-        => Interlocked.Exchange(ref _ownedTelemetry, null)?.Dispose();
+    private void DisposeTelemetry()
+    {
+        // Multiple callers can wait for exit. Only one may end the block and then dispose its SDK session.
+        if (Interlocked.Exchange(ref _disposeStarted, 1) != 0)
+            return;
+
+        try
+        {
+            Interlocked.Exchange(ref _lifetimeLogBlock, null)?.Dispose();
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _ownedTelemetry, null)?.Dispose();
+        }
+    }
 }

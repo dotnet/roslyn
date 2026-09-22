@@ -38,6 +38,9 @@ public class MyTests
 - Documentation-comment tests select the paste handler through `CreatePasteCommandHandler`.
   Visual Basic exports a separate paste handler before line commit so XML adjustments
   have their own Undo step; typing and Return continue using the normal documentation handler.
+- When a test needs a feature waiter, retrieve the concrete
+  `AsynchronousOperationListenerProvider` from the export provider and call
+  `GetWaiter`; do not retrieve the interface and cast the listener.
 - Language Server orchestration tests can pass additional MEF parts to
   `LanguageServerTestComposition.GetSharedExportProvider`. A controllable
   `PartNotDiscoverable` project loader can provide deterministic design-time

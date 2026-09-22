@@ -15,9 +15,12 @@ internal sealed class LanguageServerConnectionManager
 {
     private readonly object _gate = new();
     private ImmutableArray<ServerEntry> _servers = [];
+    private long _connectionsAccepted;
 
     // Test hook: invoked just before LanguageServerHost.Start(). Throw to simulate a startup failure.
     private Action? _onBeforeStartServer;
+
+    public long ConnectionsAccepted => Interlocked.Read(ref _connectionsAccepted);
 
     /// <summary>
     /// Runs an independent language server for each connection yielded by <paramref name="connectionSource"/>.
@@ -46,6 +49,8 @@ internal sealed class LanguageServerConnectionManager
         {
             await foreach (var connection in connectionSource.AcceptConnectionsAsync(cancellationToken).ConfigureAwait(false))
             {
+                Interlocked.Increment(ref _connectionsAccepted);
+
                 if (isolateFaults)
                 {
                     // Daemon mode: start server construction and supervision in a background task so this

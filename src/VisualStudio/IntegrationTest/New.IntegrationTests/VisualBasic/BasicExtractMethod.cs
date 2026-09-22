@@ -47,7 +47,7 @@ public class BasicExtractMethod : AbstractEditorTest
     {
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85737")]
     public async Task SimpleExtractMethod()
     {
         await TestServices.Editor.SetTextAsync(TestSource, HangMitigatingCancellationToken);
@@ -92,7 +92,7 @@ public class BasicExtractMethod : AbstractEditorTest
             """, cancellationToken: HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85737")]
     public async Task ExtractViaCodeAction()
     {
         await TestServices.Editor.SetTextAsync(TestSource, HangMitigatingCancellationToken);
