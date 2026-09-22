@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Navigation;
 
@@ -47,14 +46,15 @@ internal sealed class FSharpCrossLanguageSymbolNavigationService : ICrossLanguag
             location.NavigateToAsync(new FSharpNavigationOptions2(options.PreferProvisionalTab, options.ActivateTab), cancellationToken));
     }
 
-    public async Task<(string filePath, LinePosition linePosition)?> TryGetNavigableFileLocationAsync(
+    public async Task<DocumentSpan?> TryGetDefinitionSpanAsync(
         string assemblyName, string documentationCommentId, CancellationToken cancellationToken)
     {
-        // Only defer to an F# service that can name a file; one that can only navigate has nothing to show in place.
-        if (_underlyingService is not IFSharpCrossLanguageSymbolNavigationService2 fileLocationService)
+        // Only defer to an F# service built against a version that has the member.
+        if (_underlyingService is not IFSharpCrossLanguageSymbolNavigationService2 spanService)
             return null;
 
-        return await fileLocationService.TryGetNavigableFileLocationAsync(
+        var span = await spanService.TryGetDefinitionSpanAsync(
             assemblyName, documentationCommentId, cancellationToken).ConfigureAwait(false);
+        return span?.ToRoslynDocumentSpan();
     }
 }

@@ -5,7 +5,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
 
@@ -24,8 +23,8 @@ internal interface IFSharpCrossLanguageSymbolNavigationService
 /// </summary>
 internal interface IFSharpCrossLanguageSymbolNavigationService2 : IFSharpCrossLanguageSymbolNavigationService
 {
-    /// <inheritdoc cref="ICrossLanguageSymbolNavigationService.TryGetNavigableFileLocationAsync"/>
-    Task<(string filePath, LinePosition linePosition)?> TryGetNavigableFileLocationAsync(
+    /// <inheritdoc cref="ICrossLanguageSymbolNavigationService.TryGetDefinitionSpanAsync"/>
+    Task<FSharpDocumentSpan?> TryGetDefinitionSpanAsync(
         string assemblyName, string documentationCommentId, CancellationToken cancellationToken);
 }
 

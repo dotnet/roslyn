@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Tags;
 
 namespace Microsoft.CodeAnalysis.FindUsages;
@@ -155,6 +156,28 @@ internal abstract partial class DefinitionItem
     }
 
     public abstract Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// The metadata symbol this item was created for, resolved in the project it was found through.  <see
+    /// langword="default"/> for an item that was not created for a metadata symbol.
+    /// </summary>
+    internal async ValueTask<(Project? project, ISymbol? symbol)> TryResolveMetadataSymbolAsync(Solution solution, CancellationToken cancellationToken)
+    {
+        if (!Properties.TryGetValue(MetadataSymbolKey, out var symbolKey) ||
+            !Properties.TryGetValue(MetadataSymbolOriginatingProjectIdGuid, out var projectIdGuid) ||
+            !Properties.TryGetValue(MetadataSymbolOriginatingProjectIdDebugName, out var projectDebugName))
+        {
+            return default;
+        }
+
+        var project = solution.GetProject(ProjectId.CreateFromSerialized(Guid.Parse(projectIdGuid), projectDebugName));
+        if (project == null)
+            return default;
+
+        var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+        var symbol = SymbolKey.ResolveString(symbolKey, compilation, cancellationToken: cancellationToken).Symbol;
+        return (project, symbol);
+    }
 
     // Kept around for binary compat with TypeScript.
     [Obsolete("TypeScript: Use external access APIs")]

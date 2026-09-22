@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,9 +38,9 @@ internal abstract partial class DefinitionItem
             if (Properties.ContainsKey(NonNavigable))
                 return null;
 
-            if (Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
+            if (Properties.ContainsKey(MetadataSymbolKey))
             {
-                var (project, symbol) = await TryResolveSymbolAsync(workspace.CurrentSolution, symbolKey, cancellationToken).ConfigureAwait(false);
+                var (project, symbol) = await TryResolveMetadataSymbolAsync(workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
                 if (symbol is { Kind: not SymbolKind.Namespace })
                 {
                     Contract.ThrowIfNull(project);
@@ -55,23 +54,6 @@ internal abstract partial class DefinitionItem
             }
 
             return await SourceSpans[0].GetNavigableLocationAsync(cancellationToken).ConfigureAwait(false);
-        }
-
-        private async ValueTask<(Project? project, ISymbol? symbol)> TryResolveSymbolAsync(Solution solution, string symbolKey, CancellationToken cancellationToken)
-        {
-            if (!Properties.TryGetValue(MetadataSymbolOriginatingProjectIdGuid, out var projectIdGuid) ||
-                !Properties.TryGetValue(MetadataSymbolOriginatingProjectIdDebugName, out var projectDebugName))
-            {
-                return default;
-            }
-
-            var project = solution.GetProject(ProjectId.CreateFromSerialized(Guid.Parse(projectIdGuid), projectDebugName));
-            if (project == null)
-                return default;
-
-            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var symbol = SymbolKey.ResolveString(symbolKey, compilation, cancellationToken: cancellationToken).Symbol;
-            return (project, symbol);
         }
     }
 }

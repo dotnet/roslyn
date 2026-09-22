@@ -206,7 +206,23 @@ internal sealed partial class VisualStudioSymbolNavigationService(
         definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey2, out var rqName2);
 
         return await GetExternalNavigationLocationForSpecificSymbolAsync(definitionItem, rqName1, cancellationToken).ConfigureAwait(false) ??
-               await GetExternalNavigationLocationForSpecificSymbolAsync(definitionItem, rqName2, cancellationToken).ConfigureAwait(false);
+               await GetExternalNavigationLocationForSpecificSymbolAsync(definitionItem, rqName2, cancellationToken).ConfigureAwait(false) ??
+               await GetCrossLanguageNavigationLocationAsync(definitionItem, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// A symbol we only see in metadata may be defined in the source of another .Net language, for example F#.
+    /// </summary>
+    private async Task<(string filePath, LinePosition linePosition)?> GetCrossLanguageNavigationLocationAsync(
+        DefinitionItem definitionItem, CancellationToken cancellationToken)
+    {
+        var span = await CrossLanguageSymbolNavigation.TryGetDefinitionSpanAsync(
+            _workspace.CurrentSolution, definitionItem, cancellationToken).ConfigureAwait(false);
+        if (span is not { Document.FilePath: { } filePath } definitionSpan)
+            return null;
+
+        var text = await definitionSpan.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        return (filePath, text.Lines.GetLinePosition(definitionSpan.SourceSpan.Start));
     }
 
     public async Task<(string filePath, LinePosition linePosition)?> GetExternalNavigationLocationForSpecificSymbolAsync(
