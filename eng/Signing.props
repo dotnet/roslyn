@@ -65,6 +65,11 @@
       These are test-only resources and do not need to be signed.
     -->
     <FileSignInfo Include="Microsoft.CodeAnalysis.Compiler.Test.Resources.dll" CertificateName="None" />
+    <FileSignInfo Include="GuidTest1.dll" CertificateName="None" />
+    <FileSignInfo Include="c1.dll" CertificateName="None" />
+    <FileSignInfo Include="c3.dll" CertificateName="None" />
+    <FileSignInfo Include="c4.dll" CertificateName="None" />
+    <FileSignInfo Include="c7.dll" CertificateName="None" />
   </ItemGroup>
 
   <!--
