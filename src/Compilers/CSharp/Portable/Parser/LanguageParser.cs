@@ -3406,7 +3406,9 @@ parse_member_name:;
 
         private bool IsExtensionContainerStart(int peekIndex = 0)
         {
-            // For error recovery, we recognize `extension` followed by `<` even in older language versions
+            // Recognize `extension` followed by `<` as an extension declaration start in every language version.
+            // This supports recovery for extension declarations, but takes precedence over interpreting
+            // `extension<T>` as a type name in ambiguous declaration lookahead.
             return this.PeekToken(peekIndex).ContextualKind == SyntaxKind.ExtensionKeyword &&
                 (IsFeatureEnabled(MessageID.IDS_FeatureExtensions) || this.PeekToken(peekIndex + 1).Kind == SyntaxKind.LessThanToken);
         }
