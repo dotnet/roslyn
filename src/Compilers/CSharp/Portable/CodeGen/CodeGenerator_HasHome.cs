@@ -14,19 +14,37 @@ internal partial class CodeGenerator
 {
     internal enum AddressKind
     {
-        // reference may be written to
+        /// <summary>
+        /// Reference may be written to
+        /// </summary>
         Writeable,
 
-        // reference itself will not be written to, but may be used for call, callvirt.
-        // for all purposes it is the same as Writeable, except when fetching an address of an array element
-        // where it results in a ".readonly" prefix to deal with array covariance.
+        /// <summary>
+        /// Reference itself will not be written to, but may be used for call, callvirt.
+        /// For all purposes it is the same as Writeable, except when fetching an address of an array element
+        /// where it results in a ".readonly" prefix to deal with array covariance.
+        /// </summary>
         Constrained,
 
-        // reference itself will not be written to, nor it will be used to modify fields.
+        /// <summary>
+        /// Reference itself will not be written to, nor it will be used to modify fields.
+        /// </summary>
         ReadOnly,
 
-        // same as ReadOnly, but we are not supposed to get a reference to a clone
-        // regardless of compat settings.
+        /// <summary>
+        /// Same as ReadOnly, but we are not supposed to get a reference to a clone
+        /// regardless of compat settings.
+        /// Note, that despite the name, this kind, when passed to <see cref="HasHome(BoundExpression, AddressKind)"/> or
+        /// <see cref="HasHome(BoundExpression, AddressKind, Symbol, bool, HashSet{LocalSymbol})"/>, actually makes
+        /// the check relaxed by comparison to <see cref="AddressKind.ReadOnly"/>. Therefore, its usage
+        /// with those APIs should be limited to <see cref="CodeGenerator"/>. In other words, it should not be used
+        /// with those APIs to determine whether expression is a valid "readonly variable" (refers to a location for
+        /// which it is valid to obtain a readonly reference). Usages like that in <see cref="CodeGenerator"/> are
+        /// valid under the assumption that the ability to obtain a reference was checked during earlier phases, or in cases
+        /// when taking a reference is not subject to validity constraints.
+        /// So, this kind is strict for the purpose of emitting code to get an address (i.e. get it, if at all possible),
+        /// but relaxed for the purpose of checking if an expression has a home.
+        /// </summary>
         ReadOnlyStrict,
     }
 
@@ -91,8 +109,27 @@ internal partial class CodeGenerator
                 // locals have home unless they are byval stack locals or ref-readonly
                 // locals in a mutating call
                 var local = ((BoundLocal)expression).LocalSymbol;
-                return !((CodeGenerator.IsStackLocal(local, stackLocalsOpt) && local.RefKind == RefKind.None) ||
-                    (!IsAnyReadOnly(addressKind) && local.RefKind == RefKind.RefReadOnly));
+
+                RefKind localRefKind = local.RefKind;
+                if (CodeGenerator.IsStackLocal(local, stackLocalsOpt) && localRefKind == RefKind.None)
+                {
+                    return false;
+                }
+
+                if (!IsAnyReadOnly(addressKind))
+                {
+                    if (localRefKind == RefKind.RefReadOnly)
+                    {
+                        return false;
+                    }
+                    else if (localRefKind == RefKindExtensions.StrictIn)
+                    {
+                        Debug.Assert(localRefKind != RefKindExtensions.StrictIn, "Add a test if this assert fails for the scenario.");
+                        return false;
+                    }
+                }
+
+                return true;
 
             case BoundKind.Call:
                 var methodRefKind = ((BoundCall)expression).Method.RefKind;
@@ -102,8 +139,26 @@ internal partial class CodeGenerator
             case BoundKind.Dup:
                 //NB: Dup represents locals that do not need IL slot
                 var dupRefKind = ((BoundDup)expression).RefKind;
-                return dupRefKind == RefKind.Ref ||
-                    (IsAnyReadOnly(addressKind) && dupRefKind == RefKind.RefReadOnly);
+
+                if (dupRefKind == RefKind.Ref)
+                {
+                    return true;
+                }
+
+                if (IsAnyReadOnly(addressKind))
+                {
+                    if (dupRefKind == RefKind.RefReadOnly)
+                    {
+                        return true;
+                    }
+                    else if (dupRefKind == RefKindExtensions.StrictIn)
+                    {
+                        Debug.Assert(dupRefKind != RefKindExtensions.StrictIn, "Add a test if this assert fails for the scenario.");
+                        return true;
+                    }
+                }
+
+                return false;
 
             case BoundKind.FieldAccess:
                 return FieldAccessHasHome((BoundFieldAccess)expression, addressKind, containingSymbol, peVerifyCompatEnabled, stackLocalsOpt);
