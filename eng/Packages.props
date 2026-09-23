@@ -115,8 +115,8 @@
     <PackageVersion Include="envdte80" Version="18.12.772" />
     <PackageVersion Include="MessagePack" Version="2.5.302" />
     <PackageVersion Include="Microsoft.ServiceHub.Framework" Version="4.11.156" />
-    <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="18.9.78" />
-    <PackageVersion Include="Microsoft.VisualStudio.Composition.Analyzers" Version="18.9.78" />
+    <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="18.9.89" />
+    <PackageVersion Include="Microsoft.VisualStudio.Composition.Analyzers" Version="18.9.89" />
     <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="$(VisualStudioEditorPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Editor" Version="$(VisualStudioEditorPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Language" Version="$(VisualStudioEditorPackagesVersion)" />
