@@ -42,6 +42,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 method,
                 peVerifyCompatEnabled: false,
                 stackLocalsOpt: null));
+
+            Assert.True(CodeGenerator.HasHome(
+                boundLocal,
+                CodeGenerator.AddressKind.ReadOnly,
+                method,
+                peVerifyCompatEnabled: false,
+                stackLocalsOpt: null));
+
+            Assert.True(CodeGenerator.HasHome(
+                boundLocal,
+                CodeGenerator.AddressKind.ReadOnlyStrict,
+                method,
+                peVerifyCompatEnabled: false,
+                stackLocalsOpt: null));
         }
 
         [Fact, WorkItem(85757, "https://github.com/dotnet/roslyn/issues/85757")]
@@ -57,6 +71,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(CodeGenerator.HasHome(
                 dup,
                 CodeGenerator.AddressKind.ReadOnly,
+                method,
+                peVerifyCompatEnabled: false,
+                stackLocalsOpt: null));
+
+            Assert.True(CodeGenerator.HasHome(
+                dup,
+                CodeGenerator.AddressKind.ReadOnlyStrict,
+                method,
+                peVerifyCompatEnabled: false,
+                stackLocalsOpt: null));
+
+            Assert.False(CodeGenerator.HasHome(
+                dup,
+                CodeGenerator.AddressKind.Writeable,
                 method,
                 peVerifyCompatEnabled: false,
                 stackLocalsOpt: null));
