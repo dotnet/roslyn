@@ -16,6 +16,7 @@
     <PackageVersion Include="NuGet.Packaging" Version="$(RoslynSdkNuGetApiVersion)" />
     <PackageVersion Include="NuGet.Protocol" Version="$(RoslynSdkNuGetApiVersion)" />
     <PackageVersion Include="NuGet.Resolver" Version="$(RoslynSdkNuGetApiVersion)" />
+    <PackageVersion Update="NuGet.Versioning" Version="$(RoslynSdkNuGetApiVersion)" />
     <PackageVersion Include="Nullable" Version="1.3.1" />
     <PackageVersion Include="System.Formats.Asn1" Version="10.0.10" />
     <PackageVersion Include="System.Net.Http" Version="4.3.4" />

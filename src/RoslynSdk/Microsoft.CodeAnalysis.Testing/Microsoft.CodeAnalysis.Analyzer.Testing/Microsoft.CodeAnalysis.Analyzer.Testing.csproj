@@ -28,11 +28,10 @@
     <PackageReference Include="Microsoft.VisualStudio.Composition" VersionOverride="16.1.8" />
     <PackageReference Include="Nullable" PrivateAssets="all" />
     <PackageReference Include="System.Formats.Asn1" />
-    <!-- Use PrivateAssets=compile to avoid exposing our NuGet dependencies downstream as public API. -->
-    <PackageReference Include="NuGet.Common" PrivateAssets="compile" />
-    <PackageReference Include="NuGet.Protocol" PrivateAssets="compile" />
-    <PackageReference Include="NuGet.Resolver" PrivateAssets="compile" />
-    <PackageReference Include="NuGet.Packaging" PrivateAssets="compile" />
+    <PackageReference Include="NuGet.Common" />
+    <PackageReference Include="NuGet.Protocol" />
+    <PackageReference Include="NuGet.Resolver" />
+    <PackageReference Include="NuGet.Packaging" />
 
     <!-- Use PrivateAssets=compile to avoid exposing our DiffPlex dependency downstream as public API. -->
     <PackageReference Include="DiffPlex" PrivateAssets="compile" />
