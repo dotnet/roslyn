@@ -3526,6 +3526,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.WriteArgument(operand, RefKind.Out, null); //Out because we know it will definitely be assigned.
         }
 
+        public override BoundNode VisitRefAccess(BoundRefAccess node)
+        {
+            var operand = node.Expression;
+            this.VisitLvalue(operand);
+            this.WriteArgument(operand, RefKind.Out, null); //Out because we know it will definitely be assigned.
+            return null;
+        }
+
         public override BoundNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
         {
             VisitRvalue(node.Operand);

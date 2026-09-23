@@ -778,6 +778,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return UpdateExpression(builder, node.Update(expr, node.IsManaged, node.Type));
         }
 
+        public override BoundNode VisitRefAccess(BoundRefAccess node)
+        {
+            BoundSpillSequenceBuilder builder = null;
+            var expr = VisitExpression(ref builder, node.Expression);
+            return UpdateExpression(builder, node.Update(node.RefKind, expr, node.Type));
+        }
+
         public override BoundNode VisitArgListOperator(BoundArgListOperator node)
         {
             BoundSpillSequenceBuilder builder = null;

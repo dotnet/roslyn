@@ -672,12 +672,13 @@
   </Node>
 
   <!--
-    Represents an array access that comes from the RHS of an unused ref (non-readonly) assignment.
-    Needed so we can emit with correct side effects (runtime element type check).
+    Represents an expression that comes from the RHS of an unused ref assignment.
+    Needed so we can emit with correct side effects (runtime array element type check, etc.).
   -->
-  <Node Name="BoundRefArrayAccess" Base="BoundExpression">
+  <Node Name="BoundRefAccess" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <Field Name="ArrayAccess" Type="BoundArrayAccess" Null="disallow"/>
+    <Field Name="RefKind" Type="RefKind"/>
+    <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
   </Node>
 
   <!--

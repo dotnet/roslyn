@@ -176,9 +176,16 @@ internal partial class CodeGenerator
                 return lhsRefKind == RefKind.Ref ||
                     (IsAnyReadOnly(addressKind) && lhsRefKind is RefKind.RefReadOnly or RefKind.RefReadOnlyParameter);
 
-            case BoundKind.RefArrayAccess:
-                var right = (BoundRefArrayAccess)expression;
-                return HasHome(right.ArrayAccess, AddressKind.Writeable, containingSymbol, peVerifyCompatEnabled, stackLocalsOpt);
+            case BoundKind.RefAccess:
+                var right = (BoundRefAccess)expression;
+
+                if (!IsAnyReadOnly(addressKind) && right.RefKind is (RefKind.RefReadOnly or RefKindExtensions.StrictIn))
+                {
+                    Debug.Assert(false, "Please add a unit-test that observes effect of this code path.");
+                    return false;
+                }
+
+                return HasHome(right.Expression, RefAssignmentValueAddressKind(right.RefKind), containingSymbol, peVerifyCompatEnabled, stackLocalsOpt);
 
             case BoundKind.ComplexConditionalReceiver:
                 Debug.Assert(HasHome(

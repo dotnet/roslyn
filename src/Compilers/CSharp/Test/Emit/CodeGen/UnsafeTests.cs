@@ -33,12 +33,10 @@ unsafe class C
             var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes);
             compVerifier.VerifyIL("C.M", @"
 {
-  // Code size        4 (0x4)
-  .maxstack  1
+  // Code size        1 (0x1)
+  .maxstack  0
   .locals init (int V_0) //x
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  pop
-  IL_0003:  ret
+  IL_0000:  ret
 }
 ");
         }
@@ -270,11 +268,9 @@ unsafe class C
             var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes);
             compVerifier.VerifyIL("C.M", @"
 {
-  // Code size        4 (0x4)
-  .maxstack  1
-  IL_0000:  ldarga.s   V_1
-  IL_0002:  pop
-  IL_0003:  ret
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
 }
 ");
         }
