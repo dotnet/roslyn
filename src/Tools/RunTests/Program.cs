@@ -232,7 +232,7 @@ namespace RunTests
 
             if (options.CollectDumps)
             {
-                var dotnetDumpTool = new DumpCollector.DotnetDumpTool(options.DotnetFilePath, TryGetRepositoryRoot(options));
+                var dotnetDumpTool = new DumpCollector.DotnetDumpTool(options.DotnetFilePath);
                 var appendLog = false;
                 var counter = 0;
                 foreach (var proc in ProcessUtil.GetTestHostProcesses().OrderBy(x => x.ProcessName))
@@ -266,15 +266,6 @@ namespace RunTests
             }
 
             WriteLogFile(options, append: true);
-
-            static string TryGetRepositoryRoot(Options options)
-            {
-                var artifactsDirectory = Path.GetFullPath(options.ArtifactsDirectory);
-                var repositoryRoot = Directory.GetParent(artifactsDirectory)?.FullName;
-                return repositoryRoot is not null && File.Exists(Path.Combine(repositoryRoot, "dotnet-tools.json"))
-                    ? repositoryRoot
-                    : null;
-            }
         }
 
         private static ImmutableArray<AssemblyInfo> GetAssemblyFilePaths(Options options)

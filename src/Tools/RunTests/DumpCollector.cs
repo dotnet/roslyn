@@ -131,7 +131,7 @@ namespace RunTests
 
         internal readonly record struct DumpCollectionResult(bool Succeeded, bool TimedOut, int? ExitCode, bool DumpFileExists);
 
-        internal readonly record struct DotnetDumpTool(string DotnetFilePath, string? WorkingDirectory)
+        internal readonly record struct DotnetDumpTool(string DotnetFilePath)
         {
             internal ProcessStartInfo CreateStartInfo(DumpTarget target, string dumpFilePath)
             {
@@ -142,11 +142,6 @@ namespace RunTests
                     RedirectStandardError = true,
                     CreateNoWindow = true,
                 };
-
-                if (WorkingDirectory is not null)
-                {
-                    startInfo.WorkingDirectory = WorkingDirectory;
-                }
 
                 startInfo.ArgumentList.Add("tool");
                 startInfo.ArgumentList.Add("run");
