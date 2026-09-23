@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -17,6 +18,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
     public class CodeGenInParametersTests : CompilingTestBase
     {
+        [Fact, WorkItem(85757, "https://github.com/dotnet/roslyn/issues/85757")]
+        public void HasHome_StrictInLocal()
+        {
+            var comp = CreateCompilation("class C { int M() => 0; }");
+            var method = comp.GetMember<MethodSymbol>("C.M");
+            var local = new SynthesizedLocal(
+                method,
+                TypeWithAnnotations.Create(method.ReturnType),
+                SynthesizedLocalKind.LoweringTemp,
+                refKind: RefKindExtensions.StrictIn);
+            var boundLocal = new BoundLocal(
+                method.GetNonNullSyntaxNode(),
+                local,
+                BoundLocalDeclarationKind.None,
+                constantValueOpt: null,
+                isNullableUnknown: false,
+                method.ReturnType);
+
+            Assert.False(CodeGenerator.HasHome(
+                boundLocal,
+                CodeGenerator.AddressKind.Writeable,
+                method,
+                peVerifyCompatEnabled: false,
+                stackLocalsOpt: null));
+        }
+
         [Fact]
         public void ThreeParamReorder()
         {
