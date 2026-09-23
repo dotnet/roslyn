@@ -538,12 +538,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             NullCoalescingAssignment = CompoundAssignment + 2,
 
             /// <summary>
-            /// Expression is the receiver of a non-readonly instance member.
-            /// Unlike assignment, this permits using and foreach variables.
-            /// </summary>
-            MutableReceiver = (RefersToLocation | Assignable) + 1,
-
-            /// <summary>
             /// Expression is a r/o reference.
             /// </summary>
             ReadonlyRef = RefersToLocation | RValue,
@@ -1334,9 +1328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // IsWritable means the variable is writable. If this is a ref variable, IsWritable
                 // does not imply anything about the storage location
                 if (localSymbol.RefKind == RefKind.RefReadOnly ||
-                    (localSymbol.RefKind == RefKind.None &&
-                     !localSymbol.IsWritableVariable &&
-                     !(valueKind == BindValueKind.MutableReceiver && (localSymbol.IsUsing || localSymbol.IsForEach))))
+                    (localSymbol.RefKind == RefKind.None && !localSymbol.IsWritableVariable))
                 {
                     ReportReadonlyLocalError(node, localSymbol, valueKind, checkingReceiver, diagnostics);
                     return false;
@@ -1703,12 +1695,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (fieldSymbol.IsStatic || fieldSymbol.ContainingType.IsReferenceType)
             {
                 return true;
-            }
-
-            if (valueKind == BindValueKind.MutableReceiver)
-            {
-                // Mutability of using and foreach receivers does not extend to their ordinary struct fields.
-                valueKind = BindValueKind.RefersToLocation | BindValueKind.Assignable;
             }
 
             // for other fields defer to the receiver.
