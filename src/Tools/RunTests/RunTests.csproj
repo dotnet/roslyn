@@ -9,9 +9,6 @@
     <IsTestUtilityProject>true</IsTestUtilityProject>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="UnitTests\**" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" />
     <PackageReference Include="System.Reflection.Metadata" />
     <PackageReference Include="System.Management" />
