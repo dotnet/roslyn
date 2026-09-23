@@ -59,7 +59,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     /// <summary>Projects to reload once after their restore attempt completes.</summary>
     private readonly HashSet<string> _pendingPostRestoreReloadPaths = new(PathUtilities.Comparer);
 
-    /// <summary>Projects that already reloaded after their latest restore attempt.</summary>
+    /// <summary>Projects that already reloaded after restore and still have unresolved dependencies.</summary>
     private readonly HashSet<string> _postRestoreReloadAttemptedPaths = new(PathUtilities.Comparer);
 
     /// <summary>Serializes aggregate graph loads that share one MSBuild project collection.</summary>
@@ -553,25 +553,33 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             return;
         }
 
+        var deferReferencedProjectLoads = false;
         if (needsRestore &&
             !projectLoadResult.PreparedProjectLoads.IsDefaultOrEmpty &&
             GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore))
         {
-            await ReconcileProjectsAsync(update.ProjectsToUnload);
-
             lock (_projectGraphGate)
             {
                 if (!_postRestoreReloadAttemptedPaths.Contains(projectPath))
+                {
                     _pendingPostRestoreReloadPaths.Add(projectPath);
+                    deferReferencedProjectLoads = true;
+                }
             }
+        }
 
+        if (deferReferencedProjectLoads)
+        {
+            await ReconcileProjectsAsync(update.ProjectsToUnload);
             return;
         }
 
         lock (_projectGraphGate)
         {
             _pendingPostRestoreReloadPaths.Remove(projectPath);
-            _postRestoreReloadAttemptedPaths.Remove(projectPath);
+            // Keep the retry guard until restore succeeds so later reloads do not defer the graph again.
+            if (!needsRestore)
+                _postRestoreReloadAttemptedPaths.Remove(projectPath);
         }
 
         PublishPreparedProjectLoads(projectPath, referencedPaths, projectLoadResult.PreparedProjectLoads);

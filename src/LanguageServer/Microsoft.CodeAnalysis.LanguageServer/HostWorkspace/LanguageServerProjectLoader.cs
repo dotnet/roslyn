@@ -211,11 +211,12 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
 
         if (GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore) && !projectsThatNeedRestore.IsEmpty)
         {
-            var pathsToRestore = await GetPathsToRestoreAsync(projectsThatNeedRestore.Distinct(PathUtilities.Comparer).AsImmutable(), cancellationToken);
+            var projectPathsThatNeedRestore = projectsThatNeedRestore.Distinct(PathUtilities.Comparer).AsImmutable();
+            var pathsToRestore = await GetPathsToRestoreAsync(projectPathsThatNeedRestore, cancellationToken);
 
             // This request blocks to ensure we aren't trying to run a design time build at the same time as a restore.
             await ProjectDependencyHelper.RestoreProjectsAsync(_workDoneProgressManager, pathsToRestore, EnableProgressReporting, _dotnetCliHelper, _logger, cancellationToken);
-            await OnProjectsRestoredAsync(projectsThatNeedRestore, cancellationToken);
+            await OnProjectsRestoredAsync(projectPathsThatNeedRestore, cancellationToken);
         }
     }
 
@@ -283,14 +284,19 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
                 preferredBuildHostKindThatWeDidNotGet = preferredBuildHostKind;
 
             var diagnosticLogItems = remoteProjectLoadResult.DiagnosticLogItems;
-            if (diagnosticLogItems.Any(item => item.Kind is DiagnosticLogItemKind.Error))
+            var loadedProjectInfos = remoteProjectLoadResult.ProjectFileInfos;
+            var hasLoadErrors = diagnosticLogItems.Any(item => item.Kind is DiagnosticLogItemKind.Error);
+            // A failed file-based design-time build can still provide evaluated sources and #:ref edges.
+            // Apply that information as incomplete so restore failures do not hide the referenced projects.
+            if (hasLoadErrors &&
+                (!remoteProjectLoadResult.IsFileBasedProgram ||
+                 remoteProjectLoadResult.IsMiscellaneousFile ||
+                 loadedProjectInfos.IsDefaultOrEmpty ||
+                 loadedProjectInfos.Any(info => info.IsEmpty)))
             {
                 await LogDiagnosticsAsync(diagnosticLogItems);
-                // We have total failures in evaluation, no point in continuing.
                 return null;
             }
-
-            var loadedProjectInfos = remoteProjectLoadResult.ProjectFileInfos;
 
             // The out-of-proc build host supports more languages than we may actually have Workspace binaries for, so ensure we can actually process that
             // language in-process.
@@ -301,7 +307,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
             var applied = await loadedProject.TryApplyLoadedProjectInfosAsync(
                 loadedProjectInfos,
                 isMiscellaneousFile: remoteProjectLoadResult.IsMiscellaneousFile,
-                hasAllInformation: remoteProjectLoadResult.HasAllInformation,
+                hasAllInformation: remoteProjectLoadResult.HasAllInformation && !hasLoadErrors,
                 projectFactory,
                 _projectTargetFrameworkManager,
                 _workspaceFactory,
@@ -424,7 +430,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
             }
             else if (reloadIfAlreadyLoaded)
             {
-                _projectsToReload.AddWork(loadedProject.ProjectFilePath);
+                _projectsToReload.AddWork(loadedProject.ProjectFilePath, priority: (int)ProjectReloadPriority.Medium);
             }
         }
 

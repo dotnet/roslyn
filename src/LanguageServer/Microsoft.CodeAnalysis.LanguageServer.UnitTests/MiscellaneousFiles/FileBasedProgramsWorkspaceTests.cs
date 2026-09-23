@@ -180,6 +180,102 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
     }
 
     [Theory, CombinatorialData]
+    public async Task TestFileBasedProgram_RefDirective_RestoreFailure(bool mutatingLspWorkspace, bool failureInReferencedProject)
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            OptionUpdater = options =>
+            {
+                options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false);
+                options.SetGlobalOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore, true);
+            },
+        });
+
+        var tempDir = CreateTempDirectoryWithGlobalJson();
+        tempDir.CreateFile("NuGet.Config").WriteAllText("""
+            <configuration>
+              <packageSources>
+                <clear />
+              </packageSources>
+            </configuration>
+            """);
+        var commonFile = tempDir.CreateFile("Common.cs").WriteAllText("""
+            #:property TargetFramework=net10.0
+            #:property PublishAot=false
+            #:property OutputType=Library
+            public static class Common { }
+            """);
+        var utilSourceText = """
+            #:property TargetFramework=net10.0
+            #:property PublishAot=false
+            #:property OutputType=Library
+            #:property ExperimentalFileBasedProgramEnableRefDirective=true
+            #:ref Common.cs
+            public static class Util { }
+            """;
+        var sourceText = """
+            #:property TargetFramework=net10.0
+            #:property PublishAot=false
+            #:property ExperimentalFileBasedProgramEnableRefDirective=true
+            #:ref Util.cs
+            Console.WriteLine("Hello");
+            """;
+        var missingPackageDirective = $"#:package RoslynTests.MissingPackage{Guid.NewGuid():N}@1.0.0\n";
+        var utilFile = tempDir.CreateFile("Util.cs").WriteAllText(
+            failureInReferencedProject ? missingPackageDirective + utilSourceText : utilSourceText);
+        var sourceFile = tempDir.CreateFile("App.cs").WriteAllText(
+            failureInReferencedProject ? sourceText : missingPackageDirective + sourceText);
+        var sourceFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceFile.Path);
+
+        await testLspServer.OpenDocumentAsync(
+            sourceFileUri, failureInReferencedProject ? sourceText : missingPackageDirective + sourceText);
+        await WaitForProjectLoad(sourceFileUri, testLspServer).AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout);
+
+        var workspace = GetHostWorkspace(testLspServer);
+        AssertGraphLoaded();
+
+        var projectSystem = (FileBasedProgramsProjectSystem)testLspServer.GetRequiredLspService<ILspMiscellaneousFilesWorkspaceProvider>();
+        var failingFile = failureInReferencedProject ? utilFile : sourceFile;
+        var loadedProject = await projectSystem.BeginLoadingProjectAsync(failingFile.Path);
+        Assert.True(await loadedProject.NeedsRestoreAsync());
+        Assert.False(Assert.Single(await loadedProject.GetExistingProjectsAsync()).State.HasAllInformation);
+
+        await projectSystem.BeginLoadingProjectAsync(failingFile.Path, reloadIfAlreadyLoaded: true);
+        await WaitForProjectLoad(sourceFileUri, testLspServer).AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout);
+        Assert.True(await loadedProject.NeedsRestoreAsync());
+        AssertGraphLoaded();
+
+        if (!failureInReferencedProject)
+            await testLspServer.DeleteTextAsync(sourceFileUri, (StartLine: 0, StartColumn: 0, EndLine: 1, EndColumn: 0));
+
+        failingFile.WriteAllText(failureInReferencedProject ? utilSourceText : sourceText);
+        await projectSystem.BeginLoadingProjectAsync(failingFile.Path, reloadIfAlreadyLoaded: true);
+        await WaitForProjectLoad(sourceFileUri, testLspServer).AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout);
+
+        // Simulate the assets-file notification after restore without depending on file-system watcher timing.
+        loadedProject.GetTestAccessor().RaiseNeedsReload();
+        await WaitForProjectLoad(sourceFileUri, testLspServer).AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout);
+        Assert.False(await loadedProject.NeedsRestoreAsync());
+        Assert.True(Assert.Single(await loadedProject.GetExistingProjectsAsync()).State.HasAllInformation);
+        AssertGraphLoaded();
+
+        await testLspServer.CloseDocumentAsync(sourceFileUri);
+        Assert.Empty(workspace.CurrentSolution.Projects);
+
+        void AssertGraphLoaded()
+        {
+            var projectsByPath = workspace.CurrentSolution.Projects.ToDictionary(project => project.FilePath!, PathUtilities.Comparer);
+            Assert.Equal(3, projectsByPath.Count);
+            Assert.Contains(sourceFile.Path, projectsByPath.Keys, PathUtilities.Comparer);
+            Assert.Contains(utilFile.Path, projectsByPath.Keys, PathUtilities.Comparer);
+            Assert.Contains(commonFile.Path, projectsByPath.Keys, PathUtilities.Comparer);
+            Assert.All(projectsByPath.Values, project =>
+                Assert.Contains(project.Documents, document => PathUtilities.Comparer.Equals(document.FilePath, project.FilePath)));
+        }
+    }
+
+    [Theory, CombinatorialData]
     public async Task TestFileBasedProgram_RefDirective_TransitiveSharedGraphAndUnload(bool mutatingLspWorkspace)
     {
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
