@@ -223,6 +223,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         try
         {
             Directory.CreateDirectory(cacheDirectory);
+            // Write the cache to a staging file, then move it into place atomically once it is ready.
             var cacheStagingFilePath = Path.Join(cacheDirectory, "cache.staging.json");
             using (var stagingFile = File.Create(cacheStagingFilePath))
             {
