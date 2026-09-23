@@ -7,6 +7,7 @@
 param(
   [string]$configuration = "Release",
   [switch]$ci = $false,
+  # Consumed implicitly by the MSBuild helper.
   [switch]$warnAsError = $ci)
 
 Set-StrictMode -version 2.0
@@ -58,28 +59,22 @@ if ($duplicateProjects.Count -gt 0 -or $missingFromSolution.Count -gt 0 -or $mis
 }
 
 $buildArgs = @(
-  "build"
   $solutionPath
-  "-c", $configuration
-  "--no-incremental"
-  "/p:TreatWarningsAsErrors=$warnAsError"
+  "/restore"
+  "/t:Rebuild"
+  "/p:Configuration=$configuration"
   "/p:RunAnalyzersDuringBuild=true"
 )
 
-if ($warnAsError) {
-  $buildArgs += "--warnaserror"
-}
+$msbuildEngine = "dotnet"
+$disablePipelineSetResult = $true
+. (Join-Path $PSScriptRoot "build-utils.ps1")
 
 if ($ci) {
-  $logDir = Join-Path $repoDir "artifacts\log\$configuration"
-  New-Item -ItemType Directory -Path $logDir -Force | Out-Null
-
-  $buildArgs += "--disable-build-servers"
+  $buildArgs += "/p:UseRazorBuildServer=false"
+  $buildArgs += "/p:UseSharedCompilation=false"
   $buildArgs += "-bl:$(Join-Path $logDir "RoslynSdkSamples.binlog")"
 }
 
-Write-Host "dotnet $($buildArgs -join ' ')"
-& dotnet @buildArgs
-if ($LASTEXITCODE -ne 0) {
-  exit $LASTEXITCODE
-}
+# Use Arcade's MSBuild helper for correct warnAsError/warnNotAsError behavior.
+MSBuild @buildArgs

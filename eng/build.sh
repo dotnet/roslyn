@@ -242,6 +242,7 @@ while [[ $# > 0 ]]; do
 done
 
 # Resolve the default after parsing so explicit overrides work in either argument order.
+# Arcade's MSBuild helper consumes this variable implicitly.
 warn_as_error=${warn_as_error:-$ci}
 
 # Import Arcade functions
@@ -258,17 +259,15 @@ function MakeBootstrapBuild {
   local package_name="Microsoft.Net.Compilers.Toolset"
   local project_path=src/NuGet/$package_name/AnyCpu/$package_name.Package.csproj
 
-  local msbuild_warn_as_error=""
-  if [[ "$warn_as_error" == true ]]; then
-    msbuild_warn_as_error="/warnAsError"
-  fi
-
-  dotnet pack -nologo "$project_path" -p:TreatWarningsAsErrors=$warn_as_error $msbuild_warn_as_error -p:ContinuousIntegrationBuild=$ci -p:DotNetUseShippingVersions=true -p:InitialDefineConstants=BOOTSTRAP -p:PackageOutputPath="$dir" -bl:"$log_dir/Bootstrap.binlog"
+  local binary_log=true
+  local disable_pipeline_set_result=true
+  # Use Arcade's MSBuild helper for correct warnAsError/warnNotAsError behavior.
+  MSBuild "$project_path" /restore /t:Pack /p:Configuration=Release /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath="$dir" /bl:"$log_dir/Bootstrap.binlog"
   unzip "$dir/$package_name.*.nupkg" -d "$dir"
   chmod -R 755 "$dir"
 
   echo "Cleaning Bootstrap compiler artifacts"
-  dotnet clean "$project_path"
+  MSBuild "$project_path" /t:Clean /bl:"$log_dir/BootstrapClean.binlog"
 
   if [[ "$node_reuse" == true ]]; then
     dotnet build-server shutdown
