@@ -18,28 +18,17 @@ namespace RunTests
     {
         internal static readonly TimeSpan DefaultDumpTimeout = TimeSpan.FromMinutes(2);
 
-        internal static Task<DumpCollectionResult> TryDumpProcessAsync(
+        internal static async Task<DumpCollectionResult> TryDumpProcessAsync(
             Process process,
             string dumpFilePath,
             DotnetDumpTool dotnetDumpTool,
             TimeSpan timeout,
             CancellationToken cancellationToken)
-            => TryDumpProcessAsync(
-                new DumpTarget(process.Id, process.ProcessName),
-                dumpFilePath,
-                dotnetDumpTool,
-                timeout,
-                DumpCollectorProcessFactory.Instance,
-                cancellationToken);
-
-        internal static async Task<DumpCollectionResult> TryDumpProcessAsync(
-            DumpTarget target,
-            string dumpFilePath,
-            DotnetDumpTool dotnetDumpTool,
-            TimeSpan timeout,
-            IDumpCollectorProcessFactory processFactory,
-            CancellationToken cancellationToken)
         {
+            var target = new DumpTarget(process.Id, process.ProcessName);
+            var outputLines = new List<string>();
+            var errorLines = new List<string>();
+
             try
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(dumpFilePath)!);
@@ -48,24 +37,48 @@ namespace RunTests
                 ConsoleUtil.WriteLine($"Collector command: {dotnetDumpTool.GetDisplayCommand(target, dumpFilePath)}");
                 ConsoleUtil.WriteLine($"Collector timeout: {timeout}");
 
-                var collectorProcess = processFactory.Start(startInfo);
-                var waitTask = collectorProcess.WaitForExitAsync(cancellationToken);
+                using var collectorProcess = new Process()
+                {
+                    StartInfo = startInfo,
+                    EnableRaisingEvents = true,
+                };
+
+                collectorProcess.OutputDataReceived += (_, e) =>
+                {
+                    if (e.Data is not null)
+                    {
+                        outputLines.Add(e.Data);
+                    }
+                };
+                collectorProcess.ErrorDataReceived += (_, e) =>
+                {
+                    if (e.Data is not null)
+                    {
+                        errorLines.Add(e.Data);
+                    }
+                };
+
+                collectorProcess.Start();
+                collectorProcess.BeginOutputReadLine();
+                collectorProcess.BeginErrorReadLine();
+
+                var waitTask = WaitForExitAsync(collectorProcess, cancellationToken);
                 var completedTask = await Task.WhenAny(waitTask, Task.Delay(timeout, cancellationToken)).ConfigureAwait(false);
                 if (completedTask != waitTask)
                 {
                     ConsoleUtil.WriteLine($"Dump collection timed out after {timeout} for process {target.ProcessName} ({target.ProcessId}); terminating collector process tree.");
-                    collectorProcess.KillProcessTree();
+                    KillProcessTree(collectorProcess);
                     return new DumpCollectionResult(Succeeded: false, TimedOut: true, ExitCode: null, DumpFileExists: File.Exists(dumpFilePath));
                 }
 
                 await waitTask.ConfigureAwait(false);
 
-                foreach (var line in collectorProcess.OutputLines)
+                foreach (var line in outputLines)
                 {
                     Logger.Log($"dotnet-dump stdout: {line}");
                 }
 
-                foreach (var line in collectorProcess.ErrorLines)
+                foreach (var line in errorLines)
                 {
                     Logger.Log($"dotnet-dump stderr: {line}");
                 }
@@ -88,6 +101,29 @@ namespace RunTests
             {
                 Logger.Log($"Failed to dump process {target.ProcessName} ({target.ProcessId}): {ex.Message}");
                 return new DumpCollectionResult(Succeeded: false, TimedOut: false, ExitCode: null, DumpFileExists: File.Exists(dumpFilePath));
+            }
+        }
+
+        private static async Task WaitForExitAsync(Process process, CancellationToken cancellationToken)
+        {
+            await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+            process.WaitForExit();
+        }
+
+        private static void KillProcessTree(Process process)
+        {
+            if (process.HasExited)
+            {
+                return;
+            }
+
+            try
+            {
+                process.Kill(entireProcessTree: true);
+            }
+            catch (InvalidOperationException)
+            {
+                // The process exited after the HasExited check.
             }
         }
 
@@ -134,96 +170,4 @@ namespace RunTests
         }
     }
 
-    internal interface IDumpCollectorProcessFactory
-    {
-        IDumpCollectorProcess Start(ProcessStartInfo startInfo);
-    }
-
-    internal interface IDumpCollectorProcess
-    {
-        int ExitCode { get; }
-        IReadOnlyList<string> OutputLines { get; }
-        IReadOnlyList<string> ErrorLines { get; }
-        Task WaitForExitAsync(CancellationToken cancellationToken);
-        void KillProcessTree();
-    }
-
-    internal sealed class DumpCollectorProcessFactory : IDumpCollectorProcessFactory
-    {
-        internal static readonly DumpCollectorProcessFactory Instance = new DumpCollectorProcessFactory();
-
-        private DumpCollectorProcessFactory()
-        {
-        }
-
-        public IDumpCollectorProcess Start(ProcessStartInfo startInfo)
-        {
-            var process = new Process()
-            {
-                StartInfo = startInfo,
-                EnableRaisingEvents = true,
-            };
-
-            var outputLines = new List<string>();
-            var errorLines = new List<string>();
-            process.OutputDataReceived += (_, e) =>
-            {
-                if (e.Data is not null)
-                {
-                    outputLines.Add(e.Data);
-                }
-            };
-            process.ErrorDataReceived += (_, e) =>
-            {
-                if (e.Data is not null)
-                {
-                    errorLines.Add(e.Data);
-                }
-            };
-
-            process.Start();
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-            return new DumpCollectorProcess(process, outputLines, errorLines);
-        }
-    }
-
-    internal sealed class DumpCollectorProcess : IDumpCollectorProcess
-    {
-        private readonly Process _process;
-
-        internal DumpCollectorProcess(Process process, IReadOnlyList<string> outputLines, IReadOnlyList<string> errorLines)
-        {
-            _process = process;
-            OutputLines = outputLines;
-            ErrorLines = errorLines;
-        }
-
-        public int ExitCode => _process.ExitCode;
-        public IReadOnlyList<string> OutputLines { get; }
-        public IReadOnlyList<string> ErrorLines { get; }
-
-        public async Task WaitForExitAsync(CancellationToken cancellationToken)
-        {
-            await _process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
-            _process.WaitForExit();
-        }
-
-        public void KillProcessTree()
-        {
-            if (_process.HasExited)
-            {
-                return;
-            }
-
-            try
-            {
-                _process.Kill(entireProcessTree: true);
-            }
-            catch (InvalidOperationException)
-            {
-                // The process exited after the HasExited check.
-            }
-        }
-    }
 }
