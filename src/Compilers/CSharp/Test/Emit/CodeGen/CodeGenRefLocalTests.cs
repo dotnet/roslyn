@@ -3679,7 +3679,7 @@ struct Program
         }
 
         [Fact]
-        public void RefDiscardAssignment_27_Assignmet()
+        public void RefDiscardAssignment_27_Assignment()
         {
             var source = @"
 class C
