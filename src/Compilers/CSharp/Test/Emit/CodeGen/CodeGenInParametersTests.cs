@@ -44,6 +44,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 stackLocalsOpt: null));
         }
 
+        [Fact, WorkItem(85757, "https://github.com/dotnet/roslyn/issues/85757")]
+        public void HasHome_StrictInDup()
+        {
+            var comp = CreateCompilation("class C { int M() => 0; }");
+            var method = comp.GetMember<MethodSymbol>("C.M");
+            var dup = new BoundDup(
+                method.GetNonNullSyntaxNode(),
+                RefKindExtensions.StrictIn,
+                method.ReturnType);
+
+            Assert.True(CodeGenerator.HasHome(
+                dup,
+                CodeGenerator.AddressKind.ReadOnly,
+                method,
+                peVerifyCompatEnabled: false,
+                stackLocalsOpt: null));
+        }
+
         [Fact]
         public void ThreeParamReorder()
         {
