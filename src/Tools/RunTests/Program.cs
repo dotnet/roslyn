@@ -94,17 +94,10 @@ namespace RunTests
             }
         }
 
-        private static Task<int> RunCoreAsync(Options options, CancellationToken cancellationToken)
-            => RunCoreAsync(options, RunAsync, HandleTimeout, cancellationToken);
-
-        internal static async Task<int> RunCoreAsync(
-            Options options,
-            Func<Options, CancellationToken, Task<int>> runAsync,
-            Func<Options, CancellationToken, Task> handleTimeoutAsync,
-            CancellationToken cancellationToken)
+        private static async Task<int> RunCoreAsync(Options options, CancellationToken cancellationToken)
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            var runTask = runAsync(options, cts.Token);
+            var runTask = RunAsync(options, cts.Token);
             var timeoutTask = Task.Delay(options.Timeout!.Value, cancellationToken);
 
             var finishedTask = await Task.WhenAny(timeoutTask, runTask);
@@ -112,7 +105,7 @@ namespace RunTests
             {
                 try
                 {
-                    await handleTimeoutAsync(options, cancellationToken);
+                    await HandleTimeout(options, cancellationToken);
                 }
                 finally
                 {
