@@ -154,15 +154,8 @@ public sealed class RemoveUnnecessaryUnsafeModifierTests
                     [FieldOffset(4)] public unsafe int F2;
                 }
                 """,
-            SolutionTransforms =
-            {
-                static (solution, projectId) =>
-                {
-                    var parseOptions = (CSharpParseOptions)solution.GetRequiredProject(projectId).ParseOptions!;
-                    return solution.WithProjectParseOptions(
-                        projectId, parseOptions.WithFeature("updated-memory-safety-rules"));
-                },
-            },
+            LanguageVersion = LanguageVersion.Preview,
+            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84564")]
@@ -175,43 +168,44 @@ public sealed class RemoveUnnecessaryUnsafeModifierTests
                     public unsafe extern void M();
                 }
                 """,
-            SolutionTransforms =
-            {
-                static (solution, projectId) =>
-                {
-                    var parseOptions = (CSharpParseOptions)solution.GetRequiredProject(projectId).ParseOptions!;
-                    return solution.WithProjectParseOptions(
-                        projectId, parseOptions.WithFeature("updated-memory-safety-rules"));
-                },
-            },
+            LanguageVersion = LanguageVersion.Preview,
+            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
         }.RunAsync();
 
-    [Fact]
-    public Task KeepWhenItMarksCallerUnsafe()
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85732")]
+    public Task KeepWhenItMarksCallerUnsafe(
+        [CombinatorialValues(
+            "public unsafe void M() { }",
+            "public unsafe C() { }",
+            "public unsafe int F;",
+            "public unsafe int P => 0;",
+            "public unsafe int this[int i] => 0;",
+            "public unsafe event System.Action E { add { } remove { } }",
+            "public static unsafe C operator +(C left, C right) => left;",
+            "public static unsafe explicit operator int(C value) => 0;")] string member)
         => new VerifyCS.Test
         {
-            // https://github.com/dotnet/roslyn/issues/82546: this `unsafe` marks the member as caller-unsafe, it should not be removed
+            TestCode = $$"""
+                class C
+                {
+                    {{member}}
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85732")]
+    public Task KeepWhenItMarksLocalFunctionCallerUnsafe()
+        => new VerifyCS.Test
+        {
             TestCode = """
-                class C
-                {
-                    public [|unsafe|] void M() { }
-                }
+                static unsafe void Local() { }
                 """,
-            FixedCode = """
-                class C
-                {
-                    public void M() { }
-                }
-                """,
-            SolutionTransforms =
-            {
-                static (solution, projectId) =>
-                {
-                    var parseOptions = (CSharpParseOptions)solution.GetRequiredProject(projectId).ParseOptions!;
-                    return solution.WithProjectParseOptions(
-                        projectId, parseOptions.WithFeature("updated-memory-safety-rules"));
-                },
-            },
+            LanguageVersion = LanguageVersion.Preview,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
         }.RunAsync();
 
     [Theory, CombinatorialData]
@@ -280,4 +274,11 @@ public sealed class RemoveUnnecessaryUnsafeModifierTests
                 }
                 """,
         }.RunAsync();
+
+    private static Solution EnableUpdatedMemorySafetyRules(Solution solution, ProjectId projectId)
+    {
+        var compilationOptions = (CSharpCompilationOptions)solution.GetRequiredProject(projectId).CompilationOptions!;
+        return solution.WithProjectCompilationOptions(
+                projectId, compilationOptions.WithMemorySafetyRulesVersion(MemorySafetyRulesVersion.Version2));
+    }
 }
