@@ -228,10 +228,11 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
             {
                 JsonSerializer.Serialize(stagingFile, newCache, CacheSerializerContext.Default.Cache);
             }
-            File.Replace(cacheStagingFilePath, cacheFilePath, destinationBackupFileName: null);
+            File.Move(cacheStagingFilePath, cacheFilePath, overwrite: true);
         }
         catch (Exception ex) when (FatalError.ReportAndCatch(ex))
         {
+            logger.LogDebug("Could not write cache file: {ex.Message}", ex.Message);
         }
 
         return newCache.FileBasedAppFullPaths;
