@@ -12067,6 +12067,86 @@ public struct Vec4
 
         [Theory, CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_Conditional_MutatesOriginal(bool usingLocal, bool condition)
+        {
+            var declaration = usingLocal ? "using var a = new S();" : "foreach (var a in new S[1])";
+            var source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    static void Main() => M({{(condition ? "true" : "false")}});
+
+                    static void M(bool condition)
+                    {
+                        {{declaration}}
+                        {
+                            using var b = new S();
+                            ref var c = ref (condition ? ref a : ref b).Self;
+                            {
+                                c = ref (condition ? ref a : ref b).Self;
+                                c.Value = 42;
+                            }
+                            Console.WriteLine($"{a.Value}, {b.Value}");
+                        }
+                    }
+                }
+
+                struct S : IDisposable
+                {
+                    public int Value;
+                    [UnscopedRef] public ref S Self => ref this;
+                    public void Dispose() { }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RefFieldTests.IncludeExpectedOutput(condition ? "42, 0" : "0, 42"),
+                verify: Verification.Fails.WithILVerifyMessage("""
+                [get_Self]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                """)).VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_Conditional_EscapeErrors(bool usingLocal, bool readOnlyFirst)
+        {
+            var declaration = usingLocal ? "using var a = new S();" : "foreach (var a in new S[1])";
+            var receiver = readOnlyFirst ? "(condition ? ref r : ref a)" : "(condition ? ref a : ref r)";
+            var source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    static void M(bool condition)
+                    {
+                        {{declaration}}
+                        {
+                            var b = new S();
+                            ref readonly var r = ref b;
+                            ref var c = ref {{receiver}}.Self;
+                            {
+                                c = ref {{receiver}}.Self;
+                            }
+                        }
+                    }
+                }
+
+                struct S : IDisposable
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                    public void Dispose() { }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (14,17): error CS8374: Cannot ref-assign '(condition ? ref a : ref r).Self' to 'c' because '(condition ? ref a : ref r).Self' has a narrower escape scope than 'c'.
+                //                 c = ref (condition ? ref a : ref r).Self;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, $"c = ref {receiver}.Self").WithArguments("c", $"{receiver}.Self").WithLocation(14, 17));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
         public void LocalReceiver_Field_Mutation(
             [CombinatorialValues(".Self", ".GetSelf()", "[0]")] string access,
             bool isValueType,

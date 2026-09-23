@@ -1434,6 +1434,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ThreeState.False;
             }
 
+            if (receiver is BoundConditionalOperator { IsRef: true } conditional)
+            {
+                return (ReceiverIsSubjectToCloning(conditional.Consequence, method) == ThreeState.True ||
+                        ReceiverIsSubjectToCloning(conditional.Alternative, method) == ThreeState.True).ToThreeState();
+            }
+
             var valueKind = method.IsEffectivelyReadOnly
                 ? BindValueKind.RefersToLocation
                 : BindValueKind.RefersToLocation | BindValueKind.Assignable;
