@@ -43,8 +43,6 @@ foreach ($entry in $benchmarkProjects) {
 
   $buildArgs = @(
     $projectPath
-    "/restore"
-    "/t:Build"
     "/p:Configuration=$configuration"
   )
 
@@ -58,12 +56,10 @@ foreach ($entry in $benchmarkProjects) {
   if ($ci) {
     $buildArgs += "/p:UseRazorBuildServer=false"
     $buildArgs += "/p:UseSharedCompilation=false"
-    $buildArgs += "-bl:$(Join-Path $LogDir "$projectName.Build.binlog")"
     $runArgs += "--disable-build-servers"
   }
 
   if ($entry.ContainsKey("Framework")) {
-    $buildArgs += "/p:TargetFramework=$($entry["Framework"])"
     $runArgs += "-f"
     $runArgs += $entry["Framework"]
   }
@@ -97,9 +93,24 @@ foreach ($entry in $benchmarkProjects) {
       $env:DOTNET_ROLL_FORWARD_TO_PRERELEASE = $entry["RollForwardToPrerelease"]
     }
 
-    # Use Arcade's MSBuild helper for correct warnAsError/warnNotAsError behavior.
-    & (Join-Path $PSScriptRoot "common\msbuild.ps1") -msbuildEngine dotnet -ci:$ci -warnAsError:$warnAsError @buildArgs
-    $exitCode = $LASTEXITCODE
+    # Like dotnet run -f, restore without TargetFramework; overriding it breaks NuGet's static-graph restore.
+    foreach ($target in @("Restore", "Build")) {
+      $targetArgs = @("/t:$target")
+      if ($target -eq "Build" -and $entry.ContainsKey("Framework")) {
+        $targetArgs += "/p:TargetFramework=$($entry["Framework"])"
+      }
+      if ($ci) {
+        $targetArgs += "-bl:$(Join-Path $LogDir "$projectName.$target.binlog")"
+      }
+
+      # Use Arcade's MSBuild helper for correct warnAsError/warnNotAsError behavior.
+      & (Join-Path $PSScriptRoot "common\msbuild.ps1") -msbuildEngine dotnet -ci:$ci -warnAsError:$warnAsError @buildArgs @targetArgs
+      $exitCode = $LASTEXITCODE
+      if ($exitCode -ne 0) {
+        break
+      }
+    }
+
     if ($exitCode -eq 0) {
       Write-Host "dotnet $($runArgs -join ' ')"
       $null = DotNet -ignoreFailure @runArgs
