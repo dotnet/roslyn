@@ -95,13 +95,13 @@ namespace RunTests
         }
 
         private static Task<int> RunCoreAsync(Options options, CancellationToken cancellationToken)
-            => RunCoreAsync(options, cancellationToken, RunAsync, HandleTimeout);
+            => RunCoreAsync(options, RunAsync, HandleTimeout, cancellationToken);
 
         internal static async Task<int> RunCoreAsync(
             Options options,
-            CancellationToken cancellationToken,
             Func<Options, CancellationToken, Task<int>> runAsync,
-            Func<Options, CancellationToken, Task> handleTimeoutAsync)
+            Func<Options, CancellationToken, Task> handleTimeoutAsync,
+            CancellationToken cancellationToken)
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var runTask = runAsync(options, cts.Token);
