@@ -21,10 +21,10 @@ This file should be imported by eng/Versions.props
     <MicrosoftExtensionsOptionsPackageVersion>10.0.10</MicrosoftExtensionsOptionsPackageVersion>
     <MicrosoftExtensionsOptionsConfigurationExtensionPackageVersion>10.0.10</MicrosoftExtensionsOptionsConfigurationExtensionPackageVersion>
     <MicrosoftExtensionsPrimitivesPackageVersion>10.0.10</MicrosoftExtensionsPrimitivesPackageVersion>
-    <NuGetVersioningPackageVersion>7.12.0-rc.46804</NuGetVersioningPackageVersion>
+    <NuGetVersioningPackageVersion>8.0.0-rc.47406</NuGetVersioningPackageVersion>
     <SystemCodeDomPackageVersion>10.0.10</SystemCodeDomPackageVersion>
     <SystemCollectionsImmutablePackageVersion>10.0.10</SystemCollectionsImmutablePackageVersion>
-    <SystemCommandLinePackageVersion>3.0.0-rc.2.26467.104</SystemCommandLinePackageVersion>
+    <SystemCommandLinePackageVersion>3.0.0-rc.2.26472.106</SystemCommandLinePackageVersion>
     <SystemComponentModelCompositionPackageVersion>10.0.10</SystemComponentModelCompositionPackageVersion>
     <SystemCompositionPackageVersion>10.0.10</SystemCompositionPackageVersion>
     <SystemConfigurationConfigurationManagerPackageVersion>10.0.10</SystemConfigurationConfigurationManagerPackageVersion>
