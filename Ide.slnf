@@ -186,6 +186,7 @@
       "src\\Tools\\CompilerGeneratorTools\\Source\\VisualBasicErrorFactsGenerator\\VisualBasicErrorFactsGenerator.vbproj",
       "src\\Tools\\CompilerGeneratorTools\\Source\\VisualBasicSyntaxGenerator\\VisualBasicSyntaxGenerator.vbproj",
       "src\\Tools\\RunTests\\RunTests.csproj",
+      "src\\Tools\\RunTests\\UnitTests\\RunTests.UnitTests.csproj",
       "src\\Tools\\TestDiscoveryWorker\\TestDiscoveryWorker.csproj",
       "src\\VisualStudio\\CSharp\\Impl\\Microsoft.VisualStudio.LanguageServices.CSharp.csproj",
       "src\\VisualStudio\\CSharp\\Test\\Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.csproj",

@@ -1,145 +1,229 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
-using Microsoft.Diagnostics.NETCore.Client;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace RunTests
 {
     /// <summary>
-    /// Collects dump files from processes. Uses <see cref="DiagnosticsClient"/> for .NET Core
-    /// processes and MiniDumpWriteDump P/Invoke for .NET Framework processes.
+    /// Collects dump files from processes by running the pinned dotnet-dump local tool out-of-process.
     /// </summary>
     internal static class DumpCollector
     {
-        /// <summary>
-        /// Attempts to collect a full memory dump from the specified process.
-        /// Returns true if the dump was successfully written.
-        /// </summary>
-        internal static bool TryDumpProcess(Process process, string dumpFilePath)
+        internal static readonly TimeSpan DefaultDumpTimeout = TimeSpan.FromMinutes(2);
+
+        internal static Task<DumpCollectionResult> TryDumpProcessAsync(
+            Process process,
+            string dumpFilePath,
+            DotnetDumpTool dotnetDumpTool,
+            TimeSpan timeout,
+            CancellationToken cancellationToken)
+            => TryDumpProcessAsync(
+                new DumpTarget(process.Id, process.ProcessName),
+                dumpFilePath,
+                dotnetDumpTool,
+                timeout,
+                DumpCollectorProcessFactory.Instance,
+                cancellationToken);
+
+        internal static async Task<DumpCollectionResult> TryDumpProcessAsync(
+            DumpTarget target,
+            string dumpFilePath,
+            DotnetDumpTool dotnetDumpTool,
+            TimeSpan timeout,
+            IDumpCollectorProcessFactory processFactory,
+            CancellationToken cancellationToken)
         {
             try
             {
-                if (IsNetCoreProcess(process))
+                Directory.CreateDirectory(Path.GetDirectoryName(dumpFilePath)!);
+                var startInfo = dotnetDumpTool.CreateStartInfo(target, dumpFilePath);
+                ConsoleUtil.WriteLine($"Starting dump collection for process {target.ProcessName} ({target.ProcessId}) to '{dumpFilePath}'.");
+                ConsoleUtil.WriteLine($"Collector command: {dotnetDumpTool.GetDisplayCommand(target, dumpFilePath)}");
+                ConsoleUtil.WriteLine($"Collector timeout: {timeout}");
+
+                var collectorProcess = processFactory.Start(startInfo);
+                var waitTask = collectorProcess.WaitForExitAsync(cancellationToken);
+                var completedTask = await Task.WhenAny(waitTask, Task.Delay(timeout, cancellationToken)).ConfigureAwait(false);
+                if (completedTask != waitTask)
                 {
-                    return TryDumpNetCoreProcess(process, dumpFilePath);
+                    ConsoleUtil.WriteLine($"Dump collection timed out after {timeout} for process {target.ProcessName} ({target.ProcessId}); terminating collector process tree.");
+                    collectorProcess.KillProcessTree();
+                    return new DumpCollectionResult(Succeeded: false, TimedOut: true, ExitCode: null, DumpFileExists: File.Exists(dumpFilePath));
                 }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+
+                await waitTask.ConfigureAwait(false);
+
+                foreach (var line in collectorProcess.OutputLines)
                 {
-                    return TryDumpWithMiniDumpWriteDump(process, dumpFilePath);
+                    Logger.Log($"dotnet-dump stdout: {line}");
                 }
-                else
+
+                foreach (var line in collectorProcess.ErrorLines)
                 {
-                    Logger.Log($"Cannot dump non-.NET Core process {process.ProcessName} ({process.Id}) on non-Windows platform.");
-                    return false;
+                    Logger.Log($"dotnet-dump stderr: {line}");
                 }
+
+                var dumpFileExists = File.Exists(dumpFilePath);
+                if (collectorProcess.ExitCode == 0 && dumpFileExists)
+                {
+                    ConsoleUtil.WriteLine($"Dump collection succeeded for process {target.ProcessName} ({target.ProcessId}); output '{dumpFilePath}'.");
+                    return new DumpCollectionResult(Succeeded: true, TimedOut: false, collectorProcess.ExitCode, DumpFileExists: true);
+                }
+
+                ConsoleUtil.WriteLine($"Dump collection failed for process {target.ProcessName} ({target.ProcessId}); exit code {collectorProcess.ExitCode}, output exists: {dumpFileExists}.");
+                return new DumpCollectionResult(Succeeded: false, TimedOut: false, collectorProcess.ExitCode, dumpFileExists);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception ex)
             {
-                Logger.Log($"Failed to dump process {process.ProcessName} ({process.Id}): {ex.Message}");
-                return false;
+                Logger.Log($"Failed to dump process {target.ProcessName} ({target.ProcessId}): {ex.Message}");
+                return new DumpCollectionResult(Succeeded: false, TimedOut: false, ExitCode: null, DumpFileExists: File.Exists(dumpFilePath));
             }
         }
 
-        private static bool TryDumpNetCoreProcess(Process process, string dumpFilePath)
-        {
-            try
-            {
-                var client = new DiagnosticsClient(process.Id);
-                client.WriteDump(DumpType.Full, dumpFilePath, logDumpGeneration: false);
-                return File.Exists(dumpFilePath);
-            }
-            catch (Exception ex)
-            {
-                Logger.Log($"DiagnosticsClient.WriteDump failed for process {process.Id}: {ex.Message}");
-                return false;
-            }
-        }
+        internal readonly record struct DumpTarget(int ProcessId, string ProcessName);
 
-        /// <summary>
-        /// Determines if a process is a .NET Core process by checking if the diagnostics
-        /// IPC channel is available (the pipe/socket exists).
-        /// </summary>
-        private static bool IsNetCoreProcess(Process process)
+        internal readonly record struct DumpCollectionResult(bool Succeeded, bool TimedOut, int? ExitCode, bool DumpFileExists);
+
+        internal readonly record struct DotnetDumpTool(string DotnetFilePath, string? WorkingDirectory)
         {
-            try
+            internal ProcessStartInfo CreateStartInfo(DumpTarget target, string dumpFilePath)
             {
-                // On Windows, .NET Core processes create a named pipe: dotnet-diagnostic-{pid}
-                // On Unix, they create a Unix domain socket in the temp directory.
-                // DiagnosticsClient.GetPublishedProcesses() returns all PIDs with active diagnostic ports.
-                var publishedProcesses = DiagnosticsClient.GetPublishedProcesses();
-                foreach (var pid in publishedProcesses)
+                var startInfo = new ProcessStartInfo(DotnetFilePath)
                 {
-                    if (pid == process.Id)
-                    {
-                        return true;
-                    }
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true,
+                };
+
+                if (WorkingDirectory is not null)
+                {
+                    startInfo.WorkingDirectory = WorkingDirectory;
                 }
 
-                return false;
+                startInfo.ArgumentList.Add("tool");
+                startInfo.ArgumentList.Add("run");
+                startInfo.ArgumentList.Add("dotnet-dump");
+                startInfo.ArgumentList.Add("--");
+                startInfo.ArgumentList.Add("collect");
+                startInfo.ArgumentList.Add("--process-id");
+                startInfo.ArgumentList.Add(target.ProcessId.ToString());
+                startInfo.ArgumentList.Add("--type");
+                startInfo.ArgumentList.Add("Full");
+                startInfo.ArgumentList.Add("--output");
+                startInfo.ArgumentList.Add(dumpFilePath);
+                return startInfo;
             }
-            catch
-            {
-                return false;
-            }
+
+            internal string GetDisplayCommand(DumpTarget target, string dumpFilePath)
+                => $"{Quote(DotnetFilePath)} tool run dotnet-dump -- collect --process-id {target.ProcessId} --type Full --output {Quote(dumpFilePath)}";
+
+            private static string Quote(string argument)
+                => argument.Contains(' ') ? $"\"{argument}\"" : argument;
+        }
+    }
+
+    internal interface IDumpCollectorProcessFactory
+    {
+        IDumpCollectorProcess Start(ProcessStartInfo startInfo);
+    }
+
+    internal interface IDumpCollectorProcess
+    {
+        int ExitCode { get; }
+        IReadOnlyList<string> OutputLines { get; }
+        IReadOnlyList<string> ErrorLines { get; }
+        Task WaitForExitAsync(CancellationToken cancellationToken);
+        void KillProcessTree();
+    }
+
+    internal sealed class DumpCollectorProcessFactory : IDumpCollectorProcessFactory
+    {
+        internal static readonly DumpCollectorProcessFactory Instance = new DumpCollectorProcessFactory();
+
+        private DumpCollectorProcessFactory()
+        {
         }
 
-#pragma warning disable CA1416 // Validate platform compatibility
-        private static bool TryDumpWithMiniDumpWriteDump(Process process, string dumpFilePath)
+        public IDumpCollectorProcess Start(ProcessStartInfo startInfo)
         {
+            var process = new Process()
+            {
+                StartInfo = startInfo,
+                EnableRaisingEvents = true,
+            };
+
+            var outputLines = new List<string>();
+            var errorLines = new List<string>();
+            process.OutputDataReceived += (_, e) =>
+            {
+                if (e.Data is not null)
+                {
+                    outputLines.Add(e.Data);
+                }
+            };
+            process.ErrorDataReceived += (_, e) =>
+            {
+                if (e.Data is not null)
+                {
+                    errorLines.Add(e.Data);
+                }
+            };
+
+            process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+            return new DumpCollectorProcess(process, outputLines, errorLines);
+        }
+    }
+
+    internal sealed class DumpCollectorProcess : IDumpCollectorProcess
+    {
+        private readonly Process _process;
+
+        internal DumpCollectorProcess(Process process, IReadOnlyList<string> outputLines, IReadOnlyList<string> errorLines)
+        {
+            _process = process;
+            OutputLines = outputLines;
+            ErrorLines = errorLines;
+        }
+
+        public int ExitCode => _process.ExitCode;
+        public IReadOnlyList<string> OutputLines { get; }
+        public IReadOnlyList<string> ErrorLines { get; }
+
+        public async Task WaitForExitAsync(CancellationToken cancellationToken)
+        {
+            await _process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+            _process.WaitForExit();
+        }
+
+        public void KillProcessTree()
+        {
+            if (_process.HasExited)
+            {
+                return;
+            }
+
             try
             {
-                using var fileStream = new FileStream(dumpFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
-                // MiniDumpWithFullMemory = 0x00000002
-                var success = NativeMethods.MiniDumpWriteDump(
-                    process.Handle,
-                    (uint)process.Id,
-                    fileStream.SafeFileHandle.DangerousGetHandle(),
-                    NativeMethods.MINIDUMP_TYPE.MiniDumpWithFullMemory,
-                    IntPtr.Zero,
-                    IntPtr.Zero,
-                    IntPtr.Zero);
-
-                if (!success)
-                {
-                    var errorCode = Marshal.GetLastWin32Error();
-                    Logger.Log($"MiniDumpWriteDump failed for process {process.Id} with error code {errorCode}");
-                    // Clean up the empty/partial file
-                    try { fileStream.Close(); File.Delete(dumpFilePath); } catch { }
-                }
-
-                return success;
+                _process.Kill(entireProcessTree: true);
             }
-            catch (Exception ex)
+            catch (InvalidOperationException)
             {
-                Logger.Log($"MiniDumpWriteDump failed for process {process.Id}: {ex.Message}");
-                return false;
+                // The process exited after the HasExited check.
             }
         }
-
-        private static class NativeMethods
-        {
-            [Flags]
-            internal enum MINIDUMP_TYPE : uint
-            {
-                MiniDumpWithFullMemory = 0x00000002,
-            }
-
-            [DllImport("dbghelp.dll", SetLastError = true)]
-            [return: MarshalAs(UnmanagedType.Bool)]
-            internal static extern bool MiniDumpWriteDump(
-                IntPtr hProcess,
-                uint processId,
-                IntPtr hFile,
-                MINIDUMP_TYPE dumpType,
-                IntPtr exceptionParam,
-                IntPtr userStreamParam,
-                IntPtr callbackParam);
-        }
-#pragma warning restore CA1416 // Validate platform compatibility
     }
 }

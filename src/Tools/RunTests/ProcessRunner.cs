@@ -146,7 +146,7 @@ namespace RunTests
                     {
                         try
                         {
-                            process.Kill();
+                            process.Kill(entireProcessTree: true);
                         }
                         catch (InvalidOperationException)
                         {

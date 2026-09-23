@@ -94,27 +94,40 @@ namespace RunTests
             }
         }
 
-        private static async Task<int> RunCoreAsync(Options options, CancellationToken cancellationToken)
+        private static Task<int> RunCoreAsync(Options options, CancellationToken cancellationToken)
+            => RunCoreAsync(options, cancellationToken, RunAsync, HandleTimeout);
+
+        internal static async Task<int> RunCoreAsync(
+            Options options,
+            CancellationToken cancellationToken,
+            Func<Options, CancellationToken, Task<int>> runAsync,
+            Func<Options, CancellationToken, Task> handleTimeoutAsync)
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            var runTask = RunAsync(options, cts.Token);
-            var timeoutTask = Task.Delay(options.Timeout.Value, cancellationToken);
+            var runTask = runAsync(options, cts.Token);
+            var timeoutTask = Task.Delay(options.Timeout!.Value, cancellationToken);
 
             var finishedTask = await Task.WhenAny(timeoutTask, runTask);
             if (finishedTask == timeoutTask)
             {
-                await HandleTimeout(options, cancellationToken);
-                cts.Cancel();
-
                 try
                 {
-                    // Need to await here to ensure that all of the child processes are properly 
-                    // killed before we exit.
-                    await runTask;
+                    await handleTimeoutAsync(options, cancellationToken);
                 }
-                catch
+                finally
                 {
-                    // Cancellation exceptions expected here. 
+                    cts.Cancel();
+
+                    try
+                    {
+                        // Need to await here to ensure that all of the child processes are properly
+                        // killed before we exit.
+                        await runTask;
+                    }
+                    catch
+                    {
+                        // Cancellation exceptions expected here.
+                    }
                 }
 
                 return ExitFailure;
@@ -184,13 +197,13 @@ namespace RunTests
             Logger.Log("End logging executed process details");
         }
 
-        private static void WriteLogFile(Options options)
+        private static void WriteLogFile(Options options, bool append = false)
         {
             var logFilePath = Path.Combine(options.LogFilesDirectory, "runtests.log");
             try
             {
                 Directory.CreateDirectory(options.LogFilesDirectory);
-                using (var writer = new StreamWriter(logFilePath, append: false))
+                using (var writer = new StreamWriter(logFilePath, append))
                 {
                     Logger.WriteTo(writer);
                 }
@@ -226,28 +239,49 @@ namespace RunTests
 
             if (options.CollectDumps)
             {
+                var dotnetDumpTool = new DumpCollector.DotnetDumpTool(options.DotnetFilePath, TryGetRepositoryRoot(options));
+                var appendLog = false;
                 var counter = 0;
                 foreach (var proc in ProcessUtil.GetTestHostProcesses().OrderBy(x => x.ProcessName))
                 {
                     var name = proc.ProcessName;
-
+                    var target = new DumpCollector.DumpTarget(proc.Id, name);
                     var dumpFilePath = Path.Combine(dumpDir, $"{name}-{counter}.dmp");
-                    ConsoleUtil.Write($"Dumping {name} {proc.Id} to {dumpFilePath} ... ");
+                    ConsoleUtil.WriteLine($"Dumping {name} {proc.Id} to {dumpFilePath}");
+                    ConsoleUtil.WriteLine($"Collector command: {dotnetDumpTool.GetDisplayCommand(target, dumpFilePath)}");
+                    ConsoleUtil.WriteLine($"Collector timeout: {DumpCollector.DefaultDumpTimeout}");
+                    WriteLogFile(options, appendLog);
+                    appendLog = true;
 
-                    if (DumpCollector.TryDumpProcess(proc, dumpFilePath))
+                    var result = await DumpCollector.TryDumpProcessAsync(proc, dumpFilePath, dotnetDumpTool, DumpCollector.DefaultDumpTimeout, cancellationToken);
+                    if (result.Succeeded)
                     {
-                        ConsoleUtil.WriteLine($"succeeded ({new FileInfo(dumpFilePath).Length} bytes)");
+                        ConsoleUtil.WriteLine($"Dumping {name} {proc.Id} succeeded ({new FileInfo(dumpFilePath).Length} bytes)");
+                    }
+                    else if (result.TimedOut)
+                    {
+                        ConsoleUtil.WriteLine($"Dumping {name} {proc.Id} timed out; partial output exists: {result.DumpFileExists}");
                     }
                     else
                     {
-                        ConsoleUtil.WriteLine("FAILED");
+                        ConsoleUtil.WriteLine($"Dumping {name} {proc.Id} failed; exit code: {result.ExitCode?.ToString() ?? "<none>"}, output exists: {result.DumpFileExists}");
                     }
 
+                    WriteLogFile(options, append: true);
                     counter++;
                 }
             }
 
-            WriteLogFile(options);
+            WriteLogFile(options, append: true);
+
+            static string TryGetRepositoryRoot(Options options)
+            {
+                var artifactsDirectory = Path.GetFullPath(options.ArtifactsDirectory);
+                var repositoryRoot = Directory.GetParent(artifactsDirectory)?.FullName;
+                return repositoryRoot is not null && File.Exists(Path.Combine(repositoryRoot, "dotnet-tools.json"))
+                    ? repositoryRoot
+                    : null;
+            }
         }
 
         private static ImmutableArray<AssemblyInfo> GetAssemblyFilePaths(Options options)
