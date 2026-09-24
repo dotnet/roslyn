@@ -54,6 +54,8 @@ namespace IdeCoreBenchmarks
                 refactoringNodes: ImmutableHashSet<string>.Empty,
                 runConcurrent: true,
                 reportSuppressedDiagnostics: true,
+                fixAll: false,
+                equivalenceKey: null,
                 applyChanges: false,
                 useAll: false,
                 iterations: 1,
