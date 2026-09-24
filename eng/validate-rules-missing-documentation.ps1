@@ -2,7 +2,7 @@
 param (
   [switch]$ci = $false,
   # Consumed implicitly by the MSBuild helper.
-  [switch]$warnAsError = $ci
+  [switch]$warnAsError = $false
 )
 
 Set-StrictMode -version 2.0

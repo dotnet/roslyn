@@ -17,6 +17,9 @@ parameters:
 - name: buildArguments
   type: string
   default: ''
+- name: warnAsError
+  type: boolean
+  default: false
 
 jobs:
 - job: ${{ parameters.jobName }}
@@ -38,7 +41,7 @@ jobs:
       displayName: Restore
       inputs:
         filePath: eng/build.ps1
-        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -restore -binaryLogName Restore.binlog ${{ parameters.restoreArguments }}
+        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -warnAsError:$${{ parameters.warnAsError }} -restore -binaryLogName Restore.binlog ${{ parameters.restoreArguments }}
 
     - template: cache-roslyn-outputs.yml
       parameters:
@@ -48,7 +51,7 @@ jobs:
       displayName: Build
       inputs:
         filePath: eng/build.ps1
-        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -binaryLogName Build.binlog -skipDocumentation ${{ parameters.buildArguments }}
+        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -warnAsError:$${{ parameters.warnAsError }} -build -binaryLogName Build.binlog -skipDocumentation ${{ parameters.buildArguments }}
 
     - template: post-cache-roslyn-outputs.yml
       parameters:

@@ -51,7 +51,7 @@ jobs:
       displayName: Run Unit Tests
       inputs:
         filePath: eng/build.ps1
-        arguments: -ci -configuration ${{ parameters.configuration }} ${{ parameters.testArguments }} -collectDumps
+        arguments: -ci -warnAsError -configuration ${{ parameters.configuration }} ${{ parameters.testArguments }} -collectDumps
 
     - template: publish-logs.yml
       parameters:
