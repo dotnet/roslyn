@@ -166,7 +166,6 @@
     <Project Path="src/EditorFeatures/Text/Microsoft.CodeAnalysis.EditorFeatures.Text.csproj" />
     <Project Path="src/EditorFeatures/VisualBasic/Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.vbproj" />
     <Project Path="src/EditorFeatures/VisualBasicTest/Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests.vbproj" />
-    <Project Path="src/EditorFeatures/XunitHook/Microsoft.CodeAnalysis.XunitHook.csproj" />
     <Project Path="src/NuGet/Microsoft.CodeAnalysis.EditorFeatures.Package/Microsoft.CodeAnalysis.EditorFeatures.Package.csproj" />
   </Folder>
   <Folder Name="/EditorFeatures/ExternalAccess/">

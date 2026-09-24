@@ -17,12 +17,12 @@
     <ProjectReference Include="..\CSharp\Microsoft.CodeAnalysis.CSharp.EditorFeatures.csproj" />
     <ProjectReference Include="..\Text\Microsoft.CodeAnalysis.EditorFeatures.Text.csproj" />
     <ProjectReference Include="..\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.vbproj" />
-    <ProjectReference Include="..\XunitHook\Microsoft.CodeAnalysis.XunitHook.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Moq" />
     <PackageReference Include="BasicUndo" />
     <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor" />
+    <PackageReference Include="Xunit.StaFact" PrivateAssets="all" Aliases="XunitStaFact" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="IdeBenchmarks" />
