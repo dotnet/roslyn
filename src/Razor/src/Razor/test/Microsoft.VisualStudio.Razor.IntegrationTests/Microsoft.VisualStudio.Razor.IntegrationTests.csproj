@@ -21,8 +21,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Test.Common.Tooling\Microsoft.AspNetCore.Razor.Test.Common.Tooling.csproj" />
-    <ProjectReference Include="..\..\src\Microsoft.VisualStudio.LanguageServer.ContainedLanguage\Microsoft.VisualStudio.LanguageServer.ContainedLanguage.csproj">
+    <!--
+      IsTestProject=false above makes eng\targets\Imports.targets default ProjectReference items
+      to Private=false (no copy-local), which is correct for an ordinary library but wrong here:
+      this project hosts and executes its own tests via a custom in-process xUnit runner
+      (TestDiscoveryWorker/InProcessTestProcessLauncher), so referenced projects' assemblies must
+      be copied to this project's own output directory to be loadable at discovery/execution
+      time. Set Private="true" explicitly to restore copy-local (RazorExtension already opts out
+      via ReferenceOutputAssembly=false, and RazorDeployment's Private="False" below is
+      intentional - it's deployed via VSIX, not copy-local).
+    -->
+    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Test.Common.Tooling\Microsoft.AspNetCore.Razor.Test.Common.Tooling.csproj" Private="true" />
+    <ProjectReference Include="..\..\src\Microsoft.VisualStudio.LanguageServer.ContainedLanguage\Microsoft.VisualStudio.LanguageServer.ContainedLanguage.csproj" Private="true">
       <PrivateAssets>All</PrivateAssets>
       <CopyLocalSatelliteAssemblies>False</CopyLocalSatelliteAssemblies>
     </ProjectReference>
@@ -40,7 +50,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Editor" />
-    <ProjectReference Include="..\..\..\..\..\VisualStudio\IntegrationTest\Harness\XUnit\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj" />
+    <ProjectReference Include="..\..\..\..\..\VisualStudio\IntegrationTest\Harness\XUnit\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj" Private="true" />
     <ProjectReference Include="..\..\..\..\..\VisualStudio\IntegrationTest\Harness\SourceGenerator\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" SetTargetFramework="TargetFramework=netstandard2.0" SkipGetTargetFrameworkProperties="true" />
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" />
     <PackageReference Include="NuGet.VisualStudio" />

@@ -49,6 +49,19 @@
     <ProjectReference Include="..\..\..\..\VisualStudio\IntegrationTest\Harness\XUnit\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj" />
   </ItemGroup>
 
+  <!--
+    IsTestProject=false above makes eng\targets\Imports.targets default all ProjectReference
+    items to Private=false (no copy-local), which is correct for an ordinary library but wrong
+    here: this project hosts and executes its own tests via a custom in-process xUnit runner
+    (TestDiscoveryWorker/InProcessTestProcessLauncher), so referenced projects' assemblies
+    (e.g. Microsoft.VisualStudio.Extensibility.Testing.Xunit.dll) must be copied to this
+    project's own output directory to be loadable at discovery/execution time. Restore
+    copy-local for every reference here (none of them set Private explicitly).
+  -->
+  <ItemGroup>
+    <ProjectReference Update="@(ProjectReference)" Private="true" />
+  </ItemGroup>
+
   <Target Name="PrepareVsixProjectReferences"
           BeforeTargets="ResolveProjectReferences"
           DependsOnTargets="PrepareProjectReferences"
