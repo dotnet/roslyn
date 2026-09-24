@@ -15,7 +15,13 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Compilers\Extension\Roslyn.Compilers.Extension.csproj" />
     <ProjectReference Include="..\..\ExpressionEvaluator\Package\ExpressionEvaluatorPackage.csproj" />
-    <ProjectReference Include="..\..\Razor\src\Razor\test\Microsoft.VisualStudio.Razor.IntegrationTests\Microsoft.VisualStudio.Razor.IntegrationTests.csproj" />
+    <!--
+      Microsoft.VisualStudio.Razor.IntegrationTests still targets xUnit v2 and has not yet been ported
+      to xUnit v3; it is temporarily excluded here while the rest of the integration tests migrate.
+      See Microsoft.CodeAnalysis.Test.Utilities.IntegrationTests.csproj / New.IntegrationTests for the
+      v3 migration this project needs to catch up to.
+    -->
+    <!-- <ProjectReference Include="..\..\Razor\src\Razor\test\Microsoft.VisualStudio.Razor.IntegrationTests\Microsoft.VisualStudio.Razor.IntegrationTests.csproj" /> -->
     <ProjectReference Include="..\..\RoslynSdk\VisualStudio.Roslyn.SDK\Test\Roslyn.SDK.IntegrationTests\Roslyn.SDK.IntegrationTests.csproj" />
     <!-- Only the dedicated dependency VSIX needs BuildDependencyVsix.
          Scoping the property here avoids duplicate configured builds of shared dependencies that can race on common outputs. -->
