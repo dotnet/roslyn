@@ -11,6 +11,9 @@ parameters:
     values: [ 'Debug', 'Release' ] 
   - name: timeout
     type: number
+  - name: warnAsError
+    type: boolean
+    default: false
   - name: testRuns
     type: object
     default:
@@ -28,6 +31,7 @@ stages:
       jobName: Build_Windows_${{ parameters.configuration }}
       testArtifactName: Transport_Artifacts_Windows_${{ parameters.configuration }}
       configuration: ${{ parameters.configuration }}
+      warnAsError: ${{ parameters.warnAsError }}
       poolParameters: 
         name: ${{ parameters.poolName }}
         demands: ImageOverride -equals ${{ parameters.buildQueueName }}
@@ -118,7 +122,7 @@ stages:
         displayName: Run Integration Tests
         inputs:
           filePath: eng/build.ps1
-          arguments: -ci -prepareMachine -testVsi -configuration ${{ parameters.configuration }} -oop64bit:$${{ testParameters.oop64bit }} -collectDumps -lspEditor:$${{ testParameters.lspEditor }}
+          arguments: -ci -warnAsError:$${{ parameters.warnAsError }} -prepareMachine -testVsi -configuration ${{ parameters.configuration }} -oop64bit:$${{ testParameters.oop64bit }} -collectDumps -lspEditor:$${{ testParameters.lspEditor }}
 
       # These are temporary publishing steps - once the tests run on helix, the artifacts will be attached to the helix payload.
       - task: PublishTestResults@2

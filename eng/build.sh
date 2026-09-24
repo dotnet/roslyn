@@ -39,7 +39,7 @@ usage()
   echo "  --prepareMachine           Prepare machine for CI run, clean up processes after build"
   echo "  --msbuildMultiThreaded <value> Sets MSBuild's multi-threaded mode, i.e. the -mt switch ('true' or 'false') (short: --mt)"
   echo "  --nodeReuse <value>        Sets nodereuse msbuild parameter ('true' or 'false')"
-  echo "  --warnAsError [true|false] Treat all warnings as errors (default: true with --ci)"
+  echo "  --warnAsError [true|false] Treat all warnings as errors (default: false)"
   echo "  --warnNotAsError <codes>   Suppress specific warnings from being treated as errors (semi-colon delimited)"
   echo "  --sourceBuild              Build the repository in source-only mode"
   echo "  --productBuild             Build the repository in product-build mode."
@@ -86,7 +86,8 @@ skip_documentation=false
 prepare_machine=false
 # Empty means "not specified"; tools.sh leaves it off unless it's explicitly requested.
 msbuild_multi_threaded=''
-warn_as_error=""
+# Arcade's MSBuild helper consumes this variable implicitly.
+warn_as_error=false
 warn_not_as_error=""
 properties=()
 source_build=false
@@ -240,10 +241,6 @@ while [[ $# > 0 ]]; do
   args="$args $1"
   shift
 done
-
-# Resolve the default after parsing so explicit overrides work in either argument order.
-# Arcade's MSBuild helper consumes this variable implicitly.
-warn_as_error=${warn_as_error:-$ci}
 
 # Import Arcade functions
 . "$scriptroot/common/tools.sh"

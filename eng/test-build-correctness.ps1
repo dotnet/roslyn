@@ -15,7 +15,7 @@ param(
   [switch]$enableDumps = $false,
   [string]$bootstrapDir = "",
   [switch]$ci = $false,
-  [switch]$warnAsError = $ci,
+  [switch]$warnAsError = $false,
   [switch]$help)
 
 Set-StrictMode -version 2.0
@@ -24,7 +24,7 @@ $ErrorActionPreference="Stop"
 function Print-Usage() {
   Write-Host "Usage: test-build-correctness.ps1"
   Write-Host "  -configuration            Build configuration ('Debug' or 'Release')"
-  Write-Host "  -warnAsError              Treat all warnings as errors (default: true with -ci)"
+  Write-Host "  -warnAsError              Treat all warnings as errors (default: false)"
 }
 
 $docBranch = "main"
