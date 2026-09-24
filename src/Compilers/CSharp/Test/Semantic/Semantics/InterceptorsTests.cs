@@ -9016,6 +9016,40 @@ static class Interceptors
 """);
     }
 
+    [Fact, CompilerTrait(CompilerFeature.Extensions), WorkItem("https://github.com/dotnet/roslyn/issues/85759")]
+    public void Extensions_17_RefReadOnly()
+    {
+        var source = """
+int i = 0;
+S s = default;
+s.M(i);
+
+public struct S
+{
+}
+
+public static class Extensions
+{
+    public static void M(this ref readonly S s, ref readonly int i) => System.Console.Write("original");
+}
+""";
+        var locations = GetInterceptableLocations(source);
+        var interceptors = $$"""
+static class Interceptors
+{
+    extension(ref readonly S s)
+    {
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
+        public void Method(ref readonly int i) => System.Console.Write("intercepted");
+    }
+}
+""";
+        CompileAndVerify([source, interceptors, s_attributesSource], parseOptions: RegularPreviewWithInterceptors, expectedOutput: "intercepted").VerifyDiagnostics(
+            // (3,5): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
+            // s.M(i);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "i").WithArguments("1").WithLocation(3, 5));
+    }
+
     [Fact, CompilerTrait(CompilerFeature.Extensions)]
     public void Extensions_18()
     {
@@ -9563,4 +9597,3 @@ static class Interceptors
             Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(3, 15));
     }
 }
-
