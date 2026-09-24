@@ -5,24 +5,17 @@
 namespace Xunit.Threading
 {
     using System;
-    using System.ComponentModel;
     using System.Linq;
-    using Xunit.Abstractions;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Xunit.Harness;
     using Xunit.Sdk;
+    using Xunit.v3;
 
-    public abstract class IdeTestCaseBase : XunitTestCase
+    public abstract class IdeTestCaseBase : XunitTestCase, ISelfExecutingXunitTestCase
     {
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("Called by the deserializer; should only be called by deriving classes for deserialization purposes", error: true)]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        protected IdeTestCaseBase()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        {
-        }
-
-        protected IdeTestCaseBase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod, VisualStudioInstanceKey visualStudioInstanceKey, object?[]? testMethodArguments = null)
-            : base(diagnosticMessageSink, defaultMethodDisplay, defaultMethodDisplayOptions, testMethod, testMethodArguments)
+        protected IdeTestCaseBase(IXunitTestMethod testMethod, VisualStudioInstanceKey visualStudioInstanceKey, bool includeRootSuffixInDisplayName, object?[]? testMethodArguments = null)
+            : base(testMethod, GetDisplayName(testMethod, visualStudioInstanceKey, includeRootSuffixInDisplayName), GetUniqueID(testMethod, visualStudioInstanceKey), @explicit: false, testMethodArguments: testMethodArguments)
         {
             SharedData = WpfTestSharedData.Instance;
             VisualStudioInstanceKey = visualStudioInstanceKey;
@@ -39,66 +32,67 @@ namespace Xunit.Threading
             private set;
         }
 
-        public new TestMethodDisplay DefaultMethodDisplay => base.DefaultMethodDisplay;
-
-        public new TestMethodDisplayOptions DefaultMethodDisplayOptions => base.DefaultMethodDisplayOptions;
-
         public WpfTestSharedData SharedData
         {
             get;
             private set;
         }
 
-        protected virtual bool IncludeRootSuffixInDisplayName => false;
-
-        protected override string GetDisplayName(IAttributeInfo factAttribute, string displayName)
+        private static string GetDisplayName(IXunitTestMethod testMethod, VisualStudioInstanceKey visualStudioInstanceKey, bool includeRootSuffixInDisplayName)
         {
-            var baseName = base.GetDisplayName(factAttribute, displayName);
-            if (!IncludeRootSuffixInDisplayName || string.IsNullOrEmpty(VisualStudioInstanceKey.RootSuffix))
+            if (!includeRootSuffixInDisplayName || string.IsNullOrEmpty(visualStudioInstanceKey.RootSuffix))
             {
-                return $"{baseName} ({VisualStudioInstanceKey.Version})";
+                return $"{testMethod.MethodName} ({visualStudioInstanceKey.Version})";
             }
             else
             {
-                return $"{baseName} ({VisualStudioInstanceKey.Version}, {VisualStudioInstanceKey.RootSuffix})";
+                return $"{testMethod.MethodName} ({visualStudioInstanceKey.Version}, {visualStudioInstanceKey.RootSuffix})";
             }
         }
 
-        protected override string GetUniqueID()
+        private static string GetUniqueID(IXunitTestMethod testMethod, VisualStudioInstanceKey visualStudioInstanceKey)
         {
-            if (string.IsNullOrEmpty(VisualStudioInstanceKey.RootSuffix))
+            if (string.IsNullOrEmpty(visualStudioInstanceKey.RootSuffix))
             {
-                return $"{base.GetUniqueID()}_{VisualStudioInstanceKey.Version}";
+                return $"{testMethod.UniqueID}_{visualStudioInstanceKey.Version}";
             }
             else
             {
-                return $"{base.GetUniqueID()}_{VisualStudioInstanceKey.RootSuffix}_{VisualStudioInstanceKey.Version}";
+                return $"{testMethod.UniqueID}_{visualStudioInstanceKey.RootSuffix}_{visualStudioInstanceKey.Version}";
             }
         }
 
-        public override void Serialize(IXunitSerializationInfo data)
+        protected override void Serialize(IXunitSerializationInfo data)
         {
-            if (data is null)
-            {
-                throw new ArgumentNullException(nameof(data));
-            }
-
             base.Serialize(data);
             data.AddValue(nameof(VisualStudioInstanceKey), VisualStudioInstanceKey.SerializeToString());
             data.AddValue(nameof(SkipReason), SkipReason);
         }
 
-        public override void Deserialize(IXunitSerializationInfo data)
+        protected override void Deserialize(IXunitSerializationInfo data)
         {
-            if (data is null)
-            {
-                throw new ArgumentNullException(nameof(data));
-            }
-
-            VisualStudioInstanceKey = VisualStudioInstanceKey.DeserializeFromString(data.GetValue<string>(nameof(VisualStudioInstanceKey)));
+            VisualStudioInstanceKey = VisualStudioInstanceKey.DeserializeFromString(data.GetValue<string>(nameof(VisualStudioInstanceKey))!);
             base.Deserialize(data);
             SkipReason = data.GetValue<string>(nameof(SkipReason));
             SharedData = WpfTestSharedData.Instance;
+        }
+
+        public async ValueTask<RunSummary> Run(
+            ExplicitOption explicitOption,
+            IMessageBus messageBus,
+            object?[] constructorArguments,
+            ExceptionAggregator aggregator,
+            CancellationTokenSource cancellationTokenSource,
+            ParallelMode parallelMode,
+            ExecutionScheduler scheduler,
+            FixtureMappingManager methodFixtureMappings)
+        {
+            // NOTE: Unlike the previous implementation, this does not currently check WpfTestSharedData.Exception to
+            // report a prior harness failure, nor does it verify the current process is "devenv". This test case is
+            // only ever executed in-process inside Visual Studio (via InProcessIdeTestAssemblyRunner), so the process
+            // check is implied by the architecture. Reporting a prior harness failure via ErrorReportingIdeTestRunner
+            // is a known gap in this initial xUnit v3 port.
+            return await InProcessIdeTestCaseRunner.Instance.Run(this, await CreateTests(), messageBus, aggregator, cancellationTokenSource, parallelMode, scheduler, TestCaseDisplayName, SkipReason, explicitOption, constructorArguments, methodFixtureMappings);
         }
 
         internal static bool IsInstalled(VisualStudioVersion visualStudioVersion)

@@ -6,6 +6,13 @@
     <UseWPF>true</UseWPF>
 
     <RootNamespace>Microsoft.CodeAnalysis.Testing</RootNamespace>
+
+    <!--
+      This integration-test input manages its xUnit references and execution through the VS test
+      harness. Disable the default test-project targets and preserve their source-build exclusion.
+    -->
+    <IsTestProject>false</IsTestProject>
+    <ExcludeFromDotNetBuild>true</ExcludeFromDotNetBuild>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,6 +32,7 @@
     <PackageReference Include="System.Memory" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" />
     <PackageReference Include="System.Threading.Tasks.Extensions" />
+    <PackageReference Include="Xunit.Combinatorial" />
   </ItemGroup>
 
   <ItemGroup>

@@ -43,8 +43,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests
                 _testFile = testFile;
                 _testMethod = testMethod;
 
-#if WRITE_EXPECTED
                 TestBehaviors |= TestBehaviors.SkipGeneratedSourcesCheck;
+
+#if WRITE_EXPECTED
 #endif
             }
 
@@ -79,11 +80,11 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests
                 var resourceDirectory = Path.Combine(Path.GetDirectoryName(_testFile), "Resources", _testMethod);
 
                 var (compilation, generatorDiagnostics) = await base.GetProjectCompilationAsync(project, verifier, cancellationToken);
-                var expectedNames = new HashSet<string>();
+                var generatedSources = new Dictionary<string, string>();
                 foreach (var tree in compilation.SyntaxTrees.Skip(project.DocumentIds.Count))
                 {
                     WriteTreeToDiskIfNecessary(tree, resourceDirectory);
-                    expectedNames.Add(Path.GetFileName(tree.FilePath));
+                    generatedSources.Add(Path.GetFileName(tree.FilePath), tree.GetText(cancellationToken).ToString());
                 }
 
                 var currentTestPrefix = $"{typeof(TestServicesSourceGeneratorTests).Namespace}.Resources.{_testMethod}.";
@@ -94,10 +95,26 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests
                         continue;
                     }
 
-                    if (!expectedNames.Contains(name.Substring(currentTestPrefix.Length)))
+                    using var resourceStream = typeof(TestServicesSourceGeneratorTests).Assembly.GetManifestResourceStream(name);
+                    if (resourceStream is null)
                     {
-                        throw new InvalidOperationException($"Unexpected test resource: {name.Substring(currentTestPrefix.Length)}");
+                        throw new InvalidOperationException();
                     }
+
+                    using var reader = new StreamReader(resourceStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 4096, leaveOpen: true);
+                    var generatedSourceName = name.Substring(currentTestPrefix.Length);
+                    if (!generatedSources.TryGetValue(generatedSourceName, out var generatedSource))
+                    {
+                        throw new InvalidOperationException($"Unexpected test resource: {generatedSourceName}");
+                    }
+
+                    generatedSources.Remove(generatedSourceName);
+                    verifier.EqualOrDiff(reader.ReadToEnd(), generatedSource, $"content of '{generatedSourceName}' did not match. Diff shown with expected as baseline:");
+                }
+
+                if (generatedSources.Count > 0)
+                {
+                    throw new InvalidOperationException($"Missing test resources: {string.Join(", ", generatedSources.Keys.OrderBy(static name => name))}");
                 }
 
                 return (compilation, generatorDiagnostics);

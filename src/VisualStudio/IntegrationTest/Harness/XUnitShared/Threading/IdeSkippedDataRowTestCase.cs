@@ -4,12 +4,10 @@
 
 namespace Xunit.Threading
 {
-    using System;
-    using System.ComponentModel;
-    using Xunit.Abstractions;
-    using Xunit.Harness;
-    using Xunit.Sdk;
-
+    // Skipped data row test cases for [IdeTheory] are not currently supported by this port. The class body has been
+    // disabled (rather than deleted) to match the upstream xUnit v3 harness port, which similarly commented this out
+    // pending a v3-compatible base class.
+    /*
     public sealed class IdeSkippedDataRowTestCase : XunitSkippedDataRowTestCase
     {
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -63,4 +61,5 @@ namespace Xunit.Threading
             base.Deserialize(data);
         }
     }
+    */
 }

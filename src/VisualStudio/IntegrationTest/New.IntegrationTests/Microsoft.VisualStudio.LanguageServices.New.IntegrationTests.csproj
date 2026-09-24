@@ -7,14 +7,18 @@
     <TargetFramework>net472</TargetFramework>
     <UseWPF>true</UseWPF>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!--
+      This project uses the custom VS integration-test harness and manages its xUnit references
+      directly. Disable the default test-project targets and preserve their source-build exclusion.
+    -->
+    <IsTestProject>false</IsTestProject>
+    <ExcludeFromDotNetBuild>true</ExcludeFromDotNetBuild>
     
     <!-- this project is also used as a test input for Go To Definition tests in it, so needs some test data embedded -->
     <DebugType>embedded</DebugType>
     <EmbedAllSources>true</EmbedAllSources>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="..\..\..\EditorFeatures\TestUtilities\DirectoryExtensions.cs" Link="DirectoryExtensions.cs" />
-  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\LongClass.txt" />
   </ItemGroup>
@@ -65,7 +69,8 @@
     <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" ExcludeAssets="all" PrivateAssets="all" />
     <PackageReference Include="System.IO.Hashing" />
     <PackageReference Include="UIAComWrapper" />
-    <PackageReference Include="xunit.extensibility.core" />
+    <PackageReference Include="xunit.v3.extensibility.core" />
+    <PackageReference Include="Xunit.Combinatorial" />
   </ItemGroup>
 
   <!--

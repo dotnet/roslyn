@@ -12,6 +12,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\IntegrationTestAssemblyResolver.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\ActivityLogCollector.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\DataCollectionService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\DeserializingMessageSink.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\EventLogCollector.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\FeedbackItemDotNetEntry.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\FeedbackItemWatsonEntry.cs" />
@@ -53,12 +54,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeSkippedDataRowTestCase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeTestCase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeTestCaseBase.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeTestCaseRunner.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeTheoryDiscoverer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeTheoryTestCase.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeTheoryTestCaseRunner.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Threading\InProcessIdeTestInvoker.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Threading\InProcessIdeTestRunner.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Threading\InProcessIdeTestCaseRunner.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Threading\LongLivedMarshalByRefObject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\SemaphoreExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\SynchronizationContextTaskScheduler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\WpfTestSharedData.cs" />
