@@ -25,9 +25,7 @@ internal class TestHistoryManager
     /// The theory instance count is sourced from the AzDO <c>subResultsCount</c> field which represents individual
     /// theory invocations reported under a grouped test result.
     ///
-    /// Note: the duration returned is the sum of body execution times (DurationInMs) as reported by xUnit.
-    /// In xUnit v2, DurationInMs does NOT include IAsyncLifetime.InitializeAsync or DisposeAsync time.
-    /// The caller is responsible for adjusting the duration based on the HasAsyncLifetime flag from test discovery.
+    /// The duration returned is the sum of execution times reported by xUnit.
     /// </summary>
     public static async Task<Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)>?> GetTestHistoryAsync(Options options, string testRunNamePrefix, CancellationToken cancellationToken)
     {
