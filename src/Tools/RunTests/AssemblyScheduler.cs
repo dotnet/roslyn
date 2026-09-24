@@ -126,12 +126,6 @@ namespace RunTests
             ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> assemblyTypes,
             Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testHistory)
         {
-            // In xUnit v2, the ExecutionTimer in TestInvoker does NOT include IAsyncLifetime
-            // .InitializeAsync() or .DisposeAsync() in DurationInMs. Test base classes that
-            // perform expensive per-test async setup/teardown (MEF composition, workspace creation)
-            // will have overhead not reflected in the reported duration. We add an empirical
-            // adjustment per test theory instance for tests whose class implements IAsyncLifetime.
-
             // Determine the average execution time so that we can use it for tests that do not have any history.
             var averageExecutionTime = TimeSpan.FromMilliseconds(testHistory.Values.Average(t => t.Duration.TotalMilliseconds));
 
