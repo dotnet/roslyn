@@ -59,7 +59,6 @@ internal sealed class DevKitProjectLoadingServiceContributor(
             });
     }
 
-    public void OnServiceBrokerInitialized(IServiceBroker serviceBroker, CancellationToken cancellationToken)
-    {
-    }
+    public ValueTask OnServiceBrokerInitializedAsync(IServiceBroker serviceBroker, CancellationToken cancellationToken)
+        => ValueTask.CompletedTask;
 }

@@ -128,7 +128,7 @@
     <PackageVersion Include="MessagePack" Version="2.5.302" />
     <PackageVersion Include="Microsoft.ServiceHub.Framework" Version="4.10.147" />
     <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="18.9.20" />
-    <PackageVersion Include="Microsoft.VisualStudio.Composition.Analyzers" Version="18.9.20" />
+    <PackageVersion Include="Microsoft.VisualStudio.Composition.Analyzers" Version="18.9.52" />
     <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="$(VisualStudioEditorPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Editor" Version="$(VisualStudioEditorPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.ImageCatalog" Version="18.9.915" />
@@ -159,9 +159,15 @@
     <!--
       VS Debugger
     -->
-    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="18.3.0-beta.26380.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="18.3.0-beta.26461.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="18.0.1082202-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="18.0.1082202-preview" />
+
+    <!--
+      Project System
+    -->
+    <PackageVersion Include="Microsoft.VisualStudio.HotReload.Components" Version="18.12.18-g52dab3053b" />
+    <PackageVersion Include="Microsoft.VisualStudio.HotReload.RemoteContracts" Version="18.12.18-g52dab3053b" />
 
     <!--
       VS .NET Runtime

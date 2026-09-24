@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 
-internal sealed class MockManagedEditAndContinueDebuggerService : IManagedHotReloadService
+internal sealed class MockManagedEditAndContinueDebuggerService : IManagedHotReloadState
 {
     public Func<Guid, ManagedHotReloadAvailability>? IsEditAndContinueAvailable;
     public Dictionary<Guid, ManagedHotReloadAvailability>? LoadedModules;
@@ -37,7 +37,7 @@ internal sealed class MockManagedEditAndContinueDebuggerService : IManagedHotRel
         throw new NotImplementedException();
     }
 
-    public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<string>> GetUpdateCapabilitiesAsync(CancellationToken cancellationToken)
         => ValueTask.FromResult(GetCapabilitiesImpl?.Invoke() ?? ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"]);
 
     public ValueTask PrepareModuleForUpdateAsync(Guid mvid, CancellationToken cancellationToken)
