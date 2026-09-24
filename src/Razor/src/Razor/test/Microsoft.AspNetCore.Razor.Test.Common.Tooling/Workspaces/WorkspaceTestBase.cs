@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
-
 namespace Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 
 public abstract class WorkspaceTestBase(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)

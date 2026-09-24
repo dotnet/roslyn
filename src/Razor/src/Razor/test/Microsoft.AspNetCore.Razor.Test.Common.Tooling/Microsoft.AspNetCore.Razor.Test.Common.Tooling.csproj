@@ -16,6 +16,7 @@
     <Compile Remove="Resources\**\*.*" />
     <None Remove="Resources\**\*.*" />
     <Compile Include="..\..\src\Microsoft.CodeAnalysis.Razor.Workspaces\GlobalUsings.cs" Link="GlobalUsings.cs" />
+    <Compile Include="..\..\..\Shared\Microsoft.AspNetCore.Razor.Test.Common\XunitGlobalUsings.cs" Link="XunitGlobalUsings.cs" />
 
     <EmbeddedResource Include="Resources\**\*.*" />
     <EmbeddedResource Include="$(SharedFilesRoot)\Tooling\**\*.*" Link="Resources\%(RecursiveDir)%(Filename)%(Extension)" />
