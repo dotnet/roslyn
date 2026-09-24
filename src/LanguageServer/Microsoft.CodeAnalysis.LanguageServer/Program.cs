@@ -221,7 +221,7 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
             using (connectionSource as IDisposable)
             {
                 await connectionManager.RunAsync(
-                    connectionSource, exportProvider, typeRefResolver, logger, telemetryService?.SessionId, cancellationToken);
+                    connectionSource, exportProvider, typeRefResolver, logger, telemetryService, cancellationToken);
             }
         }
         finally
