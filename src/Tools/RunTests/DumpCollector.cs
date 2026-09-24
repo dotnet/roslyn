@@ -62,16 +62,18 @@ namespace RunTests
                 collectorProcess.BeginOutputReadLine();
                 collectorProcess.BeginErrorReadLine();
 
-                var waitTask = WaitForExitAsync(collectorProcess, cancellationToken);
-                var completedTask = await Task.WhenAny(waitTask, Task.Delay(timeout, cancellationToken)).ConfigureAwait(false);
-                if (completedTask != waitTask)
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                cts.CancelAfter(timeout);
+                try
+                {
+                    await WaitForExitAsync(collectorProcess, cts.Token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
                 {
                     ConsoleUtil.WriteLine($"Dump collection timed out after {timeout} for process {target.ProcessName} ({target.ProcessId}); terminating collector process tree.");
                     KillProcessTree(collectorProcess);
                     return new DumpCollectionResult(Succeeded: false, TimedOut: true, ExitCode: null, DumpFileExists: File.Exists(dumpFilePath));
                 }
-
-                await waitTask.ConfigureAwait(false);
 
                 foreach (var line in outputLines)
                 {
