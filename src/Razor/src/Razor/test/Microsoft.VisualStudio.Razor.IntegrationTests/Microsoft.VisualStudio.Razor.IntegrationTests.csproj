@@ -50,6 +50,9 @@
     <PackageReference Include="Microsoft.IO.Redist" Condition="'$(TargetFramework)' == '$(NetFxVS)'" />
     <PackageReference Include="Microsoft.Internal.VisualStudio.Shell.Framework" />
     <PackageReference Include="xunit.v3.extensibility.core" />
+    <!-- Required by TestDiscoveryWorker's InProcessTestProcessLauncher, which checks that the
+         test assembly links against xunit.v3.runner.inproc.console before discovery/execution. -->
+    <PackageReference Include="xunit.v3.runner.inproc.console" />
     <PackageReference Include="Xunit.Combinatorial" />
   </ItemGroup>
 

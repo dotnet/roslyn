@@ -32,6 +32,9 @@
     <PackageReference Include="System.Memory" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" />
     <PackageReference Include="System.Threading.Tasks.Extensions" />
+    <!-- Required by TestDiscoveryWorker's InProcessTestProcessLauncher, which checks that the
+         test assembly links against xunit.v3.runner.inproc.console before discovery/execution. -->
+    <PackageReference Include="xunit.v3.runner.inproc.console" />
     <PackageReference Include="Xunit.Combinatorial" />
   </ItemGroup>
 
