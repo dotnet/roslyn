@@ -6,12 +6,12 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Xunit.Abstractions;
 using Xunit.Sdk;
+using Xunit.v3;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;
 
-internal sealed class FormattingTestCase : XunitTestCase
+internal sealed class FormattingTestCase : XunitTestCase, ISelfExecutingXunitTestCase
 {
     private bool _shouldFlipLineEndings;
 
@@ -19,44 +19,42 @@ internal sealed class FormattingTestCase : XunitTestCase
     [Obsolete("Called by the de-serializer; should only be called by deriving classes for de-serialization purposes")]
     public FormattingTestCase() { }
 
-    public FormattingTestCase(bool shouldFlipLineEndings, IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod, object[]? testMethodArguments = null)
-        : base(diagnosticMessageSink, defaultMethodDisplay, defaultMethodDisplayOptions, testMethod, testMethodArguments)
+    public FormattingTestCase(bool shouldFlipLineEndings, IXunitTestMethod testMethod, IFactAttribute factAttribute, object?[]? testMethodArguments = null)
+        : base(testMethod, GetDisplayName(testMethod, factAttribute, shouldFlipLineEndings, testMethodArguments), GetUniqueID(testMethod, shouldFlipLineEndings), factAttribute.Explicit, factAttribute.SkipExceptions, factAttribute.Skip, factAttribute.SkipType, factAttribute.SkipUnless, factAttribute.SkipWhen, traits: null, testMethodArguments, factAttribute.SourceFilePath, factAttribute.SourceLineNumber, factAttribute.Timeout)
     {
         _shouldFlipLineEndings = shouldFlipLineEndings;
     }
 
-    protected override string GetDisplayName(IAttributeInfo factAttribute, string displayName)
+    private static string GetDisplayName(IXunitTestMethod testMethod, IFactAttribute factAttribute, bool shouldFlipLineEndings, object?[]? testMethodArguments)
     {
-        return base.GetDisplayName(factAttribute, displayName) +
-            (_shouldFlipLineEndings ? " (LF)" : " (CRLF)");
+        return testMethod.GetDisplayName(factAttribute.DisplayName, shouldFlipLineEndings ? "LF" : "CRLF", testMethodArguments, methodGenericTypes: null);
     }
 
-    public override Task<RunSummary> RunAsync(IMessageSink diagnosticMessageSink, IMessageBus messageBus, object[] constructorArguments, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
+    private static string GetUniqueID(IXunitTestMethod testMethod, bool shouldFlipLineEndings)
     {
-        Debug.Assert(constructorArguments.Length >= 1 && constructorArguments[0] is FormattingTestContext, $"{TestMethod.TestClass.Class.Name}.{TestMethod.Method.Name} uses a formatting test attribute in a class without a FormattingTestContext parameter?");
+        return testMethod.UniqueID + (shouldFlipLineEndings ? "_lf" : "_crlf");
+    }
+
+    public async ValueTask<RunSummary> Run(ExplicitOption explicitOption, IMessageBus messageBus, object?[] constructorArguments, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
+    {
+        Debug.Assert(constructorArguments.Length >= 1 && constructorArguments[0] is FormattingTestContext, $"{TestClassName}.{TestMethodName} uses a formatting test attribute in a class without a FormattingTestContext parameter?");
         constructorArguments[0] = new FormattingTestContext
         {
             ShouldFlipLineEndings = _shouldFlipLineEndings,
             CreatedByFormattingDiscoverer = true
         };
-        return base.RunAsync(diagnosticMessageSink, messageBus, constructorArguments, aggregator, cancellationTokenSource);
+        return await XunitTestCaseRunner.Instance.Run(this, await CreateTests(), messageBus, aggregator, cancellationTokenSource, TestCaseDisplayName, SkipReason, explicitOption, constructorArguments);
     }
 
-    public override void Deserialize(IXunitSerializationInfo data)
+    protected override void Deserialize(IXunitSerializationInfo data)
     {
         _shouldFlipLineEndings = data.GetValue<bool>(nameof(_shouldFlipLineEndings));
         base.Deserialize(data);
     }
 
-    public override void Serialize(IXunitSerializationInfo data)
+    protected override void Serialize(IXunitSerializationInfo data)
     {
         data.AddValue(nameof(_shouldFlipLineEndings), _shouldFlipLineEndings);
         base.Serialize(data);
-    }
-
-    protected override string GetUniqueID()
-    {
-        return base.GetUniqueID() +
-            (_shouldFlipLineEndings ? "lf" : "crlf");
     }
 }

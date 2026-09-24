@@ -5,10 +5,10 @@
 namespace Xunit
 {
     using System;
-    using Xunit.Sdk;
+    using Xunit.v3;
 
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    [XunitTestCaseDiscoverer("Xunit.Threading.IdeTheoryDiscoverer", "Microsoft.VisualStudio.Extensibility.Testing.Xunit")]
+    [XunitTestCaseDiscoverer(typeof(TheoryDiscoverer))]
     public class IdeTheoryAttribute : TheoryAttribute, IIdeSettingsAttribute
     {
         public IdeTheoryAttribute()

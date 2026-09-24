@@ -14,6 +14,7 @@
     <IsShipping>false</IsShipping>
     <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
     <TargetFramework>$(NetFxVS)</TargetFramework>
+    <IsTestProject>false</IsTestProject>
 
     <!-- To generate baselines, run tests with /p:GenerateBaselines=true -->
     <DefineConstants Condition="'$(GenerateBaselines)'=='true'">$(DefineConstants);GENERATE_BASELINES</DefineConstants>
@@ -27,9 +28,9 @@
     <ProjectReference Include="..\..\..\..\Compilers\Test\Core.IntegrationTests\Microsoft.CodeAnalysis.Test.Utilities.IntegrationTests.csproj" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" />
     <PackageReference Include="DiffPlex" />
-    <PackageReference Include="xunit.assert" />
-    <PackageReference Include="xunit.analyzers" />
-    <PackageReference Include="xunit.extensibility.execution" />
+    <PackageReference Include="xunit.v3.assert" />
+    <PackageReference Include="xunit.v3.extensibility.core" />
+    <PackageReference Include="Xunit.Combinatorial" VersionOverride="2.1.41" />
     <PackageReference Include="Basic.Reference.Assemblies.AspNet80" />
     <PackageReference Include="Basic.Reference.Assemblies.Net80" />
   </ItemGroup>

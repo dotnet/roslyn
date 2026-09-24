@@ -16,6 +16,7 @@
     <MicrosoftNetCoreAppRuntimePackagesVersion>10.0.11</MicrosoftNetCoreAppRuntimePackagesVersion>
     <MicrosoftWindowsDesktopAppRuntimePackagesVersion>10.0.11</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
     <_xunitVersion>2.9.2</_xunitVersion>
+    <_xunitV3Version>3.0.1</_xunitV3Version>
     <!-- SQLitePCLRaw.bundle_green is discontinued at 2.1.11, so keep its managed dependencies aligned. -->
     <SqliteManagedVersion>2.1.11</SqliteManagedVersion>
     <SqliteNativeVersion>2.1.13</SqliteNativeVersion>
@@ -313,6 +314,10 @@
     <PackageVersion Include="xunit.runner.utility" Version="$(_xunitVersion)" />
     <PackageVersion Include="xunit.abstractions" Version="2.0.3" />
     <PackageVersion Include="xunit.extensibility.execution" Version="$(_xunitVersion)" />
+    <PackageVersion Include="xunit.v3" Version="$(_xunitV3Version)" />
+    <PackageVersion Include="xunit.v3.assert" Version="$(_xunitV3Version)" />
+    <PackageVersion Include="xunit.v3.extensibility.core" Version="$(_xunitV3Version)" />
+    <PackageVersion Include="xunit.v3.runner.common" Version="$(_xunitV3Version)" />
     <PackageVersion Include="XunitXml.TestLogger" Version="3.1.17" />
     <PackageVersion Include="runtime.win-x64.Microsoft.NETCore.ILDAsm" Version="$(ILDAsmPackageVersion)" />
     <PackageVersion Include="runtime.linux-arm64.Microsoft.NETCore.ILDAsm" Version="$(ILDAsmPackageVersion)" />

@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
-using Xunit.Abstractions;
 using Xunit.Sdk;
 using Diagnostic = Microsoft.CodeAnalysis.Diagnostic;
 

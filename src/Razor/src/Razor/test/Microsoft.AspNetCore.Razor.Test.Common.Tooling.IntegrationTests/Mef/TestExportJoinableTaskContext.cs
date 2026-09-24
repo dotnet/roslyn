@@ -83,19 +83,7 @@ public partial class TestExportJoinableTaskContext
 
     internal static SynchronizationContext? GetEffectiveSynchronizationContext()
     {
-        if (SynchronizationContext.Current is AsyncTestSyncContext asyncTestSyncContext)
-        {
-            SynchronizationContext? innerSynchronizationContext = null;
-            asyncTestSyncContext.Send(
-                _ => innerSynchronizationContext = SynchronizationContext.Current,
-                null);
-
-            return innerSynchronizationContext;
-        }
-        else
-        {
-            return SynchronizationContext.Current;
-        }
+        return SynchronizationContext.Current;
     }
 
 #if false

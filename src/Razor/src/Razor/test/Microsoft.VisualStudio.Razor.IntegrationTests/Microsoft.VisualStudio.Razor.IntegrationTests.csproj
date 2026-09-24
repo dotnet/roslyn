@@ -8,6 +8,8 @@
     <Nullable>enable</Nullable>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.Razor.IntegrationTests</RootNamespace>
+    <IsTestProject>false</IsTestProject>
+    <ExcludeFromDotNetBuild>true</ExcludeFromDotNetBuild>
 
     <!-- Must use "dotnet test" to get blame-hang options -->
     <UseVSTestRunner>true</UseVSTestRunner>
@@ -47,8 +49,8 @@
          pull in the right version, this can be removed. -->
     <PackageReference Include="Microsoft.IO.Redist" Condition="'$(TargetFramework)' == '$(NetFxVS)'" />
     <PackageReference Include="Microsoft.Internal.VisualStudio.Shell.Framework" />
-    <PackageReference Include="xunit.runner.utility" />
-    <PackageReference Include="xunit.runner.console" Version="$(XUnitRunnerConsoleVersion)" IsImplicitlyDefined="true" PrivateAssets="all" Publish="true" />
+    <PackageReference Include="xunit.v3.extensibility.core" />
+    <PackageReference Include="Xunit.Combinatorial" VersionOverride="2.1.41" />
   </ItemGroup>
 
   <ItemGroup>

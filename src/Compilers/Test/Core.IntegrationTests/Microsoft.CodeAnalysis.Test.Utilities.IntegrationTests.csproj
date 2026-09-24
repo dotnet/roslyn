@@ -18,6 +18,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>net472</TargetFramework>
     <IsShipping>false</IsShipping>
+    <IsTestProject>false</IsTestProject>
     <IsTestUtilityProject>true</IsTestUtilityProject>
   </PropertyGroup>
   <ItemGroup>
@@ -49,9 +50,9 @@
     <PackageReference Include="Microsoft.Metadata.Visualizer" />
     <PackageReference Include="Microsoft.NETCore.Platforms" />
     <PackageReference Include="Moq" />
-    <PackageReference Include="xunit.assert" />
-    <PackageReference Include="xunit.extensibility.core" />
-    <PackageReference Include="Xunit.Combinatorial" />
+    <PackageReference Include="xunit.v3.assert" />
+    <PackageReference Include="xunit.v3.extensibility.core" />
+    <PackageReference Include="Xunit.Combinatorial" VersionOverride="2.1.41" />
     <PackageReference Include="ICSharpCode.Decompiler" />
     <PackageReference Include="Newtonsoft.Json" />
 
