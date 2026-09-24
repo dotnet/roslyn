@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Diagnostic = Microsoft.CodeAnalysis.Diagnostic;
+using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 

@@ -3,6 +3,7 @@
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
+    <UseXunitV3>false</UseXunitV3>
   </PropertyGroup>
 
   <ItemGroup>

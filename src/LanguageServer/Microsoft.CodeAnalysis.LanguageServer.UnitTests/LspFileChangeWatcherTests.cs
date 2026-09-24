@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
 using FileSystemWatcher = Roslyn.LanguageServer.Protocol.FileSystemWatcher;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 

@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using OptionsCollectionAlias = CODESTYLE_UTILITIES::Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.OptionsCollection;
 #else
 using OptionsCollectionAlias = OptionsCollection;
+using Xunit;
 #endif
 
 public abstract partial class AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest(ITestOutputHelper? logger)

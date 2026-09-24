@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 

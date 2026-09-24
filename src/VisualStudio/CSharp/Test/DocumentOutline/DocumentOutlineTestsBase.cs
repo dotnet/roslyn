@@ -20,6 +20,7 @@ using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using static Roslyn.Test.Utilities.AbstractLanguageServerProtocolTests;
 using IAsyncDisposable = System.IAsyncDisposable;
+using Xunit;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline;
 
