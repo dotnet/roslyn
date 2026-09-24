@@ -7,6 +7,15 @@
     <TargetFramework>net472</TargetFramework>
     <UseWPF>true</UseWPF>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!--
+      This project uses xUnit v3, which conflicts with the xUnit v2 packages Roslyn's XUnit.targets
+      adds to projects with IsTestProject=true (the default for a project whose name ends in "Tests").
+      Disable that default and exclude the project from the DotNetBuildTests=false source-build path
+      the same way IsTestProject would have.
+    -->
+    <IsTestProject>false</IsTestProject>
+    <ExcludeFromDotNetBuild>true</ExcludeFromDotNetBuild>
     
     <!-- this project is also used as a test input for Go To Definition tests in it, so needs some test data embedded -->
     <DebugType>embedded</DebugType>
@@ -62,7 +71,9 @@
     <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" ExcludeAssets="all" PrivateAssets="all" />
     <PackageReference Include="System.IO.Hashing" />
     <PackageReference Include="UIAComWrapper" />
-    <PackageReference Include="xunit.extensibility.core" />
+    <PackageReference Include="xunit.v3.extensibility.core" />
+    <!-- Xunit.Combinatorial 1.6.24 (the centrally pinned default) depends on xunit v2; 2.1.41 depends on xunit v3. -->
+    <PackageReference Include="Xunit.Combinatorial" VersionOverride="2.1.41" />
   </ItemGroup>
 
   <!--

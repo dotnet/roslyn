@@ -5,37 +5,25 @@
 namespace Xunit.Threading
 {
     using System;
-    using System.Collections.Generic;
-    using System.Reflection;
-    using System.Threading;
+    using System.Runtime.ExceptionServices;
     using System.Threading.Tasks;
-    using Xunit.Abstractions;
-    using Xunit.Sdk;
+    using Xunit.v3;
 
     public class ErrorReportingIdeTestRunner : XunitTestRunner
     {
         private readonly Exception _exception;
 
-        public ErrorReportingIdeTestRunner(Exception exception, ITest test, IMessageBus messageBus, Type testClass, object?[] constructorArguments, MethodInfo testMethod, object?[]? testMethodArguments, string skipReason, IReadOnlyList<BeforeAfterTestAttribute> beforeAfterAttributes, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
-            : base(test, messageBus, testClass, constructorArguments, testMethod, testMethodArguments, skipReason, beforeAfterAttributes, aggregator, cancellationTokenSource)
+        public ErrorReportingIdeTestRunner(Exception exception)
         {
             _exception = exception;
         }
 
-        protected override Task<decimal> InvokeTestMethodAsync(ExceptionAggregator aggregator)
+        protected override ValueTask<TimeSpan> RunTest(XunitTestRunnerContext ctxt)
         {
-            if (aggregator is null)
-            {
-                throw new ArgumentNullException(nameof(aggregator));
-            }
+            ExceptionDispatchInfo.Capture(_exception).Throw();
 
-            return aggregator.RunAsync(
-                () =>
-                {
-                    var tcs = new TaskCompletionSource<decimal>();
-                    tcs.SetException(new InvalidOperationException("Test execution was skipped due to a prior exception in the harness.", _exception));
-                    return tcs.Task;
-                });
+            // The line above would have thrown, but the compiler doesn't know that
+            return default;
         }
     }
 }

@@ -3,13 +3,26 @@
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
+    <OutputType>Exe</OutputType>
+
+    <!--
+      This project uses xUnit v3, which conflicts with the xUnit v2 packages Roslyn's XUnit.targets
+      adds to projects with IsTestProject=true (the default for a project whose name ends in "UnitTests").
+      Disable that default and its dependent naming-convention/source-build checks, which assume a
+      conventional "*.UnitTests.dll" test library rather than this self-executing Exe.
+    -->
+    <IsTestProject>false</IsTestProject>
+    <IsUnitTestProject>false</IsUnitTestProject>
+    <ExcludeFromDotNetBuild>true</ExcludeFromDotNetBuild>
   </PropertyGroup>
 
   <ItemGroup>
     <!-- This needs to be a package reference to avoid attempting to use a newer compiler version than either the CLI or IDE has. -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
     <PackageReference Include="Newtonsoft.Json" />
-    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.v3" />
+    <!-- xunit.v3 3.0.1 depends on xunit.analyzers >= 1.24.0, above the centrally pinned 1.17.0 (a v2-era default). -->
+    <PackageReference Include="xunit.analyzers" VersionOverride="1.24.0" />
   </ItemGroup>
 
   <ItemGroup>
