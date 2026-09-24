@@ -37,6 +37,21 @@ jobs:
       displayName: Generate Locale
       condition: ne('${{ parameters.locale }}', '')
 
+    # .NET 10 is needed since our unit tests target net10.0
+    - task: UseDotNet@2
+      displayName: 'Install .NET 10 Runtime'
+      inputs:
+        packageType: sdk
+        version: '10.0.x'
+        installationPath: '$(Build.SourcesDirectory)/.dotnet'
+
+    - script: |
+        set -e
+        toolPath='$(Agent.TempDirectory)/dotnet-tools'
+        '$(Build.SourcesDirectory)/.dotnet/dotnet' tool install dotnet-dump --version 10.0.747201 --tool-path "$toolPath"
+        echo "##vso[task.prependpath]$toolPath"
+      displayName: Install dotnet-dump
+
     - task: DownloadPipelineArtifact@2
       displayName: Download Test Payload
       inputs:
@@ -51,7 +66,7 @@ jobs:
     - task: ShellScript@2
       inputs:
         scriptPath: ./eng/build.sh
-        args: --ci --configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
+        args: --ci --configuration ${{ parameters.configuration }} ${{ parameters.testArguments }} --collectDumps
       displayName: Test
 
     - template: publish-logs.yml

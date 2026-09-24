@@ -30,6 +30,7 @@ usage()
   echo "  --testCompilerOnly         Run only the compiler unit tests"
   echo "  --testIOperation           Run unit tests with the IOperation test hook"
   echo "  --testRuntimeAsync         Run unit tests with runtime async validation enabled"
+  echo "  --collectDumps             Collect dumps from test runs"
   echo ""
   echo "Advanced settings:"
   echo "  --ci                       Building in CI"
@@ -72,6 +73,7 @@ test_mono=false
 test_ioperation=false
 test_runtime_async=false
 test_compiler_only=false
+collect_dumps=false
 
 configuration="Debug"
 verbosity='minimal'
@@ -154,6 +156,9 @@ while [[ $# > 0 ]]; do
       ;;
     --testruntimeasync)
       test_runtime_async=true
+      ;;
+    --collectdumps)
+      collect_dumps=true
       ;;
     --ci)
       ci=true
@@ -427,6 +432,10 @@ if [[ "$test_core_clr" == true ]]; then
 
   if [[ "$helix" == true ]]; then
     runtests_args="$runtests_args --helix"
+  fi
+
+  if [[ "$collect_dumps" == true ]]; then
+    runtests_args="$runtests_args --collectdumps"
   fi
 
   if [[ "$ci" != true ]]; then
