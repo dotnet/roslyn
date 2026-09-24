@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Reflection;
 using System.Threading;
 using Xunit.Sdk;
+using Xunit.v3;
 
 namespace Roslyn.Test.Utilities
 {
@@ -74,7 +75,8 @@ namespace Roslyn.Test.Utilities
         /// and replaces them with the new cultures defined in the constructor.
         /// </summary>
         /// <param name="methodUnderTest">The method under test</param>
-        public override void Before(MethodInfo methodUnderTest)
+        /// <param name="test">The test being executed</param>
+        public override void Before(MethodInfo methodUnderTest, IXunitTest test)
         {
             _originalCulture = CultureInfo.CurrentCulture;
             _originalUICulture = CultureInfo.CurrentUICulture;
@@ -90,7 +92,8 @@ namespace Roslyn.Test.Utilities
         /// <see cref="CultureInfo.CurrentUICulture" />.
         /// </summary>
         /// <param name="methodUnderTest">The method under test</param>
-        public override void After(MethodInfo methodUnderTest)
+        /// <param name="test">The test being executed</param>
+        public override void After(MethodInfo methodUnderTest, IXunitTest test)
         {
             CultureInfo.CurrentCulture = _originalCulture;
             CultureInfo.CurrentUICulture = _originalUICulture;
