@@ -6,19 +6,19 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
-using Xunit.Sdk;
+using Xunit.v3;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 public class LogIntegrationTestAttribute : BeforeAfterTestAttribute
 {
-    public override void Before(MethodInfo methodUnderTest)
+    public override void Before(MethodInfo methodUnderTest, IXunitTest test)
     {
         GetLogger(methodUnderTest.DeclaringType.Name).LogInformation($"#### Integration test start: {methodUnderTest.Name}");
     }
 
-    public override void After(MethodInfo methodUnderTest)
+    public override void After(MethodInfo methodUnderTest, IXunitTest test)
     {
         GetLogger(methodUnderTest.DeclaringType.Name).LogInformation($"#### Integration test end: {methodUnderTest.Name}");
     }

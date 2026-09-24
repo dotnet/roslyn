@@ -26,8 +26,6 @@ public class ComponentCodeGenerationTestBase()
 
     internal override bool UseTwoPhaseCompilation => true;
 
-    internal override bool AttachTagHelpersToCodeDocument => true;
-
     internal override RazorConfiguration Configuration => _configuration ?? base.Configuration;
 
     internal string ComponentName = "TestComponent";
