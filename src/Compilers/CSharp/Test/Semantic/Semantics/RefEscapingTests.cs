@@ -12147,6 +12147,84 @@ public struct Vec4
 
         [Theory, CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_RefAssignment_MutatesOriginal(bool usingLocal)
+        {
+            var declaration = usingLocal ? "using var a = new S();" : "foreach (var a in new S[1])";
+            var source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        {{declaration}}
+                        {
+                            var b = new S();
+                            ref var r = ref b;
+                            ref var c = ref (r = ref a.Self).Self;
+                            {
+                                c = ref (r = ref a.Self).Self;
+                                c.Value = 42;
+                            }
+                            Console.WriteLine($"{a.Value}, {b.Value}");
+                        }
+                    }
+                }
+
+                struct S : IDisposable
+                {
+                    public int Value;
+                    [UnscopedRef] public ref S Self => ref this;
+                    public void Dispose() { }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RefFieldTests.IncludeExpectedOutput("42, 0"),
+                verify: Verification.Fails.WithILVerifyMessage("""
+                [get_Self]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                """)).VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_RefAssignment_EscapeErrors(bool usingLocal)
+        {
+            var declaration = usingLocal ? "using var a = new S();" : "foreach (var a in new S[1])";
+            var source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    static void M()
+                    {
+                        {{declaration}}
+                        {
+                            var b = new S();
+                            ref readonly var r = ref b;
+                            ref var c = ref (r = ref a).Self;
+                            {
+                                c = ref (r = ref a).Self;
+                            }
+                        }
+                    }
+                }
+
+                struct S : IDisposable
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                    public void Dispose() { }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(
+                // (14,17): error CS8374: Cannot ref-assign '(r = ref a).Self' to 'c' because '(r = ref a).Self' has a narrower escape scope than 'c'.
+                //                 c = ref (r = ref a).Self;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "c = ref (r = ref a).Self").WithArguments("c", "(r = ref a).Self").WithLocation(14, 17));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
         public void LocalReceiver_Field_Mutation(
             [CombinatorialValues(".Self", ".GetSelf()", "[0]")] string access,
             bool isValueType,
