@@ -29,6 +29,8 @@
       Override the reference to a secure version, but exclude it from the build and packaging.
     -->
     <PackageReference Include="Newtonsoft.Json" ExcludeAssets="all" PrivateAssets="all" />
+    <!-- VS setup supplies SQLite for in-process tests; exclude the transitive native package. -->
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" ExcludeAssets="all" PrivateAssets="all" />
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="xunit.analyzers" />
     <PackageReference Include="Xunit.Combinatorial" />
