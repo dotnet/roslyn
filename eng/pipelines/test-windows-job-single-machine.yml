@@ -36,6 +36,15 @@ jobs:
         version: '10.0.x'
         installationPath: '$(Build.SourcesDirectory)/.dotnet'
 
+    - task: PowerShell@2
+      displayName: Install dotnet-dump
+      inputs:
+        targetType: inline
+        script: |
+          $toolPath = '$(Agent.TempDirectory)\dotnet-tools'
+          & '$(Build.SourcesDirectory)\.dotnet\dotnet.exe' tool install dotnet-dump --version 10.0.747201 --tool-path $toolPath
+          Write-Host "##vso[task.prependpath]$toolPath"
+
     - task: DownloadPipelineArtifact@2
       displayName: Download Test Payload
       inputs:

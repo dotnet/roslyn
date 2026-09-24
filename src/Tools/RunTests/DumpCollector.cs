@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace RunTests
 {
     /// <summary>
-    /// Collects dump files from processes by running the pinned dotnet-dump local tool out-of-process.
+    /// Collects dump files from processes by running dotnet-dump out-of-process.
     /// </summary>
     internal static class DumpCollector
     {
@@ -21,7 +21,6 @@ namespace RunTests
         internal static async Task<DumpCollectionResult> TryDumpProcessAsync(
             Process process,
             string dumpFilePath,
-            string dotnetFilePath,
             TimeSpan timeout,
             CancellationToken cancellationToken)
         {
@@ -33,7 +32,7 @@ namespace RunTests
             try
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(dumpFilePath)!);
-                var startInfo = new ProcessStartInfo(dotnetFilePath)
+                var startInfo = new ProcessStartInfo("dotnet-dump")
                 {
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
@@ -41,10 +40,6 @@ namespace RunTests
                     CreateNoWindow = true,
                 };
 
-                startInfo.ArgumentList.Add("tool");
-                startInfo.ArgumentList.Add("run");
-                startInfo.ArgumentList.Add("dotnet-dump");
-                startInfo.ArgumentList.Add("--");
                 startInfo.ArgumentList.Add("collect");
                 startInfo.ArgumentList.Add("--process-id");
                 startInfo.ArgumentList.Add(processId.ToString());
@@ -54,7 +49,7 @@ namespace RunTests
                 startInfo.ArgumentList.Add(dumpFilePath);
 
                 ConsoleUtil.WriteLine($"Starting dump collection for process {processName} ({processId}) to '{dumpFilePath}'.");
-                ConsoleUtil.WriteLine($"Collector command: {dotnetFilePath} tool run dotnet-dump -- collect --process-id {processId} --type Full --output {dumpFilePath}");
+                ConsoleUtil.WriteLine($"Collector command: dotnet-dump collect --process-id {processId} --type Full --output {dumpFilePath}");
                 ConsoleUtil.WriteLine($"Collector timeout: {timeout}");
 
                 using var collectorProcess = new Process()

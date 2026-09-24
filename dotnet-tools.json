@@ -13,12 +13,6 @@
       "commands": [
         "dotnet-helix-job-monitor"
       ]
-    },
-    "dotnet-dump": {
-      "version": "10.0.747201",
-      "commands": [
-        "dotnet-dump"
-      ]
     }
   }
 }

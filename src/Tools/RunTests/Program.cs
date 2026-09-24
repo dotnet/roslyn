@@ -239,12 +239,11 @@ namespace RunTests
                     var name = proc.ProcessName;
                     var dumpFilePath = Path.Combine(dumpDir, $"{name}-{counter}.dmp");
                     ConsoleUtil.WriteLine($"Dumping {name} {proc.Id} to {dumpFilePath}");
-                    ConsoleUtil.WriteLine($"Collector command: {options.DotnetFilePath} tool run dotnet-dump -- collect --process-id {proc.Id} --type Full --output {dumpFilePath}");
                     ConsoleUtil.WriteLine($"Collector timeout: {DumpCollector.DefaultDumpTimeout}");
                     WriteLogFile(options, appendLog);
                     appendLog = true;
 
-                    var result = await DumpCollector.TryDumpProcessAsync(proc, dumpFilePath, options.DotnetFilePath, DumpCollector.DefaultDumpTimeout, cancellationToken);
+                    var result = await DumpCollector.TryDumpProcessAsync(proc, dumpFilePath, DumpCollector.DefaultDumpTimeout, cancellationToken);
                     if (result.Succeeded)
                     {
                         ConsoleUtil.WriteLine($"Dumping {name} {proc.Id} succeeded ({new FileInfo(dumpFilePath).Length} bytes)");
