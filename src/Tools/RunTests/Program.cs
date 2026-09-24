@@ -232,21 +232,19 @@ namespace RunTests
 
             if (options.CollectDumps)
             {
-                var dotnetDumpTool = new DumpCollector.DotnetDumpTool(options.DotnetFilePath);
                 var appendLog = false;
                 var counter = 0;
                 foreach (var proc in ProcessUtil.GetTestHostProcesses().OrderBy(x => x.ProcessName))
                 {
                     var name = proc.ProcessName;
-                    var target = new DumpCollector.DumpTarget(proc.Id, name);
                     var dumpFilePath = Path.Combine(dumpDir, $"{name}-{counter}.dmp");
                     ConsoleUtil.WriteLine($"Dumping {name} {proc.Id} to {dumpFilePath}");
-                    ConsoleUtil.WriteLine($"Collector command: {dotnetDumpTool.GetDisplayCommand(target, dumpFilePath)}");
+                    ConsoleUtil.WriteLine($"Collector command: {options.DotnetFilePath} tool run dotnet-dump -- collect --process-id {proc.Id} --type Full --output {dumpFilePath}");
                     ConsoleUtil.WriteLine($"Collector timeout: {DumpCollector.DefaultDumpTimeout}");
                     WriteLogFile(options, appendLog);
                     appendLog = true;
 
-                    var result = await DumpCollector.TryDumpProcessAsync(proc, dumpFilePath, dotnetDumpTool, DumpCollector.DefaultDumpTimeout, cancellationToken);
+                    var result = await DumpCollector.TryDumpProcessAsync(proc, dumpFilePath, options.DotnetFilePath, DumpCollector.DefaultDumpTimeout, cancellationToken);
                     if (result.Succeeded)
                     {
                         ConsoleUtil.WriteLine($"Dumping {name} {proc.Id} succeeded ({new FileInfo(dumpFilePath).Length} bytes)");

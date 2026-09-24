@@ -21,20 +21,40 @@ namespace RunTests
         internal static async Task<DumpCollectionResult> TryDumpProcessAsync(
             Process process,
             string dumpFilePath,
-            DotnetDumpTool dotnetDumpTool,
+            string dotnetFilePath,
             TimeSpan timeout,
             CancellationToken cancellationToken)
         {
-            var target = new DumpTarget(process.Id, process.ProcessName);
+            var processId = process.Id;
+            var processName = process.ProcessName;
             var outputLines = new List<string>();
             var errorLines = new List<string>();
 
             try
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(dumpFilePath)!);
-                var startInfo = dotnetDumpTool.CreateStartInfo(target, dumpFilePath);
-                ConsoleUtil.WriteLine($"Starting dump collection for process {target.ProcessName} ({target.ProcessId}) to '{dumpFilePath}'.");
-                ConsoleUtil.WriteLine($"Collector command: {dotnetDumpTool.GetDisplayCommand(target, dumpFilePath)}");
+                var startInfo = new ProcessStartInfo(dotnetFilePath)
+                {
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true,
+                };
+
+                startInfo.ArgumentList.Add("tool");
+                startInfo.ArgumentList.Add("run");
+                startInfo.ArgumentList.Add("dotnet-dump");
+                startInfo.ArgumentList.Add("--");
+                startInfo.ArgumentList.Add("collect");
+                startInfo.ArgumentList.Add("--process-id");
+                startInfo.ArgumentList.Add(processId.ToString());
+                startInfo.ArgumentList.Add("--type");
+                startInfo.ArgumentList.Add("Full");
+                startInfo.ArgumentList.Add("--output");
+                startInfo.ArgumentList.Add(dumpFilePath);
+
+                ConsoleUtil.WriteLine($"Starting dump collection for process {processName} ({processId}) to '{dumpFilePath}'.");
+                ConsoleUtil.WriteLine($"Collector command: {dotnetFilePath} tool run dotnet-dump -- collect --process-id {processId} --type Full --output {dumpFilePath}");
                 ConsoleUtil.WriteLine($"Collector timeout: {timeout}");
 
                 using var collectorProcess = new Process()
@@ -66,12 +86,14 @@ namespace RunTests
                 cts.CancelAfter(timeout);
                 try
                 {
-                    await WaitForExitAsync(collectorProcess, cts.Token).ConfigureAwait(false);
+                    await collectorProcess.WaitForExitAsync(cts.Token).ConfigureAwait(false);
                 }
-                catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+                catch (OperationCanceledException)
                 {
-                    ConsoleUtil.WriteLine($"Dump collection timed out after {timeout} for process {target.ProcessName} ({target.ProcessId}); terminating collector process tree.");
                     KillProcessTree(collectorProcess);
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    ConsoleUtil.WriteLine($"Dump collection timed out after {timeout} for process {processName} ({processId}); terminated collector process tree.");
                     return new DumpCollectionResult(Succeeded: false, TimedOut: true, ExitCode: null, DumpFileExists: File.Exists(dumpFilePath));
                 }
 
@@ -88,11 +110,11 @@ namespace RunTests
                 var dumpFileExists = File.Exists(dumpFilePath);
                 if (collectorProcess.ExitCode == 0 && dumpFileExists)
                 {
-                    ConsoleUtil.WriteLine($"Dump collection succeeded for process {target.ProcessName} ({target.ProcessId}); output '{dumpFilePath}'.");
+                    ConsoleUtil.WriteLine($"Dump collection succeeded for process {processName} ({processId}); output '{dumpFilePath}'.");
                     return new DumpCollectionResult(Succeeded: true, TimedOut: false, collectorProcess.ExitCode, DumpFileExists: true);
                 }
 
-                ConsoleUtil.WriteLine($"Dump collection failed for process {target.ProcessName} ({target.ProcessId}); exit code {collectorProcess.ExitCode}, output exists: {dumpFileExists}.");
+                ConsoleUtil.WriteLine($"Dump collection failed for process {processName} ({processId}); exit code {collectorProcess.ExitCode}, output exists: {dumpFileExists}.");
                 return new DumpCollectionResult(Succeeded: false, TimedOut: false, collectorProcess.ExitCode, dumpFileExists);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -101,70 +123,24 @@ namespace RunTests
             }
             catch (Exception ex)
             {
-                Logger.Log($"Failed to dump process {target.ProcessName} ({target.ProcessId}): {ex.Message}");
+                Logger.Log($"Failed to dump process {processName} ({processId}): {ex.Message}");
                 return new DumpCollectionResult(Succeeded: false, TimedOut: false, ExitCode: null, DumpFileExists: File.Exists(dumpFilePath));
             }
         }
 
-        private static async Task WaitForExitAsync(Process process, CancellationToken cancellationToken)
-        {
-            await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
-            process.WaitForExit();
-        }
-
         private static void KillProcessTree(Process process)
         {
-            if (process.HasExited)
-            {
-                return;
-            }
-
             try
             {
                 process.Kill(entireProcessTree: true);
             }
             catch (InvalidOperationException)
             {
-                // The process exited after the HasExited check.
+                // The process has already exited.
             }
         }
-
-        internal readonly record struct DumpTarget(int ProcessId, string ProcessName);
 
         internal readonly record struct DumpCollectionResult(bool Succeeded, bool TimedOut, int? ExitCode, bool DumpFileExists);
-
-        internal readonly record struct DotnetDumpTool(string DotnetFilePath)
-        {
-            internal ProcessStartInfo CreateStartInfo(DumpTarget target, string dumpFilePath)
-            {
-                var startInfo = new ProcessStartInfo(DotnetFilePath)
-                {
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true,
-                };
-
-                startInfo.ArgumentList.Add("tool");
-                startInfo.ArgumentList.Add("run");
-                startInfo.ArgumentList.Add("dotnet-dump");
-                startInfo.ArgumentList.Add("--");
-                startInfo.ArgumentList.Add("collect");
-                startInfo.ArgumentList.Add("--process-id");
-                startInfo.ArgumentList.Add(target.ProcessId.ToString());
-                startInfo.ArgumentList.Add("--type");
-                startInfo.ArgumentList.Add("Full");
-                startInfo.ArgumentList.Add("--output");
-                startInfo.ArgumentList.Add(dumpFilePath);
-                return startInfo;
-            }
-
-            internal string GetDisplayCommand(DumpTarget target, string dumpFilePath)
-                => $"{Quote(DotnetFilePath)} tool run dotnet-dump -- collect --process-id {target.ProcessId} --type Full --output {Quote(dumpFilePath)}";
-
-            private static string Quote(string argument)
-                => argument.Contains(' ') ? $"\"{argument}\"" : argument;
-        }
     }
 
 }
