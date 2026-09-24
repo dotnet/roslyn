@@ -34,21 +34,22 @@ jobs:
         artifact: ${{ parameters.testArtifactName }}
         path: '$(Build.SourcesDirectory)'
 
-    - task: UseDotNet@2
-      displayName: Install .NET (from global.json)
-      inputs:
-        useGlobalJson: true
-        workingDirectory: '$(Build.SourcesDirectory)'
-    
     - task: BatchScript@1
       displayName: Rehydrate Unit Tests Environment
       inputs:
         filename: rehydrate-all.cmd
 
-    - task: CmdLine@2
+    - task: PowerShell@2
       displayName: Run Unit Tests
       inputs:
-        script: dotnet exec "$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll" --ci --testConfiguration ${{ parameters.configuration }} --logs "$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}" --collectdumps ${{ parameters.testArguments }}
+        targetType: inline
+        script: |
+          $ci = $true
+          $configuration = '${{ parameters.configuration }}'
+          . ./eng/build-utils.ps1
+          EnablePreviewSdks
+          $dotnet = Ensure-DotnetSdk
+          & $dotnet exec "$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll" --dotnet $dotnet --ci --testConfiguration ${{ parameters.configuration }} --logs "$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}" --collectdumps ${{ parameters.testArguments }}
 
     - template: publish-logs.yml
       parameters:

@@ -31,12 +31,6 @@ jobs:
         artifact: ${{ parameters.testArtifactName }}
         path: '$(Build.SourcesDirectory)'
 
-    - task: UseDotNet@2
-      displayName: Install .NET (from global.json)
-      inputs:
-        useGlobalJson: true
-        workingDirectory: '$(Build.SourcesDirectory)'
-
     - task: BatchScript@1
       displayName: Rehydrate RunTests
       inputs:
@@ -46,16 +40,27 @@ jobs:
 
     # Attempt every submission even if an earlier one fails, then fail the aggregate job below.
     - ${{ each testRun in parameters.testRuns }}:
-      - task: CmdLine@2
+      - task: PowerShell@2
         displayName: Submit ${{ testRun.displayName }}
         continueOnError: true
         inputs:
-          ${{ if ne(variables['System.TeamProject'], 'public') }}:
-            script: dotnet exec "$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll" --ci --helix --testConfiguration ${{ parameters.configuration }} --logs "$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}" --helixQueueName ${{ testRun.helixQueueName }} --helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ testRun.testArguments }}
-          ${{ else }}:
-            script: dotnet exec "$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll" --ci --helix --testConfiguration ${{ parameters.configuration }} --logs "$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}" --helixQueueName ${{ testRun.helixQueueName }} ${{ testRun.testArguments }}
+          targetType: inline
+          script: |
+            $ci = $true
+            $configuration = '${{ parameters.configuration }}'
+            . ./eng/build-utils.ps1
+            EnablePreviewSdks
+            $dotnet = Ensure-DotnetSdk
+            $helixArguments = @()
+            if ($env:HELIX_API_ACCESS_TOKEN) {
+              $helixArguments += @('--helixApiAccessToken', $env:HELIX_API_ACCESS_TOKEN)
+            }
+            & $dotnet exec "$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll" --dotnet $dotnet --ci --helix --testConfiguration ${{ parameters.configuration }} --logs "$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}" --helixQueueName ${{ testRun.helixQueueName }} @helixArguments ${{ testRun.testArguments }}
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+          HELIX_API_ACCESS_TOKEN: ${{ parameters.helixApiAccessToken }}
+          DOTNET_ROLL_FORWARD: LatestMajor
+          DOTNET_ROLL_FORWARD_TO_PRERELEASE: 1
 
       # RunTests uses the same output paths for every Helix submission. Move each submission's
       # outputs aside so the next sequential submission cannot overwrite or mix its diagnostics.

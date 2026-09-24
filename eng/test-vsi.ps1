@@ -215,7 +215,7 @@ function CopyToArtifactLogs($inputPath) {
 function TestUsingRunTests() {
 
   # Tests need to locate .NET Core SDK
-  $dotnet = InitializeDotNetCli
+  $dotnet = InitializeDotNetCli -install:$true
 
   Deploy-VsixViaTool
 
@@ -332,6 +332,7 @@ try {
   Push-Location $RepoRoot
 
   if ($ci) {
+    EnablePreviewSdks
     Setup-IntegrationTestRun
   }
 

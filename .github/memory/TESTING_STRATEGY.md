@@ -57,6 +57,11 @@ efficiently; build the test projects first. See the tool's
 framework selection, and environment-variable options. Use `dotnet test` directly
 for a single project.
 
+CI test jobs bootstrap the SDK pinned in `global.json` with the repository's
+Arcade build helpers, which support daily SDK feeds. Bootstrap and direct
+`RunTests` execution share a shell so the SDK path and environment are preserved;
+the runner also receives the bootstrapped executable through `--dotnet`.
+
 ### Test types to be aware of
 - VS integration tests (`azure-pipelines-integration*.yml`) require a VS install, so they run only on **Windows** hosts (not CI-only — they can be run locally on Windows). Prefer unit tests for the inner development loop; reach for integration tests when validating end-to-end VS behavior.
 - A handful of tests fail only for environmental reasons:
