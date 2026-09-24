@@ -3,12 +3,12 @@
 
 using System;
 using Xunit;
-using Xunit.Sdk;
+using Xunit.v3;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-[XunitTestCaseDiscoverer($"Microsoft.AspNetCore.Razor.Test.Common.{nameof(FormattingFactDiscoverer)}", "Microsoft.AspNetCore.Razor.Test.Common")]
+[XunitTestCaseDiscoverer(typeof(FormattingFactDiscoverer))]
 internal sealed class FormattingTestFactAttribute : FactAttribute
 {
 }

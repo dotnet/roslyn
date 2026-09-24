@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -6,6 +6,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using Xunit;
 
 namespace Roslyn.Test.Utilities.Desktop;
 
@@ -21,6 +22,14 @@ public sealed class AppDomainTestOutputHelper : MarshalByRefObject, ITestOutputH
     {
         TestOutputHelper = testOutputHelper;
     }
+
+    public string Output => TestOutputHelper.Output;
+
+    public void Write(string message) =>
+        TestOutputHelper.Write(message);
+
+    public void Write(string format, params object[] args) =>
+        TestOutputHelper.Write(format, args);
 
     public void WriteLine(string message) =>
         TestOutputHelper.WriteLine(message);

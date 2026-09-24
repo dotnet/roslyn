@@ -4,20 +4,35 @@
 
 namespace Xunit.Harness
 {
+    using System;
     using System.Reflection;
-    using Xunit.Abstractions;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Xunit.Sdk;
+    using Xunit.v3;
 
     public class IdeTestFramework : XunitTestFramework
     {
-        public IdeTestFramework(IMessageSink diagnosticMessageSink)
-            : base(diagnosticMessageSink)
+        private ITestFrameworkDiscoveryOptions? _discoveryOptions;
+
+        protected override ITestFrameworkDiscoverer CreateDiscoverer(Assembly assembly)
         {
+            return new IdeTestFrameworkDiscoverer(assembly, this);
         }
 
-        protected override ITestFrameworkExecutor CreateExecutor(AssemblyName assemblyName)
+        protected override ITestFrameworkExecutor CreateExecutor(Assembly assembly)
         {
-            return new IdeTestFrameworkExecutor(assemblyName, SourceInformationProvider, DiagnosticMessageSink);
+            return new IdeTestFrameworkExecutor(new XunitTestAssembly(assembly), _discoveryOptions ?? throw new InvalidOperationException("We don't expect to be executing before attempting discovery."));
+        }
+
+        private sealed class IdeTestFrameworkDiscoverer(Assembly assembly, IdeTestFramework testFramework) : XunitTestFrameworkDiscoverer(new XunitTestAssembly(assembly))
+        {
+            public override ValueTask Find(Func<ITestCase, ValueTask<bool>> callback, ITestFrameworkDiscoveryOptions discoveryOptions, Type[]? types = null, CancellationToken? cancellationToken = null)
+            {
+                // Capture the discovery options so we can pass them to our executor, allowing us to rediscover the tests the same way in the Visual Studio process
+                testFramework._discoveryOptions = discoveryOptions;
+                return base.Find(callback, discoveryOptions, types, cancellationToken);
+            }
         }
     }
 }

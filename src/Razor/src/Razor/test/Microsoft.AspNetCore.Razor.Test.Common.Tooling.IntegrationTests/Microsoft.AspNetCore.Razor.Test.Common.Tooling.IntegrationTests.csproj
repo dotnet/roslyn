@@ -14,6 +14,7 @@
     <TargetFramework>$(NetFxVS)</TargetFramework>
     <IsShipping>false</IsShipping>
     <RootNamespace>Microsoft.AspNetCore.Razor.Test.Common</RootNamespace>
+    <IsTestProject>false</IsTestProject>
 
     <!-- To generate baselines, run tests with /p:GenerateBaselines=true -->
     <DefineConstants Condition="'$(GenerateBaselines)'=='true'">$(DefineConstants);GENERATE_BASELINES</DefineConstants>
@@ -63,10 +64,9 @@
     <PackageReference Include="Microsoft.VisualStudio.Threading" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" />
     <PackageReference Include="Moq" />
-    <PackageReference Include="xunit.analyzers" />
-    <PackageReference Include="xunit.extensibility.execution" />
-    <PackageReference Include="Xunit.Combinatorial" />
-    <PackageReference Include="Xunit.StaFact" />
+    <PackageReference Include="xunit.v3.assert" />
+    <PackageReference Include="xunit.v3.extensibility.core" />
+    <PackageReference Include="Xunit.Combinatorial" VersionOverride="2.1.41" />
   </ItemGroup>
 
   <ItemGroup>

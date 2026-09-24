@@ -6,6 +6,15 @@
     <UseWPF>true</UseWPF>
 
     <RootNamespace>Microsoft.CodeAnalysis.Testing</RootNamespace>
+
+    <!--
+      This project uses xUnit v3, which conflicts with the xUnit v2 packages Roslyn's XUnit.targets
+      adds to projects with IsTestProject=true (the default for a project whose name ends in "Tests").
+      Disable that default and exclude the project from the DotNetBuildTests=false source-build path
+      the same way IsTestProject would have.
+    -->
+    <IsTestProject>false</IsTestProject>
+    <ExcludeFromDotNetBuild>true</ExcludeFromDotNetBuild>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,6 +34,9 @@
     <PackageReference Include="System.Memory" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" />
     <PackageReference Include="System.Threading.Tasks.Extensions" />
+    <!-- Xunit.Combinatorial 1.6.24 (the centrally pinned default) depends on xunit v2; 2.1.41 depends on xunit v3,
+         which this project needs transitively via Microsoft.CodeAnalysis.Test.Utilities.IntegrationTests. -->
+    <PackageReference Include="Xunit.Combinatorial" VersionOverride="2.1.41" />
   </ItemGroup>
 
   <ItemGroup>

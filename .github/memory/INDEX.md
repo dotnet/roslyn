@@ -31,6 +31,10 @@ area you're working in:
 | `Analyzers`, `CodeStyle`, `Features`, `Workspaces`, `EditorFeatures`, `VisualStudio`, `LanguageServer` | `.github/instructions/IDE.instructions.md` | `testing/ide.md` |
 | `Razor` | `.github/instructions/Razor.instructions.md` | `testing/razor.md` |
 
+`src/VisualStudio/IntegrationTest/` (the `IdeFact`/`IdeTheory` VS integration-test
+harness, on xUnit v3 — separate from the rest of the IDE layer's xUnit v2 unit tests)
+has its own dedicated doc: `testing/vs-integration-tests-xunit-v3.md`.
+
 The repo-wide memory files above hold only cross-cutting content and point into
 these layer files for specifics.
 

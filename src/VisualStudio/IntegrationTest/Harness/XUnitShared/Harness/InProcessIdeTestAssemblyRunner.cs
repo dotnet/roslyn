@@ -7,66 +7,64 @@ namespace Xunit.Harness
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
     using System.Threading;
-    using Xunit.Abstractions;
+    using System.Threading.Tasks;
+    using Xunit.Runner.Common;
     using Xunit.Sdk;
     using Xunit.Threading;
+    using Xunit.v3;
 
-    public class InProcessIdeTestAssemblyRunner : MarshalByRefObject, IDisposable
+    public class InProcessIdeTestAssemblyRunner : LongLivedMarshalByRefObject
     {
-        private readonly TestAssemblyRunner<IXunitTestCase> _testAssemblyRunner;
-
-        public InProcessIdeTestAssemblyRunner(ITestAssembly testAssembly, IEnumerable<IXunitTestCase> testCases, IMessageSink diagnosticMessageSink, IMessageSink executionMessageSink, ITestFrameworkExecutionOptions executionOptions)
+        public InProcessIdeTestAssemblyRunner()
         {
-            var reconstructedTestCases = testCases.Select(testCase =>
-            {
-                if (testCase is IdeTestCase ideTestCase)
-                {
-                    return new IdeTestCase(diagnosticMessageSink, ideTestCase.DefaultMethodDisplay, ideTestCase.DefaultMethodDisplayOptions, ideTestCase.TestMethod, ideTestCase.VisualStudioInstanceKey, ideTestCase.TestMethodArguments);
-                }
-                else if (testCase is IdeTheoryTestCase ideTheoryTestCase)
-                {
-                    return new IdeTheoryTestCase(diagnosticMessageSink, ideTheoryTestCase.DefaultMethodDisplay, ideTheoryTestCase.DefaultMethodDisplayOptions, ideTheoryTestCase.TestMethod, ideTheoryTestCase.VisualStudioInstanceKey, ideTheoryTestCase.TestMethodArguments);
-                }
-                else if (testCase is IdeInstanceTestCase ideInstanceTestCase)
-                {
-                    return new IdeInstanceTestCase(diagnosticMessageSink, ideInstanceTestCase.DefaultMethodDisplay, ideInstanceTestCase.DefaultMethodDisplayOptions, ideInstanceTestCase.TestMethod, ideInstanceTestCase.VisualStudioInstanceKey, ideInstanceTestCase.TestMethodArguments);
-                }
-
-                return testCase;
-            });
-
-            _testAssemblyRunner = new XunitTestAssemblyRunner(testAssembly, reconstructedTestCases.ToArray(), diagnosticMessageSink, executionMessageSink, executionOptions);
         }
 
-        public Tuple<int, int, int, decimal> RunTestCollection()
+        public Tuple<int, int, int, decimal> RunTestCollection(string testAssembly, HashSet<string> testCaseUniqueIds, DeserializingMessageSink executionMessageSink, ITestFrameworkDiscoveryOptions discoveryOptions, ITestFrameworkExecutionOptions executionOptions)
         {
-            using (var cancellationTokenSource = new CancellationTokenSource())
-            {
 #pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
-                var result = _testAssemblyRunner.RunAsync().GetAwaiter().GetResult();
+            var result = RunTestCollectionAsync(testAssembly, testCaseUniqueIds, executionMessageSink, discoveryOptions, executionOptions).GetAwaiter().GetResult();
 #pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
-                return Tuple.Create(result.Total, result.Failed, result.Skipped, result.Time);
-            }
+            return Tuple.Create(result.Total, result.Failed, result.Skipped, result.Time);
         }
 
-        public void Dispose()
+        private static async ValueTask<RunSummary> RunTestCollectionAsync(string testAssemblyPath, HashSet<string> testCaseUniqueIds, DeserializingMessageSink executionMessageSink, ITestFrameworkDiscoveryOptions discoveryOptions, ITestFrameworkExecutionOptions executionOptions)
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            var assembly = Assembly.LoadFrom(testAssemblyPath);
+            var testAssembly = new XunitTestAssembly(assembly);
+            var discoverer = new XunitTestFrameworkDiscoverer(testAssembly);
+
+            var discoveredTestCases = new List<IXunitTestCase>();
+            await discoverer.Find(
+                testCase =>
+                {
+                    if (testCase is IXunitTestCase xunitTestCase && testCaseUniqueIds.Contains(xunitTestCase.UniqueID))
+                    {
+                        discoveredTestCases.Add(xunitTestCase);
+                    }
+
+                    return new ValueTask<bool>(true);
+                },
+                discoveryOptions).ConfigureAwait(false);
+
+            using var cancellationTokenSource = new CancellationTokenSource();
+            return await XunitTestAssemblyRunner.Instance.Run(testAssembly, discoveredTestCases, new SerializingMessageSink(executionMessageSink), executionOptions, cancellationTokenSource.Token).ConfigureAwait(false);
         }
 
-        // The life of this object is managed explicitly
-        public override object? InitializeLifetimeService()
+        private sealed class SerializingMessageSink : IMessageSink
         {
-            return null;
-        }
+            private readonly DeserializingMessageSink _messageSink;
 
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
+            public SerializingMessageSink(DeserializingMessageSink messageSink)
             {
-                _testAssemblyRunner.Dispose();
+                _messageSink = messageSink;
+            }
+
+            public bool OnMessage(IMessageSinkMessage message)
+            {
+                var serializableMessage = (Xunit.v3.MessageSinkMessage)message;
+                return _messageSink.OnMessage(serializableMessage.ToJson());
             }
         }
     }

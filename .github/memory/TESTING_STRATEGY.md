@@ -21,9 +21,11 @@ the one for your area):
 | Project-data tests | `src/ProjectData/Microsoft.NET.ProjectData{,.Generators,.Tasks}.Tests/`; assemblies use the `UnitTests` suffix. |
 | Integration tests | VS integration tests (`azure-pipelines-integration*.yml`); runnable locally on **Windows** hosts with a VS install, also run in CI. |
 
-Frameworks: Unit tests use xUnit v3 with Roslyn test utilities. VS integration
-tests and their dedicated `.IntegrationTests` test-utility forks intentionally
-remain on xUnit v2 until the integration-test migration happens.
+Frameworks: Unit tests use xUnit v3 4.0.0 with Roslyn test utilities. VS integration
+tests and their dedicated `.IntegrationTests` test-utility forks use xUnit v3
+3.0.1. `eng/Packages.props` selects the integration version for projects ending
+in `.IntegrationTests` and the `Microsoft.VisualStudio.Extensibility.Testing.*`
+harness projects so their runner APIs remain independent of the unit-test suite.
 
 ## Repo-wide Authoring Conventions
 
@@ -70,8 +72,9 @@ test projects, adds `xunit.v3.mtp-off`, and sets
 than Microsoft.Testing.Platform for these tests.
 
 When a test project must stay on xUnit v2, set `<UseXunitV3>false</UseXunitV3>`
-in the project. This is reserved for integration-test infrastructure that is
-intentionally still on xUnit v2.
+in the project. VS integration projects instead manage their xUnit v3 package
+references explicitly with `IsTestProject=false`; see
+`testing/vs-integration-tests-xunit-v3.md`.
 
 ### Integration-test-only forks of shared test-infrastructure projects
 
@@ -81,8 +84,8 @@ The 4 VS integration test projects (`Roslyn.SDK.IntegrationTests`,
 `Microsoft.VisualStudio.Razor.IntegrationTests`) do **not** reference the shared,
 xUnit-v3-coupled test-utility assemblies that hundreds of unit test projects use.
 Instead they reference dedicated `.IntegrationTests`-suffixed sibling forks so the
-two test suites can use different xUnit major versions independently (xUnit major
-versions cannot coexist in one compiled assembly's dependency graph).
+two test suites can use different xUnit releases independently without mixing
+incompatible runner APIs in an assembly's dependency graph.
 
 | Original (unit-test-only) | Fork (integration-test-only) |
 |---|---|

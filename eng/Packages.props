@@ -17,6 +17,8 @@
     <MicrosoftWindowsDesktopAppRuntimePackagesVersion>10.0.11</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
     <_xunitV2Version>2.9.2</_xunitV2Version>
     <_xunitVersion>4.0.0</_xunitVersion>
+    <!-- The independently maintained VS integration harness targets the xUnit v3 3.x runner APIs. -->
+    <_xunitVersion Condition="$(MSBuildProjectName.EndsWith('.IntegrationTests')) or $(MSBuildProjectName.StartsWith('Microsoft.VisualStudio.Extensibility.Testing.'))">3.0.1</_xunitVersion>
     <!-- SQLitePCLRaw.bundle_green is discontinued at 2.1.11, so keep its managed dependencies aligned. -->
     <SqliteManagedVersion>2.1.11</SqliteManagedVersion>
     <SqliteNativeVersion>2.1.13</SqliteNativeVersion>
@@ -319,6 +321,7 @@
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.3" />
     <PackageVersion Include="xunit.runner.utility" Version="$(_xunitV2Version)" />
     <PackageVersion Include="xunit.v3.runner.utility" Version="$(_xunitVersion)" />
+    <PackageVersion Include="xunit.v3.runner.common" Version="$(_xunitVersion)" />
     <PackageVersion Include="xunit.abstractions" Version="2.0.3" />
     <PackageVersion Include="xunit.extensibility.execution" Version="$(_xunitV2Version)" />
     <PackageVersion Include="XunitXml.TestLogger" Version="8.0.0" />
