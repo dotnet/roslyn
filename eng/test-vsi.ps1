@@ -16,6 +16,7 @@ param (
   [switch]$skipCustomRoslynDeploy = $false,
   [switch]$oop64bit = $true,
   [switch]$lspEditor = $false,
+  [string][Alias('testArch')][ValidateSet('x86', 'x64')]$testPlatform = "x64",
   [string]$testFilter = "",
   [switch]$help,
 
@@ -35,6 +36,7 @@ function Print-Usage() {
   Write-Host "  -skipCustomRoslynDeploy   Skip custom Roslyn deployment (uses Roslyn from the VS)"
   Write-Host "  -oop64bit                 Run OOP in 64-bit mode (default: true)"
   Write-Host "  -lspEditor                Use LSP editor (default: false)"
+  Write-Host "  -testPlatform             Test host architecture: x86 or x64 (default: x64; independent of -oop64bit)"
   Write-Host "  -testFilter               Filter tests to run (maps to --filter parameter of xunit)"
   Write-Host "  -help                     Print help and exit"
 }
@@ -212,10 +214,31 @@ function CopyToArtifactLogs($inputPath) {
   }
 }
 
-function TestUsingRunTests() {
-
-  # Tests need to locate .NET Core SDK
+function Initialize-IntegrationTestDotNet() {
   $dotnet = InitializeDotNetCli -install:$true
+
+  # Native testhosts do not use PATH to locate the runtime installed with our SDK.
+  $env:DOTNET_ROOT = $dotnet
+  $env:DOTNET_ROOT_X64 = $dotnet
+  $env:DOTNET_ROLL_FORWARD = "LatestMajor"
+  $env:DOTNET_ROLL_FORWARD_TO_PRERELEASE = "1"
+
+  if ($testPlatform -eq "x86") {
+    $x86Dotnet = Join-Path $dotnet "x86"
+    $sdkVersion = $GlobalJson.tools.dotnet
+    if (-not (Test-Path (Join-Path $x86Dotnet "sdk\$sdkVersion"))) {
+      InstallDotNetSdk $x86Dotnet $sdkVersion -architecture "x86"
+    }
+    $env:DOTNET_ROOT_X86 = $x86Dotnet
+    ${env:DOTNET_ROOT(x86)} = $x86Dotnet
+  }
+
+  return $dotnet
+}
+
+function TestUsingRunTests() {
+  # Tests need to locate .NET Core SDK
+  $dotnet = Initialize-IntegrationTestDotNet
 
   Deploy-VsixViaTool
 
@@ -240,6 +263,7 @@ function TestUsingRunTests() {
   $args += " --dotnet `"$dotnetExe`""
   $args += " --logs `"$LogDir`""
   $args += " --testConfiguration $configuration"
+  $args += " --testPlatform $testPlatform"
   $testFilters = @()
 
   $args += " --testFramework:core --testFramework:desktop"

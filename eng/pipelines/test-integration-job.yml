@@ -2,6 +2,10 @@ parameters:
   - name: configuration
     type: string
     default: 'Debug'
+  - name: testPlatform
+    type: string
+    default: x64
+    values: [ x86, x64 ]
   - name: oop64bit
     # This is actually a boolean but must be defined as string.
     # Parameters are evaluated at compile time, but all variables are strings at compile time.
@@ -42,7 +46,7 @@ steps:
     displayName: Test
     inputs:
       filePath: eng/test-vsi.ps1
-      arguments: -ci -configuration ${{ parameters.configuration }} ${{ iif(eq(parameters.skipCustomRoslynDeploy, true), '-skipCustomRoslynDeploy', '') }} -oop64bit:$${{ parameters.oop64bit }} -collectDumps -lspEditor:$${{ parameters.lspEditor }} ${{ iif(ne(parameters.testCaseFilter, ''), format('-testFilter:''{0}''', parameters.testCaseFilter), '') }}
+      arguments: -ci -configuration ${{ parameters.configuration }} -testPlatform ${{ parameters.testPlatform }} ${{ iif(eq(parameters.skipCustomRoslynDeploy, true), '-skipCustomRoslynDeploy', '') }} -oop64bit:$${{ parameters.oop64bit }} -collectDumps -lspEditor:$${{ parameters.lspEditor }} ${{ iif(ne(parameters.testCaseFilter, ''), format('-testFilter:''{0}''', parameters.testCaseFilter), '') }}
 
   - task: PublishTestResults@2
     displayName: Publish xUnit Test Results

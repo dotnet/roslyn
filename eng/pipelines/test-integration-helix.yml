@@ -11,6 +11,10 @@ parameters:
     values: [ 'Debug', 'Release' ] 
   - name: timeout
     type: number
+  - name: testPlatform
+    type: string
+    default: x64
+    values: [ x86, x64 ]
   - name: testRuns
     type: object
     default:
@@ -113,7 +117,7 @@ stages:
         displayName: Run Integration Tests
         inputs:
           filePath: eng/test-vsi.ps1
-          arguments: -ci -configuration ${{ parameters.configuration }} -oop64bit:$${{ testParameters.oop64bit }} -collectDumps -lspEditor:$${{ testParameters.lspEditor }}
+          arguments: -ci -configuration ${{ parameters.configuration }} -testPlatform ${{ parameters.testPlatform }} -oop64bit:$${{ testParameters.oop64bit }} -collectDumps -lspEditor:$${{ testParameters.lspEditor }}
         env:
           DOTNET_ROLL_FORWARD: LatestMajor
           DOTNET_ROLL_FORWARD_TO_PRERELEASE: 1

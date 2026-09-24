@@ -69,6 +69,10 @@ the runner also receives the bootstrapped executable through `--dotnet`.
 
 ### Test types to be aware of
 - VS integration tests (`azure-pipelines-integration*.yml`) require a VS install, so they run only on **Windows** hosts (not CI-only — they can be run locally on Windows). Prefer unit tests for the inner development loop; reach for integration tests when validating end-to-end VS behavior.
+- `eng/test-vsi.ps1` selects the testhost architecture with `-testPlatform`,
+  independently of the `-oop64bit` setting for Visual Studio's out-of-process
+  services. It configures architecture-specific `DOTNET_ROOT` variables so
+  native testhosts use the repository's SDK runtime.
 - A handful of tests fail only for environmental reasons:
   - `RuntimeHostInfoTests.DotNetInPath_Symlinked` requires symlink-creation privilege (run elevated).
   - `Workspaces.MSBuild` `NewlyCreatedProjectsFromDotNetNew.Validate*TemplateProjects` fail without mobile (ios/tvos/macos/maccatalyst) dotnet workloads installed.
