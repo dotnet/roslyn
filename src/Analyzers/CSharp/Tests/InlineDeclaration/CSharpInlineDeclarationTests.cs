@@ -1133,7 +1133,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85774")]
     public Task TestMissingIfCapturedInBlockBodiedLocalFunctionAndUsedAfterwards()
         => TestMissingInRegularAndScriptAsync(
             """
@@ -1157,7 +1157,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85774")]
     public Task TestNotMissingIfCapturedInExpressionBodiedLocalFunctionAndNotUsedAfterwards()
         => TestInRegularAndScriptAsync(
             """
