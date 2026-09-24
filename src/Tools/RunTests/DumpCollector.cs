@@ -134,9 +134,9 @@ namespace RunTests
             {
                 process.Kill(entireProcessTree: true);
             }
-            catch (InvalidOperationException)
+            catch (Exception ex)
             {
-                // The process has already exited.
+                Logger.Log($"Failed to terminate dump collector process tree: {ex.Message}");
             }
         }
 
