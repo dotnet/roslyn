@@ -9856,6 +9856,69 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "D<C>").WithArguments("C.C()", "T", "D<T>").WithLocation(6, 16));
     }
 
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/85762")]
+    public void Member_Constructor_RecursiveUnion(bool updatedRules)
+    {
+        var source = """
+            #nullable enable
+            public union NullableNat(bool, NullableNat?);
+            """;
+
+        CreateCompilation(source,
+            targetFramework: TargetFramework.Net110,
+            parseOptions: TestOptions.RegularPreview,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyEmitDiagnostics();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/85762")]
+    public void Member_Constructor_RecursiveUnion_MutualRecursion(bool updatedRules)
+    {
+        var source = """
+            #nullable enable
+            public union A(bool, B?);
+            public union B(bool, A?);
+            """;
+
+        CreateCompilation(source,
+            targetFramework: TargetFramework.Net110,
+            parseOptions: TestOptions.RegularPreview,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyEmitDiagnostics();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/85762")]
+    public void Member_Constructor_RecursiveUnion_Constraint(
+        bool updatedRules,
+        bool unsafeConstructor,
+        [CombinatorialValues("new()", "struct")] string constraint)
+    {
+        var source = $$"""
+            public class D<T> where T : {{constraint}};
+            public union U(D<U>)
+            {
+                public {{(unsafeConstructor ? "unsafe " : "")}}U() : this((D<U>)null) { }
+            }
+            """;
+
+        var comp = CreateCompilation(source,
+            targetFramework: TargetFramework.Net110,
+            parseOptions: TestOptions.RegularPreview,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(updatedRules));
+
+        if (updatedRules && unsafeConstructor)
+        {
+            comp.VerifyDiagnostics(
+                // (2,16): error CS9376: An unsafe context is required for constructor 'U.U()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
+                // public union U(D<U>)
+                Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "D<U>").WithArguments("U.U()", "T", "D<T>").WithLocation(2, 16));
+        }
+        else
+        {
+            comp.VerifyEmitDiagnostics();
+        }
+    }
+
     [Fact]
     public void Member_Constructor_StructConstraint()
     {
