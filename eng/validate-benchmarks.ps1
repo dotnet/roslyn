@@ -7,15 +7,12 @@
 [CmdletBinding(PositionalBinding=$false)]
 param(
   [string]$configuration = "Release",
-  [switch]$ci = $false,
-  [switch]$warnAsError = $ci)
+  [switch]$ci = $false)
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
 
-$msbuildEngine = "dotnet"
-$disablePipelineSetResult = $true
-. (Join-Path $PSScriptRoot "build-utils.ps1")
+$repoDir = Resolve-Path (Join-Path $PSScriptRoot "..")
 
 # Each entry is a hashtable with the project path and optional framework.
 $benchmarkProjects = @(
@@ -35,56 +32,46 @@ $benchmarkProjects = @(
 $failed = @()
 
 foreach ($entry in $benchmarkProjects) {
-  $projectPath = Join-Path $RepoRoot $entry.Project
+  $projectPath = Join-Path $repoDir $entry.Project
   $projectName = Split-Path $entry.Project -Leaf
 
   Write-Host ""
   Write-Host "=== Validating $projectName ===" -ForegroundColor Cyan
 
-  $buildArgs = @(
-    $projectPath
-    "/restore"
-    "/t:Build"
-    "/p:Configuration=$configuration"
-  )
-
-  $runArgs = @(
+  $args = @(
     "run"
-    "--no-build"
     "--project", $projectPath
     "-c", $configuration
   )
 
   if ($ci) {
-    $buildArgs += "/p:UseRazorBuildServer=false"
-    $buildArgs += "/p:UseSharedCompilation=false"
-    $buildArgs += "-bl:$(Join-Path $LogDir "$projectName.Build.binlog")"
-    $runArgs += "--disable-build-servers"
+    $args += "--disable-build-servers"
   }
 
   if ($entry.ContainsKey("Framework")) {
-    $buildArgs += "/p:TargetFramework=$($entry["Framework"])"
-    $runArgs += "-f"
-    $runArgs += $entry["Framework"]
+    $args += "-f"
+    $args += $entry["Framework"]
   }
 
   # Separator between dotnet args and BenchmarkDotNet args
-  $runArgs += "--"
+  $args += "--"
   if ($entry.ContainsKey("HasValidationMode")) {
     # These harnesses define multiple jobs for normal benchmark runs. Their validation
     # mode replaces those jobs with one Dry job instead of unioning a CLI job with them.
-    $runArgs += "--validate"
+    $args += "--validate"
   }
   else {
-    $runArgs += "--job"
-    $runArgs += "Dry"
+    $args += "--job"
+    $args += "Dry"
   }
 
   if ($ci) {
     # Keep the filter as one argument so PowerShell does not expand '*' into file names.
     $filter = if ($entry.ContainsKey("Filter")) { $entry["Filter"] } else { "*" }
-    $runArgs += "--filter=$filter"
+    $args += "--filter=$filter"
   }
+
+  Write-Host "dotnet $($args -join ' ')"
 
   $previousRollForward = $env:DOTNET_ROLL_FORWARD
   $previousRollForwardToPrerelease = $env:DOTNET_ROLL_FORWARD_TO_PRERELEASE
@@ -97,14 +84,8 @@ foreach ($entry in $benchmarkProjects) {
       $env:DOTNET_ROLL_FORWARD_TO_PRERELEASE = $entry["RollForwardToPrerelease"]
     }
 
-    # Use Arcade's MSBuild helper for correct warnAsError/warnNotAsError behavior.
-    & (Join-Path $PSScriptRoot "common\msbuild.ps1") -msbuildEngine dotnet -ci:$ci -warnAsError:$warnAsError @buildArgs
+    & dotnet @args
     $exitCode = $LASTEXITCODE
-    if ($exitCode -eq 0) {
-      Write-Host "dotnet $($runArgs -join ' ')"
-      $null = DotNet -ignoreFailure @runArgs
-      $exitCode = $LASTEXITCODE
-    }
   }
   finally {
     $env:DOTNET_ROLL_FORWARD = $previousRollForward
