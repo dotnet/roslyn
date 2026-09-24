@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Text.Json.Nodes;
@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Microsoft.VisualStudioCode.RazorExtension.Endpoints;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudioCode.RazorExtension.Test;
 

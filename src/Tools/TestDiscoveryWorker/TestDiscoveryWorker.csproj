@@ -8,9 +8,8 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="xunit.abstractions" />
-    <PackageReference Include="xunit.runner.utility" />
-    <PackageReference Include="xunit.extensibility.execution" />
+    <PackageReference Include="xunit.v3.runner.utility" />
+    <PackageReference Include="xunit.v3.extensibility.core" />
     <PackageReference Include="Mono.Options" />
   </ItemGroup>
     
