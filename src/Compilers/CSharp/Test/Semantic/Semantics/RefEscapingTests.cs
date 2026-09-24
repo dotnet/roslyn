@@ -11809,7 +11809,128 @@ public struct Vec4
             }
             else
             {
-                comp.VerifyEmitDiagnostics();
+                var verifier = CompileAndVerify(comp, verify: Verification.Fails.WithILVerifyMessage("""
+                    [get_Self]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                    [GetSelf]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                    [get_Item]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                    """)).VerifyDiagnostics();
+
+                // The member calls use the using locals directly, without defensive copies.
+                var memberName = access == ".Self" ? "Self.get" : "GetSelf()";
+                verifier.VerifyIL("C.M", access == "[0]" ? """
+                    {
+                      // Code size      101 (0x65)
+                      .maxstack  2
+                      .locals init (S V_0, //a
+                                    S V_1) //b
+                      IL_0000:  ldloca.s   V_0
+                      IL_0002:  initobj    "S"
+                      .try
+                      {
+                        IL_0008:  ldloca.s   V_1
+                        IL_000a:  initobj    "S"
+                        .try
+                        {
+                          IL_0010:  ldloca.s   V_0
+                          IL_0012:  ldc.i4.0
+                          IL_0013:  call       "ref S S.this[int].get"
+                          IL_0018:  pop
+                          IL_0019:  ldarg.0
+                          IL_001a:  brfalse.s  IL_0025
+                          IL_001c:  ldloca.s   V_1
+                          IL_001e:  ldc.i4.0
+                          IL_001f:  call       "ref S S.this[int].get"
+                          IL_0024:  pop
+                          IL_0025:  ldarg.0
+                          IL_0026:  brfalse.s  IL_0031
+                          IL_0028:  ldloca.s   V_1
+                          IL_002a:  ldc.i4.0
+                          IL_002b:  call       "ref S S.this[int].get"
+                          IL_0030:  pop
+                          IL_0031:  ldloca.s   V_1
+                          IL_0033:  ldc.i4.0
+                          IL_0034:  call       "ref S S.this[int].get"
+                          IL_0039:  pop
+                          IL_003a:  ldarg.0
+                          IL_003b:  brfalse.s  IL_0046
+                          IL_003d:  ldloca.s   V_0
+                          IL_003f:  ldc.i4.0
+                          IL_0040:  call       "ref S S.this[int].get"
+                          IL_0045:  pop
+                          IL_0046:  leave.s    IL_0064
+                        }
+                        finally
+                        {
+                          IL_0048:  ldloca.s   V_1
+                          IL_004a:  constrained. "S"
+                          IL_0050:  callvirt   "void System.IDisposable.Dispose()"
+                          IL_0055:  endfinally
+                        }
+                      }
+                      finally
+                      {
+                        IL_0056:  ldloca.s   V_0
+                        IL_0058:  constrained. "S"
+                        IL_005e:  callvirt   "void System.IDisposable.Dispose()"
+                        IL_0063:  endfinally
+                      }
+                      IL_0064:  ret
+                    }
+                    """ : $$"""
+                    {
+                      // Code size       96 (0x60)
+                      .maxstack  1
+                      .locals init (S V_0, //a
+                                    S V_1) //b
+                      IL_0000:  ldloca.s   V_0
+                      IL_0002:  initobj    "S"
+                      .try
+                      {
+                        IL_0008:  ldloca.s   V_1
+                        IL_000a:  initobj    "S"
+                        .try
+                        {
+                          IL_0010:  ldloca.s   V_0
+                          IL_0012:  call       "ref S S.{{memberName}}"
+                          IL_0017:  pop
+                          IL_0018:  ldarg.0
+                          IL_0019:  brfalse.s  IL_0023
+                          IL_001b:  ldloca.s   V_1
+                          IL_001d:  call       "ref S S.{{memberName}}"
+                          IL_0022:  pop
+                          IL_0023:  ldarg.0
+                          IL_0024:  brfalse.s  IL_002e
+                          IL_0026:  ldloca.s   V_1
+                          IL_0028:  call       "ref S S.{{memberName}}"
+                          IL_002d:  pop
+                          IL_002e:  ldloca.s   V_1
+                          IL_0030:  call       "ref S S.{{memberName}}"
+                          IL_0035:  pop
+                          IL_0036:  ldarg.0
+                          IL_0037:  brfalse.s  IL_0041
+                          IL_0039:  ldloca.s   V_0
+                          IL_003b:  call       "ref S S.{{memberName}}"
+                          IL_0040:  pop
+                          IL_0041:  leave.s    IL_005f
+                        }
+                        finally
+                        {
+                          IL_0043:  ldloca.s   V_1
+                          IL_0045:  constrained. "S"
+                          IL_004b:  callvirt   "void System.IDisposable.Dispose()"
+                          IL_0050:  endfinally
+                        }
+                      }
+                      finally
+                      {
+                        IL_0051:  ldloca.s   V_0
+                        IL_0053:  constrained. "S"
+                        IL_0059:  callvirt   "void System.IDisposable.Dispose()"
+                        IL_005e:  endfinally
+                      }
+                      IL_005f:  ret
+                    }
+                    """);
             }
         }
 
@@ -11861,7 +11982,85 @@ public struct Vec4
             }
             else
             {
-                comp.VerifyEmitDiagnostics();
+                var verifier = CompileAndVerify(comp, verify: Verification.Fails.WithILVerifyMessage("""
+                    [get_Self]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                    [GetSelf]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                    [get_Item]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                    """)).VerifyDiagnostics();
+
+                // The member calls use the iteration variable directly, without defensive copies.
+                var memberName = access == ".Self" ? "Self.get" : "GetSelf()";
+                verifier.VerifyIL("C.M", access == "[0]" ? """
+                    {
+                      // Code size       48 (0x30)
+                      .maxstack  2
+                      .locals init (S[] V_0,
+                                    int V_1,
+                                    S V_2) //a
+                      IL_0000:  ldc.i4.1
+                      IL_0001:  newarr     "S"
+                      IL_0006:  stloc.0
+                      IL_0007:  ldc.i4.0
+                      IL_0008:  stloc.1
+                      IL_0009:  br.s       IL_0029
+                      IL_000b:  ldloc.0
+                      IL_000c:  ldloc.1
+                      IL_000d:  ldelem     "S"
+                      IL_0012:  stloc.2
+                      IL_0013:  ldloca.s   V_2
+                      IL_0015:  ldc.i4.0
+                      IL_0016:  call       "ref S S.this[int].get"
+                      IL_001b:  pop
+                      IL_001c:  ldloca.s   V_2
+                      IL_001e:  ldc.i4.0
+                      IL_001f:  call       "ref S S.this[int].get"
+                      IL_0024:  pop
+                      IL_0025:  ldloc.1
+                      IL_0026:  ldc.i4.1
+                      IL_0027:  add
+                      IL_0028:  stloc.1
+                      IL_0029:  ldloc.1
+                      IL_002a:  ldloc.0
+                      IL_002b:  ldlen
+                      IL_002c:  conv.i4
+                      IL_002d:  blt.s      IL_000b
+                      IL_002f:  ret
+                    }
+                    """ : $$"""
+                    {
+                      // Code size       46 (0x2e)
+                      .maxstack  2
+                      .locals init (S[] V_0,
+                                    int V_1,
+                                    S V_2) //a
+                      IL_0000:  ldc.i4.1
+                      IL_0001:  newarr     "S"
+                      IL_0006:  stloc.0
+                      IL_0007:  ldc.i4.0
+                      IL_0008:  stloc.1
+                      IL_0009:  br.s       IL_0027
+                      IL_000b:  ldloc.0
+                      IL_000c:  ldloc.1
+                      IL_000d:  ldelem     "S"
+                      IL_0012:  stloc.2
+                      IL_0013:  ldloca.s   V_2
+                      IL_0015:  call       "ref S S.{{memberName}}"
+                      IL_001a:  pop
+                      IL_001b:  ldloca.s   V_2
+                      IL_001d:  call       "ref S S.{{memberName}}"
+                      IL_0022:  pop
+                      IL_0023:  ldloc.1
+                      IL_0024:  ldc.i4.1
+                      IL_0025:  add
+                      IL_0026:  stloc.1
+                      IL_0027:  ldloc.1
+                      IL_0028:  ldloc.0
+                      IL_0029:  ldlen
+                      IL_002a:  conv.i4
+                      IL_002b:  blt.s      IL_000b
+                      IL_002d:  ret
+                    }
+                    """);
             }
         }
 
@@ -12009,7 +12208,7 @@ public struct Vec4
                 }
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: RefFieldTests.IncludeExpectedOutput("""
+            var verifier = CompileAndVerify(comp, expectedOutput: RefFieldTests.IncludeExpectedOutput("""
                 3 4
                 4
                 5
@@ -12018,6 +12217,163 @@ public struct Vec4
                 [GetSelf]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
                 [get_Item]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
                 """)).VerifyDiagnostics();
+
+            // The returned references alias the using locals, not defensive copies.
+            var memberName = access == ".Self" ? "Self.get" : "GetSelf()";
+            verifier.VerifyIL("C.Main", access == "[0]" ? """
+                {
+                  // Code size      167 (0xa7)
+                  .maxstack  2
+                  .locals init (S V_0, //a
+                                S V_1, //b
+                                S V_2,
+                                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_3)
+                  IL_0000:  ldloca.s   V_2
+                  IL_0002:  initobj    "S"
+                  IL_0008:  ldloca.s   V_2
+                  IL_000a:  ldc.i4.1
+                  IL_000b:  stfld      "int S.Value"
+                  IL_0010:  ldloc.2
+                  IL_0011:  stloc.0
+                  .try
+                  {
+                    IL_0012:  ldloca.s   V_2
+                    IL_0014:  initobj    "S"
+                    IL_001a:  ldloca.s   V_2
+                    IL_001c:  ldc.i4.2
+                    IL_001d:  stfld      "int S.Value"
+                    IL_0022:  ldloc.2
+                    IL_0023:  stloc.1
+                    .try
+                    {
+                      IL_0024:  ldloca.s   V_0
+                      IL_0026:  ldc.i4.0
+                      IL_0027:  call       "ref S S.this[int].get"
+                      IL_002c:  ldc.i4.3
+                      IL_002d:  stfld      "int S.Value"
+                      IL_0032:  ldloca.s   V_1
+                      IL_0034:  ldc.i4.0
+                      IL_0035:  call       "ref S S.this[int].get"
+                      IL_003a:  ldc.i4.4
+                      IL_003b:  stfld      "int S.Value"
+                      IL_0040:  ldc.i4.1
+                      IL_0041:  ldc.i4.2
+                      IL_0042:  newobj     "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                      IL_0047:  stloc.3
+                      IL_0048:  ldloca.s   V_3
+                      IL_004a:  ldloc.0
+                      IL_004b:  ldfld      "int S.Value"
+                      IL_0050:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                      IL_0055:  ldloca.s   V_3
+                      IL_0057:  ldstr      " "
+                      IL_005c:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                      IL_0061:  ldloca.s   V_3
+                      IL_0063:  ldloc.1
+                      IL_0064:  ldfld      "int S.Value"
+                      IL_0069:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                      IL_006e:  ldloca.s   V_3
+                      IL_0070:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                      IL_0075:  call       "void System.Console.WriteLine(string)"
+                      IL_007a:  ldloca.s   V_0
+                      IL_007c:  ldc.i4.0
+                      IL_007d:  call       "ref S S.this[int].get"
+                      IL_0082:  ldc.i4.5
+                      IL_0083:  stfld      "int S.Value"
+                      IL_0088:  leave.s    IL_00a6
+                    }
+                    finally
+                    {
+                      IL_008a:  ldloca.s   V_1
+                      IL_008c:  constrained. "S"
+                      IL_0092:  callvirt   "void System.IDisposable.Dispose()"
+                      IL_0097:  endfinally
+                    }
+                  }
+                  finally
+                  {
+                    IL_0098:  ldloca.s   V_0
+                    IL_009a:  constrained. "S"
+                    IL_00a0:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_00a5:  endfinally
+                  }
+                  IL_00a6:  ret
+                }
+                """ : $$"""
+                {
+                  // Code size      164 (0xa4)
+                  .maxstack  2
+                  .locals init (S V_0, //a
+                                S V_1, //b
+                                S V_2,
+                                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_3)
+                  IL_0000:  ldloca.s   V_2
+                  IL_0002:  initobj    "S"
+                  IL_0008:  ldloca.s   V_2
+                  IL_000a:  ldc.i4.1
+                  IL_000b:  stfld      "int S.Value"
+                  IL_0010:  ldloc.2
+                  IL_0011:  stloc.0
+                  .try
+                  {
+                    IL_0012:  ldloca.s   V_2
+                    IL_0014:  initobj    "S"
+                    IL_001a:  ldloca.s   V_2
+                    IL_001c:  ldc.i4.2
+                    IL_001d:  stfld      "int S.Value"
+                    IL_0022:  ldloc.2
+                    IL_0023:  stloc.1
+                    .try
+                    {
+                      IL_0024:  ldloca.s   V_0
+                      IL_0026:  call       "ref S S.{{memberName}}"
+                      IL_002b:  ldc.i4.3
+                      IL_002c:  stfld      "int S.Value"
+                      IL_0031:  ldloca.s   V_1
+                      IL_0033:  call       "ref S S.{{memberName}}"
+                      IL_0038:  ldc.i4.4
+                      IL_0039:  stfld      "int S.Value"
+                      IL_003e:  ldc.i4.1
+                      IL_003f:  ldc.i4.2
+                      IL_0040:  newobj     "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                      IL_0045:  stloc.3
+                      IL_0046:  ldloca.s   V_3
+                      IL_0048:  ldloc.0
+                      IL_0049:  ldfld      "int S.Value"
+                      IL_004e:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                      IL_0053:  ldloca.s   V_3
+                      IL_0055:  ldstr      " "
+                      IL_005a:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                      IL_005f:  ldloca.s   V_3
+                      IL_0061:  ldloc.1
+                      IL_0062:  ldfld      "int S.Value"
+                      IL_0067:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                      IL_006c:  ldloca.s   V_3
+                      IL_006e:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                      IL_0073:  call       "void System.Console.WriteLine(string)"
+                      IL_0078:  ldloca.s   V_0
+                      IL_007a:  call       "ref S S.{{memberName}}"
+                      IL_007f:  ldc.i4.5
+                      IL_0080:  stfld      "int S.Value"
+                      IL_0085:  leave.s    IL_00a3
+                    }
+                    finally
+                    {
+                      IL_0087:  ldloca.s   V_1
+                      IL_0089:  constrained. "S"
+                      IL_008f:  callvirt   "void System.IDisposable.Dispose()"
+                      IL_0094:  endfinally
+                    }
+                  }
+                  finally
+                  {
+                    IL_0095:  ldloca.s   V_0
+                    IL_0097:  constrained. "S"
+                    IL_009d:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_00a2:  endfinally
+                  }
+                  IL_00a3:  ret
+                }
+                """);
         }
 
         [Theory, CombinatorialData]
@@ -12055,7 +12411,7 @@ public struct Vec4
                 }
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: RefFieldTests.IncludeExpectedOutput("""
+            var verifier = CompileAndVerify(comp, expectedOutput: RefFieldTests.IncludeExpectedOutput("""
                 2
                 1
                 """), verify: Verification.Fails.WithILVerifyMessage("""
@@ -12063,6 +12419,124 @@ public struct Vec4
                 [GetSelf]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
                 [get_Item]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
                 """)).VerifyDiagnostics();
+
+            // Foreach copies the array element once; the member calls do not copy the iteration variable.
+            var memberName = access == ".Self" ? "Self.get" : "GetSelf()";
+            verifier.VerifyIL("C.Main", access == "[0]" ? """
+                {
+                  // Code size      109 (0x6d)
+                  .maxstack  5
+                  .locals init (S[] V_0, //items
+                                S V_1,
+                                S[] V_2,
+                                int V_3,
+                                S V_4) //a
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  newarr     "S"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldloca.s   V_1
+                  IL_000a:  initobj    "S"
+                  IL_0010:  ldloca.s   V_1
+                  IL_0012:  ldc.i4.1
+                  IL_0013:  stfld      "int S.Value"
+                  IL_0018:  ldloc.1
+                  IL_0019:  stelem     "S"
+                  IL_001e:  stloc.0
+                  IL_001f:  ldloc.0
+                  IL_0020:  stloc.2
+                  IL_0021:  ldc.i4.0
+                  IL_0022:  stloc.3
+                  IL_0023:  br.s       IL_0055
+                  IL_0025:  ldloc.2
+                  IL_0026:  ldloc.3
+                  IL_0027:  ldelem     "S"
+                  IL_002c:  stloc.s    V_4
+                  IL_002e:  ldloca.s   V_4
+                  IL_0030:  ldc.i4.0
+                  IL_0031:  call       "ref S S.this[int].get"
+                  IL_0036:  pop
+                  IL_0037:  ldloca.s   V_4
+                  IL_0039:  ldc.i4.0
+                  IL_003a:  call       "ref S S.this[int].get"
+                  IL_003f:  ldc.i4.2
+                  IL_0040:  stfld      "int S.Value"
+                  IL_0045:  ldloc.s    V_4
+                  IL_0047:  ldfld      "int S.Value"
+                  IL_004c:  call       "void System.Console.WriteLine(int)"
+                  IL_0051:  ldloc.3
+                  IL_0052:  ldc.i4.1
+                  IL_0053:  add
+                  IL_0054:  stloc.3
+                  IL_0055:  ldloc.3
+                  IL_0056:  ldloc.2
+                  IL_0057:  ldlen
+                  IL_0058:  conv.i4
+                  IL_0059:  blt.s      IL_0025
+                  IL_005b:  ldloc.0
+                  IL_005c:  ldc.i4.0
+                  IL_005d:  ldelema    "S"
+                  IL_0062:  ldfld      "int S.Value"
+                  IL_0067:  call       "void System.Console.WriteLine(int)"
+                  IL_006c:  ret
+                }
+                """ : $$"""
+                {
+                  // Code size      107 (0x6b)
+                  .maxstack  5
+                  .locals init (S[] V_0, //items
+                                S V_1,
+                                S[] V_2,
+                                int V_3,
+                                S V_4) //a
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  newarr     "S"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldloca.s   V_1
+                  IL_000a:  initobj    "S"
+                  IL_0010:  ldloca.s   V_1
+                  IL_0012:  ldc.i4.1
+                  IL_0013:  stfld      "int S.Value"
+                  IL_0018:  ldloc.1
+                  IL_0019:  stelem     "S"
+                  IL_001e:  stloc.0
+                  IL_001f:  ldloc.0
+                  IL_0020:  stloc.2
+                  IL_0021:  ldc.i4.0
+                  IL_0022:  stloc.3
+                  IL_0023:  br.s       IL_0053
+                  IL_0025:  ldloc.2
+                  IL_0026:  ldloc.3
+                  IL_0027:  ldelem     "S"
+                  IL_002c:  stloc.s    V_4
+                  IL_002e:  ldloca.s   V_4
+                  IL_0030:  call       "ref S S.{{memberName}}"
+                  IL_0035:  pop
+                  IL_0036:  ldloca.s   V_4
+                  IL_0038:  call       "ref S S.{{memberName}}"
+                  IL_003d:  ldc.i4.2
+                  IL_003e:  stfld      "int S.Value"
+                  IL_0043:  ldloc.s    V_4
+                  IL_0045:  ldfld      "int S.Value"
+                  IL_004a:  call       "void System.Console.WriteLine(int)"
+                  IL_004f:  ldloc.3
+                  IL_0050:  ldc.i4.1
+                  IL_0051:  add
+                  IL_0052:  stloc.3
+                  IL_0053:  ldloc.3
+                  IL_0054:  ldloc.2
+                  IL_0055:  ldlen
+                  IL_0056:  conv.i4
+                  IL_0057:  blt.s      IL_0025
+                  IL_0059:  ldloc.0
+                  IL_005a:  ldc.i4.0
+                  IL_005b:  ldelema    "S"
+                  IL_0060:  ldfld      "int S.Value"
+                  IL_0065:  call       "void System.Console.WriteLine(int)"
+                  IL_006a:  ret
+                }
+                """);
         }
 
         [Theory, CombinatorialData]
@@ -12101,10 +12575,156 @@ public struct Vec4
                 }
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: RefFieldTests.IncludeExpectedOutput(condition ? "42, 0" : "0, 42"),
+            var verifier = CompileAndVerify(comp, expectedOutput: RefFieldTests.IncludeExpectedOutput(condition ? "42, 0" : "0, 42"),
                 verify: Verification.Fails.WithILVerifyMessage("""
                 [get_Self]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
                 """)).VerifyDiagnostics();
+
+            // Both conditional branches supply the address of the original local, without a defensive copy.
+            verifier.VerifyIL("C.M", usingLocal ? """
+                {
+                  // Code size      141 (0x8d)
+                  .maxstack  2
+                  .locals init (S V_0, //a
+                                S V_1, //b
+                                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_2)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "S"
+                  .try
+                  {
+                    IL_0008:  ldloca.s   V_1
+                    IL_000a:  initobj    "S"
+                    .try
+                    {
+                      IL_0010:  ldarg.0
+                      IL_0011:  brtrue.s   IL_0017
+                      IL_0013:  ldloca.s   V_1
+                      IL_0015:  br.s       IL_0019
+                      IL_0017:  ldloca.s   V_0
+                      IL_0019:  call       "ref S S.Self.get"
+                      IL_001e:  pop
+                      IL_001f:  ldarg.0
+                      IL_0020:  brtrue.s   IL_0026
+                      IL_0022:  ldloca.s   V_1
+                      IL_0024:  br.s       IL_0028
+                      IL_0026:  ldloca.s   V_0
+                      IL_0028:  call       "ref S S.Self.get"
+                      IL_002d:  ldc.i4.s   42
+                      IL_002f:  stfld      "int S.Value"
+                      IL_0034:  ldc.i4.2
+                      IL_0035:  ldc.i4.2
+                      IL_0036:  newobj     "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                      IL_003b:  stloc.2
+                      IL_003c:  ldloca.s   V_2
+                      IL_003e:  ldloc.0
+                      IL_003f:  ldfld      "int S.Value"
+                      IL_0044:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                      IL_0049:  ldloca.s   V_2
+                      IL_004b:  ldstr      ", "
+                      IL_0050:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                      IL_0055:  ldloca.s   V_2
+                      IL_0057:  ldloc.1
+                      IL_0058:  ldfld      "int S.Value"
+                      IL_005d:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                      IL_0062:  ldloca.s   V_2
+                      IL_0064:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                      IL_0069:  call       "void System.Console.WriteLine(string)"
+                      IL_006e:  leave.s    IL_008c
+                    }
+                    finally
+                    {
+                      IL_0070:  ldloca.s   V_1
+                      IL_0072:  constrained. "S"
+                      IL_0078:  callvirt   "void System.IDisposable.Dispose()"
+                      IL_007d:  endfinally
+                    }
+                  }
+                  finally
+                  {
+                    IL_007e:  ldloca.s   V_0
+                    IL_0080:  constrained. "S"
+                    IL_0086:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_008b:  endfinally
+                  }
+                  IL_008c:  ret
+                }
+                """ : """
+                {
+                  // Code size      155 (0x9b)
+                  .maxstack  2
+                  .locals init (S[] V_0,
+                                int V_1,
+                                S V_2, //a
+                                S V_3, //b
+                                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_4)
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  newarr     "S"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  stloc.1
+                  IL_0009:  br         IL_0091
+                  IL_000e:  ldloc.0
+                  IL_000f:  ldloc.1
+                  IL_0010:  ldelem     "S"
+                  IL_0015:  stloc.2
+                  IL_0016:  ldloca.s   V_3
+                  IL_0018:  initobj    "S"
+                  .try
+                  {
+                    IL_001e:  ldarg.0
+                    IL_001f:  brtrue.s   IL_0025
+                    IL_0021:  ldloca.s   V_3
+                    IL_0023:  br.s       IL_0027
+                    IL_0025:  ldloca.s   V_2
+                    IL_0027:  call       "ref S S.Self.get"
+                    IL_002c:  pop
+                    IL_002d:  ldarg.0
+                    IL_002e:  brtrue.s   IL_0034
+                    IL_0030:  ldloca.s   V_3
+                    IL_0032:  br.s       IL_0036
+                    IL_0034:  ldloca.s   V_2
+                    IL_0036:  call       "ref S S.Self.get"
+                    IL_003b:  ldc.i4.s   42
+                    IL_003d:  stfld      "int S.Value"
+                    IL_0042:  ldc.i4.2
+                    IL_0043:  ldc.i4.2
+                    IL_0044:  newobj     "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                    IL_0049:  stloc.s    V_4
+                    IL_004b:  ldloca.s   V_4
+                    IL_004d:  ldloc.2
+                    IL_004e:  ldfld      "int S.Value"
+                    IL_0053:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                    IL_0058:  ldloca.s   V_4
+                    IL_005a:  ldstr      ", "
+                    IL_005f:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                    IL_0064:  ldloca.s   V_4
+                    IL_0066:  ldloc.3
+                    IL_0067:  ldfld      "int S.Value"
+                    IL_006c:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                    IL_0071:  ldloca.s   V_4
+                    IL_0073:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                    IL_0078:  call       "void System.Console.WriteLine(string)"
+                    IL_007d:  leave.s    IL_008d
+                  }
+                  finally
+                  {
+                    IL_007f:  ldloca.s   V_3
+                    IL_0081:  constrained. "S"
+                    IL_0087:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_008c:  endfinally
+                  }
+                  IL_008d:  ldloc.1
+                  IL_008e:  ldc.i4.1
+                  IL_008f:  add
+                  IL_0090:  stloc.1
+                  IL_0091:  ldloc.1
+                  IL_0092:  ldloc.0
+                  IL_0093:  ldlen
+                  IL_0094:  conv.i4
+                  IL_0095:  blt        IL_000e
+                  IL_009a:  ret
+                }
+                """);
         }
 
         [Theory, CombinatorialData]
@@ -12180,10 +12800,123 @@ public struct Vec4
                 }
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: RefFieldTests.IncludeExpectedOutput("42, 0"),
+            var verifier = CompileAndVerify(comp, expectedOutput: RefFieldTests.IncludeExpectedOutput("42, 0"),
                 verify: Verification.Fails.WithILVerifyMessage("""
                 [get_Self]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
                 """)).VerifyDiagnostics();
+
+            // The ref-assignment result is used directly as a receiver, without a defensive copy.
+            verifier.VerifyIL("C.Main", usingLocal ? """
+                {
+                  // Code size      123 (0x7b)
+                  .maxstack  2
+                  .locals init (S V_0, //a
+                                S V_1, //b
+                                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_2)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "S"
+                  .try
+                  {
+                    IL_0008:  ldloca.s   V_1
+                    IL_000a:  initobj    "S"
+                    IL_0010:  ldloca.s   V_0
+                    IL_0012:  call       "ref S S.Self.get"
+                    IL_0017:  call       "ref S S.Self.get"
+                    IL_001c:  pop
+                    IL_001d:  ldloca.s   V_0
+                    IL_001f:  call       "ref S S.Self.get"
+                    IL_0024:  call       "ref S S.Self.get"
+                    IL_0029:  ldc.i4.s   42
+                    IL_002b:  stfld      "int S.Value"
+                    IL_0030:  ldc.i4.2
+                    IL_0031:  ldc.i4.2
+                    IL_0032:  newobj     "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                    IL_0037:  stloc.2
+                    IL_0038:  ldloca.s   V_2
+                    IL_003a:  ldloc.0
+                    IL_003b:  ldfld      "int S.Value"
+                    IL_0040:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                    IL_0045:  ldloca.s   V_2
+                    IL_0047:  ldstr      ", "
+                    IL_004c:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                    IL_0051:  ldloca.s   V_2
+                    IL_0053:  ldloc.1
+                    IL_0054:  ldfld      "int S.Value"
+                    IL_0059:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                    IL_005e:  ldloca.s   V_2
+                    IL_0060:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                    IL_0065:  call       "void System.Console.WriteLine(string)"
+                    IL_006a:  leave.s    IL_007a
+                  }
+                  finally
+                  {
+                    IL_006c:  ldloca.s   V_0
+                    IL_006e:  constrained. "S"
+                    IL_0074:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0079:  endfinally
+                  }
+                  IL_007a:  ret
+                }
+                """ : """
+                {
+                  // Code size      129 (0x81)
+                  .maxstack  3
+                  .locals init (S[] V_0,
+                                int V_1,
+                                S V_2, //a
+                                S V_3, //b
+                                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_4)
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  newarr     "S"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  stloc.1
+                  IL_0009:  br.s       IL_007a
+                  IL_000b:  ldloc.0
+                  IL_000c:  ldloc.1
+                  IL_000d:  ldelem     "S"
+                  IL_0012:  stloc.2
+                  IL_0013:  ldloca.s   V_3
+                  IL_0015:  initobj    "S"
+                  IL_001b:  ldloca.s   V_2
+                  IL_001d:  call       "ref S S.Self.get"
+                  IL_0022:  call       "ref S S.Self.get"
+                  IL_0027:  pop
+                  IL_0028:  ldloca.s   V_2
+                  IL_002a:  call       "ref S S.Self.get"
+                  IL_002f:  call       "ref S S.Self.get"
+                  IL_0034:  ldc.i4.s   42
+                  IL_0036:  stfld      "int S.Value"
+                  IL_003b:  ldloca.s   V_4
+                  IL_003d:  ldc.i4.2
+                  IL_003e:  ldc.i4.2
+                  IL_003f:  call       "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                  IL_0044:  ldloca.s   V_4
+                  IL_0046:  ldloc.2
+                  IL_0047:  ldfld      "int S.Value"
+                  IL_004c:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                  IL_0051:  ldloca.s   V_4
+                  IL_0053:  ldstr      ", "
+                  IL_0058:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                  IL_005d:  ldloca.s   V_4
+                  IL_005f:  ldloc.3
+                  IL_0060:  ldfld      "int S.Value"
+                  IL_0065:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                  IL_006a:  ldloca.s   V_4
+                  IL_006c:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                  IL_0071:  call       "void System.Console.WriteLine(string)"
+                  IL_0076:  ldloc.1
+                  IL_0077:  ldc.i4.1
+                  IL_0078:  add
+                  IL_0079:  stloc.1
+                  IL_007a:  ldloc.1
+                  IL_007b:  ldloc.0
+                  IL_007c:  ldlen
+                  IL_007d:  conv.i4
+                  IL_007e:  blt.s      IL_000b
+                  IL_0080:  ret
+                }
+                """);
         }
 
         [Theory, CombinatorialData]
@@ -12290,12 +13023,970 @@ public struct Vec4
                 42 42
                 42
                 """;
-            CompileAndVerify(comp, expectedOutput: RefFieldTests.IncludeExpectedOutput(expectedOutput),
+            var verifier = CompileAndVerify(comp, expectedOutput: RefFieldTests.IncludeExpectedOutput(expectedOutput),
                 verify: Verification.Fails.WithILVerifyMessage("""
                     [get_Self]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
                     [GetSelf]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
                     [get_Item]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
                     """)).VerifyDiagnostics();
+
+            // Struct containers require defensive field copies; class containers use the original fields.
+            var memberName = access == ".Self" ? "Self.get" : "GetSelf()";
+            verifier.VerifyIL("C.Main", (isValueType, nested, access == "[0]") switch
+            {
+                (true, true, true) => """
+                    {
+                      // Code size      308 (0x134)
+                      .maxstack  4
+                      .locals init (Wrapper[] V_0, //items
+                                    Wrapper V_1, //a
+                                    S& V_2, //c
+                                    S V_3,
+                                    System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_4,
+                                    Wrapper[] V_5,
+                                    int V_6,
+                                    Wrapper V_7, //a
+                                    S& V_8, //c
+                                    S V_9,
+                                    System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_10)
+                      IL_0000:  ldloca.s   V_1
+                      IL_0002:  call       "Wrapper..ctor()"
+                      .try
+                      {
+                        IL_0007:  ldloc.1
+                        IL_0008:  ldfld      "Nested Wrapper.Nested"
+                        IL_000d:  ldfld      "S Nested.Field"
+                        IL_0012:  stloc.3
+                        IL_0013:  ldloca.s   V_3
+                        IL_0015:  ldc.i4.0
+                        IL_0016:  call       "ref S S.this[int].get"
+                        IL_001b:  stloc.2
+                        IL_001c:  ldloc.2
+                        IL_001d:  ldc.i4.s   42
+                        IL_001f:  stfld      "int S.Value"
+                        IL_0024:  ldc.i4.1
+                        IL_0025:  ldc.i4.2
+                        IL_0026:  newobj     "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                        IL_002b:  stloc.s    V_4
+                        IL_002d:  ldloca.s   V_4
+                        IL_002f:  ldloc.2
+                        IL_0030:  ldfld      "int S.Value"
+                        IL_0035:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                        IL_003a:  ldloca.s   V_4
+                        IL_003c:  ldstr      " "
+                        IL_0041:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                        IL_0046:  ldloca.s   V_4
+                        IL_0048:  ldloc.1
+                        IL_0049:  ldfld      "Nested Wrapper.Nested"
+                        IL_004e:  ldfld      "S Nested.Field"
+                        IL_0053:  ldfld      "int S.Value"
+                        IL_0058:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                        IL_005d:  ldloca.s   V_4
+                        IL_005f:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                        IL_0064:  call       "void System.Console.WriteLine(string)"
+                        IL_0069:  leave.s    IL_0079
+                      }
+                      finally
+                      {
+                        IL_006b:  ldloca.s   V_1
+                        IL_006d:  constrained. "Wrapper"
+                        IL_0073:  callvirt   "void System.IDisposable.Dispose()"
+                        IL_0078:  endfinally
+                      }
+                      IL_0079:  ldc.i4.1
+                      IL_007a:  newarr     "Wrapper"
+                      IL_007f:  dup
+                      IL_0080:  ldc.i4.0
+                      IL_0081:  newobj     "Wrapper..ctor()"
+                      IL_0086:  stelem     "Wrapper"
+                      IL_008b:  stloc.0
+                      IL_008c:  ldloc.0
+                      IL_008d:  stloc.s    V_5
+                      IL_008f:  ldc.i4.0
+                      IL_0090:  stloc.s    V_6
+                      IL_0092:  br.s       IL_010d
+                      IL_0094:  ldloc.s    V_5
+                      IL_0096:  ldloc.s    V_6
+                      IL_0098:  ldelem     "Wrapper"
+                      IL_009d:  stloc.s    V_7
+                      IL_009f:  ldloc.s    V_7
+                      IL_00a1:  ldfld      "Nested Wrapper.Nested"
+                      IL_00a6:  ldfld      "S Nested.Field"
+                      IL_00ab:  stloc.s    V_9
+                      IL_00ad:  ldloca.s   V_9
+                      IL_00af:  ldc.i4.0
+                      IL_00b0:  call       "ref S S.this[int].get"
+                      IL_00b5:  stloc.s    V_8
+                      IL_00b7:  ldloc.s    V_8
+                      IL_00b9:  ldc.i4.s   42
+                      IL_00bb:  stfld      "int S.Value"
+                      IL_00c0:  ldloca.s   V_10
+                      IL_00c2:  ldc.i4.1
+                      IL_00c3:  ldc.i4.2
+                      IL_00c4:  call       "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                      IL_00c9:  ldloca.s   V_10
+                      IL_00cb:  ldloc.s    V_8
+                      IL_00cd:  ldfld      "int S.Value"
+                      IL_00d2:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                      IL_00d7:  ldloca.s   V_10
+                      IL_00d9:  ldstr      " "
+                      IL_00de:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                      IL_00e3:  ldloca.s   V_10
+                      IL_00e5:  ldloc.s    V_7
+                      IL_00e7:  ldfld      "Nested Wrapper.Nested"
+                      IL_00ec:  ldfld      "S Nested.Field"
+                      IL_00f1:  ldfld      "int S.Value"
+                      IL_00f6:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                      IL_00fb:  ldloca.s   V_10
+                      IL_00fd:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                      IL_0102:  call       "void System.Console.WriteLine(string)"
+                      IL_0107:  ldloc.s    V_6
+                      IL_0109:  ldc.i4.1
+                      IL_010a:  add
+                      IL_010b:  stloc.s    V_6
+                      IL_010d:  ldloc.s    V_6
+                      IL_010f:  ldloc.s    V_5
+                      IL_0111:  ldlen
+                      IL_0112:  conv.i4
+                      IL_0113:  blt        IL_0094
+                      IL_0118:  ldloc.0
+                      IL_0119:  ldc.i4.0
+                      IL_011a:  ldelema    "Wrapper"
+                      IL_011f:  ldflda     "Nested Wrapper.Nested"
+                      IL_0124:  ldflda     "S Nested.Field"
+                      IL_0129:  ldfld      "int S.Value"
+                      IL_012e:  call       "void System.Console.WriteLine(int)"
+                      IL_0133:  ret
+                    }
+                    """,
+                (true, true, false) => $$"""
+                    {
+                      // Code size      303 (0x12f)
+                      .maxstack  4
+                      .locals init (Wrapper[] V_0, //items
+                                    Wrapper V_1, //a
+                                    S& V_2, //c
+                                    S V_3,
+                                    System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_4,
+                                    Wrapper[] V_5,
+                                    int V_6,
+                                    Wrapper V_7, //a
+                                    S& V_8, //c
+                                    S V_9,
+                                    System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_10)
+                      IL_0000:  ldloca.s   V_1
+                      IL_0002:  call       "Wrapper..ctor()"
+                      .try
+                      {
+                        IL_0007:  ldloc.1
+                        IL_0008:  ldfld      "Nested Wrapper.Nested"
+                        IL_000d:  ldfld      "S Nested.Field"
+                        IL_0012:  stloc.3
+                        IL_0013:  ldloca.s   V_3
+                        IL_0015:  call       "ref S S.{{memberName}}"
+                        IL_001a:  stloc.2
+                        IL_001b:  ldloc.2
+                        IL_001c:  ldc.i4.s   42
+                        IL_001e:  stfld      "int S.Value"
+                        IL_0023:  ldc.i4.1
+                        IL_0024:  ldc.i4.2
+                        IL_0025:  newobj     "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                        IL_002a:  stloc.s    V_4
+                        IL_002c:  ldloca.s   V_4
+                        IL_002e:  ldloc.2
+                        IL_002f:  ldfld      "int S.Value"
+                        IL_0034:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                        IL_0039:  ldloca.s   V_4
+                        IL_003b:  ldstr      " "
+                        IL_0040:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                        IL_0045:  ldloca.s   V_4
+                        IL_0047:  ldloc.1
+                        IL_0048:  ldfld      "Nested Wrapper.Nested"
+                        IL_004d:  ldfld      "S Nested.Field"
+                        IL_0052:  ldfld      "int S.Value"
+                        IL_0057:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                        IL_005c:  ldloca.s   V_4
+                        IL_005e:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                        IL_0063:  call       "void System.Console.WriteLine(string)"
+                        IL_0068:  leave.s    IL_0078
+                      }
+                      finally
+                      {
+                        IL_006a:  ldloca.s   V_1
+                        IL_006c:  constrained. "Wrapper"
+                        IL_0072:  callvirt   "void System.IDisposable.Dispose()"
+                        IL_0077:  endfinally
+                      }
+                      IL_0078:  ldc.i4.1
+                      IL_0079:  newarr     "Wrapper"
+                      IL_007e:  dup
+                      IL_007f:  ldc.i4.0
+                      IL_0080:  newobj     "Wrapper..ctor()"
+                      IL_0085:  stelem     "Wrapper"
+                      IL_008a:  stloc.0
+                      IL_008b:  ldloc.0
+                      IL_008c:  stloc.s    V_5
+                      IL_008e:  ldc.i4.0
+                      IL_008f:  stloc.s    V_6
+                      IL_0091:  br.s       IL_010b
+                      IL_0093:  ldloc.s    V_5
+                      IL_0095:  ldloc.s    V_6
+                      IL_0097:  ldelem     "Wrapper"
+                      IL_009c:  stloc.s    V_7
+                      IL_009e:  ldloc.s    V_7
+                      IL_00a0:  ldfld      "Nested Wrapper.Nested"
+                      IL_00a5:  ldfld      "S Nested.Field"
+                      IL_00aa:  stloc.s    V_9
+                      IL_00ac:  ldloca.s   V_9
+                      IL_00ae:  call       "ref S S.{{memberName}}"
+                      IL_00b3:  stloc.s    V_8
+                      IL_00b5:  ldloc.s    V_8
+                      IL_00b7:  ldc.i4.s   42
+                      IL_00b9:  stfld      "int S.Value"
+                      IL_00be:  ldloca.s   V_10
+                      IL_00c0:  ldc.i4.1
+                      IL_00c1:  ldc.i4.2
+                      IL_00c2:  call       "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                      IL_00c7:  ldloca.s   V_10
+                      IL_00c9:  ldloc.s    V_8
+                      IL_00cb:  ldfld      "int S.Value"
+                      IL_00d0:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                      IL_00d5:  ldloca.s   V_10
+                      IL_00d7:  ldstr      " "
+                      IL_00dc:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                      IL_00e1:  ldloca.s   V_10
+                      IL_00e3:  ldloc.s    V_7
+                      IL_00e5:  ldfld      "Nested Wrapper.Nested"
+                      IL_00ea:  ldfld      "S Nested.Field"
+                      IL_00ef:  ldfld      "int S.Value"
+                      IL_00f4:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                      IL_00f9:  ldloca.s   V_10
+                      IL_00fb:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                      IL_0100:  call       "void System.Console.WriteLine(string)"
+                      IL_0105:  ldloc.s    V_6
+                      IL_0107:  ldc.i4.1
+                      IL_0108:  add
+                      IL_0109:  stloc.s    V_6
+                      IL_010b:  ldloc.s    V_6
+                      IL_010d:  ldloc.s    V_5
+                      IL_010f:  ldlen
+                      IL_0110:  conv.i4
+                      IL_0111:  blt.s      IL_0093
+                      IL_0113:  ldloc.0
+                      IL_0114:  ldc.i4.0
+                      IL_0115:  ldelema    "Wrapper"
+                      IL_011a:  ldflda     "Nested Wrapper.Nested"
+                      IL_011f:  ldflda     "S Nested.Field"
+                      IL_0124:  ldfld      "int S.Value"
+                      IL_0129:  call       "void System.Console.WriteLine(int)"
+                      IL_012e:  ret
+                    }
+                    """,
+                (true, false, true) => """
+                    {
+                      // Code size      280 (0x118)
+                      .maxstack  4
+                      .locals init (Wrapper[] V_0, //items
+                                    Wrapper V_1, //a
+                                    S& V_2, //c
+                                    S V_3,
+                                    System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_4,
+                                    Wrapper[] V_5,
+                                    int V_6,
+                                    Wrapper V_7, //a
+                                    S& V_8, //c
+                                    S V_9,
+                                    System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_10)
+                      IL_0000:  ldloca.s   V_1
+                      IL_0002:  call       "Wrapper..ctor()"
+                      .try
+                      {
+                        IL_0007:  ldloc.1
+                        IL_0008:  ldfld      "S Wrapper.Field"
+                        IL_000d:  stloc.3
+                        IL_000e:  ldloca.s   V_3
+                        IL_0010:  ldc.i4.0
+                        IL_0011:  call       "ref S S.this[int].get"
+                        IL_0016:  stloc.2
+                        IL_0017:  ldloc.2
+                        IL_0018:  ldc.i4.s   42
+                        IL_001a:  stfld      "int S.Value"
+                        IL_001f:  ldc.i4.1
+                        IL_0020:  ldc.i4.2
+                        IL_0021:  newobj     "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                        IL_0026:  stloc.s    V_4
+                        IL_0028:  ldloca.s   V_4
+                        IL_002a:  ldloc.2
+                        IL_002b:  ldfld      "int S.Value"
+                        IL_0030:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                        IL_0035:  ldloca.s   V_4
+                        IL_0037:  ldstr      " "
+                        IL_003c:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                        IL_0041:  ldloca.s   V_4
+                        IL_0043:  ldloc.1
+                        IL_0044:  ldfld      "S Wrapper.Field"
+                        IL_0049:  ldfld      "int S.Value"
+                        IL_004e:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                        IL_0053:  ldloca.s   V_4
+                        IL_0055:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                        IL_005a:  call       "void System.Console.WriteLine(string)"
+                        IL_005f:  leave.s    IL_006f
+                      }
+                      finally
+                      {
+                        IL_0061:  ldloca.s   V_1
+                        IL_0063:  constrained. "Wrapper"
+                        IL_0069:  callvirt   "void System.IDisposable.Dispose()"
+                        IL_006e:  endfinally
+                      }
+                      IL_006f:  ldc.i4.1
+                      IL_0070:  newarr     "Wrapper"
+                      IL_0075:  dup
+                      IL_0076:  ldc.i4.0
+                      IL_0077:  newobj     "Wrapper..ctor()"
+                      IL_007c:  stelem     "Wrapper"
+                      IL_0081:  stloc.0
+                      IL_0082:  ldloc.0
+                      IL_0083:  stloc.s    V_5
+                      IL_0085:  ldc.i4.0
+                      IL_0086:  stloc.s    V_6
+                      IL_0088:  br.s       IL_00f9
+                      IL_008a:  ldloc.s    V_5
+                      IL_008c:  ldloc.s    V_6
+                      IL_008e:  ldelem     "Wrapper"
+                      IL_0093:  stloc.s    V_7
+                      IL_0095:  ldloc.s    V_7
+                      IL_0097:  ldfld      "S Wrapper.Field"
+                      IL_009c:  stloc.s    V_9
+                      IL_009e:  ldloca.s   V_9
+                      IL_00a0:  ldc.i4.0
+                      IL_00a1:  call       "ref S S.this[int].get"
+                      IL_00a6:  stloc.s    V_8
+                      IL_00a8:  ldloc.s    V_8
+                      IL_00aa:  ldc.i4.s   42
+                      IL_00ac:  stfld      "int S.Value"
+                      IL_00b1:  ldloca.s   V_10
+                      IL_00b3:  ldc.i4.1
+                      IL_00b4:  ldc.i4.2
+                      IL_00b5:  call       "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                      IL_00ba:  ldloca.s   V_10
+                      IL_00bc:  ldloc.s    V_8
+                      IL_00be:  ldfld      "int S.Value"
+                      IL_00c3:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                      IL_00c8:  ldloca.s   V_10
+                      IL_00ca:  ldstr      " "
+                      IL_00cf:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                      IL_00d4:  ldloca.s   V_10
+                      IL_00d6:  ldloc.s    V_7
+                      IL_00d8:  ldfld      "S Wrapper.Field"
+                      IL_00dd:  ldfld      "int S.Value"
+                      IL_00e2:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                      IL_00e7:  ldloca.s   V_10
+                      IL_00e9:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                      IL_00ee:  call       "void System.Console.WriteLine(string)"
+                      IL_00f3:  ldloc.s    V_6
+                      IL_00f5:  ldc.i4.1
+                      IL_00f6:  add
+                      IL_00f7:  stloc.s    V_6
+                      IL_00f9:  ldloc.s    V_6
+                      IL_00fb:  ldloc.s    V_5
+                      IL_00fd:  ldlen
+                      IL_00fe:  conv.i4
+                      IL_00ff:  blt.s      IL_008a
+                      IL_0101:  ldloc.0
+                      IL_0102:  ldc.i4.0
+                      IL_0103:  ldelema    "Wrapper"
+                      IL_0108:  ldflda     "S Wrapper.Field"
+                      IL_010d:  ldfld      "int S.Value"
+                      IL_0112:  call       "void System.Console.WriteLine(int)"
+                      IL_0117:  ret
+                    }
+                    """,
+                (true, false, false) => $$"""
+                    {
+                      // Code size      278 (0x116)
+                      .maxstack  4
+                      .locals init (Wrapper[] V_0, //items
+                                    Wrapper V_1, //a
+                                    S& V_2, //c
+                                    S V_3,
+                                    System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_4,
+                                    Wrapper[] V_5,
+                                    int V_6,
+                                    Wrapper V_7, //a
+                                    S& V_8, //c
+                                    S V_9,
+                                    System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_10)
+                      IL_0000:  ldloca.s   V_1
+                      IL_0002:  call       "Wrapper..ctor()"
+                      .try
+                      {
+                        IL_0007:  ldloc.1
+                        IL_0008:  ldfld      "S Wrapper.Field"
+                        IL_000d:  stloc.3
+                        IL_000e:  ldloca.s   V_3
+                        IL_0010:  call       "ref S S.{{memberName}}"
+                        IL_0015:  stloc.2
+                        IL_0016:  ldloc.2
+                        IL_0017:  ldc.i4.s   42
+                        IL_0019:  stfld      "int S.Value"
+                        IL_001e:  ldc.i4.1
+                        IL_001f:  ldc.i4.2
+                        IL_0020:  newobj     "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                        IL_0025:  stloc.s    V_4
+                        IL_0027:  ldloca.s   V_4
+                        IL_0029:  ldloc.2
+                        IL_002a:  ldfld      "int S.Value"
+                        IL_002f:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                        IL_0034:  ldloca.s   V_4
+                        IL_0036:  ldstr      " "
+                        IL_003b:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                        IL_0040:  ldloca.s   V_4
+                        IL_0042:  ldloc.1
+                        IL_0043:  ldfld      "S Wrapper.Field"
+                        IL_0048:  ldfld      "int S.Value"
+                        IL_004d:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                        IL_0052:  ldloca.s   V_4
+                        IL_0054:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                        IL_0059:  call       "void System.Console.WriteLine(string)"
+                        IL_005e:  leave.s    IL_006e
+                      }
+                      finally
+                      {
+                        IL_0060:  ldloca.s   V_1
+                        IL_0062:  constrained. "Wrapper"
+                        IL_0068:  callvirt   "void System.IDisposable.Dispose()"
+                        IL_006d:  endfinally
+                      }
+                      IL_006e:  ldc.i4.1
+                      IL_006f:  newarr     "Wrapper"
+                      IL_0074:  dup
+                      IL_0075:  ldc.i4.0
+                      IL_0076:  newobj     "Wrapper..ctor()"
+                      IL_007b:  stelem     "Wrapper"
+                      IL_0080:  stloc.0
+                      IL_0081:  ldloc.0
+                      IL_0082:  stloc.s    V_5
+                      IL_0084:  ldc.i4.0
+                      IL_0085:  stloc.s    V_6
+                      IL_0087:  br.s       IL_00f7
+                      IL_0089:  ldloc.s    V_5
+                      IL_008b:  ldloc.s    V_6
+                      IL_008d:  ldelem     "Wrapper"
+                      IL_0092:  stloc.s    V_7
+                      IL_0094:  ldloc.s    V_7
+                      IL_0096:  ldfld      "S Wrapper.Field"
+                      IL_009b:  stloc.s    V_9
+                      IL_009d:  ldloca.s   V_9
+                      IL_009f:  call       "ref S S.{{memberName}}"
+                      IL_00a4:  stloc.s    V_8
+                      IL_00a6:  ldloc.s    V_8
+                      IL_00a8:  ldc.i4.s   42
+                      IL_00aa:  stfld      "int S.Value"
+                      IL_00af:  ldloca.s   V_10
+                      IL_00b1:  ldc.i4.1
+                      IL_00b2:  ldc.i4.2
+                      IL_00b3:  call       "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                      IL_00b8:  ldloca.s   V_10
+                      IL_00ba:  ldloc.s    V_8
+                      IL_00bc:  ldfld      "int S.Value"
+                      IL_00c1:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                      IL_00c6:  ldloca.s   V_10
+                      IL_00c8:  ldstr      " "
+                      IL_00cd:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                      IL_00d2:  ldloca.s   V_10
+                      IL_00d4:  ldloc.s    V_7
+                      IL_00d6:  ldfld      "S Wrapper.Field"
+                      IL_00db:  ldfld      "int S.Value"
+                      IL_00e0:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                      IL_00e5:  ldloca.s   V_10
+                      IL_00e7:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                      IL_00ec:  call       "void System.Console.WriteLine(string)"
+                      IL_00f1:  ldloc.s    V_6
+                      IL_00f3:  ldc.i4.1
+                      IL_00f4:  add
+                      IL_00f5:  stloc.s    V_6
+                      IL_00f7:  ldloc.s    V_6
+                      IL_00f9:  ldloc.s    V_5
+                      IL_00fb:  ldlen
+                      IL_00fc:  conv.i4
+                      IL_00fd:  blt.s      IL_0089
+                      IL_00ff:  ldloc.0
+                      IL_0100:  ldc.i4.0
+                      IL_0101:  ldelema    "Wrapper"
+                      IL_0106:  ldflda     "S Wrapper.Field"
+                      IL_010b:  ldfld      "int S.Value"
+                      IL_0110:  call       "void System.Console.WriteLine(int)"
+                      IL_0115:  ret
+                    }
+                    """,
+                (false, true, true) => """
+                    {
+                      // Code size      280 (0x118)
+                      .maxstack  4
+                      .locals init (Wrapper[] V_0, //items
+                                    Wrapper V_1, //a
+                                    S& V_2, //c
+                                    System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_3,
+                                    Wrapper[] V_4,
+                                    int V_5,
+                                    Wrapper V_6, //a
+                                    S& V_7, //c
+                                    System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_8)
+                      IL_0000:  newobj     "Wrapper..ctor()"
+                      IL_0005:  stloc.1
+                      .try
+                      {
+                        IL_0006:  ldloc.1
+                        IL_0007:  ldflda     "Nested Wrapper.Nested"
+                        IL_000c:  ldflda     "S Nested.Field"
+                        IL_0011:  ldc.i4.0
+                        IL_0012:  call       "ref S S.this[int].get"
+                        IL_0017:  stloc.2
+                        IL_0018:  ldloc.2
+                        IL_0019:  ldc.i4.s   42
+                        IL_001b:  stfld      "int S.Value"
+                        IL_0020:  ldc.i4.1
+                        IL_0021:  ldc.i4.2
+                        IL_0022:  newobj     "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                        IL_0027:  stloc.3
+                        IL_0028:  ldloca.s   V_3
+                        IL_002a:  ldloc.2
+                        IL_002b:  ldfld      "int S.Value"
+                        IL_0030:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                        IL_0035:  ldloca.s   V_3
+                        IL_0037:  ldstr      " "
+                        IL_003c:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                        IL_0041:  ldloca.s   V_3
+                        IL_0043:  ldloc.1
+                        IL_0044:  ldflda     "Nested Wrapper.Nested"
+                        IL_0049:  ldflda     "S Nested.Field"
+                        IL_004e:  ldfld      "int S.Value"
+                        IL_0053:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                        IL_0058:  ldloca.s   V_3
+                        IL_005a:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                        IL_005f:  call       "void System.Console.WriteLine(string)"
+                        IL_0064:  leave.s    IL_0070
+                      }
+                      finally
+                      {
+                        IL_0066:  ldloc.1
+                        IL_0067:  brfalse.s  IL_006f
+                        IL_0069:  ldloc.1
+                        IL_006a:  callvirt   "void System.IDisposable.Dispose()"
+                        IL_006f:  endfinally
+                      }
+                      IL_0070:  ldc.i4.1
+                      IL_0071:  newarr     "Wrapper"
+                      IL_0076:  dup
+                      IL_0077:  ldc.i4.0
+                      IL_0078:  newobj     "Wrapper..ctor()"
+                      IL_007d:  stelem.ref
+                      IL_007e:  stloc.0
+                      IL_007f:  ldloc.0
+                      IL_0080:  stloc.s    V_4
+                      IL_0082:  ldc.i4.0
+                      IL_0083:  stloc.s    V_5
+                      IL_0085:  br.s       IL_00f8
+                      IL_0087:  ldloc.s    V_4
+                      IL_0089:  ldloc.s    V_5
+                      IL_008b:  ldelem.ref
+                      IL_008c:  stloc.s    V_6
+                      IL_008e:  ldloc.s    V_6
+                      IL_0090:  ldflda     "Nested Wrapper.Nested"
+                      IL_0095:  ldflda     "S Nested.Field"
+                      IL_009a:  ldc.i4.0
+                      IL_009b:  call       "ref S S.this[int].get"
+                      IL_00a0:  stloc.s    V_7
+                      IL_00a2:  ldloc.s    V_7
+                      IL_00a4:  ldc.i4.s   42
+                      IL_00a6:  stfld      "int S.Value"
+                      IL_00ab:  ldloca.s   V_8
+                      IL_00ad:  ldc.i4.1
+                      IL_00ae:  ldc.i4.2
+                      IL_00af:  call       "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                      IL_00b4:  ldloca.s   V_8
+                      IL_00b6:  ldloc.s    V_7
+                      IL_00b8:  ldfld      "int S.Value"
+                      IL_00bd:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                      IL_00c2:  ldloca.s   V_8
+                      IL_00c4:  ldstr      " "
+                      IL_00c9:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                      IL_00ce:  ldloca.s   V_8
+                      IL_00d0:  ldloc.s    V_6
+                      IL_00d2:  ldflda     "Nested Wrapper.Nested"
+                      IL_00d7:  ldflda     "S Nested.Field"
+                      IL_00dc:  ldfld      "int S.Value"
+                      IL_00e1:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                      IL_00e6:  ldloca.s   V_8
+                      IL_00e8:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                      IL_00ed:  call       "void System.Console.WriteLine(string)"
+                      IL_00f2:  ldloc.s    V_5
+                      IL_00f4:  ldc.i4.1
+                      IL_00f5:  add
+                      IL_00f6:  stloc.s    V_5
+                      IL_00f8:  ldloc.s    V_5
+                      IL_00fa:  ldloc.s    V_4
+                      IL_00fc:  ldlen
+                      IL_00fd:  conv.i4
+                      IL_00fe:  blt.s      IL_0087
+                      IL_0100:  ldloc.0
+                      IL_0101:  ldc.i4.0
+                      IL_0102:  ldelem.ref
+                      IL_0103:  ldflda     "Nested Wrapper.Nested"
+                      IL_0108:  ldflda     "S Nested.Field"
+                      IL_010d:  ldfld      "int S.Value"
+                      IL_0112:  call       "void System.Console.WriteLine(int)"
+                      IL_0117:  ret
+                    }
+                    """,
+                (false, true, false) => $$"""
+                    {
+                      // Code size      278 (0x116)
+                      .maxstack  4
+                      .locals init (Wrapper[] V_0, //items
+                                    Wrapper V_1, //a
+                                    S& V_2, //c
+                                    System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_3,
+                                    Wrapper[] V_4,
+                                    int V_5,
+                                    Wrapper V_6, //a
+                                    S& V_7, //c
+                                    System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_8)
+                      IL_0000:  newobj     "Wrapper..ctor()"
+                      IL_0005:  stloc.1
+                      .try
+                      {
+                        IL_0006:  ldloc.1
+                        IL_0007:  ldflda     "Nested Wrapper.Nested"
+                        IL_000c:  ldflda     "S Nested.Field"
+                        IL_0011:  call       "ref S S.{{memberName}}"
+                        IL_0016:  stloc.2
+                        IL_0017:  ldloc.2
+                        IL_0018:  ldc.i4.s   42
+                        IL_001a:  stfld      "int S.Value"
+                        IL_001f:  ldc.i4.1
+                        IL_0020:  ldc.i4.2
+                        IL_0021:  newobj     "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                        IL_0026:  stloc.3
+                        IL_0027:  ldloca.s   V_3
+                        IL_0029:  ldloc.2
+                        IL_002a:  ldfld      "int S.Value"
+                        IL_002f:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                        IL_0034:  ldloca.s   V_3
+                        IL_0036:  ldstr      " "
+                        IL_003b:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                        IL_0040:  ldloca.s   V_3
+                        IL_0042:  ldloc.1
+                        IL_0043:  ldflda     "Nested Wrapper.Nested"
+                        IL_0048:  ldflda     "S Nested.Field"
+                        IL_004d:  ldfld      "int S.Value"
+                        IL_0052:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                        IL_0057:  ldloca.s   V_3
+                        IL_0059:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                        IL_005e:  call       "void System.Console.WriteLine(string)"
+                        IL_0063:  leave.s    IL_006f
+                      }
+                      finally
+                      {
+                        IL_0065:  ldloc.1
+                        IL_0066:  brfalse.s  IL_006e
+                        IL_0068:  ldloc.1
+                        IL_0069:  callvirt   "void System.IDisposable.Dispose()"
+                        IL_006e:  endfinally
+                      }
+                      IL_006f:  ldc.i4.1
+                      IL_0070:  newarr     "Wrapper"
+                      IL_0075:  dup
+                      IL_0076:  ldc.i4.0
+                      IL_0077:  newobj     "Wrapper..ctor()"
+                      IL_007c:  stelem.ref
+                      IL_007d:  stloc.0
+                      IL_007e:  ldloc.0
+                      IL_007f:  stloc.s    V_4
+                      IL_0081:  ldc.i4.0
+                      IL_0082:  stloc.s    V_5
+                      IL_0084:  br.s       IL_00f6
+                      IL_0086:  ldloc.s    V_4
+                      IL_0088:  ldloc.s    V_5
+                      IL_008a:  ldelem.ref
+                      IL_008b:  stloc.s    V_6
+                      IL_008d:  ldloc.s    V_6
+                      IL_008f:  ldflda     "Nested Wrapper.Nested"
+                      IL_0094:  ldflda     "S Nested.Field"
+                      IL_0099:  call       "ref S S.{{memberName}}"
+                      IL_009e:  stloc.s    V_7
+                      IL_00a0:  ldloc.s    V_7
+                      IL_00a2:  ldc.i4.s   42
+                      IL_00a4:  stfld      "int S.Value"
+                      IL_00a9:  ldloca.s   V_8
+                      IL_00ab:  ldc.i4.1
+                      IL_00ac:  ldc.i4.2
+                      IL_00ad:  call       "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                      IL_00b2:  ldloca.s   V_8
+                      IL_00b4:  ldloc.s    V_7
+                      IL_00b6:  ldfld      "int S.Value"
+                      IL_00bb:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                      IL_00c0:  ldloca.s   V_8
+                      IL_00c2:  ldstr      " "
+                      IL_00c7:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                      IL_00cc:  ldloca.s   V_8
+                      IL_00ce:  ldloc.s    V_6
+                      IL_00d0:  ldflda     "Nested Wrapper.Nested"
+                      IL_00d5:  ldflda     "S Nested.Field"
+                      IL_00da:  ldfld      "int S.Value"
+                      IL_00df:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                      IL_00e4:  ldloca.s   V_8
+                      IL_00e6:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                      IL_00eb:  call       "void System.Console.WriteLine(string)"
+                      IL_00f0:  ldloc.s    V_5
+                      IL_00f2:  ldc.i4.1
+                      IL_00f3:  add
+                      IL_00f4:  stloc.s    V_5
+                      IL_00f6:  ldloc.s    V_5
+                      IL_00f8:  ldloc.s    V_4
+                      IL_00fa:  ldlen
+                      IL_00fb:  conv.i4
+                      IL_00fc:  blt.s      IL_0086
+                      IL_00fe:  ldloc.0
+                      IL_00ff:  ldc.i4.0
+                      IL_0100:  ldelem.ref
+                      IL_0101:  ldflda     "Nested Wrapper.Nested"
+                      IL_0106:  ldflda     "S Nested.Field"
+                      IL_010b:  ldfld      "int S.Value"
+                      IL_0110:  call       "void System.Console.WriteLine(int)"
+                      IL_0115:  ret
+                    }
+                    """,
+                (false, false, true) => """
+                    {
+                      // Code size      255 (0xff)
+                      .maxstack  4
+                      .locals init (Wrapper[] V_0, //items
+                                    Wrapper V_1, //a
+                                    S& V_2, //c
+                                    System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_3,
+                                    Wrapper[] V_4,
+                                    int V_5,
+                                    Wrapper V_6, //a
+                                    S& V_7, //c
+                                    System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_8)
+                      IL_0000:  newobj     "Wrapper..ctor()"
+                      IL_0005:  stloc.1
+                      .try
+                      {
+                        IL_0006:  ldloc.1
+                        IL_0007:  ldflda     "S Wrapper.Field"
+                        IL_000c:  ldc.i4.0
+                        IL_000d:  call       "ref S S.this[int].get"
+                        IL_0012:  stloc.2
+                        IL_0013:  ldloc.2
+                        IL_0014:  ldc.i4.s   42
+                        IL_0016:  stfld      "int S.Value"
+                        IL_001b:  ldc.i4.1
+                        IL_001c:  ldc.i4.2
+                        IL_001d:  newobj     "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                        IL_0022:  stloc.3
+                        IL_0023:  ldloca.s   V_3
+                        IL_0025:  ldloc.2
+                        IL_0026:  ldfld      "int S.Value"
+                        IL_002b:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                        IL_0030:  ldloca.s   V_3
+                        IL_0032:  ldstr      " "
+                        IL_0037:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                        IL_003c:  ldloca.s   V_3
+                        IL_003e:  ldloc.1
+                        IL_003f:  ldflda     "S Wrapper.Field"
+                        IL_0044:  ldfld      "int S.Value"
+                        IL_0049:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                        IL_004e:  ldloca.s   V_3
+                        IL_0050:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                        IL_0055:  call       "void System.Console.WriteLine(string)"
+                        IL_005a:  leave.s    IL_0066
+                      }
+                      finally
+                      {
+                        IL_005c:  ldloc.1
+                        IL_005d:  brfalse.s  IL_0065
+                        IL_005f:  ldloc.1
+                        IL_0060:  callvirt   "void System.IDisposable.Dispose()"
+                        IL_0065:  endfinally
+                      }
+                      IL_0066:  ldc.i4.1
+                      IL_0067:  newarr     "Wrapper"
+                      IL_006c:  dup
+                      IL_006d:  ldc.i4.0
+                      IL_006e:  newobj     "Wrapper..ctor()"
+                      IL_0073:  stelem.ref
+                      IL_0074:  stloc.0
+                      IL_0075:  ldloc.0
+                      IL_0076:  stloc.s    V_4
+                      IL_0078:  ldc.i4.0
+                      IL_0079:  stloc.s    V_5
+                      IL_007b:  br.s       IL_00e4
+                      IL_007d:  ldloc.s    V_4
+                      IL_007f:  ldloc.s    V_5
+                      IL_0081:  ldelem.ref
+                      IL_0082:  stloc.s    V_6
+                      IL_0084:  ldloc.s    V_6
+                      IL_0086:  ldflda     "S Wrapper.Field"
+                      IL_008b:  ldc.i4.0
+                      IL_008c:  call       "ref S S.this[int].get"
+                      IL_0091:  stloc.s    V_7
+                      IL_0093:  ldloc.s    V_7
+                      IL_0095:  ldc.i4.s   42
+                      IL_0097:  stfld      "int S.Value"
+                      IL_009c:  ldloca.s   V_8
+                      IL_009e:  ldc.i4.1
+                      IL_009f:  ldc.i4.2
+                      IL_00a0:  call       "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                      IL_00a5:  ldloca.s   V_8
+                      IL_00a7:  ldloc.s    V_7
+                      IL_00a9:  ldfld      "int S.Value"
+                      IL_00ae:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                      IL_00b3:  ldloca.s   V_8
+                      IL_00b5:  ldstr      " "
+                      IL_00ba:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                      IL_00bf:  ldloca.s   V_8
+                      IL_00c1:  ldloc.s    V_6
+                      IL_00c3:  ldflda     "S Wrapper.Field"
+                      IL_00c8:  ldfld      "int S.Value"
+                      IL_00cd:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                      IL_00d2:  ldloca.s   V_8
+                      IL_00d4:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                      IL_00d9:  call       "void System.Console.WriteLine(string)"
+                      IL_00de:  ldloc.s    V_5
+                      IL_00e0:  ldc.i4.1
+                      IL_00e1:  add
+                      IL_00e2:  stloc.s    V_5
+                      IL_00e4:  ldloc.s    V_5
+                      IL_00e6:  ldloc.s    V_4
+                      IL_00e8:  ldlen
+                      IL_00e9:  conv.i4
+                      IL_00ea:  blt.s      IL_007d
+                      IL_00ec:  ldloc.0
+                      IL_00ed:  ldc.i4.0
+                      IL_00ee:  ldelem.ref
+                      IL_00ef:  ldflda     "S Wrapper.Field"
+                      IL_00f4:  ldfld      "int S.Value"
+                      IL_00f9:  call       "void System.Console.WriteLine(int)"
+                      IL_00fe:  ret
+                    }
+                    """,
+                (false, false, false) => $$"""
+                    {
+                      // Code size      253 (0xfd)
+                      .maxstack  4
+                      .locals init (Wrapper[] V_0, //items
+                                    Wrapper V_1, //a
+                                    S& V_2, //c
+                                    System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_3,
+                                    Wrapper[] V_4,
+                                    int V_5,
+                                    Wrapper V_6, //a
+                                    S& V_7, //c
+                                    System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_8)
+                      IL_0000:  newobj     "Wrapper..ctor()"
+                      IL_0005:  stloc.1
+                      .try
+                      {
+                        IL_0006:  ldloc.1
+                        IL_0007:  ldflda     "S Wrapper.Field"
+                        IL_000c:  call       "ref S S.{{memberName}}"
+                        IL_0011:  stloc.2
+                        IL_0012:  ldloc.2
+                        IL_0013:  ldc.i4.s   42
+                        IL_0015:  stfld      "int S.Value"
+                        IL_001a:  ldc.i4.1
+                        IL_001b:  ldc.i4.2
+                        IL_001c:  newobj     "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                        IL_0021:  stloc.3
+                        IL_0022:  ldloca.s   V_3
+                        IL_0024:  ldloc.2
+                        IL_0025:  ldfld      "int S.Value"
+                        IL_002a:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                        IL_002f:  ldloca.s   V_3
+                        IL_0031:  ldstr      " "
+                        IL_0036:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                        IL_003b:  ldloca.s   V_3
+                        IL_003d:  ldloc.1
+                        IL_003e:  ldflda     "S Wrapper.Field"
+                        IL_0043:  ldfld      "int S.Value"
+                        IL_0048:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                        IL_004d:  ldloca.s   V_3
+                        IL_004f:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                        IL_0054:  call       "void System.Console.WriteLine(string)"
+                        IL_0059:  leave.s    IL_0065
+                      }
+                      finally
+                      {
+                        IL_005b:  ldloc.1
+                        IL_005c:  brfalse.s  IL_0064
+                        IL_005e:  ldloc.1
+                        IL_005f:  callvirt   "void System.IDisposable.Dispose()"
+                        IL_0064:  endfinally
+                      }
+                      IL_0065:  ldc.i4.1
+                      IL_0066:  newarr     "Wrapper"
+                      IL_006b:  dup
+                      IL_006c:  ldc.i4.0
+                      IL_006d:  newobj     "Wrapper..ctor()"
+                      IL_0072:  stelem.ref
+                      IL_0073:  stloc.0
+                      IL_0074:  ldloc.0
+                      IL_0075:  stloc.s    V_4
+                      IL_0077:  ldc.i4.0
+                      IL_0078:  stloc.s    V_5
+                      IL_007a:  br.s       IL_00e2
+                      IL_007c:  ldloc.s    V_4
+                      IL_007e:  ldloc.s    V_5
+                      IL_0080:  ldelem.ref
+                      IL_0081:  stloc.s    V_6
+                      IL_0083:  ldloc.s    V_6
+                      IL_0085:  ldflda     "S Wrapper.Field"
+                      IL_008a:  call       "ref S S.{{memberName}}"
+                      IL_008f:  stloc.s    V_7
+                      IL_0091:  ldloc.s    V_7
+                      IL_0093:  ldc.i4.s   42
+                      IL_0095:  stfld      "int S.Value"
+                      IL_009a:  ldloca.s   V_8
+                      IL_009c:  ldc.i4.1
+                      IL_009d:  ldc.i4.2
+                      IL_009e:  call       "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                      IL_00a3:  ldloca.s   V_8
+                      IL_00a5:  ldloc.s    V_7
+                      IL_00a7:  ldfld      "int S.Value"
+                      IL_00ac:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                      IL_00b1:  ldloca.s   V_8
+                      IL_00b3:  ldstr      " "
+                      IL_00b8:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                      IL_00bd:  ldloca.s   V_8
+                      IL_00bf:  ldloc.s    V_6
+                      IL_00c1:  ldflda     "S Wrapper.Field"
+                      IL_00c6:  ldfld      "int S.Value"
+                      IL_00cb:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                      IL_00d0:  ldloca.s   V_8
+                      IL_00d2:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                      IL_00d7:  call       "void System.Console.WriteLine(string)"
+                      IL_00dc:  ldloc.s    V_5
+                      IL_00de:  ldc.i4.1
+                      IL_00df:  add
+                      IL_00e0:  stloc.s    V_5
+                      IL_00e2:  ldloc.s    V_5
+                      IL_00e4:  ldloc.s    V_4
+                      IL_00e6:  ldlen
+                      IL_00e7:  conv.i4
+                      IL_00e8:  blt.s      IL_007c
+                      IL_00ea:  ldloc.0
+                      IL_00eb:  ldc.i4.0
+                      IL_00ec:  ldelem.ref
+                      IL_00ed:  ldflda     "S Wrapper.Field"
+                      IL_00f2:  ldfld      "int S.Value"
+                      IL_00f7:  call       "void System.Console.WriteLine(int)"
+                      IL_00fc:  ret
+                    }
+                    """,
+            });
         }
 
         [Theory, CombinatorialData]
@@ -12332,7 +14023,80 @@ public struct Vec4
                     }
                 }
                 """;
-            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails.WithILVerifyMessage("""
+                [get_Self]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                [GetSelf]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                [get_Item]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                """)).VerifyDiagnostics();
+
+            // Loading the ref field supplies the original receiver's address, without a defensive copy.
+            var memberName = access == ".Self" ? "Self.get" : "GetSelf()";
+            verifier.VerifyIL("C.M", access == "[0]" ? """
+                {
+                  // Code size       55 (0x37)
+                  .maxstack  2
+                  .locals init (S V_0, //s
+                                Wrapper V_1) //a
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "S"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  newobj     "Wrapper..ctor(ref S)"
+                  IL_000f:  stloc.1
+                  .try
+                  {
+                    IL_0010:  ldloca.s   V_1
+                    IL_0012:  ldfld      "ref S Wrapper.Field"
+                    IL_0017:  ldc.i4.0
+                    IL_0018:  call       "ref S S.this[int].get"
+                    IL_001d:  pop
+                    IL_001e:  ldloca.s   V_1
+                    IL_0020:  ldfld      "ref S Wrapper.Field"
+                    IL_0025:  ldc.i4.0
+                    IL_0026:  call       "ref S S.this[int].get"
+                    IL_002b:  pop
+                    IL_002c:  leave.s    IL_0036
+                  }
+                  finally
+                  {
+                    IL_002e:  ldloca.s   V_1
+                    IL_0030:  call       "void Wrapper.Dispose()"
+                    IL_0035:  endfinally
+                  }
+                  IL_0036:  ret
+                }
+                """ : $$"""
+                {
+                  // Code size       53 (0x35)
+                  .maxstack  1
+                  .locals init (S V_0, //s
+                                Wrapper V_1) //a
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "S"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  newobj     "Wrapper..ctor(ref S)"
+                  IL_000f:  stloc.1
+                  .try
+                  {
+                    IL_0010:  ldloca.s   V_1
+                    IL_0012:  ldfld      "ref S Wrapper.Field"
+                    IL_0017:  call       "ref S S.{{memberName}}"
+                    IL_001c:  pop
+                    IL_001d:  ldloca.s   V_1
+                    IL_001f:  ldfld      "ref S Wrapper.Field"
+                    IL_0024:  call       "ref S S.{{memberName}}"
+                    IL_0029:  pop
+                    IL_002a:  leave.s    IL_0034
+                  }
+                  finally
+                  {
+                    IL_002c:  ldloca.s   V_1
+                    IL_002e:  call       "void Wrapper.Dispose()"
+                    IL_0033:  endfinally
+                  }
+                  IL_0034:  ret
+                }
+                """);
         }
 
         [Fact]
