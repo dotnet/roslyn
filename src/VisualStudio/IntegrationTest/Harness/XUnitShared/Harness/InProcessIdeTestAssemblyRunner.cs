@@ -32,7 +32,7 @@ namespace Xunit.Harness
         private static async ValueTask<RunSummary> RunTestCollectionAsync(string testAssemblyPath, HashSet<string> testCaseUniqueIds, DeserializingMessageSink executionMessageSink, ITestFrameworkDiscoveryOptions discoveryOptions, ITestFrameworkExecutionOptions executionOptions)
         {
             var assembly = Assembly.LoadFrom(testAssemblyPath);
-            var testAssembly = new XunitTestAssembly(assembly);
+            var testAssembly = new XunitTestAssembly(assembly, configFilePath: null);
             var discoverer = new XunitTestFrameworkDiscoverer(testAssembly);
 
             var discoveredTestCases = new List<IXunitTestCase>();

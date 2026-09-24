@@ -24,10 +24,10 @@ namespace Xunit.Harness
         protected override ITestFrameworkExecutor CreateExecutor(Assembly assembly)
         {
             var discoveryOptions = _discoveryOptions ?? TestFrameworkOptions.ForDiscovery(new TestAssemblyConfiguration());
-            return new IdeTestFrameworkExecutor(new XunitTestAssembly(assembly), discoveryOptions);
+            return new IdeTestFrameworkExecutor(new XunitTestAssembly(assembly, configFilePath: null), discoveryOptions);
         }
 
-        private sealed class IdeTestFrameworkDiscoverer(Assembly assembly, IdeTestFramework testFramework) : XunitTestFrameworkDiscoverer(new XunitTestAssembly(assembly))
+        private sealed class IdeTestFrameworkDiscoverer(Assembly assembly, IdeTestFramework testFramework) : XunitTestFrameworkDiscoverer(new XunitTestAssembly(assembly, configFilePath: null))
         {
             public override ValueTask Find(Func<ITestCase, ValueTask<bool>> callback, ITestFrameworkDiscoveryOptions discoveryOptions, Type[]? types = null, CancellationToken? cancellationToken = null)
             {
