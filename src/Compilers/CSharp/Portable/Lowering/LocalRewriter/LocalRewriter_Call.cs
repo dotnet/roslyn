@@ -319,7 +319,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // CodeGenerator.EmitArguments requires that we have a fully-filled-out argumentRefKindsOpt for any ref/in/out arguments.
                 if (argumentRefKindsOpt.IsDefault && thisRefKind != RefKind.None)
                 {
-                    argumentRefKindsOpt = SyntheticBoundNodeFactory.ArgumentRefKindsFromParameterRefKinds(method, useStrictArgumentRefKinds: false);
+                    argumentRefKindsOpt = method.Parameters.SelectAsArray(
+                        static param => SyntheticBoundNodeFactory.ArgumentRefKindFromParameterRefKind(param.RefKind, useStrictArgumentRefKinds: false));
                 }
 
                 if (!argumentRefKindsOpt.IsDefault)
