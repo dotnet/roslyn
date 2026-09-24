@@ -32,7 +32,43 @@
     <LangVersion Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">$(_MaxSupportedLangVersion)</LangVersion>
   </PropertyGroup>
 
-  <Target Name="CoreCompile"
+  <Target Name="CoreCompile"          
+          DependsOnTargets="$(CoreCompileDependsOn);_BeforeVBCSCoreCompile;"
+          Returns="@(CscCommandLineArgs)">
+    <CallTarget Targets="_CSharpCoreCompileAndInvokeTriggeredTargets">
+      <Output TaskParameter="TargetOutputs"
+              ItemName="CscCommandLineArgs" />
+    </CallTarget>
+  </Target>
+
+  <Target Name="_CSharpCoreCompileAndInvokeTriggeredTargets"
+          DependsOnTargets="_CSharpCoreCompile;_InvokeTargetsTriggeredAfterCSharpCompilation"
+          Returns="@(CscCommandLineArgs)" />
+
+  <PropertyGroup>
+    <TargetsTriggeredByCSharpCompilationContinueOnError Condition="'$(TargetsTriggeredByCSharpCompilationContinueOnError)' == ''">false</TargetsTriggeredByCSharpCompilationContinueOnError>
+    <TargetsTriggeredAfterCSharpCompilationContinueOnError Condition="'$(TargetsTriggeredAfterCSharpCompilationContinueOnError)' == ''">false</TargetsTriggeredAfterCSharpCompilationContinueOnError>
+  </PropertyGroup>
+
+  <!--
+    Targets specified in `TargetsTriggeredAfterCSharpCompilation` are invoked as part of `CoreCompile`, right after `_CSharpCoreCompile` target completes.
+    Unlike `TargetsTriggeredByCSharpCompilation`, this hook provides targets with access to changes made in `_CSharpCoreCompile` at runtime (e.g. `CscCommandLineArgs`), 
+    while still ensuring they are invoked before any subsequent post-compilation targets, especially those specified `AfterTargets="CoreCompile"`.
+  -->
+  <Target Name="_InvokeTargetsTriggeredAfterCSharpCompilation"
+          Condition="'$(TargetsTriggeredAfterCSharpCompilation)' != ''">
+    <PropertyGroup>
+      <_RunTargetsTriggeredAfterCSharpCompilationSeparately>false</_RunTargetsTriggeredAfterCSharpCompilationSeparately>
+      <_RunTargetsTriggeredAfterCSharpCompilationSeparately
+          Condition="'$(TargetsTriggeredAfterCSharpCompilationContinueOnError)' != 'false'
+                  and '$(TargetsTriggeredAfterCSharpCompilationContinueOnError)' != 'ErrorAndStop'">true</_RunTargetsTriggeredAfterCSharpCompilationSeparately>
+    </PropertyGroup>
+    <CallTarget Targets="$(TargetsTriggeredAfterCSharpCompilation)"
+                RunEachTargetSeparately="$(_RunTargetsTriggeredAfterCSharpCompilationSeparately)"
+                ContinueOnError="$(TargetsTriggeredAfterCSharpCompilationContinueOnError)" />
+  </Target>
+
+  <Target Name="_CSharpCoreCompile"
           Inputs="$(MSBuildAllProjects);
                   @(Compile);
                   @(_CoreCompileResourceInputs);
@@ -186,7 +222,17 @@
       <_CoreCompileResourceInputs Remove="@(_CoreCompileResourceInputs)" />
     </ItemGroup>
 
-    <CallTarget Targets="$(TargetsTriggeredByCompilation)" Condition="'$(TargetsTriggeredByCompilation)' != ''" />
+    <PropertyGroup>
+      <_RunTargetsTriggeredByCSharpCompilationSeparately>false</_RunTargetsTriggeredByCSharpCompilationSeparately>
+      <_RunTargetsTriggeredByCSharpCompilationSeparately
+          Condition="'$(TargetsTriggeredByCSharpCompilationContinueOnError)' != 'false'
+                  and '$(TargetsTriggeredByCSharpCompilationContinueOnError)' != 'ErrorAndStop'">true</_RunTargetsTriggeredByCSharpCompilationSeparately>
+    </PropertyGroup>
+
+    <CallTarget Targets="$(TargetsTriggeredByCompilation)"
+                Condition="'$(TargetsTriggeredByCompilation)' != ''"
+                RunEachTargetSeparately="$(_RunTargetsTriggeredByCSharpCompilationSeparately)"
+                ContinueOnError="$(TargetsTriggeredByCSharpCompilationContinueOnError)" />
   </Target>
 
   <!-- When we load a project in Visual Studio, the project system first does an evaluation pass of the
