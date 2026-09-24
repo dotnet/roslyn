@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 if (hasNext)
                 {
                     DumpAndCleanup();
-                    Assert.False(hasNext, $"Test contains unconsumed syntax left over from UsingNode()\r\n{(this._output as TestOutputHelper)?.Output}");
+                    Assert.False(hasNext, $"Test contains unconsumed syntax left over from UsingNode()\r\n{_output.Output}");
                 }
             }
         }

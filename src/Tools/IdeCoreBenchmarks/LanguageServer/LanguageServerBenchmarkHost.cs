@@ -85,6 +85,16 @@ internal sealed class LanguageServerBenchmarkHost : AbstractLanguageServerMefHos
     {
         public static NullTestOutputHelper Instance { get; } = new();
 
+        public string Output => "";
+
+        public void Write(string message)
+        {
+        }
+
+        public void Write(string format, params object[] args)
+        {
+        }
+
         public void WriteLine(string message)
         {
         }
