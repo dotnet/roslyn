@@ -1760,8 +1760,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                         usings2.Add("global::Xunit.Harness");
                     }
 
-                    usings2.Add("global::Xunit.Sdk");
-
                     if (referenceDataModel.HasThreadHelperJoinableTaskContext)
                     {
                         usings2.Add("Microsoft.VisualStudio.Shell");
@@ -1770,9 +1768,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     {
                         usings2.Add("Microsoft.VisualStudio.Shell.Interop");
                     }
-
                     usings2.Add("Microsoft.VisualStudio.Threading");
-                    usings2.Add("Task = System.Threading.Tasks.Task");
 
                     string joinableTaskContextInitializer;
                     if (referenceDataModel.HasThreadHelperJoinableTaskContext)

@@ -32,14 +32,12 @@
     -->
     <PackageReference Include="Newtonsoft.Json" ExcludeAssets="all" PrivateAssets="all" />
     <PackageReference Include="xunit.v3" />
-    <!-- xunit.v3 3.0.1 depends on xunit.analyzers >= 1.24.0, above the centrally pinned 1.17.0 (a v2-era default). -->
-    <PackageReference Include="xunit.analyzers" VersionOverride="1.24.0" />
-    <!-- Xunit.Combinatorial 1.6.24 (the centrally pinned default) depends on xunit v2; 2.1.41 depends on xunit v3. -->
-    <PackageReference Include="Xunit.Combinatorial" VersionOverride="2.1.41" />
+    <PackageReference Include="xunit.analyzers" />
+    <PackageReference Include="Xunit.Combinatorial" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Compilers\Test\Core.IntegrationTests\Microsoft.CodeAnalysis.Test.Utilities.IntegrationTests.csproj" />
+    <ProjectReference Include="..\..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\TestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.csproj" />
     <ProjectReference Include="..\XUnit\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj" />
     <ProjectReference Include="..\SourceGenerator\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />

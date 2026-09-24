@@ -8,18 +8,9 @@ coverage: VS integration test harness (IdeFact/IdeTheory) on xUnit v3 — projec
 harness (`Microsoft.VisualStudio.Extensibility.Testing.Xunit*`) and its consumers
 (`New.IntegrationTests`, `Roslyn.SDK.IntegrationTests`,
 `Microsoft.VisualStudio.Razor.IntegrationTests`). This harness and its direct
-consumers run on **xUnit v3 3.0.1**, independent of the rest of the repo's unit tests,
-which use xUnit v3 4.0.0. The Roslyn test-utility forks
-(`Microsoft.CodeAnalysis.Test.Utilities.IntegrationTests`,
-`Microsoft.CodeAnalysis.Workspaces.Test.Utilities.IntegrationTests`) are dedicated v3
-copies of the unit-test utility assemblies — they share no code with the unit-test
-side by design, so the two suites can be upgraded/maintained independently.
-
-Razor has its own dedicated v3 test-utility forks for VS integration tests:
-`Microsoft.AspNetCore.Razor.Test.Common.IntegrationTests` and
-`Microsoft.AspNetCore.Razor.Test.Common.Tooling.IntegrationTests`. These mirror the
-Razor unit-test utility projects but are compiled independently against xUnit v3, so
-do not point VS integration-test code back at the Razor unit-test utility projects.
+consumers run on **xUnit v3 4.0.0**, the same version as the unit-test suite. VS
+integration tests reference the shared Roslyn and Razor test-utility projects
+directly; do not add source-copied `.IntegrationTests` utility forks.
 
 `src/VisualStudio/IntegrationTest/IntegrationTestBuildProject.csproj` (a
 `Microsoft.Build.Traversal` project) is the actual CI entry point that builds only the
@@ -30,7 +21,7 @@ Razor's VS integration tests are included in `IntegrationTestBuildProject.csproj
 `dotnet build Ide.slnf` should also stay green for these projects; if restore reports
 NU1109 involving Razor integration tests, check for a direct project-level
 `Xunit.Combinatorial` `VersionOverride="2.1.41"` or a v2 xUnit package reference
-leaking in through the Razor integration-test utility forks.
+leaking into the shared Razor test-utility projects.
 
 ## Arcade `IsTestProject` / naming-heuristic gotcha
 
@@ -62,13 +53,11 @@ e.g. `src/Tools/Replay/Replay.csproj`).
 
 ## Package version selection
 
-`eng/Packages.props` selects xUnit v3 3.0.1 for project names ending in
-`.IntegrationTests` and names beginning with
-`Microsoft.VisualStudio.Extensibility.Testing.`. Unit-test projects use 4.0.0.
-Keep integration forks and their consumers on the same release: runner extension
-interfaces differ between these releases. `Xunit.Combinatorial` is centrally
-pinned to 2.1.41 and `xunit.analyzers` to 2.0.0; individual integration projects may
-retain explicit overrides.
+`eng/Packages.props` selects xUnit v3 4.0.0 for unit and integration projects.
+Keep the VS integration harness and its consumers on the centralized xUnit v3
+release: runner extension interfaces can differ between releases.
+`Xunit.Combinatorial` is centrally pinned to 2.1.41 and `xunit.analyzers` to
+2.0.0; individual integration projects should not need explicit overrides.
 
 ## v2 → v3 API shape differences hit during migration
 
@@ -84,6 +73,6 @@ retain explicit overrides.
 - Test-lifecycle methods like `InitializeCoreAsync()` on VS in-process test-service
   types now return `ValueTask` instead of `Task` in the v3 harness — check every
   override when porting a new in-process service.
-- Custom `[CollectionBehavior]`/`TestFrameworkAttribute` v2 assembly attributes
-  (e.g. a stray `XUnitAssemblyInfo.cs`) are incompatible with v3 and should be removed
-  once `IsTestProject=false` stops v2 package injection for a given project.
+- xUnit v3 4.0 marks `CollectionBehaviorAttribute.DisableTestParallelization`
+  obsolete as an error; use `[assembly: Parallelization(Mode = ParallelMode.None)]`
+  with `[assembly: CollectionBehavior(CollectionBehavior.CollectionPerAssembly)]`.

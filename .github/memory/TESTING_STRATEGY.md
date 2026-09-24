@@ -21,11 +21,9 @@ the one for your area):
 | Project-data tests | `src/ProjectData/Microsoft.NET.ProjectData{,.Generators,.Tasks}.Tests/`; assemblies use the `UnitTests` suffix. |
 | Integration tests | VS integration tests (`azure-pipelines-integration*.yml`); runnable locally on **Windows** hosts with a VS install, also run in CI. |
 
-Frameworks: Unit tests use xUnit v3 4.0.0 with Roslyn test utilities. VS integration
-tests and their dedicated `.IntegrationTests` test-utility forks use xUnit v3
-3.0.1. `eng/Packages.props` selects the integration version for projects ending
-in `.IntegrationTests` and the `Microsoft.VisualStudio.Extensibility.Testing.*`
-harness projects so their runner APIs remain independent of the unit-test suite.
+Frameworks: Unit and VS integration tests use xUnit v3 4.0.0 with the shared
+Roslyn/Razor test utilities. `eng/Packages.props` centralizes the xUnit v3
+package versions for both suites.
 
 ## Repo-wide Authoring Conventions
 
@@ -76,40 +74,22 @@ in the project. VS integration projects instead manage their xUnit v3 package
 references explicitly with `IsTestProject=false`; see
 `testing/vs-integration-tests-xunit-v3.md`.
 
-### Integration-test-only forks of shared test-infrastructure projects
+### Shared test-infrastructure projects
 
-The 4 VS integration test projects (`Roslyn.SDK.IntegrationTests`,
-`Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests`,
-`Microsoft.VisualStudio.LanguageServices.New.IntegrationTests`,
-`Microsoft.VisualStudio.Razor.IntegrationTests`) do **not** reference the shared,
-xUnit-v3-coupled test-utility assemblies that hundreds of unit test projects use.
-Instead they reference dedicated `.IntegrationTests`-suffixed sibling forks so the
-two test suites can use different xUnit releases independently without mixing
-incompatible runner APIs in an assembly's dependency graph.
+Unit tests and VS integration tests now reference the same shared test-utility
+projects again:
 
-| Original (unit-test-only) | Fork (integration-test-only) |
+| Shared utility project | Used by |
 |---|---|
-| `Compilers/Test/Core` (`Microsoft.CodeAnalysis.Test.Utilities`) | `Compilers/Test/Core.IntegrationTests` (`Microsoft.CodeAnalysis.Test.Utilities.IntegrationTests`) |
-| `Workspaces/CoreTestUtilities` (`Microsoft.CodeAnalysis.Workspaces.Test.Utilities`) | `Workspaces/CoreTestUtilities.IntegrationTests` (`Microsoft.CodeAnalysis.Workspaces.Test.Utilities.IntegrationTests`) |
-| `Razor/src/Shared/Microsoft.AspNetCore.Razor.Test.Common` | `Razor/src/Shared/Microsoft.AspNetCore.Razor.Test.Common.IntegrationTests` |
-| `Razor/src/Razor/test/Microsoft.AspNetCore.Razor.Test.Common.Tooling` | `Razor/src/Razor/test/Microsoft.AspNetCore.Razor.Test.Common.Tooling.IntegrationTests` |
+| `Compilers/Test/Core` (`Microsoft.CodeAnalysis.Test.Utilities`) | Compiler, IDE, SDK, Razor, and VS integration tests |
+| `Workspaces/CoreTestUtilities` (`Microsoft.CodeAnalysis.Workspaces.Test.Utilities`) | Workspace/IDE tests and `Microsoft.VisualStudio.LanguageServices.New.IntegrationTests` |
+| `Razor/src/Shared/Microsoft.AspNetCore.Razor.Test.Common` | Razor unit and integration test utilities |
+| `Razor/src/Razor/test/Microsoft.AspNetCore.Razor.Test.Common.Tooling` | Razor tooling/unit tests and `Microsoft.VisualStudio.Razor.IntegrationTests` |
 
-Only assemblies that themselves carry an xUnit package reference (or exist solely
-to satisfy compilation of forked code) were forked. Pure product assemblies and
-xUnit-free test-resource assemblies (e.g. `Microsoft.CodeAnalysis.Compiler.Test.Resources`,
-`Microsoft.CodeAnalysis.TestAnalyzerReference`) remain shared since they carry no
-version-conflict risk.
-
-Each fork is source-copied (not linked), single-targets `net472`, keeps the same
-namespaces as the original, and trims its `InternalsVisibleTo` list down to only
-the integration test project(s) that need it. Product assemblies that grant
-`InternalsVisibleTo` to an original test-utility assembly name also grant it to
-the matching `.IntegrationTests` fork name (a sibling `<InternalsVisibleTo>` entry
-immediately after the original) — this is required for `protected internal`
-overrides, IVT-gated polyfill types (`IsExternalInit`, etc.), and other
-internal-only members the forked test code accesses. When adding new members or
-usages to a forked project, keep its source in sync with the original by hand;
-there is no automated sync.
+If an integration project needs access to internal members in a shared
+test-utility assembly, add the integration test assembly to that utility
+project's `InternalsVisibleTo` list. Do not create a new source-copied
+integration-only fork.
 
 ## CI
 

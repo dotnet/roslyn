@@ -4,6 +4,8 @@
 using System;
 using System.Runtime.InteropServices;
 using Xunit;
+using Xunit.Sdk;
+using Xunit.v3;
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
@@ -15,4 +17,5 @@ using Xunit;
 // COM, set the ComVisible attribute to true on that type.
 [assembly: ComVisible(false)]
 
-[assembly: CollectionBehavior(CollectionBehavior.CollectionPerAssembly, DisableTestParallelization = true)]
+[assembly: CollectionBehavior(CollectionBehavior.CollectionPerAssembly)]
+[assembly: Parallelization(Mode = ParallelMode.None)]

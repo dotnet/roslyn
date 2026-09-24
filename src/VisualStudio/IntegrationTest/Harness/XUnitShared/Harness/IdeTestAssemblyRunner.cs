@@ -140,10 +140,12 @@ namespace Xunit.Harness
                 foreach (var casesByTestClass in remainingTestCases.GroupBy(testCase => testCase.TestMethod.TestClass))
                 {
                     var testClass = casesByTestClass.Key;
+                    var testClassStartTime = DateTimeOffset.UtcNow;
 
                     _executionMessageSink.OnMessage(new TestClassStarting
                     {
                         AssemblyUniqueID = ctxt.TestAssembly.UniqueID,
+                        StartTime = testClassStartTime,
                         TestClassName = testClass.TestClassName,
                         TestClassNamespace = testClass.TestClassNamespace,
                         TestClassSimpleName = testClass.TestClassSimpleName,
@@ -155,12 +157,14 @@ namespace Xunit.Harness
                     foreach (var casesByTestMethod in casesByTestClass.GroupBy(testCase => testCase.TestMethod))
                     {
                         var testMethod = casesByTestMethod.Key;
+                        var testMethodStartTime = DateTimeOffset.UtcNow;
 
                         _executionMessageSink.OnMessage(new TestMethodStarting
                         {
                             AssemblyUniqueID = ctxt.TestAssembly.UniqueID,
                             MethodArity = testMethod.MethodArity,
                             MethodName = testMethod.MethodName,
+                            StartTime = testMethodStartTime,
                             TestClassUniqueID = testClass.UniqueID,
                             TestCollectionUniqueID = testClass.TestCollection.UniqueID,
                             TestMethodUniqueID = testMethod.UniqueID,
@@ -169,6 +173,8 @@ namespace Xunit.Harness
 
                         foreach (var testCase in casesByTestMethod)
                         {
+                            var testCaseStartTime = DateTimeOffset.UtcNow;
+
                             _executionMessageSink.OnMessage(new TestCaseStarting
                             {
                                 AssemblyUniqueID = ctxt.TestAssembly.UniqueID,
@@ -176,6 +182,7 @@ namespace Xunit.Harness
                                 SkipReason = testCase.SkipReason,
                                 SourceFilePath = testCase.SourceFilePath,
                                 SourceLineNumber = testCase.SourceLineNumber,
+                                StartTime = testCaseStartTime,
                                 TestCaseDisplayName = testCase.TestCaseDisplayName,
                                 TestCaseUniqueID = testCase.UniqueID,
                                 TestClassMetadataToken = testCase.TestClassMetadataToken,
@@ -200,6 +207,7 @@ namespace Xunit.Harness
                                 TestClassUniqueID = testClass.UniqueID,
                                 TestCollectionUniqueID = testClass.TestCollection.UniqueID,
                                 TestDisplayName = testCase.TestCaseDisplayName,
+                                TestLabel = null,
                                 TestMethodUniqueID = testMethod.UniqueID,
                                 TestUniqueID = testCase.UniqueID,
                                 Explicit = testCase.Explicit,
@@ -245,6 +253,7 @@ namespace Xunit.Harness
                             {
                                 AssemblyUniqueID = ctxt.TestAssembly.UniqueID,
                                 ExecutionTime = 0m,
+                                FinishTime = DateTimeOffset.UtcNow,
                                 TestCaseUniqueID = testCase.UniqueID,
                                 TestClassUniqueID = testClass.UniqueID,
                                 TestCollectionUniqueID = testClass.TestCollection.UniqueID,
@@ -260,6 +269,7 @@ namespace Xunit.Harness
                         {
                             AssemblyUniqueID = ctxt.TestAssembly.UniqueID,
                             ExecutionTime = 0m,
+                            FinishTime = DateTimeOffset.UtcNow,
                             TestClassUniqueID = testClass.UniqueID,
                             TestCollectionUniqueID = testClass.TestCollection.UniqueID,
                             TestMethodUniqueID = testMethod.UniqueID,
@@ -274,6 +284,7 @@ namespace Xunit.Harness
                     {
                         AssemblyUniqueID = ctxt.TestAssembly.UniqueID,
                         ExecutionTime = 0m,
+                        FinishTime = DateTimeOffset.UtcNow,
                         TestClassUniqueID = testClass.UniqueID,
                         TestCollectionUniqueID = testClass.TestCollection.UniqueID,
                         TestsFailed = casesByTestClass.Count(),

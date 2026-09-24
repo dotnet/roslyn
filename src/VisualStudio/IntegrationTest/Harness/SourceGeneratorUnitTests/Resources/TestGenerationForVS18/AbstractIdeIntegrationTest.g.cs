@@ -12,10 +12,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
     using System.Windows;
     using System.Windows.Threading;
     using global::Xunit;
-    using global::Xunit.Sdk;
+    using global::Xunit.v3;
     using Microsoft.VisualStudio.Shell;
     using Microsoft.VisualStudio.Threading;
-    using Task = System.Threading.Tasks.Task;
 
     /// <summary>
     /// Provides a base class for Visual Studio integration tests.
@@ -29,11 +28,11 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
     /// <item><description><see cref="BeforeAfterTestAttribute.Before"/></description></item>
     /// <item><description>Test method</description></item>
     /// <item><description><see cref="BeforeAfterTestAttribute.After"/></description></item>
-    /// <item><description><see cref="IAsyncLifetime.DisposeAsync"/></description></item>
+    /// <item><description><see cref="System.IAsyncDisposable.DisposeAsync"/></description></item>
     /// <item><description><see cref="IDisposable.Dispose"/></description></item>
     /// </list>
     /// </remarks>
-    public abstract class AbstractIdeIntegrationTest : IAsyncLifetime, IDisposable
+    public abstract class AbstractIdeIntegrationTest : IAsyncLifetime, System.IAsyncDisposable, IDisposable
     {
         /// <summary>
         /// A long timeout used to avoid hangs in tests, where a test failure manifests as an operation never occurring.
@@ -136,17 +135,17 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             => _cleanupCancellationTokenSource.Token;
 
         /// <inheritdoc/>
-        public virtual async Task InitializeAsync()
+        public virtual async ValueTask InitializeAsync()
         {
             TestServices = await CreateTestServicesAsync();
         }
 
         /// <summary>
-        /// This method implements <see cref="IAsyncLifetime.DisposeAsync"/>, and is used for releasing resources
+        /// This method implements <see cref="System.IAsyncDisposable.DisposeAsync"/>, and is used for releasing resources
         /// created by <see cref="IAsyncLifetime.InitializeAsync"/>. This method is only called if
         /// <see cref="InitializeAsync"/> completes successfully.
         /// </summary>
-        public virtual async Task DisposeAsync()
+        public virtual async ValueTask DisposeAsync()
         {
             _cleanupCancellationTokenSource.CancelAfter(CleanupHangMitigatingTimeout);
 

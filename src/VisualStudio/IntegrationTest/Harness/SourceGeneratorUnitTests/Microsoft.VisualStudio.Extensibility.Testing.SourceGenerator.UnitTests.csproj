@@ -21,8 +21,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="xunit.v3" />
-    <!-- xunit.v3 3.0.1 depends on xunit.analyzers >= 1.24.0, above the centrally pinned 1.17.0 (a v2-era default). -->
-    <PackageReference Include="xunit.analyzers" VersionOverride="1.24.0" />
+    <PackageReference Include="xunit.analyzers" />
   </ItemGroup>
 
   <ItemGroup>
