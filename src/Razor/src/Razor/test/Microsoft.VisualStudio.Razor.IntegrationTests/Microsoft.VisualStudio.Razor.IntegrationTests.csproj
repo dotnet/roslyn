@@ -50,7 +50,7 @@
     <PackageReference Include="Microsoft.IO.Redist" Condition="'$(TargetFramework)' == '$(NetFxVS)'" />
     <PackageReference Include="Microsoft.Internal.VisualStudio.Shell.Framework" />
     <PackageReference Include="xunit.v3.extensibility.core" />
-    <PackageReference Include="Xunit.Combinatorial" VersionOverride="2.1.41" />
+    <PackageReference Include="Xunit.Combinatorial" />
   </ItemGroup>
 
   <ItemGroup>
