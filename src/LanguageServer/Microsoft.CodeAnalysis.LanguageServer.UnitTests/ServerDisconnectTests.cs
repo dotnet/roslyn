@@ -4,7 +4,7 @@
 
 using System.Text;
 using Roslyn.LanguageServer.Protocol;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
