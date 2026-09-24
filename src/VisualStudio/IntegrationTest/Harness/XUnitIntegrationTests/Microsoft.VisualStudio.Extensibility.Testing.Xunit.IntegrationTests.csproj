@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\..\..\Compilers\Test\Core.IntegrationTests\Microsoft.CodeAnalysis.Test.Utilities.IntegrationTests.csproj" />
     <ProjectReference Include="..\..\TestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.csproj" />
     <ProjectReference Include="..\XUnit\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj" />
     <ProjectReference Include="..\SourceGenerator\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />

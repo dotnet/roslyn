@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\..\..\Compilers\Test\Core.IntegrationTests\Microsoft.CodeAnalysis.Test.Utilities.IntegrationTests.csproj" />
     <ProjectReference Include="..\..\Roslyn.SDK\Roslyn.SDK.csproj" CopyVsix="true" />
     <ProjectReference Include="..\..\..\..\VisualStudio\IntegrationTest\Harness\SourceGenerator\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.csproj"
                       OutputItemType="Analyzer"

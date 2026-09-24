@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    This is a fork of Microsoft.AspNetCore.Razor.Test.Common used exclusively by the VS integration
+    test projects (Microsoft.VisualStudio.Razor.IntegrationTests, transitively via
+    Microsoft.AspNetCore.Razor.Test.Common.Tooling.IntegrationTests). It exists so integration tests
+    can migrate to xUnit v3 independently of the many xUnit v2 unit test projects that reference the
+    original Microsoft.AspNetCore.Razor.Test.Common. Keep the two projects' source in sync manually.
+  -->
+
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);RS0016;RS0017;RS0018;RS0022;RS0026;RS0027</NoWarn>
+    <IsShipping>false</IsShipping>
+    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
+    <TargetFramework>$(NetFxVS)</TargetFramework>
+
+    <!-- To generate baselines, run tests with /p:GenerateBaselines=true -->
+    <DefineConstants Condition="'$(GenerateBaselines)'=='true'">$(DefineConstants);GENERATE_BASELINES</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
+    <PackageReference Include="Microsoft.CSharp" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
+    <ProjectReference Include="..\..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+    <ProjectReference Include="..\..\..\..\Compilers\Test\Core.IntegrationTests\Microsoft.CodeAnalysis.Test.Utilities.IntegrationTests.csproj" />
+    <PackageReference Include="Microsoft.Extensions.DependencyModel" />
+    <PackageReference Include="DiffPlex" />
+    <PackageReference Include="xunit.assert" />
+    <PackageReference Include="xunit.analyzers" />
+    <PackageReference Include="xunit.extensibility.execution" />
+    <PackageReference Include="Basic.Reference.Assemblies.AspNet80" />
+    <PackageReference Include="Basic.Reference.Assemblies.Net80" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Test.Common.Tooling.IntegrationTests" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Razor.IntegrationTests" Key="$(RazorKey)" />
+  </ItemGroup>
+
+</Project>
