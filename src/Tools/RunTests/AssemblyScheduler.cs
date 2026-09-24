@@ -162,31 +162,13 @@ namespace RunTests
                 if (testHistory.TryGetValue(methodInfo.FullyQualifiedName, out var historyEntry))
                 {
                     matchedRemoteTests.Add(methodInfo.FullyQualifiedName);
-                    var executionTime = historyEntry.Duration;
-
-                    // If the test class implements IAsyncLifetime, add overhead per theory instance
-                    // to account for InitializeAsync/DisposeAsync time not captured in DurationInMs.
-                    if (methodInfo.HasAsyncLifetime)
-                    {
-                        executionTime += TimeSpan.FromMilliseconds(historyEntry.TestTheoryInstances * HelixTestRunner.AsyncLifetimeInstanceOverhead.TotalMilliseconds);
-                    }
-
-                    return methodInfo with { ExecutionTime = executionTime };
+                    return methodInfo with { ExecutionTime = historyEntry.Duration };
                 }
 
                 // We didn't find the local type from our assembly in test run historical data.
                 // This usually occurs when tests have been added in between the last passing branch run and this PR.
                 unmatchedLocalTests.Add(methodInfo.FullyQualifiedName);
-                var fallbackExecutionTime = averageExecutionTime;
-
-                // If the test class implements IAsyncLifetime, add overhead for at least one instance
-                // to account for InitializeAsync/DisposeAsync time not captured in the average duration.
-                if (methodInfo.HasAsyncLifetime)
-                {
-                    fallbackExecutionTime += HelixTestRunner.AsyncLifetimeInstanceOverhead;
-                }
-
-                return methodInfo with { ExecutionTime = fallbackExecutionTime };
+                return methodInfo with { ExecutionTime = averageExecutionTime };
             }
 
             void WriteResults()
@@ -332,7 +314,7 @@ namespace RunTests
                 .Select(group => new TypeInfo(
                     GetName(group.Key),
                     group.Key,
-                    group.Select(e => new TestMethodInfo(GetName(e.MethodName!), e.MethodName!, TimeSpan.Zero, e.HasAsyncLifetime)).ToImmutableArray()))
+                    group.Select(e => new TestMethodInfo(GetName(e.MethodName!), e.MethodName!, TimeSpan.Zero)).ToImmutableArray()))
                 .ToImmutableArray();
             return tests;
 
@@ -352,7 +334,6 @@ namespace RunTests
         private sealed class TestDiscoveryEntry
         {
             public string? MethodName { get; set; }
-            public bool HasAsyncLifetime { get; set; }
         }
 
         /// <summary>
