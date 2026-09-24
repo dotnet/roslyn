@@ -194,6 +194,62 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
+        private bool IsDirectArrayWhere(BoundCollectionExpression node, TypeWithAnnotations elementType)
+        {
+            if (node.Elements is not
+                [BoundCollectionExpressionSpreadElement
+                {
+                    Expression: { } spreadExpression,
+                    IteratorBody: BoundExpressionStatement { Expression: var iteratorExpression }
+                }])
+            {
+                return false;
+            }
+
+            // ToList must not bypass any conversion that the element-by-element lowering would perform.
+            if (iteratorExpression is BoundConversion { ConversionKind: not ConversionKind.Identity })
+            {
+                return false;
+            }
+
+            while (spreadExpression is BoundConversion
+                {
+                    ExplicitCastInCode: false,
+                    ConversionKind: ConversionKind.Identity or ConversionKind.ImplicitReference,
+                    Operand: var spreadOperand
+                })
+            {
+                spreadExpression = spreadOperand;
+            }
+
+            if (spreadExpression is not BoundCall
+                {
+                    ReceiverOpt: null,
+                    Arguments: [var source, _],
+                    ArgsToParamsOpt.IsDefault: true
+                } whereCall ||
+                !TryGetWellKnownTypeMember(node.Syntax, WellKnownMember.System_Linq_Enumerable__Where, out MethodSymbol? whereMethod, isOptional: true) ||
+                (object)whereCall.Method.OriginalDefinition != whereMethod)
+            {
+                return false;
+            }
+
+            while (source is BoundConversion
+                {
+                    ExplicitCastInCode: false,
+                    ConversionKind: ConversionKind.Identity or ConversionKind.ImplicitReference,
+                    Operand: var sourceOperand
+                })
+            {
+                source = sourceOperand;
+            }
+
+            return source.Type is ArrayTypeSymbol { IsSZArray: true } arrayType &&
+                TypeSymbol.Equals(arrayType.ElementType, elementType.Type, TypeCompareKind.ConsiderEverything2) &&
+                whereCall.Method.TypeArgumentsWithAnnotations is [var whereElementType] &&
+                TypeSymbol.Equals(whereElementType.Type, elementType.Type, TypeCompareKind.ConsiderEverything2);
+        }
+
         /// <summary>
         /// Decides if a bulk-add method such as AddRange, ToList, ToArray, etc. is suitable for copying a spread value with type 'spreadType' to the destination collection.
         /// </summary>
@@ -601,11 +657,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // `new List<T>(capacity)` call.
                 Debug.Assert(node.CollectionCreation is null or BoundObjectCreationExpression);
 
-                arrayOrList = CreateAndPopulateList(
-                    node, elementType, elements,
-                    // Ensure we recurse into the receiver (if passed one), so any arguments passed to to the collection
-                    // construction are properly lowered as well.
-                    rewrittenReceiver: VisitExpression(node.CollectionCreation));
+                if (node.CollectionCreation is null &&
+                    IsDirectArrayWhere(node, elementType) &&
+                    TryRewriteSingleElementSpreadToList(node, elementType, out var result))
+                {
+                    arrayOrList = result;
+                }
+                else
+                {
+                    arrayOrList = CreateAndPopulateList(
+                        node, elementType, elements,
+                        // Ensure we recurse into the receiver (if passed one), so any arguments passed to to the collection
+                        // construction are properly lowered as well.
+                        rewrittenReceiver: VisitExpression(node.CollectionCreation));
+                }
             }
 
             Conversion c = _factory.ClassifyEmitConversion(arrayOrList, collectionType);
