@@ -4,7 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
-Imports Xunit.Abstractions
+Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
     <Trait(Traits.Feature, Traits.Features.Formatting)>
