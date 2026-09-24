@@ -127,13 +127,13 @@
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="12.0.0-beta.26472.4">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="12.0.0-beta.26473.4">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>6124d7ccaf61cba2271be6674777fd03463880de</Sha>
+      <Sha>fff3b6bbfb248b9e0da90f46a45a1a6be2ab286a</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.XliffTasks" Version="12.0.0-beta.26472.4">
+    <Dependency Name="Microsoft.DotNet.XliffTasks" Version="12.0.0-beta.26473.4">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>6124d7ccaf61cba2271be6674777fd03463880de</Sha>
+      <Sha>fff3b6bbfb248b9e0da90f46a45a1a6be2ab286a</Sha>
     </Dependency>
     <Dependency Name="Microsoft.DiaSymReader" Version="2.2.10">
       <Uri>https://github.com/dotnet/symreader</Uri>
@@ -143,9 +143,9 @@
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>dc837b145342723b197e3d5639029ae82d861103</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="12.0.0-beta.26472.4">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="12.0.0-beta.26473.4">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>6124d7ccaf61cba2271be6674777fd03463880de</Sha>
+      <Sha>fff3b6bbfb248b9e0da90f46a45a1a6be2ab286a</Sha>
     </Dependency>
     <!-- Entries below are necessary for source-build. This allows the packages to be retrieved from previously-source-built
          artifacts and flow in as dependencies of the packages produced by roslyn. -->
@@ -165,9 +165,9 @@
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>dc837b145342723b197e3d5639029ae82d861103</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.JobMonitor" Version="12.0.0-beta.26472.4">
+    <Dependency Name="Microsoft.DotNet.Helix.JobMonitor" Version="12.0.0-beta.26473.4">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>6124d7ccaf61cba2271be6674777fd03463880de</Sha>
+      <Sha>fff3b6bbfb248b9e0da90f46a45a1a6be2ab286a</Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>
