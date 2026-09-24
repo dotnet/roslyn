@@ -6,10 +6,8 @@
     <OutputType>Exe</OutputType>
 
     <!--
-      This project uses xUnit v3, which conflicts with the xUnit v2 packages Roslyn's XUnit.targets
-      adds to projects with IsTestProject=true (the default for a project whose name ends in "Tests").
-      Disable that default and exclude the project from the DotNetBuildTests=false source-build path
-      the same way IsTestProject would have.
+      This self-executing xUnit v3 integration-test project manages its runner packages directly.
+      Disable the default test-project targets and preserve their source-build exclusion.
     -->
     <IsTestProject>false</IsTestProject>
     <!-- This is an Exe (the xunit v3 self-executing test runner), not a conventional ".IntegrationTests.dll",

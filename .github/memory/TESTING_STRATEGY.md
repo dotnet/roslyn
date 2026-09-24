@@ -64,14 +64,13 @@ Targeted runs are strongly preferred — the full suite is large and slow. Tests
 Repo unit-test projects use xUnit v3 through `eng/targets/XUnit.targets`. Test
 projects build as executables for xUnit v3 but keep a `.dll` target extension so
 Roslyn's test naming/discovery checks and VSTest-based infrastructure continue
-to work. The common target sets `UseXunitV3=true` by default for non-integration
-test projects, adds `xunit.v3.mtp-off`, and sets
+to work. The common target adds `xunit.v3.mtp-off` and sets
 `IsTestingPlatformApplication=false` because Roslyn still uses VSTest rather
-than Microsoft.Testing.Platform for these tests.
+than Microsoft.Testing.Platform for these tests. All projects importing this
+target use the centrally pinned xUnit v3 4.0.0 packages.
 
-When a test project must stay on xUnit v2, set `<UseXunitV3>false</UseXunitV3>`
-in the project. VS integration projects instead manage their xUnit v3 package
-references explicitly with `IsTestProject=false`; see
+Some VS integration projects manage their xUnit v3 package references
+explicitly with `IsTestProject=false`; see
 `testing/vs-integration-tests-xunit-v3.md`.
 
 ### Shared test-infrastructure projects

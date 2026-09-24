@@ -6,10 +6,9 @@
     <OutputType>Exe</OutputType>
 
     <!--
-      This project uses xUnit v3, which conflicts with the xUnit v2 packages Roslyn's XUnit.targets
-      adds to projects with IsTestProject=true (the default for a project whose name ends in "UnitTests").
-      Disable that default and its dependent naming-convention/source-build checks, which assume a
-      conventional "*.UnitTests.dll" test library rather than this self-executing Exe.
+      This self-executing xUnit v3 test project manages its runner packages directly. Disable the
+      default test-project targets and their naming-convention/source-build checks, which assume a
+      conventional "*.UnitTests.dll" test library.
     -->
     <IsTestProject>false</IsTestProject>
     <IsUnitTestProject>false</IsUnitTestProject>

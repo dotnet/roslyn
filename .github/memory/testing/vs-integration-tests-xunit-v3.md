@@ -1,5 +1,5 @@
 ---
-coverage: VS integration test harness (IdeFact/IdeTheory) on xUnit v3 — project setup gotchas, scope, and v2→v3 API shape differences
+coverage: VS integration test harness (IdeFact/IdeTheory) on xUnit v3 — project setup gotchas, scope, and API considerations
 ---
 
 # VS Integration Tests — xUnit v3
@@ -25,9 +25,9 @@ leaking into the shared Razor test-utility projects.
 
 ## Arcade `IsTestProject` / naming-heuristic gotcha
 
-`eng/targets/XUnit.targets` selects packages using `UseXunitV3`, which defaults to
-true for non-integration tests. VS integration projects manage their own package
-references instead. The build's naming conventions set
+`eng/targets/XUnit.targets` configures conventionally discovered test projects
+for xUnit v3. Some VS integration projects manage their own package references
+and custom runners instead. The build's naming conventions set
 `IsTestProject`/`IsIntegrationTestProject`/`IsUnitTestProject` to `true` by
 **name-matching convention**, independently of each other:
 
@@ -59,7 +59,7 @@ release: runner extension interfaces can differ between releases.
 `Xunit.Combinatorial` is centrally pinned to 2.1.41 and `xunit.analyzers` to
 2.0.0; individual integration projects should not need explicit overrides.
 
-## v2 → v3 API shape differences hit during migration
+## xUnit v3 API considerations
 
 - `ITraitAttribute.GetTraits()` no longer exists as an interface method to override;
   trait discovery logic must be inlined into the attribute/discoverer directly.
@@ -68,8 +68,7 @@ release: runner extension interfaces can differ between releases.
 - `ITestOutputHelper` gained new members in v3.
 - `AsyncTestSyncContext` was removed in v3.
 - `IAsyncLifetime.InitializeAsync()` now returns `ValueTask`, and disposal is through
-  `IAsyncDisposable.DisposeAsync()` (`ValueTask`) rather than a `Task`-returning
-  xUnit v2 dispose method.
+  `IAsyncDisposable.DisposeAsync()` (`ValueTask`).
 - Test-lifecycle methods like `InitializeCoreAsync()` on VS in-process test-service
   types now return `ValueTask` instead of `Task` in the v3 harness — check every
   override when porting a new in-process service.

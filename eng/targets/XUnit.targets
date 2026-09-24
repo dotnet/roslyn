@@ -13,20 +13,11 @@
     <IsTestingPlatformApplication>false</IsTestingPlatformApplication>
 
     <!-- xunit.v3 test projects must build an executable; keep the .dll extension for VSTest discovery. -->
-    <UseXunitV3 Condition="'$(UseXunitV3)' == '' and '$(IsIntegrationTestProject)' != 'true'">true</UseXunitV3>
-    <OutputType Condition="'$(UseXunitV3)' == 'true'">Exe</OutputType>
-    <TargetExt Condition="'$(UseXunitV3)' == 'true'">.dll</TargetExt>
+    <OutputType>Exe</OutputType>
+    <TargetExt>.dll</TargetExt>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(UseXunitV3)' != 'true'">
-    <PackageReference Include="XunitXml.TestLogger" />
-    <PackageReference Include="xunit.extensibility.execution" />
-    <PackageReference Include="xunit.runner.visualstudio" />
-    <PackageReference Include="xunit.core" />
-    <PackageReference Include="xunit.analyzers" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(UseXunitV3)' == 'true'">
+  <ItemGroup>
     <PackageReference Include="XunitXml.TestLogger" />
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="xunit.v3.mtp-off" />
@@ -40,7 +31,7 @@
   -->
   <Target Name="_XunitCopyRunnerDependencies"
           AfterTargets="Build"
-          Condition="('$(TargetFrameworkIdentifier)' == '.NETFramework' or '$(TargetFrameworkIdentifier)' == '.NETCoreApp') and '$(DotNetBuildSourceOnly)' != 'true' and '$(UseXunitV3)' == 'true'">
+          Condition="('$(TargetFrameworkIdentifier)' == '.NETFramework' or '$(TargetFrameworkIdentifier)' == '.NETCoreApp') and '$(DotNetBuildSourceOnly)' != 'true'">
     <ItemGroup>
       <_XunitRunnerUtilityPackageReference Include="@(PackageReference)"
                                            Condition="'%(PackageReference.Identity)' == 'xunit.v3.runner.utility'" />
@@ -112,7 +103,7 @@
   -->
   <Target Name="CreateXunitV3AppHost"
           AfterTargets="Build"
-          Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' and '$(OutputType)' == 'Exe' and '$(TargetExt)' == '.dll' and '$(DotNetBuildSourceOnly)' != 'true' and '$(UseXunitV3)' == 'true'">
+          Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' and '$(OutputType)' == 'Exe' and '$(TargetExt)' == '.dll' and '$(DotNetBuildSourceOnly)' != 'true'">
     <PropertyGroup>
       <_XunitV3AppHost>$(TargetDir)$(TargetName).exe</_XunitV3AppHost>
       <_TargetConfigPath>$(TargetPath).config</_TargetConfigPath>
