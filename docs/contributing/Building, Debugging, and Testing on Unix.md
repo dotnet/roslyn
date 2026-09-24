@@ -17,6 +17,17 @@ Particularly for developers who aren't experienced with .NET Core development on
 4. You can run tests from VS Code by opening a test class in the editor, then using the *Run Tests in Context* and *Debug Tests in Context* editor commands. You may want to bind these commands to keyboard shortcuts that match their Visual Studio equivalents (**Ctrl+R, T** for *Run Tests in Context* and **Ctrl+R, Ctrl+T** for *Debug Tests in Context*).
 5. You can launch a new VS Code instance with the language server from your current code by running the "launch vscode with language server" task.
 
+## Preserving comparison builds
+
+When comparing local compiler or language-server experiments, freeze the baseline before rebuilding:
+
+1. Copy the complete coherent build/publish output and any separately selected extensions or packages to a location outside directories the build rewrites. Retain runtime/dependency metadata, supporting files, and symbols needed for the experiment, not just the changed DLL.
+2. Use independent file copies or an archive, not hardlinks or symlinks back to mutable outputs. A hardlink shares the underlying file, so an in-place write through either name can change the baseline. Roslyn's [build settings](../../eng/targets/Settings.props) can enable hardlinks for build copies; do not assume a staged directory is an independent snapshot.
+3. Keep a small identity manifest alongside the snapshot: source revision and local changes, SDK/runtime, build command/configuration/target framework/RID where applicable, selected package versions, and relative file paths with content hashes. Record which server/extension paths the experiment actually launches.
+4. After rebuilding the candidate, verify the baseline's file inventory and hashes still match the manifest, and run comparisons against the preserved copy rather than the live output directory.
+
+Preserving exact original bytes is different from producing an equivalent rebuild. If the original output is lost, label a rebuilt baseline as reconstructed rather than claiming it is the original. For composition and service-activation checks, see the [local language-server experiment guidance](../../.github/instructions/IDE.instructions.md#validating-local-language-server-experiments).
+
 ## Running Tests
 The unit tests can be executed by running `./build.sh --test`.
 
