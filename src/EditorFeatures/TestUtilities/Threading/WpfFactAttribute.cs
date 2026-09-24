@@ -4,14 +4,23 @@
 
 #nullable disable
 
+extern alias XunitStaFact;
+
 using System;
+using System.Runtime.CompilerServices;
 using Xunit;
-using Xunit.Sdk;
+using Xunit.v3;
 
 namespace Roslyn.Test.Utilities;
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-[XunitTestCaseDiscoverer("Roslyn.Test.Utilities.WpfFactDiscoverer", "Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities")]
+[XunitTestCaseDiscoverer(typeof(XunitStaFact::Xunit.Sdk.WpfFactDiscoverer))]
 public class WpfFactAttribute : FactAttribute
 {
+    public WpfFactAttribute(
+        [CallerFilePath] string sourceFilePath = null,
+        [CallerLineNumber] int sourceLineNumber = -1)
+        : base(sourceFilePath, sourceLineNumber)
+    {
+    }
 }
