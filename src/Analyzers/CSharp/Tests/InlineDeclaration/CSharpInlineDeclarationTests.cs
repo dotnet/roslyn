@@ -1134,6 +1134,30 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
             """);
 
     [Fact]
+    public Task TestMissingIfCapturedInBlockBodiedLocalFunctionAndUsedAfterwards()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                static void M(int input, out int output) => output = input * 2;
+
+                static int Test()
+                {
+                    [|int|] output;
+
+                    void Apply(int input)
+                    {
+                        M(input, out output);
+                    }
+
+                    Apply(5);
+
+                    return output;
+                }
+            }
+            """);
+
+    [Fact]
     public Task TestNotMissingIfCapturedInExpressionBodiedLocalFunctionAndNotUsedAfterwards()
         => TestInRegularAndScriptAsync(
             """
