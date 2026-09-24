@@ -100,14 +100,26 @@ To use the locally installed SDK:
 
 Use a **file-based app** (a .NET 10+ feature) to extract compiler details. This **must** run in an isolated temp folder to avoid interference from `global.json`, `.sln`, or `.csproj` files in the user's working directory (e.g., a roslyn repo checkout).
 
-1. Create a temp directory with `app.cs` and a pinned `global.json`:
+1. Create a temp directory with `app.cs` and a pinned `global.json`. The `#:property` directive adds the internal preview feed so `dotnet run` can restore the runtime packs for a not-yet-public build.
+
+   > **⚠️ The feed name must match the SDK's .NET major version.** The feed is named `dotnet<MAJOR>` where `<MAJOR>` is the major version of the SDK you installed. For an `11.0.x` SDK use `dotnet11`; for a `12.0.x` SDK use `dotnet12`; for a `10.0.x` SDK use `dotnet10`. **Do not hardcode `dotnet11`** — derive it from `<SDK_VERSION>`. Using the wrong feed will fail restore with `NU1102`. See the feed table at https://github.com/dotnet/dotnet/blob/main/docs/builds-table.md.
+
    ```powershell
+   # Derive the feed name from the SDK major version so this works for any release (dotnet11, dotnet12, ...)
+   $sdkMajor = ([version](("<SDK_VERSION>" -split '-')[0])).Major
+   $feed = "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet$sdkMajor/nuget/v3/index.json"
+
    $testDir = "$env:TEMP\validate-sdk-test"
    New-Item -ItemType Directory -Path $testDir -Force | Out-Null
-   Set-Content -Path "$testDir\app.cs" -Value '#error version'
+   Set-Content -Path "$testDir\app.cs" -Value @"
+   #:property RestoreAdditionalProjectSources=$feed
+   #error version
+   "@
    # Pin the SDK version to prevent any parent global.json from overriding it
    Set-Content -Path "$testDir\global.json" -Value '{"sdk":{"version":"<SDK_VERSION>","allowPrerelease":true}}'
    ```
+
+   **Why the `#:property` feed matters:** For preview builds, the matching runtime packs (e.g. `Microsoft.NETCore.App.Runtime.*`) are often not yet on nuget.org, so `dotnet run` fails during restore with `NU1102: Unable to find package ...` before it ever compiles. Adding the internal preview feed via `RestoreAdditionalProjectSources` lets restore succeed.
 
 2. Run the file-based app from the temp directory using the installed SDK. You **must `cd` into the temp directory** and set `DOTNET_MULTILEVEL_LOOKUP=0` to ensure full isolation from the user's environment:
    ```powershell

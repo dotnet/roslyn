@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
@@ -1774,4 +1775,56 @@ class C
                 </Project>
             </Workspace>
             """, new TestParameters(testHost: testHost));
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/84328")]
+    public Task TestInCref(TestHost testHost)
+        => TestInRegularAndScriptAsync(
+            """
+            /// <summary>
+            /// <see cref="[|INotifyPropertyChanged|]"/>
+            /// </summary>
+            class Class
+            {
+            }
+            """,
+            """
+            /// <summary>
+            /// <see cref="System.ComponentModel.INotifyPropertyChanged"/>
+            /// </summary>
+            class Class
+            {
+            }
+            """, new(testHost: testHost, parseOptions: new CSharpParseOptions(documentationMode: DocumentationMode.Diagnose)));
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/84328")]
+    public Task TestInCref_Generic(TestHost testHost)
+        => TestInRegularAndScriptAsync(
+            """
+            /// <summary>
+            /// <see cref="[|IList{T}|]"/>
+            /// </summary>
+            class Class
+            {
+            }
+            """,
+            """
+            /// <summary>
+            /// <see cref="System.Collections.Generic.IList{T}"/>
+            /// </summary>
+            class Class
+            {
+            }
+            """, new(testHost: testHost, parseOptions: new CSharpParseOptions(documentationMode: DocumentationMode.Diagnose)));
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/84328")]
+    public Task TestInCref_ExplicitTypePrefix(TestHost testHost)
+        => TestMissingInRegularAndScriptAsync(
+            """
+            /// <summary>
+            /// <see cref="T:[|INotifyPropertyChanged|]"/>
+            /// </summary>
+            class Class
+            {
+            }
+            """, new(testHost: testHost, parseOptions: new CSharpParseOptions(documentationMode: DocumentationMode.Diagnose)));
 }

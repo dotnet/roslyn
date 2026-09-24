@@ -13,12 +13,3 @@ Source Location: (86:2,35 [4] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (1495:40,0 [4] )
 |text|
 
-Source Location: (170:4,12 [35] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    private string text = "hi";
-|
-Generated Location: (1999:54,0 [35] )
-|
-    private string text = "hi";
-|
-

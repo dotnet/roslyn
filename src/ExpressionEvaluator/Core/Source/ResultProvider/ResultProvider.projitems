@@ -17,6 +17,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatter.Values.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\FavoritesDataItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\InlineArrayHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\SynthesizedCollectionHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\TypeAndCustomInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\TypeWalker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\AttributeHelpers.cs" />
@@ -31,6 +32,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Expansion\NativeViewExpansion.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Expansion\PointerDereferenceExpansion.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Expansion\ResultsViewExpansion.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Expansion\SynthesizedCollectionExpansion.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Expansion\TypeVariablesExpansion.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\ArrayBuilder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\DebuggerDisplayInfo.cs" />

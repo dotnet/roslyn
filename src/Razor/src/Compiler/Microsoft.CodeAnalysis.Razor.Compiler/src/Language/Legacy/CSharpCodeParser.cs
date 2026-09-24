@@ -1101,8 +1101,18 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                 Accept(in read);
                 if (CurrentToken.Content == "switch")
                 {
-                    AcceptUntil(SyntaxKind.LeftBrace); // TODO: how do we do error recovery at this point?
-                    if (!TryBalanceBlock(builder))
+                    AcceptUntil(SyntaxKind.LeftBrace);
+
+                    // An incomplete switch (still being typed) has no '{' to balance; bail out so Balance isn't handed a null token at EOF.
+                    if (!At(SyntaxKind.LeftBrace))
+                    {
+                        return;
+                    }
+
+                    // In contexts that permit markup in code blocks (components), a switch expression
+                    // arm can contain markup nested inside a lambda body, so parse nested blocks as
+                    // code blocks rather than balancing over them as raw C#.
+                    if (!TryBalanceBlock(builder, parseNestedBlocksAsMarkup: Context.Options.AllowRazorInAllCodeBlocks))
                     {
                         return;
                     }
@@ -1122,9 +1132,15 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             }
         }
 
-        bool TryBalanceBlock(SyntaxListBuilder<RazorSyntaxNode> builder)
+        bool TryBalanceBlock(SyntaxListBuilder<RazorSyntaxNode> builder, bool parseNestedBlocksAsMarkup = false)
         {
-            if (Balance(builder, BalancingModes.AllowCommentsAndTemplates | BalancingModes.BacktrackOnFailure))
+            var mode = BalancingModes.AllowCommentsAndTemplates | BalancingModes.BacktrackOnFailure;
+            if (parseNestedBlocksAsMarkup)
+            {
+                mode |= BalancingModes.ParseNestedBlocksAsMarkup;
+            }
+
+            if (Balance(builder, mode))
             {
                 TryAccept(SyntaxKind.RightBrace);
             }
@@ -2946,6 +2962,10 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 
                     // Reset backtracking since we've already outputted some spans.
                     startPosition = CurrentStart.AbsoluteIndex;
+
+                    // Start the next iteration with the token after the embedded transition.
+                    // This keeps adjacent Razor comments from consuming the next comment's transition as C#.
+                    continue;
                 }
 
                 if (At(SyntaxKind.Transition))
@@ -2970,6 +2990,30 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                         tokens.Add(NextAsEscapedIdentifier());
                         continue;
                     }
+                }
+
+                if ((mode & BalancingModes.ParseNestedBlocksAsMarkup) == BalancingModes.ParseNestedBlocksAsMarkup &&
+                    At(left))
+                {
+                    // A nested block within a construct that permits markup, such as a switch
+                    // expression arm whose value is a RenderFragment lambda with an implicit-builder
+                    // body. Counting braces here would consume any markup inside as raw C#, so parse
+                    // the nested block as a code block, which recognizes markup transitions.
+                    Accept(in tokens);
+                    tokens.Clear();
+                    AcceptAndMoveNext();
+                    builder.Add(OutputTokensAsStatementLiteral());
+
+                    ParseCodeBlock(builder, new Block(Resources.BlockName_Code, CurrentStart));
+
+                    if (At(right))
+                    {
+                        AcceptAndMoveNext();
+                    }
+
+                    // Spans have been emitted, so backtracking past this point is no longer possible.
+                    startPosition = CurrentStart.AbsoluteIndex;
+                    continue;
                 }
 
                 if (At(left))

@@ -53,8 +53,7 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
             }
 
             var codeGenerationContext = new CodeGenerationContext(
-                contextLocation: classOrStructDecl.GetLocation(),
-                allowGenerationIntoHiddenCode: static document => document.IsRazorSourceGeneratedDocument());
+                contextLocation: classOrStructDecl.GetLocation());
 
             if (!CodeGenerator.CanAdd(document.Project.Solution, classOrStructType, codeGenerationContext, cancellationToken))
             {

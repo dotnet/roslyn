@@ -6,6 +6,7 @@
 
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 
@@ -43,6 +44,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             if (!value.IsNull)
             {
                 var proxyType = value.Type.GetProxyType();
+
                 if (proxyType != null)
                 {
                     if ((inspectionContext.EvaluationFlags & DkmEvaluationFlags.ShowValueRaw) != 0)
@@ -114,7 +116,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             Debug.Assert(proxyValue != null);
             var proxyType = proxyValue.Type;
-            var proxyTypeAndInfo = new TypeAndCustomInfo(proxyType);
+            var proxyTypeAndInfo = new TypeAndCustomInfo(proxyType, GetProxyTypeInfo(declaredTypeAndInfo, proxyType));
             var proxyMembers = MemberExpansion.CreateExpansion(
                 inspectionContext,
                 proxyTypeAndInfo,
@@ -164,6 +166,26 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             _formatSpecifiers = formatSpecifiers;
             _flags = flags;
             _editableValue = editableValue;
+        }
+
+        private static DkmClrCustomTypeInfo GetProxyTypeInfo(TypeAndCustomInfo declaredTypeAndInfo, DkmClrType proxyType)
+        {
+            var declaredTypeInfo = declaredTypeAndInfo.Info;
+            if (declaredTypeInfo == null)
+            {
+                return null;
+            }
+
+            var declaredType = declaredTypeAndInfo.Type;
+            var proxyLmrType = proxyType.GetLmrType();
+            if (!declaredType.IsGenericType || !proxyLmrType.IsGenericType)
+            {
+                return null;
+            }
+
+            return declaredType.GetGenericArguments().Length == proxyLmrType.GetGenericArguments().Length
+                ? declaredTypeInfo
+                : null;
         }
 
         internal override void GetRows(

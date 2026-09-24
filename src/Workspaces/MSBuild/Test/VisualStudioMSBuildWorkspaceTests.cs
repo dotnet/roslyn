@@ -35,9 +35,10 @@ using VB = Microsoft.CodeAnalysis.VisualBasic;
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests;
 
 [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
+public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase, IClassFixture<ProjectGuardFiles>
 {
-    public VisualStudioMSBuildWorkspaceTests(ITestOutputHelper testOutput) : base(testOutput)
+    public VisualStudioMSBuildWorkspaceTests(ITestOutputHelper testOutput, ProjectGuardFiles projectGuardFiles)
+        : base(testOutput, projectGuardFiles)
     {
     }
 
@@ -3099,7 +3100,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         await using var buildHostProcessManager = new BuildHostProcessManager(knownCommandLineParserLanguages: [LanguageNames.CSharp], ImmutableDictionary<string, string>.Empty);
 
         var buildHost = await buildHostProcessManager.GetBuildHostWithFallbackAsync(projectFilePath, CancellationToken.None);
-        var projectFile = await buildHost.LoadProjectFileAsync(projectFilePath, LanguageNames.CSharp, CancellationToken.None);
+        await using var projectFile = await buildHost.LoadProjectFileAsync(projectFilePath, LanguageNames.CSharp, CancellationToken.None);
         var projectFileInfo = (await projectFile.GetProjectFileInfosAsync(CancellationToken.None)).Single();
 
         var commandLineParser = workspace.Services

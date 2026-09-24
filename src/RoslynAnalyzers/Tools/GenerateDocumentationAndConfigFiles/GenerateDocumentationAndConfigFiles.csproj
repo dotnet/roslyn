@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>$(NetRoslyn)</TargetFramework>
@@ -15,10 +16,7 @@
   <Import Project="..\..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
   <Import Project="..\..\Utilities\Workspaces\Workspaces.Utilities.projitems" Label="Shared" />
   <ItemGroup>
-    <!-- Since this tool will be loading Analyzers built against .NETStandard and the
-         .NETStandard build of Microsoft.CodeAnalysis.Workspaces.Common v4.12.0
-         references Microsoft.BCL.AsyncInterfaces v8.0.0, we need to add it as a dependency. -->
-    <PackageReference Include="Microsoft.BCL.AsyncInterfaces" VersionOverride="8.0.0" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
     <PackageReference Include="System.CommandLine" />
   </ItemGroup>
   <Choose>
@@ -64,4 +62,5 @@
   <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\CompilerExtensions.projitems" Label="Shared" />
   <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Extensions\Microsoft.CodeAnalysis.Extensions.projitems" Label="Shared" />
   <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Workspace\Core\WorkspaceExtensions.projitems" Label="Shared" />
+
 </Project>

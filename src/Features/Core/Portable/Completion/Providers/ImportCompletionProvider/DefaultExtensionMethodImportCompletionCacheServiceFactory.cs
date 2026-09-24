@@ -4,7 +4,6 @@
 
 using System;
 using System.Composition;
-using System.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
@@ -19,4 +18,4 @@ namespace Microsoft.CodeAnalysis.Completion.Providers;
 internal sealed class DefaultExtensionMethodImportCompletionCacheServiceFactory(
     IAsynchronousOperationListenerProvider listenerProvider)
     : AbstractImportCompletionCacheServiceFactory<ExtensionMemberImportCompletionCacheEntry, object>(
-        listenerProvider, ExtensionMemberImportCompletionHelper.BatchUpdateCacheAsync, CancellationToken.None);
+        listenerProvider, ExtensionMemberImportCompletionHelper.BatchUpdateCacheAsync);

@@ -53,6 +53,15 @@ Key options:
 | `--helix` | Submit test work items to Helix instead of running locally |
 | `--env:KEY=VALUE` | Set environment variable in test processes |
 
+Helix submission returns after the jobs are submitted; the pipeline's **Monitor
+Helix Jobs** job monitors completion and retries. Test-run names distinguish
+configuration, runtime, architecture, and the test kinds selected through
+`--testKind` or `--env`.
+
+Historical timing data for Helix partitioning can be selected with `--accessToken`,
+`--projectUri`, `--pipelineDefinitionId`, and `--targetBranchName`. When omitted,
+these use the corresponding Azure Pipelines environment variables.
+
 ## Exit Codes
 
 - `0` — All tests passed (or `--help` was shown)

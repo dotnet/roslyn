@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // build anonymous type field descriptor
                 fieldSyntaxNodes[i] = (nameToken.Kind() == SyntaxKind.IdentifierToken) ? (CSharpSyntaxNode)nameToken.Parent! : fieldInitializer;
                 fields[i] = new AnonymousTypeField(
-                    fieldName == null ? "$" + i.ToString() : fieldName,
+                    fieldName == null ? "$" + i.ToString(CultureInfo.InvariantCulture) : fieldName,
                     fieldSyntaxNodes[i].Location,
                     TypeWithAnnotations.Create(fieldType),
                     RefKind.None,
@@ -204,6 +205,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        private TypeSymbol GetAnonymousTypeFieldType(BoundExpression expression, CSharpSyntaxNode errorSyntax, BindingDiagnosticBag diagnostics)
+        {
+            bool hasError = false;
+            return GetAnonymousTypeFieldType(expression, errorSyntax, diagnostics, ref hasError);
+        }
+
         /// <summary>
         /// Returns the type to be used as a field type; generates errors in case the type is not
         /// supported for anonymous type fields.
@@ -248,8 +255,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 hasError = true;
                 Error(diagnostics, ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, errorSyntax, errorArg);
-                // NOTE: ERR_QueryRangeVariableAssignedBadValue is being generated 
-                //       by query binding code and never reach this point
             }
 
             return expressionType;

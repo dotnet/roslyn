@@ -3,10 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
@@ -17,14 +18,26 @@ internal abstract class AbstractWorkspaceTelemetryService : IWorkspaceTelemetryS
 {
     public TelemetrySession? CurrentSession { get; private set; }
 
-    protected abstract ILogger CreateLogger(TelemetrySession telemetrySession, bool logDelta);
+    /// <summary>
+    /// Everything this service registered or owns, in the order it must be torn down: sink
+    /// registrations first, then the sinks themselves.
+    /// </summary>
+    private ImmutableArray<IDisposable> _registrations = [];
+
+    protected abstract ImmutableArray<IEventSink> CreateEventSinks(TelemetrySession telemetrySession, bool logDelta);
 
     public void InitializeTelemetrySession(TelemetrySession telemetrySession, bool logDelta)
     {
         Contract.ThrowIfFalse(CurrentSession is null);
 
-        Logger.SetLogger(CreateLogger(telemetrySession, logDelta));
-        FaultReporter.RegisterTelemetrySesssion(telemetrySession);
+        var metricSink = new VSMetricSink(telemetrySession);
+        Debug.Assert(RoslynTelemetry.IsDefault(RoslynTelemetry.Current));
+        _registrations =
+        [
+            .. CreateEventSinks(telemetrySession, logDelta).SelectAsArray(RoslynTelemetry.Current.AddEventSink),
+            RoslynTelemetry.Current.AddMetricSink(metricSink),
+            metricSink,
+        ];
 
         CurrentSession = telemetrySession;
 
@@ -45,16 +58,15 @@ internal abstract class AbstractWorkspaceTelemetryService : IWorkspaceTelemetryS
     public string? SerializeCurrentSessionSettings()
         => CurrentSession?.SerializeSettings();
 
-    public void RegisterUnexpectedExceptionLogger(TraceSource logger)
-        => FaultReporter.RegisterLogger(logger);
-
-    public void UnregisterUnexpectedExceptionLogger(TraceSource logger)
-        => FaultReporter.UnregisterLogger(logger);
-
     public void Dispose()
     {
         // Ensure any aggregate telemetry is flushed when the catalog is destroyed.
         // It is fine for this to be called multiple times - if telemetry has already been flushed this will no-op.
-        TelemetryLogging.Flush();
+        RoslynTelemetry.Current.Flush();
+
+        foreach (var registration in _registrations)
+            registration.Dispose();
+
+        _registrations = [];
     }
 }

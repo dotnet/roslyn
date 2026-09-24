@@ -347,7 +347,7 @@ internal static partial class ConflictResolver
         var symbolIndex = 0;
         foreach (var symbol in symbols)
         {
-            var locations = symbol.Locations;
+            var locations = GetRelevantSymbolLocations(solution, symbol);
             var overriddenFromMetadata = false;
 
             if (symbol.IsOverride)
@@ -402,17 +402,30 @@ internal static partial class ConflictResolver
     /// </summary>
     private static async ValueTask<Location?> GetSymbolLocationAsync(Solution solution, ISymbol symbol, CancellationToken cancellationToken)
     {
-        var locations = symbol.Locations;
+        var locations = GetRelevantSymbolLocations(solution, symbol);
 
         var originalsourcesymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
         if (originalsourcesymbol != null)
-            locations = originalsourcesymbol.Locations;
+            locations = GetRelevantSymbolLocations(solution, originalsourcesymbol);
 
         var orderedLocations = locations
             .OrderBy(l => l.IsInSource ? solution.GetDocumentId(l.SourceTree)!.Id : Guid.Empty)
             .ThenBy(l => l.IsInSource ? l.SourceSpan.Start : int.MaxValue);
 
         return orderedLocations.FirstOrDefault();
+    }
+
+    // Ordinary source-generated declarations are regenerated after rename and may be temporarily stale during
+    // conflict analysis. Razor-generated declarations remain relevant because rename can map and edit them.
+    private static ImmutableArray<Location> GetRelevantSymbolLocations(Solution solution, ISymbol symbol)
+    {
+        var locations = symbol.Locations;
+        var relevantLocations = locations.WhereAsArray(location =>
+            !location.IsInSource ||
+            solution.GetDocument(location.SourceTree) is not SourceGeneratedDocument sourceGeneratedDocument ||
+            sourceGeneratedDocument.IsRazorSourceGeneratedDocument());
+
+        return relevantLocations.IsEmpty ? locations : relevantLocations;
     }
 
     private static bool HeuristicMetadataNameEquivalenceCheck(

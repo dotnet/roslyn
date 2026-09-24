@@ -763,6 +763,7 @@ End Namespace
                          WellKnownMember.System_Span_T__get_Length,
                          WellKnownMember.System_Span_T__Slice_Int_Int,
                          WellKnownMember.System_Span_T__Slice_Int,
+                         WellKnownMember.System_Span_T__op_Implicit_ReadOnlySpan_T,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Array,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length,
@@ -817,7 +818,8 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_ExtensionMarkerAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__DerivedTypes
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
@@ -986,6 +988,7 @@ End Namespace
                          WellKnownMember.System_Span_T__get_Length,
                          WellKnownMember.System_Span_T__Slice_Int,
                          WellKnownMember.System_Span_T__Slice_Int_Int,
+                         WellKnownMember.System_Span_T__op_Implicit_ReadOnlySpan_T,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Array,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length,
@@ -1040,7 +1043,8 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_ExtensionMarkerAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__DerivedTypes
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,

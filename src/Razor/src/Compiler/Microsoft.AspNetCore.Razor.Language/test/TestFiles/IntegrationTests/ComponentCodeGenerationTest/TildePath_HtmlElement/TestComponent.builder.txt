@@ -1,0 +1,2 @@
+﻿[0000] OpenElement("img")
+[0001] AddAttribute("src", Assets[@"images/logo.png"])

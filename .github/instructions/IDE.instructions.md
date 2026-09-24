@@ -1,5 +1,5 @@
 ---
-applyTo: "src/{Analyzers,CodeStyle,Features,Workspaces,EditorFeatures,VisualStudio}/**/*.{cs,vb}"
+applyTo: "src/{Analyzers,CodeStyle,Features,Workspaces,EditorFeatures,VisualStudio,LanguageServer}/**/*.{cs,vb}"
 ---
 
 # Roslyn IDE Development Guide
@@ -11,9 +11,24 @@ Roslyn uses a **layered service architecture** built on MEF (Managed Extensibili
 - **Workspaces** (`src/Workspaces/`): Core abstractions — `Workspace`, `Solution`, `Project`, `Document`
 - **Features** (`src/Features/`): Language-agnostic IDE features (refactoring, navigation, completion)
 - **Analyzers** (`src/Analyzers/`): IDE diagnostic analyzers and code fixes (IDE0xxx diagnostics)
-- **LanguageServer** (`src/LanguageServer/`): Shared LSP protocol implementation and Roslyn LSP executable
+- **CodeStyle** (`src/CodeStyle/`): Code-style analyzer packaging shared with the command-line
+- **LanguageServer** (`src/LanguageServer/`): Shared LSP protocol implementation and Roslyn LSP executable (`roslyn-language-server`)
 - **EditorFeatures** (`src/EditorFeatures/`): VS Editor integration and text manipulation
 - **VisualStudio** (`src/VisualStudio/`): Visual Studio-specific implementations
+- **VisualStudio integration-test harness** (`src/VisualStudio/IntegrationTest/Harness/`): shared integration-test infrastructure
+- **EditorConfig templates** (`src/VisualStudio/EditorConfig/`): item templates, generation wizard, context-menu command, VSIX projects, and Visual Studio insertion setup
+  - The setup insertion component is `Templates.Editorconfig.Setup`, but its SWR package identity must remain `Templates.Editorconfig.SolutionFile.Setup` because existing Visual Studio template packages depend on that ID.
+
+### External Access assemblies
+
+Partner APIs that depend on IDE layers are grouped into one ExternalAccess assembly per layer:
+
+- `src/Features/ExternalAccess/Core/`
+- `src/EditorFeatures/ExternalAccess/Core/`
+- `src/LanguageServer/ExternalAccess/Core/`
+- `src/VisualStudio/ExternalAccess/Core/`
+
+Partner-specific compatibility assembly for ASP.NET remains under `src/Features/ExternalAccess/AspNetCore/`; ExternalAccess projects for APIs that are not part of the unified layer assemblies remain separate.
 
 ### Service Resolution
 ```csharp
@@ -48,26 +63,16 @@ public MyService(IDependency dependency) { }
 - For localizable strings: `new LocalizableResourceString(nameof(FeaturesResources.Some_string), FeaturesResources.ResourceManager, typeof(FeaturesResources))`
 - After modifying `.resx` files, run `dotnet msbuild <path to csproj> /t:UpdateXlf` to update `.xlf` localization files
 
-## Testing Patterns
+## Analyzers & Code Fixes (IDE0xxx)
 
-### Test Workspace (MEF-dependent tests)
-```csharp
-[UseExportProvider]
-public class MyTests
-{
-    [Fact]
-    public async Task TestSomething()
-    {
-        var workspace = EditorTestWorkspace.CreateCSharp("class C { }");
-        var document = workspace.Documents.Single();
-    }
-}
-```
+- IDE code-style analyzers inherit from `AbstractBuiltInCodeStyleDiagnosticAnalyzer` — not raw `DiagnosticAnalyzer`
+- Always provide a `FixAllProvider` for code fixes (typically `WellKnownFixAllProviders.BatchFixer`)
+- Diagnostic ID constants live in `src/Analyzers/Core/Analyzers/IDEDiagnosticIds.cs`
 
-### Test Conventions
-- Prefer raw string literals (`"""..."""`) over verbatim strings (`@"..."`) for test source code
-- Keep tests focused — avoid unnecessary intermediary assertions
-- Use `[UseExportProvider]` for any test that depends on MEF services
+## Out-of-Process (OOP) Services
+
+- ServiceHub components live under `src/Workspaces/Remote/` and have special deployment considerations for .NET Core vs .NET Framework — keep both targets in mind when changing remote services
+- `src/Workspaces/Core/Portable/Utilities/StandardHandleInheritance.cs` prevents redirected Windows child processes from inheriting unrelated standard handles. The LanguageServer and MSBuild BuildHost disable inheritance for their lifetimes before launching descendants; dependency-light hosts may source-link this utility.
 
 ## Key Development Patterns
 
@@ -105,10 +110,11 @@ var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 - **Immutability**: All `Document`, `Solution`, `Project` instances are immutable — use `With*` methods
 - **Cancellation**: Always thread `CancellationToken` through async operations
 - **Performance**: Avoid LINQ in hot paths, prefer `for` loops or `.AsSpan()`, use `ObjectPool<T>`
+- **LanguageServer request context**: Handlers should use the asynchronous `RequestContext.Get*Async` methods for workspace, solution, and document access. Obsolete synchronous members remain only for compatibility with existing external-access consumers and forward to the asynchronous accessors.
 
 ## Common Gotchas
 
 - **ImportingConstructor must be marked `[Obsolete]`** with `MefConstruction.ImportingConstructorMessage`
 - **Language services must be exported with a specific language name** — don't use generic exports for both C#/VB
 - **Workspace changes must use immutable updates** — `Workspace.SetCurrentSolution()`
-- **Test failures often indicate MEF composition issues** — check export attributes
+- **MSBuild project extensions are stored with a leading `.`.** `ProjectFileExtensionRegistry` accepts registration and lookup values with or without the dot, but its enumeration API returns the canonical dot-prefixed form.

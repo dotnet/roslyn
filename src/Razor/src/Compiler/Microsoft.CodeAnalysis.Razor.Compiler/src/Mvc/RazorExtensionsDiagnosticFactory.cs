@@ -94,4 +94,13 @@ internal class RazorExtensionsDiagnosticFactory
 
     public static RazorDiagnostic CreatePageDirective_MustExistAtTheTopOfFile(SourceSpan source)
         => RazorDiagnostic.Create(PageDirective_MustExistAtTheTopOfFile, source, PageDirective.Directive.Directive);
+
+    internal static readonly RazorDiagnosticDescriptor ModelDirective_ModelTypeNotApplied =
+        new($"{DiagnosticPrefix}3907",
+            RazorExtensionsResources.ModelDirective_ModelTypeNotApplied,
+            RazorDiagnosticSeverity.Warning,
+            warningLevel: 11);
+
+    public static RazorDiagnostic CreateModelDirective_ModelTypeNotApplied(SourceSpan source)
+        => RazorDiagnostic.Create(ModelDirective_ModelTypeNotApplied, source);
 }

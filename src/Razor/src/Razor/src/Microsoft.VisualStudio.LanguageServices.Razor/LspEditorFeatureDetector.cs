@@ -48,8 +48,7 @@ internal sealed class LspEditorFeatureDetector(
         => _projectCapabilityResolver.CheckCapability(WellKnownProjectCapabilities.DotNetCoreCSharp, documentFilePath);
 
     public bool IsRemoteClient()
-        => _uiContextService.IsActive(Guids.LiveShareGuestUIContextGuid) ||
-           _uiContextService.IsActive(VSConstants.UICONTEXT.CloudEnvironmentConnected_guid);
+        => _uiContextService.IsActive(Guids.LiveShareGuestUIContextGuid);
 
     public bool IsLiveShareHost()
         => _uiContextService.IsActive(Guids.LiveShareHostUIContextGuid);

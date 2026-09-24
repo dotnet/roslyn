@@ -23,7 +23,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
         => (null, new CSharpMakeMethodAsynchronousCodeFixProvider());
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33082")]
-    public Task AwaitInVoidMethodWithModifiers()
+    public Task AwaitInVoidMethodWithModifiers_AsyncVoid()
         => TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
@@ -616,7 +616,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
             """, index: 1);
 
     [Fact]
-    public Task AwaitInVoidMethodWithModifiers2()
+    public Task AwaitInVoidMethodWithModifiers_AsyncTask()
         => TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
@@ -723,32 +723,6 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
 
     [Fact]
     public Task AwaitInLambdaAction()
-        => TestInRegularAndScriptAsync("""
-            using System;
-            using System.Threading.Tasks;
-
-            class Program
-            {
-                static void Main(string[] args)
-                {
-                    Action a = () => [|await Task.Delay(1);|]
-                }
-            }
-            """, """
-            using System;
-            using System.Threading.Tasks;
-
-            class Program
-            {
-                static void Main(string[] args)
-                {
-                    Action a = async () => await Task.Delay(1);
-                }
-            }
-            """);
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82471")]
-    public Task AwaitInLambdaActionMakeAsyncTask_NoWarning()
         => TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
@@ -2034,4 +2008,44 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
             }
             """);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82471")]
+    public Task PartialMethodUsedAsDelegateVariable_Warns()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            using System.Threading.Tasks;
+
+            public partial class C
+            {
+                public partial void DoWork();
+
+                public partial void DoWork()
+                {
+                    [|await Task.Delay(1);|]
+                }
+
+                private void Use()
+                {
+                    Action a = DoWork;
+                }
+            }
+            """, """
+            using System;
+            using System.Threading.Tasks;
+
+            public partial class C
+            {
+                public partial Task DoWorkAsync();
+
+                {|Warning:public async partial Task DoWorkAsync()
+                {
+                    await Task.Delay(1);
+                }|}
+
+                private void Use()
+                {
+                    Action a = DoWorkAsync;
+                }
+            }
+            """);
 }

@@ -474,6 +474,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var fullNameProvider = resultProvider.FullNameProvider;
             var declaredType = member.Type;
             var declaredTypeInfo = customTypeInfoMap.SubstituteCustomTypeInfo(member.OriginalDefinitionType, member.TypeInfo);
+            if (declaredType.IsByRef)
+            {
+                declaredType = declaredType.GetElementType();
+                declaredTypeInfo = CustomTypeInfo.SkipOne(declaredTypeInfo);
+
+                if (!memberValue.IsError() &&
+                    !memberValue.HasExceptionThrown() &&
+                    memberValue.Type.GetLmrType().IsByRef)
+                {
+                    memberValue = memberValue.Dereference(inspectionContext);
+                }
+            }
+
             string? memberNameForFullName;
 
             // Considering, we're not handling the case of a member inherited from a generic base type.

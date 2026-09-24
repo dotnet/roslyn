@@ -49,23 +49,15 @@ Generated Location: (4078:108,0 [3] )
 |}
 |
 
-Source Location: (651:16,7 [233] x:\dir\subdir\Test\TestComponent.cshtml)
+Source Location: (765:20,0 [119] x:\dir\subdir\Test\TestComponent.cshtml)
 |
-    ElementReference myElementReference;
-    TemplatedComponent myComponentReference;
-    string myVariable;
-
     void MethodRenderingMarkup(RenderTreeBuilder __builder)
     {
         for (var i = 0; i < 10; i++)
         {
 |
-Generated Location: (4264:118,0 [233] )
+Generated Location: (4264:118,0 [119] )
 |
-    ElementReference myElementReference;
-    TemplatedComponent myComponentReference;
-    string myVariable;
-
     void MethodRenderingMarkup(RenderTreeBuilder __builder)
     {
         for (var i = 0; i < 10; i++)
@@ -74,12 +66,12 @@ Generated Location: (4264:118,0 [233] )
 
 Source Location: (912:25,28 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |i|
-Generated Location: (4726:136,0 [1] )
+Generated Location: (4612:132,0 [1] )
 |i|
 
 Source Location: (925:25,41 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |i|
-Generated Location: (5005:146,25 [1] )
+Generated Location: (4891:142,25 [1] )
 |i|
 
 Source Location: (933:26,0 [164] x:\dir\subdir\Test\TestComponent.cshtml)
@@ -90,7 +82,7 @@ Source Location: (933:26,0 [164] x:\dir\subdir\Test\TestComponent.cshtml)
         System.GC.KeepAlive(myVariable);
     }
 |
-Generated Location: (5187:155,0 [164] )
+Generated Location: (5073:151,0 [164] )
 |        }
 
         System.GC.KeepAlive(myElementReference);

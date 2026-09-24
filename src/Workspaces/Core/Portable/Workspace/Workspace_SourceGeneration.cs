@@ -26,8 +26,6 @@ public partial class Workspace
     /// </summary>
     private readonly AsyncBatchingWorkQueue<(ProjectId? projectId, bool forceRegeneration)> _updateSourceGeneratorsQueue;
 
-    private readonly CancellationTokenSource _updateSourceGeneratorsQueueTokenSource = new();
-
     internal void EnqueueUpdateSourceGeneratorVersion(ProjectId? projectId, bool forceRegeneration)
         => _updateSourceGeneratorsQueue.AddWork((projectId, forceRegeneration));
 

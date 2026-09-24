@@ -948,6 +948,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             var runtimeType = value.Type.GetLmrType();
 
+            // If the value is a synthesized collection-expression wrapper, expand it as collection elements.
+            if (!value.IsNull &&
+                (inspectionContext.EvaluationFlags & DkmEvaluationFlags.ShowValueRaw) == 0 &&
+                SynthesizedCollectionHelpers.TryGetKind(runtimeType, out var synthesizedCollectionKind))
+            {
+                var synthesizedCollectionExpansion = SynthesizedCollectionExpansion.CreateExpansion(this, inspectionContext, declaredTypeAndInfo, value, synthesizedCollectionKind);
+                if (synthesizedCollectionExpansion is not null)
+                {
+                    return synthesizedCollectionExpansion;
+                }
+            }
+
             // If the value is an array, expand the array elements.
             if (runtimeType.IsArray)
             {

@@ -115,6 +115,12 @@
         }
       }
     },
+    "languages.razor.advanced.showAllCSharpCodeActions": {
+      "type": "boolean",
+      "default": false,
+      "title": "@Setting_ShowAllCSharpCodeActionsDisplayName;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "description": "@Setting_ShowAllCSharpCodeActionsDescription;{13b72f58-279e-49e0-a56d-296be02f0805}"
+    },
     "languages.razor.advanced.snippets": {
       "type": "string",
       "default": "all",

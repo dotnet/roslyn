@@ -28,14 +28,14 @@ internal static class RunningProjectOptionsFactory
         Func<TInfo, (string projectPath, string targetFramework, bool restartAutomatically)> translator)
     {
         // Invariants guaranteed by the debugger:
-        // - Running projects does nto contain duplicate ids.
-        // - TFM is always specified for SDK projects event if the project doesn't multi-target, it is empty for legacy projects.
+        // - Running projects do not contain duplicate ids.
+        // - TFM is always specified if the project multi-targets, otherwise it may be specified or be empty
 
         var runningProjectsByPathAndTfm = runningProjects
             .Select(info =>
             {
                 var (filePath, targetFramework, restartAutomatically) = translator(info);
-                return KeyValuePair.Create((filePath, targetFramework is { Length: > 0 } tfm ? tfm : null), restartAutomatically);
+                return KeyValuePair.Create((filePath, targetFramework), restartAutomatically);
             })
             .ToImmutableDictionary(PathAndTfmComparer.Instance);
 
@@ -49,9 +49,9 @@ internal static class RunningProjectOptionsFactory
             }
 
             // Roslyn project name does not include TFM if the project is not multi-targeted (flavor is null).
-            // The key comparer ignores TFM if null and therefore returns a random entry that has the same file path.
+            // The key comparer ignores TFM if it is empty and therefore returns a random entry that has the same file path.
             // Since projects without TFM can only have at most one entry in the dictionary the random entry is that single value.
-            if (runningProjectsByPathAndTfm.TryGetValue((project.FilePath, project.State.NameAndFlavor.flavor), out var restartAutomatically))
+            if (runningProjectsByPathAndTfm.TryGetValue((project.FilePath, project.State.NameAndFlavor.flavor ?? ""), out var restartAutomatically))
             {
                 result.Add(project.Id, new RunningProjectOptions() { RestartWhenChangesHaveNoEffect = restartAutomatically });
                 continue;
@@ -61,14 +61,14 @@ internal static class RunningProjectOptionsFactory
         return result.ToImmutableDictionary();
     }
 
-    private sealed class PathAndTfmComparer : IEqualityComparer<(string path, string? tfm)>
+    private sealed class PathAndTfmComparer : IEqualityComparer<(string path, string tfm)>
     {
         public static readonly PathAndTfmComparer Instance = new();
 
-        public int GetHashCode((string path, string? tfm) obj)
+        public int GetHashCode((string path, string tfm) obj)
             => obj.path.GetHashCode(); // only hash path, all tfms need to fall to the same bucket
 
-        public bool Equals((string path, string? tfm) x, (string path, string? tfm) y)
-            => x.path == y.path && (x.tfm == null || y.tfm == null || x.tfm == y.tfm);
+        public bool Equals((string path, string tfm) x, (string path, string tfm) y)
+            => x.path == y.path && (x.tfm is "" || y.tfm is "" || x.tfm == y.tfm);
     }
 }

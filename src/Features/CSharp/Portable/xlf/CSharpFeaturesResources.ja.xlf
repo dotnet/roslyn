@@ -32,6 +32,11 @@
         <target state="translated">NuGet パッケージ参照を追加します。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adds_a_file_based_app_reference">
+        <source>References another file-based app as a library.</source>
+        <target state="translated">別のファイルベースのアプリをライブラリとして参照します。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adds_a_file_reference">
         <source>Adds a file reference.</source>
         <target state="translated">ファイル参照を追加します。</target>
@@ -50,11 +55,6 @@
       <trans-unit id="Apply_0">
         <source>Apply '{0}'</source>
         <target state="translated">'{0}' を適用する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Apply_Copilot_suggestion">
-        <source>Apply Copilot suggestion</source>
-        <target state="translated">Copilot の提案を適用する</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
@@ -95,11 +95,6 @@
       <trans-unit id="Apply_expression_block_body_preferences">
         <source>Apply expression/block body preferences</source>
         <target state="translated">式/ブロック本体の基本設定を適用します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Apply_fix_from">
-        <source>Apply fix from</source>
-        <target state="translated">修正プログラムの適用元</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_inline_out_variable_preferences">
@@ -281,6 +276,11 @@
         <source>path</source>
         <target state="translated">path</target>
         <note>'path' is a placeholder for a project file or directory path in a directive like '#:project path'.</note>
+      </trans-unit>
+      <trans-unit id="Ref_directive_file_path">
+        <source>path</source>
+        <target state="translated">パス</target>
+        <note>'path' is a placeholder for a file path in a directive like '#:ref path'.</note>
       </trans-unit>
       <trans-unit id="Reverse_for_statement">
         <source>Reverse 'for' statement</source>

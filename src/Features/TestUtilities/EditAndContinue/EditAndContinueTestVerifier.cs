@@ -62,6 +62,33 @@ internal abstract class EditAndContinueTestVerifier
     public const EditAndContinueCapabilities AllRuntimeCapabilities =
         Net10RuntimeCapabilities;
 
+    internal static readonly SymbolDisplayFormat TestFormat =
+        new SymbolDisplayFormat(
+            globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+            propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
+            localOptions: SymbolDisplayLocalOptions.IncludeType,
+            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
+            memberOptions:
+                SymbolDisplayMemberOptions.IncludeParameters |
+                SymbolDisplayMemberOptions.IncludeContainingType |
+                SymbolDisplayMemberOptions.IncludeType |
+                SymbolDisplayMemberOptions.IncludeRef |
+                SymbolDisplayMemberOptions.IncludeExplicitInterface,
+            kindOptions:
+                SymbolDisplayKindOptions.IncludeMemberKeyword,
+            parameterOptions:
+                SymbolDisplayParameterOptions.IncludeOptionalBrackets |
+                SymbolDisplayParameterOptions.IncludeDefaultValue |
+                SymbolDisplayParameterOptions.IncludeParamsRefOut |
+                SymbolDisplayParameterOptions.IncludeExtensionThis |
+                SymbolDisplayParameterOptions.IncludeType |
+                SymbolDisplayParameterOptions.IncludeName,
+            miscellaneousOptions:
+                SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
+                SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
+                SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+
     public AbstractEditAndContinueAnalyzer Analyzer { get; }
 
     protected EditAndContinueTestVerifier(Action<SyntaxNode>? faultInjector)
@@ -352,12 +379,12 @@ internal abstract class EditAndContinueTestVerifier
             => leftKey.ToString().CompareTo(rightKey.ToString()) is not 0 and var result ? result : leftKind.CompareTo(rightKind);
 
         SymbolKey CreateSymbolKey(SemanticEditDescription edit)
-            => SymbolKey.Create(edit.SymbolProvider((edit.Kind == SemanticEditKind.Delete) ? oldCompilation : newCompilation));
+            => SymbolKey.Create(edit.GetSymbol((edit.Kind == SemanticEditKind.Delete) ? oldCompilation : newCompilation));
 
         // string comparison to simplify understanding why a test failed:
         AssertEx.Equal(
-            expectedSemanticEdits.Select(e => $"{e.Kind}: {e.SymbolProvider((e.Kind == SemanticEditKind.Delete ? oldCompilation : newCompilation))}"),
-            actualSemanticEdits.Select(e => $"{e.Kind}: {e.Symbol.Resolve(e.Kind == SemanticEditKind.Delete ? oldCompilation : newCompilation).Symbol}"),
+            expectedSemanticEdits.Select(e => $"{e.Kind}: {Inspect(e.GetSymbol((e.Kind == SemanticEditKind.Delete ? oldCompilation : newCompilation)))}"),
+            actualSemanticEdits.Select(e => $"{e.Kind}: {Inspect(e.Symbol.Resolve(e.Kind == SemanticEditKind.Delete ? oldCompilation : newCompilation).Symbol)}"),
             message: message);
 
         for (var i = 0; i < actualSemanticEdits.Length; i++)
@@ -374,23 +401,23 @@ internal abstract class EditAndContinueTestVerifier
             switch (editKind)
             {
                 case SemanticEditKind.Update:
-                    expectedOldSymbol = expectedSemanticEdit.SymbolProvider(oldCompilation);
-                    expectedNewSymbol = expectedSemanticEdit.SymbolProvider(newCompilation);
+                    expectedOldSymbol = expectedSemanticEdit.GetSymbol(oldCompilation);
+                    expectedNewSymbol = expectedSemanticEdit.GetSymbol(newCompilation);
 
-                    Assert.Equal(expectedOldSymbol, symbolKey.Resolve(oldCompilation).Symbol);
-                    Assert.Equal(expectedNewSymbol, symbolKey.Resolve(newCompilation).Symbol);
+                    VerifySymbolsEqual(expectedOldSymbol, symbolKey.Resolve(oldCompilation).Symbol);
+                    VerifySymbolsEqual(expectedNewSymbol, symbolKey.Resolve(newCompilation).Symbol);
                     break;
 
                 case SemanticEditKind.Delete:
-                    expectedOldSymbol = expectedSemanticEdit.SymbolProvider(oldCompilation);
+                    expectedOldSymbol = expectedSemanticEdit.GetSymbol(oldCompilation);
 
                     // Symbol key will happily resolve to a definition part that has no implementation, so we validate that
                     // differently
                     if (expectedOldSymbol.IsPartialDefinition() &&
                         symbolKey.Resolve(oldCompilation).Symbol is ISymbol resolvedSymbol)
                     {
-                        Assert.Equal(expectedOldSymbol, resolvedSymbol.PartialDefinitionPart());
-                        Assert.Equal(null, resolvedSymbol.PartialImplementationPart());
+                        VerifySymbolsEqual(expectedOldSymbol, resolvedSymbol.PartialDefinitionPart());
+                        Assert.Null(resolvedSymbol.PartialImplementationPart());
                     }
                     else
                     {
@@ -401,7 +428,7 @@ internal abstract class EditAndContinueTestVerifier
                         // represented in the symbol key, so the check below would fail, so we skip it.
                         if (expectedSemanticEdit.DeletedSymbolContainerProvider is null)
                         {
-                            Assert.Equal(null, symbolKey.Resolve(newCompilation).Symbol);
+                            Assert.Null(symbolKey.Resolve(newCompilation).Symbol);
                         }
                     }
 
@@ -409,13 +436,13 @@ internal abstract class EditAndContinueTestVerifier
                     AssertEx.AreEqual(
                         deletedSymbolContainer,
                         expectedSemanticEdit.DeletedSymbolContainerProvider?.Invoke(newCompilation),
-                        message: $"{message}, {editKind}({expectedNewSymbol ?? expectedOldSymbol}): Incorrect deleted container");
+                        message: $"{message}, {editKind}({Inspect(expectedNewSymbol ?? expectedOldSymbol)}): Incorrect deleted container");
 
                     break;
 
                 case SemanticEditKind.Insert or SemanticEditKind.Replace:
-                    expectedNewSymbol = expectedSemanticEdit.SymbolProvider(newCompilation);
-                    Assert.Equal(expectedNewSymbol, symbolKey.Resolve(newCompilation).Symbol);
+                    expectedNewSymbol = expectedSemanticEdit.GetSymbol(newCompilation);
+                    VerifySymbolsEqual(expectedNewSymbol, symbolKey.Resolve(newCompilation).Symbol);
                     break;
 
                 default:
@@ -426,7 +453,7 @@ internal abstract class EditAndContinueTestVerifier
             AssertEx.AreEqual(
                 expectedSemanticEdit.PartialType?.Invoke(newCompilation),
                 actualSemanticEdit.PartialType?.Resolve(newCompilation).Symbol,
-                message: $"{message}, {editKind}({expectedNewSymbol ?? expectedOldSymbol}): Partial types do not match");
+                message: $"{message}, {editKind}({Inspect(expectedNewSymbol ?? expectedOldSymbol)}): Partial types do not match");
 
             var expectedSyntaxMap = expectedSemanticEdit.GetSyntaxMap();
 
@@ -435,7 +462,7 @@ internal abstract class EditAndContinueTestVerifier
             AssertEx.AreEqual(
                 expectedSyntaxMap != null,
                 actualSyntaxMaps.HasMap,
-                message: $"{message}, {editKind}({expectedNewSymbol ?? expectedOldSymbol}): Incorrect syntax map");
+                message: $"{message}, {editKind}({Inspect(expectedNewSymbol ?? expectedOldSymbol)}): Incorrect syntax map");
 
             // If expected map is specified validate its mappings with the actual one:
             if (expectedSyntaxMap != null)
@@ -443,6 +470,35 @@ internal abstract class EditAndContinueTestVerifier
                 VerifySyntaxMaps(oldRoot, newRoot, expectedSyntaxMap, actualSyntaxMaps);
             }
         }
+    }
+
+    public static void VerifySymbolsEqual(ISymbol expectedSymbol, ISymbol? actualSymbol)
+    {
+        if (expectedSymbol != actualSymbol)
+        {
+            Assert.Fail($"Expected: {Inspect(expectedSymbol)}; actual: {Inspect(actualSymbol)}");
+        }
+    }
+
+    private static string Inspect(ISymbol? symbol)
+    {
+        if (symbol is null)
+        {
+            return "<null>";
+        }
+
+        var display = $"'{symbol.ToDisplayString(TestFormat)}'";
+
+        if (symbol.IsPartialDefinition())
+        {
+            display += " (partial def)";
+        }
+        else if (symbol.IsPartialImplementation())
+        {
+            display += " (partial impl)";
+        }
+
+        return display;
     }
 
     public static SyntaxNode FindNode(SyntaxNode root, TextSpan span)

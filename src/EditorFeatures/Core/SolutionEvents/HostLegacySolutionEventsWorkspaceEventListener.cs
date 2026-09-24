@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -26,10 +25,9 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents;
 /// to an entirely differently (ideally 'pull') model for test discovery.
 /// </summary>
 [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
-internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : IEventListener
+internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : IEventListener, IDisposable
 {
     private readonly IGlobalOptionService _globalOptions;
-    private readonly IThreadingContext _threadingContext;
     private readonly AsyncBatchingWorkQueue<WorkspaceChangeEventArgs> _eventQueue;
 
     private WorkspaceEventRegistration? _workspaceChangedDisposer;
@@ -40,17 +38,16 @@ internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : I
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public HostLegacySolutionEventsWorkspaceEventListener(
         IGlobalOptionService globalOptions,
-        IThreadingContext threadingContext,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
         _globalOptions = globalOptions;
-        _threadingContext = threadingContext;
         _eventQueue = new AsyncBatchingWorkQueue<WorkspaceChangeEventArgs>(
             DelayTimeSpan.Short,
             ProcessWorkspaceChangeEventsAsync,
-            listenerProvider.GetListener(FeatureAttribute.SolutionCrawlerUnitTesting),
-            _threadingContext.DisposalToken);
+            listenerProvider.GetListener(FeatureAttribute.SolutionCrawlerUnitTesting));
     }
+
+    public void Dispose() => _eventQueue.Dispose();
 
     public void StartListening(Workspace workspace)
     {

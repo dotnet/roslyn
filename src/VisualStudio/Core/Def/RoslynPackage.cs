@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTesting;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
@@ -35,10 +34,19 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Setup;
 
+[PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
+[ProvideMenuResource("Menus.ctmenu", 22)]
+[ProvideUIContextRule(
+    EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString,
+    name: "Managed Edit and Continue capability",
+    expression: "CS | VB",
+    termNames: ["CS", "VB"],
+    termValues: [Guids.CSharpProjectExistsInWorkspaceUIContextString, Guids.VisualBasicProjectExistsInWorkspaceUIContextString])]
 [Guid(Guids.RoslynPackageIdString)]
 [ProvideToolWindow(typeof(ValueTracking.ValueTrackingToolWindow))]
 [ProvideToolWindow(typeof(StackTraceExplorerToolWindow))]
 [ProvideService(typeof(RoslynPackageLoadService), IsAsyncQueryable = true, IsCacheable = true, IsFreeThreaded = true)]
+[ProvideSettingsManifest(PackageRelativeManifestFile = @"UnifiedSettings\roslynSettings.registration.json")]
 internal sealed class RoslynPackage : AbstractPackage
 {
     private static RoslynPackage? s_lazyInstance;
@@ -108,7 +116,6 @@ internal sealed class RoslynPackage : AbstractPackage
             _menuCommandService.AddCommand(Guids.StackTraceExplorerCommandId, 0x0102,
                 (s, e) => ComponentModel.GetService<StackTraceExplorerCommandHandler>().OnClear(s, e));
 
-            await RegisterEditorFactoryAsync(new SettingsEditorFactory(), cancellationToken).ConfigureAwait(true);
             await ProfferServiceBrokerServicesAsync(cancellationToken).ConfigureAwait(true);
         }
     }

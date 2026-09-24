@@ -1,23 +1,79 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Razor.Settings;
+using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Remote.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Razor.LanguageClient.Cohost;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using WorkItemAttribute = Roslyn.Test.Utilities.WorkItemAttribute;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
+    private static readonly string[] s_newLineBeforeOpenBracePlacements =
+    [
+        "accessors",
+        "types",
+        "methods",
+        "properties",
+        "anonymous_methods",
+        "control_blocks",
+        "anonymous_types",
+        "object_collection_array_initializers",
+        "lambdas",
+    ];
+
+    [Fact]
+    public void RazorTriggerCharactersMatchOOPAutoInsertProviders()
+    {
+        var expectedTriggerCharacters = OOPExportProvider.GetExportedValues<IOnAutoInsertProvider>()
+            .Select(provider => provider.TriggerCharacter)
+            .Distinct()
+            .OrderBy(triggerCharacter => triggerCharacter)
+            .ToArray();
+        var actualTriggerCharacters = CohostOnAutoInsertEndpoint.TestAccessor.GetRazorOnAutoInsertTriggerCharacters()
+            .OrderBy(triggerCharacter => triggerCharacter)
+            .ToArray();
+
+        Assert.Equal(expectedTriggerCharacters, actualTriggerCharacters);
+    }
+
+    [Fact]
+    public void CSharpTriggerCharactersMatchRemoteAutoInsertService()
+    {
+        var expectedTriggerCharacters = RemoteAutoInsertService.TestAccessor.GetCSharpAllowedAutoInsertTriggerCharacters()
+            .OrderBy(triggerCharacter => triggerCharacter)
+            .ToArray();
+        var actualTriggerCharacters = CohostOnAutoInsertEndpoint.TestAccessor.GetCSharpAllowedAutoInsertTriggerCharacters()
+            .OrderBy(triggerCharacter => triggerCharacter)
+            .ToArray();
+
+        Assert.Equal(expectedTriggerCharacters, actualTriggerCharacters);
+    }
+
+    [Fact]
+    public void HtmlTriggerCharactersMatchRemoteAutoInsertService()
+    {
+        var expectedTriggerCharacters = RemoteAutoInsertService.TestAccessor.GetHtmlAllowedAutoInsertTriggerCharacters()
+            .OrderBy(triggerCharacter => triggerCharacter)
+            .ToArray();
+        var actualTriggerCharacters = CohostOnAutoInsertEndpoint.TestAccessor.GetHtmlAllowedAutoInsertTriggerCharacters()
+            .OrderBy(triggerCharacter => triggerCharacter)
+            .ToArray();
+
+        Assert.Equal(expectedTriggerCharacters, actualTriggerCharacters);
+    }
+
     [Theory]
     [InlineData("PageTitle")]
     [InlineData("div")]
@@ -39,6 +95,16 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
 
                 The end.
                 """,
+            triggerCharacter: ">");
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13203")]
+    public async Task EndTag_EmptyTagName()
+    {
+        await VerifyOnAutoInsertAsync(
+            input: "<>$$",
+            output: "<>$0</>",
             triggerCharacter: ">");
     }
 
@@ -494,6 +560,271 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12703")]
+    public async Task CSharp_OnEnter_KAndRBraces_ControlBlock()
+    {
+        await VerifyCSharpOnEnterKAndRBracesAsync(
+            input: """
+                @{
+                    if (true) {
+                $$}
+                }
+                """,
+            output: """
+                @{
+                    if (true) {
+                        $0
+                    }
+                }
+                """,
+            excludedBracePlacement: "control_blocks");
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12703")]
+    public async Task CSharp_OnEnter_KAndRBraces_NestedType()
+    {
+        await VerifyOnAutoInsertAsync(
+            input: """
+                @code {
+                    private class C {
+                $$}
+                }
+                """,
+            output: """
+                @code {
+                    private class C {
+                        $0
+                    }
+                }
+                """,
+            triggerCharacter: "\n",
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_new_line_before_open_brace = none
+                    """)
+            ]);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12703")]
+    public async Task CSharp_OnEnter_KAndRBraces_Method()
+    {
+        await VerifyCSharpOnEnterKAndRBracesAsync(
+            input: """
+                @code {
+                    private void M() {
+                $$}
+                }
+                """,
+            output: """
+                @code {
+                    private void M() {
+                        $0
+                    }
+                }
+                """,
+            excludedBracePlacement: "methods");
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
+    public async Task CSharp_OnEnter_UsesEditorConfig_Razor()
+    {
+        await VerifyOnAutoInsertAsync(
+            input: """
+                @code {
+                    private void M() {
+                $$}
+                }
+                """,
+            output: """
+                @code {
+                    private void M() {
+                        $0
+                    }
+                }
+                """,
+            triggerCharacter: "\n",
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_new_line_before_open_brace = none
+                    """)
+            ]);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
+    public async Task CSharp_OnEnter_UsesEditorConfig_Cshtml()
+    {
+        await VerifyOnAutoInsertAsync(
+            input: """
+                @functions {
+                    private void M() {
+                $$}
+                }
+                """,
+            output: """
+                @functions {
+                    private void M() {
+                        $0
+                    }
+                }
+                """,
+            triggerCharacter: "\n",
+            fileKind: RazorFileKind.Legacy,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.cshtml]
+                    csharp_new_line_before_open_brace = none
+                    """)
+            ]);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12703")]
+    public async Task CSharp_OnEnter_KAndRBraces_Property()
+    {
+        await VerifyCSharpOnEnterKAndRBracesAsync(
+            input: """
+                @code {
+                    private int P {
+                $$}
+                }
+                """,
+            output: """
+                @code {
+                    private int P {
+                        $0
+                    }
+                }
+                """,
+            excludedBracePlacement: "properties");
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12703")]
+    public async Task CSharp_OnEnter_KAndRBraces_Accessor()
+    {
+        await VerifyCSharpOnEnterKAndRBracesAsync(
+            input: """
+                @code {
+                    private int P
+                    {
+                        get {
+                $$}
+                    }
+                }
+                """,
+            output: """
+                @code {
+                    private int P
+                    {
+                        get {
+                            $0
+                        }
+                    }
+                }
+                """,
+            excludedBracePlacement: "accessors");
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12703")]
+    public async Task CSharp_OnEnter_KAndRBraces_Lambda()
+    {
+        await VerifyCSharpOnEnterKAndRBracesAsync(
+            input: """
+                @code {
+                    private System.Action A = () => {
+                $$};
+                }
+                """,
+            output: """
+                @code {
+                    private System.Action A = () => {
+                        $0
+                    };
+                }
+                """,
+            excludedBracePlacement: "lambdas");
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12703")]
+    public async Task CSharp_OnEnter_KAndRBraces_AnonymousMethod()
+    {
+        await VerifyCSharpOnEnterKAndRBracesAsync(
+            input: """
+                @code {
+                    private System.Action A = delegate {
+                $$};
+                }
+                """,
+            output: """
+                @code {
+                    private System.Action A = delegate {
+                        $0
+                    };
+                }
+                """,
+            excludedBracePlacement: "anonymous_methods");
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12703")]
+    public async Task CSharp_OnEnter_KAndRBraces_ObjectInitializer()
+    {
+        await VerifyCSharpOnEnterKAndRBracesAsync(
+            input: """
+                @code {
+                    private object O = new object {
+                $$};
+                }
+                """,
+            output: """
+                @code {
+                    private object O = new object {
+                        $0
+                    };
+                }
+                """,
+            excludedBracePlacement: "object_collection_array_initializers");
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12703")]
+    public async Task CSharp_OnEnter_KAndRBraces_AnonymousType()
+    {
+        await VerifyCSharpOnEnterKAndRBracesAsync(
+            input: """
+                @code {
+                    private object O = new {
+                $$};
+                }
+                """,
+            output: """
+                @code {
+                    private object O = new {
+                        $0
+                    };
+                }
+                """,
+            excludedBracePlacement: "anonymous_types");
+    }
+
+    [Fact]
     public async Task CSharp_OnEnter_TwoSpaceIndent()
     {
         await VerifyOnAutoInsertAsync(
@@ -538,6 +869,24 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             insertSpaces: false);
     }
 
+    private Task VerifyCSharpOnEnterKAndRBracesAsync(
+        TestCode input,
+        string output,
+        string excludedBracePlacement)
+        => VerifyOnAutoInsertAsync(
+            input,
+            output,
+            triggerCharacter: "\n",
+            additionalFiles:
+            [
+                (".editorconfig", $$"""
+                    root = true
+
+                    [*.razor]
+                    csharp_new_line_before_open_brace = {{string.Join(", ", s_newLineBeforeOpenBracePlacements.Where(placement => placement != excludedBracePlacement))}}
+                    """)
+            ]);
+
     private async Task VerifyOnAutoInsertAsync(
         TestCode input,
         string? output,
@@ -547,17 +896,17 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
         int tabSize = 4,
         bool formatOnType = true,
         bool autoClosingTags = true,
-        RazorFileKind? fileKind = null)
+        RazorFileKind? fileKind = null,
+        (string fileName, string contents)[]? additionalFiles = null)
     {
         fileKind ??= RazorFileKind.Component;
-        var document = CreateProjectAndRazorDocument(input.Text, fileKind: fileKind);
+        var document = CreateProjectAndRazorDocument(
+            input.Text,
+            fileKind: fileKind,
+            additionalFiles: additionalFiles);
         var sourceText = await document.GetTextAsync(DisposalToken);
 
         ClientSettingsManager.Update(ClientAdvancedSettings.Default with { FormatOnType = formatOnType, AutoClosingTags = autoClosingTags });
-
-        IOnAutoInsertTriggerCharacterProvider[] onAutoInsertTriggerCharacterProviders = [
-            new RemoteAutoClosingTagOnAutoInsertProvider(),
-            new RemoteCloseTextTagOnAutoInsertProvider()];
 
         VSInternalDocumentOnAutoInsertResponseItem? response = null;
         if (delegatedResponseText is not null)
@@ -577,7 +926,6 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             IncompatibleProjectService,
             RemoteServiceInvoker,
             ClientSettingsManager,
-            onAutoInsertTriggerCharacterProviders,
             requestInvoker,
             LoggerFactory);
 

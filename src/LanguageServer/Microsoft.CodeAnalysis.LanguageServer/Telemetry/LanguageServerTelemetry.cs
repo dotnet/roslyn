@@ -1,0 +1,247 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Reflection;
+using System.Text;
+using System.Text.Json;
+using Microsoft.CodeAnalysis.Common;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
+using Microsoft.CodeAnalysis.Telemetry;
+using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.Telemetry;
+using Microsoft.VisualStudio.Telemetry.Metrics.Events;
+
+namespace Microsoft.CodeAnalysis.LanguageServer.Telemetry;
+
+/// <summary>
+/// Initializes language server telemetry using a standalone session or from C#DK.  Flushes telemetry on shutdown.
+/// </summary>
+internal sealed class LanguageServerTelemetry : IDisposable
+{
+    private const string CommonPropertyPrefix = "roslyn.languageserver.";
+
+    internal const string DaemonSessionIdPropertyName = CommonPropertyPrefix + "daemonSessionId";
+    internal const string HostModePropertyName = CommonPropertyPrefix + "hostMode";
+    internal const string ServerVersionPropertyName = CommonPropertyPrefix + "serverVersion";
+    internal const string ServerPackageVersionPropertyName = CommonPropertyPrefix + "serverPackageVersion";
+    internal const string ServerPlatformPropertyName = CommonPropertyPrefix + "serverPlatform";
+
+    /// <summary>
+    /// Collector key used by C# Dev Kit to send language server telemetry to the VS Code cluster.
+    /// </summary>
+    private const string VSCodeCollectorApiKey = "0c6ae279ed8443289764825290e4f9e2-1a736e7c-1324-4338-be46-fc2a58ae4d14-7255";
+
+    /// <summary>
+    /// Collector key used by standalone hosts to send language server telemetry to the Visual Studio cluster.
+    /// </summary>
+    private const string VSCollectorApiKey = "f3e86b4023cc43f0be495508d51f588a-f70d0e59-0fb0-4473-9f19-b4024cc340be-7296";
+
+    private readonly ServerConfiguration _serverConfiguration;
+    private readonly ILogger _logger;
+    private readonly RoslynTelemetry _telemetry;
+    private TelemetrySession? _telemetrySession;
+
+    /// <summary>
+    /// Ordered list of sinks that must be disposed of on shutdown.
+    /// </summary>
+    private ImmutableArray<IDisposable> _registrations = [];
+
+    public LanguageServerTelemetry(ServerConfiguration serverConfiguration, ILoggerFactory loggerFactory, RoslynTelemetry telemetry)
+    {
+        _serverConfiguration = serverConfiguration;
+        _logger = loggerFactory.CreateLogger<LanguageServerTelemetry>();
+        _telemetry = telemetry;
+    }
+
+    internal static LanguageServerTelemetry? CreateSession(
+        ServerConfiguration serverConfiguration,
+        ILoggerFactory loggerFactory,
+        RoslynTelemetry telemetry,
+        string? sessionId,
+        bool isDefaultSession,
+        string? daemonSessionId = null)
+    {
+        if (serverConfiguration.TelemetryLevel is not { } telemetryLevel ||
+            (!isDefaultSession && telemetryLevel == "off"))
+        {
+            return null;
+        }
+
+        var telemetryService = new LanguageServerTelemetry(serverConfiguration, loggerFactory, telemetry);
+        try
+        {
+            telemetryService.InitializeSession(
+                telemetryLevel, sessionId, isDefaultSession, daemonSessionId);
+            return telemetryService;
+        }
+        catch
+        {
+            telemetryService.Dispose();
+            throw;
+        }
+    }
+
+    public void InitializeSession(string telemetryLevel, string? sessionId, bool isDefaultSession, string? daemonSessionId = null)
+    {
+        Debug.Assert(_telemetrySession is null);
+
+        var useDevKitTelemetry = _serverConfiguration.DevKitDependencyPath is not null;
+
+        var session = useDevKitTelemetry
+            ? new TelemetrySession(CreateDevKitSessionSettings(telemetryLevel, sessionId))
+            : new TelemetrySession(CreateStandaloneSessionSettings(telemetryLevel, sessionId));
+        _telemetrySession = session;
+
+        if (!useDevKitTelemetry)
+        {
+            // The VS default session is opted out until the standalone host supplies consent.
+            session.IsOptedIn = IsCopilotCliTelemetryEnabled(telemetryLevel);
+
+            if (telemetryLevel is not ("all" or "off"))
+            {
+                _logger.LogInformation("Unsupported Copilot CLI telemetry level. Telemetry will remain disabled.");
+            }
+        }
+
+        AddServerCommonProperties(session);
+
+        if (daemonSessionId is not null)
+            Contract.ThrowIfFalse(session.TryAddCommonProperty(DaemonSessionIdPropertyName, daemonSessionId));
+        else
+            Contract.ThrowIfFalse(session.TryAddCommonProperty(HostModePropertyName, _serverConfiguration.IsDaemon ? "Daemon" : "Standalone"));
+
+        if (isDefaultSession)
+            VisualStudio.Telemetry.TelemetryService.SetDefaultSession(session);
+
+        session.Start();
+        session.RegisterForReliabilityEvent();
+
+        _logger.LogTrace(
+            "Telemetry session started with sessionID {sessionId} for {telemetryDestination}",
+            session.SessionId,
+            useDevKitTelemetry ? "VS Code" : "VS Raw");
+
+        TelemetryReporterWrapper.RegisterSession(_telemetry, session);
+
+        var eventSink = TelemetryEventSink.Create(session, logDelta: true);
+        eventSink.IncludeServiceHubLogFiles = false;
+        var metricSink = new VSMetricSink(session);
+        _registrations =
+        [
+            _telemetry.AddEventSink(eventSink),
+            _telemetry.AddMetricSink(metricSink),
+            metricSink,
+        ];
+
+        FaultReporter.InitializeFatalErrorHandlers();
+    }
+
+    internal static bool IsCopilotCliTelemetryEnabled(string? telemetryLevel)
+        => telemetryLevel == "all";
+
+    public RoslynTelemetry Telemetry => _telemetry;
+    public string? SessionId => _telemetrySession?.SessionId;
+
+    internal static string GetServerVersion()
+        => typeof(LanguageServerTelemetry).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
+            ?? throw new InvalidOperationException("The language server assembly does not have an informational version.");
+
+    internal static string GetServerPackageVersion(string serverVersion)
+    {
+        var buildMetadataSeparator = serverVersion.IndexOf('+');
+        return buildMetadataSeparator >= 0 ? serverVersion[..buildMetadataSeparator] : serverVersion;
+    }
+
+    internal static string GetServerPlatform()
+        => OperatingSystem.IsWindows()
+            ? "windows"
+            : OperatingSystem.IsLinux()
+                ? "linux"
+                : OperatingSystem.IsMacOS()
+                    ? "macos"
+                    : "unknown";
+
+    public void Dispose()
+    {
+        try
+        {
+            if (_telemetrySession is { } session)
+            {
+                _telemetry.Flush();
+
+                foreach (var registration in _registrations)
+                    registration.Dispose();
+
+                _registrations = [];
+
+                session.Dispose();
+                _telemetrySession = null;
+            }
+        }
+        finally
+        {
+            TelemetryReporterWrapper.UnregisterSession(_telemetry);
+        }
+    }
+
+    private static void AddServerCommonProperties(TelemetrySession session)
+    {
+        var serverVersion = GetServerVersion();
+        Contract.ThrowIfFalse(session.TryAddCommonProperty(ServerVersionPropertyName, serverVersion));
+        Contract.ThrowIfFalse(session.TryAddCommonProperty(ServerPackageVersionPropertyName, GetServerPackageVersion(serverVersion)));
+        Contract.ThrowIfFalse(session.TryAddCommonProperty(ServerPlatformPropertyName, GetServerPlatform()));
+    }
+
+    internal static string CreateDevKitSessionSettings(string telemetryLevel, string? sessionId)
+        => CreateSessionSettings(telemetryLevel, sessionId, VSCodeCollectorApiKey);
+
+    internal static string CreateStandaloneSessionSettings(string telemetryLevel, string? sessionId)
+        => CreateSessionSettings(telemetryLevel, sessionId, VSCollectorApiKey);
+
+    private static string CreateSessionSettings(string telemetryLevel, string? sessionId, string collectorApiKey)
+    {
+        sessionId ??= Guid.NewGuid().ToString();
+
+        // Generate a new startTime for process to be consumed by Telemetry Settings
+        using var curProcess = Process.GetCurrentProcess();
+        var processStartTime = curProcess.StartTime.ToFileTimeUtc().ToString();
+
+        var sb = new StringBuilder();
+
+        var kvp = new Dictionary<string, string>
+        {
+            { "Id", StringToJsonValue(sessionId) },
+            { "HostName", StringToJsonValue("Default") },
+
+            // Insert Telemetry Level instead of Opt-Out status. The telemetry service handles
+            // validation of this value so there is no need to do so on this end. If it's invalid,
+            // it defaults to off.
+            { "TelemetryLevel", StringToJsonValue(telemetryLevel) },
+
+            // this sets the Telemetry Session Created by LSP Server to be the Root Initial session
+            // This means that the SessionID set here by "Id" will be the SessionID used by cloned session
+            // further down stream
+            { "IsInitialSession", "true" },
+            { "CollectorApiKey", StringToJsonValue(collectorApiKey) },
+
+            // using 1010 to indicate VS Code and not to match it to devenv 1000
+            { "AppId", "1010" },
+            { "ProcessStartTime", processStartTime },
+        };
+
+        foreach (var keyValue in kvp)
+        {
+            sb.AppendFormat("\"{0}\":{1},", keyValue.Key, keyValue.Value);
+        }
+
+        return $"{{{sb.ToString().TrimEnd(',')}}}";
+
+        static string StringToJsonValue(string? value)
+            => JsonSerializer.Serialize(value);
+    }
+}

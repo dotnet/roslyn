@@ -1,0 +1,13 @@
+﻿Source Location: (50:1,7 [105] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    public int ParentValue { get; set; } = 42;
+
+    public string nameof(string s) => string.Empty;
+|
+Generated Location: (557:18,0 [105] )
+|
+    public int ParentValue { get; set; } = 42;
+
+    public string nameof(string s) => string.Empty;
+|
+

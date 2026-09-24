@@ -341,6 +341,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestCopyAnnotations(tree1, tree2);
         }
 
+        [Fact]
+        public void TestReferenceEquality()
+        {
+            var annotation1 = new SyntaxAnnotation("foo", "bar");
+            var annotation2 = new SyntaxAnnotation("foo", "bar");
+
+            Assert.NotEqual(annotation1, annotation2);
+        }
+
         #endregion
 
         private void TestMultipleAnnotationsInTree(SyntaxNode oldRoot, SyntaxNode newRoot, List<SyntaxAnnotation> annotations)

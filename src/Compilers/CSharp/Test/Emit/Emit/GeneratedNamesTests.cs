@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         [InlineData("L1|1#2", 0, 0, 1, 2, true)]
         public void TryParseDebugIds(string metadataName, int methodIdOrdinal, int methodIdGeneration, int entityIdOrdinal, int entityIdGeneration, bool isMethodIdOptional = false)
         {
-            Assert.True(CommonGeneratedNames.TryParseDebugIds(metadataName.AsSpan(), GeneratedNameConstants.IdSeparator, isMethodIdOptional, out var actualMethodId, out var actualEntityId));
+            Assert.True(WellKnownGeneratedNames.TryParseDebugIds(metadataName.AsSpan(), GeneratedNameConstants.IdSeparator, isMethodIdOptional, out var actualMethodId, out var actualEntityId));
             Assert.Equal(new DebugId(methodIdOrdinal, methodIdGeneration), actualMethodId);
             Assert.Equal(new DebugId(entityIdOrdinal, entityIdGeneration), actualEntityId);
         }
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         [InlineData("")]
         public void TryParseDebugIds_Errors(string metadataName)
         {
-            Assert.False(CommonGeneratedNames.TryParseDebugIds(metadataName.AsSpan(), GeneratedNameConstants.IdSeparator, isMethodIdOptional: false, out _, out _));
+            Assert.False(WellKnownGeneratedNames.TryParseDebugIds(metadataName.AsSpan(), GeneratedNameConstants.IdSeparator, isMethodIdOptional: false, out _, out _));
         }
     }
 }

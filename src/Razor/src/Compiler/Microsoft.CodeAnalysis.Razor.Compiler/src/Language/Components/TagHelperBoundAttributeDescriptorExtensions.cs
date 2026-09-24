@@ -23,6 +23,9 @@ internal static class TagHelperBoundAttributeDescriptorExtensions
     public static bool IsGenericTypedProperty(this BoundAttributeDescriptor attribute)
         => attribute.Metadata is PropertyMetadata { IsGenericTyped: true };
 
+    public static bool AcceptsStringLiteral(this BoundAttributeDescriptor attribute)
+        => attribute.Metadata is PropertyMetadata { AcceptsStringLiteral: true };
+
     public static bool IsTypeParameterProperty(this BoundAttributeDescriptor attribute)
         => attribute.Metadata.Kind == MetadataKind.TypeParameter;
 

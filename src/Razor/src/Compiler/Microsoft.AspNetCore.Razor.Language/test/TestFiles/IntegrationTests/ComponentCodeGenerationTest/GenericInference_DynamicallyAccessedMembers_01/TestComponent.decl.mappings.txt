@@ -1,0 +1,14 @@
+﻿Source Location: (1:0,1 [43] x:\dir\subdir\Test\TestComponent.cshtml)
+|using Microsoft.AspNetCore.Components.Forms|
+Generated Location: (372:12,0 [43] )
+|using Microsoft.AspNetCore.Components.Forms|
+
+Source Location: (194:7,7 [39] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    private string value1 = "true";
+|
+Generated Location: (712:24,0 [39] )
+|
+    private string value1 = "true";
+|
+

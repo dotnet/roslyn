@@ -6,12 +6,12 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
+using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -26,12 +26,10 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 internal sealed class CohostUriPresentationEndpoint(
     IIncompatibleProjectService incompatibleProjectService,
     IRemoteServiceInvoker remoteServiceInvoker,
-    IFilePathService filePathService,
     IHtmlRequestInvoker requestInvoker)
     : AbstractCohostDocumentEndpoint<VSInternalUriPresentationParams, WorkspaceEdit?>(incompatibleProjectService), IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
-    private readonly IFilePathService _filePathService = filePathService;
     private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
 
     protected override bool MutatesSolutionState => false;
@@ -110,10 +108,9 @@ internal sealed class CohostUriPresentationEndpoint(
         //       but if we move this all to OOP, per the above TODO, then that point is moot.
         foreach (var edit in workspaceEdit.EnumerateTextDocumentEdits())
         {
-            if (edit.TextDocument.DocumentUri.GetSystemUri() is { } uri &&
-                _filePathService.IsVirtualHtmlFile(uri))
+            if (edit.TextDocument.DocumentUri.IsRazorHtmlDocumentUri(out var razorDocumentUri))
             {
-                edit.TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = _filePathService.GetRazorDocumentUri(uri).CreateDocumentUriFromSystemUri() };
+                edit.TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = razorDocumentUri };
             }
         }
 

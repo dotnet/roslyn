@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
+using WorkItemAttribute = Roslyn.Test.Utilities.WorkItemAttribute;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -31,6 +32,34 @@ public class CohostLinkedEditingRangeEndpointTest(ITestOutputHelper testOutputHe
             """;
 
         await VerifyLinkedEditingRangeAsync(input);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13203")]
+    public async Task Html_StartAndEndTagNamesMissing_RequestFromStartTag_ReturnsLinkedEditingRanges()
+    {
+        await VerifyLinkedEditingRangeAsync("<[|$$|]></[||]>");
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13203")]
+    public async Task Html_StartAndEndTagNamesMissing_RequestFromEndTag_ReturnsLinkedEditingRanges()
+    {
+        await VerifyLinkedEditingRangeAsync("<[||]></[|$$|]>");
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13203")]
+    public async Task Html_OnlyStartTagNameMissing_DoesNotReturnLinkedEditingRanges()
+    {
+        await VerifyLinkedEditingRangeAsync("<$$></div>");
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13203")]
+    public async Task Html_OnlyEndTagNameMissing_DoesNotReturnLinkedEditingRanges()
+    {
+        await VerifyLinkedEditingRangeAsync("<div></$$>");
     }
 
     [Theory]

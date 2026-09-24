@@ -1059,6 +1059,7 @@ internal sealed partial class EditorInProcess : ITextViewWindowInProcess
         var componentModelService = await GetRequiredGlobalServiceAsync<SComponentModel, IComponentModel>(cancellationToken);
         var view = await GetActiveTextViewAsync(cancellationToken);
         var manager = componentModelService.GetService<IOutliningManagerService>().GetOutliningManager(view);
+        Assumes.Present(manager);
         var span = new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length);
         var regions = manager.GetAllRegions(span);
         return regions

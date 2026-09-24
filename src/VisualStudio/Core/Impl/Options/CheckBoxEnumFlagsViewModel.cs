@@ -4,7 +4,6 @@
 
 using System;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options;

@@ -1103,7 +1103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadAwaitArgIntrinsic = 4001,
         // 4002 unused
         ERR_BadAwaitAsIdentifier = 4003,
-        ERR_AwaitInUnsafeContext = 4004,
+        // ERR_AwaitInUnsafeContext = 4004, // replaced with a langversion error
         ERR_UnsafeAsyncArgType = 4005,
         ERR_VarargsAsync = 4006,
         ERR_ByRefTypeAndAwait = 4007,
@@ -2431,7 +2431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExplicitInterfaceMemberTypeMismatch = 9333,
         ERR_ExplicitInterfaceMemberReturnTypeMismatch = 9334,
 
-        HDN_RedundantPattern = 9335,
+        // HDN_RedundantPattern = 9335,  // no longer reported
         WRN_RedundantPattern = 9336,
         HDN_RedundantPatternStackGuard = 9337,
 
@@ -2480,7 +2480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnionConstructorCallsDefaultConstructor = 9375,
 
         ERR_UnsafeConstructorConstraint = 9376,
-        WRN_UnsafeMeaningless = 9377,
+        ERR_UnsafeMeaningless = 9377,
 
         ERR_PPShebangNotOnFirstLine = 9378,
 
@@ -2496,7 +2496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MissingUnionValueProperty = 9386,
         ERR_MemberProviderInUnionDeclaration = 9387,
 
-        ERR_SafeModifierUnsupportedTarget = 9388,
+        ERR_SafeModifierCannotBeUsedWithUnsafe = 9388,
         ERR_ExternMemberRequiresUnsafeOrSafe = 9389,
         ERR_PartialMemberSafeDifference = 9390,
         ERR_AbstractBaseRecordImplementation = 9391,
@@ -2504,6 +2504,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_NoBreakId = 9393,
         ERR_NoContinueId = 9394,
+        ERR_ClosedBadDerivedTypesProperty = 9395,
+        ERR_InvalidPropertyUnsafeMods = 9396,
+        ERR_SamePropertyUnsafeAccessorMods = 9397,
+        ERR_BadAwaitInFixed = 9398,
+        ERR_FeatureNotAvailableInVersion15 = 9399,
+
+        ERR_BadCompilationOptionValueAccepted = 9400,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

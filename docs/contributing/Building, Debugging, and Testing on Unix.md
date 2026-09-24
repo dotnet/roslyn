@@ -20,6 +20,8 @@ Particularly for developers who aren't experienced with .NET Core development on
 ## Running Tests
 After building, the unit tests can be executed by running `./test.sh`, which runs the already-built test assemblies via `src/Tools/RunTests`.
 
+Pass test options to `test.sh`, not `build.sh`. For example, `./test.sh --testFramework:core --testConfiguration Release --testSet:compiler` tests the Release compiler binaries. Use `--testKind:ioperation`, `--testKind:runtimeasync`, or `--testKind:usedassemblies` for additional validation, and `--env:KEY=VALUE` to set an environment variable in test processes. Run `./test.sh --help` for all options.
+
 To run all tests in a single project, it's recommended to use the `dotnet test path/to/project` command.
 
 ## GitHub

@@ -41,6 +41,19 @@ namespace Microsoft.VisualStudio.Debugger.Clr
             get { return this.Assembly.Modules.First().ModuleVersionId; }
         }
 
+        public DkmClrModuleFlags ClrFlags
+        {
+            get
+            {
+                if (this.Assembly.Equals(typeof(object).Assembly))
+                {
+                    return DkmClrModuleFlags.RuntimeModule;
+                }
+
+                return DkmClrModuleFlags.None;
+            }
+        }
+
         public DkmClrRuntimeInstance RuntimeInstance { get; }
 
         public DkmProcess Process => RuntimeInstance.Process;

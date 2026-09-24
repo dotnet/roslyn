@@ -38,23 +38,6 @@ null
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (3,8)-(13,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    private class System
-    {
-        private class String
-        {
-        }
-    }
-
-    [Parameter]
-    public List<global::System.String> Data { get; set; }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

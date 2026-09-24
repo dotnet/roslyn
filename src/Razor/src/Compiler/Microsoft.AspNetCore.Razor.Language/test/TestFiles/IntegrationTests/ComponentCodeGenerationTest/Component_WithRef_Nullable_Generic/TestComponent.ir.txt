@@ -11,8 +11,6 @@
                     ReferenceCapture - (19:0,19 [11] x:\dir\subdir\Test\TestComponent.cshtml) - myComponent
                     ComponentAttribute - (45:0,45 [1] x:\dir\subdir\Test\TestComponent.cshtml) - MyParameter - MyParameter - AttributeStructure.DoubleQuotes
                         IntermediateToken - (45:0,45 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - 1
-            CSharpCode - (61:2,7 [114] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (61:2,7 [114] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private MyComponent<int> myComponent = null!;\n    public void Use() { System.GC.KeepAlive(myComponent); }\n
     NamespaceDeclaration -  - __Blazor.Test.TestComponent
         ClassDeclaration -  - internal static - TypeInference -  - 
             ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateMyComponent_0

@@ -1,0 +1,3 @@
+﻿[0000] OpenComponent<global::Test.ComponentWithEditorRequiredChildContent>()
+[0001] AddAttribute("Found", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => { __builder2.AddMarkupContent(2, "<h1>Here\'s Johnny!</h1>"); } ))
+[0002] AddMarkupContent("<h1>Here\'s Johnny!</h1>")

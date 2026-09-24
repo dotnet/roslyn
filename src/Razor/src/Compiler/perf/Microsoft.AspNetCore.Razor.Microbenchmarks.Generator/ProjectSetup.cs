@@ -17,7 +17,8 @@ public static class ProjectSetup
     internal static async Task<RazorProject> GetRazorProjectAsync(bool cold = true)
     {
         var workspace = MSBuildWorkspace.Create();
-        var project = await workspace.OpenProjectAsync("SampleApp/SampleApp.csproj");
+        var projectPath = Path.Combine(AppContext.BaseDirectory, "SampleApp", "SampleApp.csproj");
+        var project = await workspace.OpenProjectAsync(projectPath);
 
         if (workspace.Diagnostics.Count != 0)
         {

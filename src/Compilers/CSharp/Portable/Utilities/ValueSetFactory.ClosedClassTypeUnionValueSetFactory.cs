@@ -12,14 +12,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static partial class ValueSetFactory
     {
-        private sealed class ClosedClassTypeUnionValueSetFactory : ITypeUnionValueSetFactory
+        internal sealed class ClosedClassTypeUnionValueSetFactory : ITypeUnionValueSetFactory
         {
-            private readonly NamedTypeSymbol _closedClass;
+            private readonly TypeSymbol _closedClassOrTypeParameter;
 
-            public ClosedClassTypeUnionValueSetFactory(NamedTypeSymbol closedClass)
+            public ClosedClassTypeUnionValueSetFactory(TypeSymbol closedClassOrTypeParameter)
             {
-                Debug.Assert(closedClass is NamedTypeSymbol { IsClosed: true });
-                _closedClass = closedClass;
+                Debug.Assert(closedClassOrTypeParameter is NamedTypeSymbol { IsClosed: true } or TypeParameterSymbol { EffectiveBaseClassNoUseSiteDiagnostics.IsClosed: true });
+                _closedClassOrTypeParameter = closedClassOrTypeParameter;
             }
 
             internal static void ExpandClosedSubtypes(TypeSymbol possibleClosedClass, ArrayBuilder<TypeUnionValueSet.CaseInfo> builder, HashSet<TypeSymbol> setBuilder)
@@ -61,11 +61,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private ImmutableArray<TypeUnionValueSet.CaseInfo> ClosedSubtypes()
             {
-                var builder = ArrayBuilder<TypeUnionValueSet.CaseInfo>.GetInstance();
-                var setBuilder = TypeSymbol.AllIgnoreOptionsSetPool.Allocate();
-                ExpandClosedSubtypes(_closedClass, builder, setBuilder);
-                setBuilder.Free();
-                return builder.ToImmutableAndFree();
+                if (_closedClassOrTypeParameter is NamedTypeSymbol namedType)
+                {
+                    return namedType.ClosedClassTypeUnionValueSetCases();
+                }
+
+                return [new TypeUnionValueSet.CaseInfo((TypeParameterSymbol)_closedClassOrTypeParameter, originalClosedBase: null)];
             }
 
             public TypeUnionValueSet AllValues(ConversionsBase conversions)

@@ -10,5 +10,5 @@ internal interface IRemoteInlayHintService : IRemoteJsonService
 {
     ValueTask<InlayHint[]?> GetInlayHintsAsync(JsonSerializableRazorSolutionWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, InlayHintParams inlayHintParams, bool displayAllOverride, CancellationToken cancellationToken);
 
-    ValueTask<InlayHint> ResolveHintAsync(JsonSerializableRazorSolutionWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, InlayHint inlayHint, CancellationToken cancellationToken);
+    ValueTask<InlayHint> ResolveHintAsync(JsonSerializableRazorSolutionWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, InlayHint inlayHint, bool inDeclDocument, CancellationToken cancellationToken);
 }

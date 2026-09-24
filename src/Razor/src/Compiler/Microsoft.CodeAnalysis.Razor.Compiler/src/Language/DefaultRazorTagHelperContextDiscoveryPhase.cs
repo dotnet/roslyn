@@ -496,48 +496,9 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
         {
             switch (chunkGenerator)
             {
-                case AddTagHelperChunkGenerator addTagHelper:
-                    ProcessAddTagHelper(node, addTagHelper);
-                    break;
-                case RemoveTagHelperChunkGenerator removeTagHelper:
-                    ProcessRemoveTagHelper(node, removeTagHelper);
-                    break;
-                case TagHelperPrefixDirectiveChunkGenerator tagHelperPrefix:
-                    ProcessTagHelperPrefix(node, tagHelperPrefix);
-                    break;
                 case AddImportChunkGenerator { IsStatic: false } addImport:
                     ProcessAddImport(node, addImport);
                     break;
-            }
-        }
-
-        private void ProcessAddTagHelper(BaseRazorDirectiveSyntax node, AddTagHelperChunkGenerator addTagHelper)
-        {
-            // We only add diagnostics if we're visiting the source document, not an import
-            if (IsSourceDocument)
-            {
-                addTagHelper.Diagnostics.Add(
-                    ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(node.GetSourceSpan(Source)));
-            }
-        }
-
-        private void ProcessRemoveTagHelper(BaseRazorDirectiveSyntax node, RemoveTagHelperChunkGenerator removeTagHelper)
-        {
-            // We only add diagnostics if we're visiting the source document, not an import
-            if (IsSourceDocument)
-            {
-                removeTagHelper.Diagnostics.Add(
-                    ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(node.GetSourceSpan(Source)));
-            }
-        }
-
-        private void ProcessTagHelperPrefix(BaseRazorDirectiveSyntax node, TagHelperPrefixDirectiveChunkGenerator tagHelperPrefix)
-        {
-            // We only add diagnostics if we're visiting the source document, not an import
-            if (IsSourceDocument)
-            {
-                tagHelperPrefix.Diagnostics.Add(
-                    ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(node.GetSourceSpan(Source)));
             }
         }
 

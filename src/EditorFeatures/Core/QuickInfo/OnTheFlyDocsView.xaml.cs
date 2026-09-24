@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.QuickInfo.Presentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
@@ -88,7 +89,7 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
         _document = onTheFlyDocsElement.Document;
         _serviceProvider = serviceProvider;
 
-        var sparkle = new ImageElement(new VisualStudio.Core.Imaging.ImageId(CopilotConstants.CopilotIconMonikerGuid, CopilotConstants.CopilotIconSparkleId));
+        var sparkle = new ImageElement(new VisualStudio.Core.Imaging.ImageId(KnownMonikers.Sparkle.Guid, KnownMonikers.Sparkle.Id));
         object onDemandLinkText = _onTheFlyDocsInfo.IsContentExcluded
             ? ToUIElement(new ContainerElement(ContainerElementStyle.Wrapped, new ClassifiedTextElement([new ClassifiedTextRun(ClassificationTypeNames.Text, EditorFeaturesResources.Describe_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization)])))
             : ClassifiedTextElement.CreateHyperlink(EditorFeaturesResources.Describe, EditorFeaturesResources.Generate_summary_with_Copilot, () => RequestResults());

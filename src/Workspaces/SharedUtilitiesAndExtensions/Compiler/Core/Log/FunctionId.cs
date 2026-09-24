@@ -529,6 +529,7 @@ internal enum FunctionId
     InheritanceMargin_GetInheritanceMemberItems = 493,
 
     LSP_FindDocumentInWorkspace = 494,
+    LSP_SymbolRequest_EmptyResult = 495,
 
     SuggestedActions_GetSuggestedActionsAsync = 500,
 
@@ -631,7 +632,7 @@ internal enum FunctionId
     SemanticSearch_QueryExecution = 760,
 
     // 800-850 for Copilot performance logging.
-    Copilot_Suggestion_Dismissed = 800,
+    // obsolete: Copilot_Suggestion_Dismissed = 800,
     Copilot_On_The_Fly_Docs_Showed_Link = 810,
     Copilot_On_The_Fly_Docs_Loading_State_Entered = 811,
     Copilot_On_The_Fly_Docs_Results_Displayed = 812,
@@ -651,13 +652,17 @@ internal enum FunctionId
     Copilot_Implement_NotImplementedException_Completed = 832,
 
     Copilot_AnalyzeChange = 840,
-    Copilot_AdjustProposal = 841,
 
     Copilot_Rename = 851,
 
     VSCode_LanguageServer_Started = 860,
     VSCode_Project_Load_Started = 861,
     VSCode_Projects_Load_Completed = 862,
+    VSCode_LanguageServer_Daemon_Started = 863,
+    VSCode_LanguageServer_Daemon_Client_Connected = 864,
+    VSCode_LanguageServer_Daemon_Client_Disconnected = 865,
+    VSCode_LanguageServer_Process_Lifetime = 866,
+    VSCode_LanguageServer_Lifetime = 867,
 
     GraphQuery_Calls = 870,
     GraphQuery_Contains = 871,

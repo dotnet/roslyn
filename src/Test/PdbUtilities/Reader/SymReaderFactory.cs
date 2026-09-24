@@ -11,7 +11,6 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
-using System.Runtime.InteropServices;
 using DSR::Microsoft.DiaSymReader;
 using PortablePdb = Microsoft.DiaSymReader.PortablePdb;
 
@@ -22,41 +21,13 @@ namespace Roslyn.Test.PdbUtilities
         public static void Dispose(this ISymUnmanagedReader symReader)
             => ((ISymUnmanagedDispose)symReader)?.Destroy();
 
-        [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
-        [DllImport("Microsoft.DiaSymReader.Native.x86.dll", EntryPoint = "CreateSymReader")]
-        private static extern void CreateSymReader32(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)] out object symReader);
-
-        [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
-        [DllImport("Microsoft.DiaSymReader.Native.amd64.dll", EntryPoint = "CreateSymReader")]
-        private static extern void CreateSymReaderAmd64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)] out object symReader);
-
-        [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
-        [DllImport("Microsoft.DiaSymReader.Native.arm64.dll", EntryPoint = "CreateSymReader")]
-        private static extern void CreateSymReaderArm64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)] out object symReader);
-
         private static ISymUnmanagedReader5 CreateNativeSymReader(Stream pdbStream, object metadataImporter)
         {
-            object symReader = null;
-
-            var guid = default(Guid);
-            switch (RuntimeInformation.ProcessArchitecture)
-            {
-                case Architecture.X86:
-                    CreateSymReader32(ref guid, out symReader);
-                    break;
-                case Architecture.X64:
-                    CreateSymReaderAmd64(ref guid, out symReader);
-                    break;
-                case Architecture.Arm64:
-                    CreateSymReaderArm64(ref guid, out symReader);
-                    break;
-                default:
-                    throw new NotSupportedException();
-            }
-
-            var reader = (ISymUnmanagedReader5)symReader;
-            reader.Initialize(pdbStream, metadataImporter);
-            return reader;
+            // Delegate to the DiaSymReader factory so the native reader is created through the
+            // source-generated COM marshalling infrastructure. Creating the reader via a raw P/Invoke
+            // that marshals it as a built-in COM object (UnmanagedType.IUnknown) is incompatible with the
+            // [GeneratedComInterface]-based ISymUnmanagedReader* interfaces and fails when the reader is used.
+            return SymUnmanagedReaderFactory.CreateReaderWithMetadataImport<ISymUnmanagedReader5>(pdbStream, metadataImporter);
         }
 
         private static ISymUnmanagedReader5 CreatePortableSymReader(Stream pdbStream, object metadataImporter)

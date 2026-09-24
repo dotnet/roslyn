@@ -13,5 +13,3 @@
                             LazyIntermediateToken - (30:0,30 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - MyEnum
                         HtmlContent - (36:0,36 [1] x:\dir\subdir\Test\TestComponent.cshtml)
                             LazyIntermediateToken - (36:0,36 [1] x:\dir\subdir\Test\TestComponent.cshtml) - Html - +
-            CSharpCode - (52:2,7 [67] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (52:2,7 [67] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public enum MyEnum\n    {\n        One,\n        Two\n    }\n

@@ -75,6 +75,27 @@ public sealed class ConvertToProgramMainRefactoringTests
         }.RunAsync();
 
     [Fact]
+    public Task TestNotOfferedForFileBasedProgram()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            $$System.Console.WriteLine(0);
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            SolutionTransforms =
+            {
+                static (solution, projectId) =>
+                {
+                    var project = solution.GetProject(projectId)!;
+                    var parseOptions = (CSharpParseOptions)project.ParseOptions!;
+                    return solution.WithProjectParseOptions(projectId,
+                        parseOptions.WithFeatures([.. parseOptions.Features, new("FileBasedProgram", "true")]));
+                },
+            },
+        }.RunAsync();
+
+    [Fact]
     public Task TestNotOfferedInLibrary()
         => new VerifyCS.Test
         {

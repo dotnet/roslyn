@@ -74,6 +74,8 @@ internal abstract partial class AbstractMetadataAsSourceService
 
         public bool HasUnsupportedMetadata => _symbol.HasUnsupportedMetadata;
 
+        public bool RequiresUnsafeContext => _symbol.RequiresUnsafeContext;
+
         public void Accept(SymbolVisitor visitor)
             => _symbol.Accept(visitor);
 

@@ -87,11 +87,6 @@
         <target state="translated">Usar siempre los servidores de símbolos predeterminados para la navegación</target>
         <note />
       </trans-unit>
-      <trans-unit id="Analyzer_Defaults">
-        <source>Analyzer Defaults</source>
-        <target state="translated">Valores predeterminados del analizador</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Analyzers">
         <source>Analyzers</source>
         <target state="translated">Analizadores</target>
@@ -157,11 +152,6 @@
         <target state="translated">Equilibrado. Ejecutar generadores después de guardar o compilar</target>
         <note />
       </trans-unit>
-      <trans-unit id="Beginning_of_line">
-        <source>Beginning of line</source>
-        <target state="translated">Principio de línea</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Bitness32">
         <source>32-bit</source>
         <target state="translated">32 bits</target>
@@ -190,16 +180,6 @@
       <trans-unit id="Callsite">
         <source>Call site</source>
         <target state="translated">Sitio de llamada</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Carriage_Return_Newline_rn">
-        <source>Carriage Return + Newline (\r\n)</source>
-        <target state="translated">CR + Nueva línea (\r\n)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Carriage_Return_r">
-        <source>Carriage Return (\r)</source>
-        <target state="translated">CR (\r)</target>
         <note />
       </trans-unit>
       <trans-unit id="Category">
@@ -475,11 +455,6 @@
       <trans-unit id="Fix_text_pasted_into_string_literals">
         <source>Fix text pasted into string literals</source>
         <target state="translated">Corregir el texto pegado en literales de cadena</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="For_non_interface_members">
-        <source>For non interface members</source>
-        <target state="translated">Para miembros que no son de interfaz</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document">
@@ -942,11 +917,6 @@
         <target state="translated">Nuevas preferencias de línea (experimental):</target>
         <note />
       </trans-unit>
-      <trans-unit id="Newline_n">
-        <source>Newline (\\n)</source>
-        <target state="translated">Nueva línea (\\n)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="No_namespaces_needed_updating">
         <source>No namespaces needed updating.</source>
         <target state="translated">No es necesario actualizar ningún espacio de nombres.</target>
@@ -967,11 +937,6 @@
         <target state="translated">No aplicable</target>
         <note />
       </trans-unit>
-      <trans-unit id="Omit_if_default">
-        <source>Omit if default</source>
-        <target state="translated">Omitir si es el valor predeterminado</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Omit_only_for_optional_parameters">
         <source>Omit (only for optional parameters)</source>
         <target state="translated">Omitir (solo para parámetros opcionales)</target>
@@ -985,11 +950,6 @@
       <trans-unit id="Open_documents">
         <source>Open documents</source>
         <target state="translated">Documentos abiertos</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Operator_placement_when_wrapping">
-        <source>Operator placement when wrapping</source>
-        <target state="translated">Colocación del operador al ajustar</target>
         <note />
       </trans-unit>
       <trans-unit id="Optimize_for_solution_size">
@@ -1092,21 +1052,6 @@
         <target state="translated">Preferir "System.HashCode" en "GetHashCode"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_System_Threading_Lock">
-        <source>Prefer 'System.Threading.Lock'</source>
-        <target state="translated">Preferir "System.Threading.Lock"</target>
-        <note>{Locked="System.Threading.Lock"} "System.Threading.Lock" is the name of a .Net type and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Prefer_Utf8_string_literals">
-        <source>Prefer UTF-8 string literals</source>
-        <target state="translated">Preferir literales de cadena UTF-8</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_collection_expression">
-        <source>Prefer collection expression</source>
-        <target state="translated">Preferir expresión de colección</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
         <source>Prefer compound assignments</source>
         <target state="translated">Preferir asignaciones compuestas</target>
@@ -1122,16 +1067,6 @@
         <target state="translated">Preferir la conversión de grupo de métodos</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_namespace_and_folder_match_structure">
-        <source>Prefer namespace and folder match structure</source>
-        <target state="translated">Preferir estructura de coincidencia de espacio de nombres y carpetas</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_primary_constructors">
-        <source>Prefer primary constructors</source>
-        <target state="translated">Preferir constructores principales</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_range_operator">
         <source>Prefer range operator</source>
         <target state="translated">Preferir operador de intervalo</target>
@@ -1142,19 +1077,9 @@
         <target state="translated">Preferir la estructura de solo lectura</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_read_only_struct_member">
-        <source>Prefer read-only struct member</source>
-        <target state="translated">Preferir miembro de estructura de solo lectura</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
         <source>Prefer readonly fields</source>
         <target state="translated">Preferir campos de solo lectura</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_simple_property_accessors">
-        <source>Prefer simple property accessors</source>
-        <target state="translated">Preferir descriptores de acceso de propiedad simples</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_simple_using_statement">
@@ -1165,11 +1090,6 @@
       <trans-unit id="Prefer_simplified_boolean_expressions">
         <source>Prefer simplified boolean expressions</source>
         <target state="translated">Preferir expresiones booleanas simplificadas</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_simplified_interpolation">
-        <source>Prefer simplified interpolation</source>
-        <target state="translated">Preferir interpolación simplificada</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_static_anonymous_functions">
@@ -1190,11 +1110,6 @@
       <trans-unit id="Prefer_tuple_swap">
         <source>Prefer tuple swap</source>
         <target state="translated">Preferir el intercambio de tupla</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_unbound_generic_type_in_nameof">
-        <source>Prefer unbound generic type in 'nameof'</source>
-        <target state="translated">Preferir tipo genérico no enlazado en 'nameof'</target>
         <note />
       </trans-unit>
       <trans-unit id="Projects">
@@ -1257,11 +1172,6 @@
         <target state="translated">Repositorio</target>
         <note />
       </trans-unit>
-      <trans-unit id="Require_accessibility_modifiers">
-        <source>Require accessibility modifiers</source>
-        <target state="translated">Requerir modificadores de accesibilidad</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Require_colon">
         <source>Require:</source>
         <target state="translated">Requerir:</target>
@@ -1310,11 +1220,6 @@
       <trans-unit id="Save_dot_editorconfig_file">
         <source>Save .editorconfig file</source>
         <target state="translated">Guardar archivo .editorconfig</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Search_Settings">
-        <source>Search Settings</source>
-        <target state="translated">Buscar configuración</target>
         <note />
       </trans-unit>
       <trans-unit id="Search_cancelled">
@@ -1617,11 +1522,6 @@
         <target state="translated">Este espacio de nombres no es válido</target>
         <note />
       </trans-unit>
-      <trans-unit id="This_rule_is_not_configurable">
-        <source>This rule is not configurable</source>
-        <target state="translated">No se puede configurar esta regla</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Title">
         <source>Title</source>
         <target state="translated">Título</target>
@@ -1727,11 +1627,6 @@
         <target state="translated">Visual Studio</target>
         <note />
       </trans-unit>
-      <trans-unit id="Visual_Studio_Settings">
-        <source>Visual Studio Settings</source>
-        <target state="translated">Configuración de Visual Studio</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Warning_0_does_not_bind_to_type">
         <source>Warning {0} does not bind to type</source>
         <target state="translated">Advertencia sobre {0} no se enlaza al tipo</target>
@@ -1755,16 +1650,6 @@
       <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
         <source>This workspace does not support updating Visual Basic compilation options.</source>
         <target state="translated">Esta área de trabajo no admite la actualización de opciones de compilación de Visual Basic.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="When_types_exactly_match">
-        <source>When types exactly match</source>
-        <target state="translated">Cuando los tipos coinciden exactamente</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="When_types_loosely_match">
-        <source>When types loosely match</source>
-        <target state="translated">Cuando los tipos coinciden ligeramente</target>
         <note />
       </trans-unit>
       <trans-unit id="Whitespace">

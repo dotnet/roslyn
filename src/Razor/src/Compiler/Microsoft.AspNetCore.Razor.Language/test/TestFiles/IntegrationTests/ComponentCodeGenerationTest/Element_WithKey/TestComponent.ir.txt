@@ -17,5 +17,3 @@
                     HtmlAttribute -  - attributeafter=" - "
                         HtmlAttributeValue - (65:0,65 [5] x:\dir\subdir\Test\TestComponent.cshtml) - 
                             LazyIntermediateToken - (65:0,65 [5] x:\dir\subdir\Test\TestComponent.cshtml) - Html - after
-            CSharpCode - (95:2,7 [49] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (95:2,7 [49] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private object someObject = new object();\n

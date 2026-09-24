@@ -5892,7 +5892,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp15,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
 
@@ -5924,7 +5924,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp15,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
 
@@ -5956,7 +5956,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp15,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
 
@@ -5988,7 +5988,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp15,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
 
@@ -6042,7 +6042,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp15,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net100,
         }.RunAsync();
 
@@ -6154,7 +6154,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp15,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
 
@@ -6199,7 +6199,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp15,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
 
@@ -6244,7 +6244,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp15,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
 
@@ -6291,7 +6291,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp15,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
 
@@ -6338,7 +6338,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp15,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
 
@@ -6387,7 +6387,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp15,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
 

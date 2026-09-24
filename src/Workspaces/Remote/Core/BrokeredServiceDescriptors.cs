@@ -80,7 +80,7 @@ internal static class BrokeredServiceDescriptors
     public static readonly ServiceRpcDescriptor HotReloadLoggerService = CreateDebuggerServiceDescriptor("HotReloadLogger", new Version(0, 1));
 
     // DevKit service implemented in C#:
-    public static readonly ServiceRpcDescriptor DebuggerManagedHotReloadServiceLegacy = CreateDebuggerServiceDescriptor("ManagedHotReloadService", new Version(0, 1), streamOptions: ProtocolOptionsV3);
+    public static readonly ServiceRpcDescriptor DebuggerManagedHotReloadServiceLegacy = CreateDebuggerServiceDescriptor("ManagedHotReloadService", new Version(0, 1));
 
     // DevKit service implemented in TypeScript:
     public static readonly ServiceRpcDescriptor HotReloadLoggerServiceLegacy = CreateDebuggerClientServiceDescriptor("HotReloadLogger", new Version(0, 1));

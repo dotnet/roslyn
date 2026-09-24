@@ -988,6 +988,7 @@ namespace System
                     case WellKnownMember.System_Span_T__get_Length:
                     case WellKnownMember.System_Span_T__Slice_Int:
                     case WellKnownMember.System_Span_T__Slice_Int_Int:
+                    case WellKnownMember.System_Span_T__op_Implicit_ReadOnlySpan_T:
                     case WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer:
                     case WellKnownMember.System_ReadOnlySpan_T__ctor_Array:
                     case WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length:
@@ -1062,6 +1063,7 @@ namespace System
                     case WellKnownMember.System_ReadOnlyMemory_T__Slice_Int:
                     case WellKnownMember.System_ReadOnlyMemory_T__Slice_Int_Int:
                     case WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__DerivedTypes:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:

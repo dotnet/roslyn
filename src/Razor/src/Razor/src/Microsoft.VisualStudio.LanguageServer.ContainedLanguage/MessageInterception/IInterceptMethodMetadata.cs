@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
+using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception;
 
-internal interface IInterceptMethodMetadata
+[MetadataView]
+internal partial interface IInterceptMethodMetadata
 {
     // this must match the name from InterceptMethodAttribute
     IEnumerable<string> InterceptMethods { get; }

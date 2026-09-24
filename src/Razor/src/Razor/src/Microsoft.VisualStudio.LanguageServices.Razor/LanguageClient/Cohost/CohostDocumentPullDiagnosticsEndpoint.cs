@@ -7,13 +7,11 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -25,12 +23,12 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 #pragma warning disable RS0030 // Do not use banned APIs
 [Shared]
-[CohostEndpoint(VSInternalMethods.DocumentPullDiagnosticName)]
+[CohostEndpoint(Methods.TextDocumentDiagnosticName)]
 [Export(typeof(IDynamicRegistrationProvider))]
-[ExportRazorStatelessLspService(typeof(CohostDocumentPullDiagnosticsEndpoint))]
+[ExportRazorStatelessLspService(typeof(PublicCohostDocumentPullDiagnosticsEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
-internal sealed class CohostDocumentPullDiagnosticsEndpoint(
+internal sealed class PublicCohostDocumentPullDiagnosticsEndpoint(
     IIncompatibleProjectService incompatibleProjectService,
     IRemoteServiceInvoker remoteServiceInvoker,
     IHtmlRequestInvoker requestInvoker,
@@ -38,20 +36,23 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
     ITelemetryReporter telemetryReporter,
     ILoggerFactory loggerFactory,
     IEditAndContinueSessionTracker encSessionTracker)
-    : CohostDocumentPullDiagnosticsEndpointBase<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
+    : CohostDocumentPullDiagnosticsEndpointBase<
+        DocumentDiagnosticParams,
+        FullDocumentDiagnosticReport?,
+        SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>>(
         incompatibleProjectService,
         remoteServiceInvoker,
         requestInvoker,
         clientCapabilitiesService,
         telemetryReporter,
-        loggerFactory.GetOrCreateLogger<CohostDocumentPullDiagnosticsEndpoint>(),
+        loggerFactory.GetOrCreateLogger<PublicCohostDocumentPullDiagnosticsEndpoint>(),
         encSessionTracker),
       IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
 
-    protected override string LspMethodName => VSInternalMethods.DocumentPullDiagnosticName;
+    protected override string LspMethodName => Methods.TextDocumentDiagnosticName;
     protected override bool SupportsHtmlDiagnostics => true;
 
     public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
@@ -60,10 +61,18 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
         {
             return [new Registration()
             {
-                Method = VSInternalMethods.DocumentPullDiagnosticName,
-                RegisterOptions = new VSInternalDiagnosticRegistrationOptions()
+                Method = Methods.TextDocumentDiagnosticName,
+                RegisterOptions = new DiagnosticRegistrationOptions()
                 {
-                    DiagnosticKinds = [VSInternalDiagnosticKind.Syntax, VSInternalDiagnosticKind.Task]
+                    Identifier = PullDiagnosticCategories.DocumentCompilerSyntax,
+                }
+            },
+            new Registration()
+            {
+                Method = Methods.TextDocumentDiagnosticName,
+                RegisterOptions = new DiagnosticRegistrationOptions()
+                {
+                    Identifier = PullDiagnosticCategories.Task,
                 }
             }];
         }
@@ -71,34 +80,49 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
         return [];
     }
 
-    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams request)
+    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(DocumentDiagnosticParams request)
         => request.TextDocument;
 
-    protected override async Task<VSInternalDiagnosticReport[]?> HandleRequestAsync(VSInternalDocumentDiagnosticsParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    protected override async Task<FullDocumentDiagnosticReport?> HandleRequestAsync(DocumentDiagnosticParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        if (request.QueryingDiagnosticKind?.Value == VSInternalDiagnosticKind.Task.Value)
+        if (request.Identifier == PullDiagnosticCategories.Task)
         {
-            return await HandleTaskListItemRequestAsync(
-                razorDocument,
-                cancellationToken).ConfigureAwait(false);
+            var taskListDiagnostics = await GetTaskListDiagnosticsAsync(razorDocument, cancellationToken).ConfigureAwait(false);
+            return new()
+            {
+                Items = taskListDiagnostics,
+                ResultId = taskListDiagnostics.Length == 0 ? null : Guid.NewGuid().ToString()
+            };
         }
 
-        var results = await GetVSDiagnosticsAsync(razorDocument, cancellationToken).ConfigureAwait(false);
+        var results = await GetVSDiagnosticsAsync(request, razorDocument, cancellationToken).ConfigureAwait(false);
         if (results is null)
         {
             return null;
         }
 
-        return [new()
+        return new()
         {
-            Diagnostics = results,
+            Items = results,
             ResultId = Guid.NewGuid().ToString()
-        }];
+        };
     }
 
-    private async Task<LspDiagnostic[]?> GetVSDiagnosticsAsync(TextDocument razorDocument, CancellationToken cancellationToken)
+    private static DocumentDiagnosticParams CreateHtmlParams(DocumentDiagnosticParams request, DocumentUri uri)
     {
-        var diagnostics = await GetDiagnosticsAsync(razorDocument, cancellationToken).ConfigureAwait(false);
+        return new DocumentDiagnosticParams
+        {
+            TextDocument = new TextDocumentIdentifier { DocumentUri = uri },
+            Identifier = request.Identifier,
+        };
+    }
+
+    protected override LspDiagnostic[] ExtractHtmlDiagnostics(SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport> result)
+        => result.Value is FullDocumentDiagnosticReport report ? report.Items : [];
+
+    private async Task<LspDiagnostic[]?> GetVSDiagnosticsAsync(DocumentDiagnosticParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    {
+        var diagnostics = await GetDiagnosticsAsync(razorDocument, cancellationToken, uri => CreateHtmlParams(request, uri)).ConfigureAwait(false);
         if (diagnostics is null)
         {
             return null;
@@ -128,77 +152,53 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
         return results;
     }
 
-    protected override VSInternalDocumentDiagnosticsParams CreateHtmlParams(Uri uri)
+    private async Task<LspDiagnostic[]> GetTaskListDiagnosticsAsync(TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        return new VSInternalDocumentDiagnosticsParams
-        {
-            TextDocument = new TextDocumentIdentifier { DocumentUri = uri.CreateDocumentUriFromSystemUri() }
-        };
-    }
-
-    protected override LspDiagnostic[] ExtractHtmlDiagnostics(VSInternalDiagnosticReport[] result)
-    {
-        using var allDiagnostics = new PooledArrayBuilder<LspDiagnostic>();
-        foreach (var report in result)
-        {
-            if (report.Diagnostics is not null)
-            {
-                allDiagnostics.AddRange(report.Diagnostics);
-            }
-        }
-
-        return allDiagnostics.ToArray();
-    }
-
-    private async Task<VSInternalDiagnosticReport[]> HandleTaskListItemRequestAsync(TextDocument razorDocument, CancellationToken cancellationToken)
-    {
-        var csharpTaskItems = await GetCSharpTaskListItemsAsync(razorDocument, cancellationToken).ConfigureAwait(false);
+        var (implTaskItems, declTaskItems) = await GetCSharpTaskListItemsAsync(razorDocument, cancellationToken).ConfigureAwait(false);
 
         var diagnostics = await _remoteServiceInvoker.TryInvokeAsync<IRemoteDiagnosticsService, ImmutableArray<LspDiagnostic>>(
             razorDocument.Project.Solution,
-            (service, solutionInfo, cancellationToken) => service.GetTaskListDiagnosticsAsync(solutionInfo, razorDocument.Id, csharpTaskItems, cancellationToken),
+            (service, solutionInfo, cancellationToken) => service.GetTaskListDiagnosticsAsync(solutionInfo, razorDocument.Id, implTaskItems, declTaskItems, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
-        if (diagnostics.IsDefaultOrEmpty)
-        {
-            return [];
-        }
-
-        return
-        [
-            new()
-            {
-                Diagnostics = [.. diagnostics],
-                ResultId = Guid.NewGuid().ToString()
-            }
-        ];
+        return diagnostics.IsDefaultOrEmpty ? [] : [.. diagnostics];
     }
 
-    private async Task<LspDiagnostic[]> GetCSharpTaskListItemsAsync(TextDocument razorDocument, CancellationToken cancellationToken)
+    private async Task<(LspDiagnostic[], LspDiagnostic[])> GetCSharpTaskListItemsAsync(TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        var generatedDocument = await TryGetGeneratedDocumentAsync(razorDocument, cancellationToken).ConfigureAwait(false);
-        if (generatedDocument is null)
+        var csharpDocs = await razorDocument.Project.TryGetSourceGeneratedDocumentsForRazorDocumentAsync(razorDocument, cancellationToken).ConfigureAwait(false);
+        if (csharpDocs is not { } generatedDocuments)
         {
-            return [];
+            return ([], []);
         }
 
         var supportsVisualStudioExtensions = _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions;
-        var solutionServices = generatedDocument.Project.Solution.Services;
+        var solutionServices = generatedDocuments.ImplDoc.Project.Solution.Services;
         var globalOptionsService = solutionServices.ExportProvider.GetService<IGlobalOptionService>();
-        var items = await TaskListDiagnosticSource.GetTaskListItemsAsync(generatedDocument, globalOptionsService, cancellationToken).ConfigureAwait(false);
-        var csharpTaskItems = CohostDocumentPullDiagnosticsHelpers.ConvertDiagnostics(generatedDocument, supportsVisualStudioExtensions, globalOptionsService, items);
-        return [.. csharpTaskItems];
+
+        var implItems = await GetTaskListItemsAsync(generatedDocuments.ImplDoc).ConfigureAwait(false);
+        var declItems = await GetTaskListItemsAsync(generatedDocuments.DeclDoc).ConfigureAwait(false);
+
+        return (implItems, declItems);
+
+        async Task<LspDiagnostic[]> GetTaskListItemsAsync(SourceGeneratedDocument? doc)
+        {
+            if (doc is null)
+            {
+                return [];
+            }
+
+            var implItems = await TaskListDiagnosticSource.GetTaskListItemsAsync(doc, globalOptionsService, cancellationToken).ConfigureAwait(false);
+            return CohostDocumentPullDiagnosticsHelpers.ConvertDiagnostics(doc, supportsVisualStudioExtensions, globalOptionsService, implItems);
+        }
     }
 
     internal TestAccessor GetTestAccessor() => new(this);
 
-    internal readonly struct TestAccessor(CohostDocumentPullDiagnosticsEndpoint instance)
+    internal readonly struct TestAccessor(PublicCohostDocumentPullDiagnosticsEndpoint instance)
     {
-        public Task<LspDiagnostic[]?> HandleRequestAsync(TextDocument razorDocument, CancellationToken cancellationToken)
-            => instance.GetVSDiagnosticsAsync(razorDocument, cancellationToken);
-
-        public Task<VSInternalDiagnosticReport[]> HandleTaskListItemRequestAsync(TextDocument razorDocument, CancellationToken cancellationToken)
-            => instance.HandleTaskListItemRequestAsync(razorDocument, cancellationToken);
+        public Task<FullDocumentDiagnosticReport?> HandleRequestAsync(DocumentDiagnosticParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+            => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
     }
 }
 

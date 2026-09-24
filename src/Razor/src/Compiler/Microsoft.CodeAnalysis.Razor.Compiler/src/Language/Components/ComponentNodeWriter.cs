@@ -1308,7 +1308,19 @@ internal sealed class ComponentNodeWriter : IntermediateNodeWriter, ITemplateTar
         {
             // This is how string attributes are lowered by default, a single HTML node with a single HTML token.
             var content = string.Join(string.Empty, GetHtmlTokens(htmlNode).Select(t => t.Content));
-            context.CodeWriter.WriteStringLiteral(content);
+            if (canTypeCheck && node.BoundAttribute?.AcceptsStringLiteral() == true)
+            {
+                context.CodeWriter.Write(ComponentsApi.RuntimeHelpers.TypeCheck);
+                context.CodeWriter.Write("<");
+                WriteGloballyQualifiedTypeName(context, node);
+                context.CodeWriter.Write(">(");
+                context.CodeWriter.WriteStringLiteral(content);
+                context.CodeWriter.Write(")");
+            }
+            else
+            {
+                context.CodeWriter.WriteStringLiteral(content);
+            }
         }
         else
         {

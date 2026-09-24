@@ -88,7 +88,8 @@ internal sealed class BlockSyntaxStructureProvider : AbstractSyntaxNodeStructure
                 subHeadings.ToImmutableAndClear(),
                 autoCollapse: false));
         }
-        else if (parentKind == SyntaxKind.ElseClause || IsNonBlockStatement(parent))
+        else if (parentKind is SyntaxKind.ElseClause or SyntaxKind.CatchClause or SyntaxKind.FinallyClause ||
+                 IsNonBlockStatement(parent))
         {
             var autoCollapse = false;
 
@@ -177,12 +178,14 @@ internal sealed class BlockSyntaxStructureProvider : AbstractSyntaxNodeStructure
 
     private static int GetEnd(BlockSyntax node)
     {
-        if (node.Parent.IsKind(SyntaxKind.IfStatement))
+        if (node.Parent.IsKind(SyntaxKind.IfStatement) || node.Parent.IsKind(SyntaxKind.TryStatement))
         {
-            // For an if-statement, just collapse up to the end of the block.
-            // We don't want collapse the whole statement just for the 'true'
-            // portion.  Also, while outlining might be ok, the Indent-Guide
-            // would look very strange for nodes like:
+            // For an if-statement or try-statement, just collapse up to the end of the block.
+            // We don't want to collapse the whole statement just for the 'true' portion (of an
+            // 'if'), or just the 'try' portion (of a 'try/catch/finally'). Each attached
+            // clause (else/catch/finally) gets its own collapsible region instead.
+            // Also, while outlining might be ok, the Indent-Guide would look very strange for nodes
+            // like:
             //
             //      if (goo)
             //      {

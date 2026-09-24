@@ -104,7 +104,17 @@ public abstract partial class CompletionService
         // that's all we'll return.
         var exclusiveContexts = triggeredContexts.WhereAsArray(t => t.IsExclusive);
         if (!exclusiveContexts.IsEmpty)
+        {
+            // If every exclusive context opted into allowing expand items, include the expand-item contexts too
+            // and merge as non-exclusive so the editor still shows those items.
+            if (exclusiveContexts.All(static t => t.AllowExpandedItemsWhileExclusive))
+            {
+                var expandedContexts = triggeredContexts.WhereAsArray(static t => t.Provider.IsExpandItemProvider);
+                return MergeAndPruneCompletionLists(exclusiveContexts.AddRange(expandedContexts), options, isExclusive: false);
+            }
+
             return MergeAndPruneCompletionLists(exclusiveContexts, options, isExclusive: true);
+        }
 
         // Great!  We had some items.  Now we want to see if any of the other providers 
         // would like to augment the completion list.  For example, we might trigger

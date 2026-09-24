@@ -31,19 +31,6 @@ __builder.AddContent(2, RaiseHere()
             __builder.CloseElement();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (3,2)-(9,1) "Shared/Component1.razor"
-
-    private int magicNumber = RaiseHere();
-    private static int RaiseHere()
-    {
-        return 42;
-    }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

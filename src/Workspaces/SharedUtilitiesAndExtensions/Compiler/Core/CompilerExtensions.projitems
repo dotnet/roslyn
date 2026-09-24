@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
@@ -78,6 +78,9 @@
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\FileNameUtilities.cs">
       <Link>InternalUtilities\FileNameUtilities.cs</Link>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\HexUtilities.cs">
+      <Link>InternalUtilities\HexUtilities.cs</Link>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ImmutableListExtensions.cs">
       <Link>InternalUtilities\ImmutableListExtensions.cs</Link>
@@ -167,24 +170,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Collections\IntervalTreeHelpers.NodeEnumerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\StructuredAnalyzerConfigOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editing\Modifiers.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Language.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\LanguageConstants.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\LanguageExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\EditorConfigFile.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\EditorConfigOption.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\EditorConfigOption`1.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\EditorConfigParser.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\IEditorConfigOptionAccumulator.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\NamingStyles\EditorConfigNamingStyles.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\NamingStyles\EditorConfigNamingStylesParser.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\NamingStyles\NamingStyleOption.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\NamingStyles\NamingStyleOptionAccumulator.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\Sections\Section.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\Sections\SectionMatch.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\Sections\SectionMatcher.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\Sections\SectionMatcher.Lexer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\Sections\SectionMatcher_TryParseSection.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\Sections\SectionMatchExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\Common\EmbeddedDiagnostic.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\Common\EmbeddedSeparatedSyntaxNodeList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\Common\EmbeddedSyntaxHelpers.cs" />
@@ -347,11 +332,15 @@
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\RemoveUnnecessaryImports\AbstractUnnecessaryImportsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\EmptyLogBlock.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\FunctionId.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Log\ILogger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Log\IEventSink.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Log\IMetricSink.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\Logger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\LogLevel.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Log\Logger.LogBlock.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\LogMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Log\RoslynTelemetry.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Log\RoslynTelemetry_LogBlock.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Log\RoslynTelemetry_Metrics.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Log\TelemetryNaming.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\Capitalization.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\EditorConfig\EditorConfigNamingStyleParser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\EditorConfig\EditorConfigNamingStyleParser_NamingRule.cs" />
@@ -442,6 +431,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)System.Text\UnicodeDebug.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)System.Text\UnicodeUtility.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)System.Text\Utf16Utility.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncPriorityWorkQueue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\EnumValueUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IAsyncEnumerableExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ImmutableArrayComparer.cs" />

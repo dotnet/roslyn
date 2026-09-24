@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -435,6 +434,62 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
             ItemExpectation.Exists("System"),
             ItemExpectation.Absent("AttributeUsage"),
         ]);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84394")]
+    public async Task AttributeTargetFiltering_InheritedAttributeUsage()
+    {
+        // AttributeUsage is inherited by derived attribute types. A method-only attribute and an attribute
+        // deriving from it (without its own AttributeUsage) should both be filtered out on a non-method target.
+        var code = """
+            [$$]
+            record struct TestRecordStruct
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Method)]
+            public class FactAttribute : System.Attribute
+            {
+            }
+
+            public class CulturedFactAttribute : FactAttribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Absent("Fact"),
+            ItemExpectation.Absent("CulturedFact")
+        ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84394")]
+    public async Task AttributeTargetFiltering_InheritedAttributeUsageOnValidTarget()
+    {
+        // On a valid (method) target both the method-only attribute and its derived attribute are offered.
+        var code = """
+            class TestClass
+            {
+                [$$]
+                public void M()
+                {
+                }
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Method)]
+            public class FactAttribute : System.Attribute
+            {
+            }
+
+            public class CulturedFactAttribute : FactAttribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("Fact"),
+            ItemExpectation.Exists("CulturedFact")
+        ]);
+    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
     public async Task AttributeTargetFiltering_AssemblyAttribute()
@@ -4657,6 +4712,20 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                 }
             }
             """, "x");
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82750")]
+    public Task TypeWithSameNameAsInstancePropertyInStaticMethod()
+        => VerifyItemExistsAsync("""
+            public sealed record SourceContainer(Source Source)
+            {
+                public static SourceContainer From(string source)
+                {
+                    Sour$$
+                }
+            }
+
+            public sealed record Source(string Content);
+            """, "Source", expectedDescriptionOrNull: "record Source");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543601")]
     public Task NoInstanceFieldsInStaticFieldInitializer()
@@ -14490,7 +14559,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             }
 
             class Customer;
-            """),
+            """, LanguageVersion.CSharp15),
             "Customer",
             sourceCodeKind: SourceCodeKind.Regular);
 
@@ -14614,7 +14683,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             class Dog { }
             class Cat { }
             union Pet($$)
-            """, LanguageVersionExtensions.CSharpNext), "Dog");
+            """, LanguageVersion.CSharp15), "Dog");
     }
 
     [Fact]
@@ -14624,7 +14693,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             class Dog { }
             class Cat { }
             union Pet($$)
-            """, LanguageVersionExtensions.CSharpNext), "Cat");
+            """, LanguageVersion.CSharp15), "Cat");
     }
 
     [Fact]
@@ -14634,7 +14703,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             class Dog { }
             class Cat { }
             union Pet(Dog, $$)
-            """, LanguageVersionExtensions.CSharpNext), "Cat");
+            """, LanguageVersion.CSharp15), "Cat");
     }
 
     [Fact]
@@ -14642,7 +14711,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     {
         await VerifyItemExistsAsync(GetMarkup("""
             union U($$)
-            """, LanguageVersionExtensions.CSharpNext), "System");
+            """, LanguageVersion.CSharp15), "System");
     }
 
     [Fact]
@@ -14651,6 +14720,6 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         // Type parameter completion in generic union parameter list
         await VerifyItemExistsAsync(GetMarkup("""
             union U<T1, T2>(T1, $$)
-            """, LanguageVersionExtensions.CSharpNext), "T2");
+            """, LanguageVersion.CSharp15), "T2");
     }
 }

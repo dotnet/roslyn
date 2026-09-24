@@ -20,7 +20,7 @@ public class ViewComponentTagHelperPassTest : RazorProjectEngineTestBase
 
     protected override void ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
     {
-        processor.ExecutePhasesThrough<IRazorDirectiveClassifierPhase>();
+        processor.ExecutePhasesThrough<DefaultRazorTagHelperRewritePhase>();
         processor.ExecutePass<DefaultTagHelperOptimizationPass>();
     }
 

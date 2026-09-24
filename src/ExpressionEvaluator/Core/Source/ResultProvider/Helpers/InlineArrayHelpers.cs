@@ -99,7 +99,7 @@ internal static class InlineArrayHelpers
             return false;
         }
 
-        if (!type.Name.EndsWith(CommonGeneratedNames.FixedBufferFieldSuffix))
+        if (!type.Name.EndsWith(WellKnownGeneratedNames.FixedBufferFieldSuffix))
         {
             return false;
         }

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
@@ -33,7 +33,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.AspNetCore" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Workspaces" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor" Key="$(RazorKey)" />
@@ -47,8 +46,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor.UnitTests" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor.UnitTests" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudioCode.RazorExtension.UnitTests" Key="$(RazorKey)" />
-    <!-- Full IVT is through ExternalAccess for functionality -->
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Xaml" />
     <!-- Restricted IVT is direct for protocol types only -->
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.DesignTools.CodeAnalysis" Namespace="Roslyn.LanguageServer.Protocol" Partner="Xaml" Key="$(VisualStudioKey)" />
     <RestrictedInternalsVisibleTo Include="DesignTools.Tests.Component.CodeAnalysis" Namespace="Roslyn.LanguageServer.Protocol" Partner="Xaml" Key="$(VisualStudioKey)" />
@@ -66,6 +63,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalAccess" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.LiveShare" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests" />
@@ -85,9 +83,9 @@
     <InternalsVisibleTo Include="IdeCoreBenchmarks" />
     <InternalsVisibleTo Include="IdeBenchmarks" />
     <InternalsVisibleTo Include="AnalyzerRunner" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Debugger" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.ExternalAccess" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.ExternalAccess" />
     <InternalsVisibleTo Include="Microsoft.CommonLanguageServerProtocol.Framework.Example" />
     <InternalsVisibleTo Include="Microsoft.CommonLanguageServerProtocol.Framework.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.DiagnosticsTests.Utilities" />
@@ -98,8 +96,6 @@
 
   <ItemGroup>
     <None Include="Protocol\.editorconfig" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.TestDiscovery" />
   </ItemGroup>
 
   <ItemGroup>

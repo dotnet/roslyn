@@ -28,14 +28,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // return ref Unsafe.As<TBuffer, TElement>(ref Unsafe.AsRef<TBuffer>(in buffer))
 
-                var body = f.Return(f.Call(null,
-                                           f.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T).Construct(ImmutableArray<TypeSymbol>.CastUp(TypeParameters)),
-                                           f.Call(null,
-                                                  f.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T).Construct(TypeParameters[0]),
-                                                  f.Parameter(Parameters[0]))));
+                var returnStmt = f.Return(f.Call(null,
+                                                 f.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T).Construct(ImmutableArray<TypeSymbol>.CastUp(TypeParameters)),
+                                                 f.Call(null,
+                                                        f.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T).Construct(TypeParameters[0]),
+                                                        f.Parameter(Parameters[0]))));
 
                 // NOTE: we created this block in its most-lowered form, so analysis is unnecessary
-                f.CloseMethod(body);
+                f.CloseMethod(f.StatementList(SynthesizedInlineArrayAsSpanMethod.ThrowIfInlineArrayIsNullRef(this, f), returnStmt));
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
             {

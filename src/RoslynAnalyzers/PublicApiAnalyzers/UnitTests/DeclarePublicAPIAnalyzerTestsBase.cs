@@ -338,6 +338,33 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 }
                 """, @"", @"");
 
+        [Fact, WorkItem(79658, "https://github.com/dotnet/roslyn/issues/79658")]
+        public Task EmbeddedTypesAndMembersAreNotTrackedAsync()
+            => VerifyCSharpAsync($$"""
+
+                namespace Microsoft.CodeAnalysis
+                {
+                    [Embedded]
+                    internal sealed class EmbeddedAttribute : System.Attribute { }
+                }
+
+                [Microsoft.CodeAnalysis.Embedded]
+                internal class C
+                {
+                    internal int Field;
+                    internal int Property { get; set; }
+                    internal void Method() { }
+
+                    // Nested type is not itself annotated; it (and its members) must still be excluded
+                    // because an enclosing type is marked '[Embedded]'.
+                    internal class Nested
+                    {
+                        internal int NestedField;
+                        internal void NestedMethod() { }
+                    }
+                }
+                """, @"", @"");
+
         [Fact]
         public Task SimpleMissingMember_CSharpAsync()
             => VerifyCSharpAsync($$"""
@@ -982,52 +1009,66 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 return;
             }
 
-#if NETCOREAPP
-            var containingAssembly = "System.Runtime.Extensions";
-            const string NonNullSuffix = "!";
-            const string NullableSuffix = "?";
-#else
-            var containingAssembly = "mscorlib";
-            const string NonNullSuffix = "";
-            const string NullableSuffix = "";
-#endif
-            string shippedText = $"""
+            const string forwardedTypeAssemblyName = "ForwardedTypeAssembly";
+            const string forwardedTypeSource = """
 
-                System.StringComparer (forwarded, contained in {containingAssembly})
-                static System.StringComparer.InvariantCulture.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
-                static System.StringComparer.InvariantCultureIgnoreCase.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
-                static System.StringComparer.CurrentCulture.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
-                static System.StringComparer.CurrentCultureIgnoreCase.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
-                static System.StringComparer.Ordinal.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
-                static System.StringComparer.OrdinalIgnoreCase.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
-                static System.StringComparer.Create(System.Globalization.CultureInfo{NonNullSuffix} culture, bool ignoreCase) -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
-                System.StringComparer.Compare(object{NullableSuffix} x, object{NullableSuffix} y) -> int (forwarded, contained in {containingAssembly})
-                System.StringComparer.Equals(object{NullableSuffix} x, object{NullableSuffix} y) -> bool (forwarded, contained in {containingAssembly})
-                System.StringComparer.GetHashCode(object{NonNullSuffix} obj) -> int (forwarded, contained in {containingAssembly})
-                abstract System.StringComparer.Compare(string{NullableSuffix} x, string{NullableSuffix} y) -> int (forwarded, contained in {containingAssembly})
-                abstract System.StringComparer.Equals(string{NullableSuffix} x, string{NullableSuffix} y) -> bool (forwarded, contained in {containingAssembly})
-                abstract System.StringComparer.GetHashCode(string{NonNullSuffix} obj) -> int (forwarded, contained in {containingAssembly})
-                System.StringComparer.StringComparer() -> void (forwarded, contained in {containingAssembly})
+                namespace TypeForwarding
+                {
+                    public static class ForwardedType
+                    {
+                        public static int GetValue() => 0;
+                    }
+                }
+
+                """;
+            const string forwardedTypeApi = """
+
+                TypeForwarding.ForwardedType
+                static TypeForwarding.ForwardedType.GetValue() -> int
 
                 """;
 
-#if NETCOREAPP
-            shippedText = $"""
+            var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, DeclarePublicApiFix, DefaultVerifier>
+            {
+                ReferenceAssemblies = ReferenceAssemblies.Default,
+                TestState =
+                {
+                    Sources =
+                    {
+                        """
 
-                #nullable enable
-                {shippedText}
-                static System.StringComparer.Create(System.Globalization.CultureInfo{NonNullSuffix} culture, System.Globalization.CompareOptions options) -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
-                static System.StringComparer.FromComparison(System.StringComparison comparisonType) -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
+                        [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(TypeForwarding.ForwardedType))]
 
-                """;
+                        """,
+                    },
+                    AdditionalFiles =
+                    {
+                        (ShippedFileName, """
 
-#endif
+                            TypeForwarding.ForwardedType (forwarded, contained in ForwardedTypeAssembly)
+                            static TypeForwarding.ForwardedType.GetValue() -> int (forwarded, contained in ForwardedTypeAssembly)
 
-            await VerifyCSharpAsync("""
+                            """),
+                        (UnshippedFileName, ""),
+                    },
+                    AdditionalProjects =
+                    {
+                        [forwardedTypeAssemblyName] =
+                        {
+                            Sources = { forwardedTypeSource },
+                            AdditionalFiles =
+                            {
+                                (ShippedFileName, forwardedTypeApi),
+                                (UnshippedFileName, ""),
+                            },
+                        },
+                    },
+                    AdditionalProjectReferences = { forwardedTypeAssemblyName },
+                },
+            };
 
-                [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.StringComparer))]
-
-                """, shippedText, $@"");
+            test.DisabledDiagnostics.AddRange(DisabledDiagnostics);
+            await test.RunAsync();
         }
 
         [Fact, WorkItem(1192, "https://github.com/dotnet/roslyn-analyzers/issues/1192")]
@@ -2769,6 +2810,178 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 """);
 
         [Fact]
+        [WorkItem(84462, "https://github.com/dotnet/roslyn/issues/84462")]
+        public Task Record_FixRetainsImplicitSiblings_ToStringAsync()
+            => VerifyNet50CSharpAdditionalFileFixAsync($$"""
+                #nullable enable
+                {{EnabledModifierCSharp}} record {|{{AddNewApiId}}:R|}(int P);
+                """, """
+                #nullable enable
+                """, """
+                #nullable enable
+                R
+                R.R(R! original) -> void
+                virtual R.<Clone>$() -> R!
+                R.Deconstruct(out int P) -> void
+                override R.Equals(object? obj) -> bool
+                override R.GetHashCode() -> int
+                static R.operator !=(R? left, R? right) -> bool
+                static R.operator ==(R? left, R? right) -> bool
+                virtual R.EqualityContract.get -> System.Type!
+                virtual R.Equals(R? other) -> bool
+                virtual R.PrintMembers(System.Text.StringBuilder! builder) -> bool
+                R.P.get -> int
+                R.P.init -> void
+                R.R(int P) -> void
+                """, """
+                #nullable enable
+                override R.ToString() -> string!
+                R
+                R.R(R! original) -> void
+                virtual R.<Clone>$() -> R!
+                R.Deconstruct(out int P) -> void
+                override R.Equals(object? obj) -> bool
+                override R.GetHashCode() -> int
+                static R.operator !=(R? left, R? right) -> bool
+                static R.operator ==(R? left, R? right) -> bool
+                virtual R.EqualityContract.get -> System.Type!
+                virtual R.Equals(R? other) -> bool
+                virtual R.PrintMembers(System.Text.StringBuilder! builder) -> bool
+                R.P.get -> int
+                R.P.init -> void
+                R.R(int P) -> void
+                """);
+
+        [Fact]
+        [WorkItem(84462, "https://github.com/dotnet/roslyn/issues/84462")]
+        public Task Record_FixRetainsImplicitSiblings_PrintMembersAsync()
+            => VerifyNet50CSharpAdditionalFileFixAsync($$"""
+                #nullable enable
+                {{EnabledModifierCSharp}} record {|{{AddNewApiId}}:R|}(int P);
+                """, """
+                #nullable enable
+                """, """
+                #nullable enable
+                R
+                R.R(R! original) -> void
+                virtual R.<Clone>$() -> R!
+                R.Deconstruct(out int P) -> void
+                override R.Equals(object? obj) -> bool
+                override R.GetHashCode() -> int
+                override R.ToString() -> string!
+                static R.operator !=(R? left, R? right) -> bool
+                static R.operator ==(R? left, R? right) -> bool
+                virtual R.EqualityContract.get -> System.Type!
+                virtual R.Equals(R? other) -> bool
+                R.P.get -> int
+                R.P.init -> void
+                R.R(int P) -> void
+                """, """
+                #nullable enable
+                R
+                R.R(R! original) -> void
+                virtual R.<Clone>$() -> R!
+                R.Deconstruct(out int P) -> void
+                override R.Equals(object? obj) -> bool
+                override R.GetHashCode() -> int
+                override R.ToString() -> string!
+                static R.operator !=(R? left, R? right) -> bool
+                static R.operator ==(R? left, R? right) -> bool
+                virtual R.EqualityContract.get -> System.Type!
+                virtual R.Equals(R? other) -> bool
+                R.P.get -> int
+                R.P.init -> void
+                R.R(int P) -> void
+                virtual R.PrintMembers(System.Text.StringBuilder! builder) -> bool
+                """);
+
+        [Fact]
+        [WorkItem(84462, "https://github.com/dotnet/roslyn/issues/84462")]
+        public async Task Record_ImplicitGeneratedMembers_FixAllRetainsTrackedSiblingsAsync()
+        {
+            var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, DeclarePublicApiFix, DefaultVerifier>
+            {
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+                TestState =
+                {
+                    MarkupHandling = MarkupMode.Ignore,
+                    Sources =
+                    {
+                        $$"""
+                        #nullable enable
+                        {{EnabledModifierCSharp}} record R(int P);
+                        """
+                    },
+                    AdditionalFiles =
+                    {
+                        (ShippedFileName, """
+                        #nullable enable
+                        """),
+                        (UnshippedFileName, """
+                        #nullable enable
+                        R
+                        """),
+                    },
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        $$"""
+                        #nullable enable
+                        {{EnabledModifierCSharp}} record R(int P);
+                        """
+                    },
+                    AdditionalFiles =
+                    {
+                        (ShippedFileName, """
+                        #nullable enable
+                        """),
+                        (UnshippedFileName, """
+                        #nullable enable
+                        override R.Equals(object? obj) -> bool
+                        override R.GetHashCode() -> int
+                        override R.ToString() -> string!
+                        R
+                        R.Deconstruct(out int P) -> void
+                        R.P.get -> int
+                        R.P.init -> void
+                        R.R(int P) -> void
+                        R.R(R! original) -> void
+                        static R.operator !=(R? left, R? right) -> bool
+                        static R.operator ==(R? left, R? right) -> bool
+                        virtual R.<Clone>$() -> R!
+                        virtual R.EqualityContract.get -> System.Type!
+                        virtual R.Equals(R? other) -> bool
+                        virtual R.PrintMembers(System.Text.StringBuilder! builder) -> bool
+                        """),
+                    },
+                },
+            };
+
+            test.ExpectedDiagnostics.AddRange(
+            [
+                GetCSharpResultAt(2, 9 + EnabledModifierCSharp.Length, DeclareNewApiRule, "R.Deconstruct(out int P) -> void"),
+                GetCSharpResultAt(2, 9 + EnabledModifierCSharp.Length, DeclareNewApiRule, "R.R(R! original) -> void"),
+                GetCSharpResultAt(2, 9 + EnabledModifierCSharp.Length, DeclareNewApiRule, "R.R(int P) -> void"),
+                GetCSharpResultAt(2, 9 + EnabledModifierCSharp.Length, DeclareNewApiRule, "override R.Equals(object? obj) -> bool"),
+                GetCSharpResultAt(2, 9 + EnabledModifierCSharp.Length, DeclareNewApiRule, "override R.GetHashCode() -> int"),
+                GetCSharpResultAt(2, 9 + EnabledModifierCSharp.Length, DeclareNewApiRule, "override R.ToString() -> string!"),
+                GetCSharpResultAt(2, 9 + EnabledModifierCSharp.Length, DeclareNewApiRule, "static R.operator !=(R? left, R? right) -> bool"),
+                GetCSharpResultAt(2, 9 + EnabledModifierCSharp.Length, DeclareNewApiRule, "static R.operator ==(R? left, R? right) -> bool"),
+                GetCSharpResultAt(2, 9 + EnabledModifierCSharp.Length, DeclareNewApiRule, "virtual R.<Clone>$() -> R!"),
+                GetCSharpResultAt(2, 9 + EnabledModifierCSharp.Length, DeclareNewApiRule, "virtual R.EqualityContract.get -> System.Type!"),
+                GetCSharpResultAt(2, 9 + EnabledModifierCSharp.Length, DeclareNewApiRule, "virtual R.Equals(R? other) -> bool"),
+                GetCSharpResultAt(2, 9 + EnabledModifierCSharp.Length, DeclareNewApiRule, "virtual R.PrintMembers(System.Text.StringBuilder! builder) -> bool"),
+                GetCSharpResultAt(2, 15 + EnabledModifierCSharp.Length, DeclareNewApiRule, "R.P.get -> int"),
+                GetCSharpResultAt(2, 15 + EnabledModifierCSharp.Length, DeclareNewApiRule, "R.P.init -> void"),
+            ]);
+            test.DisabledDiagnostics.AddRange(DisabledDiagnostics);
+
+            await test.RunAsync();
+        }
+
+        [Fact]
         [WorkItem(6759, "https://github.com/dotnet/roslyn-analyzers/issues/6759")]
         public Task TestExperimentalApiAsync()
             => VerifyNet80CSharpAdditionalFileFixAsync($$"""
@@ -3088,6 +3301,126 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
             test.DisabledDiagnostics.AddRange(DisabledDiagnostics);
 
             await test.RunAsync();
+        }
+
+        [Fact]
+        public async Task InternalApi_IvtOnlyToDynamicProxyGenAssembly2_NotTracked()
+        {
+            // Internal-only behavior: when the only IVT grant targets the Moq/Castle proxy assembly,
+            // internal API tracking is disabled so no RS0051 fires.
+            if (!IsInternalTest)
+            {
+                return;
+            }
+
+            await VerifyCSharpAsync($$"""
+
+                using System.Runtime.CompilerServices;
+                [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
+
+                {{EnabledModifierCSharp}} class C
+                {
+                    private C() { }
+                }
+                """, @"", @"");
+        }
+
+        [Fact]
+        public async Task InternalApi_IvtToRealAssembly_Tracked()
+        {
+            // A real (non-ignored) IVT consumer keeps internal API tracking enabled.
+            if (!IsInternalTest)
+            {
+                return;
+            }
+
+            await VerifyCSharpAsync($$"""
+
+                using System.Runtime.CompilerServices;
+                [assembly: InternalsVisibleTo("SomeRealConsumer")]
+
+                {{EnabledModifierCSharp}} class C
+                {
+                    private C() { }
+                }
+                """, @"", @"", GetCSharpResultAt(5, 8 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C"));
+        }
+
+        [Fact]
+        public async Task InternalApi_IvtToTestAssemblyMatchedByEditorConfig_NotTracked()
+        {
+            // A user-configured ignore pattern (here '*.Tests') disables tracking when it matches the only IVT grant.
+            if (!IsInternalTest)
+            {
+                return;
+            }
+
+            await VerifyCSharpAsync($$"""
+
+                using System.Runtime.CompilerServices;
+                [assembly: InternalsVisibleTo("MyProject.Tests")]
+
+                {{EnabledModifierCSharp}} class C
+                {
+                    private C() { }
+                }
+                """, @"", @"", "[*]\r\ndotnet_public_api_analyzer.internal_api_skip_ivt = *.Tests");
+        }
+
+        [Fact]
+        public async Task InternalApi_MixedRealAndIgnoredIvt_Tracked()
+        {
+            // As long as one real IVT consumer remains, tracking stays enabled even when other grants are ignored.
+            if (!IsInternalTest)
+            {
+                return;
+            }
+
+            await VerifyCSharpAsync($$"""
+
+                using System.Runtime.CompilerServices;
+                [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
+                [assembly: InternalsVisibleTo("SomeRealConsumer")]
+
+                {{EnabledModifierCSharp}} class C
+                {
+                    private C() { }
+                }
+                """, @"", @"", GetCSharpResultAt(6, 8 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C"));
+        }
+
+        [Fact]
+        public async Task InternalApi_IvtWithPublicKeyAndDifferentCasing_TrimmedAndMatchedCaseInsensitively_NotTracked()
+        {
+            // Covers the strong-named IVT form "AssemblyName, PublicKey=...": the analyzer trims everything from the
+            // first comma onward to get the simple name, then matches case-insensitively. Here the grant differs in
+            // casing from both the built-in default and the configured pattern, and carries a PublicKey suffix.
+            if (!IsInternalTest)
+            {
+                return;
+            }
+
+            await VerifyCSharpAsync($$"""
+
+                using System.Runtime.CompilerServices;
+                [assembly: InternalsVisibleTo("dynamicproxygenassembly2, PublicKey=0024000004800000940000000602000000240000525341310004000001000100c547cac37abd99c8db225ef2f6c8a3602f3b3606cc9891605d02baa56104f4cfc0734aa39b93bf7852f7d9266654753cc297e7d2edfe0bac1cdcf9f717241550e0a7b191195b7667bb4f64bcb8e2121380fd1d9d46ad2d92d2d15605093924cceaf74c4861eff62abf69b9291ed0a340e113be11e6a7d3113e92484cf7045cc7")]
+
+                {{EnabledModifierCSharp}} class C
+                {
+                    private C() { }
+                }
+                """, @"", @"");
+
+            await VerifyCSharpAsync($$"""
+
+                using System.Runtime.CompilerServices;
+                [assembly: InternalsVisibleTo("MyProject.TESTS, PublicKey=0024000004800000940000000602000000240000525341310004000001000100c547cac37abd99c8db225ef2f6c8a3602f3b3606cc9891605d02baa56104f4cfc0734aa39b93bf7852f7d9266654753cc297e7d2edfe0bac1cdcf9f717241550e0a7b191195b7667bb4f64bcb8e2121380fd1d9d46ad2d92d2d15605093924cceaf74c4861eff62abf69b9291ed0a340e113be11e6a7d3113e92484cf7045cc7")]
+
+                {{EnabledModifierCSharp}} class C
+                {
+                    private C() { }
+                }
+                """, @"", @"", "[*]\r\ndotnet_public_api_analyzer.internal_api_skip_ivt = *.Tests");
         }
 
         #endregion

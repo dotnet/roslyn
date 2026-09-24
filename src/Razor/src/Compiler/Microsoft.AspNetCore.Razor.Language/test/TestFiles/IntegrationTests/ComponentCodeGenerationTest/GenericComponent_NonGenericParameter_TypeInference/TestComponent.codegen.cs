@@ -42,15 +42,6 @@ Hello
             );
         }
         #pragma warning restore 1998
-#nullable restore
-#line (4,8)-(6,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    MyClass Hello = new MyClass();
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 namespace __Blazor.Test.TestComponent

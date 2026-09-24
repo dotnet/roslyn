@@ -567,25 +567,35 @@ internal static partial class ISymbolExtensions
 
     private static bool IsAttributeValidForTargets(INamedTypeSymbol attributeType, AttributeTargets validTargets)
     {
-        // Get the AttributeUsageAttribute applied to this attribute type
-        var attributeUsageAttribute = attributeType.GetAttributes()
-            .FirstOrDefault(attr => attr.AttributeClass is { Name: "AttributeUsageAttribute", ContainingNamespace: { Name: "System", ContainingNamespace.IsGlobalNamespace: true } });
-
-        if (attributeUsageAttribute == null)
+        // Get the AttributeUsageAttribute that determines the valid targets for this attribute type.
+        // AttributeUsage is inherited: if the attribute type doesn't specify one directly, the effective
+        // usage comes from the nearest base attribute type that does (matching the C# compiler's behavior).
+        // Walk the base type chain to find it.
+        var currentType = attributeType;
+        while (currentType is not null)
         {
-            // If no AttributeUsage is specified, the default is AttributeTargets.All
-            return true;
+            var attributeUsageAttribute = currentType.GetAttributes()
+                .FirstOrDefault(attr => attr.AttributeClass is { Name: "AttributeUsageAttribute", ContainingNamespace: { Name: "System", ContainingNamespace.IsGlobalNamespace: true } });
+
+            if (attributeUsageAttribute != null)
+            {
+                // The first constructor argument is the AttributeTargets value
+                if (attributeUsageAttribute.ConstructorArguments is [{ Value: int targetsValue }, ..])
+                {
+                    var attributeTargets = (AttributeTargets)targetsValue;
+                    // Check if there's any overlap between the attribute's targets and the valid targets
+                    return (attributeTargets & validTargets) != 0;
+                }
+
+                // Found an AttributeUsage but couldn't determine the targets; default to allowing the attribute.
+                return true;
+            }
+
+            // No AttributeUsage on this type; keep looking up the base chain.
+            currentType = currentType.BaseType;
         }
 
-        // The first constructor argument is the AttributeTargets value
-        if (attributeUsageAttribute.ConstructorArguments is [{ Value: int targetsValue }, ..])
-        {
-            var attributeTargets = (AttributeTargets)targetsValue;
-            // Check if there's any overlap between the attribute's targets and the valid targets
-            return (attributeTargets & validTargets) != 0;
-        }
-
-        // Default to allowing the attribute if we can't determine the targets
+        // No AttributeUsage found anywhere in the inheritance chain; the default is AttributeTargets.All
         return true;
     }
 

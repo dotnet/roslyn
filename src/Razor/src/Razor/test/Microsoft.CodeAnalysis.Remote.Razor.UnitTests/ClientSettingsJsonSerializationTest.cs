@@ -28,6 +28,7 @@ public class ClientSettingsJsonSerializationTest
                 SnippetSetting: SnippetSetting.None,
                 LogLevel: LogLevel.Trace,
                 FormatOnPaste: false,
+                ShowAllCSharpCodeActions: true,
                 TaskListDescriptors: ["TODO", "HACK"]));
 
         var json = JsonSerializer.Serialize(settings);
@@ -68,6 +69,8 @@ public class ClientSettingsJsonSerializationTest
         Assert.Equal((int)LogLevel.Trace, logLevel.GetInt32());
         Assert.True(advancedSettings.TryGetProperty("formatOnPaste", out var formatOnPaste));
         Assert.False(formatOnPaste.GetBoolean());
+        Assert.True(advancedSettings.TryGetProperty("showAllCSharpCodeActions", out var showAllCSharpCodeActions));
+        Assert.True(showAllCSharpCodeActions.GetBoolean());
         Assert.True(advancedSettings.TryGetProperty("taskListDescriptors", out var taskListDescriptors));
         Assert.Collection<string>(taskListDescriptors.EnumerateArray().Select(e => e.GetString())!,
             descriptor => Assert.Equal("TODO", descriptor),

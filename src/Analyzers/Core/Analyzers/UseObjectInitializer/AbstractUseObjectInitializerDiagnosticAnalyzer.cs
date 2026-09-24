@@ -139,7 +139,7 @@ internal abstract partial class AbstractUseObjectInitializerDiagnosticAnalyzer<
             locations,
             properties: null));
 
-        FadeOutCode(context, matches, locations);
+        FadeOutCode(context, matches, locations, option.Notification);
 
         return;
     }
@@ -147,7 +147,8 @@ internal abstract partial class AbstractUseObjectInitializerDiagnosticAnalyzer<
     private void FadeOutCode(
         SyntaxNodeAnalysisContext context,
         ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches,
-        ImmutableArray<Location> locations)
+        ImmutableArray<Location> locations,
+        NotificationOption2 notification)
     {
         var syntaxTree = context.Node.SyntaxTree;
 
@@ -178,7 +179,7 @@ internal abstract partial class AbstractUseObjectInitializerDiagnosticAnalyzer<
             context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                 s_unnecessaryCodeDescriptor,
                 additionalUnnecessaryLocations[0],
-                NotificationOption2.ForSeverity(s_unnecessaryCodeDescriptor.DefaultSeverity),
+                notification,
                 context.Options,
                 additionalLocations: locations,
                 additionalUnnecessaryLocations: additionalUnnecessaryLocations.ToImmutableAndClear(),

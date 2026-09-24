@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml;
@@ -43,6 +44,12 @@ internal sealed class XamlEditAndContinueSolutionProvider : IXamlEditAndContinue
 
     private void OnEditAndContinueSolutionCommitted(Solution solution)
     {
-        SolutionCommitted?.Invoke(solution);
+        try
+        {
+            SolutionCommitted?.Invoke(solution);
+        }
+        catch (Exception e) when (FatalError.ReportAndCatch(e))
+        {
+        }
     }
 }

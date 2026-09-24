@@ -35,13 +35,15 @@ There are a number of options for running the core Roslyn unit tests:
 
 ### Command Line
 
-The Test.cmd script will run our unit test on already built binaries. It can be passed the `-build` argument to force a new build before running tests.
+The Test.cmd script runs unit tests on already-built test binaries via `src/Tools/RunTests`. Run `Build.cmd` separately before testing, and pass test options to `Test.cmd`.
 
 1. Run the "Developer Command Prompt for VS2022" from your start menu.
 2. Navigate to the directory of your Git clone.
 3. Run `Test.cmd` in the command prompt.
 
-You can more precisely control how the tests are run by running the eng/build.ps1 script directly with the relevant options. For example passing in the `-test` switch will run the tests on .NET Framework, whilst passing in the `-testCoreClr` switch will run the tests on .NET Core.
+Pass options directly to `Test.cmd`: `--testFramework:desktop` selects .NET Framework, while `--testFramework:core` selects .NET. Repeat `--testFramework` to run both. Use `--testConfiguration Release` to test Release binaries and `--testPlatform x86` to select x86. Run `Test.cmd --help` for all options.
+
+Visual Studio integration tests have a separate entry point: run `eng\test-vsi.ps1 -configuration Debug` after building.
 
 The results of the tests can be viewed in the artifacts/TestResults directory.
 
@@ -209,7 +211,7 @@ See internal documentation for that process [here](https://microsoft.sharepoint.
 
 ### Testing with extra IOperation validation
 
-Run `build.cmd -testIOperation` which sets the `ROSLYN_TEST_IOPERATION` environment variable to `true` and runs the tests.
+Run `Test.cmd --testFramework:core --testSet:compiler --testKind:ioperation`, which sets the `ROSLYN_TEST_IOPERATION` environment variable to `true` in the test processes.
 For running those tests in an IDE, the easiest is to find the `//#define ROSLYN_TEST_IOPERATION` directive and uncomment it.
 See more details in the [IOperation test hook](https://github.com/dotnet/roslyn/blob/main/docs/compilers/IOperation%20Test%20Hook.md) doc.
 
@@ -225,7 +227,7 @@ drag the instruction pointer past the early check and return on `EnableVerifyUse
 
 When a test failure is isolated, please add a _dedicated_ test for this (ie. failing even when the Used Assemblies validation isn't enabled) to make it easier to avoid future regressions.  
 Preferrably, don't replicate the entire original test, just enough to hit the bug to ensure that it's protected against regressions.  
-Before pushing a relevant fix to CI, you can validate locally using the `-testUsedAssemblies` command-line option for `build.cmd`. For example: `build.cmd -testCoreClr -testCompilerOnly -testUsedAssemblies`.
+Before pushing a relevant fix to CI, validate locally using `Test.cmd --testFramework:core --testSet:compiler --testKind:usedassemblies`.
 
 ### Running the PublicAPI fixer
 

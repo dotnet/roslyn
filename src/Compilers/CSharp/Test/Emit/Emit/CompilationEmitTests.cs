@@ -1951,7 +1951,7 @@ comp => comp.VerifyDiagnostics(
             using (var reader = new PEReader(image))
             {
                 var flags = reader.PEHeaders.CorHeader.Flags;
-                Assert.Equal(expectSigned, flags.HasFlag(CorFlags.StrongNameSigned));
+                Assert.Equal(expectSigned, (flags & CorFlags.StrongNameSigned) == CorFlags.StrongNameSigned);
             }
         }
 
@@ -2709,17 +2709,38 @@ struct S
         }
 
         [Fact]
-        public void EmitMetadataOnly_DisallowEmbeddingPdb()
+        public void EmitMetadataOnly_IgnoreEmbeddedPdb()
         {
             CSharpCompilation comp = CreateEmptyCompilation("", references: new[] { MscorlibRef },
-                options: TestOptions.DebugDll);
+                options: TestOptions.DebugDll.WithDeterministic(true));
 
             using (var output = new MemoryStream())
             {
-                Assert.Throws<ArgumentException>(() => comp.Emit(output,
+                var result = comp.Emit(output,
                     options: EmitOptions.Default.WithEmitMetadataOnly(true)
-                        .WithDebugInformationFormat(DebugInformationFormat.Embedded)));
+                        .WithDebugInformationFormat(DebugInformationFormat.Embedded));
+
+                Assert.True(result.Success);
+                using var peReader = new PEReader(output.ToImmutable());
+                AssertEx.Equal(
+                    new[] { DebugDirectoryEntryType.Reproducible },
+                    peReader.ReadDebugDirectory().Select(entry => entry.Type));
             }
+        }
+
+        [Fact]
+        public void EmitMetadataOnly_IgnorePdb()
+        {
+            CSharpCompilation comp = CreateEmptyCompilation("", references: new[] { MscorlibRef },
+                options: TestOptions.DebugDll.WithDeterministic(true));
+
+            var output = comp.EmitToArray(
+                EmitOptions.Default.WithEmitMetadataOnly(true).WithDebugInformationFormat(DebugInformationFormat.Pdb));
+
+            using var peReader = new PEReader(output);
+            AssertEx.Equal(
+                new[] { DebugDirectoryEntryType.Reproducible },
+                peReader.ReadDebugDirectory().Select(entry => entry.Type));
         }
 
         [Fact]
@@ -3610,7 +3631,7 @@ class C
             Assert.False(peHeaders.Requires64Bits());
             Assert.True(peHeaders.IsDll);
             Assert.False(peHeaders.IsExe);
-            Assert.False(peHeaders.CoffHeader.Characteristics.HasFlag(Characteristics.LargeAddressAware));
+            Assert.False((peHeaders.CoffHeader.Characteristics & Characteristics.LargeAddressAware) == Characteristics.LargeAddressAware);
             //interesting Optional PE header bits
             //We will use a range beginning with 0x30 to identify the Roslyn compiler family.
             Assert.Equal(0x30, peHeaders.PEHeader.MajorLinkerVersion);
@@ -3644,7 +3665,7 @@ class C
             Assert.True(peHeaders.Requires64Bits());
             Assert.True(peHeaders.IsDll);
             Assert.False(peHeaders.IsExe);
-            Assert.True(peHeaders.CoffHeader.Characteristics.HasFlag(Characteristics.LargeAddressAware));
+            Assert.True((peHeaders.CoffHeader.Characteristics & Characteristics.LargeAddressAware) == Characteristics.LargeAddressAware);
             //interesting Optional PE header bits
             //We will use a range beginning with 0x30 to identify the Roslyn compiler family.
             Assert.Equal(0x30, peHeaders.PEHeader.MajorLinkerVersion);
@@ -3694,7 +3715,7 @@ class C
             Assert.False(peHeaders.Requires64Bits());
             Assert.True(peHeaders.IsDll);
             Assert.False(peHeaders.IsExe);
-            Assert.True(peHeaders.CoffHeader.Characteristics.HasFlag(Characteristics.LargeAddressAware));
+            Assert.True((peHeaders.CoffHeader.Characteristics & Characteristics.LargeAddressAware) == Characteristics.LargeAddressAware);
             //interesting Optional PE header bits
             //We will use a range beginning with 0x30 to identify the Roslyn compiler family.
             Assert.Equal(0x30, peHeaders.PEHeader.MajorLinkerVersion);
@@ -3734,7 +3755,7 @@ class C
             Assert.False(peHeaders.Requires64Bits());
             Assert.True(peHeaders.IsExe);
             Assert.False(peHeaders.IsDll);
-            Assert.True(peHeaders.CoffHeader.Characteristics.HasFlag(Characteristics.LargeAddressAware));
+            Assert.True((peHeaders.CoffHeader.Characteristics & Characteristics.LargeAddressAware) == Characteristics.LargeAddressAware);
             //interesting Optional PE header bits
             //We will use a range beginning with 0x30 to identify the Roslyn compiler family.
             Assert.Equal(0x30, peHeaders.PEHeader.MajorLinkerVersion);
@@ -3774,7 +3795,7 @@ class C
             Assert.True(peHeaders.Requires64Bits());
             Assert.True(peHeaders.IsExe);
             Assert.False(peHeaders.IsDll);
-            Assert.True(peHeaders.CoffHeader.Characteristics.HasFlag(Characteristics.LargeAddressAware));
+            Assert.True((peHeaders.CoffHeader.Characteristics & Characteristics.LargeAddressAware) == Characteristics.LargeAddressAware);
             //interesting Optional PE header bits
             //We will use a range beginning with 0x30 to identify the Roslyn compiler family.
             Assert.Equal(0x30, peHeaders.PEHeader.MajorLinkerVersion);

@@ -83,7 +83,7 @@ namespace RunTests
         public bool Sequential { get; set; }
 
         /// <summary>
-        /// Whether to run test partitions as Helix work items.
+        /// Whether to submit test partitions as Helix work items for the external job monitor.
         /// </summary>
         public bool UseHelix { get; set; }
 
@@ -120,6 +120,14 @@ namespace RunTests
         /// Populated from --env:KEY=VALUE command line arguments.
         /// </summary>
         public Dictionary<string, string> EnvironmentVariables { get; set; } = new();
+
+        public string? AccessToken { get; set; }
+
+        public string? ProjectUri { get; set; }
+
+        public string? PipelineDefinitionId { get; set; }
+
+        public string? TargetBranchName { get; set; }
 
         public Options(
             string dotnetFilePath,
@@ -164,6 +172,10 @@ namespace RunTests
             var environmentVariables = new Dictionary<string, string>(
                 RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
 
+            string? accessToken = null;
+            string? projectUri = null;
+            string? pipelineDefinitionId = null;
+            string? targetBranchName = null;
             var optionSet = new OptionSet()
             {
                 { "h|help|?", "Show this help message and exit", o => showHelp = o is object },
@@ -174,24 +186,23 @@ namespace RunTests
                 { "testPlatform=", "Architecture to test on: x86, x64 or arm64", s => platform = s },
                 { "html", "Include HTML file output", o => includeHtml = o is object },
                 { "sequential", "Run tests sequentially", o => sequential = o is object },
-                { "helix", "Run tests on Helix", o => helix = o is object },
+                { "helix", "Submit tests to Helix for the external job monitor", o => helix = o is object },
                 { "helixQueueName=", "Name of the Helix queue to run tests on", s => helixQueueName = s },
                 { "helixApiAccessToken=", "Access token for internal helix queues", s => helixApiAccessToken = s },
                 { "testfilter=", "xUnit string to pass to --filter, e.g. FullyQualifiedName~TestClass1|Category=CategoryA", s => testFilter = s },
                 { "timeout=", "Minute timeout to limit the tests to (default: 90, not supported with --helix)", (int i) => timeout = i },
                 { "out=", "Test result file directory (when running on Helix, this is relative to the Helix work item directory)", s => resultFileDirectory = s },
                 { "logs=", "Log file directory (when running on Helix, this is relative to the Helix work item directory)", s => logFileDirectory = s },
-
                 { "artifactspath=", "Path to the artifacts directory (auto-detected from binary location if not set)", s => artifactsPath = s },
                 { "collectdumps", "Gather dumps on timeouts and crashes (process executor only, not supported with --helix)", o => collectDumps = o is object },
-                { "testFramework:", "Test framework to run: core or desktop (can be specified multiple times)", s => testFrameworks.Add(s) },
-                { "testSet:", "Test set to run: compiler (restricts to compiler test assemblies)", s => testSet = s },
-                { "testKind:", "Test kind to run: ioperation, runtimeasync, usedassemblies", s => testKind = s },
+                { "testFramework=", "Test framework to run: core or desktop (can be specified multiple times)", s => testFrameworks.Add(s) },
+                { "testSet=", "Test set to run: compiler (restricts to compiler test assemblies)", s => testSet = s },
+                { "testKind=", "Test kind to run: ioperation, runtimeasync, usedassemblies", s => testKind = s },
                 { "ci", "Running in CI - sets ROSLYN_TEST_CI=true in test processes", o => {
                     if (o is object)
                         environmentVariables["ROSLYN_TEST_CI"] = "true";
                 }},
-                { "env:", "Set an environment variable in test processes (format: --env:KEY=VALUE or --env:KEY for KEY=true)", s => {
+                { "env=", "Set an environment variable in test processes (format: --env:KEY=VALUE or --env:KEY for KEY=true)", s => {
                     var eqIndex = s.IndexOf('=');
                     if (eqIndex >= 0)
                     {
@@ -202,6 +213,10 @@ namespace RunTests
                         environmentVariables[s] = "true";
                     }
                 }},
+                { "accessToken=", "Pipeline access token with permissions to view test history", s => accessToken = s },
+                { "projectUri=", "ADO project containing the pipeline", s => projectUri = s },
+                { "pipelineDefinitionId=", "Pipeline definition id", s => pipelineDefinitionId = s },
+                { "targetBranchName=", "Target branch of this pipeline run", s => targetBranchName = s },
             };
 
             List<string> assemblyList;
@@ -402,6 +417,10 @@ namespace RunTests
                 TestFilter = testFilter,
                 Timeout = timeout is { } t ? TimeSpan.FromMinutes(t) : null,
                 EnvironmentVariables = environmentVariables,
+                AccessToken = accessToken,
+                ProjectUri = projectUri,
+                PipelineDefinitionId = pipelineDefinitionId,
+                TargetBranchName = targetBranchName,
             };
 
             static string? TryGetArtifactsPath()

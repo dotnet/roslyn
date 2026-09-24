@@ -16,7 +16,6 @@
 
   <ItemGroup Label="Package References">
     <PackageReference Include="BenchmarkDotNet" />
-    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" />
   </ItemGroup>
 
   <ItemGroup Label="Project References">

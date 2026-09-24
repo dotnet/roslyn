@@ -22,6 +22,15 @@ internal abstract class AbstractSyntaxNodeFoldingProvider<TNode> : IRazorFolding
         foreach (var node in nodes)
         {
             var (start, end) = sourceText.GetLinePositionSpan(node.Span);
+
+            // Razor nodes can include the line break after their closing brace. Folding that line break
+            // pulls the following content onto the collapsed line.
+            if (end.Character == 0 && end.Line > start.Line)
+            {
+                var previousLine = sourceText.Lines[end.Line - 1];
+                end = new(end.Line - 1, previousLine.Span.Length);
+            }
+
             var foldingRange = new FoldingRange()
             {
                 StartCharacter = start.Character,

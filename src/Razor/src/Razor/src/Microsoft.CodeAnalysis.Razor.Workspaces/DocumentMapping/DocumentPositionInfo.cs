@@ -13,5 +13,6 @@ namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 internal readonly record struct DocumentPositionInfo(
     [property: JsonPropertyName("languageKind")] RazorLanguageKind LanguageKind,
     [property: JsonPropertyName("position")] Position Position,
-    [property: JsonPropertyName("hostDocumentIndex")] int HostDocumentIndex);
+    [property: JsonPropertyName("hostDocumentIndex")] int HostDocumentIndex,
+    [property: JsonPropertyName("inDeclDocument")] bool InDeclDocument = false);
 

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Remote;
 /// This class runs against the in-process workspace, and when it sees changes proactively pushes them to
 /// the out-of-process workspace through the <see cref="IRemoteAssetSynchronizationService"/>.
 /// </summary>
-internal sealed class SolutionChecksumUpdater
+internal sealed class SolutionChecksumUpdater : IDisposable
 {
     private readonly Workspace _workspace;
 
@@ -43,8 +43,6 @@ internal sealed class SolutionChecksumUpdater
 
     private const string SynchronizeTextChangesStatusSucceededMetricName = "SucceededCount";
     private const string SynchronizeTextChangesStatusFailedMetricName = "FailedCount";
-    private const string SynchronizeTextChangesStatusSucceededKeyName = nameof(SolutionChecksumUpdater) + "." + SynchronizeTextChangesStatusSucceededMetricName;
-    private const string SynchronizeTextChangesStatusFailedKeyName = nameof(SolutionChecksumUpdater) + "." + SynchronizeTextChangesStatusFailedMetricName;
 
     public SolutionChecksumUpdater(
         Workspace workspace,
@@ -66,14 +64,12 @@ internal sealed class SolutionChecksumUpdater
         _synchronizeWorkspaceQueue = new AsyncBatchingWorkQueue(
             DelayTimeSpan.Short,
             SynchronizePrimaryWorkspaceAsync,
-            listener,
-            shutdownToken);
+            listener);
 
         _synchronizeActiveDocumentQueue = new AsyncBatchingWorkQueue(
             TimeSpan.Zero,
             SynchronizeActiveDocumentAsync,
-            listener,
-            shutdownToken);
+            listener);
 
         // start listening workspace change event
         _workspaceChangedDisposer = _workspace.RegisterWorkspaceChangedHandler(this.OnWorkspaceChanged);
@@ -85,12 +81,13 @@ internal sealed class SolutionChecksumUpdater
         _synchronizeWorkspaceQueue.AddWork();
     }
 
-    public void Shutdown()
+    public void Dispose()
     {
-        // Try to stop any work that is in progress.
+        // Stop any work that is in progress, and prevent any further work from being queued up.
         lock (_gate)
         {
-            _synchronizeWorkspaceQueue.CancelExistingWork();
+            _synchronizeWorkspaceQueue.Dispose();
+            _synchronizeActiveDocumentQueue.Dispose();
         }
 
         _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentChanged;
@@ -193,14 +190,7 @@ internal sealed class SolutionChecksumUpdater
 
         // Update aggregated telemetry with success status of sending the synchronization data.
         var metricName = wasSynchronized.Value ? SynchronizeTextChangesStatusSucceededMetricName : SynchronizeTextChangesStatusFailedMetricName;
-        var keyName = wasSynchronized.Value ? SynchronizeTextChangesStatusSucceededKeyName : SynchronizeTextChangesStatusFailedKeyName;
-        TelemetryLogging.LogAggregatedCounter(FunctionId.ChecksumUpdater_SynchronizeTextChangesStatus, KeyValueLogMessage.Create(static (m, args) =>
-        {
-            var (keyName, metricName) = args;
-            m[TelemetryLogging.KeyName] = keyName;
-            m[TelemetryLogging.KeyValue] = 1L;
-            m[TelemetryLogging.KeyMetricName] = metricName;
-        }, (keyName, metricName)));
+        RoslynTelemetry.Current.Count(FunctionId.ChecksumUpdater_SynchronizeTextChangesStatus, metricName, 1);
 
         return;
 

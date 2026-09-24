@@ -11,6 +11,8 @@ namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal interface IRemoteFormattingService
 {
+    ValueTask<bool> SetFormattingLogDirectoryAsync(string? logDirectory, CancellationToken cancellationToken);
+
     ValueTask<ImmutableArray<TextChange>> GetDocumentFormattingEditsAsync(
         RazorSolutionWrapper solutionInfo,
         DocumentId documentId,

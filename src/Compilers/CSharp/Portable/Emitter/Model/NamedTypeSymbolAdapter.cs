@@ -737,7 +737,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 CheckDefinitionInvariant();
                 var layout = AdaptedNamedTypeSymbol.Layout;
-                return (ushort)layout.Alignment;
+                return layout.PackingSize;
             }
         }
 

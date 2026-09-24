@@ -157,16 +157,16 @@ internal sealed partial class RazorLSPTextViewConnectionListener(
 
     public void SubjectBuffersDisconnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
     {
+        if (!textView.TextBuffer.IsRazorLSPBuffer())
+        {
+            return;
+        }
+
         // When the TextView goes away so does the filter.  No need to do anything more.
         // However, we do need to detach from listening for option changes to avoid leaking.
         // We should switch to listening to a different TextView if the one we're listening
         // to is disconnected.
         Assumes.NotNull(_textBuffer);
-
-        if (!textView.TextBuffer.IsRazorLSPBuffer())
-        {
-            return;
-        }
 
         lock (_lock)
         {

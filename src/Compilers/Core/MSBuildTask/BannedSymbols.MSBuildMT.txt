@@ -1,0 +1,32 @@
+# APIs that must be avoided, or carefully scrutinized, when writing code that can be used in a msbuild multi-thread 
+# aware task
+# https://github.com/dotnet/msbuild/blob/main/plugins/mt-migration/agents/mt-migration-reviewer.agent.md
+
+T:System.Console;
+
+P:System.Environment.CurrentDirectory;Use TaskEnvironment.ProjectDirectory instead
+M:System.Environment.GetEnvironmentVariable(System.String);Use TaskEnvironment.GetEnvironmentVariable instead
+M:System.Environment.GetEnvironmentVariable(System.String,System.EnvironmentVariableTarget);Use TaskEnvironment.GetEnvironmentVariable instead
+M:System.Environment.GetEnvironmentVariables();Use TaskEnvironment.GetEnvironmentVariables instead
+M:System.Environment.GetCommandLineArgs();
+M:System.Environment.GetFolderPath();
+M:System.Environment.GetLogicalDrives();
+M:System.Environment.SetEnvironmentVariable(System.String, System.String);
+M:System.Environment.SetEnvironmentVariable(System.String, System.String, System.EnvironmentVariableTarget);
+
+T:System.IO.File;MT review required: File.* is unsafe when the path is relative. Absolutize via TaskEnvironment before I/O.
+M:System.IO.File.Exists(System.String);Use TaskEnvironment.FileExists instead
+M:System.IO.File.Move(System.String, System.String);Use TaskEnvironment.FileMove instead
+
+T:System.IO.Directory;MT review required: Directory.* is unsafe when the path is relative. Absolutize via TaskEnvironment before I/O.
+M:System.IO.Directory.GetCurrentDirectory();Use TaskEnvironment.ProjectDirectory instead
+
+M:System.IO.DirectoryInfo.#ctor(System.String);Use TaskEnvironment.CreateDirectoryInfo instead
+
+M:System.IO.FileInfo.#ctor(System.String);Use TaskEnvironment.CreateFileInfo instead
+
+T:System.IO.FileStream;MT review required: FileStream is unsafe when constructed from a relative path. Absolutize via TaskEnvironment first.
+
+M:System.IO.Path.GetFullPath(System.String); Use TaskEnvironment.GetFullPath instead
+M:System.IO.Path.GetFullPath(System.String, System.String); Use TaskEnvironment.GetFullPath instead
+M:System.IO.Path.GetTempPath();Use TaskEnvironment.GetTempPath instead

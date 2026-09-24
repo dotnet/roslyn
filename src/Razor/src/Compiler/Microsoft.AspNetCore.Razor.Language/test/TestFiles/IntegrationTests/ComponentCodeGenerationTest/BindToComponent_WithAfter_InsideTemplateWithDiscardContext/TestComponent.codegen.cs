@@ -61,16 +61,6 @@ Value
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (4,8)-(7,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    public int ParentValue { get; set; } = 42;
-    public void OnAfter() { }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

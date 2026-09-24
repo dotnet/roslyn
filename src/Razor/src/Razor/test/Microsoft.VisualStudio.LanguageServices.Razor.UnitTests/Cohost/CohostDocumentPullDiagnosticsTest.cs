@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -17,6 +19,7 @@ using Microsoft.CodeAnalysis.Remote.Razor.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using WorkItemAttribute = Roslyn.Test.Utilities.WorkItemAttribute;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -39,7 +42,7 @@ public partial class CohostDocumentPullDiagnosticsTest
             }
             """);
 
-        var requestInvoker = new TestHtmlRequestInvoker([(VSInternalMethods.DocumentPullDiagnosticName, (VSInternalDiagnosticReport[]?)null)]);
+        var requestInvoker = new TestHtmlRequestInvoker();
         var result = await MakeDiagnosticsRequestAsync(document, taskListRequest: false, requestInvoker, IncompatibleProjectService, RemoteServiceInvoker, ClientCapabilitiesService, LoggerFactory, DisposalToken);
 
         Assert.NotNull(result);
@@ -89,9 +92,9 @@ public partial class CohostDocumentPullDiagnosticsTest
             """;
 
         return VerifyDiagnosticsAsync(input,
-           htmlResponse: [new VSInternalDiagnosticReport
+           htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new VSDiagnostic
                     {
@@ -124,6 +127,57 @@ public partial class CohostDocumentPullDiagnosticsTest
             }]);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/13251")]
+    public Task FilterTypeScriptExpressionExpectedAfterRazorExpression()
+    {
+        TestCode input = """
+            <script>
+                const values = @Html.Raw("[]");
+                const next = 0;
+            </script>
+            """;
+
+        return VerifyDiagnosticsAsync(
+            input,
+            htmlResponse: [new FullDocumentDiagnosticReport
+            {
+                Items =
+                [
+                    new LspDiagnostic
+                    {
+                        Code = "TS1109",
+                        Range = SourceText.From(input.Text).GetRange(new TextSpan(input.Text.IndexOf(';'), 1))
+                    }
+                ]
+            }],
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/13251")]
+    public Task DoNotFilterTypeScriptExpressionExpectedInJavaScript()
+    {
+        TestCode input = """
+            <script>
+                const values = {|TS1109:;|}
+            </script>
+            """;
+
+        return VerifyDiagnosticsAsync(
+            input,
+            htmlResponse: [new FullDocumentDiagnosticReport
+            {
+                Items =
+                [
+                    new LspDiagnostic
+                    {
+                        Code = "TS1109",
+                        Range = SourceText.From(input.Text).GetRange(input.NamedSpans["TS1109"].First())
+                    }
+                ]
+            }],
+            fileKind: RazorFileKind.Legacy);
+    }
+
     [Fact]
     public Task Html()
     {
@@ -136,9 +190,9 @@ public partial class CohostDocumentPullDiagnosticsTest
             """;
 
         return VerifyDiagnosticsAsync(input,
-            htmlResponse: [new VSInternalDiagnosticReport
+            htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new LspDiagnostic
                     {
@@ -172,9 +226,9 @@ public partial class CohostDocumentPullDiagnosticsTest
             """;
 
         return VerifyDiagnosticsAsync(input,
-            htmlResponse: [new VSInternalDiagnosticReport
+            htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new LspDiagnostic
                     {
@@ -210,9 +264,9 @@ public partial class CohostDocumentPullDiagnosticsTest
             """;
 
         return VerifyDiagnosticsAsync(input,
-            htmlResponse: [new VSInternalDiagnosticReport
+            htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new LspDiagnostic
                     {
@@ -244,9 +298,9 @@ public partial class CohostDocumentPullDiagnosticsTest
             """;
 
         return VerifyDiagnosticsAsync(input,
-            htmlResponse: [new VSInternalDiagnosticReport
+            htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new LspDiagnostic
                     {
@@ -278,9 +332,9 @@ public partial class CohostDocumentPullDiagnosticsTest
             """;
 
         return VerifyDiagnosticsAsync(input,
-            htmlResponse: [new VSInternalDiagnosticReport
+            htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new LspDiagnostic
                     {
@@ -321,9 +375,9 @@ public partial class CohostDocumentPullDiagnosticsTest
             """;
 
         return VerifyDiagnosticsAsync(input,
-            htmlResponse: [new VSInternalDiagnosticReport
+            htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new LspDiagnostic
                     {
@@ -364,9 +418,9 @@ public partial class CohostDocumentPullDiagnosticsTest
             """;
 
         return VerifyDiagnosticsAsync(input,
-            htmlResponse: [new VSInternalDiagnosticReport
+            htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new LspDiagnostic
                     {
@@ -407,9 +461,9 @@ public partial class CohostDocumentPullDiagnosticsTest
             """;
 
         return VerifyDiagnosticsAsync(input,
-            htmlResponse: [new VSInternalDiagnosticReport
+            htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new LspDiagnostic
                     {
@@ -442,9 +496,9 @@ public partial class CohostDocumentPullDiagnosticsTest
             """;
 
         return VerifyDiagnosticsAsync(input,
-            htmlResponse: [new VSInternalDiagnosticReport
+            htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new LspDiagnostic
                     {
@@ -458,6 +512,107 @@ public partial class CohostDocumentPullDiagnosticsTest
                     },
                 ]
             }]);
+    }
+
+    [Fact]
+    public Task DontFilterPropertyNameInStyleBlock()
+    {
+        TestCode input = """
+            <style>
+                .foo {
+                    {|CSS024:/****/|}
+                }
+            </style>
+            """;
+
+        return VerifyDiagnosticsAsync(input,
+            htmlResponse: [new FullDocumentDiagnosticReport
+            {
+                Items =
+                [
+                    new LspDiagnostic
+                    {
+                        Code = CSSErrorCodes.MissingPropertyName,
+                        Range = SourceText.From(input.Text).GetRange(new TextSpan(input.Text.IndexOf("/"), "/****/".Length))
+                    },
+                ]
+            }]);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13191")]
+    public Task FilterPropertyNameOutsideAttribute()
+    {
+        TestCode input = """
+            @if (true)
+            {
+                <MudCard Outlined="true" Class="mud-width-full" Elevation="3"
+                         HeaderClass="@((SelectedFileId == DefaultMessageId) ? "selected" : "unselected")">
+                    <div class="d-flex flex-column align-center justify-center pa-3" style="height: 120px;">
+                        <span style="width: 179px; height: 100%; background-color: black;"></span>
+                    </div>
+
+                    <div class="d-flex card-actions-cursor" style="padding-bottom: 10px; padding-top: 10px; border-top: 1px solid var(--mud-palette-lines-default);">
+                        <span>Default message</span>
+                    </div>
+                </MudCard>
+            }
+
+            <div style="{|CSS024:/****/|}"></div>
+
+            @code
+            {
+                private string SelectedFileId { get; set; } = "";
+                private string DefaultMessageId { get; } = "Default";
+            }
+            """;
+
+        var sourceText = SourceText.From(input.Text);
+
+        // Sometimes the Html server will report the diagnostic range as the whole component, or even multiple.
+        var diagnosticStart = input.Text.IndexOf("    <MudCard");
+        var diagnosticEnd = input.Text.IndexOf("        <div class=\"d-flex card-actions-cursor\"");
+
+        return VerifyDiagnosticsAsync(
+            input,
+            htmlResponse: [new FullDocumentDiagnosticReport
+            {
+                Items =
+                [
+                    new LspDiagnostic
+                    {
+                        Code = CSSErrorCodes.MissingPropertyName,
+                        Range = sourceText.GetRange(TextSpan.FromBounds(diagnosticStart, diagnosticEnd))
+                    },
+                    new LspDiagnostic
+                    {
+                        Code = CSSErrorCodes.MissingPropertyName,
+                        Range = sourceText.GetRange(new TextSpan(input.Text.IndexOf("/****/"), "/****/".Length))
+                    },
+                ]
+            }],
+            additionalFiles:
+            [
+                (FilePath("MudCard.razor"), """
+                    @code
+                    {
+                        [Parameter]
+                        public bool Outlined { get; set; }
+
+                        [Parameter]
+                        public string Class { get; set; }
+
+                        [Parameter]
+                        public int Elevation { get; set; }
+
+                        [Parameter]
+                        public string HeaderClass { get; set; }
+
+                        [Parameter]
+                        public RenderFragment ChildContent { get; set; }
+                    }
+                    """)
+            ]);
     }
 
     [Fact]
@@ -476,9 +631,9 @@ public partial class CohostDocumentPullDiagnosticsTest
             """;
 
         return VerifyDiagnosticsAsync(input,
-            htmlResponse: [new VSInternalDiagnosticReport
+            htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new LspDiagnostic
                     {
@@ -499,9 +654,9 @@ public partial class CohostDocumentPullDiagnosticsTest
             """;
 
         return VerifyDiagnosticsAsync(input,
-            htmlResponse: [new VSInternalDiagnosticReport
+            htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new LspDiagnostic
                     {
@@ -533,9 +688,9 @@ public partial class CohostDocumentPullDiagnosticsTest
             """;
 
         return VerifyDiagnosticsAsync(input,
-            htmlResponse: [new VSInternalDiagnosticReport
+            htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new LspDiagnostic
                     {
@@ -558,6 +713,10 @@ public partial class CohostDocumentPullDiagnosticsTest
 
             // TODO: This isn't C#
 
+            @{
+                // {|TODO:|}TODO: This is C# in an impl document
+            }
+
             TODO: Nor is this
 
             <div>
@@ -570,14 +729,35 @@ public partial class CohostDocumentPullDiagnosticsTest
 
             @code {
                 // This looks different because Roslyn only reports zero width ranges for task lists
-                // {|TODO:|}TODO: Write some C# code too
+                // {|TODO:|}TODO: Write some C# code in a decl document too
             }
+            """,
+            taskListRequest: true);
+
+    [Fact]
+    public Task TODOComments_NoDecl()
+        => VerifyDiagnosticsAsync("""
+            @using System.Threading.Tasks;
+
+            @{
+                // {|TODO:|}TODO: This is C# in an impl document
+            }
+
+            TODO: Nor is this
+
+            <div>
+
+                @*{|TODO: TODO: This does |}*@
+
+                @* TODONT: This doesn't *@
+
+            </div>
             """,
             taskListRequest: true);
 
     private async Task VerifyDiagnosticsAsync(
         TestCode input,
-        VSInternalDiagnosticReport[]? htmlResponse = null,
+        FullDocumentDiagnosticReport[]? htmlResponse = null,
         RazorFileKind? fileKind = null,
         bool taskListRequest = false,
         bool miscellaneousFile = false,
@@ -586,7 +766,10 @@ public partial class CohostDocumentPullDiagnosticsTest
         var document = CreateProjectAndRazorDocument(input.Text, fileKind, miscellaneousFile: miscellaneousFile, additionalFiles: additionalFiles);
         var inputText = await document.GetTextAsync(DisposalToken);
 
-        var requestInvoker = new TestHtmlRequestInvoker([(VSInternalMethods.DocumentPullDiagnosticName, htmlResponse)]);
+        var htmlResult = htmlResponse is null
+            ? default(SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>)
+            : new SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>(Assert.Single(htmlResponse));
+        var requestInvoker = new TestHtmlRequestInvoker([(Methods.TextDocumentDiagnosticName, htmlResult)]);
 
         ClientSettingsManager.Update(ClientSettingsManager.GetClientSettings().AdvancedSettings with { TaskListDescriptors = ["TODO"] });
         var result = await MakeDiagnosticsRequestAsync(document, taskListRequest, requestInvoker, IncompatibleProjectService, RemoteServiceInvoker, ClientCapabilitiesService, LoggerFactory, DisposalToken);
@@ -635,14 +818,14 @@ public partial class CohostDocumentPullDiagnosticsTest
         ILoggerFactory loggerFactory,
         CancellationToken cancellationToken)
     {
-        var endpoint = new CohostDocumentPullDiagnosticsEndpoint(incompatibleProjectService, remoteServiceInvoker, requestInvoker, clientCapabilitiesService, NoOpTelemetryReporter.Instance, loggerFactory, VoidSessionTracker.Instance);
+        var endpoint = new PublicCohostDocumentPullDiagnosticsEndpoint(incompatibleProjectService, remoteServiceInvoker, requestInvoker, clientCapabilitiesService, NoOpTelemetryReporter.Instance, loggerFactory, VoidSessionTracker.Instance);
+        var request = new DocumentDiagnosticParams
+        {
+            TextDocument = new TextDocumentIdentifier { DocumentUri = document.GetURI() },
+            Identifier = taskListRequest ? PullDiagnosticCategories.Task : PullDiagnosticCategories.DocumentCompilerSyntax,
+        };
 
-        var result = taskListRequest
-            ? await endpoint.GetTestAccessor().HandleTaskListItemRequestAsync(document, cancellationToken)
-            : [new()
-                {
-                    Diagnostics = await endpoint.GetTestAccessor().HandleRequestAsync(document, cancellationToken)
-                }];
-        return result.FirstOrDefault()?.Diagnostics;
+        var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, cancellationToken);
+        return result?.Items;
     }
 }

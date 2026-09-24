@@ -58,7 +58,7 @@ try {
   }
 
   Write-Host "Building Roslyn"
-  & eng/build.ps1 -restore -build -bootstrapDir:$bootstrapDir -ci:$ci -prepareMachine:$prepareMachine -runAnalyzers:$true -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$true -properties:"/p:RoslynEnforceCodeStyle=true"
+  & eng/build.ps1 -restore -build -bootstrapDir:$bootstrapDir -ci:$ci -prepareMachine:$prepareMachine -runAnalyzers:$true -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$true
   Test-LastExitCode
 
   Subst-TempDir
@@ -72,7 +72,7 @@ try {
   # Verify the state of our generated syntax files
   Write-Host "Checking generated compiler files"
   Exec-DotNet "run --file eng/generate-compiler-code.cs -- -test -configuration $configuration"
-  Exec-DotNet "tool run dotnet-format whitespace . --folder --include-generated --include src/Compilers/CSharp/Portable/Generated/ src/Compilers/VisualBasic/Portable/Generated/ src/ExpressionEvaluator/VisualBasic/Source/ResultProvider/Generated/ --verify-no-changes"
+  Exec-DotNet "format whitespace . --folder --include-generated --include src/Compilers/CSharp/Portable/Generated/ src/Compilers/VisualBasic/Portable/Generated/ src/ExpressionEvaluator/VisualBasic/Source/ResultProvider/Generated/ --verify-no-changes"
   Write-Host ""
 
   ExitWithExitCode 0
