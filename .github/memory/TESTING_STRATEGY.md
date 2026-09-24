@@ -21,7 +21,9 @@ the one for your area):
 | Project-data tests | `src/ProjectData/Microsoft.NET.ProjectData{,.Generators,.Tasks}.Tests/`; assemblies use the `UnitTests` suffix. |
 | Integration tests | VS integration tests (`azure-pipelines-integration*.yml`); runnable locally on **Windows** hosts with a VS install, also run in CI. |
 
-Frameworks: xUnit with Roslyn test utilities.
+Frameworks: Unit and VS integration tests use xUnit v3 4.0.0 with the shared
+Roslyn/Razor test utilities. `eng/Packages.props` centralizes the xUnit v3
+package versions for both suites.
 
 ## Repo-wide Authoring Conventions
 
@@ -56,6 +58,46 @@ Targeted runs are strongly preferred — the full suite is large and slow. Tests
 - A handful of tests fail only for environmental reasons:
   - `RuntimeHostInfoTests.DotNetInPath_Symlinked` requires symlink-creation privilege (run elevated).
   - `Workspaces.MSBuild` `NewlyCreatedProjectsFromDotNetNew.Validate*TemplateProjects` fail without mobile (ios/tvos/macos/maccatalyst) dotnet workloads installed.
+
+### xUnit v3 unit-test infrastructure
+
+Repo unit-test projects use xUnit v3 through `eng/targets/XUnit.targets`. Test
+projects build as executables for xUnit v3 but keep a `.dll` target extension so
+Roslyn's test naming/discovery checks and VSTest-based infrastructure continue
+to work. The common target adds `xunit.v3.mtp-off` and sets
+`IsTestingPlatformApplication=false` because Roslyn still uses VSTest rather
+than Microsoft.Testing.Platform for these tests. All projects importing this
+target use the centrally pinned xUnit v3 4.0.0 packages.
+
+The runner-only package references in `XUnit.targets` use `PrivateAssets="all"`.
+Keep them private so xUnit's `buildTransitive` entry-point targets do not flow
+through project references into non-test consumers such as benchmark projects.
+
+`TestDiscoveryWorker` references `xunit.v3.runner.utility` 4.0.0 for
+version-independent discovery. That official v3 runner package has a transitive
+`xunit.abstractions` 2.0.3 compatibility dependency so it can inspect v1/v2
+assemblies; it is not a test-framework-v2 consumer.
+
+Some VS integration projects manage their xUnit v3 package references
+explicitly with `IsTestProject=false`; see
+`testing/vs-integration-tests-xunit-v3.md`.
+
+### Shared test-infrastructure projects
+
+Unit tests and VS integration tests now reference the same shared test-utility
+projects again:
+
+| Shared utility project | Used by |
+|---|---|
+| `Compilers/Test/Core` (`Microsoft.CodeAnalysis.Test.Utilities`) | Compiler, IDE, SDK, Razor, and VS integration tests |
+| `Workspaces/CoreTestUtilities` (`Microsoft.CodeAnalysis.Workspaces.Test.Utilities`) | Workspace/IDE tests and `Microsoft.VisualStudio.LanguageServices.New.IntegrationTests` |
+| `Razor/src/Shared/Microsoft.AspNetCore.Razor.Test.Common` | Razor unit and integration test utilities |
+| `Razor/src/Razor/test/Microsoft.AspNetCore.Razor.Test.Common.Tooling` | Razor tooling/unit tests and `Microsoft.VisualStudio.Razor.IntegrationTests` |
+
+If an integration project needs access to internal members in a shared
+test-utility assembly, add the integration test assembly to that utility
+project's `InternalsVisibleTo` list. Do not create a new source-copied
+integration-only fork.
 
 ## CI
 
