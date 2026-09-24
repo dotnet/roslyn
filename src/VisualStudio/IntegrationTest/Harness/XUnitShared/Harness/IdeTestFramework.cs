@@ -8,6 +8,7 @@ namespace Xunit.Harness
     using System.Reflection;
     using System.Threading;
     using System.Threading.Tasks;
+    using Xunit.Runner.Common;
     using Xunit.Sdk;
     using Xunit.v3;
 
@@ -22,7 +23,8 @@ namespace Xunit.Harness
 
         protected override ITestFrameworkExecutor CreateExecutor(Assembly assembly)
         {
-            return new IdeTestFrameworkExecutor(new XunitTestAssembly(assembly), _discoveryOptions ?? throw new InvalidOperationException("We don't expect to be executing before attempting discovery."));
+            var discoveryOptions = _discoveryOptions ?? TestFrameworkOptions.ForDiscovery(new TestAssemblyConfiguration());
+            return new IdeTestFrameworkExecutor(new XunitTestAssembly(assembly), discoveryOptions);
         }
 
         private sealed class IdeTestFrameworkDiscoverer(Assembly assembly, IdeTestFramework testFramework) : XunitTestFrameworkDiscoverer(new XunitTestAssembly(assembly))
