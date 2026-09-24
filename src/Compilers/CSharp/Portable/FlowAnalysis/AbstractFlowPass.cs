@@ -3529,7 +3529,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitRefAccess(BoundRefAccess node)
         {
             var operand = node.Expression;
-            this.VisitLvalue(operand);
+
+            // Treat operand as right-hand side of a ref assignment. 
+            VisitRvalue(operand, isKnownToBeAnLvalue: true);
             return null;
         }
 

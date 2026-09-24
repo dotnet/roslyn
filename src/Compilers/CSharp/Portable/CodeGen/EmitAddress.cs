@@ -328,7 +328,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return EmitAddressOfTempClone(dup, used);
             }
 
-            Debug.Assert(used);
             if (used)
             {
                 _builder.EmitOpCode(ILOpCode.Dup);
