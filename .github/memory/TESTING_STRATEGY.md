@@ -69,6 +69,15 @@ to work. The common target adds `xunit.v3.mtp-off` and sets
 than Microsoft.Testing.Platform for these tests. All projects importing this
 target use the centrally pinned xUnit v3 4.0.0 packages.
 
+The runner-only package references in `XUnit.targets` use `PrivateAssets="all"`.
+Keep them private so xUnit's `buildTransitive` entry-point targets do not flow
+through project references into non-test consumers such as benchmark projects.
+
+`TestDiscoveryWorker` references `xunit.v3.runner.utility` 4.0.0 for
+version-independent discovery. That official v3 runner package has a transitive
+`xunit.abstractions` 2.0.3 compatibility dependency so it can inspect v1/v2
+assemblies; it is not a test-framework-v2 consumer.
+
 Some VS integration projects manage their xUnit v3 package references
 explicitly with `IsTestProject=false`; see
 `testing/vs-integration-tests-xunit-v3.md`.
