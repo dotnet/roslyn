@@ -35,8 +35,12 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
         TestHelpers.EnsureAssemblyLoaded("Basic.Reference.Assemblies.NetStandard20", typeof(NetStandard20).TypeHandle);
         TestHelpers.EnsureAssemblyLoaded("Microsoft.CodeAnalysis.Remote.ServiceHub", typeof(RazorAnalyzerAssemblyResolver).TypeHandle);
         TestHelpers.EnsureAssemblyLoaded("Microsoft.CodeAnalysis.Test.Utilities", typeof(AssertEx).TypeHandle);
-        TestHelpers.EnsureAssemblyLoaded("xunit.assert", typeof(Assert).TypeHandle);
+        TestHelpers.EnsureAssemblyLoaded(typeof(Assert).Assembly.GetName().Name!, typeof(Assert).TypeHandle);
         TestHelpers.EnsureAssemblyLoaded("System.Threading.Tasks.Parallel", typeof(System.Threading.Tasks.Parallel).TypeHandle);
+        _ = Assembly.Load("System.IO.MemoryMappedFiles");
+        _ = Assembly.Load("System.Reflection.Emit.Lightweight");
+        _ = Assembly.Load("System.Reflection.Emit.ILGeneration");
+        _ = Assembly.Load("System.Reflection.Primitives");
 
         InitialAssemblies = AssemblyLoadContext.GetLoadContext(GetType().Assembly)!.Assemblies.SelectAsArray(a => a.FullName);
     }
@@ -48,7 +52,7 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
         // This test should not be loading any of the razor assemblies into the test assembly load context. That
         // would indicate a bug in our product code where it was incorrectly using the default load context.
         //
-        // Note: if this test fails due to a normal test assembly, like xunit.assert, being loaded after the
+        // Note: if this test fails due to a normal test assembly, like the xUnit assertion assembly, being loaded after the
         // snapshot, then add that assembly to the list of assemblies loaded in the constructor above.
         var count = AssemblyLoadContext.GetLoadContext(GetType().Assembly)!.Assemblies.SelectAsArray(a => a.FullName);
         AssertEx.SetEqual(InitialAssemblies, count);

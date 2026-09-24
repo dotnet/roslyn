@@ -87,7 +87,7 @@ namespace Xunit.Threading
             ExecutionScheduler scheduler,
             FixtureMappingManager methodFixtureMappings)
         {
-            // NOTE: Unlike the xUnit v2 implementation, this does not currently check WpfTestSharedData.Exception to
+            // NOTE: Unlike the previous implementation, this does not currently check WpfTestSharedData.Exception to
             // report a prior harness failure, nor does it verify the current process is "devenv". This test case is
             // only ever executed in-process inside Visual Studio (via InProcessIdeTestAssemblyRunner), so the process
             // check is implied by the architecture. Reporting a prior harness failure via ErrorReportingIdeTestRunner
