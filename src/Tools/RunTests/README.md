@@ -30,6 +30,25 @@ dotnet run --project src/Tools/RunTests/RunTests.csproj -- --include "CSharp\.Em
 dotnet run --project src/Tools/RunTests/RunTests.csproj -- --testfilter "FullyQualifiedName~MyTestClass"
 ```
 
+## Build and test together
+
+The build scripts expose only two test convenience options:
+
+```powershell
+.\Build.cmd -test
+.\Build.cmd -configuration Release -testSet:compiler
+```
+
+```bash
+./build.sh --test
+./build.sh --configuration Release --testSet:compiler
+```
+
+Either option runs RunTests after successful build actions. The scripts forward
+the build configuration as `--testConfiguration`; `-testSet` also forwards
+`--testSet:<name>` unchanged. RunTests owns test discovery, set validation, and
+execution. For other test options, invoke RunTests directly.
+
 ## Options
 
 Run `--help` for the full list of options:

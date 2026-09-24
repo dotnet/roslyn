@@ -26,6 +26,8 @@ param (
   [switch]$sign,
   [switch]$pack,
   [switch]$publish,
+  [switch]$test,
+  [string]$testSet,
   [switch]$launch,
   [switch]$help,
 
@@ -35,7 +37,6 @@ param (
   [switch][Alias('bl')]$binaryLog,
   [string]$binaryLogName = "",
   [switch]$ci,
-  [switch]$collectDumps,
   [switch][Alias('a')]$runAnalyzers,
   [switch]$skipDocumentation = $false,
   [switch][Alias('d')]$deployExtensions,
@@ -82,6 +83,8 @@ function Print-Usage() {
   Write-Host "  -pack                     Build NuGet packages, VS insertion manifests and installer"
   Write-Host "  -sign                     Sign our binaries"
   Write-Host "  -publish                  Publish build artifacts (e.g. symbols)"
+  Write-Host "  -test                     Run already-built tests after any build actions"
+  Write-Host "  -testSet:<name>            Run already-built tests, forwarding the set name to RunTests"
   Write-Host "  -launch                   Launch Visual Studio in developer hive"
   Write-Host "  -help                     Print help and exit"
   Write-Host ""
@@ -91,7 +94,6 @@ function Print-Usage() {
   Write-Host "  -bootstrap                Build using a bootstrap compilers"
   Write-Host "  -bootstrapDir             Build using bootstrap compiler at specified location"
   Write-Host "  -msbuildEngine <value>    Msbuild engine to use to run build ('dotnet', 'vs', or unspecified)."
-  Write-Host "  -collectDumps             Collect dumps from test runs"
   Write-Host "  -runAnalyzers             Run analyzers during build operations (short: -a)"
   Write-Host "  -skipDocumentation        Skip generation of XML documentation files"
   Write-Host "  -prepareMachine           Prepare machine for CI run, clean up processes after build"
@@ -148,7 +150,6 @@ function Process-Arguments() {
 
   if ($officialBuildId) {
     $script:useGlobalNuGetCache = $false
-    $script:collectDumps = $true
     $script:applyOptimizationData = ![System.Boolean]::Parse($officialSkipApplyOptimizationData)
   } else {
     $script:applyOptimizationData = $false
@@ -357,6 +358,18 @@ try {
 
   if ($restore -or $build -or $rebuild -or $pack -or $sign -or $publish) {
     BuildSolution
+  }
+
+  if ($test -or $PSBoundParameters.ContainsKey('testSet')) {
+    $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net10.0"
+    $testArguments = @('--testConfiguration', $configuration)
+    if ($PSBoundParameters.ContainsKey('testSet')) {
+      $testArguments += "--testSet:$testSet"
+    }
+
+    $dotnet = Ensure-DotnetSdk
+    & $dotnet exec $runTests @testArguments
+    Test-LastExitCode
   }
 
   if ($launch) {

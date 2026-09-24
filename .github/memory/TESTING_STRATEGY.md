@@ -57,6 +57,11 @@ efficiently; build the test projects first. See the tool's
 framework selection, and environment-variable options. Use `dotnet test` directly
 for a single project.
 
+The build scripts also accept `-test` or `-testSet:<name>` (`--test` and
+`--testSet:<name>` on Unix) to invoke RunTests after successful build actions.
+They forward only the build configuration and optional test-set name; test
+discovery, selection, and validation remain in RunTests.
+
 CI test jobs bootstrap the SDK pinned in `global.json` with the repository's
 Arcade build helpers, which support daily SDK feeds. Bootstrap and direct
 `RunTests` execution share a shell so the SDK path and environment are preserved;

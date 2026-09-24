@@ -22,6 +22,8 @@ usage()
   echo "  --pack                     Build nuget packages"
   echo "  --publish                  Publish build artifacts"
   echo "  --sign                     Sign build artifacts"
+  echo "  --test                     Run already-built tests after any build actions (also: -test)"
+  echo "  --testSet:<name>            Run already-built tests, forwarding the set name to RunTests (also: -testSet:<name>)"
   echo "  --help                     Print help and exit"
   echo ""
   echo "Advanced settings:"
@@ -60,6 +62,8 @@ rebuild=false
 pack=false
 sign=false
 publish=false
+test=false
+test_arguments=()
 
 configuration="Debug"
 verbosity='minimal'
@@ -124,6 +128,13 @@ while [[ $# > 0 ]]; do
       ;;
     --sign)
       sign=true
+      ;;
+    --test|-test)
+      test=true
+      ;;
+    --testset:*|-testset:*)
+      test=true
+      test_arguments=("--testSet:${1#*:}")
       ;;
     --ci)
       ci=true
@@ -288,7 +299,7 @@ function BuildSolution {
 }
 
 install=false
-if [[ "$restore" == true ]]; then
+if [[ "$restore" == true || "$test" == true ]]; then
   install=true
 fi
 InitializeDotNetCli $install
@@ -305,6 +316,10 @@ fi
 
 if [[ "$restore" == true || "$build" == true || "$rebuild" == true ]]; then
   BuildSolution
+fi
+
+if [[ "$test" == true ]]; then
+  "$_InitializeDotNetCli/dotnet" exec "$artifacts_dir/bin/RunTests/$configuration/net10.0/RunTests.dll" --testConfiguration "$configuration" ${test_arguments[@]+"${test_arguments[@]}"} || ExitWithExitCode $?
 fi
 
 ExitWithExitCode 0
