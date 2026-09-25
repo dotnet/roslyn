@@ -28,20 +28,12 @@ jobs:
   steps:
     - checkout: none
 
-    # .NET 10 is needed since our unit tests target net10.0
-    - task: UseDotNet@2
-      displayName: 'Install .NET 10 Runtime'
-      inputs:
-        packageType: sdk
-        version: '10.0.x'
-        installationPath: '$(Build.SourcesDirectory)/.dotnet'
-
     - task: DownloadPipelineArtifact@2
       displayName: Download Test Payload
       inputs:
         artifact: ${{ parameters.testArtifactName }}
         path: '$(Build.SourcesDirectory)'
-    
+
     - task: BatchScript@1
       displayName: Rehydrate Unit Tests Environment
       inputs:
@@ -50,8 +42,14 @@ jobs:
     - task: PowerShell@2
       displayName: Run Unit Tests
       inputs:
-        filePath: eng/build.ps1
-        arguments: -ci -configuration ${{ parameters.configuration }} ${{ parameters.testArguments }} -collectDumps
+        targetType: inline
+        script: |
+          $ci = $true
+          $configuration = '${{ parameters.configuration }}'
+          . ./eng/build-utils.ps1
+          EnablePreviewSdks
+          $dotnet = Ensure-DotnetSdk
+          & $dotnet exec "$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll" --dotnet $dotnet --ci --testConfiguration ${{ parameters.configuration }} --logs "$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}" --collectdumps ${{ parameters.testArguments }}
 
     - template: publish-logs.yml
       parameters:

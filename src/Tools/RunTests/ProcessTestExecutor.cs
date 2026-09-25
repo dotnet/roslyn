@@ -124,9 +124,6 @@ namespace RunTests
                 // NOTE: xUnit doesn't always create the log directory
                 Directory.CreateDirectory(resultsDir!);
 
-                // Define environment variables for processes started via ProcessRunner.
-                var environmentVariables = new Dictionary<string, string>();
-
                 // NOTE: xUnit seems to have an occasional issue creating logs create
                 // an empty log just in case, so our runner will still fail.
                 File.Create(resultsFilePath).Close();
@@ -138,7 +135,7 @@ namespace RunTests
                         commandLineArguments,
                         displayWindow: false,
                         captureOutput: true,
-                        environmentVariables: environmentVariables),
+                        environmentVariables: options.EnvironmentVariables),
                     lowPriority: false,
                     cancellationToken: cancellationToken);
                 Logger.Log($"Create xunit process with id {dotnetProcessInfo.Id} for test {workItemInfo.DisplayName}");

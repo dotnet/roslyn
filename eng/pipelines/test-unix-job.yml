@@ -35,7 +35,7 @@ jobs:
       inputs:
         artifact: ${{ parameters.testArtifactName }}
         path: '$(Build.SourcesDirectory)'
-    
+
     - task: ShellScript@2
       displayName: Rehydrate RunTests
       inputs:
@@ -43,16 +43,26 @@ jobs:
       env:
         HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)/.duplicate'
 
-    - task: ShellScript@2
+    - task: Bash@3
+      displayName: Run Unit Tests
       inputs:
-        scriptPath: ./eng/build.sh        
-        ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          args: --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} --helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ parameters.testArguments }}        
-        ${{ else }}:
-          args: --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} ${{ parameters.testArguments }}
-      displayName: Test
+        targetType: inline
+        script: |
+          set -e
+          ci=true
+          configuration='${{ parameters.configuration }}'
+          source eng/common/tools.sh
+          InitializeDotNetCli true
+          helix_args=()
+          if [[ -n "$HELIX_API_ACCESS_TOKEN" ]]; then
+            helix_args+=(--helixApiAccessToken "$HELIX_API_ACCESS_TOKEN")
+          fi
+          "$_InitializeDotNetCli/dotnet" exec "$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll" --dotnet "$_InitializeDotNetCli/dotnet" --ci --helix --testConfiguration ${{ parameters.configuration }} --logs "$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}" --helixQueueName ${{ parameters.helixQueueName }} "${helix_args[@]}" ${{ parameters.testArguments }}
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+        HELIX_API_ACCESS_TOKEN: ${{ parameters.helixApiAccessToken }}
+        DOTNET_ROLL_FORWARD: LatestMajor
+        DOTNET_ROLL_FORWARD_TO_PRERELEASE: 1
 
     - template: publish-logs.yml
       parameters:

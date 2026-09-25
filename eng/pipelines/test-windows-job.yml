@@ -44,13 +44,23 @@ jobs:
         displayName: Submit ${{ testRun.displayName }}
         continueOnError: true
         inputs:
-          filePath: eng/build.ps1
-          ${{ if ne(variables['System.TeamProject'], 'public') }}:
-            arguments: -ci -helix -configuration ${{ parameters.configuration }} -helixQueueName ${{ testRun.helixQueueName }} -helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ testRun.testArguments }} -collectDumps
-          ${{ else }}:
-            arguments: -ci -helix -configuration ${{ parameters.configuration }} -helixQueueName ${{ testRun.helixQueueName }} ${{ testRun.testArguments }} -collectDumps
+          targetType: inline
+          script: |
+            $ci = $true
+            $configuration = '${{ parameters.configuration }}'
+            . ./eng/build-utils.ps1
+            EnablePreviewSdks
+            $dotnet = Ensure-DotnetSdk
+            $helixArguments = @()
+            if ($env:HELIX_API_ACCESS_TOKEN) {
+              $helixArguments += @('--helixApiAccessToken', $env:HELIX_API_ACCESS_TOKEN)
+            }
+            & $dotnet exec "$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll" --dotnet $dotnet --ci --helix --testConfiguration ${{ parameters.configuration }} --logs "$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}" --helixQueueName ${{ testRun.helixQueueName }} @helixArguments ${{ testRun.testArguments }}
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+          HELIX_API_ACCESS_TOKEN: ${{ parameters.helixApiAccessToken }}
+          DOTNET_ROLL_FORWARD: LatestMajor
+          DOTNET_ROLL_FORWARD_TO_PRERELEASE: 1
 
       # RunTests uses the same output paths for every Helix submission. Move each submission's
       # outputs aside so the next sequential submission cannot overwrite or mix its diagnostics.

@@ -51,8 +51,28 @@ Targeted runs are strongly preferred — the full suite is large and slow. Tests
 ./test.sh        # or Test.cmd on Windows
 ```
 
+These entry points invoke `src/Tools/RunTests` to run already-built assemblies
+efficiently; build the test projects first. See the tool's
+[`README.md`](../../src/Tools/RunTests/README.md) for assembly filters, test
+framework selection, and environment-variable options. Use `dotnet test` directly
+for a single project.
+
+The build scripts also accept `-test`, `-testSet:<name>`, `-testKind:<name>`, or
+`-testFramework:<name>` (also with `--` on Unix) to invoke RunTests after successful
+build actions. They forward the build configuration and supplied test-option
+values; test discovery, selection, and validation remain in RunTests.
+
+CI test jobs bootstrap the SDK pinned in `global.json` with the repository's
+Arcade build helpers, which support daily SDK feeds. Bootstrap and direct
+`RunTests` execution share a shell so the SDK path and environment are preserved;
+the runner also receives the bootstrapped executable through `--dotnet`.
+
 ### Test types to be aware of
 - VS integration tests (`azure-pipelines-integration*.yml`) require a VS install, so they run only on **Windows** hosts (not CI-only — they can be run locally on Windows). Prefer unit tests for the inner development loop; reach for integration tests when validating end-to-end VS behavior.
+- `eng/test-vsi.ps1` selects the testhost architecture with `-testPlatform`,
+  independently of the `-oop64bit` setting for Visual Studio's out-of-process
+  services. It configures architecture-specific `DOTNET_ROOT` variables so
+  native testhosts use the repository's SDK runtime.
 - A handful of tests fail only for environmental reasons:
   - `RuntimeHostInfoTests.DotNetInPath_Symlinked` requires symlink-creation privilege (run elevated).
   - `Workspaces.MSBuild` `NewlyCreatedProjectsFromDotNetNew.Validate*TemplateProjects` fail without mobile (ios/tvos/macos/maccatalyst) dotnet workloads installed.

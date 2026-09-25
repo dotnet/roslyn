@@ -11,6 +11,10 @@ parameters:
     values: [ 'Debug', 'Release' ] 
   - name: timeout
     type: number
+  - name: testPlatform
+    type: string
+    default: x64
+    values: [ x86, x64 ]
   - name: testRuns
     type: object
     default:
@@ -109,19 +113,14 @@ stages:
         env:
           HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
 
-      - task: UseDotNet@2
-        displayName: 'Install .NET 9 Runtime'
-        inputs:
-          packageType: runtime
-          version: '9.0.0'
-          includePreviewVersions: true
-          installationPath: '$(Build.SourcesDirectory)/.dotnet'
-
       - task: PowerShell@2
         displayName: Run Integration Tests
         inputs:
-          filePath: eng/build.ps1
-          arguments: -ci -prepareMachine -testVsi -configuration ${{ parameters.configuration }} -oop64bit:$${{ testParameters.oop64bit }} -collectDumps -lspEditor:$${{ testParameters.lspEditor }}
+          filePath: eng/test-vsi.ps1
+          arguments: -ci -configuration ${{ parameters.configuration }} -testPlatform ${{ parameters.testPlatform }} -oop64bit:$${{ testParameters.oop64bit }} -collectDumps -lspEditor:$${{ testParameters.lspEditor }}
+        env:
+          DOTNET_ROLL_FORWARD: LatestMajor
+          DOTNET_ROLL_FORWARD_TO_PRERELEASE: 1
 
       # These are temporary publishing steps - once the tests run on helix, the artifacts will be attached to the helix payload.
       - task: PublishTestResults@2

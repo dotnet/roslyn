@@ -48,10 +48,16 @@ jobs:
       inputs:
         scriptPath: ./rehydrate-all.sh
 
-    - task: ShellScript@2
+    - task: Bash@3
       inputs:
-        scriptPath: ./eng/build.sh
-        args: --ci --configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
+        targetType: inline
+        script: |
+          set -e
+          ci=true
+          configuration='${{ parameters.configuration }}'
+          source eng/common/tools.sh
+          InitializeDotNetCli true
+          "$_InitializeDotNetCli/dotnet" exec "$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll" --dotnet "$_InitializeDotNetCli/dotnet" --ci --testConfiguration ${{ parameters.configuration }} --logs "$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}" ${{ parameters.testArguments }}
       displayName: Test
 
     - template: publish-logs.yml
