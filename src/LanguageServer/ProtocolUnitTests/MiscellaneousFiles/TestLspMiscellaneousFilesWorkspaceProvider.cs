@@ -5,6 +5,7 @@
 using System;
 using System.Composition;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.Host;
@@ -29,7 +30,7 @@ internal sealed class TestLspMiscellaneousFilesWorkspaceProviderFactory() : ILsp
 
     private class TestLspMiscellaneousFilesWorkspaceProvider(HostServices host) : Workspace(host, WorkspaceKind.MiscellaneousFiles), ILspMiscellaneousFilesWorkspaceProvider
     {
-        public ValueTask OpenDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo trackedDocumentInfo)
+        public ValueTask OpenDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo trackedDocumentInfo, CancellationToken cancellationToken)
             => ValueTask.CompletedTask;
 
         public ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo? trackedDocumentInfo)

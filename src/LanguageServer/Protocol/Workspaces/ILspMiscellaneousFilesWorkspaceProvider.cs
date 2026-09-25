@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.LanguageServer.Protocol;
 
@@ -19,7 +20,7 @@ internal interface ILspMiscellaneousFilesWorkspaceProvider : ILspService
     /// <summary>
     /// Signals that the document was opened, even if it already belongs to a non-miscellaneous workspace.
     /// </summary>
-    ValueTask OpenDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo trackedDocumentInfo);
+    ValueTask OpenDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo trackedDocumentInfo, CancellationToken cancellationToken);
 
     /// <summary>
     /// Gets a miscellaneous document for the given URI. If <paramref name="trackedDocumentInfo"/> is provided,
