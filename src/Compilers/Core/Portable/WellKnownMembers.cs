@@ -4396,6 +4396,25 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
 
+                // System_Linq_Enumerable__Where
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Enumerable,                                                                 // DeclaringTypeId
+                1,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.GenericTypeInstance, // Return Type
+                        (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Collections_Generic_IEnumerable_T,
+                        1,
+                        (byte)SignatureTypeCode.GenericMethodParameter, 0,
+                    (byte)SignatureTypeCode.GenericTypeInstance,
+                        (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Collections_Generic_IEnumerable_T,
+                        1,
+                        (byte)SignatureTypeCode.GenericMethodParameter, 0,
+                    (byte)SignatureTypeCode.GenericTypeInstance,
+                        (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Func_T2,
+                        2,
+                        (byte)SignatureTypeCode.GenericMethodParameter, 0,
+                        (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
+
                 // System_Linq_Enumerable__ToList
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)WellKnownType.System_Linq_Enumerable,                                                                 // DeclaringTypeId
@@ -5872,6 +5891,7 @@ namespace Microsoft.CodeAnalysis
                 "AddRange",                                 // System_Collections_Generic_List_T__AddRange
                 ".ctor",                                    // System_Runtime_CompilerServices_ParamCollectionAttribute__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_ExtensionMarkerAttribute__ctor
+                "Where",                                    // System_Linq_Enumerable__Where
                 "ToList",                                   // System_Linq_Enumerable__ToList
                 "ToArray",                                  // System_Linq_Enumerable__ToArray
                 "ArrayIndex",                               // System_Linq_Expressions_Expression__ArrayIndex_Expression_Expression

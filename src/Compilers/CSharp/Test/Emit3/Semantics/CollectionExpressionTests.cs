@@ -6057,6 +6057,264 @@ static class Program
                 """);
         }
 
+        [Theory, WorkItem("https://github.com/dotnet/runtime/issues/114074")]
+        [InlineData("ICollection")]
+        [InlineData("IList")]
+        public void ListInterface_Mutable_DirectArrayWhere_UsesToList(string listInterface)
+        {
+            var source = $$"""
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        M(new[] { 1, 2, 3, 4 }, x => x % 2 == 0).Report();
+                        M(new[] { "a", "bb" }, x => x.Length == 1).Report();
+                    }
+
+                    static {{listInterface}}<T> M<T>(T[] source, Func<T, bool> predicate) => [.. source.Where(predicate)];
+                }
+                """;
+
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensions],
+                targetFramework: TargetFramework.Net90,
+                expectedOutput: IncludeExpectedOutput("[2, 4], [a], "),
+                verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.M<T>", """
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  call       "System.Collections.Generic.IEnumerable<T> System.Linq.Enumerable.Where<T>(System.Collections.Generic.IEnumerable<T>, System.Func<T, bool>)"
+                  IL_0007:  call       "System.Collections.Generic.List<T> System.Linq.Enumerable.ToList<T>(System.Collections.Generic.IEnumerable<T>)"
+                  IL_000c:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/runtime/issues/114074")]
+        public void ListInterface_Mutable_DirectArrayWhere_PreservesEvaluationAndExceptions()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+
+                class Program
+                {
+                    static IList<int> result = [9];
+
+                    static void Main()
+                    {
+                        var values = new[] { 1, 2, 3 };
+                        result = [.. GetArray(values).Where(GetPredicate(values))];
+                        result.Report();
+                        values.Report();
+
+                        result = [9];
+                        try
+                        {
+                            int[] values2 = null;
+                            result = [.. values2.Where(x => true)];
+                        }
+                        catch (ArgumentNullException e)
+                        {
+                            Console.Write($"{e.ParamName}:{result[0]};");
+                        }
+
+                        result = [9];
+                        try
+                        {
+                            Func<int, bool> predicate = null;
+                            result = [.. new[] { 1 }.Where(predicate)];
+                        }
+                        catch (ArgumentNullException e)
+                        {
+                            Console.Write($"{e.ParamName}:{result[0]};");
+                        }
+
+                        result = [9];
+                        try
+                        {
+                            result = [.. new[] { 1, 2, 3 }.Where(x => ThrowAtTwo(x))];
+                        }
+                        catch (Exception e)
+                        {
+                            Console.Write($"{e.Message}:{result[0]};");
+                        }
+                    }
+
+                    static int[] GetArray(int[] values)
+                    {
+                        Console.Write("array;");
+                        return values;
+                    }
+
+                    static Func<int, bool> GetPredicate(int[] values)
+                    {
+                        Console.Write("predicate;");
+                        return value =>
+                        {
+                            Console.Write($"{value}:{result[0]};");
+                            if (value == 1)
+                            {
+                                values[1] = 4;
+                            }
+                            return value % 2 == 0;
+                        };
+                    }
+
+                    static bool ThrowAtTwo(int value)
+                    {
+                        Console.Write($"{value};");
+                        if (value == 2)
+                        {
+                            throw new Exception("boom");
+                        }
+                        return true;
+                    }
+                }
+                """;
+
+            CompileAndVerify(
+                [source, s_collectionExtensions],
+                targetFramework: TargetFramework.Net90,
+                expectedOutput: IncludeExpectedOutput("array;predicate;1:9;4:9;3:9;[4], [1, 4, 3], source:9;predicate:9;1;2;boom:9;"),
+                verify: Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/runtime/issues/114074")]
+        public void ListInterface_Mutable_DirectArrayWhere_Exclusions()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+
+                static class Helpers
+                {
+                    public static IEnumerable<T> Where<T>(T[] source, Func<T, bool> predicate) => source;
+                }
+
+                class Program
+                {
+                    static ICollection<int> FromList(List<int> source, Func<int, bool> predicate) => [.. source.Where(predicate)];
+                    static ICollection<int> FromSaved(IEnumerable<int> iterator) => [.. iterator];
+
+                    static ICollection<int> FromAssignment(int[] source, Func<int, bool> predicate)
+                    {
+                        IEnumerable<int> iterator;
+                        ICollection<int> result = [.. (iterator = source.Where(predicate))];
+                        GC.KeepAlive(iterator);
+                        return result;
+                    }
+
+                    static ICollection<int> FromIndexed(int[] source, Func<int, int, bool> predicate) => [.. source.Where(predicate)];
+                    static ICollection<int> FromUserMethod(int[] source, Func<int, bool> predicate) => [.. Helpers.Where(source, predicate)];
+                    static ICollection<object> FromElementConversion(string[] source, Func<string, bool> predicate) => [.. source.Where(predicate)];
+                    static ICollection<int> FromMixed(int[] source, Func<int, bool> predicate) => [0, .. source.Where(predicate)];
+                    static ICollection<int> FromWithCapacity(int[] source, Func<int, bool> predicate) => [with(10), .. source.Where(predicate)];
+                    static IReadOnlyList<int> FromReadOnly(int[] source, Func<int, bool> predicate) => [.. source.Where(predicate)];
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net90, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+
+            foreach (var method in new[]
+            {
+                "Program.FromList",
+                "Program.FromSaved",
+                "Program.FromAssignment",
+                "Program.FromIndexed",
+                "Program.FromUserMethod",
+                "Program.FromElementConversion",
+                "Program.FromMixed",
+                "Program.FromWithCapacity",
+                "Program.FromReadOnly"
+            })
+            {
+                Assert.DoesNotContain("System.Linq.Enumerable.ToList", verifier.VisualizeIL(method));
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/runtime/issues/114074")]
+        public void ListInterface_Mutable_DirectArrayWhere_OptionalMembersMissing()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+
+                class Program
+                {
+                    static void Main() => M(new[] { 1, 2, 3 }, x => x > 1).Report();
+                    static ICollection<int> M(int[] source, Func<int, bool> predicate) => [.. source.Where(predicate)];
+                }
+                """;
+
+            foreach (var missingMember in new[]
+            {
+                WellKnownMember.System_Linq_Enumerable__Where,
+                WellKnownMember.System_Linq_Enumerable__ToList
+            })
+            {
+                var comp = CreateCompilation([source, s_collectionExtensions], targetFramework: TargetFramework.Net90, options: TestOptions.ReleaseExe);
+                comp.MakeMemberMissing(missingMember);
+
+                var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[2, 3], "), verify: Verification.Skipped);
+                verifier.VerifyDiagnostics();
+                var il = verifier.VisualizeIL("Program.M");
+                Assert.DoesNotContain("System.Linq.Enumerable.ToList", il);
+                Assert.Contains("System.Collections.Generic.List<int>.AddRange", il);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/runtime/issues/114074")]
+        public void ListInterface_Mutable_ListWhereMutation_RemainsObservable()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+
+                class Program
+                {
+                    static IList<int> result = [9];
+
+                    static void Main()
+                    {
+                        var source = new List<int> { 1, 2 };
+                        try
+                        {
+                            result = [.. source.Where(x => Mutate(source, x))];
+                        }
+                        catch (InvalidOperationException)
+                        {
+                            Console.Write($"{source.Count}:{result[0]}");
+                        }
+                    }
+
+                    static bool Mutate(List<int> source, int value)
+                    {
+                        if (value == 1)
+                        {
+                            source.Add(3);
+                        }
+                        return true;
+                    }
+                }
+                """;
+
+            CompileAndVerify(source, targetFramework: TargetFramework.Net90, expectedOutput: IncludeExpectedOutput("3:9"), verify: Verification.Skipped).VerifyDiagnostics();
+        }
+
         [Fact]
         public void ListInterfaces_NoInterfaces()
         {

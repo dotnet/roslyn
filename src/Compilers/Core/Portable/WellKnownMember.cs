@@ -632,6 +632,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_ParamCollectionAttribute__ctor,
         System_Runtime_CompilerServices_ExtensionMarkerAttribute__ctor,
 
+        System_Linq_Enumerable__Where,
         System_Linq_Enumerable__ToList,
         System_Linq_Enumerable__ToArray,
 
