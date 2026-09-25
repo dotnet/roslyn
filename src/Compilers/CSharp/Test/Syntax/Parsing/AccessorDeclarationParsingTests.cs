@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1113,7 +1113,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
         }
         EOF();
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
             // (5,17): error CS1014: A get or set accessor expected
             //     int R { safe; get => 0; set { } }
             Diagnostic(ErrorCode.ERR_GetOrSetExpected, ";").WithLocation(5, 17));
@@ -1659,7 +1659,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
         }
         EOF();
 
-        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
             // (3,28): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public int P { private safe get => 0; set { } }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(3, 28));
