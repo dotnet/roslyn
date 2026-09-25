@@ -9025,18 +9025,14 @@ s.M(1);
 
 public struct S
 {
-}
-
-public static class Extensions
-{
-    public static void M(this ref readonly S s, int i) => System.Console.Write("original");
+    public readonly void M(int i) => System.Console.Write("original");
 }
 """;
         var locations = GetInterceptableLocations(source);
         var interceptors = $$"""
 static class Interceptors
 {
-    extension(ref readonly S s)
+    extension(in S s)
     {
         [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
         public void Method(int i) => System.Console.Write("intercepted");
