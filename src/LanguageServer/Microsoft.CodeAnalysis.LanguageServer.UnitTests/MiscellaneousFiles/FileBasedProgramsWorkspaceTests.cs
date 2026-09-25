@@ -109,7 +109,6 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
         var tempDir = CreateTempDirectoryWithGlobalJson();
         var utilSourceText = """
-            #:property TargetFramework=net10.0
             #:property OutputType=Library
             public static class Util
             {
@@ -118,7 +117,6 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
             """;
         var utilFile = tempDir.CreateFile("Util.cs").WriteAllText(utilSourceText);
         var sourceText = """
-            #:property TargetFramework=net10.0
             #:property ExperimentalFileBasedProgramEnableRefDirective=true
             #:ref Util.cs
             Console.WriteLine($"Hello {Util.M()}!");
@@ -158,12 +156,10 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
 
         var tempDir = CreateTempDirectoryWithGlobalJson();
         var utilFile = tempDir.CreateFile("Util.cs").WriteAllText("""
-            #:property TargetFramework=net10.0
             #:property OutputType=Library
             public static class Util { }
             """);
         var sourceText = """
-            #:property TargetFramework=net10.0
             #:property ExperimentalFileBasedProgramEnableRefDirective=true
             #:ref Util.cs
             Console.WriteLine("Hello");
@@ -201,13 +197,11 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
             </configuration>
             """);
         var commonFile = tempDir.CreateFile("Common.cs").WriteAllText("""
-            #:property TargetFramework=net10.0
             #:property PublishAot=false
             #:property OutputType=Library
             public static class Common { }
             """);
         var utilSourceText = """
-            #:property TargetFramework=net10.0
             #:property PublishAot=false
             #:property OutputType=Library
             #:property ExperimentalFileBasedProgramEnableRefDirective=true
@@ -215,7 +209,6 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
             public static class Util { }
             """;
         var sourceText = """
-            #:property TargetFramework=net10.0
             #:property PublishAot=false
             #:property ExperimentalFileBasedProgramEnableRefDirective=true
             #:ref Util.cs
@@ -287,7 +280,6 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
         var tempDir = CreateTempDirectoryWithGlobalJson();
         var commonFile = tempDir.CreateFile("Common.cs").WriteAllText("""
-            #:property TargetFramework=net10.0
             #:property OutputType=Library
             public static class Common
             {
@@ -295,7 +287,6 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
             }
             """);
         var leftFile = tempDir.CreateFile("Left.cs").WriteAllText("""
-            #:property TargetFramework=net10.0
             #:property OutputType=Library
             #:property ExperimentalFileBasedProgramEnableRefDirective=true
             #:ref Common.cs
@@ -305,7 +296,6 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
             }
             """);
         var rightFile = tempDir.CreateFile("Right.cs").WriteAllText("""
-            #:property TargetFramework=net10.0
             #:property OutputType=Library
             #:property ExperimentalFileBasedProgramEnableRefDirective=true
             #:ref Common.cs
@@ -315,7 +305,6 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
             }
             """);
         var sourceText = """
-            #:property TargetFramework=net10.0
             #:property ExperimentalFileBasedProgramEnableRefDirective=true
             #:ref Left.cs
             #:ref Right.cs
@@ -356,7 +345,6 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
         var tempDir = CreateTempDirectoryWithGlobalJson();
         var utilFile = tempDir.CreateFile("Util.cs").WriteAllText("""
-            #:property TargetFramework=net10.0
             #:property OutputType=Library
             public static class Util
             {
@@ -364,7 +352,6 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
             }
             """);
         var sourceText = """
-            #:property TargetFramework=net10.0
             #:property ExperimentalFileBasedProgramEnableRefDirective=true
             #:ref Util.cs
             Util.M();
@@ -389,11 +376,10 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         };
 
         var updatedSourceText = """
-            #:property TargetFramework=net10.0
             #:property ExperimentalFileBasedProgramEnableRefDirective=true
             Console.WriteLine("Hello");
             """;
-        await testLspServer.DeleteTextAsync(sourceFileUri, (StartLine: 2, StartColumn: 0, EndLine: 3, EndColumn: 0));
+        await testLspServer.DeleteTextAsync(sourceFileUri, (StartLine: 1, StartColumn: 0, EndLine: 2, EndColumn: 0));
         sourceFile.WriteAllText(updatedSourceText);
 
         await fileChangeTcs.Task.WaitAsync(TimeSpan.FromSeconds(30));
@@ -416,24 +402,20 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
 
         var tempDir = CreateTempDirectoryWithGlobalJson();
         var common1File = tempDir.CreateFile("Common1.cs").WriteAllText("""
-            #:property TargetFramework=net10.0
             #:property OutputType=Library
             public static class Common1 { }
             """);
         var common2File = tempDir.CreateFile("Common2.cs").WriteAllText("""
-            #:property TargetFramework=net10.0
             #:property OutputType=Library
             public static class Common2 { }
             """);
         var utilFile = tempDir.CreateFile("Util.cs").WriteAllText("""
-            #:property TargetFramework=net10.0
             #:property OutputType=Library
             #:property ExperimentalFileBasedProgramEnableRefDirective=true
             #:ref Common1.cs
             public static class Util { }
             """);
         var sourceText = """
-            #:property TargetFramework=net10.0
             #:property ExperimentalFileBasedProgramEnableRefDirective=true
             #:ref Util.cs
             Console.WriteLine("Hello");
@@ -458,7 +440,6 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         };
 
         utilFile.WriteAllText("""
-            #:property TargetFramework=net10.0
             #:property OutputType=Library
             #:property ExperimentalFileBasedProgramEnableRefDirective=true
             #:ref Common2.cs
@@ -487,7 +468,6 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         var tempDir = CreateTempDirectoryWithGlobalJson();
         var utilSourceText = """
             #!/usr/bin/env dotnet
-            #:property TargetFramework=net10.0
             #:property OutputType=Library
             public static class Util
             {
@@ -496,7 +476,6 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
             """;
         var utilFile = tempDir.CreateFile("Util.cs").WriteAllText(utilSourceText);
         var sourceText = """
-            #:property TargetFramework=net10.0
             #:property ExperimentalFileBasedProgramEnableRefDirective=true
             #:ref Util.cs
             Util.M();

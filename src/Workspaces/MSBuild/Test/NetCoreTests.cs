@@ -824,13 +824,11 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase, IClassFixture<Proje
     {
         CreateFiles(new FileSet(
             ("Program.cs", """
-                #:property TargetFramework=net10.0
                 #:property ExperimentalFileBasedProgramEnableRefDirective=true
                 #:ref Util.cs
                 Console.WriteLine(Util.M());
                 """),
             ("Util.cs", """
-                #:property TargetFramework=net10.0
                 #:property OutputType=Library
                 #:property ExperimentalFileBasedProgramEnableRefDirective=true
                 #:ref Common.cs
@@ -840,7 +838,6 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase, IClassFixture<Proje
                 }
                 """),
             ("Common.cs", """
-                #:property TargetFramework=net10.0
                 #:property OutputType=Library
                 public static class Common
                 {
@@ -856,6 +853,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase, IClassFixture<Proje
             maxNodeCount: 1);
         var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessKind.NetCore, CancellationToken.None);
         var errors = new List<string>();
+        string expectedTargetFramework = null;
 
         // Reload on the same host to verify the previous graph released its projects.
         for (var i = 0; i < 2; i++)
@@ -868,6 +866,9 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase, IClassFixture<Proje
                 CancellationToken.None);
 
             Assert.Empty(errors);
+            expectedTargetFramework ??= Assert.Single(result.Root.ProjectFileInfos).TargetFramework;
+            Assert.False(string.IsNullOrEmpty(expectedTargetFramework));
+
             var results = result.ReferencedProjects.Insert(0, result.Root);
             var resultsByPath = results.ToDictionary(result => result.EntryPointFilePath, PathUtilities.Comparer);
             Assert.Equal(3, resultsByPath.Count);
@@ -878,7 +879,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase, IClassFixture<Proje
             {
                 var projectInfo = Assert.Single(result.ProjectFileInfos);
                 Assert.Equal(result.EntryPointFilePath, projectInfo.FilePath);
-                Assert.Equal("net10.0", projectInfo.TargetFramework);
+                Assert.Equal(expectedTargetFramework, projectInfo.TargetFramework);
             });
         }
     }
