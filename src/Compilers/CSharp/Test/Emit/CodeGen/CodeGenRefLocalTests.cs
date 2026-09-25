@@ -4406,6 +4406,63 @@ struct Program
         }
 
         [Fact]
+        public void RefDiscardAssignment_33_Used()
+        {
+            var text = @"
+struct S
+{
+    public int Value;
+    public void Increment() => Value++;
+}
+
+class Program
+{
+    static void Main()
+    {
+        S s = default;
+        (_ = ref s).Increment();
+        System.Console.WriteLine(s.Value);
+    }
+}
+";
+
+            CompileAndVerify(text, options: TestOptions.DebugExe, expectedOutput: "1").VerifyIL("Program.Main", @"
+{
+  // Code size       30 (0x1e)
+  .maxstack  1
+  .locals init (S V_0) //s
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    ""S""
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  call       ""void S.Increment()""
+  IL_0010:  nop
+  IL_0011:  ldloc.0
+  IL_0012:  ldfld      ""int S.Value""
+  IL_0017:  call       ""void System.Console.WriteLine(int)""
+  IL_001c:  nop
+  IL_001d:  ret
+}
+");
+
+            CompileAndVerify(text, options: TestOptions.ReleaseExe, expectedOutput: "1").VerifyIL("Program.Main", @"
+{
+  // Code size       27 (0x1b)
+  .maxstack  1
+  .locals init (S V_0) //s
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       ""void S.Increment()""
+  IL_000f:  ldloc.0
+  IL_0010:  ldfld      ""int S.Value""
+  IL_0015:  call       ""void System.Console.WriteLine(int)""
+  IL_001a:  ret
+}
+");
+        }
+
+        [Fact]
         public void RefAssignRefParameter()
         {
             var text = @"
