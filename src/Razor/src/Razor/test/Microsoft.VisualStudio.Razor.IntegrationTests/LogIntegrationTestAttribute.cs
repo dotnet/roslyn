@@ -25,7 +25,9 @@ public class LogIntegrationTestAttribute : BeforeAfterTestAttribute
 
     private static ILogger GetLogger(string testName)
     {
+#pragma warning disable RS0030 // xUnit attribute callback has no test IThreadingContext to flow.
         var componentModel = ServiceProvider.GlobalProvider.GetService<SComponentModel, IComponentModel>();
+#pragma warning restore RS0030
         var loggerFactory = componentModel.GetService<ILoggerFactory>();
         return loggerFactory.GetOrCreateLogger(testName);
     }
