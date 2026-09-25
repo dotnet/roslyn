@@ -52,10 +52,11 @@
 
   <!--
     Targets specified in `TargetsTriggeredAfterCSharpCompilation` are invoked as part of `CoreCompile`, right after `_CSharpCoreCompile` target completes.
-    Unlike `TargetsTriggeredByCSharpCompilation`, this hook provides targets with access to changes made in `_CSharpCoreCompile` at runtime (e.g. `CscCommandLineArgs`), 
+    Unlike `TargetsTriggeredByCSharpCompilation`, this hook provides targets with access to changes made in `_CSharpCoreCompile` (e.g. `CscCommandLineArgs`), 
     while still ensuring they are invoked before any subsequent post-compilation targets, especially those specified `AfterTargets="CoreCompile"`.
   -->
   <Target Name="_InvokeTargetsTriggeredAfterCSharpCompilation"
+          DependsOnTargets="_CSharpCoreCompile"
           Condition="'$(TargetsTriggeredAfterCSharpCompilation)' != ''">
     <PropertyGroup>
       <_RunTargetsTriggeredAfterCSharpCompilationSeparately>false</_RunTargetsTriggeredAfterCSharpCompilationSeparately>
@@ -93,7 +94,6 @@
                    @(_DebugSymbolsIntermediatePath);
                    $(NonExistentFile);
                    @(CustomAdditionalCompileOutputs)"
-          Returns="@(CscCommandLineArgs)"
           DependsOnTargets="$(CoreCompileDependsOn);_BeforeVBCSCoreCompile">
 
     <!-- Embed EditorConfigFiles into the binary log. This is done here (inside CoreCompile rather than
