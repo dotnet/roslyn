@@ -13,4 +13,8 @@
     </AssemblyAttribute>
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="XunitXml.TestLogger" PrivateAssets="all" />
+  </ItemGroup>
+
 </Project>
