@@ -4,6 +4,7 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <OutputType>Exe</OutputType>
+    <IsShipping>false</IsShipping>
 
     <!--
       This self-executing xUnit v3 integration-test project manages its runner packages directly.
