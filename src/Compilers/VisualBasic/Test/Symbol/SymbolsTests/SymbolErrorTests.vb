@@ -20748,7 +20748,7 @@ Imports System.Cheesecake.Frosting
                     "System.Cheesecake.Frosting"
                     }, diagnostics)
 
-            Assert.NotEqual(diagnostics, Nothing)
+            Assert.False(diagnostics.IsDefault)
 
             CompilationUtils.AssertTheseDiagnostics(diagnostics,
 <errors><![CDATA[
