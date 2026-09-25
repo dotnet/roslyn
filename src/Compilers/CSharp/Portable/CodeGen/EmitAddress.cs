@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.ComplexConditionalReceiver:
-                    EmitComplexConditionalReceiverAddress((BoundComplexConditionalReceiver)expression);
+                    EmitComplexConditionalReceiverAddress((BoundComplexConditionalReceiver)expression, addressKind);
                     break;
 
                 case BoundKind.Parameter:
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _builder.MarkLabel(doneLabel);
         }
 
-        private void EmitComplexConditionalReceiverAddress(BoundComplexConditionalReceiver expression)
+        private void EmitComplexConditionalReceiverAddress(BoundComplexConditionalReceiver expression, AddressKind addressKind)
         {
             Debug.Assert(!expression.Type.IsReferenceType);
             Debug.Assert(!expression.Type.IsValueType);
@@ -251,14 +251,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitBox(receiverType, expression.Syntax);
             _builder.EmitBranch(ILOpCode.Brtrue, whenValueTypeLabel);
 
-            var receiverTemp = EmitAddress(expression.ReferenceTypeReceiver, AddressKind.ReadOnly);
+            var receiverTemp = EmitAddress(expression.ReferenceTypeReceiver, addressKind);
             Debug.Assert(receiverTemp == null);
             _builder.EmitBranch(ILOpCode.Br, doneLabel);
             _builder.AdjustStack(-1);
 
             _builder.MarkLabel(whenValueTypeLabel);
             // we will not write through this receiver, but it could be a target of mutating calls
-            EmitReceiverRef(expression.ValueTypeReceiver, AddressKind.Constrained);
+            EmitAddress(expression.ValueTypeReceiver, addressKind);
 
             _builder.MarkLabel(doneLabel);
         }

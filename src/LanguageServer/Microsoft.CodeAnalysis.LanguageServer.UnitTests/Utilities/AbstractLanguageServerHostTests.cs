@@ -75,9 +75,12 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
 
     private protected Task<SingleServerTestLspServer> CreateLanguageServerAsync(
         ClientCapabilities? clientCapabilities = null,
-        ServerConfiguration? serverConfiguration = null)
+        ServerConfiguration? serverConfiguration = null,
+        ClientInfo? clientInfo = null,
+        LanguageServerTelemetry? processTelemetry = null)
     {
-        return SingleServerTestLspServer.CreateAsync(clientCapabilities ?? new ClientCapabilities(), LoggerFactory, serverConfiguration ?? DefaultServerConfiguration, this);
+        var initializeParams = new InitializeParams { Capabilities = clientCapabilities ?? new ClientCapabilities(), ClientInfo = clientInfo };
+        return SingleServerTestLspServer.CreateAsync(initializeParams, LoggerFactory, serverConfiguration ?? DefaultServerConfiguration, this, processTelemetry);
     }
 
     /// <summary>
@@ -163,11 +166,11 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             return clientRpc;
         }
 
-        private protected async Task InitializeAsync(ClientCapabilities clientCapabilities)
+        private protected async Task InitializeAsync(InitializeParams initializeParams)
         {
             var initializeResponse = await ExecuteRequestAsync<InitializeParams, InitializeResult>(
                 Methods.InitializeName,
-                new InitializeParams { Capabilities = clientCapabilities },
+                initializeParams,
                 CancellationToken.None);
             Assert.NotNull(initializeResponse?.Capabilities);
             ServerCapabilities = initializeResponse.Capabilities;
@@ -296,10 +299,11 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         private readonly Pipe _serverToClientPipe;
 
         internal static async Task<SingleServerTestLspServer> CreateAsync(
-            ClientCapabilities clientCapabilities,
+            InitializeParams initializeParams,
             ILoggerFactory loggerFactory,
             ServerConfiguration serverConfiguration,
-            AbstractLanguageServerHostTests hostTests)
+            AbstractLanguageServerHostTests hostTests,
+            LanguageServerTelemetry? processTelemetry)
         {
             var extensionManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
             var assemblyLoader = new CustomExportAssemblyLoader(extensionManager, loggerFactory);
@@ -310,9 +314,9 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             var clientToServerPipe = new Pipe();
             var serverToClientPipe = new Pipe();
             var testLspServer = new SingleServerTestLspServer(
-                exportProvider, typeRefResolver, loggerFactory, hostTests.TestOutputHelper, clientToServerPipe, serverToClientPipe);
+                exportProvider, typeRefResolver, loggerFactory, hostTests.TestOutputHelper, clientToServerPipe, serverToClientPipe, processTelemetry);
 
-            await testLspServer.InitializeAsync(clientCapabilities);
+            await testLspServer.InitializeAsync(initializeParams);
             return testLspServer;
         }
 
@@ -322,7 +326,8 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             ILoggerFactory loggerFactory,
             ITestOutputHelper testOutputHelper,
             Pipe clientToServerPipe,
-            Pipe serverToClientPipe)
+            Pipe serverToClientPipe,
+            LanguageServerTelemetry? processTelemetry)
             : base(exportProvider, clientToServerPipe.Writer.AsStream(), serverToClientPipe.Reader.AsStream(), testOutputHelper)
         {
             _clientToServerPipe = clientToServerPipe;
@@ -339,7 +344,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             var connectionSource = new SingleLanguageServerConnectionSource(new LanguageServerConnection(serverInputStream, serverOutputStream));
             var logger = loggerFactory.CreateLogger<LanguageServerConnectionManager>();
             _serverTask = _connectionManager.RunAsync(
-                connectionSource, exportProvider, typeRefResolver, logger, daemonSessionId: null, CancellationToken.None);
+                connectionSource, exportProvider, typeRefResolver, logger, processTelemetry, CancellationToken.None);
         }
 
         /// <summary>The host task; completes once the single in-memory server exits.</summary>
@@ -374,7 +379,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         internal static async Task<DaemonClientTestLspServer> CreateAsync(
             string pipeName,
             ExportProvider exportProvider,
-            ClientCapabilities clientCapabilities,
+            InitializeParams initializeParams,
             ITestOutputHelper testOutputHelper)
         {
             var clientStream = NamedPipeUtil.CreateClient(serverName: ".", pipeName, PipeDirection.InOut, System.IO.Pipes.PipeOptions.Asynchronous);
@@ -389,7 +394,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             }
 
             var testLspServer = new DaemonClientTestLspServer(exportProvider, clientStream, testOutputHelper);
-            await testLspServer.InitializeAsync(clientCapabilities);
+            await testLspServer.InitializeAsync(initializeParams);
             return testLspServer;
         }
 
@@ -489,7 +494,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
                             exportProvider,
                             typeRefResolver,
                             logger,
-                            daemonTelemetryService?.SessionId,
+                            daemonTelemetryService,
                             cts.Token).ConfigureAwait(false);
                     }
                     finally
@@ -560,10 +565,13 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         /// for the connection. Clients are created one at a time (the new server is correlated by diffing the daemon's
         /// server set, which assumes a single connection is in flight).
         /// </summary>
-        internal async Task<DaemonClientTestLspServer> CreateClientAsync(ClientCapabilities? clientCapabilities = null)
+        internal async Task<DaemonClientTestLspServer> CreateClientAsync(
+            ClientCapabilities? clientCapabilities = null,
+            ClientInfo? clientInfo = null)
         {
             var serversBefore = _connectionManager.GetStartedServers();
-            var client = await DaemonClientTestLspServer.CreateAsync(_pipeName, _exportProvider, clientCapabilities ?? new ClientCapabilities(), _testOutputHelper);
+            var initializeParams = new InitializeParams { Capabilities = clientCapabilities ?? new ClientCapabilities(), ClientInfo = clientInfo };
+            var client = await DaemonClientTestLspServer.CreateAsync(_pipeName, _exportProvider, initializeParams, _testOutputHelper);
 
             LanguageServerHost? newServer = null;
             await WaitForConditionAsync(() =>
