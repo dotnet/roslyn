@@ -328,6 +328,7 @@ my_option2 = my_val2");
         }
 
         [Fact]
+        [UseCulture("en-US")]
         public void AnalyzerConfigBadSeverity()
         {
             var dir = Temp.CreateDirectory();
@@ -15113,6 +15114,7 @@ is_global = true
         }
 
         [Fact]
+        [UseCulture("en-US")]
         public void GlobalAnalyzerConfigMultipleSetKeys()
         {
             var dir = Temp.CreateDirectory();
