@@ -1995,6 +1995,8 @@
     <Field Name="CollectionBuilderElementsPlaceholder" Type="BoundCollectionBuilderElementsPlaceholder?" Null="allow" SkipInVisitor="true"/>
     <Field Name="WasTargetTyped" Type="bool" />
     <Field Name="HasWithElement" Type="bool" />
+    <!-- True if the selected translation uses the known length of the collection expression. -->
+    <Field Name="UsesKnownLength" Type="bool" />
     <Field Name="UnconvertedCollectionExpression" Type="BoundUnconvertedCollectionExpression" Null="disallow" SkipInVisitor="true"/>
   </Node>
 

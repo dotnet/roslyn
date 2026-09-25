@@ -4187,7 +4187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         break;
                     case BoundCollectionExpressionSpreadElement spread:
-                        Visit(spread);
+                        VisitCollectionExpressionSpreadElement(spread, node.UsesKnownLength);
                         if (targetElementType.HasType &&
                             spread.ElementPlaceholder is { } elementPlaceholder &&
                             spread.IteratorBody is { })
@@ -4307,13 +4307,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node)
         {
+            return VisitCollectionExpressionSpreadElement(node, usesKnownLength: false);
+        }
+
+        private BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node, bool usesKnownLength)
+        {
             VisitRvalue(node.Expression);
 
             if (node.Conversion is BoundConversion { Conversion: var conversion })
             {
                 Debug.Assert(node.ExpressionPlaceholder is { });
                 Debug.Assert(node.EnumeratorInfoOpt is { });
-                AddPlaceholderReplacement(node.ExpressionPlaceholder, node.Expression, _visitResult);
+                var expressionResult = _visitResult;
+                AddPlaceholderReplacement(node.ExpressionPlaceholder, node.Expression, expressionResult);
+                Debug.Assert(!usesKnownLength || node.LengthOrCount is { });
+                if (usesKnownLength && node.LengthOrCount is { } lengthOrCount)
+                {
+                    VisitRvalue(lengthOrCount);
+                    RemovePlaceholderReplacement(node.ExpressionPlaceholder);
+                    AddPlaceholderReplacement(node.ExpressionPlaceholder, node.Expression,
+                        new VisitResult(TypeWithState.Create(expressionResult.RValueType.Type, NullableFlowState.NotNull), expressionResult.LValueType));
+                }
                 VisitForEachExpression(
                     node,
                     node.Conversion,

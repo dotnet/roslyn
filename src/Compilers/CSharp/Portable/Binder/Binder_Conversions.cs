@@ -915,6 +915,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             private BoundCollectionExpression CreateCollectionExpression(
                 CollectionExpressionTypeKind collectionTypeKind, ImmutableArray<BoundNode> elements, BoundObjectOrCollectionValuePlaceholder? placeholder = null, BoundExpression? collectionCreation = null, MethodSymbol? collectionBuilderMethod = null, BoundCollectionBuilderElementsPlaceholder? collectionBuilderElementsPlaceholder = null)
             {
+                var hasWithElement = _node.WithElement != null;
+                var usesKnownLength = LocalRewriter.UsesKnownLength(
+                    _binder.Compilation,
+                    collectionTypeKind,
+                    _targetType,
+                    elements,
+                    collectionCreation,
+                    collectionBuilderMethod,
+                    hasWithElement);
+
                 return new BoundCollectionExpression(
                     _node.Syntax,
                     collectionTypeKind,
@@ -923,7 +933,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collectionBuilderMethod,
                     collectionBuilderElementsPlaceholder,
                     wasTargetTyped: true,
-                    hasWithElement: _node.WithElement != null,
+                    hasWithElement,
+                    usesKnownLength,
                     _node,
                     elements,
                     _targetType)
@@ -2344,6 +2355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // converted the args into a BadExpression in collectionCreate.  So treat this as not having a 'with'
                 // element.
                 hasWithElement: false,
+                usesKnownLength: false,
                 node,
                 elements: elementsBuilder.ToImmutableAndFree(),
                 targetType,

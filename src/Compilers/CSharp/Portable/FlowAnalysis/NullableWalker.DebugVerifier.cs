@@ -131,8 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (element is BoundCollectionExpressionSpreadElement spread)
                     {
-                        Visit(spread.Expression);
-                        Visit(spread.Conversion);
+                        VisitCollectionExpressionSpreadElement(spread, node.UsesKnownLength);
                         if (spread.EnumeratorInfoOpt != null)
                         {
                             VisitForEachEnumeratorInfo(spread.EnumeratorInfoOpt);
@@ -152,11 +151,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node)
             {
+                return VisitCollectionExpressionSpreadElement(node, usesKnownLength: false);
+            }
+
+            private BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node, bool usesKnownLength)
+            {
                 Visit(node.Expression);
 
                 if (node.Conversion is BoundConversion conversion)
                 {
                     Visit(conversion);
+                }
+
+                Debug.Assert(!usesKnownLength || node.LengthOrCount is { });
+                if (usesKnownLength && node.LengthOrCount is { } lengthOrCount)
+                {
+                    Visit(lengthOrCount);
                 }
 
                 return null;

@@ -39567,6 +39567,56 @@ partial class Program
                 """);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85698")]
+        public void List_SingleSpread_IEnumerable_ToListUseSiteError()
+        {
+            var linqReference = CompileIL(
+                """
+                .assembly extern MissingDependency { }
+
+                .class public abstract sealed System.Linq.Enumerable extends [mscorlib]System.Object
+                {
+                    .method public hidebysig static
+                        class [mscorlib]System.Collections.Generic.List`1<!!T> modreq([MissingDependency]MissingModifier)
+                        ToList<T>(class [mscorlib]System.Collections.Generic.IEnumerable`1<!!T> source) cil managed
+                    {
+                        ldnull
+                        ret
+                    }
+                }
+                """);
+
+            var source = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    static List<int> M(IEnumerable<int> e) => [..e];
+                }
+                """;
+            var comp = CreateEmptyCompilation(
+                source,
+                references: [MscorlibRef, linqReference],
+                options: TestOptions.ReleaseDll);
+
+            var toList = (MethodSymbol)comp.GetWellKnownTypeMember(WellKnownMember.System_Linq_Enumerable__ToList)!;
+            Assert.Equal(DiagnosticSeverity.Error, toList.GetUseSiteInfo().DiagnosticInfo?.Severity);
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  3
+                  IL_0000:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                  IL_0005:  dup
+                  IL_0006:  ldarg.0
+                  IL_0007:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
+                  IL_000c:  ret
+                }
+                """);
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71217")]
         public void List_SingleSpread_IEnumerable_NonGeneric()
         {
@@ -46313,6 +46363,227 @@ class Program
                     //         object[] y = [..x];
                     Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("c", "IEnumerator<int> Extensions.GetEnumerator<int>(MyCollection<int> c)").WithLocation(15, 25));
             }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85698")]
+        [Fact]
+        public void Spread_Nullable_ExtensionGetEnumerator_WithLength()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                class MyCollection<T>
+                {
+                    public int Length { get; }
+                }
+                static class Extensions
+                {
+                    public static IEnumerator<T> GetEnumerator<T>(this MyCollection<T>? c) => throw null!;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int>? x = null;
+                        object[] y = [..x];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (16,25): warning CS8602: Dereference of a possibly null reference.
+                //         object[] y = [..x];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(16, 25));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85698")]
+        [Fact]
+        public void Spread_Nullable_ExtensionGetEnumerator_WithLength_KnownLengthNotUsed()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                class MyCollection<T>
+                {
+                    public int Length { get; }
+                }
+                static class Extensions
+                {
+                    public static IEnumerator<T> GetEnumerator<T>(this MyCollection<T>? c) => throw null!;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int>? x = null;
+                        object[] y = [1, 2, 3, ..x];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85698")]
+        [Fact]
+        public void Spread_Nullable_Multiple_ExtensionGetEnumerator_KnownLengthSelection()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                class Countable<T>
+                {
+                    public int Length { get; }
+                }
+                class Uncountable<T>
+                {
+                }
+                static class Extensions
+                {
+                    public static IEnumerator<T> GetEnumerator<T>(this Countable<T>? c) => throw null!;
+                    public static IEnumerator<T> GetEnumerator<T>(this Uncountable<T>? c) => throw null!;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        Countable<int>? x = null;
+                        Countable<int>? y = null;
+                        Uncountable<int>? z = null;
+                        object[] a = [..x, ..y];
+                        object[] b = [..x, ..z];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (22,25): warning CS8602: Dereference of a possibly null reference.
+                //         object[] a = [..x, ..y];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(22, 25),
+                // (22,30): warning CS8602: Dereference of a possibly null reference.
+                //         object[] a = [..x, ..y];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(22, 30));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85698")]
+        [Fact]
+        public void Spread_Nullable_ExtensionBlockGetEnumerator_WithLength()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                class MyCollection<T>
+                {
+                    public int Length { get; }
+                }
+                static class Extensions
+                {
+                    extension<T>(MyCollection<T>? c)
+                    {
+                        public IEnumerator<T> GetEnumerator() => throw null!;
+                    }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int>? x = null;
+                        object[] y = [..x];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (19,25): warning CS8602: Dereference of a possibly null reference.
+                //         object[] y = [..x];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(19, 25));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85698")]
+        [Fact]
+        public void Spread_Nullable_ExtensionGetEnumerator_WithLength_NullForgiving()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                class MyCollection<T>
+                {
+                    public int Length { get; }
+                }
+                static class Extensions
+                {
+                    public static IEnumerator<T> GetEnumerator<T>(this MyCollection<T>? c) => throw null!;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int>? x = null;
+                        object[] y = [..x!];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85698")]
+        [Fact]
+        public void Spread_Nullable_ExtensionGetEnumerator_NonNullableParameter_WithLength()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                class MyCollection<T>
+                {
+                    public int Length { get; }
+                }
+                static class Extensions
+                {
+                    public static IEnumerator<T> GetEnumerator<T>(this MyCollection<T> c) => throw null!;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int>? x = null;
+                        object[] y = [..x];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (16,25): warning CS8602: Dereference of a possibly null reference.
+                //         object[] y = [..x];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(16, 25));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85698")]
+        [Fact]
+        public void Spread_Nullable_OrdinaryGetEnumerator_WithLength()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                class MyCollection<T>
+                {
+                    public int Length { get; }
+                    public IEnumerator<T> GetEnumerator() => throw null!;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int>? x = null;
+                        object[] y = [..x];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (13,25): warning CS8602: Dereference of a possibly null reference.
+                //         object[] y = [..x];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(13, 25));
         }
 
         [Fact]
