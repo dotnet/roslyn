@@ -86,10 +86,11 @@
   <Target Name="AddDefaultTestAppConfig">
     <PropertyGroup>
       <_AlreadyHasAppConfig Condition="'%(None.Filename)%(None.Extension)' == 'app.config'">true</_AlreadyHasAppConfig>
+      <_ReferencesRoslynTestUtilities Condition="'%(ProjectReference.Filename)%(ProjectReference.Extension)' == 'Microsoft.CodeAnalysis.Test.Utilities.csproj'">true</_ReferencesRoslynTestUtilities>
       <_DefaultAppConfigFile Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">$(RepositoryEngineeringDir)config\test\Desktop\app.config</_DefaultAppConfigFile>
     </PropertyGroup>
 
-    <ItemGroup Condition="'$(_AlreadyHasAppConfig)' != 'true'">
+    <ItemGroup Condition="'$(_AlreadyHasAppConfig)' != 'true' and '$(_ReferencesRoslynTestUtilities)' == 'true'">
       <None Include="$(_DefaultAppConfigFile)" Condition="'$(_DefaultAppConfigFile)' != ''">
         <Link>app.config</Link>
       </None>
