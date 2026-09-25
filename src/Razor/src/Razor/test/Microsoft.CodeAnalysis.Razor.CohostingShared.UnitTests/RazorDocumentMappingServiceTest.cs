@@ -804,7 +804,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
                 projectedCSharpSource,
                 sourceMappings);
 
-        Assert.NotEqual(doc.SourceMappingsSortedByOriginal, sourceMappings);
+        Assert.False(doc.SourceMappingsSortedByOriginal.Equals(sourceMappings));
 #endif
     }
 
