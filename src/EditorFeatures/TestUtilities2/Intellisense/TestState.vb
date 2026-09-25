@@ -361,7 +361,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     End If
                 End Sub)
 
-            Task.WaitAny(task1, task2)
+            If Task.WaitAny(task1, task2) = 1 Then
+                task2.GetAwaiter().GetResult()
+            End If
         End Sub
 
         Public Async Function GetCompletionSession(Optional projectionsView As ITextView = Nothing) As Task(Of IAsyncCompletionSession)
