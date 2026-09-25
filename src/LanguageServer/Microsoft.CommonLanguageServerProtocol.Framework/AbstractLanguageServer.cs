@@ -420,6 +420,8 @@ internal abstract class AbstractLanguageServer<TRequestContext>
 
         public T GetRequiredLspService<T>() where T : class => _server.GetLspServices().GetRequiredService<T>();
 
+        internal ILspServices GetLspServices() => _server.GetLspServices();
+
         internal RequestExecutionQueue<TRequestContext>.TestAccessor? GetQueueAccessor()
         {
             if (_server._queue.Value is RequestExecutionQueue<TRequestContext> requestExecution)

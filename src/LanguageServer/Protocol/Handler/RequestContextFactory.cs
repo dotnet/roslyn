@@ -19,7 +19,7 @@ internal sealed class RequestContextFactory : AbstractRequestContextFactory<Requ
         _lspServices = lspServices;
     }
 
-    public override Task<RequestContext> CreateRequestContextAsync<TRequestParam>(QueueItem<RequestContext> queueItem, IMethodHandler methodHandler, TRequestParam requestParam, CancellationToken cancellationToken)
+    public override async Task<RequestContext> CreateRequestContextAsync<TRequestParam>(QueueItem<RequestContext> queueItem, IMethodHandler methodHandler, TRequestParam requestParam, CancellationToken cancellationToken)
     {
         var clientCapabilitiesManager = _lspServices.GetRequiredService<IInitializeManager>();
         var clientCapabilities = clientCapabilitiesManager.TryGetClientCapabilities();
@@ -68,7 +68,14 @@ internal sealed class RequestContextFactory : AbstractRequestContextFactory<Requ
             throw new InvalidOperationException($"{nameof(IMethodHandler)} implementation {methodHandler.GetType()} does not implement {nameof(ISolutionRequiredHandler)}");
         }
 
-        return RequestContext.CreateAsync(
+        // didOpen initiates project discovery even though text sync handlers do not require a solution. didChange and
+        // didClose only update already-tracked state and should not start new project loads.
+        if (textDocumentIdentifier is not null && queueItem.MethodName == Methods.TextDocumentDidOpenName)
+        {
+            _lspServices.GetRequiredService<LspWorkspaceManager>().StartLoadingProject(textDocumentIdentifier.DocumentUri);
+        }
+
+        return await RequestContext.CreateAsync(
             methodHandler.MutatesSolutionState,
             requiresLSPSolution,
             textDocumentIdentifier,
@@ -78,6 +85,7 @@ internal sealed class RequestContextFactory : AbstractRequestContextFactory<Requ
             _lspServices,
             logger,
             queueItem.MethodName,
-            cancellationToken);
+            allowProjectLoading: !methodHandler.MutatesSolutionState && queueItem.MethodName != Methods.TextDocumentDidOpenName,
+            cancellationToken).ConfigureAwait(false);
     }
 }
