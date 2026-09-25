@@ -5,6 +5,8 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
@@ -85,6 +87,142 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             }
 
             Assert.False(ran);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/runtime/issues/134043")]
+        public async Task UseExistingServerConcurrently()
+        {
+            using var serverData = await ServerUtil.CreateServer(Logger);
+            using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            var workingDirectory = TempRoot.CreateDirectory().Path;
+            var serverCreationCount = 0;
+
+            for (var iteration = 0; iteration < 4; iteration++)
+            {
+                var start = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                var requests = Enumerable.Range(0, 8).Select(_ => Task.Run(async () =>
+                {
+                    await start.Task;
+                    return await BuildServerConnection.RunServerBuildRequestAsync(
+                        ProtocolUtil.CreateEmptyCSharp(workingDirectory),
+                        serverData.PipeName,
+                        timeoutOverride: (int)TimeSpan.FromSeconds(30).TotalMilliseconds,
+                        tryCreateServerFunc: (_, _) =>
+                        {
+                            Interlocked.Increment(ref serverCreationCount);
+                            return false;
+                        },
+                        Logger,
+                        cancellationTokenSource.Token);
+                })).ToArray();
+
+                start.SetResult(true);
+                var responses = await Task.WhenAll(requests);
+                Assert.All(responses, response => Assert.IsType<CompletedBuildResponse>(response));
+            }
+
+            Assert.Equal(0, serverCreationCount);
+        }
+
+        [ConditionalFact(typeof(NotOnAnyMono))]
+        [WorkItem("https://github.com/dotnet/runtime/issues/134043")]
+        public void ClientMutexRequiresExplicitAcquisition()
+        {
+            var mutexName = BuildServerConnection.GetClientMutexName(ServerUtil.GetPipeName());
+            using var clientMutex = BuildServerConnection.OpenOrCreateClientMutex(mutexName, out var holdsMutex);
+            Assert.False(holdsMutex);
+
+            RunOnOtherThread(() =>
+            {
+                using var otherMutex = BuildServerConnection.OpenOrCreateClientMutex(mutexName, out var otherHoldsMutex);
+                Assert.False(otherHoldsMutex);
+                Assert.True(otherMutex.TryLock(timeoutMs: 0));
+            });
+
+            Assert.True(clientMutex.TryLock(timeoutMs: 0));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/runtime/issues/134043")]
+        public void ClientMutexTimeoutDoesNotStartServer()
+        {
+            var pipeName = ServerUtil.GetPipeName();
+            var mutexName = BuildServerConnection.GetClientMutexName(pipeName);
+            var workingDirectory = TempRoot.CreateDirectory().Path;
+            using var owner = BuildServerConnection.OpenOrCreateClientMutex(mutexName, out var holdsMutex);
+            if (!holdsMutex)
+            {
+                Assert.True(owner.TryLock(timeoutMs: 0));
+            }
+
+            RunOnOtherThread(() =>
+            {
+                var startedServer = false;
+                var response = BuildServerConnection.RunServerBuildRequestAsync(
+                    ProtocolUtil.CreateEmptyCSharp(workingDirectory),
+                    pipeName,
+                    timeoutOverride: 0,
+                    tryCreateServerFunc: (_, _) =>
+                    {
+                        startedServer = true;
+                        return false;
+                    },
+                    Logger,
+                    cancellationToken: default).GetAwaiter().GetResult();
+
+                Assert.IsType<CannotConnectResponse>(response);
+                Assert.False(startedServer);
+            });
+        }
+
+        [ConditionalFact(typeof(NotOnAnyMono))]
+        [WorkItem("https://github.com/dotnet/runtime/issues/134043")]
+        public void AbandonedClientMutexIsReleased()
+        {
+            var mutexName = BuildServerConnection.GetClientMutexName(ServerUtil.GetPipeName());
+            using var keepAlive = new Mutex(initiallyOwned: false, mutexName);
+            using var clientMutex = BuildServerConnection.OpenOrCreateClientMutex(mutexName, out _);
+            RunOnOtherThread(() =>
+            {
+                using var owner = new Mutex(initiallyOwned: false, mutexName);
+                Assert.True(owner.WaitOne(TimeSpan.FromSeconds(30)));
+                // Abandon ownership by exiting this thread without releasing the mutex.
+            });
+
+            Assert.Throws<AbandonedMutexException>(() => clientMutex.TryLock(timeoutMs: 0));
+            clientMutex.Dispose();
+
+            RunOnOtherThread(() =>
+            {
+                using var otherMutex = BuildServerConnection.OpenOrCreateClientMutex(mutexName, out _);
+                Assert.True(otherMutex.TryLock(timeoutMs: 0));
+            });
+        }
+
+        [ConditionalFact(typeof(NotOnAnyMono))]
+        [WorkItem("https://github.com/dotnet/runtime/issues/134043")]
+        public async Task ClientMutexReleaseFailureIncludesThreadIds()
+        {
+            var pipeName = ServerUtil.GetPipeName();
+            var mutexName = BuildServerConnection.GetClientMutexName(pipeName);
+            var threadId = 0;
+            var exception = await Assert.ThrowsAsync<Exception>(() => BuildServerConnection.RunServerBuildRequestAsync(
+                ProtocolUtil.CreateEmptyCSharp(TempRoot.CreateDirectory().Path),
+                pipeName,
+                timeoutOverride: 0,
+                tryCreateServerFunc: (_, _) =>
+                {
+                    threadId = Environment.CurrentManagedThreadId;
+                    using var mutex = Mutex.OpenExisting(mutexName);
+                    mutex.ReleaseMutex();
+                    return false;
+                },
+                Logger,
+                cancellationToken: default));
+
+            Assert.Equal($"ReleaseMutex failed. WaitOne Id: {threadId} Release Id: {threadId}", exception.Message);
+            Assert.True(exception.InnerException is ApplicationException || exception.InnerException is InvalidOperationException);
         }
 
         /// <summary>
@@ -237,6 +375,32 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     Assert.True(envVars.ContainsKey(testEnvVar), $"Environment variables should contain {testEnvVar}");
                     Assert.Equal(string.Empty, envVars[testEnvVar]);
                 }
+            }
+        }
+
+        private static void RunOnOtherThread(Action action)
+        {
+            Exception? exception = null;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    action();
+                }
+                catch (Exception ex)
+                {
+                    exception = ex;
+                }
+            })
+            {
+                IsBackground = true,
+            };
+
+            thread.Start();
+            Assert.True(thread.Join(TimeSpan.FromSeconds(30)));
+            if (exception is not null)
+            {
+                ExceptionDispatchInfo.Capture(exception).Throw();
             }
         }
     }

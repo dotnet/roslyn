@@ -175,11 +175,6 @@ Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot.SemanticSearch.ICopilotSem
 Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot.SemanticSearch.ICopilotSemanticSearchPresenterController.ExecuteQueryAsync(string! query, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
 Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot.SemanticSearch.ICopilotSemanticSearchWindowController
 Microsoft.CodeAnalysis.ExternalAccess.Unified.Copilot.SemanticSearch.ICopilotSemanticSearchWindowController.UpdateQueryAsync(string! query, bool activateWindow, bool executeQuery, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
-Microsoft.CodeAnalysis.ExternalAccess.Unified.EditorConfigGenerator.Api.IEditorConfigGenerator
-Microsoft.CodeAnalysis.ExternalAccess.Unified.EditorConfigGenerator.Api.IEditorConfigGenerator.Generate(string! language) -> string?
-Microsoft.CodeAnalysis.ExternalAccess.Unified.EditorConfigGenerator.EditorConfigGenerator
-Microsoft.CodeAnalysis.ExternalAccess.Unified.EditorConfigGenerator.EditorConfigGenerator.EditorConfigGenerator(Microsoft.CodeAnalysis.Options.IGlobalOptionService! globalOptions, Microsoft.CodeAnalysis.Options.EditorConfigOptionsEnumerator! enumerator) -> void
-Microsoft.CodeAnalysis.ExternalAccess.Unified.EditorConfigGenerator.EditorConfigGenerator.Generate(string! language) -> string?
 Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Classification.FSharpClassificationTags
 Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Classification.IFSharpClassificationService
 Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Completion.FSharpCommonCompletionItem
@@ -587,11 +582,6 @@ Microsoft.VisualStudio.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSea
 Microsoft.VisualStudio.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchPresenterController.ExecuteQueryAsync(string! query, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
 Microsoft.VisualStudio.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchWindowController
 Microsoft.VisualStudio.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchWindowController.UpdateQueryAsync(string! query, bool activateWindow, bool executeQuery, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
-Microsoft.VisualStudio.ExternalAccess.EditorConfigGenerator.Api.IEditorConfigGenerator
-Microsoft.VisualStudio.ExternalAccess.EditorConfigGenerator.Api.IEditorConfigGenerator.Generate(string! language) -> string?
-Microsoft.VisualStudio.ExternalAccess.EditorConfigGenerator.EditorConfigGenerator
-Microsoft.VisualStudio.ExternalAccess.EditorConfigGenerator.EditorConfigGenerator.EditorConfigGenerator(Microsoft.CodeAnalysis.Options.IGlobalOptionService! globalOptions, Microsoft.CodeAnalysis.Options.EditorConfigOptionsEnumerator! enumerator) -> void
-Microsoft.VisualStudio.ExternalAccess.EditorConfigGenerator.EditorConfigGenerator.Generate(string! language) -> string?
 Microsoft.VisualStudio.ExternalAccess.FSharp.Classification.FSharpClassificationTags
 Microsoft.VisualStudio.ExternalAccess.FSharp.Classification.IFSharpClassificationService
 Microsoft.VisualStudio.ExternalAccess.FSharp.Completion.FSharpCommonCompletionItem
