@@ -52,10 +52,12 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
         // This test should not be loading any of the razor assemblies into the test assembly load context. That
         // would indicate a bug in our product code where it was incorrectly using the default load context.
         //
-        // Note: if this test fails due to a normal test assembly, like the xUnit assertion assembly, being loaded after the
-        // snapshot, then add that assembly to the list of assemblies loaded in the constructor above.
-        var count = AssemblyLoadContext.GetLoadContext(GetType().Assembly)!.Assemblies.SelectAsArray(a => a.FullName);
-        AssertEx.SetEqual(InitialAssemblies, count);
+        var assemblies = AssemblyLoadContext.GetLoadContext(GetType().Assembly)!.Assemblies.SelectAsArray(a => a.FullName);
+        var newlyLoadedAssemblies = assemblies.Except(InitialAssemblies);
+        Assert.DoesNotContain(newlyLoadedAssemblies, assemblyName =>
+            assemblyName is not null &&
+            new AssemblyName(assemblyName).Name is { } simpleName &&
+            RazorAnalyzerAssemblyResolver.RazorAssemblyNames.Contains(simpleName));
     }
 
     private static void CreateRazorAssemblies(string directory, string versionNumber = "1.0.0.0")
