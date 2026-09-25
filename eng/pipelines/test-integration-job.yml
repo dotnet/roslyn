@@ -40,7 +40,7 @@ steps:
     displayName: Build
     inputs:
       filePath: eng/build.ps1
-      arguments: -ci -restore -build -binaryLog -configuration ${{ parameters.configuration }} -prepareMachine
+      arguments: -ci -restore -build -binaryLog -configuration ${{ parameters.configuration }} -prepareMachine /p:BuildDependencyVsix=true
 
   - task: PowerShell@2
     displayName: Test
