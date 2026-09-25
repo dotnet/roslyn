@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
@@ -41,7 +42,7 @@ internal static class WorkspaceDiagnosticSourceHelpers
 
     public static bool ShouldSkipDocument(RequestContext context, TextDocument document)
     {
-        // Only consider closed documents here (and only open ones in the DocumentPullDiagnosticHandler).
+        // Only consider closed documents here (and only open ones in PublicDocumentPullDiagnosticsHandler).
         // Each handler treats those as separate worlds that they are responsible for.
         if (context.IsTracking(document.GetURI()))
         {

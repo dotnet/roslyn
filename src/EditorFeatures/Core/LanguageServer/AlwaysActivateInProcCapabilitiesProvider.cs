@@ -47,8 +47,6 @@ internal sealed class AlwaysActivateInProcCapabilitiesProvider(
         serverCapabilities.BreakableRangeProvider = true;
         serverCapabilities.DataTipRangeProvider = true;
 
-        serverCapabilities.SupportsDiagnosticRequests = true;
-
         var diagnosticOptions = (serverCapabilities.DiagnosticOptions ??= new DiagnosticOptions());
         diagnosticOptions.Unify().WorkspaceDiagnostics = true;
 

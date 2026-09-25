@@ -31,14 +31,6 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
     : ILspServiceRequestHandler<TDiagnosticsParams, TReturn?>
     where TDiagnosticsParams : IPartialResultParams<TReport>
 {
-    /// <summary>
-    /// Special value we use to designate workspace diagnostics vs document diagnostics.  Document diagnostics
-    /// should always <see cref="VSInternalDiagnosticReport.Supersedes"/> a workspace diagnostic as the former are 'live'
-    /// while the latter are cached and may be stale.
-    /// </summary>
-    protected const int WorkspaceDiagnosticIdentifier = 1;
-    protected const int DocumentDiagnosticIdentifier = 2;
-
     private readonly IDiagnosticsRefresher _diagnosticRefresher = diagnosticRefresher;
 
     protected readonly IGlobalOptionService GlobalOptions = globalOptions;
@@ -49,8 +41,6 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
     /// one cache for DocumentSyntax, another for DocumentSemantic, another for WorkspaceSemantic, etc etc.
     /// </summary>
     private readonly ConcurrentDictionary<string, DiagnosticsPullCache> _categoryToVersionedCache = [];
-
-    protected virtual bool PotentialDuplicate => false;
 
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => true;
@@ -312,7 +302,6 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
             diagnosticData,
             capabilities.HasVisualStudioLspCapability(),
             diagnosticSource.GetProject(),
-            PotentialDuplicate,
             GlobalOptions);
     }
 }
