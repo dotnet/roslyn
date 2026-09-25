@@ -28,6 +28,11 @@ internal sealed partial class CSharpRemoveUnnecessaryUnsafeModifierDiagnosticAna
             if (!options.AllowUnsafe)
                 return;
 
+            // Under the updated rules, unsafe declaration modifiers express caller requirements,
+            // even when removing them would not introduce compilation errors.
+            if (compilation.SourceModule.MemorySafetyRulesVersion is MemorySafetyRulesVersion.Version2)
+                return;
+
             context.RegisterSemanticModelAction(AnalyzeSemanticModel);
         });
 
