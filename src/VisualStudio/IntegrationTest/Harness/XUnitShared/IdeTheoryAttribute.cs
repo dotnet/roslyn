@@ -5,13 +5,17 @@
 namespace Xunit
 {
     using System;
+    using System.Runtime.CompilerServices;
     using Xunit.v3;
 
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     [XunitTestCaseDiscoverer(typeof(TheoryDiscoverer))]
     public class IdeTheoryAttribute : TheoryAttribute, IIdeSettingsAttribute
     {
-        public IdeTheoryAttribute()
+        public IdeTheoryAttribute(
+            [CallerFilePath] string? sourceFilePath = null,
+            [CallerLineNumber] int sourceLineNumber = -1)
+            : base(sourceFilePath, sourceLineNumber)
         {
             MinVersion = VisualStudioVersion.Unspecified;
             MaxVersion = VisualStudioVersion.Unspecified;
