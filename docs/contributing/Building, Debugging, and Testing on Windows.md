@@ -257,12 +257,10 @@ error MSB3103: Invalid Resx file. Could not find a part of the path
 '<OLD-PATH>\src\RoslynAnalyzers\Text.Analyzers\Core\Dictionary.dic'. [Text.Analyzers.csproj]
 ```
 
-This happens because the [XliffTasks](https://github.com/dotnet/xliff-tasks) MSBuild tasks
-bake the **absolute** path of `ResXFileRef` entries into those cached translated `.resx`
-files, and MSBuild's incremental-build check doesn't detect the rename because the file
-timestamps and contents haven't changed. Deleting `artifacts\obj` (or just the affected
-`.xlf` folders) as described above resolves it. This is being tracked upstream in
-[dotnet/xliff-tasks](https://github.com/dotnet/xliff-tasks).
+Deleting `artifacts` and rebuilding should fix the issue.
+See
+[dotnet/arcade issue 17061](https://github.com/dotnet/arcade/issues/17061)
+for details.
 
 ## Contributing
 
