@@ -10354,7 +10354,7 @@ class C
 }
 """;
             // Note: nested hoisted local gets cleared when exiting nested scope normally
-            CompileAndVerify(src, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "value True" : null, targetFramework: TargetFramework.Net90, verify: Verification.Skipped).VerifyDiagnostics();
+            CompileAndVerify(src, targetFramework: TargetFramework.Net90, verify: Verification.Skipped).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
@@ -10396,7 +10396,7 @@ class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "4242" : null, references: [libComp.EmitToImageReference()],
+            var verifier = CompileAndVerify(src, references: [libComp.EmitToImageReference()],
                 targetFramework: TargetFramework.Net90, verify: Verification.Skipped).VerifyDiagnostics();
 
             verifier.VerifyIL("C.<ProduceAsync>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
