@@ -51,7 +51,7 @@ jobs:
     - task: ShellScript@2
       inputs:
         scriptPath: ./eng/build.sh
-        args: --ci --configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
+        args: --ci --warnAsError --configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
       displayName: Test
 
     - template: publish-logs.yml

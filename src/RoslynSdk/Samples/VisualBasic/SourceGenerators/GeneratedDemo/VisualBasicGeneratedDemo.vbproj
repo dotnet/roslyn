@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -15,6 +15,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SourceGeneratorSamples\VisualBasicSourceGeneratorSamples.vbproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" VersionOverride="12.0.1" PrivateAssets="all" ExcludeAssets="all" />
   </ItemGroup>
 
   <!-- Manually reference the generator props because we locally reference the generator. When added via NuGet this happens automatically -->
