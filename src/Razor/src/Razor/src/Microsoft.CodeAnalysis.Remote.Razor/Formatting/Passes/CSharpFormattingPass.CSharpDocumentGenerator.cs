@@ -341,6 +341,13 @@ internal partial class CSharpFormattingPass
                     return EmitCurrentLineWithNoFormatting();
                 }
 
+                // Body and closing-brace lines start in literal or meta-code nodes, not the directive node.
+                // Route them through the same projection so the XML stays inside the generated doc comment.
+                if (node?.FirstAncestorOrSelf<RazorDocumentationDirectiveSyntax>() is { } documentation)
+                {
+                    return VisitRazorDocumentationDirective(documentation);
+                }
+
                 return base.Visit(node);
             }
 
@@ -1216,6 +1223,72 @@ internal partial class CSharpFormattingPass
                     processFormatting: true,
                     originOffset: 1,
                     formattedOffset: 0);
+            }
+
+            public override LineInfo VisitRazorDocumentationDirective(RazorDocumentationDirectiveSyntax node)
+            {
+                // We want Roslyn's documentation-comment formatting, not C# statement formatting or our own
+                // XML formatter. Replace the Razor header/braces with C# doc-comment delimiters, essentially
+                // the same way the compiler emits these directives:
+                //
+                // @documentation {             /**
+                //     <summary>...</summary>        <summary>...</summary>
+                // }                            */
+                //
+                // Like the rest of this visitor, we emit only the current line. Keeping the same number of
+                // lines lets LineInfo map Roslyn's formatted output back to the Razor document. Roslyn decides
+                // how to reindent comment exteriors; we don't normalise the XML text ourselves.
+                var children = node.DirectiveBody.CSharpCode.Children;
+                // An incomplete or invalid directive (particularly one containing "*/") cannot safely form
+                // a C# doc comment. Emit an inert placeholder instead, so it cannot affect subsequent code.
+                // When the opening brace is on a later line, the header also needs a placeholder until then.
+                if (node.GetDiagnostics().Any(static diagnostic => diagnostic.Severity == RazorDiagnosticSeverity.Error) ||
+                    !children.TryGetOpenBraceToken(out var openBrace) ||
+                    !children.TryGetCloseBraceToken(out var closeBrace) ||
+                    _currentLine.LineNumber < GetLineNumber(openBrace))
+                {
+                    return EmitCurrentLineAsComment();
+                }
+
+                // XML can share a line with either brace, including a wholly single-line directive.
+                // Select only this line's portion of the body, excluding the Razor header and braces.
+                var isOpeningLine = _currentLine.LineNumber == GetLineNumber(openBrace);
+                var isClosingLine = _currentLine.LineNumber == GetLineNumber(closeBrace);
+                var contentStart = isOpeningLine ? openBrace.Span.End : _currentLine.Start;
+                var contentEnd = isClosingLine ? closeBrace.Position : _currentLine.End;
+
+                // The space prevents a leading '/' or '*' in the body from closing the comment or turning
+                // it into an ordinary block comment.
+                const string commentStart = "/** ";
+                const string commentEnd = "*/";
+                if (isOpeningLine)
+                {
+                    // Roslyn reindents multiline comments relative to their opener. Preserve its original
+                    // column so the body moves by the same delta, rather than drifting on repeated formatting.
+                    _builder.Append(_sourceText.ToString(TextSpan.FromBounds(_currentLine.Start, _currentFirstNonWhitespacePosition)));
+                    _builder.Append(commentStart);
+                }
+
+                _builder.Append(_sourceText.ToString(TextSpan.FromBounds(contentStart, contentEnd)));
+                if (isClosingLine)
+                {
+                    _builder.Append(commentEnd);
+                }
+
+                _builder.AppendLine();
+
+                // LineInfo handles leading indentation separately. Content edits map only the XML: skip the
+                // Razor prefix on the original side and the synthetic delimiters on the formatted side.
+                // A zero FormattedLength normally means "the rest of the line", so disable content edits when
+                // there is no body text to map (e.g. a closing-brace-only line). Indentation can still change.
+                var originalStart = Math.Max(contentStart, _currentFirstNonWhitespacePosition);
+                var originalLength = Math.Max(0, contentEnd - originalStart);
+                return CreateLineInfo(
+                    processFormatting: originalLength > 0,
+                    originOffset: originalStart - _currentFirstNonWhitespacePosition,
+                    formattedLength: originalLength,
+                    formattedOffset: isOpeningLine ? commentStart.Length : 0,
+                    formattedOffsetFromEndOfLine: isClosingLine ? commentEnd.Length : 0);
             }
 
             private LineInfo VisitTypeParamDirective(RazorSyntaxNode typeParam, RazorSyntaxNode conditions)
