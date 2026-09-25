@@ -4,26 +4,19 @@
 
 namespace Xunit.Threading
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Reflection;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Threading;
-    using Xunit.Abstractions;
     using Xunit.Harness;
     using Xunit.InProcess;
-    using Xunit.Sdk;
+    using Xunit.v3;
 
-    public class InProcessIdeTestRunner : XunitTestRunner
+    public class InProcessIdeTestCaseRunner : XunitTestCaseRunner
     {
-        public InProcessIdeTestRunner(ITest test, IMessageBus messageBus, Type testClass, object?[] constructorArguments, MethodInfo testMethod, object?[]? testMethodArguments, string skipReason, IReadOnlyList<BeforeAfterTestAttribute> beforeAfterAttributes, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
-            : base(test, messageBus, testClass, constructorArguments, testMethod, testMethodArguments, skipReason, beforeAfterAttributes, aggregator, cancellationTokenSource)
-        {
-        }
+        public static new readonly InProcessIdeTestCaseRunner Instance = new InProcessIdeTestCaseRunner();
 
-        protected override async Task<decimal> InvokeTestMethodAsync(ExceptionAggregator aggregator)
+        protected override async ValueTask<RunSummary> RunTest(XunitTestCaseRunnerContext ctxt, IXunitTest test)
         {
             DataCollectionService.InstallFirstChanceExceptionHandler();
             VisualStudio_InProc.Create().ActivateMainWindow();
@@ -32,9 +25,11 @@ namespace Xunit.Threading
             var taskScheduler = new SynchronizationContextTaskScheduler(synchronizationContext);
             try
             {
-                DataCollectionService.CurrentTest = Test;
+#pragma warning disable CA1062 // Validate arguments of public methods
+                DataCollectionService.CurrentTest = test;
+#pragma warning restore CA1062 // Validate arguments of public methods
                 return await Task.Factory.StartNew(
-                    () => new InProcessIdeTestInvoker(Test, MessageBus, TestClass, ConstructorArguments, TestMethod, TestMethodArguments, BeforeAfterAttributes, aggregator, CancellationTokenSource).RunAsync(),
+                    async () => await base.RunTest(ctxt, test).ConfigureAwait(true),
                     CancellationToken.None,
                     TaskCreationOptions.None,
                     taskScheduler).Unwrap().ConfigureAwait(true);

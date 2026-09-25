@@ -27,14 +27,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var solutionPath = CreateTemporaryPath();
-            await CreateSolutionAsync(solutionPath, solutionName, cancellationToken);
+            await CreateSolutionAsync(solutionPath, solutionName, cancellationToken).ConfigureAwait(true);
         }
 
         private async Task CreateSolutionAsync(string solutionPath, string solutionName, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            await CloseSolutionAsync(cancellationToken);
+            await CloseSolutionAsync(cancellationToken).ConfigureAwait(true);
 
             var solutionFileName = Path.ChangeExtension(solutionName, ".sln");
             Directory.CreateDirectory(solutionPath);
@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 Path.Combine(solutionPath, "global.json"),
                 "{\r\n  \"sdk\": {\r\n    \"allowPrerelease\": true\r\n  }\r\n}\r\n");
 
-            var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution>(cancellationToken);
+            var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution>(cancellationToken).ConfigureAwait(true);
             ErrorHandler.ThrowOnFailure(solution.CreateSolution(solutionPath, solutionFileName, (uint)__VSCREATESOLUTIONFLAGS.CSF_SILENT));
             ErrorHandler.ThrowOnFailure(solution.SaveSolutionElement((uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_ForceSave, null, 0));
         }
@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution>(cancellationToken);
+            var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution>(cancellationToken).ConfigureAwait(true);
             ErrorHandler.ThrowOnFailure(solution.GetSolutionInfo(out _, out var solutionFileFullPath, out _));
             if (string.IsNullOrEmpty(solutionFileFullPath))
             {
@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var hostLocale = await GetRequiredGlobalServiceAsync<SUIHostLocale, IUIHostLocale>(cancellationToken);
+            var hostLocale = await GetRequiredGlobalServiceAsync<SUIHostLocale, IUIHostLocale>(cancellationToken).ConfigureAwait(true);
             ErrorHandler.ThrowOnFailure(hostLocale.GetUILocale(out var localeID));
 
             var builder = ImmutableDictionary.CreateBuilder<string, string>();
@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var hostLocale = await GetRequiredGlobalServiceAsync<SUIHostLocale, IUIHostLocale>(cancellationToken);
+            var hostLocale = await GetRequiredGlobalServiceAsync<SUIHostLocale, IUIHostLocale>(cancellationToken).ConfigureAwait(true);
             ErrorHandler.ThrowOnFailure(hostLocale.GetUILocale(out var localeID));
 
             var builder = ImmutableDictionary.CreateBuilder<string, string>();
@@ -112,9 +112,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var projectPath = Path.Combine(await GetDirectoryNameAsync(cancellationToken), projectName);
-            var projectTemplatePath = await GetProjectTemplatePathAsync(projectTemplate, ConvertLanguageName(languageName), cancellationToken);
-            var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution6>(cancellationToken);
+            var projectPath = Path.Combine(await GetDirectoryNameAsync(cancellationToken).ConfigureAwait(true), projectName);
+            var projectTemplatePath = await GetProjectTemplatePathAsync(projectTemplate, ConvertLanguageName(languageName), cancellationToken).ConfigureAwait(true);
+            var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution6>(cancellationToken).ConfigureAwait(true);
             ErrorHandler.ThrowOnFailure(solution.AddNewProjectFromTemplate(projectTemplatePath, null, null, projectPath, projectName, null, out _));
         }
 
@@ -122,17 +122,17 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken).ConfigureAwait(true);
             var solution = (EnvDTE80.Solution2)dte.Solution;
 
             if (string.Equals(languageName, "csharp", StringComparison.OrdinalIgnoreCase)
-                && (await GetCSharpProjectTemplatesAsync(cancellationToken)).TryGetValue(projectTemplate, out var csharpProjectTemplate))
+                && (await GetCSharpProjectTemplatesAsync(cancellationToken).ConfigureAwait(true)).TryGetValue(projectTemplate, out var csharpProjectTemplate))
             {
                 return solution.GetProjectTemplate(csharpProjectTemplate, languageName);
             }
 
             if (string.Equals(languageName, "visualbasic", StringComparison.OrdinalIgnoreCase)
-                && (await GetVisualBasicProjectTemplatesAsync(cancellationToken)).TryGetValue(projectTemplate, out var visualBasicProjectTemplate))
+                && (await GetVisualBasicProjectTemplatesAsync(cancellationToken).ConfigureAwait(true)).TryGetValue(projectTemplate, out var visualBasicProjectTemplate))
             {
                 return solution.GetProjectTemplate(visualBasicProjectTemplate, languageName);
             }
@@ -144,11 +144,11 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken).ConfigureAwait(true);
             var solution = (EnvDTE80.Solution2)dte.Solution;
             foreach (var project in solution.Projects.OfType<EnvDTE.Project>())
             {
-                await RestoreNuGetPackagesAsync(project.FullName, cancellationToken);
+                await RestoreNuGetPackagesAsync(project.FullName, cancellationToken).ConfigureAwait(true);
             }
         }
 
@@ -156,31 +156,31 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var operationProgressStatus = await GetRequiredGlobalServiceAsync<SVsOperationProgress, IVsOperationProgressStatusService>(cancellationToken);
+            var operationProgressStatus = await GetRequiredGlobalServiceAsync<SVsOperationProgress, IVsOperationProgressStatusService>(cancellationToken).ConfigureAwait(true);
             var stageStatus = operationProgressStatus.GetStageStatus(CommonOperationProgressStageIds.Intellisense);
-            await stageStatus.WaitForCompletionAsync();
+            await stageStatus.WaitForCompletionAsync().ConfigureAwait(true);
 
-            var solutionRestoreService = await GetComponentModelServiceAsync<IVsSolutionRestoreService>(cancellationToken);
-            await solutionRestoreService.CurrentRestoreOperation;
+            var solutionRestoreService = await GetComponentModelServiceAsync<IVsSolutionRestoreService>(cancellationToken).ConfigureAwait(true);
+            await solutionRestoreService.CurrentRestoreOperation.ConfigureAwait(true);
 
-            var projectFullPath = (await GetProjectAsync(projectName, cancellationToken)).FullName;
-            var solutionRestoreStatusProvider = await GetComponentModelServiceAsync<IVsSolutionRestoreStatusProvider>(cancellationToken);
-            if (await solutionRestoreStatusProvider.IsRestoreCompleteAsync(cancellationToken))
+            var projectFullPath = (await GetProjectAsync(projectName, cancellationToken).ConfigureAwait(true)).FullName;
+            var solutionRestoreStatusProvider = await GetComponentModelServiceAsync<IVsSolutionRestoreStatusProvider>(cancellationToken).ConfigureAwait(true);
+            if (await solutionRestoreStatusProvider.IsRestoreCompleteAsync(cancellationToken).ConfigureAwait(true))
             {
                 return;
             }
 
             var solutionRestoreService2 = (IVsSolutionRestoreService2)solutionRestoreService;
-            await solutionRestoreService2.NominateProjectAsync(projectFullPath, cancellationToken);
+            await solutionRestoreService2.NominateProjectAsync(projectFullPath, cancellationToken).ConfigureAwait(true);
 
             while (true)
             {
-                if (await solutionRestoreStatusProvider.IsRestoreCompleteAsync(cancellationToken))
+                if (await solutionRestoreStatusProvider.IsRestoreCompleteAsync(cancellationToken).ConfigureAwait(true))
                 {
                     return;
                 }
 
-                await Task.Delay(TimeSpan.FromMilliseconds(50), cancellationToken);
+                await Task.Delay(TimeSpan.FromMilliseconds(50), cancellationToken).ConfigureAwait(true);
             }
         }
 
@@ -188,13 +188,13 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var buildOutputWindowPane = await GetBuildOutputWindowPaneAsync(cancellationToken);
+            var buildOutputWindowPane = await GetBuildOutputWindowPaneAsync(cancellationToken).ConfigureAwait(true);
             buildOutputWindowPane.Clear();
 
-            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.BuildSln, cancellationToken);
+            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.BuildSln, cancellationToken).ConfigureAwait(true);
             if (waitForBuildToFinish)
             {
-                return await WaitForBuildToFinishAsync(buildOutputWindowPane, cancellationToken);
+                return await WaitForBuildToFinishAsync(buildOutputWindowPane, cancellationToken).ConfigureAwait(true);
             }
 
             return null;
@@ -202,15 +202,15 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
         public async Task<string> WaitForBuildToFinishAsync(CancellationToken cancellationToken)
         {
-            var buildOutputWindowPane = await GetBuildOutputWindowPaneAsync(cancellationToken);
-            return await WaitForBuildToFinishAsync(buildOutputWindowPane, cancellationToken);
+            var buildOutputWindowPane = await GetBuildOutputWindowPaneAsync(cancellationToken).ConfigureAwait(true);
+            return await WaitForBuildToFinishAsync(buildOutputWindowPane, cancellationToken).ConfigureAwait(true);
         }
 
         public async Task<IVsOutputWindowPane> GetBuildOutputWindowPaneAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var outputWindow = await GetRequiredGlobalServiceAsync<SVsOutputWindow, IVsOutputWindow>(cancellationToken);
+            var outputWindow = await GetRequiredGlobalServiceAsync<SVsOutputWindow, IVsOutputWindow>(cancellationToken).ConfigureAwait(true);
             ErrorHandler.ThrowOnFailure(outputWindow.GetPane(VSConstants.OutputWindowPaneGuid.BuildOutputPane_guid, out var pane));
             return pane;
         }
@@ -219,7 +219,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var buildManager = await GetRequiredGlobalServiceAsync<SVsSolutionBuildManager, IVsSolutionBuildManager2>(cancellationToken);
+            var buildManager = await GetRequiredGlobalServiceAsync<SVsSolutionBuildManager, IVsSolutionBuildManager2>(cancellationToken).ConfigureAwait(true);
             var buildCompleted = new AsyncAutoResetEvent();
             using var solutionEvents = new UpdateSolutionEvents(buildManager);
 
@@ -227,7 +227,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             solutionEvents.OnUpdateSolutionDone += HandleUpdateSolutionDone;
             try
             {
-                await buildCompleted.WaitAsync(cancellationToken);
+                await buildCompleted.WaitAsync(cancellationToken).ConfigureAwait(true);
             }
             finally
             {
@@ -238,7 +238,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             ErrorHandler.ThrowOnFailure(buildOutputWindowPane.FlushToTaskList());
 
             var textView = (IVsTextView)buildOutputWindowPane;
-            var wpfTextViewHost = await textView.GetTextViewHostAsync(JoinableTaskFactory, cancellationToken);
+            var wpfTextViewHost = await textView.GetTextViewHostAsync(JoinableTaskFactory, cancellationToken).ConfigureAwait(true);
             var lines = wpfTextViewHost.TextView.TextViewLines;
             if (lines.Count < 1)
             {
@@ -267,7 +267,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken).ConfigureAwait(true);
             var solution = (EnvDTE80.Solution2)dte.Solution;
             return solution.Projects.OfType<EnvDTE.Project>().First(
                 project =>

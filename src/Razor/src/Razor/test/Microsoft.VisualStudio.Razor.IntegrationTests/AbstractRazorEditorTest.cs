@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.VisualStudio.Shell;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
@@ -36,7 +35,7 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutput) : Ab
 
     protected string ProjectFilePath => _projectFilePath.AssumeNotNull();
 
-    public override async Task InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync();
 
@@ -127,7 +126,7 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutput) : Ab
         return Path.Combine(Path.GetTempPath(), "razor-test", Path.GetRandomFileName());
     }
 
-    public override async Task DisposeAsync()
+    public override async ValueTask DisposeAsync()
     {
         _testLogger!.LogInformation($"#### Razor integration test dispose.");
 

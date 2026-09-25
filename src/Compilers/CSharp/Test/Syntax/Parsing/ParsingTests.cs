@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -44,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 if (hasNext)
                 {
                     DumpAndCleanup();
-                    Assert.False(hasNext, $"Test contains unconsumed syntax left over from UsingNode()\r\n{(this._output as TestOutputHelper)?.Output}");
+                    Assert.False(hasNext, $"Test contains unconsumed syntax left over from UsingNode()\r\n{_output.Output}");
                 }
             }
         }

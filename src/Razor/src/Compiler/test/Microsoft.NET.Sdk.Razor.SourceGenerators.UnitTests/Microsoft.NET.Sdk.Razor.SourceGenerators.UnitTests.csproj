@@ -58,6 +58,7 @@
   <Choose>
     <When Condition="'$(NetCoreSDKRuntimeIdentifier)' == 'win-x64'">
       <ItemGroup>
+        <Reference Include="$(PkgMicrosoft_AspNetCore_App_Runtime_win-x64)\runtimes\win-x64\lib\net10.0\Microsoft.AspNetCore.Razor.Runtime.dll" Private="true" />
         <None Include="$(PkgMicrosoft_AspNetCore_App_Runtime_win-x64)\runtimes\win-x64\lib\net10.0\*.dll"
               Exclude="$(PkgMicrosoft_AspNetCore_App_Runtime_win-x64)\runtimes\win-x64\lib\net10.0\System.Diagnostics.EventLog.dll;$(PkgMicrosoft_AspNetCore_App_Runtime_win-x64)\runtimes\win-x64\lib\net10.0\System.Security.Cryptography.Pkcs.dll"
               CopyToOutputDirectory="PreserveNewest"
@@ -67,6 +68,7 @@
     </When>
     <When Condition="'$(NetCoreSDKRuntimeIdentifier)' == 'win-arm64'">
       <ItemGroup>
+        <Reference Include="$(PkgMicrosoft_AspNetCore_App_Runtime_win-arm64)\runtimes\win-arm64\lib\net10.0\Microsoft.AspNetCore.Razor.Runtime.dll" Private="true" />
         <None Include="$(PkgMicrosoft_AspNetCore_App_Runtime_win-arm64)\runtimes\win-arm64\lib\net10.0\*.dll"
               Exclude="$(PkgMicrosoft_AspNetCore_App_Runtime_win-arm64)\runtimes\win-arm64\lib\net10.0\System.Diagnostics.EventLog.dll;$(PkgMicrosoft_AspNetCore_App_Runtime_win-arm64)\runtimes\win-arm64\lib\net10.0\System.Security.Cryptography.Pkcs.dll"
               CopyToOutputDirectory="PreserveNewest"
@@ -76,6 +78,7 @@
     </When>
     <When Condition="'$(NetCoreSDKRuntimeIdentifier)' == 'linux-x64'">
       <ItemGroup>
+        <Reference Include="$(PkgMicrosoft_AspNetCore_App_Runtime_linux-x64)\runtimes\linux-x64\lib\net10.0\Microsoft.AspNetCore.Razor.Runtime.dll" Private="true" />
         <None Include="$(PkgMicrosoft_AspNetCore_App_Runtime_linux-x64)\runtimes\linux-x64\lib\net10.0\*.dll"
               Exclude="$(PkgMicrosoft_AspNetCore_App_Runtime_linux-x64)\runtimes\linux-x64\lib\net10.0\System.Diagnostics.EventLog.dll;$(PkgMicrosoft_AspNetCore_App_Runtime_linux-x64)\runtimes\linux-x64\lib\net10.0\System.Security.Cryptography.Pkcs.dll"
               CopyToOutputDirectory="PreserveNewest"
@@ -85,6 +88,7 @@
     </When>
     <When Condition="'$(NetCoreSDKRuntimeIdentifier)' == 'osx-x64'">
       <ItemGroup>
+        <Reference Include="$(PkgMicrosoft_AspNetCore_App_Runtime_osx-x64)\runtimes\osx-x64\lib\net10.0\Microsoft.AspNetCore.Razor.Runtime.dll" Private="true" />
         <None Include="$(PkgMicrosoft_AspNetCore_App_Runtime_osx-x64)\runtimes\osx-x64\lib\net10.0\*.dll"
               Exclude="$(PkgMicrosoft_AspNetCore_App_Runtime_osx-x64)\runtimes\osx-x64\lib\net10.0\System.Diagnostics.EventLog.dll;$(PkgMicrosoft_AspNetCore_App_Runtime_osx-x64)\runtimes\osx-x64\lib\net10.0\System.Security.Cryptography.Pkcs.dll"
               CopyToOutputDirectory="PreserveNewest"
@@ -94,6 +98,7 @@
     </When>
     <When Condition="'$(NetCoreSDKRuntimeIdentifier)' == 'osx-arm64'">
       <ItemGroup>
+        <Reference Include="$(PkgMicrosoft_AspNetCore_App_Runtime_osx-arm64)\runtimes\osx-arm64\lib\net10.0\Microsoft.AspNetCore.Razor.Runtime.dll" Private="true" />
         <None Include="$(PkgMicrosoft_AspNetCore_App_Runtime_osx-arm64)\runtimes\osx-arm64\lib\net10.0\*.dll"
               Exclude="$(PkgMicrosoft_AspNetCore_App_Runtime_osx-arm64)\runtimes\osx-arm64\lib\net10.0\System.Diagnostics.EventLog.dll;$(PkgMicrosoft_AspNetCore_App_Runtime_osx-arm64)\runtimes\osx-arm64\lib\net10.0\System.Security.Cryptography.Pkcs.dll"
               CopyToOutputDirectory="PreserveNewest"

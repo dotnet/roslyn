@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using Microsoft.AspNetCore.Razor.Language.Legacy;
-using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 

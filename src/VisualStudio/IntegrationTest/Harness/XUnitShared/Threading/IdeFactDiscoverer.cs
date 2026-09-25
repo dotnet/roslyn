@@ -7,26 +7,23 @@ namespace Xunit.Threading
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
     using System.Runtime.CompilerServices;
-    using Xunit.Abstractions;
+    using System.Threading.Tasks;
     using Xunit.Harness;
     using Xunit.Sdk;
+    using Xunit.v3;
 
-    public class IdeFactDiscoverer : IXunitTestCaseDiscoverer
+    public sealed class IdeFactDiscoverer : IXunitTestCaseDiscoverer
     {
-        private readonly IMessageSink _diagnosticMessageSink;
-
-        public IdeFactDiscoverer(IMessageSink diagnosticMessageSink)
-        {
-            _diagnosticMessageSink = diagnosticMessageSink;
-        }
-
-        public IEnumerable<IXunitTestCase> Discover(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo factAttribute)
+        ValueTask<IReadOnlyCollection<IXunitTestCase>> IXunitTestCaseDiscoverer.Discover(ITestFrameworkDiscoveryOptions discoveryOptions, IXunitTestMethod testMethod, IFactAttribute factAttribute)
         {
             if (testMethod is null)
             {
                 throw new ArgumentNullException(nameof(testMethod));
             }
+
+            var testCases = new List<IXunitTestCase>();
 
             if (!testMethod.Method.GetParameters().Any())
             {
@@ -34,34 +31,23 @@ namespace Xunit.Threading
                 {
                     foreach (var supportedInstance in GetSupportedInstances(testMethod, factAttribute))
                     {
-                        yield return new IdeTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, supportedInstance);
-                        if (IdeInstanceTestCase.TryCreateNewInstanceForFramework(discoveryOptions, _diagnosticMessageSink, supportedInstance) is { } instanceTestCase)
-                        {
-                            yield return instanceTestCase;
-                        }
+                        testCases.Add(new IdeTestCase(testMethod, supportedInstance));
                     }
                 }
                 else
                 {
-                    yield return new ExecutionErrorTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, "[IdeFact] methods are not allowed to be generic.");
+                    testCases.Add(new ExecutionErrorTestCase(testMethod, testMethod.MethodName, testMethod.UniqueID, sourceFilePath: null, sourceLineNumber: null, "[IdeFact] methods are not allowed to be generic."));
                 }
             }
             else
             {
-                yield return new ExecutionErrorTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, "[IdeFact] methods are not allowed to have parameters. Did you mean to use [IdeTheory]?");
+                testCases.Add(new ExecutionErrorTestCase(testMethod, testMethod.MethodName, testMethod.UniqueID, sourceFilePath: null, sourceLineNumber: null, "[IdeFact] methods are not allowed to have parameters. Did you mean to use [IdeTheory]?"));
             }
+
+            return new ValueTask<IReadOnlyCollection<IXunitTestCase>>(testCases);
         }
 
-        internal static ITestMethod CreateVisualStudioTestMethod()
-        {
-            var testAssembly = new TestAssembly(new ReflectionAssemblyInfo(typeof(Instances).Assembly));
-            var testCollection = new TestCollection(testAssembly, collectionDefinition: null, nameof(Instances));
-            var testClass = new TestClass(testCollection, new ReflectionTypeInfo(typeof(Instances)));
-            var testMethod = testClass.Class.GetMethods(false).Single(method => method.Name == nameof(Instances.VisualStudio));
-            return new TestMethod(testClass, testMethod);
-        }
-
-        internal static IEnumerable<VisualStudioInstanceKey> GetSupportedInstances(ITestMethod testMethod, IAttributeInfo factAttribute)
+        internal static IEnumerable<VisualStudioInstanceKey> GetSupportedInstances(IXunitTestMethod testMethod, IFactAttribute factAttribute)
         {
             var rootSuffix = GetRootSuffix(testMethod, factAttribute);
             var maxAttempts = GetMaxAttempts(testMethod, factAttribute);
@@ -70,35 +56,30 @@ namespace Xunit.Threading
                 .Select(version => new VisualStudioInstanceKey(version, rootSuffix, maxAttempts, environmentVariables));
         }
 
-        private static string GetRootSuffix(ITestMethod testMethod, IAttributeInfo factAttribute)
+        private static string GetRootSuffix(IXunitTestMethod testMethod, IFactAttribute factAttribute)
         {
             return GetRootSuffix(factAttribute, GetSettingsAttributes(testMethod).ToArray());
         }
 
-        private static int GetMaxAttempts(ITestMethod testMethod, IAttributeInfo factAttribute)
+        private static int GetMaxAttempts(IXunitTestMethod testMethod, IFactAttribute factAttribute)
         {
             return GetMaxAttempts(factAttribute, GetSettingsAttributes(testMethod).ToArray());
         }
 
-        private static string[] GetEnvironmentVariables(ITestMethod testMethod, IAttributeInfo factAttribute)
+        private static string[] GetEnvironmentVariables(IXunitTestMethod testMethod, IFactAttribute factAttribute)
         {
             return GetEnvironmentVariables(factAttribute, GetSettingsAttributes(testMethod).ToArray());
         }
 
-        private static IEnumerable<IAttributeInfo> GetSettingsAttributes(ITestMethod testMethod)
+        private static IEnumerable<IdeSettingsAttribute> GetSettingsAttributes(IXunitTestMethod testMethod)
         {
-            foreach (var attributeData in testMethod.Method.GetCustomAttributes(typeof(IdeSettingsAttribute)))
-            {
-                yield return attributeData;
-            }
-
-            foreach (var attributeData in testMethod.TestClass.Class.GetCustomAttributes(typeof(IdeSettingsAttribute)))
+            foreach (var attributeData in testMethod.Method.GetCustomAttributes<IdeSettingsAttribute>(inherit: true))
             {
                 yield return attributeData;
             }
         }
 
-        private static IEnumerable<VisualStudioVersion> GetSupportedVersions(IAttributeInfo factAttribute, IAttributeInfo[] settingsAttributes)
+        private static IEnumerable<VisualStudioVersion> GetSupportedVersions(IFactAttribute factAttribute, IdeSettingsAttribute[] settingsAttributes)
         {
             var minVersion = GetNamedArgument(
                 factAttribute,
@@ -132,7 +113,7 @@ namespace Xunit.Threading
             }
         }
 
-        private static string GetRootSuffix(IAttributeInfo factAttribute, IAttributeInfo[] settingsAttributes)
+        private static string GetRootSuffix(IFactAttribute factAttribute, IdeSettingsAttribute[] settingsAttributes)
         {
             return GetNamedArgument(
                 factAttribute,
@@ -142,7 +123,7 @@ namespace Xunit.Threading
                 defaultValue: "Exp");
         }
 
-        private static int GetMaxAttempts(IAttributeInfo factAttribute, IAttributeInfo[] settingsAttributes)
+        private static int GetMaxAttempts(IFactAttribute factAttribute, IdeSettingsAttribute[] settingsAttributes)
         {
             return GetNamedArgument(
                 factAttribute,
@@ -152,7 +133,7 @@ namespace Xunit.Threading
                 defaultValue: 1);
         }
 
-        private static string[] GetEnvironmentVariables(IAttributeInfo factAttribute, IAttributeInfo[] settingsAttributes)
+        private static string[] GetEnvironmentVariables(IFactAttribute factAttribute, IdeSettingsAttribute[] settingsAttributes)
         {
             return GetNamedArgument(
                 factAttribute,
@@ -188,7 +169,7 @@ namespace Xunit.Threading
             return set.ToArray();
         }
 
-        private static TValue GetNamedArgument<TValue>(IAttributeInfo factAttribute, IAttributeInfo[] settingsAttributes, string argumentName, Func<TValue, bool> isValidValue, TValue defaultValue)
+        private static TValue GetNamedArgument<TValue>(IFactAttribute factAttribute, IdeSettingsAttribute[] settingsAttributes, string argumentName, Func<TValue, bool> isValidValue, TValue defaultValue)
         {
             return GetNamedArgument(
                 factAttribute,
@@ -199,10 +180,10 @@ namespace Xunit.Threading
                 defaultValue);
         }
 
-        private static TValue GetNamedArgument<TValue>(IAttributeInfo factAttribute, IAttributeInfo[] settingsAttributes, string argumentName, Func<TValue, bool> isValidValue, Func<TValue, TValue, TValue>? merge, TValue defaultValue)
+        private static TValue GetNamedArgument<TValue>(IFactAttribute factAttribute, IdeSettingsAttribute[] settingsAttributes, string argumentName, Func<TValue, bool> isValidValue, Func<TValue, TValue, TValue>? merge, TValue defaultValue)
         {
             StrongBox<TValue>? result = null;
-            if (TryGetNamedArgument(factAttribute, argumentName, isValidValue, out var value))
+            if (TryGetNamedArgument((Attribute)factAttribute, argumentName, isValidValue, out var value))
             {
                 if (merge is null)
                 {
@@ -240,14 +221,14 @@ namespace Xunit.Threading
 
             return defaultValue;
 
-            static bool TryGetNamedArgument(IAttributeInfo attribute, string argumentName, Func<TValue, bool> isValidValue, out TValue value)
+            static bool TryGetNamedArgument(Attribute attribute, string argumentName, Func<TValue, bool> isValidValue, out TValue value)
             {
-                value = attribute.GetNamedArgument<TValue>(argumentName);
+                value = (TValue)attribute.GetType().GetRuntimeProperty(argumentName)!.GetValue(attribute)!;
                 return isValidValue(value);
             }
         }
 
-        private class KeyOnlyComparerIgnoreCase : IEqualityComparer<string?>
+        private sealed class KeyOnlyComparerIgnoreCase : IEqualityComparer<string?>
         {
             public static readonly KeyOnlyComparerIgnoreCase Instance = new KeyOnlyComparerIgnoreCase();
 

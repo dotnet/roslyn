@@ -5,6 +5,8 @@
     <TargetFramework>net472</TargetFramework>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <Nullable>disable</Nullable>
+    <IsTestProject>true</IsTestProject>
+    <AppConfig>app.config</AppConfig>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,23 +17,10 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.SDK" />
-    <PackageReference Include="xunit" />
-    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="$(NuGetPackageRoot)xunit.runner.visualstudio\2.3.1\build\net20\..\_common\xunit.abstractions.dll" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Microsoft.VisualStudio.Extensibility.Testing.Xunit\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <AssemblyAttribute Include="Xunit.TestFrameworkAttribute">
-      <_Parameter1>Xunit.Harness.IdeTestFramework</_Parameter1>
-      <_Parameter2>Microsoft.VisualStudio.Extensibility.Testing.Xunit</_Parameter2>
-    </AssemblyAttribute>
+    <ProjectReference Include="..\XUnit\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj" />
   </ItemGroup>
 
   <ItemGroup>

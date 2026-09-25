@@ -12,9 +12,6 @@ using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.CSharp;
 using Roslyn.Test.Utilities;
-using Xunit;
-using Xunit.Abstractions;
-using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 

@@ -80,7 +80,36 @@ namespace Roslyn.Test.Utilities
 
         public string Reason { get; set; }
 
-        public ConditionalFactAttribute(params Type[] skipConditions)
+        public ConditionalFactAttribute(
+            Type skipConditions,
+            [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = null,
+            [System.Runtime.CompilerServices.CallerLineNumber] int sourceLineNumber = -1)
+            : this(new[] { skipConditions }, sourceFilePath, sourceLineNumber)
+        {
+        }
+
+        public ConditionalFactAttribute(Type skipCondition1, Type skipCondition2, params Type[] additionalSkipConditions)
+        {
+            Initialize(Combine(skipCondition1, skipCondition2, additionalSkipConditions));
+        }
+
+        public ConditionalFactAttribute(
+            Type[] skipConditions,
+            [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = null,
+            [System.Runtime.CompilerServices.CallerLineNumber] int sourceLineNumber = -1)
+            : base(sourceFilePath, sourceLineNumber)
+        {
+            Initialize(skipConditions);
+        }
+
+        public ConditionalFactAttribute(
+            [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = null,
+            [System.Runtime.CompilerServices.CallerLineNumber] int sourceLineNumber = -1)
+            : base(sourceFilePath, sourceLineNumber)
+        {
+        }
+
+        private void Initialize(Type[] skipConditions)
         {
             foreach (var skipCondition in skipConditions)
             {
@@ -91,6 +120,15 @@ namespace Roslyn.Test.Utilities
                     break;
                 }
             }
+        }
+
+        private static Type[] Combine(Type skipCondition1, Type skipCondition2, Type[] additionalSkipConditions)
+        {
+            var skipConditions = new Type[additionalSkipConditions.Length + 2];
+            skipConditions[0] = skipCondition1;
+            skipConditions[1] = skipCondition2;
+            Array.Copy(additionalSkipConditions, 0, skipConditions, 2, additionalSkipConditions.Length);
+            return skipConditions;
         }
     }
 
@@ -120,7 +158,36 @@ namespace Roslyn.Test.Utilities
 
         public string Reason { get; set; }
 
-        public ConditionalTheoryAttribute(params Type[] skipConditions)
+        public ConditionalTheoryAttribute(
+            Type skipConditions,
+            [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = null,
+            [System.Runtime.CompilerServices.CallerLineNumber] int sourceLineNumber = -1)
+            : this(new[] { skipConditions }, sourceFilePath, sourceLineNumber)
+        {
+        }
+
+        public ConditionalTheoryAttribute(Type skipCondition1, Type skipCondition2, params Type[] additionalSkipConditions)
+        {
+            Initialize(Combine(skipCondition1, skipCondition2, additionalSkipConditions));
+        }
+
+        public ConditionalTheoryAttribute(
+            Type[] skipConditions,
+            [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = null,
+            [System.Runtime.CompilerServices.CallerLineNumber] int sourceLineNumber = -1)
+            : base(sourceFilePath, sourceLineNumber)
+        {
+            Initialize(skipConditions);
+        }
+
+        public ConditionalTheoryAttribute(
+            [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = null,
+            [System.Runtime.CompilerServices.CallerLineNumber] int sourceLineNumber = -1)
+            : base(sourceFilePath, sourceLineNumber)
+        {
+        }
+
+        private void Initialize(Type[] skipConditions)
         {
             foreach (var skipCondition in skipConditions)
             {
@@ -131,6 +198,15 @@ namespace Roslyn.Test.Utilities
                     break;
                 }
             }
+        }
+
+        private static Type[] Combine(Type skipCondition1, Type skipCondition2, Type[] additionalSkipConditions)
+        {
+            var skipConditions = new Type[additionalSkipConditions.Length + 2];
+            skipConditions[0] = skipCondition1;
+            skipConditions[1] = skipCondition2;
+            Array.Copy(additionalSkipConditions, 0, skipConditions, 2, additionalSkipConditions.Length);
+            return skipConditions;
         }
     }
 

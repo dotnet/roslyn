@@ -6,6 +6,8 @@
     <UseWPF>true</UseWPF>
 
     <RootNamespace>Microsoft.CodeAnalysis.Testing</RootNamespace>
+    <!-- VS integration tests require Visual Studio and never participate in the source-only (VMR) build. -->
+    <ExcludeFromDotNetBuild>true</ExcludeFromDotNetBuild>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,6 +27,7 @@
     <PackageReference Include="System.Memory" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" />
     <PackageReference Include="System.Threading.Tasks.Extensions" />
+    <PackageReference Include="Xunit.Combinatorial" />
   </ItemGroup>
 
   <ItemGroup>

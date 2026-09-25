@@ -1,10 +1,9 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.ComponentModel.Composition;
 using System.Threading;
 using Microsoft.VisualStudio.Threading;
-using Xunit.Sdk;
 
 #if NETFRAMEWORK
 using System.Windows.Threading;
@@ -82,21 +81,7 @@ public partial class TestExportJoinableTaskContext
     }
 
     internal static SynchronizationContext? GetEffectiveSynchronizationContext()
-    {
-        if (SynchronizationContext.Current is AsyncTestSyncContext asyncTestSyncContext)
-        {
-            SynchronizationContext? innerSynchronizationContext = null;
-            asyncTestSyncContext.Send(
-                _ => innerSynchronizationContext = SynchronizationContext.Current,
-                null);
-
-            return innerSynchronizationContext;
-        }
-        else
-        {
-            return SynchronizationContext.Current;
-        }
-    }
+        => SynchronizationContext.Current;
 
 #if false
 /// <summary>

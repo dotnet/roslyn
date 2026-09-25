@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests
         public async Task TestOpenAndCloseIDE()
         {
             Assert.Equal("devenv", Process.GetCurrentProcess().ProcessName);
-            var dte = await TestServices.Shell.GetRequiredGlobalServiceAsync<_DTE, DTE>(HangMitigatingCancellationToken);
+            var dte = await TestServices.Shell.GetRequiredGlobalServiceAsync<_DTE, DTE>(HangMitigatingCancellationToken).ConfigureAwait(true);
             Assert.NotNull(dte);
         }
 
@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests
                 () => { },
                 CancellationToken.None,
                 TaskCreationOptions.None,
-                new SynchronizationContextTaskScheduler(new DispatcherSynchronizationContext(Application.Current.Dispatcher)));
+                new SynchronizationContextTaskScheduler(new DispatcherSynchronizationContext(Application.Current.Dispatcher))).ConfigureAwait(true);
             Assert.True(Application.Current.Dispatcher.CheckAccess());
         }
 
@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests
         [IdeFact(MaxVersion = VisualStudioVersion.VS2012)]
         public async Task TestJoinableTaskFactoryProvidedByTest()
         {
-            var taskSchedulerServiceObject = await TestServices.Shell.GetRequiredGlobalServiceAsync<SVsTaskSchedulerService, IVsTaskSchedulerService>(HangMitigatingCancellationToken);
+            var taskSchedulerServiceObject = await TestServices.Shell.GetRequiredGlobalServiceAsync<SVsTaskSchedulerService, IVsTaskSchedulerService>(HangMitigatingCancellationToken).ConfigureAwait(true);
             Assert.NotNull(taskSchedulerServiceObject);
             Assert.Null(taskSchedulerServiceObject as IVsTaskSchedulerService2);
 
@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests
         [IdeFact(MinVersion = VisualStudioVersion.VS18)]
         public async Task TestJoinableTaskFactoryObtainedFromEnvironment()
         {
-            var taskSchedulerServiceObject = await TestServices.Shell.GetRequiredGlobalServiceAsync<SVsTaskSchedulerService, IVsTaskSchedulerService>(HangMitigatingCancellationToken);
+            var taskSchedulerServiceObject = await TestServices.Shell.GetRequiredGlobalServiceAsync<SVsTaskSchedulerService, IVsTaskSchedulerService>(HangMitigatingCancellationToken).ConfigureAwait(true);
             Assert.NotNull(taskSchedulerServiceObject);
             var taskSchedulerService = taskSchedulerServiceObject as IVsTaskSchedulerService2;
             Assert.NotNull(taskSchedulerService);
@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests
         [IdeFact(RootSuffix = "")]
         public async Task TestStandardInstance()
         {
-            var appCommandLine = await TestServices.Shell.GetRequiredGlobalServiceAsync<SVsAppCommandLine, IVsAppCommandLine>(HangMitigatingCancellationToken);
+            var appCommandLine = await TestServices.Shell.GetRequiredGlobalServiceAsync<SVsAppCommandLine, IVsAppCommandLine>(HangMitigatingCancellationToken).ConfigureAwait(true);
 
             Assert.Equal(0, appCommandLine.GetOption("rootSuffix", out var present, out var value));
             Assert.Equal(0, present);
@@ -107,7 +107,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests
         [IdeFact]
         public async Task TestDefaultExperimentalInstance1()
         {
-            var appCommandLine = await TestServices.Shell.GetRequiredGlobalServiceAsync<SVsAppCommandLine, IVsAppCommandLine>(HangMitigatingCancellationToken);
+            var appCommandLine = await TestServices.Shell.GetRequiredGlobalServiceAsync<SVsAppCommandLine, IVsAppCommandLine>(HangMitigatingCancellationToken).ConfigureAwait(true);
 
             Assert.Equal(0, appCommandLine.GetOption("rootSuffix", out var present, out var value));
             Assert.Equal(1, present);
@@ -119,7 +119,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests
         [IdeFact(RootSuffix = null)]
         public async Task TestDefaultExperimentalInstance2()
         {
-            var appCommandLine = await TestServices.Shell.GetRequiredGlobalServiceAsync<SVsAppCommandLine, IVsAppCommandLine>(HangMitigatingCancellationToken);
+            var appCommandLine = await TestServices.Shell.GetRequiredGlobalServiceAsync<SVsAppCommandLine, IVsAppCommandLine>(HangMitigatingCancellationToken).ConfigureAwait(true);
 
             Assert.Equal(0, appCommandLine.GetOption("rootSuffix", out var present, out var value));
             Assert.Equal(1, present);
@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests
         [IdeFact(RootSuffix = "Exp")]
         public async Task TestExperimentalInstance()
         {
-            var appCommandLine = await TestServices.Shell.GetRequiredGlobalServiceAsync<SVsAppCommandLine, IVsAppCommandLine>(HangMitigatingCancellationToken);
+            var appCommandLine = await TestServices.Shell.GetRequiredGlobalServiceAsync<SVsAppCommandLine, IVsAppCommandLine>(HangMitigatingCancellationToken).ConfigureAwait(true);
 
             Assert.Equal(0, appCommandLine.GetOption("rootSuffix", out var present, out var value));
             Assert.Equal(1, present);
@@ -143,7 +143,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests
         [IdeFact(RootSuffix = "RoslynExp")]
         public async Task TestRoslynExperimentalInstance()
         {
-            var appCommandLine = await TestServices.Shell.GetRequiredGlobalServiceAsync<SVsAppCommandLine, IVsAppCommandLine>(HangMitigatingCancellationToken);
+            var appCommandLine = await TestServices.Shell.GetRequiredGlobalServiceAsync<SVsAppCommandLine, IVsAppCommandLine>(HangMitigatingCancellationToken).ConfigureAwait(true);
 
             Assert.Equal(0, appCommandLine.GetOption("rootSuffix", out var present, out var value));
             Assert.Equal(1, present);

@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var view = await GetActiveTextViewAsync(cancellationToken);
+            var view = await GetActiveTextViewAsync(cancellationToken).ConfigureAwait(true);
             var textSnapshot = view.TextSnapshot;
             var replacementSpan = new SnapshotSpan(textSnapshot, 0, textSnapshot.Length);
             view.TextBuffer.Replace(replacementSpan, text);

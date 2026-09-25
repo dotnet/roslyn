@@ -8,18 +8,21 @@ namespace Xunit.Harness
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
-    using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Windows.Threading;
-    using Xunit.Abstractions;
     using Xunit.Sdk;
     using Xunit.Threading;
+    using Xunit.v3;
 
     internal class IdeTestAssemblyRunner : XunitTestAssemblyRunner
     {
+        private readonly IMessageSink _executionMessageSink;
+        private readonly ITestFrameworkDiscoveryOptions _discoveryOptions;
+        private readonly ITestFrameworkExecutionOptions _executionOptions;
+
         /// <summary>
         /// A long timeout used to avoid hangs in tests, where a test failure manifests as an operation never occurring.
         /// </summary>
@@ -27,28 +30,35 @@ namespace Xunit.Harness
 
         private HashSet<VisualStudioInstanceKey>? _ideInstancesInTests;
 
-        public IdeTestAssemblyRunner(ITestAssembly testAssembly, IEnumerable<IXunitTestCase> testCases, IMessageSink diagnosticMessageSink, IMessageSink executionMessageSink, ITestFrameworkExecutionOptions executionOptions)
-            : base(testAssembly, testCases, diagnosticMessageSink, executionMessageSink, executionOptions)
+        public IdeTestAssemblyRunner(IMessageSink executionMessageSink, ITestFrameworkDiscoveryOptions discoveryOptions, ITestFrameworkExecutionOptions executionOptions)
         {
+            _executionMessageSink = executionMessageSink;
+            _discoveryOptions = discoveryOptions;
+            _executionOptions = executionOptions;
         }
 
-        protected override async Task AfterTestAssemblyStartingAsync()
+        protected override async ValueTask<bool> OnTestAssemblyStarting(XunitTestAssemblyRunnerContext ctxt)
         {
-            await base.AfterTestAssemblyStartingAsync().ConfigureAwait(false);
-            TestCollectionOrderer = new TestCollectionOrdererWrapper(TestCollectionOrderer);
+            if (!await base.OnTestAssemblyStarting(ctxt).ConfigureAwait(false))
+            {
+                return false;
+            }
+
             _ideInstancesInTests = new HashSet<VisualStudioInstanceKey>();
+            return true;
         }
 
-        protected override async Task BeforeTestAssemblyFinishedAsync()
+        protected override async ValueTask<bool> OnTestAssemblyFinished(XunitTestAssemblyRunnerContext ctxt, RunSummary summary)
         {
             _ideInstancesInTests = null;
-            TestCollectionOrderer = ((TestCollectionOrdererWrapper)TestCollectionOrderer).Underlying;
-            await base.BeforeTestAssemblyFinishedAsync().ConfigureAwait(true);
+            return await base.OnTestAssemblyFinished(ctxt, summary).ConfigureAwait(false);
         }
 
-        protected override async Task<RunSummary> RunTestCollectionAsync(IMessageBus messageBus, ITestCollection testCollection, IEnumerable<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
+        protected override async ValueTask<RunSummary> RunTestCollection(XunitTestAssemblyRunnerContext ctxt, IXunitTestCollection testCollection, IReadOnlyCollection<IXunitTestCase> testCases)
         {
+#pragma warning disable SA1129 // Do not use default value type constructor
             var result = new RunSummary();
+#pragma warning restore SA1129 // Do not use default value type constructor
             var completedTestCaseIds = new HashSet<string>();
             try
             {
@@ -56,7 +66,7 @@ namespace Xunit.Harness
                 var nonIdeTestCases = testCases.Where(testCase => testCase is not IdeTestCaseBase).ToArray();
                 if (nonIdeTestCases.Any())
                 {
-                    var summary = await RunTestCollectionForUnspecifiedVersionAsync(completedTestCaseIds, nonIdeTestCases, cancellationTokenSource).ConfigureAwait(true);
+                    var summary = await RunTestCollectionForUnspecifiedVersionAsync(ctxt.TestAssembly, nonIdeTestCases, ctxt.CancellationTokenSource).ConfigureAwait(true);
                     result.Aggregate(summary);
                 }
 
@@ -74,7 +84,7 @@ namespace Xunit.Harness
                         using var visualStudioInstanceFactory = new VisualStudioInstanceFactory();
 
                         marshalledObjects.Add(visualStudioInstanceFactory);
-                        var summary = await RunTestCollectionForVersionAsync(visualStudioInstanceFactory, currentAttempt, currentInstance, completedTestCaseIds, messageBus, testCollection, currentTests, cancellationTokenSource).ConfigureAwait(true);
+                        var summary = await RunTestCollectionForVersionAsync(visualStudioInstanceFactory, currentAttempt, currentInstance, ctxt, testCollection, currentTests, completedTestCaseIds, ctxt.CancellationTokenSource).ConfigureAwait(true);
                         result.Aggregate(summary);
 
                         currentTests = currentTests.Where(test => !completedTestCaseIds.Contains(test.UniqueID)).ToArray();
@@ -84,6 +94,8 @@ namespace Xunit.Harness
                         }
                     }
                 }
+
+#if IDE_INSTANCE_TEST_CASE_SUPPORT
 
                 foreach (var ideInstanceTestCase in testCases.OfType<IdeInstanceTestCase>())
                 {
@@ -103,7 +115,6 @@ namespace Xunit.Harness
                         ExecutionMessageSink.OnMessage(new TestCaseFinished(ideInstanceTestCase, 0, 1, 0, 0));
                         ExecutionMessageSink.OnMessage(new TestMethodFinished(new[] { ideInstanceTestCase }, ideInstanceTestCase.TestMethod, 0, 1, 0, 0));
                         ExecutionMessageSink.OnMessage(new TestClassFinished(new[] { ideInstanceTestCase }, ideInstanceTestCase.TestMethod.TestClass, 0, 1, 0, 0));
-
                         continue;
                     }
 
@@ -111,40 +122,176 @@ namespace Xunit.Harness
                     using (var visualStudioInstanceFactory = new VisualStudioInstanceFactory(leaveRunning: true))
                     {
                         marshalledObjects.Add(visualStudioInstanceFactory);
-                        var summary = await RunTestCollectionForVersionAsync(visualStudioInstanceFactory, currentAttempt: 0, ideInstanceTestCase.VisualStudioInstanceKey, completedTestCaseIds, messageBus, testCollection, new[] { ideInstanceTestCase }, cancellationTokenSource).ConfigureAwait(true);
+                        var summary = await RunTestCollectionForVersionAsync(visualStudioInstanceFactory, currentAttempt: 0, ideInstanceTestCase.VisualStudioInstanceKey, completedTestCaseIds, ctxt.MessageBus, testCollection, new[] { ideInstanceTestCase }, cancellationTokenSource);
                         result.Aggregate(summary);
                     }
                 }
+
+#endif
+
             }
             catch (Exception ex)
             {
+                // We have had a failure in the test harness entirely; rather than trying to restart Visual Studio which will probably fail due to the same
+                // reason, we'll report failures for all the remaining tests.
+                // TODO: we can probably simplify this by moving this to an implementation of TestCaseRunnerBase where the RunTestcase method simply returns the known exception.
                 var completedTestCases = testCases.Where(testCase => completedTestCaseIds.Contains(testCase.UniqueID));
                 var remainingTestCases = testCases.Except(completedTestCases);
                 foreach (var casesByTestClass in remainingTestCases.GroupBy(testCase => testCase.TestMethod.TestClass))
                 {
-                    ExecutionMessageSink.OnMessage(new TestClassStarting(casesByTestClass.ToArray(), casesByTestClass.Key));
+                    var testClass = casesByTestClass.Key;
+                    var testClassStartTime = DateTimeOffset.UtcNow;
+
+                    _executionMessageSink.OnMessage(new TestClassStarting
+                    {
+                        AssemblyUniqueID = ctxt.TestAssembly.UniqueID,
+                        StartTime = testClassStartTime,
+                        TestClassName = testClass.TestClassName,
+                        TestClassNamespace = testClass.TestClassNamespace,
+                        TestClassSimpleName = testClass.TestClassSimpleName,
+                        TestClassUniqueID = testClass.UniqueID,
+                        TestCollectionUniqueID = testClass.TestCollection.UniqueID,
+                        Traits = testClass.Traits,
+                    });
 
                     foreach (var casesByTestMethod in casesByTestClass.GroupBy(testCase => testCase.TestMethod))
                     {
-                        ExecutionMessageSink.OnMessage(new TestMethodStarting(casesByTestMethod.ToArray(), casesByTestMethod.Key));
+                        var testMethod = casesByTestMethod.Key;
+                        var testMethodStartTime = DateTimeOffset.UtcNow;
+
+                        _executionMessageSink.OnMessage(new TestMethodStarting
+                        {
+                            AssemblyUniqueID = ctxt.TestAssembly.UniqueID,
+                            MethodArity = testMethod.MethodArity,
+                            MethodName = testMethod.MethodName,
+                            StartTime = testMethodStartTime,
+                            TestClassUniqueID = testClass.UniqueID,
+                            TestCollectionUniqueID = testClass.TestCollection.UniqueID,
+                            TestMethodUniqueID = testMethod.UniqueID,
+                            Traits = testMethod.Traits,
+                        });
 
                         foreach (var testCase in casesByTestMethod)
                         {
-                            ExecutionMessageSink.OnMessage(new TestCaseStarting(testCase));
+                            var testCaseStartTime = DateTimeOffset.UtcNow;
 
-                            var test = new XunitTest(testCase, testCase.DisplayName);
-                            ExecutionMessageSink.OnMessage(new TestStarting(test));
-                            ExecutionMessageSink.OnMessage(new TestFailed(test, 0, null, new InvalidOperationException("Test did not run due to a harness failure.", ex)));
+                            _executionMessageSink.OnMessage(new TestCaseStarting
+                            {
+                                AssemblyUniqueID = ctxt.TestAssembly.UniqueID,
+                                Explicit = testCase.Explicit,
+                                SkipReason = testCase.SkipReason,
+                                SourceFilePath = testCase.SourceFilePath,
+                                SourceLineNumber = testCase.SourceLineNumber,
+                                StartTime = testCaseStartTime,
+                                TestCaseDisplayName = testCase.TestCaseDisplayName,
+                                TestCaseUniqueID = testCase.UniqueID,
+                                TestClassMetadataToken = testCase.TestClassMetadataToken,
+                                TestClassName = testClass.TestClassName,
+                                TestClassNamespace = testClass.TestClassNamespace,
+                                TestClassSimpleName = testClass.TestClassSimpleName,
+                                TestClassUniqueID = testClass.UniqueID,
+                                TestCollectionUniqueID = testClass.TestCollection.UniqueID,
+                                TestMethodArity = testMethod.MethodArity,
+                                TestMethodMetadataToken = testCase.TestMethodMetadataToken,
+                                TestMethodName = testMethod.MethodName,
+                                TestMethodParameterTypesVSTest = testCase.TestMethodParameterTypesVSTest,
+                                TestMethodReturnTypeVSTest = testCase.TestMethodReturnTypeVSTest,
+                                TestMethodUniqueID = testMethod.UniqueID,
+                                Traits = testMethod.Traits,
+                            });
+
+                            _executionMessageSink.OnMessage(new TestStarting
+                            {
+                                AssemblyUniqueID = ctxt.TestAssembly.UniqueID,
+                                TestCaseUniqueID = testCase.UniqueID,
+                                TestClassUniqueID = testClass.UniqueID,
+                                TestCollectionUniqueID = testClass.TestCollection.UniqueID,
+                                TestDisplayName = testCase.TestCaseDisplayName,
+                                TestLabel = null,
+                                TestMethodUniqueID = testMethod.UniqueID,
+                                TestUniqueID = testCase.UniqueID,
+                                Explicit = testCase.Explicit,
+                                StartTime = DateTimeOffset.UtcNow,
+                                Timeout = 0,
+                                Traits = testCase.Traits,
+                            });
+                            _executionMessageSink.OnMessage(new TestFailed
+                            {
+                                AssemblyUniqueID = ctxt.TestAssembly.UniqueID,
+                                Cause = FailureCause.Exception,
+                                ExceptionParentIndices = new[] { -1 },
+                                ExceptionTypes = new[] { "System.InvalidOperationException" },
+                                ExecutionTime = 0,
+                                FinishTime = DateTimeOffset.UtcNow,
+                                Messages = new[] { "Test did not run due to a harness failure." },
+                                Output = string.Empty,
+                                StackTraces = new[] { ex.ToString() },
+                                TestCaseUniqueID = testCase.UniqueID,
+                                TestClassUniqueID = testClass.UniqueID,
+                                TestCollectionUniqueID = testClass.TestCollection.UniqueID,
+                                TestMethodUniqueID = testMethod.UniqueID,
+                                TestUniqueID = testCase.UniqueID,
+                                Warnings = null,
+                            });
                             result.Failed++;
-                            ExecutionMessageSink.OnMessage(new TestFinished(test, 0, null));
+                            _executionMessageSink.OnMessage(new TestFinished
+                            {
+                                AssemblyUniqueID = ctxt.TestAssembly.UniqueID,
+                                ExecutionTime = 0,
+                                FinishTime = DateTimeOffset.UtcNow,
+                                Output = string.Empty,
+                                TestCaseUniqueID = testCase.UniqueID,
+                                TestClassUniqueID = testClass.UniqueID,
+                                TestCollectionUniqueID = testClass.TestCollection.UniqueID,
+                                TestMethodUniqueID = testMethod.UniqueID,
+                                TestUniqueID = testCase.UniqueID,
+                                Attachments = new Dictionary<string, TestAttachment>(),
+                                Warnings = null,
+                            });
 
-                            ExecutionMessageSink.OnMessage(new TestCaseFinished(testCase, 0, 1, 1, 0));
+                            _executionMessageSink.OnMessage(new TestCaseFinished
+                            {
+                                AssemblyUniqueID = ctxt.TestAssembly.UniqueID,
+                                ExecutionTime = 0m,
+                                FinishTime = DateTimeOffset.UtcNow,
+                                TestCaseUniqueID = testCase.UniqueID,
+                                TestClassUniqueID = testClass.UniqueID,
+                                TestCollectionUniqueID = testClass.TestCollection.UniqueID,
+                                TestMethodUniqueID = testMethod.UniqueID,
+                                TestsFailed = 1,
+                                TestsNotRun = 0,
+                                TestsSkipped = 0,
+                                TestsTotal = 1,
+                            });
                         }
 
-                        ExecutionMessageSink.OnMessage(new TestMethodFinished(casesByTestMethod.ToArray(), casesByTestMethod.Key, 0, casesByTestMethod.Count(), casesByTestMethod.Count(), 0));
+                        _executionMessageSink.OnMessage(new TestMethodFinished
+                        {
+                            AssemblyUniqueID = ctxt.TestAssembly.UniqueID,
+                            ExecutionTime = 0m,
+                            FinishTime = DateTimeOffset.UtcNow,
+                            TestClassUniqueID = testClass.UniqueID,
+                            TestCollectionUniqueID = testClass.TestCollection.UniqueID,
+                            TestMethodUniqueID = testMethod.UniqueID,
+                            TestsFailed = casesByTestMethod.Count(),
+                            TestsNotRun = 0,
+                            TestsSkipped = 0,
+                            TestsTotal = casesByTestMethod.Count(),
+                        });
                     }
 
-                    ExecutionMessageSink.OnMessage(new TestClassFinished(casesByTestClass.ToArray(), casesByTestClass.Key, 0, casesByTestClass.Count(), casesByTestClass.Count(), 0));
+                    _executionMessageSink.OnMessage(new TestClassFinished
+                    {
+                        AssemblyUniqueID = ctxt.TestAssembly.UniqueID,
+                        ExecutionTime = 0m,
+                        FinishTime = DateTimeOffset.UtcNow,
+                        TestClassUniqueID = testClass.UniqueID,
+                        TestCollectionUniqueID = testClass.TestCollection.UniqueID,
+                        TestsFailed = casesByTestClass.Count(),
+                        TestsNotRun = 0,
+                        TestsSkipped = 0,
+                        TestsTotal = casesByTestClass.Count(),
+                    });
                 }
             }
 
@@ -153,12 +300,20 @@ namespace Xunit.Harness
 
         /// <param name="currentAttempt">The 0-based attempt number. If this value is
         /// <c><see cref="VisualStudioInstanceKey.MaxAttempts"/> - 1</c>, a failed test will not be retried.</param>
-        protected virtual Task<RunSummary> RunTestCollectionForVersionAsync(VisualStudioInstanceFactory visualStudioInstanceFactory, int currentAttempt, VisualStudioInstanceKey visualStudioInstanceKey, HashSet<string> completedTestCaseIds, IMessageBus messageBus, ITestCollection testCollection, IEnumerable<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
+        protected virtual Task<RunSummary> RunTestCollectionForVersionAsync(
+            VisualStudioInstanceFactory visualStudioInstanceFactory,
+            int currentAttempt,
+            VisualStudioInstanceKey visualStudioInstanceKey,
+            XunitTestAssemblyRunnerContext ctxt,
+            ITestCollection testCollection,
+            IReadOnlyCollection<IXunitTestCase> testCases,
+            HashSet<string> completedTestCaseIds,
+            CancellationTokenSource cancellationTokenSource)
         {
             if (visualStudioInstanceKey.Version == VisualStudioVersion.Unspecified
                 || !IdeTestCaseBase.IsInstalled(visualStudioInstanceKey.Version))
             {
-                return RunTestCollectionForUnspecifiedVersionAsync(completedTestCaseIds, testCases, cancellationTokenSource);
+                return RunTestCollectionForUnspecifiedVersionAsync(ctxt.TestAssembly, testCases, cancellationTokenSource);
             }
 
             DispatcherSynchronizationContext? synchronizationContext = null;
@@ -201,7 +356,7 @@ namespace Xunit.Harness
                     using (await WpfTestSharedData.Instance.TestSerializationGate.DisposableWaitAsync(CancellationToken.None).ConfigureAwait(true))
                     {
                         // Just call back into the normal xUnit dispatch process now that we are on an STA Thread with no synchronization context.
-                        var invoker = CreateTestCollectionInvoker(visualStudioInstanceFactory, currentAttempt, visualStudioInstanceKey, completedTestCaseIds, messageBus, testCases, cancellationTokenSource);
+                        var invoker = CreateTestCollectionInvoker(visualStudioInstanceFactory, currentAttempt, visualStudioInstanceKey, ctxt, ctxt.TestAssembly, testCases);
                         return await invoker().ConfigureAwait(true);
                     }
                 },
@@ -232,23 +387,27 @@ namespace Xunit.Harness
                 });
         }
 
-        private async Task<RunSummary> RunTestCollectionForUnspecifiedVersionAsync(HashSet<string> completedTestCaseIds, IEnumerable<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
+        private async Task<RunSummary> RunTestCollectionForUnspecifiedVersionAsync(IXunitTestAssembly testAssembly, IReadOnlyCollection<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
         {
+            // TODO: figure out where this hooking is coming from
             // These tests just run in the current process, but we still need to hook the assembly and collection events
             // to work correctly in mixed-testing scenarios.
             using var marshalledObjects = new MarshalledObjects();
-            var executionMessageSinkFilter = new IpcMessageSink(ExecutionMessageSink, testCases.ToDictionary<IXunitTestCase, string, ITestCase>(testCase => testCase.UniqueID, testCase => testCase), finalAttempt: true, completedTestCaseIds, cancellationTokenSource.Token);
-            marshalledObjects.Add(executionMessageSinkFilter);
-            using (var runner = new XunitTestAssemblyRunner(TestAssembly, testCases, DiagnosticMessageSink, executionMessageSinkFilter, ExecutionOptions))
-            {
-                var runSummary = await runner.RunAsync().ConfigureAwait(true);
-                return runSummary;
-            }
+
+            // TODO: fix this
+            // var executionMessageSinkFilter = new IpcMessageSink(ExecutionMessageSink, testCases.ToDictionary<IXunitTestCase, string, ITestCase>(testCase => testCase.UniqueID, testCase => testCase), finalAttempt: true, completedTestCaseIds, cancellationTokenSource.Token);
+            return await XunitTestAssemblyRunner.Instance.Run(testAssembly, testCases, _executionMessageSink, _executionOptions, cancellationTokenSource.Token).ConfigureAwait(true);
         }
 
         /// <param name="currentAttempt">The 0-based attempt number. If this value is
         /// <c><see cref="VisualStudioInstanceKey.MaxAttempts"/> - 1</c>, a failed test will not be retried.</param>
-        private Func<Task<RunSummary>> CreateTestCollectionInvoker(VisualStudioInstanceFactory visualStudioInstanceFactory, int currentAttempt, VisualStudioInstanceKey visualStudioInstanceKey, HashSet<string> completedTestCaseIds, IMessageBus messageBus, IEnumerable<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
+        private Func<Task<RunSummary>> CreateTestCollectionInvoker(
+            VisualStudioInstanceFactory visualStudioInstanceFactory,
+            int currentAttempt,
+            VisualStudioInstanceKey visualStudioInstanceKey,
+            XunitTestAssemblyRunnerContext ctxt,
+            IXunitTestAssembly testAssembly,
+            IReadOnlyCollection<IXunitTestCase> testCases)
         {
             return async () =>
             {
@@ -256,14 +415,10 @@ namespace Xunit.Harness
 
                 using var marshalledObjects = new MarshalledObjects();
 
-                IpcMessageSink? executionMessageSinkFilter = null;
-
                 try
                 {
                     var finalAttempt = currentAttempt == visualStudioInstanceKey.MaxAttempts - 1;
                     var knownTestCasesByUniqueId = testCases.ToDictionary<IXunitTestCase, string, ITestCase>(testCase => testCase.UniqueID, testCase => testCase);
-                    executionMessageSinkFilter = new IpcMessageSink(ExecutionMessageSink, knownTestCasesByUniqueId, finalAttempt, completedTestCaseIds, cancellationTokenSource.Token);
-                    marshalledObjects.Add(executionMessageSinkFilter);
 
                     // Use SetItems instead of ToImmutableDictionary to avoid exceptions in the case of value conflicts
                     var environmentVariables = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase).SetItems(
@@ -274,40 +429,46 @@ namespace Xunit.Harness
 
                     // Install a COM message filter to handle retry operations when the first attempt fails
                     using (var messageFilter = new MessageFilter())
-                    using (var visualStudioContext = await visualStudioInstanceFactory.GetNewOrUsedInstanceAsync(GetVersion(visualStudioInstanceKey.Version), visualStudioInstanceKey.RootSuffix, environmentVariables, GetExtensionFiles(testCases), ImmutableHashSet.Create<string>()).ConfigureAwait(true))
+                    using (var visualStudioContext = await visualStudioInstanceFactory.GetNewOrUsedInstanceAsync(GetVersion(visualStudioInstanceKey.Version), visualStudioInstanceKey.RootSuffix, environmentVariables, GetExtensionFiles(testAssembly), ImmutableHashSet.Create<string>()).ConfigureAwait(true))
                     {
-                        using (var runner = visualStudioContext.Instance.TestInvoker.CreateTestAssemblyRunner(new IpcTestAssembly(TestAssembly), testCases.ToArray(), new IpcMessageSink(DiagnosticMessageSink, knownTestCasesByUniqueId, finalAttempt, new HashSet<string>(), cancellationTokenSource.Token), executionMessageSinkFilter, new IpcTestFrameworkExecutionOptions(ExecutionOptions)))
+                        var runner = visualStudioContext.Instance.TestInvoker.CreateTestAssemblyRunner();
+                        marshalledObjects.Add(runner);
+
+                        var messageSink = new DeserializingMessageSink(_executionMessageSink);
+                        marshalledObjects.Add(messageSink);
+
+                        var discoveryOptionsProxy = new IpcTestFrameworkDiscoveryOptions(_discoveryOptions);
+                        marshalledObjects.Add(discoveryOptionsProxy);
+
+                        var executionOptionsProxy = new IpcTestFrameworkExecutionOptions(_executionOptions);
+                        marshalledObjects.Add(executionOptionsProxy);
+
+                        var result = runner.RunTestCollection(ctxt.TestAssembly.AssemblyPath, [.. knownTestCasesByUniqueId.Keys], messageSink, discoveryOptionsProxy, executionOptionsProxy);
+                        var runSummary = new RunSummary
                         {
-                            marshalledObjects.Add(runner);
+                            Total = result.Item1,
+                            Failed = result.Item2,
+                            Skipped = result.Item3,
+                            Time = result.Item4,
+                        };
 
-                            var ipcMessageBus = new IpcMessageBus(messageBus);
-                            marshalledObjects.Add(ipcMessageBus);
-
-                            var result = runner.RunTestCollection();
-                            var runSummary = new RunSummary
-                            {
-                                Total = result.Item1,
-                                Failed = result.Item2,
-                                Skipped = result.Item3,
-                                Time = result.Item4,
-                            };
-
-                            return runSummary;
-                        }
+                        return runSummary;
                     }
                 }
                 catch (Exception e)
                 {
                     // Since this exception occurred in the harness communication, we can't assume it was logged by the
                     // in-process data collection service. We need to log it separately here.
+                    /*
                     DataCollectionService.CaptureFailureState(executionMessageSinkFilter?.CurrentTestCase ?? "Unknown", e);
+                    */
 
                     var previousException = WpfTestSharedData.Instance.Exception;
                     try
                     {
                         // Run the tests again, but using an error reporting test runner that will report the exception.
                         WpfTestSharedData.Instance.Exception = e;
-                        return await RunTestCollectionForUnspecifiedVersionAsync(completedTestCaseIds, testCases, cancellationTokenSource).ConfigureAwait(true);
+                        return await RunTestCollectionForUnspecifiedVersionAsync(ctxt.TestAssembly, testCases, ctxt.CancellationTokenSource).ConfigureAwait(true);
                     }
                     finally
                     {
@@ -317,28 +478,10 @@ namespace Xunit.Harness
             };
         }
 
-        private static ImmutableList<string> GetExtensionFiles(IEnumerable<IXunitTestCase> testCases)
+        private static ImmutableList<string> GetExtensionFiles(IXunitTestAssembly testAssembly)
         {
-            var extensionFiles = ImmutableHashSet.Create<string>(StringComparer.OrdinalIgnoreCase);
-            var visited = new HashSet<IAssemblyInfo>();
-            foreach (var testCase in testCases)
-            {
-                var assemblyInfo = testCase.Method.Type.Assembly;
-                if (!visited.Add(assemblyInfo))
-                {
-                    continue;
-                }
-
-                var assemblyDirectory = Path.GetDirectoryName(assemblyInfo.AssemblyPath);
-                var requiredExtensions = assemblyInfo.GetCustomAttributes(typeof(RequireExtensionAttribute))
-                    .Select(attributeInfo => attributeInfo.GetConstructorArguments().First().ToString())
-                    .Select(extensionFile => Path.IsPathRooted(extensionFile)
-                        ? extensionFile
-                        : Path.Combine(assemblyDirectory, extensionFile));
-                extensionFiles = extensionFiles.Union(requiredExtensions);
-            }
-
-            return extensionFiles.ToImmutableList();
+            var attributes = testAssembly.Assembly.GetCustomAttributes<RequireExtensionAttribute>();
+            return attributes.Select(a => a.ExtensionFile).Distinct().ToImmutableList();
         }
 
         private static Version GetVersion(VisualStudioVersion visualStudioVersion)
@@ -381,7 +524,8 @@ namespace Xunit.Harness
             return VisualStudioInstanceKey.Unspecified;
         }
 
-        private class IpcMessageSink : MarshalByRefObject, IMessageSink
+        /*
+        private class IpcMessageSink : IMessageSink
         {
             private readonly IMessageSink _messageSink;
             private readonly IReadOnlyDictionary<string, ITestCase> _knownTestCasesByUniqueId;
@@ -404,6 +548,7 @@ namespace Xunit.Harness
                 get;
                 private set;
             }
+
 
             public bool OnMessage(IMessageSinkMessage message)
             {
@@ -490,122 +635,39 @@ namespace Xunit.Harness
                 return null;
             }
         }
+        */
 
-        private class IpcMessageBus : MarshalByRefObject, IMessageBus
+        private class IpcTestFrameworkOptions(ITestFrameworkOptions executionOptions) : LongLivedMarshalByRefObject, ITestFrameworkOptions
         {
-            private readonly IMessageBus _messageBus;
+            public TValue? GetValue<TValue>(string name) => executionOptions.GetValue<TValue>(name);
 
-            public IpcMessageBus(IMessageBus messageBus)
-            {
-                _messageBus = messageBus;
-            }
+            public void SetValue<TValue>(string name, TValue value) => executionOptions.SetValue(name, value);
 
-            public void Dispose() => _messageBus.Dispose();
-
-            public bool QueueMessage(IMessageSinkMessage message) => _messageBus.QueueMessage(message);
-
-            // The life of this object is managed explicitly
-            public override object? InitializeLifetimeService() => null;
+            public string ToJson() => executionOptions.ToJson();
         }
 
-        private class IpcTestAssembly : LongLivedMarshalByRefObject, ITestAssembly
+        private class IpcTestFrameworkExecutionOptions(ITestFrameworkExecutionOptions executionOptions) : IpcTestFrameworkOptions(executionOptions), ITestFrameworkExecutionOptions
         {
-            private readonly ITestAssembly _testAssembly;
-            private readonly IAssemblyInfo _assembly;
-
-            public IpcTestAssembly(ITestAssembly testAssembly)
-            {
-                _testAssembly = testAssembly;
-                _assembly = new IpcAssemblyInfo(_testAssembly.Assembly);
-            }
-
-            public IAssemblyInfo Assembly => _assembly;
-
-            public string ConfigFileName => _testAssembly.ConfigFileName;
-
-            public void Deserialize(IXunitSerializationInfo info)
-            {
-                _testAssembly.Deserialize(info);
-            }
-
-            public void Serialize(IXunitSerializationInfo info)
-            {
-                _testAssembly.Serialize(info);
-            }
         }
 
-        private class IpcTestFrameworkExecutionOptions : LongLivedMarshalByRefObject, ITestFrameworkExecutionOptions
+        private class IpcTestFrameworkDiscoveryOptions(ITestFrameworkDiscoveryOptions executionOptions) : IpcTestFrameworkOptions(executionOptions), ITestFrameworkDiscoveryOptions
         {
-            private readonly ITestFrameworkExecutionOptions _executionOptions;
-
-            public IpcTestFrameworkExecutionOptions(ITestFrameworkExecutionOptions executionOptions)
-            {
-                _executionOptions = executionOptions;
-            }
-
-            public TValue GetValue<TValue>(string name)
-            {
-                return _executionOptions.GetValue<TValue>(name);
-            }
-
-            public void SetValue<TValue>(string name, TValue value)
-            {
-                _executionOptions.SetValue(name, value);
-            }
         }
 
-        private class IpcAssemblyInfo : LongLivedMarshalByRefObject, IAssemblyInfo
+#pragma warning disable SA1316 // Tuple element names should use correct casing
+#pragma warning disable SA1201 // Elements should appear in the correct order
+        protected override List<(IXunitTestCollection Collection, List<IXunitTestCase> TestCases)> OrderTestCollections(XunitTestAssemblyRunnerContext ctxt)
+#pragma warning restore SA1201 // Elements should appear in the correct order
+#pragma warning restore SA1316 // Tuple element names should use correct casing
         {
-            private readonly IAssemblyInfo _assemblyInfo;
+            var collections = base.OrderTestCollections(ctxt);
+            var collectionsWithoutIdeInstanceCases = collections.Where(tuple => !ContainsIdeInstanceCase(tuple.Collection));
+            var collectionsWithIdeInstanceCases = collections.Where(tuple => ContainsIdeInstanceCase(tuple.Collection));
+            return collectionsWithoutIdeInstanceCases.Concat(collectionsWithIdeInstanceCases).ToList();
 
-            public IpcAssemblyInfo(IAssemblyInfo assemblyInfo)
+            static bool ContainsIdeInstanceCase(IXunitTestCollection collection)
             {
-                _assemblyInfo = assemblyInfo;
-            }
-
-            public string AssemblyPath => _assemblyInfo.AssemblyPath;
-
-            public string Name => _assemblyInfo.Name;
-
-            public IEnumerable<IAttributeInfo> GetCustomAttributes(string assemblyQualifiedAttributeTypeName)
-            {
-                return _assemblyInfo.GetCustomAttributes(assemblyQualifiedAttributeTypeName).ToArray();
-            }
-
-            public ITypeInfo GetType(string typeName)
-            {
-                return _assemblyInfo.GetType(typeName);
-            }
-
-            public IEnumerable<ITypeInfo> GetTypes(bool includePrivateTypes)
-            {
-                return _assemblyInfo.GetTypes(includePrivateTypes).ToArray();
-            }
-        }
-
-        /// <summary>
-        /// A collection orderer wrapper that ensures <see cref="IdeInstanceTestCase"/> runs after other test cases.
-        /// </summary>
-        private sealed class TestCollectionOrdererWrapper : ITestCollectionOrderer
-        {
-            public TestCollectionOrdererWrapper(ITestCollectionOrderer underlying)
-            {
-                Underlying = underlying;
-            }
-
-            public ITestCollectionOrderer Underlying { get; }
-
-            public IEnumerable<ITestCollection> OrderTestCollections(IEnumerable<ITestCollection> testCollections)
-            {
-                var collections = Underlying.OrderTestCollections(testCollections).ToArray();
-                var collectionsWithoutIdeInstanceCases = collections.Where(collection => !ContainsIdeInstanceCase(collection));
-                var collectionsWithIdeInstanceCases = collections.Where(collection => ContainsIdeInstanceCase(collection));
-                return collectionsWithoutIdeInstanceCases.Concat(collectionsWithIdeInstanceCases);
-            }
-
-            private static bool ContainsIdeInstanceCase(ITestCollection collection)
-            {
-                var assemblyName = new AssemblyName(collection.TestAssembly.Assembly.Name);
+                var assemblyName = collection.TestAssembly.Assembly.GetName();
                 return assemblyName.Name == "Microsoft.VisualStudio.Extensibility.Testing.Xunit";
             }
         }

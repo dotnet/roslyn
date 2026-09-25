@@ -3,13 +3,13 @@
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
+    <ExcludeFromDotNetBuild>true</ExcludeFromDotNetBuild>
   </PropertyGroup>
 
   <ItemGroup>
     <!-- This needs to be a package reference to avoid attempting to use a newer compiler version than either the CLI or IDE has. -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
     <PackageReference Include="Newtonsoft.Json" />
-    <PackageReference Include="xunit" />
   </ItemGroup>
 
   <ItemGroup>

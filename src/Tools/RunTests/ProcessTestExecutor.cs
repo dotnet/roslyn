@@ -98,6 +98,35 @@ namespace RunTests
             return vsTestConsolePath;
         }
 
+        /// <summary>
+        /// vstest.console.dll launches each test host as an apphost (e.g. testhost.exe / testhost),
+        /// which uses hostfxr to locate the shared framework/runtime. hostfxr looks first at
+        /// architecture-specific and generic DOTNET_ROOT* environment variables before falling back
+        /// to other install-location probing. On CI agents where those variables are not set for the
+        /// architecture actually in use (observed on some Linux legs), the test host fails to start
+        /// with a "libhostfxr" load failure. We already know exactly which dotnet install we want
+        /// (<paramref name="dotnetPath"/>), so set DOTNET_ROOT and the current architecture's
+        /// DOTNET_ROOT_* variable explicitly rather than relying on the ambient environment.
+        /// </summary>
+        private static void AddDotNetRootEnvironmentVariables(Dictionary<string, string> environmentVariables, string dotnetPath, string architecture)
+        {
+            var dotnetDir = Path.GetDirectoryName(dotnetPath)!;
+            environmentVariables["DOTNET_ROOT"] = dotnetDir;
+
+            var archSuffix = architecture.ToLowerInvariant() switch
+            {
+                "x86" => "X86",
+                "x64" => "X64",
+                "arm64" => "ARM64",
+                _ => null,
+            };
+
+            if (archSuffix is not null)
+            {
+                environmentVariables[$"DOTNET_ROOT_{archSuffix}"] = dotnetDir;
+            }
+        }
+
         public static string GetResultsFilePath(WorkItemInfo workItemInfo, Options options, string suffix = "xml")
         {
             var fileName = $"WorkItem_{workItemInfo.PartitionIndex}_{options.Architecture}_test_results.{suffix}";
@@ -126,6 +155,7 @@ namespace RunTests
 
                 // Define environment variables for processes started via ProcessRunner.
                 var environmentVariables = new Dictionary<string, string>();
+                AddDotNetRootEnvironmentVariables(environmentVariables, options.DotnetFilePath, options.Architecture);
 
                 // NOTE: xUnit seems to have an occasional issue creating logs create
                 // an empty log just in case, so our runner will still fail.

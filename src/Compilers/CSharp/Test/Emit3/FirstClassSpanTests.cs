@@ -18,14 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 public class FirstClassSpanTests : CSharpTestBase
 {
-    public static TheoryData<LanguageVersion> LangVersions()
+    public static IEnumerable<object[]> LangVersions()
     {
-        return new TheoryData<LanguageVersion>()
-        {
-            LanguageVersion.CSharp13,
-            LanguageVersion.CSharp14,
-            LanguageVersion.Preview,
-        };
+        yield return [LanguageVersion.CSharp13];
+        yield return [LanguageVersion.CSharp14];
+        yield return [LanguageVersion.Preview];
     }
 
     private sealed class CombinatorialLangVersions()
