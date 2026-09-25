@@ -11,7 +11,7 @@ internal sealed class CriticalIdeTheoryAttribute : IdeTheoryAttribute
     [Obsolete("Critical tests cannot be skipped.", error: true)]
     public new string Skip
     {
-        get { return base.Skip; }
+        get { return base.Skip!; }
         set { base.Skip = value; }
     }
 }

@@ -24,7 +24,7 @@ namespace Xunit.Harness
         public Tuple<int, int, int, decimal> RunTestCollection(string testAssembly, HashSet<string> testCaseUniqueIds, DeserializingMessageSink executionMessageSink, ITestFrameworkDiscoveryOptions discoveryOptions, ITestFrameworkExecutionOptions executionOptions)
         {
 #pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
-            var result = RunTestCollectionAsync(testAssembly, testCaseUniqueIds, executionMessageSink, discoveryOptions, executionOptions).GetAwaiter().GetResult();
+            var result = RunTestCollectionAsync(testAssembly, testCaseUniqueIds, executionMessageSink, discoveryOptions, executionOptions).AsTask().GetAwaiter().GetResult();
 #pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
             return Tuple.Create(result.Total, result.Failed, result.Skipped, result.Time);
         }

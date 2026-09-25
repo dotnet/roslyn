@@ -14,7 +14,7 @@ namespace Xunit.Threading
 
     public class InProcessIdeTestCaseRunner : XunitTestCaseRunner
     {
-        public static readonly new InProcessIdeTestCaseRunner Instance = new InProcessIdeTestCaseRunner();
+        public static new readonly InProcessIdeTestCaseRunner Instance = new InProcessIdeTestCaseRunner();
 
         protected override async ValueTask<RunSummary> RunTest(XunitTestCaseRunnerContext ctxt, IXunitTest test)
         {
@@ -29,10 +29,10 @@ namespace Xunit.Threading
                 DataCollectionService.CurrentTest = test;
 #pragma warning restore CA1062 // Validate arguments of public methods
                 return await Task.Factory.StartNew(
-                    async () => await base.RunTest(ctxt, test),
+                    async () => await base.RunTest(ctxt, test).ConfigureAwait(true),
                     CancellationToken.None,
                     TaskCreationOptions.None,
-                    taskScheduler).Unwrap();
+                    taskScheduler).Unwrap().ConfigureAwait(true);
             }
             finally
             {

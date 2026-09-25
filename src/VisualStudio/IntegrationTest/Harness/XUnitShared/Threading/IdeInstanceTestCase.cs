@@ -18,9 +18,11 @@ namespace Xunit.Threading
         /// instance used for one complete discovery pass. If this instance is used for subsequent discovery passes,
         /// the instance test cases might not show up in the discovery.
         /// </summary>
+#if IDE_INSTANCE_TEST_CASE_SUPPORT
         private static readonly ConditionalWeakTable<ITestFrameworkDiscoveryOptions, StrongBox<ImmutableDictionary<VisualStudioInstanceKey, IdeInstanceTestCase>>> _instances = new();
+#endif
 
-        public IdeInstanceTestCase(IXunitTestMethod testMethod, VisualStudioInstanceKey visualStudioInstanceKey, bool includeRootSuffixInDisplayName, object?[]? testMethodArguments = null)
+        public IdeInstanceTestCase(IXunitTestMethod testMethod, VisualStudioInstanceKey visualStudioInstanceKey, object?[]? testMethodArguments = null)
             : base(testMethod, visualStudioInstanceKey, includeRootSuffixInDisplayName: true, testMethodArguments)
         {
         }
@@ -29,7 +31,7 @@ namespace Xunit.Threading
         {
 #if IDE_INSTANCE_TEST_CASE_SUPPORT
             var lazyInstances = _instances.GetValue(discoveryOptions, static _ => new StrongBox<ImmutableDictionary<VisualStudioInstanceKey, IdeInstanceTestCase>>(ImmutableDictionary<VisualStudioInstanceKey, IdeInstanceTestCase>.Empty));
-            var candidateTestCase = new IdeInstanceTestCase(IdeFactDiscoverer.CreateVisualStudioTestMethod(), visualStudioInstanceKey, includeRootSuffixInDisplayName: true);
+            var candidateTestCase = new IdeInstanceTestCase(IdeFactDiscoverer.CreateVisualStudioTestMethod(), visualStudioInstanceKey);
             var testCase = ImmutableInterlocked.GetOrAdd(ref lazyInstances.Value, visualStudioInstanceKey, candidateTestCase);
             if (testCase != candidateTestCase)
             {

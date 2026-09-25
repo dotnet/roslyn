@@ -66,7 +66,7 @@ namespace Xunit.Harness
                 var nonIdeTestCases = testCases.Where(testCase => testCase is not IdeTestCaseBase).ToArray();
                 if (nonIdeTestCases.Any())
                 {
-                    var summary = await RunTestCollectionForUnspecifiedVersionAsync(ctxt.TestAssembly, testCollection, nonIdeTestCases, completedTestCaseIds, ctxt.CancellationTokenSource).ConfigureAwait(true);
+                    var summary = await RunTestCollectionForUnspecifiedVersionAsync(ctxt.TestAssembly, nonIdeTestCases, ctxt.CancellationTokenSource).ConfigureAwait(true);
                     result.Aggregate(summary);
                 }
 
@@ -313,7 +313,7 @@ namespace Xunit.Harness
             if (visualStudioInstanceKey.Version == VisualStudioVersion.Unspecified
                 || !IdeTestCaseBase.IsInstalled(visualStudioInstanceKey.Version))
             {
-                return RunTestCollectionForUnspecifiedVersionAsync(ctxt.TestAssembly, testCollection, testCases, completedTestCaseIds, cancellationTokenSource);
+                return RunTestCollectionForUnspecifiedVersionAsync(ctxt.TestAssembly, testCases, cancellationTokenSource);
             }
 
             DispatcherSynchronizationContext? synchronizationContext = null;
@@ -356,7 +356,7 @@ namespace Xunit.Harness
                     using (await WpfTestSharedData.Instance.TestSerializationGate.DisposableWaitAsync(CancellationToken.None).ConfigureAwait(true))
                     {
                         // Just call back into the normal xUnit dispatch process now that we are on an STA Thread with no synchronization context.
-                        var invoker = CreateTestCollectionInvoker(visualStudioInstanceFactory, currentAttempt, visualStudioInstanceKey, ctxt, ctxt.TestAssembly, testCollection, testCases, completedTestCaseIds, cancellationTokenSource);
+                        var invoker = CreateTestCollectionInvoker(visualStudioInstanceFactory, currentAttempt, visualStudioInstanceKey, ctxt, ctxt.TestAssembly, testCases);
                         return await invoker().ConfigureAwait(true);
                     }
                 },
@@ -387,7 +387,7 @@ namespace Xunit.Harness
                 });
         }
 
-        private async Task<RunSummary> RunTestCollectionForUnspecifiedVersionAsync(IXunitTestAssembly testAssembly, ITestCollection testCollection, IReadOnlyCollection<IXunitTestCase> testCases, HashSet<string> completedTestCaseIds, CancellationTokenSource cancellationTokenSource)
+        private async Task<RunSummary> RunTestCollectionForUnspecifiedVersionAsync(IXunitTestAssembly testAssembly, IReadOnlyCollection<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
         {
             // TODO: figure out where this hooking is coming from
             // These tests just run in the current process, but we still need to hook the assembly and collection events
@@ -396,7 +396,7 @@ namespace Xunit.Harness
 
             // TODO: fix this
             // var executionMessageSinkFilter = new IpcMessageSink(ExecutionMessageSink, testCases.ToDictionary<IXunitTestCase, string, ITestCase>(testCase => testCase.UniqueID, testCase => testCase), finalAttempt: true, completedTestCaseIds, cancellationTokenSource.Token);
-            return await XunitTestAssemblyRunner.Instance.Run(testAssembly, testCases, _executionMessageSink, _executionOptions, cancellationTokenSource.Token);
+            return await XunitTestAssemblyRunner.Instance.Run(testAssembly, testCases, _executionMessageSink, _executionOptions, cancellationTokenSource.Token).ConfigureAwait(true);
         }
 
         /// <param name="currentAttempt">The 0-based attempt number. If this value is
@@ -407,10 +407,7 @@ namespace Xunit.Harness
             VisualStudioInstanceKey visualStudioInstanceKey,
             XunitTestAssemblyRunnerContext ctxt,
             IXunitTestAssembly testAssembly,
-            ITestCollection testCollection,
-            IReadOnlyCollection<IXunitTestCase> testCases,
-            HashSet<string> completedTestCaseIds,
-            CancellationTokenSource cancellationTokenSource)
+            IReadOnlyCollection<IXunitTestCase> testCases)
         {
             return async () =>
             {
@@ -471,7 +468,7 @@ namespace Xunit.Harness
                     {
                         // Run the tests again, but using an error reporting test runner that will report the exception.
                         WpfTestSharedData.Instance.Exception = e;
-                        return await RunTestCollectionForUnspecifiedVersionAsync(ctxt.TestAssembly, testCollection, testCases, completedTestCaseIds, ctxt.CancellationTokenSource).ConfigureAwait(true);
+                        return await RunTestCollectionForUnspecifiedVersionAsync(ctxt.TestAssembly, testCases, ctxt.CancellationTokenSource).ConfigureAwait(true);
                     }
                     finally
                     {
@@ -481,7 +478,7 @@ namespace Xunit.Harness
             };
         }
 
-        private ImmutableList<string> GetExtensionFiles(IXunitTestAssembly testAssembly)
+        private static ImmutableList<string> GetExtensionFiles(IXunitTestAssembly testAssembly)
         {
             var attributes = testAssembly.Assembly.GetCustomAttributes<RequireExtensionAttribute>();
             return attributes.Select(a => a.ExtensionFile).Distinct().ToImmutableList();
