@@ -21,6 +21,7 @@ Authoritative formatting lives in `.editorconfig`; path-scoped rules live in `.g
 From `.editorconfig`:
 - Indentation: 4 spaces for `*.cs`/`*.vb`; 2 spaces for project/XML/JSON/PS1/SH files. Never tabs.
 - `*.cs`/`*.vb`: `insert_final_newline = true`, `charset = utf-8-bom`.
+- **Preserve BOM state on edit.** Keep an existing UTF-8 BOM (including on `*.csproj`/`*.vbproj`, which have no editorconfig `charset`), and don't add one to the ~300 existing `*.cs`/`*.vb` files that lack it. CI's `eng/validate-code-formatting.ps1` only runs `dotnet format whitespace` on the compiler `Generated` folders, so BOM loss elsewhere is not caught automatically.
 - **Blank lines must contain no whitespace** (no spaces/tabs) — this is a hard lint failure.
 - **No trailing whitespace.**
 - File-scoped namespaces and `var`/expression-body preferences are enforced via editorconfig analyzers — follow the file you are editing.
