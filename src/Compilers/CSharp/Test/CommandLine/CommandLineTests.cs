@@ -4813,7 +4813,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             var match = Regex.Match(output, pattern);
             Assert.True(match.Success, $"Expected pattern:{Environment.NewLine}{pattern}{Environment.NewLine}Actual:{Environment.NewLine}{output}");
             Assert.Equal(filePath, match.Groups["path"].Value);
-            Assert.Contains("testhost", match.Groups["app"].Value);
+            Assert.Equal(typeof(CommandLineTests).Assembly.GetName().Name, match.Groups["app"].Value);
             Assert.Equal(currentProcess.Id, int.Parse(match.Groups["pid"].Value));
 
             CleanupAllGeneratedFiles(src.Path);
