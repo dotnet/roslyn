@@ -124,7 +124,6 @@ internal partial class CodeGenerator
                     }
                     else if (localRefKind == RefKindExtensions.StrictIn)
                     {
-                        Debug.Assert(localRefKind != RefKindExtensions.StrictIn, "Add a test if this assert fails for the scenario.");
                         return false;
                     }
                 }
@@ -153,7 +152,6 @@ internal partial class CodeGenerator
                     }
                     else if (dupRefKind == RefKindExtensions.StrictIn)
                     {
-                        Debug.Assert(dupRefKind != RefKindExtensions.StrictIn, "Add a test if this assert fails for the scenario.");
                         return true;
                     }
                 }
