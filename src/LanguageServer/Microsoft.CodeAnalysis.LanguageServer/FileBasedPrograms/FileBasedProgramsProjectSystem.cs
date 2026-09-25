@@ -291,17 +291,15 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         }
     }
 
-    public async ValueTask OpenDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo documentInfo)
+    public async ValueTask OpenDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo documentInfo, CancellationToken cancellationToken)
     {
         var documentFilePath = GetDocumentFilePath(documentUri);
         lock (_projectGraphGate)
             _openDocumentPaths.Add(documentFilePath);
 
-        if (!IsReferencedProject(documentFilePath))
-            return;
-
-        if (await ClassifyDocumentAsync(documentFilePath, documentInfo.LanguageId, documentInfo.SourceText, CancellationToken.None) == LooseDocumentKind.FileBasedApp)
-            RegisterRoot(documentFilePath);
+        // Classify independently of graph membership: another load can publish this document before its first request.
+        if (await ClassifyDocumentAsync(documentFilePath, documentInfo.LanguageId, documentInfo.SourceText, cancellationToken) == LooseDocumentKind.FileBasedApp)
+            RegisterRoot(documentFilePath, requireOpenDocument: true);
     }
 
     public async ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo? documentInfo)
@@ -472,8 +470,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
         // Fall through to ordinary file-based app handling.
         Contract.ThrowIfFalse(documentKind is LooseDocumentKind.FileBasedApp);
-        if (!isReferencedProject && IsDocumentOpen(documentPath))
-            RegisterRoot(documentPath);
+        if (!isReferencedProject)
+            RegisterRoot(documentPath, requireOpenDocument: true);
 
         const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
         if (TryTakePreparedProjectLoad(documentPath, out var preparedLoad))
@@ -615,10 +613,13 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         }
     }
 
-    private void RegisterRoot(string projectPath)
+    private void RegisterRoot(string projectPath, bool requireOpenDocument = false)
     {
         lock (_projectGraphGate)
         {
+            if (requireOpenDocument && !_openDocumentPaths.Contains(projectPath))
+                return;
+
             if (_rootPaths.Add(projectPath))
             {
                 _reachablePaths.Add(projectPath);
@@ -631,12 +632,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     {
         lock (_projectGraphGate)
             return _referencedProjectPaths.Contains(projectPath);
-    }
-
-    private bool IsDocumentOpen(string projectPath)
-    {
-        lock (_projectGraphGate)
-            return _openDocumentPaths.Contains(projectPath);
     }
 
     private bool IsReachable(string projectPath)

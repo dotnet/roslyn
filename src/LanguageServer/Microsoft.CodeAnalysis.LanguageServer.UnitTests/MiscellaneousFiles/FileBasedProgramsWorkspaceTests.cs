@@ -456,7 +456,8 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
     }
 
     [Theory, CombinatorialData]
-    public async Task TestFileBasedProgram_RefDirective_OpenedEntryPointRemainsLoaded(bool mutatingLspWorkspace)
+    public async Task TestFileBasedProgram_RefDirective_OpenedDocumentLifetime(
+        bool mutatingLspWorkspace, bool openBeforeGraph, bool closeReferencedDocument, bool isEntryPoint)
     {
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
         {
@@ -467,13 +468,15 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
         var tempDir = CreateTempDirectoryWithGlobalJson();
         var utilSourceText = """
-            #!/usr/bin/env dotnet
             #:property OutputType=Library
             public static class Util
             {
                 public static void M() { }
             }
             """;
+        if (isEntryPoint)
+            utilSourceText = "#!/usr/bin/env dotnet\n" + utilSourceText;
+
         var utilFile = tempDir.CreateFile("Util.cs").WriteAllText(utilSourceText);
         var sourceText = """
             #:property ExperimentalFileBasedProgramEnableRefDirective=true
@@ -482,6 +485,15 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
             """;
         var sourceFile = tempDir.CreateFile("App.cs").WriteAllText(sourceText);
 
+        var utilFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(utilFile.Path);
+        if (openBeforeGraph)
+        {
+            // didOpen precedes graph publication, without a request that would load Util independently.
+            await testLspServer.OpenDocumentAsync(utilFileUri, utilSourceText);
+            if (closeReferencedDocument)
+                await testLspServer.CloseDocumentAsync(utilFileUri);
+        }
+
         var sourceFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceFile.Path);
         await testLspServer.OpenDocumentAsync(sourceFileUri, sourceText).ConfigureAwait(false);
         await WaitForProjectLoad(sourceFileUri, testLspServer);
@@ -489,15 +501,50 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         var (workspace, _) = await GetRequiredLspWorkspaceAndDocumentAsync(sourceFileUri, testLspServer).ConfigureAwait(false);
         Assert.Equal(2, workspace.CurrentSolution.ProjectIds.Count);
 
-        var utilFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(utilFile.Path);
-        await testLspServer.OpenDocumentAsync(utilFileUri, utilSourceText).ConfigureAwait(false);
+        if (!openBeforeGraph)
+        {
+            await testLspServer.OpenDocumentAsync(utilFileUri, utilSourceText);
+            if (closeReferencedDocument)
+                await testLspServer.CloseDocumentAsync(utilFileUri);
+        }
+
         await testLspServer.CloseDocumentAsync(sourceFileUri);
 
-        var utilProject = Assert.Single(workspace.CurrentSolution.Projects);
-        Assert.True(PathUtilities.Comparer.Equals(utilFile.Path, utilProject.FilePath));
+        if (isEntryPoint && !closeReferencedDocument)
+        {
+            var utilProject = Assert.Single(workspace.CurrentSolution.Projects);
+            Assert.True(PathUtilities.Comparer.Equals(utilFile.Path, utilProject.FilePath));
+        }
+        else
+        {
+            Assert.Empty(workspace.CurrentSolution.Projects);
+        }
 
-        await testLspServer.CloseDocumentAsync(utilFileUri);
+        if (!closeReferencedDocument)
+            await testLspServer.CloseDocumentAsync(utilFileUri);
         Assert.Empty(workspace.CurrentSolution.Projects);
+    }
+
+    [Fact]
+    public async Task TestFileBasedProgram_OpenDocumentCancellation()
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false,
+            new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+        var sourceText = SourceText.From("""
+            #:property PublishAot=false
+            Console.WriteLine("Hello");
+            """);
+        var sourceFile = CreateTempDirectoryWithGlobalJson().CreateFile("App.cs").WriteAllText(sourceText.ToString());
+        var sourceFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceFile.Path);
+        using var cancellationTokenSource = new CancellationTokenSource();
+        cancellationTokenSource.Cancel();
+
+        var exception = await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            testLspServer.GetManager().StartTrackingAsync(
+                sourceFileUri, sourceText, "csharp", lspVersion: 0, cancellationTokenSource.Token).AsTask());
+        Assert.Equal(cancellationTokenSource.Token, exception.CancellationToken);
+
+        await testLspServer.GetManager().StopTrackingAsync(sourceFileUri, CancellationToken.None);
     }
 
     [Theory, CombinatorialData]
