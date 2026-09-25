@@ -33,7 +33,7 @@ internal sealed class LanguageServerHost
         Stream outputStream,
         ExportProvider exportProvider,
         AbstractTypeRefResolver typeRefResolver,
-        string? daemonSessionId)
+        LanguageServerTelemetry? processTelemetry)
     {
         var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
 
@@ -49,22 +49,25 @@ internal sealed class LanguageServerHost
         {
             var serverConfiguration = exportProvider.GetExportedValue<ServerConfiguration>();
 
+            LanguageServerTelemetry? languageServerTelemetry;
             if (serverConfiguration.IsDaemon)
             {
                 // Every daemon server needs an isolated router even when VS telemetry is disabled, so sinks
                 // registered by one server cannot receive another server's events.
                 _telemetry = new RoslynTelemetry();
-                _ownedTelemetry = LanguageServerTelemetry.CreateSession(
+                languageServerTelemetry = LanguageServerTelemetry.CreateSession(
                     serverConfiguration,
                     exportProvider.GetExportedValue<ILoggerFactory>(),
                     _telemetry,
                     sessionId: null,
                     isDefaultSession: false,
-                    daemonSessionId: daemonSessionId);
+                    daemonSessionId: processTelemetry?.SessionId);
+                _ownedTelemetry = languageServerTelemetry;
             }
             else
             {
                 _telemetry = RoslynTelemetry.Current;
+                languageServerTelemetry = processTelemetry;
             }
 
             // In daemon mode the ambient here is the process owner, not this server, so establish the server's
@@ -86,7 +89,10 @@ internal sealed class LanguageServerHost
                 hostServices,
                 typeRefResolver);
 
-            GlobalLogger = _roslynLanguageServer.GetLspServices().GetRequiredService<ILoggerFactory>().CreateLogger("Global");
+            var lspServices = _roslynLanguageServer.GetLspServices();
+            GlobalLogger = lspServices.GetRequiredService<ILoggerFactory>().CreateLogger("Global");
+            // Pass the telemetry instance to the initializer so it can set common properties for client information on initialize.
+            lspServices.GetRequiredService<TelemetryClientNameInitializeHandler>().SetTelemetryInstance(languageServerTelemetry);
         }
         catch
         {

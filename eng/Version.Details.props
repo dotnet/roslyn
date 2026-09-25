@@ -6,10 +6,10 @@ This file should be imported by eng/Versions.props
 <Project>
   <PropertyGroup>
     <!-- dotnet-arcade dependencies -->
-    <MicrosoftDotNetArcadeSdkPackageVersion>12.0.0-beta.26472.4</MicrosoftDotNetArcadeSdkPackageVersion>
-    <MicrosoftDotNetHelixJobMonitorPackageVersion>12.0.0-beta.26472.4</MicrosoftDotNetHelixJobMonitorPackageVersion>
-    <MicrosoftDotNetHelixSdkPackageVersion>12.0.0-beta.26472.4</MicrosoftDotNetHelixSdkPackageVersion>
-    <MicrosoftDotNetXliffTasksPackageVersion>12.0.0-beta.26472.4</MicrosoftDotNetXliffTasksPackageVersion>
+    <MicrosoftDotNetArcadeSdkPackageVersion>12.0.0-beta.26474.1</MicrosoftDotNetArcadeSdkPackageVersion>
+    <MicrosoftDotNetHelixJobMonitorPackageVersion>12.0.0-beta.26474.1</MicrosoftDotNetHelixJobMonitorPackageVersion>
+    <MicrosoftDotNetHelixSdkPackageVersion>12.0.0-beta.26474.1</MicrosoftDotNetHelixSdkPackageVersion>
+    <MicrosoftDotNetXliffTasksPackageVersion>12.0.0-beta.26474.1</MicrosoftDotNetXliffTasksPackageVersion>
     <!-- dotnet-dotnet dependencies -->
     <MicrosoftBclAsyncInterfacesPackageVersion>10.0.10</MicrosoftBclAsyncInterfacesPackageVersion>
     <MicrosoftExtensionsConfigurationPackageVersion>10.0.10</MicrosoftExtensionsConfigurationPackageVersion>
@@ -21,10 +21,10 @@ This file should be imported by eng/Versions.props
     <MicrosoftExtensionsOptionsPackageVersion>10.0.10</MicrosoftExtensionsOptionsPackageVersion>
     <MicrosoftExtensionsOptionsConfigurationExtensionPackageVersion>10.0.10</MicrosoftExtensionsOptionsConfigurationExtensionPackageVersion>
     <MicrosoftExtensionsPrimitivesPackageVersion>10.0.10</MicrosoftExtensionsPrimitivesPackageVersion>
-    <NuGetVersioningPackageVersion>8.0.0-rc.47406</NuGetVersioningPackageVersion>
+    <NuGetVersioningPackageVersion>8.0.0-rc.47515</NuGetVersioningPackageVersion>
     <SystemCodeDomPackageVersion>10.0.10</SystemCodeDomPackageVersion>
     <SystemCollectionsImmutablePackageVersion>10.0.10</SystemCollectionsImmutablePackageVersion>
-    <SystemCommandLinePackageVersion>3.0.0-rc.2.26472.106</SystemCommandLinePackageVersion>
+    <SystemCommandLinePackageVersion>3.0.0-rtm.26473.115</SystemCommandLinePackageVersion>
     <SystemComponentModelCompositionPackageVersion>10.0.10</SystemComponentModelCompositionPackageVersion>
     <SystemCompositionPackageVersion>10.0.10</SystemCompositionPackageVersion>
     <SystemConfigurationConfigurationManagerPackageVersion>10.0.10</SystemConfigurationConfigurationManagerPackageVersion>
