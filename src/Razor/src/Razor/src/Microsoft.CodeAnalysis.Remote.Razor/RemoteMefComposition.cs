@@ -56,7 +56,7 @@ internal sealed class RemoteMefComposition
     private static async Task<IExportProviderFactory> CreateExportProviderFactoryAsync(CancellationToken cancellationToken)
     {
         var runtimeComposition = await CreateRuntimeCompositionAsync(cancellationToken).ConfigureAwait(false);
-        return runtimeComposition.CreateExportProviderFactory();
+        return runtimeComposition.CreateExportProviderFactory(joinableTaskFactory: null);
     }
 
     private static async Task<RuntimeComposition> CreateRuntimeCompositionAsync(CancellationToken cancellationToken)
@@ -89,7 +89,7 @@ internal sealed class RemoteMefComposition
         }
 
         var runtimeComposition = await CreateRuntimeCompositionAsync(cancellationToken).ConfigureAwait(false);
-        var exportProviderFactory = runtimeComposition.CreateExportProviderFactory();
+        var exportProviderFactory = runtimeComposition.CreateExportProviderFactory(joinableTaskFactory: null);
 
         // We don't need to block on saving the cache, because if it fails or is corrupt, we'll just try again next time, but
         // we capture the task just so that tests can verify things.
@@ -111,7 +111,7 @@ internal sealed class RemoteMefComposition
             {
                 var resolver = new Resolver(SimpleAssemblyLoader.Instance);
                 using var cacheStream = new FileStream(compositionCacheFile, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4096, useAsync: true);
-                var cachedFactory = await cache.LoadExportProviderFactoryAsync(cacheStream, resolver, cancellationToken).ConfigureAwait(false);
+                var cachedFactory = await cache.LoadExportProviderFactoryAsync(cacheStream, resolver, joinableTaskFactory: null, cancellationToken).ConfigureAwait(false);
                 return cachedFactory.CreateExportProvider();
             }
         }

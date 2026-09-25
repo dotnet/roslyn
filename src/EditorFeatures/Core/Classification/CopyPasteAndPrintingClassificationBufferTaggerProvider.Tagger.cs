@@ -55,7 +55,7 @@ internal sealed partial class CopyPasteAndPrintingClassificationBufferTaggerProv
 
         // Explicitly a no-op.  This classifier does not support change notifications. See comment in
         // OnEventSourceChanged_OnForeground for more details.
-        public event EventHandler<SnapshotSpanEventArgs> TagsChanged { add { } remove { } }
+        public event EventHandler<SnapshotSpanEventArgs>? TagsChanged { add { } remove { } }
 
         public void Dispose()
         {

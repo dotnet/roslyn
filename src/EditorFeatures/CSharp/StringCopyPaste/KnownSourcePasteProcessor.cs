@@ -156,7 +156,7 @@ internal sealed class KnownSourcePasteProcessor(
     private void PerformInitialBasicPasteInRawString(
         out SourceText textAfterBasicPaste, out ImmutableArray<TextSpan> contentSpansAfterBasicPaste)
     {
-        var trivialContentEdit = GetContentEditForRawString(insertInterpolations: false, dollarSignCount: -1);
+        var trivialContent = GetContentForRawString(insertInterpolations: false, dollarSignCount: -1);
 
         // We want to map spans forward (which requires tracking spans), but we don't want to modify the original
         // text buffer.  So clone the text buffer to a new one where we can then make the change without touching
@@ -166,7 +166,7 @@ internal sealed class KnownSourcePasteProcessor(
         var snapshotBeforeTrivialEdit = clonedBuffer.CurrentSnapshot;
 
         var edit = clonedBuffer.CreateEdit();
-        edit.Replace(_selectionSpanBeforePaste.ToSpan(), trivialContentEdit.NewText);
+        edit.Replace(_selectionSpanBeforePaste.ToSpan(), trivialContent);
 
         var snapshotAfterTrivialEdit = edit.Apply();
 
@@ -202,7 +202,7 @@ internal sealed class KnownSourcePasteProcessor(
 
         // Now determine the actual content to add again, this time properly emitting it with
         // indentation/interpolations correctly.
-        edits.Add(GetContentEditForRawString(insertInterpolations: true, finalDollarSignCount));
+        edits.Add(new TextChange(_selectionSpanBeforePaste, GetContentForRawString(insertInterpolations: true, finalDollarSignCount)));
 
         // If we need to add braces to existing interpolations, do so now for the interpolations before the selection.
         if (dollarSignsToAdd != null)
@@ -240,7 +240,7 @@ internal sealed class KnownSourcePasteProcessor(
         }
     }
 
-    private TextChange GetContentEditForRawString(
+    private string GetContentForRawString(
         bool insertInterpolations, int dollarSignCount)
     {
         dollarSignCount = Math.Max(1, dollarSignCount);
@@ -343,6 +343,6 @@ internal sealed class KnownSourcePasteProcessor(
             }
         }
 
-        return new TextChange(_selectionSpanBeforePaste, builder.ToString());
+        return builder.ToString();
     }
 }
