@@ -123,6 +123,23 @@ public sealed class CrefCompletionProviderTests : AbstractCSharpCompletionProvid
             }
             """, "Q");
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85788")]
+    public Task CrefTypeParameterReturnTypeWithGetAwaiterExtension()
+        => VerifyItemExistsAsync("""
+            using System.Runtime.CompilerServices;
+
+            /// <see cref="ICref{T}.$$"/>
+            interface ICref<T>
+            {
+                T Make();
+            }
+
+            static class Extensions
+            {
+                public static TaskAwaiter GetAwaiter(this object value) => default;
+            }
+            """, "Make", expectedDescriptionOrNull: "T ICref<T>.Make()");
+
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530887")]
     public Task PrivateMember()
         => VerifyItemExistsAsync("""
