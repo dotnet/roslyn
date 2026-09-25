@@ -1,0 +1,58 @@
+﻿RazorDocument - [0..198)::198 - [@attribute [System.Serializable]LF@documentation {LF    <summary>LF    Hello from <see cref="System.String"/>.LF    </summary>LF    <remarks>More documentation.</remarks>LF}LF<p>Rendered content</p>]
+    MarkupBlock - [0..198)::198
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..34)::34
+            RazorDirective - [0..34)::34 - Directive:{attribute;SingleLine;FileScopedMultipleOccurring}
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..34)::33
+                    RazorMetaCode - [1..10)::9 - Gen<None>
+                        Identifier;[attribute];
+                    CSharpCodeBlock - [10..34)::24
+                        CSharpStatementLiteral - [10..11)::1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [11..32)::21 - [[System.Serializable]] - Gen<DirectiveToken {Attribute;Attribute;Opt:False}>
+                            LeftBracket;[[];
+                            Identifier;[System];
+                            Dot;[.];
+                            Identifier;[Serializable];
+                            RightBracket;[]];
+                        MarkupEphemeralTextLiteral - [32..34)::2 - [LF] - Gen<None>
+                            NewLine;[LF];
+        MarkupTextLiteral - [34..34)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [34..175)::141
+            RazorDocumentationDirective - [34..173)::139 - Directive:{documentation;CodeBlock;FileScopedSinglyOccurring}
+                CSharpTransition - [34..35)::1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [35..173)::138
+                    RazorMetaCode - [35..48)::13 - Gen<None>
+                        Identifier;[documentation];
+                    CSharpCodeBlock - [48..173)::125
+                        UnclassifiedTextLiteral - [48..49)::1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [49..50)::1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [50..172)::122
+                            CSharpStatementLiteral - [50..172)::122 - [LF    <summary>LF    Hello from <see cref="System.String"/>.LF    </summary>LF    <remarks>More documentation.</remarks>LF] - Gen<Stmt>
+                                Text;[LF    <summary>LF    Hello from <see cref="System.String"/>.LF    </summary>LF    <remarks>More documentation.</remarks>LF];
+                        RazorMetaCode - [172..173)::1 - Gen<None>
+                            RightBrace;[}];
+            RazorMetaCode - [173..175)::2 - Gen<None>
+                NewLine;[LF];
+        MarkupElement - [175..198)::23
+            MarkupStartTag - [175..178)::3 - [<p>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                CloseAngle;[>];
+            MarkupTextLiteral - [178..194)::16 - [Rendered content] - Gen<Markup>
+                Text;[Rendered];
+                Whitespace;[ ];
+                Text;[content];
+            MarkupEndTag - [194..198)::4 - [</p>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[p];
+                CloseAngle;[>];
+    EndOfFile;[];

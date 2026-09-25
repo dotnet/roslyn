@@ -1,0 +1,5 @@
+﻿Source Location: (57:1,7 [36] x:\dir\subdir\Test\TestComponent.razor)
+| /* note */ public int Value => 42; |
+Generated Location: (557:18,0 [36] )
+| /* note */ public int Value => 42; |
+
