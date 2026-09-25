@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests
 
                 var resourceDirectory = Path.Combine(Path.GetDirectoryName(_testFile), "Resources", _testMethod);
 
-                var (compilation, generatorDiagnostics) = await base.GetProjectCompilationAsync(project, verifier, cancellationToken);
+                var (compilation, generatorDiagnostics) = await base.GetProjectCompilationAsync(project, verifier, cancellationToken).ConfigureAwait(false);
                 var generatedSources = new Dictionary<string, string>();
                 foreach (var tree in compilation.SyntaxTrees.Skip(project.DocumentIds.Count))
                 {

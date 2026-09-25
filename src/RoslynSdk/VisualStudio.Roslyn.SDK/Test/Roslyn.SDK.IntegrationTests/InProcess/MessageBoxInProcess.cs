@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
 
         protected override async ValueTask InitializeCoreAsync()
         {
-            await base.InitializeCoreAsync();
+            await base.InitializeCoreAsync().ConfigureAwait(true);
 
             if (s_initializedMessageBoxService)
             {
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
             s_initializedMessageBoxService = true;
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var profferService = await GetRequiredGlobalServiceAsync<SProfferService, IProfferService>(CancellationToken.None);
+            var profferService = await GetRequiredGlobalServiceAsync<SProfferService, IProfferService>(CancellationToken.None).ConfigureAwait(true);
             profferService.ProfferService(typeof(IVsMessageBoxService).GUID, new MessageBoxProxy(), out s_messageBoxServiceCookie);
         }
 
