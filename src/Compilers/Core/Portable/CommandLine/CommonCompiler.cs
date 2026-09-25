@@ -207,7 +207,8 @@ namespace Microsoft.CodeAnalysis
             return (path, properties) =>
             {
                 var peStream = FileSystem.OpenFileWithNormalizedException(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-                return MetadataReference.CreateFromFile(peStream, path, PEStreamOptions.PrefetchEntireImage, properties, documentation: null);
+                var options = properties.Kind == MetadataImageKind.Assembly ? PEStreamOptions.PrefetchMetadata : PEStreamOptions.PrefetchEntireImage;
+                return MetadataReference.CreateFromFile(peStream, path, options, properties, documentation: null);
             };
         }
 
