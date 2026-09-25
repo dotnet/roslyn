@@ -255,6 +255,8 @@ In C# 16, `safe` is a keyword when placed as a modifier on member declarations.
 That can break cases where it was previously referring to a type.
 To mitigate the break, it is possible to use `@`.
 
+Using the `safe` modifier requires `/unsafe` (`AllowUnsafeBlocks` in MSBuild), just like `unsafe`.
+
 ```cs
 class safe { }
 
