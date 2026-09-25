@@ -20,7 +20,9 @@ Particularly for developers who aren't experienced with .NET Core development on
 ## Running Tests
 After building, the unit tests can be executed by running `./test.sh`, which runs the already-built test assemblies via `src/Tools/RunTests`.
 
-For a combined build and test run, use `./build.sh --test` or `./build.sh --testSet:compiler` (also accepted as `-test` and `-testSet:compiler`). These shortcuts forward the build configuration and, when supplied, the test set to RunTests; RunTests selects and validates the tests. For example, `./build.sh --configuration Release --testSet:compiler` builds and tests Release binaries. Direct calls to `./eng/build.sh --test` or `./eng/build.sh --testSet:compiler` use already-built binaries unless `--build` is also specified.
+For a combined build and test run, use `./build.sh --test`, `./build.sh --testSet:compiler`, `./build.sh --testKind:ioperation`, or `./build.sh --testFramework:core` (single-hyphen spellings are also accepted). Each test option independently requests testing. These shortcuts forward the build configuration and any supplied set, kind, and framework values to RunTests; RunTests selects and validates the tests. For example, `./build.sh --configuration Release --testSet:compiler --testFramework:core --testKind:usedassemblies` builds and tests Release compiler binaries with used-assembly validation. Direct calls to `./eng/build.sh` use already-built binaries unless `--build` is also specified.
+
+Repeat `--testFramework:<name>` to forward multiple framework selections, for example `--testFramework:core --testFramework:desktop`; do not combine them into a comma-separated value. RunTests determines which frameworks are supported on the current platform.
 
 Pass other test options to `test.sh`. For example, `./test.sh --testFramework:core --testConfiguration Release --testSet:compiler` tests the Release compiler binaries. Use `--testKind:ioperation`, `--testKind:runtimeasync`, or `--testKind:usedassemblies` for additional validation, and `--env:KEY=VALUE` to set an environment variable in test processes. Run `./test.sh --help` for all options.
 

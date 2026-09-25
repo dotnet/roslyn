@@ -37,7 +37,9 @@ There are a number of options for running the core Roslyn unit tests:
 
 The Test.cmd script runs unit tests on already-built test binaries via `src/Tools/RunTests`. Run `Build.cmd` separately before testing, and pass test options to `Test.cmd`.
 
-For a combined build and test run, use `Build.cmd -test` or `Build.cmd -testSet:compiler`. These shortcuts forward the build configuration and, when supplied, the test set to RunTests; RunTests selects and validates the tests. For example, `Build.cmd -configuration Release -testSet:compiler` builds and tests Release binaries. Direct calls to `eng\build.ps1 -test` or `eng\build.ps1 -testSet:compiler` use already-built binaries unless `-build` is also specified. Other test options belong on `Test.cmd`.
+For a combined build and test run, use `Build.cmd -test`, `Build.cmd -testSet:compiler`, `Build.cmd -testKind:ioperation`, or `Build.cmd -testFramework:core`. Each test option independently requests testing. These shortcuts forward the build configuration and any supplied set, kind, and framework values to RunTests; RunTests selects and validates the tests. For example, `Build.cmd -configuration Release -testSet:compiler -testFramework:core -testKind:usedassemblies` builds and tests Release compiler binaries with used-assembly validation. Direct calls to `eng\build.ps1` use already-built binaries unless `-build` is also specified. Other test options belong on `Test.cmd`.
+
+To select multiple frameworks from PowerShell, pass an array: `.\eng\build.ps1 -build -testFramework:core,desktop`. Each array element is forwarded as a separate RunTests framework option; do not repeat the named PowerShell parameter.
 
 1. Run the "Developer Command Prompt for VS2022" from your start menu.
 2. Navigate to the directory of your Git clone.

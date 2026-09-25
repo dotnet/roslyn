@@ -32,22 +32,29 @@ dotnet run --project src/Tools/RunTests/RunTests.csproj -- --testfilter "FullyQu
 
 ## Build and test together
 
-The build scripts expose only two test convenience options:
+The build scripts expose a small set of test convenience options:
 
 ```powershell
 .\Build.cmd -test
 .\Build.cmd -configuration Release -testSet:compiler
+.\Build.cmd -testFramework:core -testKind:ioperation
 ```
 
 ```bash
 ./build.sh --test
 ./build.sh --configuration Release --testSet:compiler
+./build.sh --testFramework:core --testKind:ioperation
 ```
 
-Either option runs RunTests after successful build actions. The scripts forward
-the build configuration as `--testConfiguration`; `-testSet` also forwards
-`--testSet:<name>` unchanged. RunTests owns test discovery, set validation, and
-execution. For other test options, invoke RunTests directly.
+`test`, `testSet`, `testKind`, and `testFramework` each request a RunTests invocation
+after successful build actions. The scripts forward the build configuration as
+`--testConfiguration` and any supplied set, kind, and framework values unchanged.
+RunTests owns test discovery, option validation, and execution. For other test
+options, invoke RunTests directly.
+
+For multiple frameworks, invoke the PowerShell script with an array:
+`.\eng\build.ps1 -build -testFramework:core,desktop`. In Bash, repeat the option:
+`./build.sh --testFramework:core --testFramework:desktop`.
 
 ## Options
 

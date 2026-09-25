@@ -24,6 +24,8 @@ usage()
   echo "  --sign                     Sign build artifacts"
   echo "  --test                     Run already-built tests after any build actions (also: -test)"
   echo "  --testSet:<name>            Run already-built tests, forwarding the set name to RunTests (also: -testSet:<name>)"
+  echo "  --testKind:<name>           Run already-built tests, forwarding the test kind to RunTests (also: -testKind:<name>)"
+  echo "  --testFramework:<name>      Run already-built tests for a framework; repeat for multiple frameworks (also: -testFramework:<name>)"
   echo "  --help                     Print help and exit"
   echo ""
   echo "Advanced settings:"
@@ -64,6 +66,8 @@ sign=false
 publish=false
 test=false
 test_arguments=()
+test_kind_arguments=()
+test_framework_arguments=()
 
 configuration="Debug"
 verbosity='minimal'
@@ -135,6 +139,14 @@ while [[ $# > 0 ]]; do
     --testset:*|-testset:*)
       test=true
       test_arguments=("--testSet:${1#*:}")
+      ;;
+    --testkind:*|-testkind:*)
+      test=true
+      test_kind_arguments=("--testKind:${1#*:}")
+      ;;
+    --testframework:*|-testframework:*)
+      test=true
+      test_framework_arguments+=("--testFramework:${1#*:}")
       ;;
     --ci)
       ci=true
@@ -319,7 +331,7 @@ if [[ "$restore" == true || "$build" == true || "$rebuild" == true ]]; then
 fi
 
 if [[ "$test" == true ]]; then
-  "$_InitializeDotNetCli/dotnet" exec "$artifacts_dir/bin/RunTests/$configuration/net10.0/RunTests.dll" --testConfiguration "$configuration" ${test_arguments[@]+"${test_arguments[@]}"} || ExitWithExitCode $?
+  "$_InitializeDotNetCli/dotnet" exec "$artifacts_dir/bin/RunTests/$configuration/net10.0/RunTests.dll" --testConfiguration "$configuration" ${test_arguments[@]+"${test_arguments[@]}"} ${test_kind_arguments[@]+"${test_kind_arguments[@]}"} ${test_framework_arguments[@]+"${test_framework_arguments[@]}"} || ExitWithExitCode $?
 fi
 
 ExitWithExitCode 0

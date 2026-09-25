@@ -28,6 +28,8 @@ param (
   [switch]$publish,
   [switch]$test,
   [string]$testSet,
+  [string]$testKind,
+  [string[]]$testFramework,
   [switch]$launch,
   [switch]$help,
 
@@ -85,6 +87,8 @@ function Print-Usage() {
   Write-Host "  -publish                  Publish build artifacts (e.g. symbols)"
   Write-Host "  -test                     Run already-built tests after any build actions"
   Write-Host "  -testSet:<name>            Run already-built tests, forwarding the set name to RunTests"
+  Write-Host "  -testKind:<name>           Run already-built tests, forwarding the test kind to RunTests"
+  Write-Host "  -testFramework:<names>     Run already-built tests for each framework (PowerShell array, e.g. core,desktop)"
   Write-Host "  -launch                   Launch Visual Studio in developer hive"
   Write-Host "  -help                     Print help and exit"
   Write-Host ""
@@ -360,11 +364,17 @@ try {
     BuildSolution
   }
 
-  if ($test -or $PSBoundParameters.ContainsKey('testSet')) {
+  if ($test -or $PSBoundParameters.ContainsKey('testSet') -or $PSBoundParameters.ContainsKey('testKind') -or $PSBoundParameters.ContainsKey('testFramework')) {
     $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net10.0"
     $testArguments = @('--testConfiguration', $configuration)
     if ($PSBoundParameters.ContainsKey('testSet')) {
       $testArguments += "--testSet:$testSet"
+    }
+    if ($PSBoundParameters.ContainsKey('testKind')) {
+      $testArguments += "--testKind:$testKind"
+    }
+    foreach ($framework in $testFramework) {
+      $testArguments += "--testFramework:$framework"
     }
 
     $dotnet = Ensure-DotnetSdk
