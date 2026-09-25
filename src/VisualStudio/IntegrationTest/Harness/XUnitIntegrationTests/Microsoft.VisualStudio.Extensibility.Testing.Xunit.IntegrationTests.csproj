@@ -3,17 +3,7 @@
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-    <OutputType>Exe</OutputType>
-    <IsShipping>false</IsShipping>
-
-    <!--
-      This self-executing xUnit v3 integration-test project manages its runner packages directly.
-      Disable the default test-project targets and preserve their source-build exclusion.
-    -->
-    <IsTestProject>false</IsTestProject>
-    <!-- This is an Exe (the xunit v3 self-executing test runner), not a conventional ".IntegrationTests.dll",
-         so it must opt out of the Arcade naming-convention check as well. -->
-    <IsIntegrationTestProject>false</IsIntegrationTestProject>
+    <!-- VS integration tests require Visual Studio and never participate in the source-only (VMR) build. -->
     <ExcludeFromDotNetBuild>true</ExcludeFromDotNetBuild>
   </PropertyGroup>
 
@@ -32,8 +22,7 @@
     <PackageReference Include="Newtonsoft.Json" ExcludeAssets="all" PrivateAssets="all" />
     <!-- VS setup supplies SQLite for in-process tests; exclude the transitive native package. -->
     <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" ExcludeAssets="all" PrivateAssets="all" />
-    <PackageReference Include="xunit.v3" />
-    <PackageReference Include="xunit.analyzers" />
+    <PackageReference Include="xunit.v3.extensibility.core" />
     <PackageReference Include="Xunit.Combinatorial" />
   </ItemGroup>
 

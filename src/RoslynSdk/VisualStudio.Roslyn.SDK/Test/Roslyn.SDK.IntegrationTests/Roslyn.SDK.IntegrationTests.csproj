@@ -2,17 +2,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-    <IsShipping>false</IsShipping>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <UseWPF>true</UseWPF>
 
     <RootNamespace>Microsoft.CodeAnalysis.Testing</RootNamespace>
-
-    <!--
-      This integration-test input manages its xUnit references and execution through the VS test
-      harness. Disable the default test-project targets and preserve their source-build exclusion.
-    -->
-    <IsTestProject>false</IsTestProject>
+    <!-- VS integration tests require Visual Studio and never participate in the source-only (VMR) build. -->
     <ExcludeFromDotNetBuild>true</ExcludeFromDotNetBuild>
   </PropertyGroup>
 
@@ -33,9 +27,6 @@
     <PackageReference Include="System.Memory" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" />
     <PackageReference Include="System.Threading.Tasks.Extensions" />
-    <!-- Required by TestDiscoveryWorker's InProcessTestProcessLauncher, which checks that the
-         test assembly links against xunit.v3.runner.inproc.console before discovery/execution. -->
-    <PackageReference Include="xunit.v3.runner.inproc.console" />
     <PackageReference Include="Xunit.Combinatorial" />
   </ItemGroup>
 
@@ -48,19 +39,6 @@
                       SetTargetFramework="TargetFramework=netstandard2.0"
                       SkipGetTargetFrameworkProperties="true" />
     <ProjectReference Include="..\..\..\..\VisualStudio\IntegrationTest\Harness\XUnit\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj" />
-  </ItemGroup>
-
-  <!--
-    IsTestProject=false above makes eng\targets\Imports.targets default all ProjectReference
-    items to Private=false (no copy-local), which is correct for an ordinary library but wrong
-    here: this project hosts and executes its own tests via a custom in-process xUnit runner
-    (TestDiscoveryWorker/InProcessTestProcessLauncher), so referenced projects' assemblies
-    (e.g. Microsoft.VisualStudio.Extensibility.Testing.Xunit.dll) must be copied to this
-    project's own output directory to be loadable at discovery/execution time. Restore
-    copy-local for every reference here (none of them set Private explicitly).
-  -->
-  <ItemGroup>
-    <ProjectReference Update="@(ProjectReference)" Private="true" />
   </ItemGroup>
 
   <Target Name="PrepareVsixProjectReferences"

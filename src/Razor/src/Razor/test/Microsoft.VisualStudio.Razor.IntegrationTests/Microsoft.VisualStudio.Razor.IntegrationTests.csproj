@@ -8,7 +8,7 @@
     <Nullable>enable</Nullable>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.Razor.IntegrationTests</RootNamespace>
-    <IsTestProject>false</IsTestProject>
+    <!-- VS integration tests require Visual Studio and never participate in the source-only (VMR) build. -->
     <ExcludeFromDotNetBuild>true</ExcludeFromDotNetBuild>
 
     <!-- Must use "dotnet test" to get blame-hang options -->
@@ -21,18 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!--
-      IsTestProject=false above makes eng\targets\Imports.targets default ProjectReference items
-      to Private=false (no copy-local), which is correct for an ordinary library but wrong here:
-      this project hosts and executes its own tests via a custom in-process xUnit runner
-      (TestDiscoveryWorker/InProcessTestProcessLauncher), so referenced projects' assemblies must
-      be copied to this project's own output directory to be loadable at discovery/execution
-      time. Set Private="true" explicitly to restore copy-local (RazorExtension already opts out
-      via ReferenceOutputAssembly=false, and RazorDeployment's Private="False" below is
-      intentional - it's deployed via VSIX, not copy-local).
-    -->
-    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Test.Common.Tooling\Microsoft.AspNetCore.Razor.Test.Common.Tooling.csproj" Private="true" />
-    <ProjectReference Include="..\..\src\Microsoft.VisualStudio.LanguageServer.ContainedLanguage\Microsoft.VisualStudio.LanguageServer.ContainedLanguage.csproj" Private="true">
+    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Test.Common.Tooling\Microsoft.AspNetCore.Razor.Test.Common.Tooling.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.VisualStudio.LanguageServer.ContainedLanguage\Microsoft.VisualStudio.LanguageServer.ContainedLanguage.csproj">
       <PrivateAssets>All</PrivateAssets>
       <CopyLocalSatelliteAssemblies>False</CopyLocalSatelliteAssemblies>
     </ProjectReference>
@@ -50,7 +40,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Editor" />
-    <ProjectReference Include="..\..\..\..\..\VisualStudio\IntegrationTest\Harness\XUnit\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj" Private="true" />
+    <ProjectReference Include="..\..\..\..\..\VisualStudio\IntegrationTest\Harness\XUnit\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj" />
     <ProjectReference Include="..\..\..\..\..\VisualStudio\IntegrationTest\Harness\SourceGenerator\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" SetTargetFramework="TargetFramework=netstandard2.0" SkipGetTargetFrameworkProperties="true" />
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" />
     <PackageReference Include="NuGet.VisualStudio" />
@@ -60,9 +50,6 @@
     <PackageReference Include="Microsoft.IO.Redist" Condition="'$(TargetFramework)' == '$(NetFxVS)'" />
     <PackageReference Include="Microsoft.Internal.VisualStudio.Shell.Framework" />
     <PackageReference Include="xunit.v3.extensibility.core" />
-    <!-- Required by TestDiscoveryWorker's InProcessTestProcessLauncher, which checks that the
-         test assembly links against xunit.v3.runner.inproc.console before discovery/execution. -->
-    <PackageReference Include="xunit.v3.runner.inproc.console" />
     <PackageReference Include="Xunit.Combinatorial" />
   </ItemGroup>
 

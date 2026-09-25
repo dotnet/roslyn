@@ -7,13 +7,7 @@
     <TargetFramework>net472</TargetFramework>
     <UseWPF>true</UseWPF>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <IsShipping>false</IsShipping>
-
-    <!--
-      This project uses the custom VS integration-test harness and manages its xUnit references
-      directly. Disable the default test-project targets and preserve their source-build exclusion.
-    -->
-    <IsTestProject>false</IsTestProject>
+    <!-- VS integration tests require Visual Studio and never participate in the source-only (VMR) build. -->
     <ExcludeFromDotNetBuild>true</ExcludeFromDotNetBuild>
     
     <!-- this project is also used as a test input for Go To Definition tests in it, so needs some test data embedded -->
@@ -61,18 +55,6 @@
     <ProjectReference Include="..\Harness\XUnit\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj" />
     <ProjectReference Include="..\TestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.csproj" />
   </ItemGroup>
-  <!--
-    IsTestProject=false above makes eng\targets\Imports.targets default all ProjectReference
-    items to Private=false (no copy-local), which is correct for an ordinary library but wrong
-    here: this project hosts and executes its own tests via a custom in-process xUnit runner
-    (TestDiscoveryWorker/InProcessTestProcessLauncher), so referenced projects' assemblies
-    (e.g. Microsoft.VisualStudio.Extensibility.Testing.Xunit.dll) must be copied to this
-    project's own output directory to be loadable at discovery/execution time. Restore
-    copy-local for every reference here (none of them set Private explicitly).
-  -->
-  <ItemGroup>
-    <ProjectReference Update="@(ProjectReference)" Private="true" />
-  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="InputSimulatorPlus" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Styles" />
@@ -83,9 +65,6 @@
     <PackageReference Include="System.IO.Hashing" />
     <PackageReference Include="UIAComWrapper" />
     <PackageReference Include="xunit.v3.extensibility.core" />
-    <!-- Required by TestDiscoveryWorker's InProcessTestProcessLauncher, which checks that the
-         test assembly links against xunit.v3.runner.inproc.console before discovery/execution. -->
-    <PackageReference Include="xunit.v3.runner.inproc.console" />
     <PackageReference Include="Xunit.Combinatorial" />
   </ItemGroup>
 
