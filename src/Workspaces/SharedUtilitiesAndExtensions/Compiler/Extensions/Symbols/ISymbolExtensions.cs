@@ -701,9 +701,13 @@ internal static partial class ISymbolExtensions
             }
         }
 
+        var potentialAwaitableType = typeSymbol ?? methodSymbol!.ReturnType.OriginalDefinition;
+        if (potentialAwaitableType is ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Cref })
+            return false;
+
         // otherwise: needs valid GetAwaiter
         var potentialGetAwaiters = semanticModel.LookupSymbols(position,
-                                                               container: typeSymbol ?? methodSymbol!.ReturnType.OriginalDefinition,
+                                                               container: potentialAwaitableType,
                                                                name: WellKnownMemberNames.GetAwaiter,
                                                                includeReducedExtensionMethods: true);
         var getAwaiters = potentialGetAwaiters.OfType<IMethodSymbol>().Where(x => !x.Parameters.Any());
