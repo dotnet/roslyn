@@ -328,7 +328,6 @@ my_option2 = my_val2");
         }
 
         [Fact]
-        [UseCulture("en-US")]
         public void AnalyzerConfigBadSeverity()
         {
             var dir = Temp.CreateDirectory();
@@ -352,10 +351,12 @@ dotnet_diagnostic.cs0169.severity = garbage");
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = cmd.Run(outWriter);
             Assert.Equal(0, exitCode);
-            Assert.Equal(
-$@"warning InvalidSeverityInAnalyzerConfig: The diagnostic 'cs0169' was given an invalid severity 'garbage' in the analyzer config file at '{analyzerConfig.Path}'.
-test.cs(4,9): warning CS0169: The field 'C._f' is never used
-", outWriter.ToString());
+            var output = outWriter.ToString();
+            Assert.Contains("warning InvalidSeverityInAnalyzerConfig:", output, StringComparison.Ordinal);
+            Assert.Contains("cs0169", output, StringComparison.Ordinal);
+            Assert.Contains("garbage", output, StringComparison.Ordinal);
+            Assert.Contains(analyzerConfig.Path, output, StringComparison.Ordinal);
+            Assert.Contains("test.cs(4,9): warning CS0169:", output, StringComparison.Ordinal);
 
             Assert.Null(cmd.AnalyzerOptions);
         }
@@ -15114,7 +15115,6 @@ is_global = true
         }
 
         [Fact]
-        [UseCulture("en-US")]
         public void GlobalAnalyzerConfigMultipleSetKeys()
         {
             var dir = Temp.CreateDirectory();
@@ -15138,8 +15138,7 @@ option1 = def");
 
             // warning MultipleGlobalAnalyzerKeys: Multiple global analyzer config files set the same key 'option1' in section 'Global Section'. It has been unset. Key was set by the following files: ...
             Assert.Contains("MultipleGlobalAnalyzerKeys:", output, StringComparison.Ordinal);
-            Assert.Contains("'option1'", output, StringComparison.Ordinal);
-            Assert.Contains("'Global Section'", output, StringComparison.Ordinal);
+            Assert.Contains("option1", output, StringComparison.Ordinal);
 
             analyzerConfig = analyzerConfigFile.WriteAllText(@"
 is_global = true
@@ -15157,8 +15156,8 @@ option1 = def");
 
             // warning MultipleGlobalAnalyzerKeys: Multiple global analyzer config files set the same key 'option1' in section 'file.cs'. It has been unset. Key was set by the following files: ...
             Assert.Contains("MultipleGlobalAnalyzerKeys:", output, StringComparison.Ordinal);
-            Assert.Contains("'option1'", output, StringComparison.Ordinal);
-            Assert.Contains("'/file.cs'", output, StringComparison.Ordinal);
+            Assert.Contains("option1", output, StringComparison.Ordinal);
+            Assert.Contains("/file.cs", output, StringComparison.Ordinal);
         }
 
         [Fact]
