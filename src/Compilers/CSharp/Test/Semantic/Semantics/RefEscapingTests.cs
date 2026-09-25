@@ -11743,6 +11743,1439 @@ public struct Vec4
                 );
         }
 
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_Using_RefAssignment(
+            [CombinatorialValues(".Self", ".GetSelf()", "[0]")] string access,
+            bool throughField,
+            bool usingStatement)
+        {
+            var type = throughField ? "Wrapper" : "S";
+            var receiver = throughField ? ".Field" : "";
+            var declarations = usingStatement
+                ? $"using ({type} a = default, b = default)"
+                : $"using {type} a = default, b = default;";
+            var source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                struct S : IDisposable
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                    [UnscopedRef] public ref S GetSelf() => ref this;
+                    [UnscopedRef] public ref S this[int i] => ref this;
+                    public void Dispose() { }
+                }
+
+                struct Wrapper : IDisposable
+                {
+                    public S Field = default;
+                    public Wrapper() { }
+                    public void Dispose() { }
+                }
+
+                class C
+                {
+                    static void M(bool condition)
+                    {
+                        {{declarations}}
+                        {
+                            ref var c = ref a{{receiver}}{{access}};
+                            if (condition) c = ref b{{receiver}}{{access}};
+                            if (condition)
+                            {
+                                c = ref b{{receiver}}{{access}};
+                            }
+
+                            ref var d = ref b{{receiver}}{{access}};
+                            if (condition)
+                            {
+                                d = ref a{{receiver}}{{access}};
+                            }
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            if (throughField)
+            {
+                comp.VerifyDiagnostics(
+                    // (29,17): error CS8374: Cannot ref-assign 'b.Field.Self' to 'c' because 'b.Field.Self' has a narrower escape scope than 'c'.
+                    //                 c = ref b.Field.Self;
+                    Diagnostic(ErrorCode.ERR_RefAssignNarrower, $"c = ref b.Field{access}").WithArguments("c", $"b.Field{access}").WithLocation(29, 17),
+                    // (35,17): error CS8374: Cannot ref-assign 'a.Field.Self' to 'd' because 'a.Field.Self' has a narrower escape scope than 'd'.
+                    //                 d = ref a.Field.Self;
+                    Diagnostic(ErrorCode.ERR_RefAssignNarrower, $"d = ref a.Field{access}").WithArguments("d", $"a.Field{access}").WithLocation(35, 17));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(comp, verify: Verification.Fails.WithILVerifyMessage("""
+                    [get_Self]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                    [GetSelf]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                    [get_Item]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                    """)).VerifyDiagnostics();
+
+                // The member calls use the using locals directly, without defensive copies.
+                var memberName = access == ".Self" ? "Self.get" : "GetSelf()";
+                verifier.VerifyIL("C.M", access == "[0]" ? """
+                    {
+                      // Code size      101 (0x65)
+                      .maxstack  2
+                      .locals init (S V_0, //a
+                                    S V_1) //b
+                      IL_0000:  ldloca.s   V_0
+                      IL_0002:  initobj    "S"
+                      .try
+                      {
+                        IL_0008:  ldloca.s   V_1
+                        IL_000a:  initobj    "S"
+                        .try
+                        {
+                          IL_0010:  ldloca.s   V_0
+                          IL_0012:  ldc.i4.0
+                          IL_0013:  call       "ref S S.this[int].get"
+                          IL_0018:  pop
+                          IL_0019:  ldarg.0
+                          IL_001a:  brfalse.s  IL_0025
+                          IL_001c:  ldloca.s   V_1
+                          IL_001e:  ldc.i4.0
+                          IL_001f:  call       "ref S S.this[int].get"
+                          IL_0024:  pop
+                          IL_0025:  ldarg.0
+                          IL_0026:  brfalse.s  IL_0031
+                          IL_0028:  ldloca.s   V_1
+                          IL_002a:  ldc.i4.0
+                          IL_002b:  call       "ref S S.this[int].get"
+                          IL_0030:  pop
+                          IL_0031:  ldloca.s   V_1
+                          IL_0033:  ldc.i4.0
+                          IL_0034:  call       "ref S S.this[int].get"
+                          IL_0039:  pop
+                          IL_003a:  ldarg.0
+                          IL_003b:  brfalse.s  IL_0046
+                          IL_003d:  ldloca.s   V_0
+                          IL_003f:  ldc.i4.0
+                          IL_0040:  call       "ref S S.this[int].get"
+                          IL_0045:  pop
+                          IL_0046:  leave.s    IL_0064
+                        }
+                        finally
+                        {
+                          IL_0048:  ldloca.s   V_1
+                          IL_004a:  constrained. "S"
+                          IL_0050:  callvirt   "void System.IDisposable.Dispose()"
+                          IL_0055:  endfinally
+                        }
+                      }
+                      finally
+                      {
+                        IL_0056:  ldloca.s   V_0
+                        IL_0058:  constrained. "S"
+                        IL_005e:  callvirt   "void System.IDisposable.Dispose()"
+                        IL_0063:  endfinally
+                      }
+                      IL_0064:  ret
+                    }
+                    """ : $$"""
+                    {
+                      // Code size       96 (0x60)
+                      .maxstack  1
+                      .locals init (S V_0, //a
+                                    S V_1) //b
+                      IL_0000:  ldloca.s   V_0
+                      IL_0002:  initobj    "S"
+                      .try
+                      {
+                        IL_0008:  ldloca.s   V_1
+                        IL_000a:  initobj    "S"
+                        .try
+                        {
+                          IL_0010:  ldloca.s   V_0
+                          IL_0012:  call       "ref S S.{{memberName}}"
+                          IL_0017:  pop
+                          IL_0018:  ldarg.0
+                          IL_0019:  brfalse.s  IL_0023
+                          IL_001b:  ldloca.s   V_1
+                          IL_001d:  call       "ref S S.{{memberName}}"
+                          IL_0022:  pop
+                          IL_0023:  ldarg.0
+                          IL_0024:  brfalse.s  IL_002e
+                          IL_0026:  ldloca.s   V_1
+                          IL_0028:  call       "ref S S.{{memberName}}"
+                          IL_002d:  pop
+                          IL_002e:  ldloca.s   V_1
+                          IL_0030:  call       "ref S S.{{memberName}}"
+                          IL_0035:  pop
+                          IL_0036:  ldarg.0
+                          IL_0037:  brfalse.s  IL_0041
+                          IL_0039:  ldloca.s   V_0
+                          IL_003b:  call       "ref S S.{{memberName}}"
+                          IL_0040:  pop
+                          IL_0041:  leave.s    IL_005f
+                        }
+                        finally
+                        {
+                          IL_0043:  ldloca.s   V_1
+                          IL_0045:  constrained. "S"
+                          IL_004b:  callvirt   "void System.IDisposable.Dispose()"
+                          IL_0050:  endfinally
+                        }
+                      }
+                      finally
+                      {
+                        IL_0051:  ldloca.s   V_0
+                        IL_0053:  constrained. "S"
+                        IL_0059:  callvirt   "void System.IDisposable.Dispose()"
+                        IL_005e:  endfinally
+                      }
+                      IL_005f:  ret
+                    }
+                    """);
+            }
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_ForEach_RefAssignment(
+            [CombinatorialValues(".Self", ".GetSelf()", "[0]")] string access,
+            bool throughField)
+        {
+            var type = throughField ? "Wrapper" : "S";
+            var receiver = throughField ? ".Field" : "";
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                struct S
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                    [UnscopedRef] public ref S GetSelf() => ref this;
+                    [UnscopedRef] public ref S this[int i] => ref this;
+                }
+
+                struct Wrapper
+                {
+                    public S Field = default;
+                    public Wrapper() { }
+                }
+
+                class C
+                {
+                    static void M()
+                    {
+                        foreach (var a in new {{type}}[1])
+                        {
+                            ref var c = ref a{{receiver}}{{access}};
+                            {
+                                c = ref a{{receiver}}{{access}};
+                            }
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            if (throughField)
+            {
+                comp.VerifyDiagnostics(
+                    // (24,17): error CS8374: Cannot ref-assign 'a.Field.Self' to 'c' because 'a.Field.Self' has a narrower escape scope than 'c'.
+                    //                 c = ref a.Field.Self;
+                    Diagnostic(ErrorCode.ERR_RefAssignNarrower, $"c = ref a.Field{access}").WithArguments("c", $"a.Field{access}").WithLocation(24, 17));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(comp, verify: Verification.Fails.WithILVerifyMessage("""
+                    [get_Self]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                    [GetSelf]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                    [get_Item]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                    """)).VerifyDiagnostics();
+
+                // The member calls use the iteration variable directly, without defensive copies.
+                var memberName = access == ".Self" ? "Self.get" : "GetSelf()";
+                verifier.VerifyIL("C.M", access == "[0]" ? """
+                    {
+                      // Code size       48 (0x30)
+                      .maxstack  2
+                      .locals init (S[] V_0,
+                                    int V_1,
+                                    S V_2) //a
+                      IL_0000:  ldc.i4.1
+                      IL_0001:  newarr     "S"
+                      IL_0006:  stloc.0
+                      IL_0007:  ldc.i4.0
+                      IL_0008:  stloc.1
+                      IL_0009:  br.s       IL_0029
+                      IL_000b:  ldloc.0
+                      IL_000c:  ldloc.1
+                      IL_000d:  ldelem     "S"
+                      IL_0012:  stloc.2
+                      IL_0013:  ldloca.s   V_2
+                      IL_0015:  ldc.i4.0
+                      IL_0016:  call       "ref S S.this[int].get"
+                      IL_001b:  pop
+                      IL_001c:  ldloca.s   V_2
+                      IL_001e:  ldc.i4.0
+                      IL_001f:  call       "ref S S.this[int].get"
+                      IL_0024:  pop
+                      IL_0025:  ldloc.1
+                      IL_0026:  ldc.i4.1
+                      IL_0027:  add
+                      IL_0028:  stloc.1
+                      IL_0029:  ldloc.1
+                      IL_002a:  ldloc.0
+                      IL_002b:  ldlen
+                      IL_002c:  conv.i4
+                      IL_002d:  blt.s      IL_000b
+                      IL_002f:  ret
+                    }
+                    """ : $$"""
+                    {
+                      // Code size       46 (0x2e)
+                      .maxstack  2
+                      .locals init (S[] V_0,
+                                    int V_1,
+                                    S V_2) //a
+                      IL_0000:  ldc.i4.1
+                      IL_0001:  newarr     "S"
+                      IL_0006:  stloc.0
+                      IL_0007:  ldc.i4.0
+                      IL_0008:  stloc.1
+                      IL_0009:  br.s       IL_0027
+                      IL_000b:  ldloc.0
+                      IL_000c:  ldloc.1
+                      IL_000d:  ldelem     "S"
+                      IL_0012:  stloc.2
+                      IL_0013:  ldloca.s   V_2
+                      IL_0015:  call       "ref S S.{{memberName}}"
+                      IL_001a:  pop
+                      IL_001b:  ldloca.s   V_2
+                      IL_001d:  call       "ref S S.{{memberName}}"
+                      IL_0022:  pop
+                      IL_0023:  ldloc.1
+                      IL_0024:  ldc.i4.1
+                      IL_0025:  add
+                      IL_0026:  stloc.1
+                      IL_0027:  ldloc.1
+                      IL_0028:  ldloc.0
+                      IL_0029:  ldlen
+                      IL_002a:  conv.i4
+                      IL_002b:  blt.s      IL_000b
+                      IL_002d:  ret
+                    }
+                    """);
+            }
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_Using_EscapeErrors()
+        {
+            var source = """
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                struct S : IDisposable
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                    public void Dispose() { }
+                }
+
+                class C
+                {
+                    static readonly S field;
+
+                    static ref S M()
+                    {
+                        using var a = new S();
+                        ref var c = ref a.Self;
+                        ref readonly var r = ref a;
+                        {
+                            using var b = new S();
+                            c = ref b.Self;
+                            c = ref r.Self;
+                            c = ref field.Self;
+                        }
+                        return ref a.Self;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (21,13): error CS8374: Cannot ref-assign 'b.Self' to 'c' because 'b.Self' has a narrower escape scope than 'c'.
+                //             c = ref b.Self;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "c = ref b.Self").WithArguments("c", "b.Self").WithLocation(21, 13),
+                // (22,13): error CS8374: Cannot ref-assign 'r.Self' to 'c' because 'r.Self' has a narrower escape scope than 'c'.
+                //             c = ref r.Self;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "c = ref r.Self").WithArguments("c", "r.Self").WithLocation(22, 13),
+                // (23,13): error CS8374: Cannot ref-assign 'field.Self' to 'c' because 'field.Self' has a narrower escape scope than 'c'.
+                //             c = ref field.Self;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "c = ref field.Self").WithArguments("c", "field.Self").WithLocation(23, 13),
+                // (25,20): error CS8168: Cannot return local 'a' by reference because it is not a ref local
+                //         return ref a.Self;
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "a").WithArguments("a").WithLocation(25, 20));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_ForEach_EscapeErrors()
+        {
+            var source = """
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                struct S
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                }
+
+                class C
+                {
+                    static void Assign()
+                    {
+                        var s = new S();
+                        ref var c = ref s;
+                        foreach (var a in new S[1])
+                        {
+                            c = ref a.Self;
+                        }
+                    }
+
+                    static ref S Return()
+                    {
+                        foreach (var a in new S[1])
+                        {
+                            return ref a.Self;
+                        }
+                        throw null;
+                    }
+
+                    static void ReadOnly()
+                    {
+                        foreach (ref readonly var a in new Span<S>(new S[1]))
+                        {
+                            ref var c = ref a.Self;
+                            {
+                                c = ref a.Self;
+                            }
+                        }
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (17,13): error CS8374: Cannot ref-assign 'a.Self' to 'c' because 'a.Self' has a narrower escape scope than 'c'.
+                //             c = ref a.Self;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "c = ref a.Self").WithArguments("c", "a.Self").WithLocation(17, 13),
+                // (25,24): error CS8168: Cannot return local 'a' by reference because it is not a ref local
+                //             return ref a.Self;
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "a").WithArguments("a").WithLocation(25, 24),
+                // (36,17): error CS8374: Cannot ref-assign 'a.Self' to 'c' because 'a.Self' has a narrower escape scope than 'c'.
+                //                 c = ref a.Self;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "c = ref a.Self").WithArguments("c", "a.Self").WithLocation(36, 17));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_Using_MutatesOriginal([CombinatorialValues(".Self", ".GetSelf()", "[0]")] string access)
+        {
+            var source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        using var a = new S { Value = 1 };
+                        using var b = new S { Value = 2 };
+                        ref var c = ref a{{access}};
+                        c.Value = 3;
+                        {
+                            c = ref b{{access}};
+                            c.Value = 4;
+                        }
+                        Console.WriteLine("{0} {1}", a.Value, b.Value);
+                        {
+                            c = ref a{{access}};
+                            c.Value = 5;
+                        }
+                    }
+                }
+
+                struct S : IDisposable
+                {
+                    public int Value;
+                    [UnscopedRef] public ref S Self => ref this;
+                    [UnscopedRef] public ref S GetSelf() => ref this;
+                    [UnscopedRef] public ref S this[int i] => ref this;
+                    public void Dispose() => Console.WriteLine(Value);
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RefFieldTests.IncludeExpectedOutput("""
+                3 4
+                4
+                5
+                """), verify: Verification.Fails.WithILVerifyMessage("""
+                [get_Self]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                [GetSelf]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                [get_Item]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                """)).VerifyDiagnostics();
+
+            // The returned references alias the using locals, not defensive copies.
+            var memberName = access == ".Self" ? "Self.get" : "GetSelf()";
+            verifier.VerifyIL("C.Main", access == "[0]" ? """
+                {
+                  // Code size      141 (0x8d)
+                  .maxstack  3
+                  .locals init (S V_0, //a
+                                S V_1, //b
+                                S V_2)
+                  IL_0000:  ldloca.s   V_2
+                  IL_0002:  initobj    "S"
+                  IL_0008:  ldloca.s   V_2
+                  IL_000a:  ldc.i4.1
+                  IL_000b:  stfld      "int S.Value"
+                  IL_0010:  ldloc.2
+                  IL_0011:  stloc.0
+                  .try
+                  {
+                    IL_0012:  ldloca.s   V_2
+                    IL_0014:  initobj    "S"
+                    IL_001a:  ldloca.s   V_2
+                    IL_001c:  ldc.i4.2
+                    IL_001d:  stfld      "int S.Value"
+                    IL_0022:  ldloc.2
+                    IL_0023:  stloc.1
+                    .try
+                    {
+                      IL_0024:  ldloca.s   V_0
+                      IL_0026:  ldc.i4.0
+                      IL_0027:  call       "ref S S.this[int].get"
+                      IL_002c:  ldc.i4.3
+                      IL_002d:  stfld      "int S.Value"
+                      IL_0032:  ldloca.s   V_1
+                      IL_0034:  ldc.i4.0
+                      IL_0035:  call       "ref S S.this[int].get"
+                      IL_003a:  ldc.i4.4
+                      IL_003b:  stfld      "int S.Value"
+                      IL_0040:  ldstr      "{0} {1}"
+                      IL_0045:  ldloc.0
+                      IL_0046:  ldfld      "int S.Value"
+                      IL_004b:  box        "int"
+                      IL_0050:  ldloc.1
+                      IL_0051:  ldfld      "int S.Value"
+                      IL_0056:  box        "int"
+                      IL_005b:  call       "void System.Console.WriteLine(string, object, object)"
+                      IL_0060:  ldloca.s   V_0
+                      IL_0062:  ldc.i4.0
+                      IL_0063:  call       "ref S S.this[int].get"
+                      IL_0068:  ldc.i4.5
+                      IL_0069:  stfld      "int S.Value"
+                      IL_006e:  leave.s    IL_008c
+                    }
+                    finally
+                    {
+                      IL_0070:  ldloca.s   V_1
+                      IL_0072:  constrained. "S"
+                      IL_0078:  callvirt   "void System.IDisposable.Dispose()"
+                      IL_007d:  endfinally
+                    }
+                  }
+                  finally
+                  {
+                    IL_007e:  ldloca.s   V_0
+                    IL_0080:  constrained. "S"
+                    IL_0086:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_008b:  endfinally
+                  }
+                  IL_008c:  ret
+                }
+                """ : $$"""
+                {
+                  // Code size      138 (0x8a)
+                  .maxstack  3
+                  .locals init (S V_0, //a
+                                S V_1, //b
+                                S V_2)
+                  IL_0000:  ldloca.s   V_2
+                  IL_0002:  initobj    "S"
+                  IL_0008:  ldloca.s   V_2
+                  IL_000a:  ldc.i4.1
+                  IL_000b:  stfld      "int S.Value"
+                  IL_0010:  ldloc.2
+                  IL_0011:  stloc.0
+                  .try
+                  {
+                    IL_0012:  ldloca.s   V_2
+                    IL_0014:  initobj    "S"
+                    IL_001a:  ldloca.s   V_2
+                    IL_001c:  ldc.i4.2
+                    IL_001d:  stfld      "int S.Value"
+                    IL_0022:  ldloc.2
+                    IL_0023:  stloc.1
+                    .try
+                    {
+                      IL_0024:  ldloca.s   V_0
+                      IL_0026:  call       "ref S S.{{memberName}}"
+                      IL_002b:  ldc.i4.3
+                      IL_002c:  stfld      "int S.Value"
+                      IL_0031:  ldloca.s   V_1
+                      IL_0033:  call       "ref S S.{{memberName}}"
+                      IL_0038:  ldc.i4.4
+                      IL_0039:  stfld      "int S.Value"
+                      IL_003e:  ldstr      "{0} {1}"
+                      IL_0043:  ldloc.0
+                      IL_0044:  ldfld      "int S.Value"
+                      IL_0049:  box        "int"
+                      IL_004e:  ldloc.1
+                      IL_004f:  ldfld      "int S.Value"
+                      IL_0054:  box        "int"
+                      IL_0059:  call       "void System.Console.WriteLine(string, object, object)"
+                      IL_005e:  ldloca.s   V_0
+                      IL_0060:  call       "ref S S.{{memberName}}"
+                      IL_0065:  ldc.i4.5
+                      IL_0066:  stfld      "int S.Value"
+                      IL_006b:  leave.s    IL_0089
+                    }
+                    finally
+                    {
+                      IL_006d:  ldloca.s   V_1
+                      IL_006f:  constrained. "S"
+                      IL_0075:  callvirt   "void System.IDisposable.Dispose()"
+                      IL_007a:  endfinally
+                    }
+                  }
+                  finally
+                  {
+                    IL_007b:  ldloca.s   V_0
+                    IL_007d:  constrained. "S"
+                    IL_0083:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0088:  endfinally
+                  }
+                  IL_0089:  ret
+                }
+                """);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_ForEach_MutatesIterationVariable([CombinatorialValues(".Self", ".GetSelf()", "[0]")] string access)
+        {
+            var source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        var items = new[] { new S { Value = 1 } };
+                        foreach (var a in items)
+                        {
+                            ref var c = ref a{{access}};
+                            {
+                                c = ref a{{access}};
+                                c.Value = 2;
+                            }
+                            Console.WriteLine(a.Value);
+                        }
+                        Console.WriteLine(items[0].Value);
+                    }
+                }
+
+                struct S
+                {
+                    public int Value;
+                    [UnscopedRef] public ref S Self => ref this;
+                    [UnscopedRef] public ref S GetSelf() => ref this;
+                    [UnscopedRef] public ref S this[int i] => ref this;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RefFieldTests.IncludeExpectedOutput("""
+                2
+                1
+                """), verify: Verification.Fails.WithILVerifyMessage("""
+                [get_Self]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                [GetSelf]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                [get_Item]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                """)).VerifyDiagnostics();
+
+            // Foreach copies the array element once; the member calls do not copy the iteration variable.
+            var memberName = access == ".Self" ? "Self.get" : "GetSelf()";
+            verifier.VerifyIL("C.Main", access == "[0]" ? """
+                {
+                  // Code size      109 (0x6d)
+                  .maxstack  5
+                  .locals init (S[] V_0, //items
+                                S V_1,
+                                S[] V_2,
+                                int V_3,
+                                S V_4) //a
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  newarr     "S"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldloca.s   V_1
+                  IL_000a:  initobj    "S"
+                  IL_0010:  ldloca.s   V_1
+                  IL_0012:  ldc.i4.1
+                  IL_0013:  stfld      "int S.Value"
+                  IL_0018:  ldloc.1
+                  IL_0019:  stelem     "S"
+                  IL_001e:  stloc.0
+                  IL_001f:  ldloc.0
+                  IL_0020:  stloc.2
+                  IL_0021:  ldc.i4.0
+                  IL_0022:  stloc.3
+                  IL_0023:  br.s       IL_0055
+                  IL_0025:  ldloc.2
+                  IL_0026:  ldloc.3
+                  IL_0027:  ldelem     "S"
+                  IL_002c:  stloc.s    V_4
+                  IL_002e:  ldloca.s   V_4
+                  IL_0030:  ldc.i4.0
+                  IL_0031:  call       "ref S S.this[int].get"
+                  IL_0036:  pop
+                  IL_0037:  ldloca.s   V_4
+                  IL_0039:  ldc.i4.0
+                  IL_003a:  call       "ref S S.this[int].get"
+                  IL_003f:  ldc.i4.2
+                  IL_0040:  stfld      "int S.Value"
+                  IL_0045:  ldloc.s    V_4
+                  IL_0047:  ldfld      "int S.Value"
+                  IL_004c:  call       "void System.Console.WriteLine(int)"
+                  IL_0051:  ldloc.3
+                  IL_0052:  ldc.i4.1
+                  IL_0053:  add
+                  IL_0054:  stloc.3
+                  IL_0055:  ldloc.3
+                  IL_0056:  ldloc.2
+                  IL_0057:  ldlen
+                  IL_0058:  conv.i4
+                  IL_0059:  blt.s      IL_0025
+                  IL_005b:  ldloc.0
+                  IL_005c:  ldc.i4.0
+                  IL_005d:  ldelema    "S"
+                  IL_0062:  ldfld      "int S.Value"
+                  IL_0067:  call       "void System.Console.WriteLine(int)"
+                  IL_006c:  ret
+                }
+                """ : $$"""
+                {
+                  // Code size      107 (0x6b)
+                  .maxstack  5
+                  .locals init (S[] V_0, //items
+                                S V_1,
+                                S[] V_2,
+                                int V_3,
+                                S V_4) //a
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  newarr     "S"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldloca.s   V_1
+                  IL_000a:  initobj    "S"
+                  IL_0010:  ldloca.s   V_1
+                  IL_0012:  ldc.i4.1
+                  IL_0013:  stfld      "int S.Value"
+                  IL_0018:  ldloc.1
+                  IL_0019:  stelem     "S"
+                  IL_001e:  stloc.0
+                  IL_001f:  ldloc.0
+                  IL_0020:  stloc.2
+                  IL_0021:  ldc.i4.0
+                  IL_0022:  stloc.3
+                  IL_0023:  br.s       IL_0053
+                  IL_0025:  ldloc.2
+                  IL_0026:  ldloc.3
+                  IL_0027:  ldelem     "S"
+                  IL_002c:  stloc.s    V_4
+                  IL_002e:  ldloca.s   V_4
+                  IL_0030:  call       "ref S S.{{memberName}}"
+                  IL_0035:  pop
+                  IL_0036:  ldloca.s   V_4
+                  IL_0038:  call       "ref S S.{{memberName}}"
+                  IL_003d:  ldc.i4.2
+                  IL_003e:  stfld      "int S.Value"
+                  IL_0043:  ldloc.s    V_4
+                  IL_0045:  ldfld      "int S.Value"
+                  IL_004a:  call       "void System.Console.WriteLine(int)"
+                  IL_004f:  ldloc.3
+                  IL_0050:  ldc.i4.1
+                  IL_0051:  add
+                  IL_0052:  stloc.3
+                  IL_0053:  ldloc.3
+                  IL_0054:  ldloc.2
+                  IL_0055:  ldlen
+                  IL_0056:  conv.i4
+                  IL_0057:  blt.s      IL_0025
+                  IL_0059:  ldloc.0
+                  IL_005a:  ldc.i4.0
+                  IL_005b:  ldelema    "S"
+                  IL_0060:  ldfld      "int S.Value"
+                  IL_0065:  call       "void System.Console.WriteLine(int)"
+                  IL_006a:  ret
+                }
+                """);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_Conditional_MutatesOriginal(bool usingLocal, bool condition)
+        {
+            var declaration = usingLocal ? "using var a = new S();" : "foreach (var a in new S[1])";
+            var source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    static void Main() => M({{(condition ? "true" : "false")}});
+
+                    static void M(bool condition)
+                    {
+                        {{declaration}}
+                        {
+                            using var b = new S();
+                            ref var c = ref (condition ? ref a : ref b).Self;
+                            {
+                                c = ref (condition ? ref a : ref b).Self;
+                                c.Value = 42;
+                            }
+                            Console.WriteLine("{0}, {1}", a.Value, b.Value);
+                        }
+                    }
+                }
+
+                struct S : IDisposable
+                {
+                    public int Value;
+                    [UnscopedRef] public ref S Self => ref this;
+                    public void Dispose() { }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RefFieldTests.IncludeExpectedOutput(condition ? "42, 0" : "0, 42"),
+                verify: Verification.Fails.WithILVerifyMessage("""
+                [get_Self]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                """)).VerifyDiagnostics();
+
+            // Both conditional branches supply the address of the original local, without a defensive copy.
+            verifier.VerifyIL("C.M", usingLocal ? """
+                {
+                  // Code size      115 (0x73)
+                  .maxstack  3
+                  .locals init (S V_0, //a
+                                S V_1) //b
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "S"
+                  .try
+                  {
+                    IL_0008:  ldloca.s   V_1
+                    IL_000a:  initobj    "S"
+                    .try
+                    {
+                      IL_0010:  ldarg.0
+                      IL_0011:  brtrue.s   IL_0017
+                      IL_0013:  ldloca.s   V_1
+                      IL_0015:  br.s       IL_0019
+                      IL_0017:  ldloca.s   V_0
+                      IL_0019:  call       "ref S S.Self.get"
+                      IL_001e:  pop
+                      IL_001f:  ldarg.0
+                      IL_0020:  brtrue.s   IL_0026
+                      IL_0022:  ldloca.s   V_1
+                      IL_0024:  br.s       IL_0028
+                      IL_0026:  ldloca.s   V_0
+                      IL_0028:  call       "ref S S.Self.get"
+                      IL_002d:  ldc.i4.s   42
+                      IL_002f:  stfld      "int S.Value"
+                      IL_0034:  ldstr      "{0}, {1}"
+                      IL_0039:  ldloc.0
+                      IL_003a:  ldfld      "int S.Value"
+                      IL_003f:  box        "int"
+                      IL_0044:  ldloc.1
+                      IL_0045:  ldfld      "int S.Value"
+                      IL_004a:  box        "int"
+                      IL_004f:  call       "void System.Console.WriteLine(string, object, object)"
+                      IL_0054:  leave.s    IL_0072
+                    }
+                    finally
+                    {
+                      IL_0056:  ldloca.s   V_1
+                      IL_0058:  constrained. "S"
+                      IL_005e:  callvirt   "void System.IDisposable.Dispose()"
+                      IL_0063:  endfinally
+                    }
+                  }
+                  finally
+                  {
+                    IL_0064:  ldloca.s   V_0
+                    IL_0066:  constrained. "S"
+                    IL_006c:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0071:  endfinally
+                  }
+                  IL_0072:  ret
+                }
+                """ : """
+                {
+                  // Code size      122 (0x7a)
+                  .maxstack  3
+                  .locals init (S[] V_0,
+                                int V_1,
+                                S V_2, //a
+                                S V_3) //b
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  newarr     "S"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  stloc.1
+                  IL_0009:  br.s       IL_0073
+                  IL_000b:  ldloc.0
+                  IL_000c:  ldloc.1
+                  IL_000d:  ldelem     "S"
+                  IL_0012:  stloc.2
+                  IL_0013:  ldloca.s   V_3
+                  IL_0015:  initobj    "S"
+                  .try
+                  {
+                    IL_001b:  ldarg.0
+                    IL_001c:  brtrue.s   IL_0022
+                    IL_001e:  ldloca.s   V_3
+                    IL_0020:  br.s       IL_0024
+                    IL_0022:  ldloca.s   V_2
+                    IL_0024:  call       "ref S S.Self.get"
+                    IL_0029:  pop
+                    IL_002a:  ldarg.0
+                    IL_002b:  brtrue.s   IL_0031
+                    IL_002d:  ldloca.s   V_3
+                    IL_002f:  br.s       IL_0033
+                    IL_0031:  ldloca.s   V_2
+                    IL_0033:  call       "ref S S.Self.get"
+                    IL_0038:  ldc.i4.s   42
+                    IL_003a:  stfld      "int S.Value"
+                    IL_003f:  ldstr      "{0}, {1}"
+                    IL_0044:  ldloc.2
+                    IL_0045:  ldfld      "int S.Value"
+                    IL_004a:  box        "int"
+                    IL_004f:  ldloc.3
+                    IL_0050:  ldfld      "int S.Value"
+                    IL_0055:  box        "int"
+                    IL_005a:  call       "void System.Console.WriteLine(string, object, object)"
+                    IL_005f:  leave.s    IL_006f
+                  }
+                  finally
+                  {
+                    IL_0061:  ldloca.s   V_3
+                    IL_0063:  constrained. "S"
+                    IL_0069:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_006e:  endfinally
+                  }
+                  IL_006f:  ldloc.1
+                  IL_0070:  ldc.i4.1
+                  IL_0071:  add
+                  IL_0072:  stloc.1
+                  IL_0073:  ldloc.1
+                  IL_0074:  ldloc.0
+                  IL_0075:  ldlen
+                  IL_0076:  conv.i4
+                  IL_0077:  blt.s      IL_000b
+                  IL_0079:  ret
+                }
+                """);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_Conditional_EscapeErrors(bool usingLocal, bool readOnlyFirst)
+        {
+            var declaration = usingLocal ? "using var a = new S();" : "foreach (var a in new S[1])";
+            var receiver = readOnlyFirst ? "(condition ? ref r : ref a)" : "(condition ? ref a : ref r)";
+            var source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    static void M(bool condition)
+                    {
+                        {{declaration}}
+                        {
+                            var b = new S();
+                            ref readonly var r = ref b;
+                            ref var c = ref {{receiver}}.Self;
+                            {
+                                c = ref {{receiver}}.Self;
+                            }
+                        }
+                    }
+                }
+
+                struct S : IDisposable
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                    public void Dispose() { }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (14,17): error CS8374: Cannot ref-assign '(condition ? ref a : ref r).Self' to 'c' because '(condition ? ref a : ref r).Self' has a narrower escape scope than 'c'.
+                //                 c = ref (condition ? ref a : ref r).Self;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, $"c = ref {receiver}.Self").WithArguments("c", $"{receiver}.Self").WithLocation(14, 17));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_RefAssignment_MutatesOriginal(bool usingLocal)
+        {
+            var declaration = usingLocal ? "using var a = new S();" : "foreach (var a in new S[1])";
+            var source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        {{declaration}}
+                        {
+                            var b = new S();
+                            ref var r = ref b;
+                            ref var c = ref (r = ref a.Self).Self;
+                            {
+                                c = ref (r = ref a.Self).Self;
+                                c.Value = 42;
+                            }
+                            Console.WriteLine("{0}, {1}", a.Value, b.Value);
+                        }
+                    }
+                }
+
+                struct S : IDisposable
+                {
+                    public int Value;
+                    [UnscopedRef] public ref S Self => ref this;
+                    public void Dispose() { }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RefFieldTests.IncludeExpectedOutput("42, 0"),
+                verify: Verification.Fails.WithILVerifyMessage("""
+                [get_Self]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                """)).VerifyDiagnostics();
+
+            // The ref-assignment result is used directly as a receiver, without a defensive copy.
+            verifier.VerifyIL("C.Main", usingLocal ? """
+                {
+                  // Code size       97 (0x61)
+                  .maxstack  3
+                  .locals init (S V_0, //a
+                                S V_1) //b
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "S"
+                  .try
+                  {
+                    IL_0008:  ldloca.s   V_1
+                    IL_000a:  initobj    "S"
+                    IL_0010:  ldloca.s   V_0
+                    IL_0012:  call       "ref S S.Self.get"
+                    IL_0017:  call       "ref S S.Self.get"
+                    IL_001c:  pop
+                    IL_001d:  ldloca.s   V_0
+                    IL_001f:  call       "ref S S.Self.get"
+                    IL_0024:  call       "ref S S.Self.get"
+                    IL_0029:  ldc.i4.s   42
+                    IL_002b:  stfld      "int S.Value"
+                    IL_0030:  ldstr      "{0}, {1}"
+                    IL_0035:  ldloc.0
+                    IL_0036:  ldfld      "int S.Value"
+                    IL_003b:  box        "int"
+                    IL_0040:  ldloc.1
+                    IL_0041:  ldfld      "int S.Value"
+                    IL_0046:  box        "int"
+                    IL_004b:  call       "void System.Console.WriteLine(string, object, object)"
+                    IL_0050:  leave.s    IL_0060
+                  }
+                  finally
+                  {
+                    IL_0052:  ldloca.s   V_0
+                    IL_0054:  constrained. "S"
+                    IL_005a:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_005f:  endfinally
+                  }
+                  IL_0060:  ret
+                }
+                """ : """
+                {
+                  // Code size      102 (0x66)
+                  .maxstack  3
+                  .locals init (S[] V_0,
+                                int V_1,
+                                S V_2, //a
+                                S V_3) //b
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  newarr     "S"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  stloc.1
+                  IL_0009:  br.s       IL_005f
+                  IL_000b:  ldloc.0
+                  IL_000c:  ldloc.1
+                  IL_000d:  ldelem     "S"
+                  IL_0012:  stloc.2
+                  IL_0013:  ldloca.s   V_3
+                  IL_0015:  initobj    "S"
+                  IL_001b:  ldloca.s   V_2
+                  IL_001d:  call       "ref S S.Self.get"
+                  IL_0022:  call       "ref S S.Self.get"
+                  IL_0027:  pop
+                  IL_0028:  ldloca.s   V_2
+                  IL_002a:  call       "ref S S.Self.get"
+                  IL_002f:  call       "ref S S.Self.get"
+                  IL_0034:  ldc.i4.s   42
+                  IL_0036:  stfld      "int S.Value"
+                  IL_003b:  ldstr      "{0}, {1}"
+                  IL_0040:  ldloc.2
+                  IL_0041:  ldfld      "int S.Value"
+                  IL_0046:  box        "int"
+                  IL_004b:  ldloc.3
+                  IL_004c:  ldfld      "int S.Value"
+                  IL_0051:  box        "int"
+                  IL_0056:  call       "void System.Console.WriteLine(string, object, object)"
+                  IL_005b:  ldloc.1
+                  IL_005c:  ldc.i4.1
+                  IL_005d:  add
+                  IL_005e:  stloc.1
+                  IL_005f:  ldloc.1
+                  IL_0060:  ldloc.0
+                  IL_0061:  ldlen
+                  IL_0062:  conv.i4
+                  IL_0063:  blt.s      IL_000b
+                  IL_0065:  ret
+                }
+                """);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_RefAssignment_EscapeErrors(bool usingLocal)
+        {
+            var declaration = usingLocal ? "using var a = new S();" : "foreach (var a in new S[1])";
+            var source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    static void M()
+                    {
+                        {{declaration}}
+                        {
+                            var b = new S();
+                            ref readonly var r = ref b;
+                            ref var c = ref (r = ref a).Self;
+                            {
+                                c = ref (r = ref a).Self;
+                            }
+                        }
+                    }
+                }
+
+                struct S : IDisposable
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                    public void Dispose() { }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(
+                // (14,17): error CS8374: Cannot ref-assign '(r = ref a).Self' to 'c' because '(r = ref a).Self' has a narrower escape scope than 'c'.
+                //                 c = ref (r = ref a).Self;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "c = ref (r = ref a).Self").WithArguments("c", "(r = ref a).Self").WithLocation(14, 17));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_Field_Mutation(
+            [CombinatorialValues(".Self", ".GetSelf()", "[0]")] string access,
+            bool isValueType,
+            bool nested)
+        {
+            var kind = isValueType ? "struct" : "class";
+            var receiver = nested ? ".Nested.Field" : ".Field";
+            var source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        using (var a = new Wrapper())
+                        {
+                            ref var c = ref a{{receiver}}{{access}};
+                            c.Value = 42;
+                            Console.WriteLine("{0} {1}", c.Value, a{{receiver}}.Value);
+                        }
+
+                        var items = new[] { new Wrapper() };
+                        foreach (var a in items)
+                        {
+                            ref var c = ref a{{receiver}}{{access}};
+                            c.Value = 42;
+                            Console.WriteLine("{0} {1}", c.Value, a{{receiver}}.Value);
+                        }
+                        Console.WriteLine(items[0]{{receiver}}.Value);
+                    }
+                }
+
+                {{kind}} Wrapper : IDisposable
+                {
+                    public S Field = default;
+                    public Nested Nested = default;
+                    public Wrapper() { }
+                    public void Dispose() { }
+                }
+
+                struct Nested
+                {
+                    public S Field = default;
+                    public Nested() { }
+                }
+
+                struct S
+                {
+                    public int Value;
+                    [UnscopedRef] public ref S Self => ref this;
+                    [UnscopedRef] public ref S GetSelf() => ref this;
+                    [UnscopedRef] public ref S this[int i] => ref this;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
+            var expectedOutput = isValueType ? """
+                42 0
+                42 0
+                0
+                """ : """
+                42 42
+                42 42
+                42
+                """;
+            var verifier = CompileAndVerify(comp, expectedOutput: RefFieldTests.IncludeExpectedOutput(expectedOutput),
+                verify: Verification.Fails.WithILVerifyMessage("""
+                    [get_Self]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                    [GetSelf]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                    [get_Item]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                    """)).VerifyDiagnostics();
+
+            if (!isValueType && nested && access == ".Self")
+            {
+                // The nested field on a class container is used without a defensive copy.
+                verifier.VerifyIL("C.Main", """
+                    {
+                      // Code size      222 (0xde)
+                      .maxstack  4
+                      .locals init (Wrapper[] V_0, //items
+                                    Wrapper V_1, //a
+                                    S& V_2, //c
+                                    Wrapper[] V_3,
+                                    int V_4,
+                                    Wrapper V_5, //a
+                                    S& V_6) //c
+                      IL_0000:  newobj     "Wrapper..ctor()"
+                      IL_0005:  stloc.1
+                      .try
+                      {
+                        IL_0006:  ldloc.1
+                        IL_0007:  ldflda     "Nested Wrapper.Nested"
+                        IL_000c:  ldflda     "S Nested.Field"
+                        IL_0011:  call       "ref S S.Self.get"
+                        IL_0016:  stloc.2
+                        IL_0017:  ldloc.2
+                        IL_0018:  ldc.i4.s   42
+                        IL_001a:  stfld      "int S.Value"
+                        IL_001f:  ldstr      "{0} {1}"
+                        IL_0024:  ldloc.2
+                        IL_0025:  ldfld      "int S.Value"
+                        IL_002a:  box        "int"
+                        IL_002f:  ldloc.1
+                        IL_0030:  ldflda     "Nested Wrapper.Nested"
+                        IL_0035:  ldflda     "S Nested.Field"
+                        IL_003a:  ldfld      "int S.Value"
+                        IL_003f:  box        "int"
+                        IL_0044:  call       "void System.Console.WriteLine(string, object, object)"
+                        IL_0049:  leave.s    IL_0055
+                      }
+                      finally
+                      {
+                        IL_004b:  ldloc.1
+                        IL_004c:  brfalse.s  IL_0054
+                        IL_004e:  ldloc.1
+                        IL_004f:  callvirt   "void System.IDisposable.Dispose()"
+                        IL_0054:  endfinally
+                      }
+                      IL_0055:  ldc.i4.1
+                      IL_0056:  newarr     "Wrapper"
+                      IL_005b:  dup
+                      IL_005c:  ldc.i4.0
+                      IL_005d:  newobj     "Wrapper..ctor()"
+                      IL_0062:  stelem.ref
+                      IL_0063:  stloc.0
+                      IL_0064:  ldloc.0
+                      IL_0065:  stloc.3
+                      IL_0066:  ldc.i4.0
+                      IL_0067:  stloc.s    V_4
+                      IL_0069:  br.s       IL_00bf
+                      IL_006b:  ldloc.3
+                      IL_006c:  ldloc.s    V_4
+                      IL_006e:  ldelem.ref
+                      IL_006f:  stloc.s    V_5
+                      IL_0071:  ldloc.s    V_5
+                      IL_0073:  ldflda     "Nested Wrapper.Nested"
+                      IL_0078:  ldflda     "S Nested.Field"
+                      IL_007d:  call       "ref S S.Self.get"
+                      IL_0082:  stloc.s    V_6
+                      IL_0084:  ldloc.s    V_6
+                      IL_0086:  ldc.i4.s   42
+                      IL_0088:  stfld      "int S.Value"
+                      IL_008d:  ldstr      "{0} {1}"
+                      IL_0092:  ldloc.s    V_6
+                      IL_0094:  ldfld      "int S.Value"
+                      IL_0099:  box        "int"
+                      IL_009e:  ldloc.s    V_5
+                      IL_00a0:  ldflda     "Nested Wrapper.Nested"
+                      IL_00a5:  ldflda     "S Nested.Field"
+                      IL_00aa:  ldfld      "int S.Value"
+                      IL_00af:  box        "int"
+                      IL_00b4:  call       "void System.Console.WriteLine(string, object, object)"
+                      IL_00b9:  ldloc.s    V_4
+                      IL_00bb:  ldc.i4.1
+                      IL_00bc:  add
+                      IL_00bd:  stloc.s    V_4
+                      IL_00bf:  ldloc.s    V_4
+                      IL_00c1:  ldloc.3
+                      IL_00c2:  ldlen
+                      IL_00c3:  conv.i4
+                      IL_00c4:  blt.s      IL_006b
+                      IL_00c6:  ldloc.0
+                      IL_00c7:  ldc.i4.0
+                      IL_00c8:  ldelem.ref
+                      IL_00c9:  ldflda     "Nested Wrapper.Nested"
+                      IL_00ce:  ldflda     "S Nested.Field"
+                      IL_00d3:  ldfld      "int S.Value"
+                      IL_00d8:  call       "void System.Console.WriteLine(int)"
+                      IL_00dd:  ret
+                    }
+                    """);
+            }
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_Using_RefField_RefAssignment([CombinatorialValues(".Self", ".GetSelf()", "[0]")] string access)
+        {
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                struct S
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                    [UnscopedRef] public ref S GetSelf() => ref this;
+                    [UnscopedRef] public ref S this[int i] => ref this;
+                }
+
+                ref struct Wrapper
+                {
+                    public ref S Field;
+                    public Wrapper(ref S value) => Field = ref value;
+                    public void Dispose() { }
+                }
+
+                class C
+                {
+                    static void M()
+                    {
+                        var s = new S();
+                        using var a = new Wrapper(ref s);
+                        ref var c = ref a.Field{{access}};
+                        {
+                            c = ref a.Field{{access}};
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails.WithILVerifyMessage("""
+                [get_Self]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                [GetSelf]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                [get_Item]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                """)).VerifyDiagnostics();
+
+            // Loading the ref field supplies the original receiver's address, without a defensive copy.
+            var memberName = access == ".Self" ? "Self.get" : "GetSelf()";
+            verifier.VerifyIL("C.M", access == "[0]" ? """
+                {
+                  // Code size       55 (0x37)
+                  .maxstack  2
+                  .locals init (S V_0, //s
+                                Wrapper V_1) //a
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "S"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  newobj     "Wrapper..ctor(ref S)"
+                  IL_000f:  stloc.1
+                  .try
+                  {
+                    IL_0010:  ldloca.s   V_1
+                    IL_0012:  ldfld      "ref S Wrapper.Field"
+                    IL_0017:  ldc.i4.0
+                    IL_0018:  call       "ref S S.this[int].get"
+                    IL_001d:  pop
+                    IL_001e:  ldloca.s   V_1
+                    IL_0020:  ldfld      "ref S Wrapper.Field"
+                    IL_0025:  ldc.i4.0
+                    IL_0026:  call       "ref S S.this[int].get"
+                    IL_002b:  pop
+                    IL_002c:  leave.s    IL_0036
+                  }
+                  finally
+                  {
+                    IL_002e:  ldloca.s   V_1
+                    IL_0030:  call       "void Wrapper.Dispose()"
+                    IL_0035:  endfinally
+                  }
+                  IL_0036:  ret
+                }
+                """ : $$"""
+                {
+                  // Code size       53 (0x35)
+                  .maxstack  1
+                  .locals init (S V_0, //s
+                                Wrapper V_1) //a
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "S"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  newobj     "Wrapper..ctor(ref S)"
+                  IL_000f:  stloc.1
+                  .try
+                  {
+                    IL_0010:  ldloca.s   V_1
+                    IL_0012:  ldfld      "ref S Wrapper.Field"
+                    IL_0017:  call       "ref S S.{{memberName}}"
+                    IL_001c:  pop
+                    IL_001d:  ldloca.s   V_1
+                    IL_001f:  ldfld      "ref S Wrapper.Field"
+                    IL_0024:  call       "ref S S.{{memberName}}"
+                    IL_0029:  pop
+                    IL_002a:  leave.s    IL_0034
+                  }
+                  finally
+                  {
+                    IL_002c:  ldloca.s   V_1
+                    IL_002e:  call       "void Wrapper.Dispose()"
+                    IL_0033:  endfinally
+                  }
+                  IL_0034:  ret
+                }
+                """);
+        }
+
         [Fact]
         public void LocalScope_DeclarationExpression_01()
         {
