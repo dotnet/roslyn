@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -10,6 +11,82 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
 public class HtmlBlockTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
 {
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyPreservesLeadingStars()
+    {
+        const string source = "\n* <summary>Text</summary>\n}";
+
+        var (end, isComplete) = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(source.Length - 1, end);
+        Assert.False(isComplete);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyAcceptsLeadingWhitespace()
+    {
+        const string source = "\n  <summary>Text</summary>\n}";
+
+        var (end, isComplete) = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(source.Length - 1, end);
+        Assert.True(isComplete);
+    }
+
+    [Theory]
+    [InlineData("<![CDATA[[{}]]]>")]
+    [InlineData("<![CDATA[[[{}]]]]>")]
+    [InlineData("<?example ??>")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyHandlesOverlappingTerminators(string markup)
+    {
+        var source = "<summary>" + markup + "</summary>}";
+
+        var (end, isComplete) = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(source.Length - 1, end);
+        Assert.True(isComplete);
+    }
+
+    [Theory]
+    [InlineData("<![CDATA[[{}]]]>")]
+    [InlineData("<![CDATA[[[{}]]]]>")]
+    [InlineData("<?example ??>")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void HtmlBlockHandlesOverlappingTerminators(string markup)
+    {
+        var source = "@{\n" + markup + "\nvar value = 42;\n}";
+
+        var tree = RazorSyntaxTree.Parse(RazorSourceDocument.Create(source, "test.cshtml"), RazorParserOptions.Default);
+
+        Assert.Empty(tree.Diagnostics);
+        Assert.Equal(source, tree.Root.GetContent());
+        Assert.Contains<CSharpStatementLiteralSyntax>(
+            [.. tree.Root.DescendantNodes().OfType<CSharpStatementLiteralSyntax>()],
+            literal => literal.GetContent().Contains("var value = 42;"));
+    }
+
+    [Theory]
+    [InlineData("<![CDATA[text]")]
+    [InlineData("<![CDATA[text]]")]
+    [InlineData("<?example ?")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyHandlesIncompleteSpecialTags(string markup)
+    {
+        var source = "<summary>" + markup;
+
+        var (end, isComplete) = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(source.Length, end);
+        Assert.False(isComplete);
+    }
+
     [Fact]
     public void HandlesUnbalancedTripleDashHTMLComments()
     {
