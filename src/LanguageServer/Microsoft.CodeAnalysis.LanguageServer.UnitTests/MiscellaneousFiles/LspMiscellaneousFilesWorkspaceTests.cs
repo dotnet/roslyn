@@ -201,10 +201,10 @@ public sealed partial class LspMiscellaneousFilesWorkspaceProviderTests : Abstra
 
         // Verify that the file returned by the manager is in the lsp misc files workspace.
         await AssertFileInMiscWorkspaceAsync(testLspServer, looseFileUri).ConfigureAwait(false);
-        var (miscWorkspace, _, miscDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = looseFileUri }, CancellationToken.None);
-        Contract.ThrowIfNull(miscWorkspace);
-        Contract.ThrowIfNull(miscDocument);
-        Assert.True(miscWorkspace.CurrentSolution.ContainsDocument(miscDocument.Id));
+        var context = await testLspServer.CaptureLspDocumentContextAsync(new LSP.TextDocumentIdentifier { DocumentUri = looseFileUri });
+        Contract.ThrowIfNull(context);
+        Contract.ThrowIfNull(context.Value.Document);
+        Assert.True(context.Value.Workspace.CurrentSolution.ContainsDocument(context.Value.Document.Id));
 
         var documentPath = looseFileUri.GetDocumentFilePathFromUri();
 
@@ -216,7 +216,7 @@ public sealed partial class LspMiscellaneousFilesWorkspaceProviderTests : Abstra
         await AssertFileInMainWorkspaceAsync(testLspServer, looseFileUri).ConfigureAwait(false);
 
         // Make sure doc was removed from misc workspace.
-        Assert.False(miscWorkspace.CurrentSolution.ContainsDocument(miscDocument.Id));
+        Assert.False(context.Value.Workspace.CurrentSolution.ContainsDocument(context.Value.Document.Id));
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
     }
 

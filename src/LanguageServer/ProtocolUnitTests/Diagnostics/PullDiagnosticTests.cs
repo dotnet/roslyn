@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -35,6 +36,47 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics;
 
 public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : AbstractPullDiagnosticTestsBase(testOutputHelper)
 {
+    [Fact]
+    public async Task TestClearSolutionContextAcrossCopies()
+    {
+        await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+            "class C { }", mutatingLspWorkspace: false, BackgroundAnalysisScope.FullSolution, useVSDiagnostics: false);
+        var context = await RequestContext.CreateAsync(
+            mutatesSolutionState: false,
+            requiresLSPSolution: true,
+            textDocument: null,
+            WellKnownLspServerKinds.AlwaysActiveVSLspServer,
+            new ClientCapabilities(),
+            [LanguageNames.CSharp],
+            testLspServer.GetLspServices(),
+            NoOpLspLogger.Instance,
+            "test",
+            CancellationToken.None);
+        var copy = context;
+
+        Assert.NotNull(await copy.GetSolutionAsync(CancellationToken.None));
+        context.ClearSolutionContext();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await copy.GetWorkspaceAsync(CancellationToken.None));
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await copy.GetSolutionAsync(CancellationToken.None));
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await copy.GetTextDocumentAsync(CancellationToken.None));
+        copy.TraceDebug("Context logging remains available after the solution is cleared.");
+
+        var contextWithoutSolution = await RequestContext.CreateAsync(
+            mutatesSolutionState: false,
+            requiresLSPSolution: false,
+            textDocument: null,
+            WellKnownLspServerKinds.AlwaysActiveVSLspServer,
+            new ClientCapabilities(),
+            [LanguageNames.CSharp],
+            testLspServer.GetLspServices(),
+            NoOpLspLogger.Instance,
+            "test",
+            CancellationToken.None);
+        contextWithoutSolution.ClearSolutionContext();
+        Assert.Null(await contextWithoutSolution.GetSolutionAsync(CancellationToken.None));
+    }
+
     #region Document Diagnostics
 
     [Theory, CombinatorialData]

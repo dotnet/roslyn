@@ -110,7 +110,7 @@ var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 - **Immutability**: All `Document`, `Solution`, `Project` instances are immutable — use `With*` methods
 - **Cancellation**: Always thread `CancellationToken` through async operations
 - **Performance**: Avoid LINQ in hot paths, prefer `for` loops or `.AsSpan()`, use `ObjectPool<T>`
-- **LanguageServer request context**: Handlers should use the asynchronous `RequestContext.Get*Async` methods for workspace, solution, and document access. Obsolete synchronous members remain only for compatibility with existing external-access consumers and forward to the asynchronous accessors.
+- **LanguageServer request context**: Handlers use the asynchronous `RequestContext.Get*Async` methods for workspace, solution, and document access. Long-running workspace diagnostics release the shared solution context after diagnostic processing and before waiting for changes; keep solution-bearing processing locals out of the suspended wait.
 
 ## Common Gotchas
 

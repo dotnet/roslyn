@@ -7,15 +7,12 @@ extern alias MSBuildWorkspacesContracts;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Composition;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
-using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
@@ -27,6 +24,7 @@ using Roslyn.Utilities;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 using ProjectFileInfo = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.ProjectFileInfo;
+using ProjectFileReference = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.ProjectFileReference;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
@@ -475,7 +473,7 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         }
 
         public Task<LoadedProject> BeginLoadAsync(string projectPath)
-            => BeginLoadingProjectAsync(projectPath);
+            => BeginLoadingProjectAsync(projectPath, isHighPriority: false);
 
         public Task WaitForAllTrackedProjectLoadsAsync(CancellationToken cancellationToken = default)
             => WaitForAllProjectLoadsAsync(cancellationToken);
@@ -524,10 +522,16 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         public TaskCompletionSource<string> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<LanguageServerProjectLoader.RemoteProjectLoadResult?> Result { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        public void CompleteSuccessfully(ProjectSystemProjectFactory projectFactory, string projectPath, string? targetFramework = null)
+        public void CompleteSuccessfully(
+            ProjectSystemProjectFactory projectFactory, string projectPath, string? targetFramework = null, string[]? projectReferences = null)
             => Result.SetResult(new()
             {
-                ProjectFileInfos = [ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, projectPath) with { CommandLineArgs = ["/target:library"], TargetFramework = targetFramework }],
+                ProjectFileInfos = [ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, projectPath) with
+                {
+                    CommandLineArgs = ["/target:library"],
+                    TargetFramework = targetFramework,
+                    ProjectReferences = projectReferences is null ? [] : [.. projectReferences.Select(path => new ProjectFileReference(path, [], referenceOutputAssembly: true))],
+                }],
                 DiagnosticLogItems = [],
                 ProjectRestorePath = projectPath,
                 ProjectFactory = projectFactory,

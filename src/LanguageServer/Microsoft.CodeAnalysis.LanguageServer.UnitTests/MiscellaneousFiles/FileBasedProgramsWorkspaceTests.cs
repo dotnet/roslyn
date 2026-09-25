@@ -1169,12 +1169,12 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
 
         // Lookup "Util.cs" in the "App" project context
         var utilCsUri = ProtocolConversions.CreateAbsoluteDocumentUri(utilCsFile.Path);
-        (_, _, var textDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(CreateTextDocumentIdentifier(utilCsUri, projects[0].Id), CancellationToken.None);
+        var textDocument = (await testLspServer.CaptureLspDocumentContextAsync(CreateTextDocumentIdentifier(utilCsUri, projects[0].Id)))?.Document;
         Assert.NotNull(textDocument);
         Assert.Equal("App", textDocument.Project.AssemblyName);
 
         // Lookup "Util.cs" in the "Ordinary" project context
-        (_, _, textDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(CreateTextDocumentIdentifier(utilCsUri, projects[1].Id), CancellationToken.None);
+        textDocument = (await testLspServer.CaptureLspDocumentContextAsync(CreateTextDocumentIdentifier(utilCsUri, projects[1].Id)))?.Document;
         Assert.NotNull(textDocument);
         Assert.Equal("Ordinary", textDocument.Project.AssemblyName);
     }
@@ -1440,8 +1440,8 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
 
         // Lookup "App.cs" in the "App" project context
         var utilCsUri = ProtocolConversions.CreateAbsoluteDocumentUri(appCsFile.Path);
-        (_, _, var textDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(
-            CreateTextDocumentIdentifier(utilCsUri, projects[0].Id), CancellationToken.None);
+        var textDocument = (await testLspServer.CaptureLspDocumentContextAsync(
+            CreateTextDocumentIdentifier(utilCsUri, projects[0].Id)))?.Document;
         document = (Document)textDocument!;
         Assert.Equal("App", document.Project.AssemblyName);
 
@@ -1450,8 +1450,8 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         Assert.Empty(syntaxTree.GetDiagnostics(CancellationToken.None));
 
         // Lookup "App.cs" in the "Ordinary" project context
-        (_, _, textDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(
-            CreateTextDocumentIdentifier(utilCsUri, projects[1].Id), CancellationToken.None);
+        textDocument = (await testLspServer.CaptureLspDocumentContextAsync(
+            CreateTextDocumentIdentifier(utilCsUri, projects[1].Id)))?.Document;
         Assert.NotNull(textDocument);
         document = (Document)textDocument!;
         Assert.Equal("Ordinary", document.Project.AssemblyName);

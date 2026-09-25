@@ -34,7 +34,7 @@ With the plugin active, the agent gains LSP-powered capabilities for C# code:
 
 ## Automatic Project Loading
 
-The language server automatically discovers and loads projects using the following strategy (evaluated in order):
+When started with `--autoLoadProjects`, the language server discovers and loads projects at startup using the following strategy (evaluated in order):
 
 ### 1. VS Code Settings (`dotnet.defaultSolution`)
 
@@ -48,7 +48,7 @@ If a `.vscode/settings.json` file exists in the workspace folder, the server rea
 ```
 
 - **Relative or absolute paths** to a `.sln` or `.slnx` file are supported.
-- Set to `"disable"` to prevent the server from loading any solution or projects automatically:
+- Set to `"disable"` to prevent the server from loading a solution or projects at startup:
   ```jsonc
   {
     "dotnet.defaultSolution": "disable"
@@ -62,6 +62,21 @@ If there is exactly **one** `.sln` or `.slnx` file at the root of the workspace 
 ### 3. Individual Project Discovery
 
 As a fallback, the server recursively discovers all `.csproj` files within the workspace folders and loads them individually.
+
+### On-Demand Project Loading
+
+Separately from startup loading, a request for a file that is not yet in a loaded project can trigger on-demand loading. The server searches upward from the file's directory, stopping at the workspace folder, and loads the supported projects in the nearest directory containing project files. It then loads their transitive project references. It does not scan the rest of the workspace for projects on demand.
+
+On-demand loading is enabled by default. To disable request-triggered project loading, set `dotnet.projects.loadOnDemand` in `.vscode/settings.json`:
+
+```jsonc
+// .vscode/settings.json
+{
+  "dotnet.projects.loadOnDemand": false
+}
+```
+
+Setting `dotnet.defaultSolution` to `"disable"` only disables startup loading; on-demand loading remains available unless `dotnet.projects.loadOnDemand` is also disabled.
 
 ## Troubleshooting
 
@@ -114,7 +129,7 @@ When the agent opens a workspace containing `.cs` files, it will:
 
 1. **Install and run** the [`roslyn-language-server`](https://www.nuget.org/packages/roslyn-language-server) .NET tool on-the-fly using `dotnet dnx` (which downloads and caches the tool automatically; `--yes` skips confirmation and `--prerelease` allows prerelease versions).
 2. **Communicate over stdio** (`--stdio`) using the Language Server Protocol.
-3. **Automatically discover and load projects** (`--autoLoadProjects`) so that the agent immediately has full semantic understanding of the codebase.
+3. **Discover and load projects at startup** (`--autoLoadProjects`), with additional projects loaded on demand for requests to files not yet in loaded projects.
 
 ### Command-Line Options
 

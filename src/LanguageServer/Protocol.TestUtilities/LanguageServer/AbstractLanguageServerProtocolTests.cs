@@ -938,7 +938,25 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
         internal LspWorkspaceManager GetManager() => GetRequiredLspService<LspWorkspaceManager>();
 
+        internal async Task<LspWorkspaceContext?> CaptureLspDocumentContextAsync(LSP.TextDocumentIdentifier identifier, CancellationToken cancellationToken = default)
+        {
+            var manager = GetManager();
+            var contextTask = await manager.CaptureLspDocumentContextAsync(
+                identifier, manager.GetTrackedLspText(), allowProjectLoading: false, cancellationToken).ConfigureAwait(false);
+            return contextTask is null ? null : await contextTask.ConfigureAwait(false);
+        }
+
+        internal async Task<LspWorkspaceContext?> CaptureLspSolutionContextAsync(CancellationToken cancellationToken = default)
+        {
+            var manager = GetManager();
+            var contextTask = await manager.CaptureLspSolutionContextAsync(
+                manager.GetTrackedLspText(), allowProjectLoading: false, cancellationToken).ConfigureAwait(false);
+            return contextTask is null ? null : await contextTask.ConfigureAwait(false);
+        }
+
         internal AbstractLanguageServer<RequestContext>.TestAccessor GetServerAccessor() => _languageServer.Value.GetTestAccessor();
+
+        internal ILspServices GetLspServices() => _languageServer.Value.GetLspServices();
 
         internal T GetRequiredLspService<T>() where T : class => _languageServer.Value.GetTestAccessor().GetRequiredLspService<T>();
 
