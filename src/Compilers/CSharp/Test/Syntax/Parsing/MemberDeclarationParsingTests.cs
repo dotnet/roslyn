@@ -13749,25 +13749,14 @@ public class Class
         {
             foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
-                UsingDeclaration("partial C operator " + op + "(C x) => x;", options,
-                    // (1,11): error CS1003: Syntax error, '.' expected
-                    // partial C operator %=(C x) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 11)
-                    );
+                UsingDeclaration("partial C operator " + op + "(C x) => x;", options);
 
                 N(SyntaxKind.OperatorDeclaration);
                 {
+                    N(SyntaxKind.PartialKeyword);
                     N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierToken, "partial");
-                    }
-                    N(SyntaxKind.ExplicitInterfaceSpecifier);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "C");
-                        }
-                        M(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierToken, "C");
                     }
                     N(SyntaxKind.OperatorKeyword);
                     N(opToken);
@@ -13799,25 +13788,49 @@ public class Class
         }
 
         [Theory]
-        [CombinatorialData]
-        public void CompoundAssignmentDeclaration_20_Partial([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        [InlineData("+=", SyntaxKind.PlusEqualsToken)]
+        [InlineData("-=", SyntaxKind.MinusEqualsToken)]
+        [InlineData("*=", SyntaxKind.AsteriskEqualsToken)]
+        [InlineData("/=", SyntaxKind.SlashEqualsToken)]
+        [InlineData("%=", SyntaxKind.PercentEqualsToken)]
+        [InlineData("&=", SyntaxKind.AmpersandEqualsToken)]
+        [InlineData("|=", SyntaxKind.BarEqualsToken)]
+        [InlineData("^=", SyntaxKind.CaretEqualsToken)]
+        [InlineData("<<=", SyntaxKind.LessThanLessThanEqualsToken)]
+        [InlineData(">>=", SyntaxKind.GreaterThanGreaterThanEqualsToken)]
+        [InlineData(">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
+        public void CompoundAssignmentDeclaration_20_Partial(string op, SyntaxKind opToken)
         {
             foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
-                UsingDeclaration("partial void operator " + op + "(C x) {}", options,
-                    // (1,1): error CS1073: Unexpected token 'void'
-                    // partial void operator +=(C x) {}
-                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "partial").WithArguments("void").WithLocation(1, 1),
-                    // (1,9): error CS1519: Invalid token 'void' in a member declaration
-                    // partial void operator +=(C x) {}
-                    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "void").WithArguments("void").WithLocation(1, 9)
-                    );
+                UsingDeclaration("partial void operator " + op + "(C x) {}", options);
 
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.OperatorDeclaration);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.PredefinedType);
                     {
-                        N(SyntaxKind.IdentifierToken, "partial");
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(opToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 EOF();
@@ -13831,25 +13844,14 @@ public class Class
         {
             foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
-                UsingDeclaration("partial C operator " + op + "() => x;", options,
-                    // (1,11): error CS1003: Syntax error, '.' expected
-                    // partial C operator ++() => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 11)
-                    );
+                UsingDeclaration("partial C operator " + op + "() => x;", options);
 
                 N(SyntaxKind.OperatorDeclaration);
                 {
+                    N(SyntaxKind.PartialKeyword);
                     N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierToken, "partial");
-                    }
-                    N(SyntaxKind.ExplicitInterfaceSpecifier);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "C");
-                        }
-                        M(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierToken, "C");
                     }
                     N(SyntaxKind.OperatorKeyword);
                     N(opToken);
@@ -13873,25 +13875,32 @@ public class Class
         }
 
         [Theory]
-        [CombinatorialData]
-        public void IncrementDeclaration_02_Partial([CombinatorialValues("++", "--")] string op)
+        [InlineData("++", SyntaxKind.PlusPlusToken)]
+        [InlineData("--", SyntaxKind.MinusMinusToken)]
+        public void IncrementDeclaration_02_Partial(string op, SyntaxKind opToken)
         {
             foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
-                UsingDeclaration("partial void operator " + op + "() {}", options,
-                    // (1,1): error CS1073: Unexpected token 'void'
-                    // partial void operator ++() {}
-                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "partial").WithArguments("void").WithLocation(1, 1),
-                    // (1,9): error CS1519: Invalid token 'void' in a member declaration
-                    // partial void operator ++() {}
-                    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "void").WithArguments("void").WithLocation(1, 9)
-                    );
+                UsingDeclaration("partial void operator " + op + "() {}", options);
 
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.OperatorDeclaration);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.PredefinedType);
                     {
-                        N(SyntaxKind.IdentifierToken, "partial");
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(opToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 EOF();
