@@ -187,7 +187,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         }
         catch (Exception ex)
         {
-            logger.LogInformation("Could not read cache file: {ex.Message}", ex.Message);
+            logger.LogInformation(ex, "Could not read cache file");
         }
 
         cache ??= new Cache(workspaceFolder, DateTimeOffset.MinValue, FileBasedAppFullPaths: [], DirectoriesContainingCsproj: []);
@@ -233,7 +233,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         }
         catch (Exception ex) when (FatalError.ReportAndCatch(ex))
         {
-            logger.LogInformation("Could not write cache file: {ex.Message}", ex.Message);
+            logger.LogInformation(ex, "Could not write cache file");
         }
 
         return newCache.FileBasedAppFullPaths;
