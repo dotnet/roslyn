@@ -15,8 +15,8 @@ public sealed class FSharpSourceReferenceItemTests
     [Fact]
     public void ReferenceCarriesTheClassifiedLine()
     {
-        using var workspace = new AdhocWorkspace();
-        var document = workspace.AddProject("Project", LanguageNames.CSharp).AddDocument("Document.cs", "    let x = f 1");
+        using var workspace = new AdhocWorkspace(NoCompilationLanguage.CreateHostServices());
+        var document = workspace.AddProject("Project", NoCompilationLanguage.Name).AddDocument("Document.fs", "    let x = f 1");
         var sourceSpan = new FSharpDocumentSpan(document, new TextSpan(12, 1));
         ImmutableArray<ClassifiedSpan> classifiedSpans =
         [
@@ -38,8 +38,8 @@ public sealed class FSharpSourceReferenceItemTests
     [Fact]
     public void ReferenceWithoutClassificationLeavesItToTheWindow()
     {
-        using var workspace = new AdhocWorkspace();
-        var document = workspace.AddProject("Project", LanguageNames.CSharp).AddDocument("Document.cs", "f 1");
+        using var workspace = new AdhocWorkspace(NoCompilationLanguage.CreateHostServices());
+        var document = workspace.AddProject("Project", NoCompilationLanguage.Name).AddDocument("Document.fs", "f 1");
         var sourceSpan = new FSharpDocumentSpan(document, new TextSpan(0, 1));
 
         var reference = new FSharpSourceReferenceItem(Definition(sourceSpan), sourceSpan);
