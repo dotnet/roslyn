@@ -19,8 +19,8 @@ public sealed class FSharpNavigateToSearchResultTests
     [Fact]
     public void ResultInActiveDocumentSortsFirst()
     {
-        using var workspace = new AdhocWorkspace();
-        var projectId = workspace.AddProject("Project", LanguageNames.CSharp).Id;
+        using var workspace = new AdhocWorkspace(NoCompilationLanguage.CreateHostServices());
+        var projectId = workspace.AddProject("Project", NoCompilationLanguage.Name).Id;
         var document = AddDocument(workspace, projectId, "Active", ["A", "B", "C"]);
 
         Assert.Equal("0000 0002 0001 M Active", SecondarySort(document, activeDocument: document));
@@ -33,8 +33,8 @@ public sealed class FSharpNavigateToSearchResultTests
     [InlineData(new[] { "A", "B", "C", "D1" }, new[] { "A", "B", "C", "D2" }, "0003")]
     public void ResultSortsByFolderDistanceFromActiveDocument(string[] activeFolders, string[] otherFolders, string folderDistance)
     {
-        using var workspace = new AdhocWorkspace();
-        var projectId = workspace.AddProject("Project", LanguageNames.CSharp).Id;
+        using var workspace = new AdhocWorkspace(NoCompilationLanguage.CreateHostServices());
+        var projectId = workspace.AddProject("Project", NoCompilationLanguage.Name).Id;
         var activeDocument = AddDocument(workspace, projectId, "Active", activeFolders);
         var otherDocument = AddDocument(workspace, projectId, "Other", otherFolders);
 
@@ -44,8 +44,8 @@ public sealed class FSharpNavigateToSearchResultTests
     [Fact]
     public void ResultWithoutActiveDocumentOrCountsSortsByName()
     {
-        using var workspace = new AdhocWorkspace();
-        var projectId = workspace.AddProject("Project", LanguageNames.CSharp).Id;
+        using var workspace = new AdhocWorkspace(NoCompilationLanguage.CreateHostServices());
+        var projectId = workspace.AddProject("Project", NoCompilationLanguage.Name).Id;
         var document = AddDocument(workspace, projectId, "Other", []);
 
         INavigateToSearchResult result = new InternalFSharpNavigateToSearchResult(
@@ -60,8 +60,8 @@ public sealed class FSharpNavigateToSearchResultTests
     [Fact]
     public void ResultMatchesWithTheCaseAndSpansOfTheName()
     {
-        using var workspace = new AdhocWorkspace();
-        var projectId = workspace.AddProject("Project", LanguageNames.CSharp).Id;
+        using var workspace = new AdhocWorkspace(NoCompilationLanguage.CreateHostServices());
+        var projectId = workspace.AddProject("Project", NoCompilationLanguage.Name).Id;
         var document = AddDocument(workspace, projectId, "Other", []);
 
         INavigateToSearchResult result = new InternalFSharpNavigateToSearchResult(
@@ -83,7 +83,7 @@ public sealed class FSharpNavigateToSearchResultTests
     }
 
     private static Document AddDocument(AdhocWorkspace workspace, ProjectId projectId, string name, string[] folders)
-        => workspace.AddDocument(DocumentInfo.Create(DocumentId.CreateNewId(projectId), name + ".cs", folders, filePath: @"C:\" + name + ".cs"));
+        => workspace.AddDocument(DocumentInfo.Create(DocumentId.CreateNewId(projectId), name + ".fs", folders, filePath: @"C:\" + name + ".fs"));
 
     private static FSharpNavigableItem NavigableItem(Document document)
         => new(FSharpGlyph.MethodPublic, [], document, new TextSpan(0, 0));
