@@ -51,26 +51,14 @@ internal abstract class AbstractObjectInitializerCompletionProvider : LSPComplet
         var alreadyTypedMembers = GetInitializedMembers(semanticModel.SyntaxTree, position, cancellationToken);
         var uninitializedMembers = members.Where(m => !alreadyTypedMembers.Contains(m.Name));
 
-        // Sort the members by name so if we preselect one, it'll be stable
+        // Sort the members by name for consistency
         uninitializedMembers = uninitializedMembers
             .Where(m => m.IsEditorBrowsable(context.CompletionOptions.MemberDisplayOptions.HideAdvancedMembers, semanticModel.Compilation))
             .OrderBy(m => m.Name);
 
-        var firstUninitializedRequiredMember = true;
-
         foreach (var uninitializedMember in uninitializedMembers)
         {
             var rules = s_rules;
-
-            // We'll hard select the first required member to make it a bit easier to type out an object initializer
-            // with a bunch of members.
-            if (firstUninitializedRequiredMember &&
-                isObjectInitializer &&
-                uninitializedMember.IsRequired())
-            {
-                rules = rules.WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection).WithMatchPriority(MatchPriority.Preselect);
-                firstUninitializedRequiredMember = false;
-            }
 
             context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                 displayText: EscapeIdentifier(uninitializedMember),
