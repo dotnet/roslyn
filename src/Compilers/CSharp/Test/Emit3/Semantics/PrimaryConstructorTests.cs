@@ -17019,7 +17019,7 @@ class C(int y)
 			// Code size 9 (0x9)
 			.maxstack 8
 			IL_0000: ldarg.0
-			IL_0001: ldc.i4.s -2
+			IL_0001: ldc.i4.s -3
 			IL_0003: stfld int32 C/'<M>d__2'::'<>1__state'
 			IL_0008: ret
 		} // end of method '<M>d__2'::System.IDisposable.Dispose
@@ -17280,7 +17280,7 @@ class C(int y)
 			// Code size 9 (0x9)
 			.maxstack 8
 			IL_0000: ldarg.0
-			IL_0001: ldc.i4.s -2
+			IL_0001: ldc.i4.s -3
 			IL_0003: stfld int32 C/'<M>d__2'::'<>1__state'
 			IL_0008: ret
 		} // end of method '<M>d__2'::System.IDisposable.Dispose
@@ -18419,7 +18419,7 @@ class C(int y)
 				// Code size 9 (0x9)
 				.maxstack 8
 				IL_0000: ldarg.0
-				IL_0001: ldc.i4.s -2
+				IL_0001: ldc.i4.s -3
 				IL_0003: stfld int32 C/'<>c__DisplayClass0_0'/'<<-ctor>g__local|1>d'::'<>1__state'
 				IL_0008: ret
 			} // end of method '<<-ctor>g__local|1>d'::System.IDisposable.Dispose
@@ -18717,7 +18717,7 @@ class C(int y)
 				// Code size 9 (0x9)
 				.maxstack 8
 				IL_0000: ldarg.0
-				IL_0001: ldc.i4.s -2
+				IL_0001: ldc.i4.s -3
 				IL_0003: stfld int32 C/'<>c__DisplayClass0_0'/'<<-ctor>g__local|1>d'::'<>1__state'
 				IL_0008: ret
 			} // end of method '<<-ctor>g__local|1>d'::System.IDisposable.Dispose
