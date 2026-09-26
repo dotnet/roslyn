@@ -9023,16 +9023,23 @@ static class Interceptors
 S s = default;
 s.M(1);
 
+public static class Extensions
+{
+    extension(ref readonly S s)
+    {
+        public void M(int i) => System.Console.Write("original");
+    }
+}
+
 public struct S
 {
-    public readonly void M(int i) => System.Console.Write("original");
 }
 """;
         var locations = GetInterceptableLocations(source);
         var interceptors = $$"""
 static class Interceptors
 {
-    extension(in S s)
+    extension(ref readonly S s)
     {
         [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
         public void Method(int i) => System.Console.Write("intercepted");
