@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Logging;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -814,6 +815,73 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase, IClassFixture<Proje
         // Assert that there are no compilation errors.
         var compilation = await project.GetCompilationAsync();
         compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestLoadProject_FileBasedApp_RefDirectiveGraph()
+    {
+        CreateFiles(new FileSet(
+            ("Program.cs", """
+                #:property ExperimentalFileBasedProgramEnableRefDirective=true
+                #:ref Util.cs
+                Console.WriteLine(Util.M());
+                """),
+            ("Util.cs", """
+                #:property OutputType=Library
+                #:property ExperimentalFileBasedProgramEnableRefDirective=true
+                #:ref Common.cs
+                public static class Util
+                {
+                    public static string M() => Common.Value;
+                }
+                """),
+            ("Common.cs", """
+                #:property OutputType=Library
+                public static class Common
+                {
+                    public static string Value => "Common";
+                }
+                """)));
+
+        var sourceFilePath = GetSolutionFileName("Program.cs");
+        using var workspace = CreateMSBuildWorkspace();
+        var fileBasedProgramService = workspace.CurrentSolution.Services.GetRequiredService<IFileBasedProgramService>();
+        await using var buildHostProcessManager = new BuildHostProcessManager(
+            knownCommandLineParserLanguages: [LanguageNames.CSharp],
+            maxNodeCount: 1);
+        var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessKind.NetCore, CancellationToken.None);
+        var errors = new List<string>();
+        string expectedTargetFramework = null;
+
+        // Reload on the same host to verify the previous graph released its projects.
+        for (var i = 0; i < 2; i++)
+        {
+            var result = await FileBasedProgramsProjectLoader.LoadFileBasedAppProjectGraphAsync(
+                buildHost,
+                fileBasedProgramService,
+                sourceFilePath,
+                errors.Add,
+                CancellationToken.None);
+
+            Assert.Empty(errors);
+            expectedTargetFramework ??= Assert.Single(result.Root.ProjectFileInfos).TargetFramework;
+            Assert.False(string.IsNullOrEmpty(expectedTargetFramework));
+
+            var results = result.ReferencedProjects.Insert(0, result.Root);
+            var resultsByPath = results.ToDictionary(result => result.EntryPointFilePath, PathUtilities.Comparer);
+            Assert.Equal(3, resultsByPath.Count);
+            Assert.Contains(GetSolutionFileName("Program.cs"), resultsByPath.Keys, PathUtilities.Comparer);
+            Assert.Contains(GetSolutionFileName("Util.cs"), resultsByPath.Keys, PathUtilities.Comparer);
+            Assert.Contains(GetSolutionFileName("Common.cs"), resultsByPath.Keys, PathUtilities.Comparer);
+            Assert.All(results, result =>
+            {
+                var projectInfo = Assert.Single(result.ProjectFileInfos);
+                Assert.Equal(result.EntryPointFilePath, projectInfo.FilePath);
+                Assert.Equal(expectedTargetFramework, projectInfo.TargetFramework);
+            });
+        }
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
