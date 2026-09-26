@@ -54,6 +54,15 @@ public sealed class RpcTests
         public RpcClient Client { get; }
         public Task ServerCompletion { get; }
 
+        /// <summary>
+        /// Disconnects the client side of the pipe, simulating the client abruptly going away (for example, because the process was killed,
+        /// or it gave up waiting for a response) without cleanly shutting down the RPC channel.
+        /// </summary>
+        public void DisconnectClient()
+        {
+            _clientStream.Dispose();
+        }
+
         public async ValueTask DisposeAsync()
         {
             _clientStream.Dispose();
@@ -229,6 +238,39 @@ public sealed class RpcTests
         // Invoke the method, and ensure we don't get exceptions back due to the shutdown if the pipe closed too early.
         // This is not guaranteed to catch any bug, since any bug is fundamentally a race, but it at least ensures we aren't always broken.
         await rpcPair.Client.InvokeAsync(targetObject: 0, nameof(ObjectWithMethodThatShutsDownServer.Shutdown), [], CancellationToken.None);
+    }
+
+    [Fact]
+    public async Task ResponseWriteAfterClientDisconnectsDoesNotThrow()
+    {
+        await using var rpcPair = new RpcPair();
+
+        var rpcTarget = new ObjectWithRealAsyncMethod();
+        rpcPair.Server.AddTarget(rpcTarget);
+
+        // Invoke a method that we control the completion of; we don't await this since we're about to disconnect the client before it can
+        // ever get a response.
+        var call = rpcPair.Client.InvokeAsync(targetObject: 0, nameof(ObjectWithRealAsyncMethod.WaitAsync), [], CancellationToken.None);
+
+        // Ensure the RPC target has gotten the request before we disconnect the client.
+        rpcTarget.WaitUntilRequest(index: 0);
+
+        // Simulate the client disconnecting (as if it gave up waiting, or the other process was killed) before the server had a chance to
+        // write the response back.
+        rpcPair.DisconnectClient();
+
+        // Now let the method complete on the server side; this will attempt to write the response to a pipe that no longer has anybody
+        // listening on the other end. This should not throw and take down the whole server -- mirroring the equivalent issue that was fixed
+        // on the client side in https://github.com/dotnet/roslyn/issues/77040. This is not guaranteed to catch any bug, since any bug here is
+        // fundamentally a race, but it at least ensures we aren't always broken.
+        rpcTarget.Complete(index: 0);
+
+        // The server should still shut down cleanly.
+        await rpcPair.ServerCompletion;
+
+        // The original call will never get a response since we disconnected the client early; just ensure we observe whatever
+        // exception it completes with so it doesn't show up as an unobserved task exception.
+        await Assert.ThrowsAnyAsync<Exception>(() => call);
     }
 
 #pragma warning disable CA1822 // Mark members as static
