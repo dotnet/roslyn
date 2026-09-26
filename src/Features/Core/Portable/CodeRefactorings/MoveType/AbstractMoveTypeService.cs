@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -111,7 +112,13 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         if (manyTypes || isNestedType || isClassNextToGlobalStatements)
         {
             foreach (var fileName in suggestedFileNames)
-                actions.Add(GetCodeAction(fileName, operationKind: MoveTypeOperationKind.MoveType));
+            {
+                // Don't suggest a name that collides with an existing file, so the title shows the file we'll
+                // actually create (e.g. "B1.cs" when "B.cs" is already taken).
+                var (nonConflictingFileName, _) = GetNonConflictingFileNameAndFilePath(
+                    document.Project.Solution, document.Document.FilePath, fileName);
+                actions.Add(GetCodeAction(nonConflictingFileName, operationKind: MoveTypeOperationKind.MoveType));
+            }
         }
 
         // (2) Add rename file and rename type code actions:
@@ -250,6 +257,35 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         {
             suggestedFileNames.Add(parts.Join(separator) + fileExtension);
         }
+    }
+
+    /// <summary>
+    /// Picks the file name and path for the moved type, avoiding collisions with existing documents. The suggested
+    /// name ignores arity, so both <c>B&lt;T&gt;</c> and <c>B&lt;T1, T2&gt;</c> want "B.cs"; without this, moving the
+    /// second one would overwrite the first file. Falls back to a unique name like "B1.cs" when the path is taken.
+    /// </summary>
+    private static (string fileName, string? filePath) GetNonConflictingFileNameAndFilePath(
+        Solution solution, string? sourceDocumentFilePath, string suggestedFileName)
+    {
+        var directory = sourceDocumentFilePath is null ? null : PathUtilities.GetDirectoryName(sourceDocumentFilePath);
+        if (directory is null)
+            return (suggestedFileName, null);
+
+        var targetFilePath = PathUtilities.CombinePaths(directory, suggestedFileName);
+
+        // Nothing at this path yet, so the suggested name is fine.
+        if (solution.GetDocumentIdsWithFilePath(targetFilePath).IsEmpty)
+            return (suggestedFileName, targetFilePath);
+
+        // Something is already here. Find a free name next to it.
+        var baseName = Path.GetFileNameWithoutExtension(suggestedFileName);
+        var extension = Path.GetExtension(suggestedFileName);
+
+        var uniqueFileName = NameGenerator.GenerateUniqueName(
+            baseName, extension,
+            candidate => solution.GetDocumentIdsWithFilePath(PathUtilities.CombinePaths(directory, candidate)).IsEmpty);
+
+        return (uniqueFileName, PathUtilities.CombinePaths(directory, uniqueFileName));
     }
 
     private IEnumerable<(string name, int arity)> GetTypeNamePartsForNestedTypeNode(TTypeDeclarationSyntax typeNode)
