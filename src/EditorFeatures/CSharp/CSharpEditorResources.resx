@@ -152,6 +152,10 @@
   <data name="Fixing_string_literal_after_paste" xml:space="preserve">
     <value>Fixing string literal after paste</value>
   </data>
+  <data name="Fixing_cref_after_paste" xml:space="preserve">
+    <value>Fixing cref after paste</value>
+    <comment>"cref" is a documentation comment attribute name and should not be localized</comment>
+  </data>
   <data name="Generating_event" xml:space="preserve">
     <value>Generating event...</value>
   </data>
