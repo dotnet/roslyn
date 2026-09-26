@@ -9016,6 +9016,39 @@ static class Interceptors
 """);
     }
 
+    [Fact, CompilerTrait(CompilerFeature.Extensions), WorkItem("https://github.com/dotnet/roslyn/issues/85759")]
+    public void Extensions_18_RefReadOnly()
+    {
+        var source = """
+S s = default;
+s.M(1);
+
+public static class Extensions
+{
+    extension(ref readonly S s)
+    {
+        public void M(int i) => System.Console.Write("original");
+    }
+}
+
+public struct S
+{
+}
+""";
+        var locations = GetInterceptableLocations(source);
+        var interceptors = $$"""
+static class Interceptors
+{
+    extension(ref readonly S s)
+    {
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
+        public void Method(int i) => System.Console.Write("intercepted");
+    }
+}
+""";
+        CompileAndVerify([source, interceptors, s_attributesSource], parseOptions: RegularPreviewWithInterceptors, expectedOutput: "intercepted").VerifyDiagnostics();
+    }
+
     [Fact, CompilerTrait(CompilerFeature.Extensions)]
     public void Extensions_18()
     {
@@ -9563,4 +9596,3 @@ static class Interceptors
             Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(3, 15));
     }
 }
-
