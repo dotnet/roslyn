@@ -434,37 +434,26 @@ namespace Microsoft.CodeAnalysis
         {
             while (node.Parent != null)
             {
-                // walk forward in parent's child list until we find ourselves and then return the
-                // next token
-                bool returnNext = false;
-                foreach (var child in node.Parent.ChildNodesAndTokens())
+                foreach (var child in node.SiblingsAfterSelf())
                 {
-                    if (returnNext)
+                    if (child.IsToken)
                     {
-                        if (child.IsToken)
+                        var token = GetFirstToken(child.AsToken(), predicate, stepInto);
+                        if (token.RawKind != None)
                         {
-                            var token = GetFirstToken(child.AsToken(), predicate, stepInto);
-                            if (token.RawKind != None)
-                            {
-                                return token;
-                            }
-                        }
-                        else
-                        {
-                            Debug.Assert(child.IsNode);
-                            var token = GetFirstToken(child.AsNode()!, predicate, stepInto);
-                            if (token.RawKind != None)
-                            {
-                                return token;
-                            }
+                            return token;
                         }
                     }
-                    else if (child.IsNode && child.AsNode() == node)
+                    else
                     {
-                        returnNext = true;
+                        Debug.Assert(child.IsNode);
+                        var token = GetFirstToken(child.AsNode()!, predicate, stepInto);
+                        if (token.RawKind != None)
+                        {
+                            return token;
+                        }
                     }
                 }
-
                 // didn't find the next token in my parent's children, look up the tree
                 node = node.Parent;
             }
@@ -484,34 +473,24 @@ namespace Microsoft.CodeAnalysis
         {
             while (node.Parent != null)
             {
-                // walk forward in parent's child list until we find ourselves and then return the
-                // previous token
-                bool returnPrevious = false;
-                foreach (var child in node.Parent.ChildNodesAndTokens().Reverse())
+                foreach (var child in node.SiblingsBeforeSelf())
                 {
-                    if (returnPrevious)
+                    if (child.IsToken)
                     {
-                        if (child.IsToken)
+                        var token = GetLastToken(child.AsToken(), predicate, stepInto);
+                        if (token.RawKind != None)
                         {
-                            var token = GetLastToken(child.AsToken(), predicate, stepInto);
-                            if (token.RawKind != None)
-                            {
-                                return token;
-                            }
-                        }
-                        else
-                        {
-                            Debug.Assert(child.IsNode);
-                            var token = GetLastToken(child.AsNode()!, predicate, stepInto);
-                            if (token.RawKind != None)
-                            {
-                                return token;
-                            }
+                            return token;
                         }
                     }
-                    else if (child.IsNode && child.AsNode() == node)
+                    else
                     {
-                        returnPrevious = true;
+                        Debug.Assert(child.IsNode);
+                        var token = GetLastToken(child.AsNode()!, predicate, stepInto);
+                        if (token.RawKind != None)
+                        {
+                            return token;
+                        }
                     }
                 }
 
@@ -542,34 +521,24 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                // walk forward in parent's child list until we find ourself 
-                // and then return the next token
-                bool returnNext = false;
-                foreach (var child in current.Parent.ChildNodesAndTokens())
+                foreach (var child in current.SiblingsAfterSelf())
                 {
-                    if (returnNext)
+                    if (child.IsToken)
                     {
-                        if (child.IsToken)
+                        var token = GetFirstToken(child.AsToken(), predicate, stepInto);
+                        if (token.RawKind != None)
                         {
-                            var token = GetFirstToken(child.AsToken(), predicate, stepInto);
-                            if (token.RawKind != None)
-                            {
-                                return token;
-                            }
-                        }
-                        else
-                        {
-                            Debug.Assert(child.IsNode);
-                            var token = GetFirstToken(child.AsNode()!, predicate, stepInto);
-                            if (token.RawKind != None)
-                            {
-                                return token;
-                            }
+                            return token;
                         }
                     }
-                    else if (child.IsToken && child.AsToken() == current)
+                    else
                     {
-                        returnNext = true;
+                        Debug.Assert(child.IsNode);
+                        var token = GetFirstToken(child.AsNode()!, predicate, stepInto);
+                        if (token.RawKind != None)
+                        {
+                            return token;
+                        }
                     }
                 }
 
@@ -596,34 +565,24 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                // walk forward in parent's child list until we find ourself 
-                // and then return the next token
-                bool returnPrevious = false;
-                foreach (var child in current.Parent.ChildNodesAndTokens().Reverse())
+                foreach (var child in current.SiblingsBeforeSelf())
                 {
-                    if (returnPrevious)
+                    if (child.IsToken)
                     {
-                        if (child.IsToken)
+                        var token = GetLastToken(child.AsToken(), predicate, stepInto);
+                        if (token.RawKind != None)
                         {
-                            var token = GetLastToken(child.AsToken(), predicate, stepInto);
-                            if (token.RawKind != None)
-                            {
-                                return token;
-                            }
-                        }
-                        else
-                        {
-                            Debug.Assert(child.IsNode);
-                            var token = GetLastToken(child.AsNode()!, predicate, stepInto);
-                            if (token.RawKind != None)
-                            {
-                                return token;
-                            }
+                            return token;
                         }
                     }
-                    else if (child.IsToken && child.AsToken() == current)
+                    else
                     {
-                        returnPrevious = true;
+                        Debug.Assert(child.IsNode);
+                        var token = GetLastToken(child.AsNode()!, predicate, stepInto);
+                        if (token.RawKind != None)
+                        {
+                            return token;
+                        }
                     }
                 }
 
