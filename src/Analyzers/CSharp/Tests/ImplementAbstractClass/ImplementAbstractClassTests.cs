@@ -2417,7 +2417,7 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
             }
             """);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/75992")]
     public Task InsertMissingBraces()
         => TestAllOptionsOffAsync(
