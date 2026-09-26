@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 if (inPlaceTarget is not null)
                 {
-                    EmitAddress(inPlaceTarget, AddressKind.Writeable);
+                    EmitAddress(inPlaceTarget, AddressKind.Writeable, used: true);
                 }
 
                 // Map a field to the block (that makes it addressable).
@@ -700,7 +700,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 if (inPlaceTarget is not null)
                 {
-                    EmitAddress(inPlaceTarget, AddressKind.Writeable);
+                    EmitAddress(inPlaceTarget, AddressKind.Writeable, used: true);
                 }
 
                 ImmutableArray<ConstantValue> constants = initializers.SelectAsArray(static init => init.ConstantValueOpt!);
@@ -756,7 +756,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // If this is in-place initialization, call the default ctor.
                 if (inPlaceTarget is not null)
                 {
-                    EmitAddress(inPlaceTarget, AddressKind.Writeable);
+                    EmitAddress(inPlaceTarget, AddressKind.Writeable, used: true);
                     _builder.EmitOpCode(ILOpCode.Initobj);
                     EmitSymbolToken(spanType, wrappedExpression.Syntax);
                     if (used)
