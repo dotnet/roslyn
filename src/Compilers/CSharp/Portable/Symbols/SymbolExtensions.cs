@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static void CheckUnsafeModifier(this Symbol symbol, DeclarationModifiers modifiers, Location errorLocation, DiagnosticBag? diagnostics)
         {
             if (diagnostics != null &&
-                (modifiers & DeclarationModifiers.Unsafe) == DeclarationModifiers.Unsafe &&
+                (modifiers & (DeclarationModifiers.Unsafe | DeclarationModifiers.Safe)) != 0 &&
                 !symbol.CompilationAllowsUnsafe())
             {
                 RoslynDebug.Assert(errorLocation != null);
