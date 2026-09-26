@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -30,19 +31,33 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
             _project = project;
         }
 
+        internal override CodeActionCleanup Cleanup => CodeActionCleanup.None;
+
         protected sealed override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
             IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             var changedSuppressionDocument = await GetChangedSuppressionDocumentAsync(cancellationToken).ConfigureAwait(false);
+            var changedSolution = changedSuppressionDocument.Project.Solution;
+            var cleanedSolution = await PostProcessChangesAsync(
+                _project.Solution, changedSolution, progress, CodeActionCleanup.Default, cancellationToken).ConfigureAwait(false);
+            var normalizedSolution = await LineEndingUtilities.NormalizeChangedDocumentsLineEndingsAsync(
+                _project.Solution, cleanedSolution, cancellationToken).ConfigureAwait(false);
+
             return
             [
-                new ApplyChangesOperation(changedSuppressionDocument.Project.Solution),
+                new ApplyChangesOperation(normalizedSolution),
                 new OpenDocumentOperation(changedSuppressionDocument.Id, activateIfAlreadyOpen: true),
                 new DocumentNavigationOperation(changedSuppressionDocument.Id, position: 0),
             ];
         }
 
         protected abstract Task<Document> GetChangedSuppressionDocumentAsync(CancellationToken cancellationToken);
+
+        protected static Task<string> GetLineEndingAsync(Document document, string fallbackLineEnding, CancellationToken cancellationToken)
+            => LineEndingUtilities.GetLineEndingAsync(document, fallbackLineEnding, cancellationToken);
+
+        protected static SyntaxFormattingOptions WithLineEnding(SyntaxFormattingOptions options, string lineEnding)
+            => options with { LineFormatting = options.LineFormatting with { NewLine = lineEnding } };
 
         private string GetSuppressionsFilePath(string suppressionsFileName)
         {

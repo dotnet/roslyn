@@ -186,7 +186,7 @@ internal static class CSharpCodeGenerationHelpers
 
         if (index != 0 && declarationList[index - 1].ContainsDiagnostics && AreBracesMissing(declarationList[index - 1]))
         {
-            return declarationList.Insert(index, declaration.WithLeadingTrivia(ElasticCarriageReturnLineFeed));
+            return declarationList.Insert(index, declaration.WithLeadingTrivia(ElasticEndOfLine(Environment.NewLine)));
         }
 
         return declarationList.Insert(index, declaration);
