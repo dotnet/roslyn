@@ -50117,6 +50117,81 @@ public class C<T>
     }
 
     [Fact]
+    public void Nullability_ObjectInitializer_15()
+    {
+        // AllowNull on non-nullable extension property setter
+        var src = """
+#nullable enable
+
+object? oNull = null;
+_ = new object() { Prop = null };
+_ = new object() { Prop = oNull };
+""";
+        var libSrc = """
+#nullable enable
+
+public static class E
+{
+    extension(object o)
+    {
+        [property: System.Diagnostics.CodeAnalysis.AllowNull]
+        public object Prop { set { } }
+    }
+}
+""";
+        var comp = CreateCompilation([src, libSrc], targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net90);
+        var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()], targetFramework: TargetFramework.Net90);
+        comp2.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_16()
+    {
+        // DisallowNull on nullable extension property setter
+        var src = """
+#nullable enable
+
+object? oNull = null;
+_ = new object() { Prop = null }; // 1
+_ = new object() { Prop = oNull }; // 2
+_ = new object() { Prop = new object() };
+""";
+        var libSrc = """
+#nullable enable
+
+public static class E
+{
+    extension(object o)
+    {
+        [property: System.Diagnostics.CodeAnalysis.DisallowNull]
+        public object? Prop { set { } }
+    }
+}
+""";
+        var comp = CreateCompilation([src, libSrc], targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (4,27): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // _ = new object() { Prop = null }; // 1
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 27),
+            // (5,27): warning CS8601: Possible null reference assignment.
+            // _ = new object() { Prop = oNull }; // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNull").WithLocation(5, 27));
+
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net90);
+        var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()], targetFramework: TargetFramework.Net90);
+        comp2.VerifyEmitDiagnostics(
+            // (4,27): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // _ = new object() { Prop = null }; // 1
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 27),
+            // (5,27): warning CS8601: Possible null reference assignment.
+            // _ = new object() { Prop = oNull }; // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNull").WithLocation(5, 27));
+    }
+
+    [Fact]
     public void Nullability_With_01()
     {
         var src = """
@@ -50351,6 +50426,87 @@ static class E
 
         AssertEx.Equal("System.String? E.extension<System.String?>(C<System.String?>!).Property { set; }",
             model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_With_08()
+    {
+        // AllowNull on non-nullable extension property setter
+        var src = """
+#nullable enable
+
+object? oNull = null;
+R r = new R();
+_ = r with { Prop = null };
+_ = r with { Prop = oNull };
+""";
+        var libSrc = """
+#nullable enable
+
+public record R;
+
+public static class E
+{
+    extension(R r)
+    {
+        [property: System.Diagnostics.CodeAnalysis.AllowNull]
+        public object Prop { set { } }
+    }
+}
+""";
+        var comp = CreateCompilation([src, libSrc], targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net90);
+        var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()], targetFramework: TargetFramework.Net90);
+        comp2.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_With_09()
+    {
+        // DisallowNull on nullable extension property setter
+        var src = """
+#nullable enable
+
+object? oNull = null;
+R r = new R();
+_ = r with { Prop = null }; // 1
+_ = r with { Prop = oNull }; // 2
+_ = r with { Prop = new object() };
+""";
+        var libSrc = """
+#nullable enable
+
+public record R;
+
+public static class E
+{
+    extension(R r)
+    {
+        [property: System.Diagnostics.CodeAnalysis.DisallowNull]
+        public object? Prop { set { } }
+    }
+}
+""";
+        var comp = CreateCompilation([src, libSrc], targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (5,21): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // _ = r with { Prop = null }; // 1
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 21),
+            // (6,21): warning CS8601: Possible null reference assignment.
+            // _ = r with { Prop = oNull }; // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNull").WithLocation(6, 21));
+
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net90);
+        var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()], targetFramework: TargetFramework.Net90);
+        comp2.VerifyEmitDiagnostics(
+            // (5,21): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // _ = r with { Prop = null }; // 1
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 21),
+            // (6,21): warning CS8601: Possible null reference assignment.
+            // _ = r with { Prop = oNull }; // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNull").WithLocation(6, 21));
     }
 
     [Fact]
