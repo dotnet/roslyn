@@ -158,6 +158,9 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
         }),
         cancellationToken);
 
+    // Start periodic memory usage logging for diagnostics
+    using var memoryUsageLogger = new MemoryUsageLoggerService(loggerFactory);
+
     try
     {
         // Build the connection source for the configured mode. Single-server mode (stdio / connect-out pipe) yields
