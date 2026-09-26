@@ -55,10 +55,11 @@ internal sealed class TextDocumentItem
     }
 
     /// <summary>
-    /// Gets or sets the content of the opened text document.
+    /// Gets or sets the content of the opened text document. May be omitted when the client and server negotiate
+    /// <see cref="VSInternalClientCapabilities.SupportsNotIncludingTextInTextDocumentDidOpen"/>.
     /// </summary>
     [JsonPropertyName("text")]
-    public string Text
+    public string? Text
     {
         get;
         set;
