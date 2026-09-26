@@ -334,6 +334,30 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
         });
 
     [Fact]
+    public Task ProjectLayout()
+        => RunTestAsync(async path =>
+        {
+            MarkupTestFile.GetSpan("""
+            public class C
+            {
+                // A change
+                public event System.EventHandler [|E|] { add { } remove { } }
+            }
+            """, out var metadataSource, out var expectedSpan);
+
+            Directory.CreateDirectory(Path.Combine(path, "ref"));
+
+            // Compile reference assembly
+            var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
+            var (project, symbol) = await CompileAndFindSymbolAsync(Path.Combine(path, "ref"), Location.Embedded, Location.OnDisk, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
+
+            // Compile implementation assembly
+            CompileTestSource(path, sourceText, project, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
+
+            await GenerateFileAndVerifyAsync(project, symbol, Location.Embedded, metadataSource.ToString(), expectedSpan, expectNullResult: false);
+        });
+
+    [Fact]
     public Task Net6SdkLayout()
         => RunTestAsync(async path =>
         {
