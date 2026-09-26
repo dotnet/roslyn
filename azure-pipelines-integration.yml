@@ -95,6 +95,7 @@ stages:
     buildQueueName: ${{ parameters.buildQueueName }}
     timeout: ${{ parameters.timeout }}
     configuration: Debug
+    warnAsError: true
     testRuns:
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
         - oop64bit: false
@@ -111,6 +112,7 @@ stages:
     buildQueueName: ${{ parameters.buildQueueName }}
     timeout: ${{ parameters.timeout }}
     configuration: Release
+    warnAsError: true
     testRuns:
       - oop64bit: false
         lspEditor: false
