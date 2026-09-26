@@ -9,6 +9,8 @@ Using the command line, Roslyn can be developed using the following pattern:
 1. Run Build.cmd
 1. Run Test.cmd
 
+You can pass `-enableCompilerCache` to `Build.cmd` to download and enable the compiler cache, which speeds up subsequent builds.
+
 ## Recommended version of .NET Framework
 
 The minimal required version of .NET Framework is 4.7.2.
