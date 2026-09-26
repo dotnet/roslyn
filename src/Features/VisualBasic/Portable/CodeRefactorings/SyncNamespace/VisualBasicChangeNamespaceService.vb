@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -89,6 +90,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
         ' This is only reachable when called from a VB service, which is not implemented yet.
         Protected Overrides Function GetDeclaredNamespace(container As SyntaxNode) As String
             Throw ExceptionUtilities.Unreachable
+        End Function
+
+        Protected Overrides Function GetRightmostName(name As NameSyntax) As SimpleNameSyntax
+            Return name.GetRightmostName()
         End Function
 
         Private Shared Function CreateNamespaceAsQualifiedName(namespaceParts As ImmutableArray(Of String), index As Integer) As NameSyntax
