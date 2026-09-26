@@ -275,4 +275,127 @@ public sealed class SdkIntegrationTests : IDisposable
         Assert.Equal(analyzerGlobalConfigText, embeddedText);
         ArtifactUploadUtil.SetSucceeded();
     }
+
+    [ConditionalFact(typeof(DotNetSdkAvailable))]
+    public void CoreCompile_NestedCSharpCoreCompileTargetState()
+    {
+        var appConfig = ProjectDir.CreateFile("app.config").WriteAllText("<configuration />");
+        var existingBinlogInput = ProjectDir.CreateFile("existing.txt").WriteAllText("existing");
+        var editorConfig = ProjectDir.CreateFile(".editorconfig").WriteAllText("is_global = true");
+        var resource = ProjectDir.CreateFile("resource.txt").WriteAllText("resource");
+        var projectFile = ProjectDir.CreateFile("console.csproj");
+        // Changes made in `_CSharpCoreCompile` should be visible to both `TargetsTriggeredAfterCSharpCompilation` and targets with `AfterTargets="CoreCompile"`
+        // but remain invisible to targets in `TargetsTriggeredByCompilation`
+        projectFile.WriteAllText($"""
+                        <Project Sdk="Microsoft.NET.Sdk">
+                            <PropertyGroup>
+                                <TargetFramework>{NetCoreTfm}</TargetFramework>
+                                <UseAppConfigForCompiler>true</UseAppConfigForCompiler>
+                                <AppConfigForCompiler></AppConfigForCompiler>
+                                <AppConfig>{appConfig.Path}</AppConfig>
+                                <DebugSymbols>false</DebugSymbols>
+                                <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+                                <ProvideCommandLineArgs>true</ProvideCommandLineArgs>
+                                <TargetsTriggeredByCompilation>VerifyTriggeredByCompilation</TargetsTriggeredByCompilation>
+                                <TargetsTriggeredAfterCSharpCompilation>VerifyTriggeredAfterCSharpCompilation</TargetsTriggeredAfterCSharpCompilation>
+                            </PropertyGroup>
+                            <ItemGroup>
+                                <EmbedInBinlog Include="{existingBinlogInput.Path}" />
+                            </ItemGroup>
+                            <Target Name="CompilePreparation" BeforeTargets="CoreCompile">
+                                <ItemGroup>
+                                    <CscCommandLineArgs Remove="@(CscCommandLineArgs)" />
+                                    <_CoreCompileResourceInputs Include="{resource.Path}" WithCulture="false" />
+
+                                    <_NestedExistingBinlogInput1 Include="@(EmbedInBinlog)" Condition="'%(Identity)' == '{existingBinlogInput.Path}'" />
+                                    <_NestedEditorConfigBinlogInput1 Include="@(EmbedInBinlog)" Condition="'%(Identity)' == '{editorConfig.Path}'" />
+                                </ItemGroup>                                
+                                <Error Condition="$([System.String]::Copy(';$(NoWarn);').Contains(';8002;')) == 'true'" Text="8002 was available in before CoreCompile scope." />
+                                <Error Condition="'$(AppConfigForCompiler)' != ''" Text="AppConfigForCompiler was set in before CoreCompile  scope." />
+                                <Error Condition="'@(CscCommandLineArgs->Count())' != '0'" Text="CscCommandLineArgs were available in before CoreCompile  scope." />
+                                <Error Condition="'@(_NestedExistingBinlogInput1->Count())' != '1'" Text="Existing EmbedInBinlog input was not preserved in before CoreCompile  scope." />
+                                <Error Condition="'@(_NestedEditorConfigBinlogInput1->Count())' != '0'" Text="EditorConfig EmbedInBinlog input was included in before CoreCompile  scope." />
+                                <Error Condition="'@(_CoreCompileResourceInputs->Count())' == '0'" Text="_CoreCompileResourceInputs was empty in before CoreCompile scope." />
+                            </Target>
+                            <Target Name="VerifyTriggeredByCompilation">
+                                <ItemGroup>
+                                    <_NestedExistingBinlogInput2 Include="@(EmbedInBinlog)" Condition="'%(Identity)' == '{existingBinlogInput.Path}'" />
+                                    <_NestedEditorConfigBinlogInput2 Include="@(EmbedInBinlog)" Condition="'%(Identity)' == '{editorConfig.Path}'" />
+                                </ItemGroup>                                
+                                <Error Condition="$([System.String]::Copy(';$(NoWarn);').Contains(';8002;')) == 'true'" Text="8002 was available in TriggeredByCompilation scope." />
+                                <Error Condition="'$(AppConfigForCompiler)' != ''" Text="AppConfigForCompiler was available in TriggeredByCompilation scope." />
+                                <Error Condition="'@(CscCommandLineArgs->Count())' != '0'" Text="CscCommandLineArgs were available in TriggeredByCompilation scope." />
+                                <Error Condition="'@(_NestedExistingBinlogInput2->Count())' != '1'" Text="Existing EmbedInBinlog input was not preserved in TriggeredByCompilation scope." />
+                                <Error Condition="'@(_NestedEditorConfigBinlogInput2->Count())' != '0'" Text="EditorConfig EmbedInBinlog input was available in TriggeredByCompilation scope." />
+                                <Error Condition="'@(_CoreCompileResourceInputs->Count())' == '0'" Text="_CoreCompileResourceInputs was cleared." />
+                            </Target>
+                            <Target Name="VerifyTriggeredAfterCSharpCompilation">
+                                <ItemGroup>
+                                    <_NestedExistingBinlogInput3 Include="@(EmbedInBinlog)" Condition="'%(Identity)' == '{existingBinlogInput.Path}'" />
+                                    <_NestedEditorConfigBinlogInput3 Include="@(EmbedInBinlog)" Condition="'%(Identity)' == '{editorConfig.Path}'" />
+                                </ItemGroup>                                
+                                <Error Condition="$([System.String]::Copy(';$(NoWarn);').Contains(';8002;')) != 'true'" Text="8002 was not available in AfterCSharpCompilation scope." />
+                                <Error Condition="'$(AppConfigForCompiler)' != '{appConfig.Path}'" Text="AppConfigForCompiler was not available in AfterCSharpCompilation scope." />
+                                <Error Condition="'@(CscCommandLineArgs->Count())' == '0'" Text="No CscCommandLineArgs were available in AfterCSharpCompilation scope." />
+                                <!--Error Condition="'@(_NestedExistingBinlogInput3->Count())' != '1'" Text="Existing EmbedInBinlog input was not preserved in AfterCSharpCompilation scope." /-->
+                                <!--Error Condition="'@(_NestedEditorConfigBinlogInput3->Distinct()->Count())' != '1'" Text="EditorConfig EmbedInBinlog input was not available in AfterCSharpCompilation scope." />-->
+                                <Error Condition="'@(_CoreCompileResourceInputs->Count())' != '0'" Text="_CoreCompileResourceInputs was not cleared." />
+                            </Target>
+                            <Target Name="VerifyOuterCompilerState" AfterTargets="CoreCompile">
+                                <ItemGroup>
+                                    <_ExistingBinlogInput Include="@(EmbedInBinlog)" Condition="'%(Identity)' == '{existingBinlogInput.Path}'" />
+                                    <_EditorConfigBinlogInput Include="@(EmbedInBinlog)" Condition="'%(Identity)' == '{editorConfig.Path}'" />
+                                </ItemGroup>
+                                <Error Condition="$([System.String]::Copy(';$(NoWarn);').Contains(';8002;')) != 'true'" Text="NoWarn was not marshaled." />
+                                <Error Condition="'$(AppConfigForCompiler)' != '{appConfig.Path}'" Text="AppConfigForCompiler was not marshaled." />
+                                <Error Condition="'@(CscCommandLineArgs->Count())' == '0'" Text="No CscCommandLineArgs were available in the outer scope." />
+                                <Error Condition="'@(_ExistingBinlogInput->Count())' != '1'" Text="Existing EmbedInBinlog input was not preserved in the outer scope." />
+                                <Error Condition="'@(_EditorConfigBinlogInput->Count())' != '1'" Text="EditorConfig EmbedInBinlog input was not preserved in the outer scope." />
+                                <Error Condition="'@(_CoreCompileResourceInputs->Count())' != '0'" Text="_CoreCompileResourceInputs was not cleared." />
+                            </Target>
+                        </Project>
+                        """);
+
+        ProjectDir.CreateFile("c.cs").WriteAllText("class C { }");
+        RunBuild(projectFile.Path, succeeds: true);
+    }
+
+    [ConditionalFact(typeof(DotNetSdkAvailable))]
+    public void CoreCompile_TargetsTriggeredByCSharpCompilation_ContinueOnError()
+    {
+        // if `TargetsTriggeredByCSharpCompilationContinueOnError` is set to true,
+        // targets in `TargetsTriggeredAfterCSharpCompilation` should run even if the targets in `TargetsTriggeredByCompilation` fail
+        var projectFile = ProjectDir.CreateFile("console.csproj");
+        projectFile.WriteAllText($"""
+                        <Project Sdk="Microsoft.NET.Sdk">
+                            <PropertyGroup>
+                                <TargetFramework>{NetCoreTfm}</TargetFramework>
+                                <TargetsTriggeredByCompilation>VerifyTriggeredByCompilation</TargetsTriggeredByCompilation>
+                                <TargetsTriggeredByCSharpCompilationContinueOnError>true</TargetsTriggeredByCSharpCompilationContinueOnError>
+                                <TargetsTriggeredAfterCSharpCompilation>VerifyTriggeredAfterCSharpCompilation</TargetsTriggeredAfterCSharpCompilation>
+                                <_VerifyTriggeredAfterCSharpCompilationExecuted>false</_VerifyTriggeredAfterCSharpCompilationExecuted>
+                            </PropertyGroup>
+                            <Target Name="VerifyTriggeredByCompilation">
+                                <Error Text="VerifyTriggeredByCompilation error." />
+                            </Target>
+                            <Target Name="VerifyTriggeredAfterCSharpCompilation">
+                                <PropertyGroup>
+                                    <_VerifyTriggeredAfterCSharpCompilationExecuted>true</_VerifyTriggeredAfterCSharpCompilationExecuted>
+                                </PropertyGroup>
+                            </Target>
+                            <Target Name="VerifyOuterCompilerState" AfterTargets="CoreCompile">
+                                <Error Condition="'$(_VerifyTriggeredAfterCSharpCompilationExecuted)' != 'true'" Text="VerifyTriggeredAfterCSharpCompilation did not execute." />
+                            </Target>
+                        </Project>
+                        """);
+
+        ProjectDir.CreateFile("c.cs").WriteAllText("class C { }");
+        var binlogPath = RunBuild(projectFile.Path, succeeds: false);
+        var build = BinaryLog.ReadBuild(binlogPath);
+        var errors = build.FindChildrenRecursive<Error>(static _ => true);
+
+        Assert.Equal(1, errors.Count);
+        Assert.Contains(errors, static error => error.Text == "VerifyTriggeredByCompilation error.");
+        Assert.DoesNotContain(errors, static error => error.Text == "VerifyTriggeredAfterCSharpCompilation did not execute.");
+    }
 }
