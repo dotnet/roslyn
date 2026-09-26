@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -27,8 +27,8 @@ internal class InternalFSharpNavigateToSearchResult : INavigateToSearchResult
     public INavigableItem NavigableItem { get; }
 
     /// <param name="activeDocument">The document the user was editing when they invoked the navigate-to
-    /// operation.</param>
-    public InternalFSharpNavigateToSearchResult(FSharpNavigateToSearchResult result, Document activeDocument)
+    /// operation, or <see langword="null"/> when the search was not invoked from a document.</param>
+    public InternalFSharpNavigateToSearchResult(FSharpNavigateToSearchResult result, Document? activeDocument)
     {
         AdditionalInformation = result.AdditionalInformation;
         Kind = result.Kind;
@@ -49,7 +49,7 @@ internal class InternalFSharpNavigateToSearchResult : INavigateToSearchResult
 
     public string SecondarySort => _secondarySort.Value;
 
-    public string Summary => null;
+    public string? Summary => null;
 
     public ImmutableArray<PatternMatch> Matches => NavigateToSearchResultHelpers.GetMatches(this);
 }

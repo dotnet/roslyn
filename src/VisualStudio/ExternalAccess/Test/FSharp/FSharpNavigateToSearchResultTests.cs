@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -82,8 +82,10 @@ public sealed class FSharpNavigateToSearchResultTests
         return result.SecondarySort;
     }
 
+    // The path is rooted with the one separator every platform reads as one: the sort key ends with the parts
+    // of the file name, and a backslash would leave the name attached to the drive letter on Unix.
     private static Document AddDocument(AdhocWorkspace workspace, ProjectId projectId, string name, string[] folders)
-        => workspace.AddDocument(DocumentInfo.Create(DocumentId.CreateNewId(projectId), name + ".fs", folders, filePath: @"C:\" + name + ".fs"));
+        => workspace.AddDocument(DocumentInfo.Create(DocumentId.CreateNewId(projectId), name + ".fs", folders, filePath: "/" + name + ".fs"));
 
     private static FSharpNavigableItem NavigableItem(Document document)
         => new(FSharpGlyph.MethodPublic, [], document, new TextSpan(0, 0));
