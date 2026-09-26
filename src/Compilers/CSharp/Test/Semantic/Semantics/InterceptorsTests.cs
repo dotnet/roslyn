@@ -9050,7 +9050,7 @@ static class Interceptors
     }
 
     [Fact, CompilerTrait(CompilerFeature.Extensions), WorkItem("https://github.com/dotnet/roslyn/issues/85759")]
-    public void Extensions_18_RefReadOnlyParameter()
+    public void Extensions_19_RefReadOnlyParameter()
     {
         var source = """
 int i = 1;
