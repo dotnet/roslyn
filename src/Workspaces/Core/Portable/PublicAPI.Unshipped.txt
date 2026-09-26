@@ -1,3 +1,9 @@
 Microsoft.CodeAnalysis.Editing.DeclarationModifiers.IsClosed.get -> bool
 Microsoft.CodeAnalysis.Editing.DeclarationModifiers.WithIsClosed(bool isClosed) -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
 static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Closed.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
+[RSEXPERIMENTAL008]Microsoft.CodeAnalysis.Extensions.ExtensionMessageContext
+[RSEXPERIMENTAL008]Microsoft.CodeAnalysis.Extensions.ExtensionMessageContext.Solution.get -> Microsoft.CodeAnalysis.Solution
+[RSEXPERIMENTAL008]Microsoft.CodeAnalysis.Extensions.IExtensionDocumentMessageHandler<TMessage, TResponse>
+[RSEXPERIMENTAL008]Microsoft.CodeAnalysis.Extensions.IExtensionDocumentMessageHandler<TMessage, TResponse>.ExecuteAsync(TMessage message, Microsoft.CodeAnalysis.Extensions.ExtensionMessageContext context, Microsoft.CodeAnalysis.Document document, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResponse>
+[RSEXPERIMENTAL008]Microsoft.CodeAnalysis.Extensions.IExtensionWorkspaceMessageHandler<TMessage, TResponse>
+[RSEXPERIMENTAL008]Microsoft.CodeAnalysis.Extensions.IExtensionWorkspaceMessageHandler<TMessage, TResponse>.ExecuteAsync(TMessage message, Microsoft.CodeAnalysis.Extensions.ExtensionMessageContext context, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResponse>
