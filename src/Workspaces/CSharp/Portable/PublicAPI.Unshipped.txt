@@ -1,1 +1,1 @@
-
+static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceWithinInterpolationBraces.get -> Microsoft.CodeAnalysis.Options.Option<bool>

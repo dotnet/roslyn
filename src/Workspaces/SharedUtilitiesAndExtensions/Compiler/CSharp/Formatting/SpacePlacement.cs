@@ -32,4 +32,5 @@ internal enum SpacePlacement
     BeforeComma = 1 << 20,
     AfterDot = 1 << 21,
     BeforeDot = 1 << 22,
+    WithinInterpolationBraces = 1 << 23,
 }

@@ -91,7 +91,8 @@ internal sealed record class CSharpSyntaxFormattingOptions : SyntaxFormattingOpt
             (options.GetOption(CSharpFormattingOptions2.SpaceAfterComma) ? SpacePlacement.AfterComma : 0) |
             (options.GetOption(CSharpFormattingOptions2.SpaceBeforeComma) ? SpacePlacement.BeforeComma : 0) |
             (options.GetOption(CSharpFormattingOptions2.SpaceAfterDot) ? SpacePlacement.AfterDot : 0) |
-            (options.GetOption(CSharpFormattingOptions2.SpaceBeforeDot) ? SpacePlacement.BeforeDot : 0);
+            (options.GetOption(CSharpFormattingOptions2.SpaceBeforeDot) ? SpacePlacement.BeforeDot : 0) |
+            (options.GetOption(CSharpFormattingOptions2.SpaceWithinInterpolationBraces) ? SpacePlacement.WithinInterpolationBraces : 0);
         SpacingAroundBinaryOperator = options.GetOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator);
         NewLines =
             (options.GetOption(CSharpFormattingOptions2.NewLineForMembersInObjectInit) ? NewLinePlacement.BeforeMembersInObjectInitializers : 0) |

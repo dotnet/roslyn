@@ -78,6 +78,7 @@ internal static class OptionsTestHelpers
         (CSharpFormattingOptions.SpaceWithinSquareBrackets, true),
         (CSharpFormattingOptions.SpacingAfterMethodDeclarationName, true),
         (CSharpFormattingOptions.SpacingAroundBinaryOperator, BinaryOperatorSpacingOptions.Remove),
+        (CSharpFormattingOptions.SpaceWithinInterpolationBraces, true),
         (CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, false),
         (CSharpFormattingOptions.WrappingPreserveSingleLine, false),
     ];

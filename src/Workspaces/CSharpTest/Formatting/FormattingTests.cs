@@ -8487,6 +8487,36 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             """);
 
     [Fact]
+    public async Task InterpolatedStrings1_1()
+    {
+        var options = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { SpaceWithinInterpolationBraces, true }
+        };
+        await AssertFormatAsync("""
+
+            class C
+            {
+                void M()
+                {
+                    var a = "World";
+                    var b = $"Hello, { a }";
+                }
+            }
+            """, """
+
+            class C
+            {
+                void M()
+                {
+                    var a = "World";
+                    var b = $"Hello, {a}";
+                }
+            }
+            """, changedOptionSet: options);
+    }
+
+    [Fact]
     public Task InterpolatedStrings2()
         => AssertFormatAsync("""
 
@@ -8513,6 +8543,38 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             """);
 
     [Fact]
+    public async Task InterpolatedStrings2_1()
+    {
+        var options = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { SpaceWithinInterpolationBraces, true }
+        };
+        await AssertFormatAsync("""
+
+            class C
+            {
+                void M()
+                {
+                    var a = "Hello";
+                    var b = "World";
+                    var c = $"{ a }, { b }";
+                }
+            }
+            """, """
+
+            class C
+            {
+                void M()
+                {
+                    var a = "Hello";
+                    var b = "World";
+                    var c = $"{a}, {b}";
+                }
+            }
+            """, changedOptionSet: options);
+    }
+
+    [Fact]
     public Task InterpolatedStrings3()
         => AssertFormatAsync("""
 
@@ -8535,6 +8597,36 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
+
+    [Fact]
+    public async Task InterpolatedStrings3_1()
+    {
+        var options = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { SpaceWithinInterpolationBraces, true }
+        };
+        await AssertFormatAsync("""
+
+            class C
+            {
+                void M()
+                {
+                    var a = "World";
+                    var b = $"Hello, { a }";
+                }
+            }
+            """, """
+
+            class C
+            {
+                void M()
+                {
+                    var a = "World";
+                    var b = $"Hello, { a }";
+                }
+            }
+            """, changedOptionSet: options);
+    }
 
     [Fact]
     public Task InterpolatedRawStrings3()
@@ -8609,6 +8701,64 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
+
+    [Fact]
+    public async Task InterpolatedStrings5_1()
+    {
+        var options = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { SpaceWithinInterpolationBraces, true }
+        };
+        await AssertFormatAsync("""
+
+            class C
+            {
+                void M()
+                {
+                    var a = "World";
+                    var b = $@"Hello, { a }";
+                }
+            }
+            """, """
+
+            class C
+            {
+                void M()
+                {
+                    var a = "World";
+                    var b = $@"Hello, {a}";
+                }
+            }
+            """, changedOptionSet: options);
+    }
+
+    [Fact]
+    public async Task InterpolatedStrings5_2()
+    {
+        var options = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { SpaceWithinInterpolationBraces, true }
+        };
+        await AssertFormatAsync("""
+
+            class C
+            {
+                void M()
+                {
+                    var a = $@"{{   ""result""   :   true   }}";
+                }
+            }
+            """, """
+
+            class C
+            {
+                void M()
+                {
+                    var a = $@"{{   ""result""   :   true   }}";
+                }
+            }
+            """, changedOptionSet: options);
+    }
 
     [Fact]
     public Task InterpolatedStrings6()
@@ -8733,6 +8883,34 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             """);
 
     [Fact]
+    public async Task InterpolatedStrings10_1()
+    {
+        var options = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { SpaceWithinInterpolationBraces, true }
+        };
+        await AssertFormatAsync("""
+
+            class C
+            {
+                void M()
+                {
+                    var s = $"{ 42,-4:x}";
+                }
+            }
+            """, """
+
+            class C
+            {
+                void M()
+                {
+                    var s = $"{42 , -4 :x}";
+                }
+            }
+            """, changedOptionSet: options);
+    }
+
+    [Fact]
     public Task InterpolatedRawStrings10()
         => AssertFormatAsync(""""
 
@@ -8782,6 +8960,40 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
+    [Fact]
+    public async Task InterpolatedStrings11_1()
+    {
+        var options = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { SpaceWithinInterpolationBraces, true }
+        };
+        await AssertFormatAsync("""
+
+            class C
+            {
+                void M()
+                {
+                    var hostAddress = "host";
+                    var nasTypeId = "nas";
+                    var version = "1.2";
+                    var c = $"{ hostAddress ?? "" }/{ nasTypeId }/{ version ?? "" }";
+                }
+            }
+            """, """
+
+            class C
+            {
+                void M()
+                {
+                    var hostAddress = "host";
+                    var nasTypeId = "nas";
+                    var version = "1.2";
+                    var c = $"{      hostAddress?? ""}/{nasTypeId   }/{version??""}";
+                }
+            }
+            """, changedOptionSet: options);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59811")]
     public Task InterpolatedStrings12()
         => AssertFormatAsync("""
@@ -8806,6 +9018,36 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
+    [Fact]
+    public async Task InterpolatedStrings12_1()
+    {
+        var options = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { SpaceWithinInterpolationBraces, true }
+        };
+        await AssertFormatAsync("""
+
+            class C
+            {
+                void M()
+                {
+                    var a = 1.2M;
+                    var c = $"{ a: 000.00 }";
+                }
+            }
+            """, """
+
+            class C
+            {
+                void M()
+                {
+                    var a = 1.2M;
+                    var c = $"{   a : 000.00 }";
+                }
+            }
+            """, changedOptionSet: options);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59811")]
     public Task InterpolatedStrings13()
         => AssertFormatAsync("""
@@ -8829,6 +9071,36 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
+
+    [Fact]
+    public async Task InterpolatedStrings13_1()
+    {
+        var options = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { SpaceWithinInterpolationBraces, true }
+        };
+        await AssertFormatAsync("""
+
+            class C
+            {
+                void M()
+                {
+                    var a = 1.2M;
+                    var c = $"{ ((a > 2) ? "a" : "b") }";
+                }
+            }
+            """, """
+
+            class C
+            {
+                void M()
+                {
+                    var a = 1.2M;
+                    var c = $"{ ((a>2)?"a":"b")}";
+                }
+            }
+            """, changedOptionSet: options);
+    }
 
     [Fact]
     public Task InterpolatedStrings14()
@@ -8873,6 +9145,34 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
+
+    [Fact]
+    public async Task InterpolatedStrings15_1()
+    {
+        var options = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { SpaceWithinInterpolationBraces, true }
+        };
+        await AssertFormatAsync("""
+
+            class C
+            {
+                void M()
+                {
+                    var s = $"{ 42,-4 }";
+                }
+            }
+            """, """
+
+            class C
+            {
+                void M()
+                {
+                    var s = $"{   42 , -4   }";
+                }
+            }
+            """, changedOptionSet: options);
+    }
 
     [Fact]
     public Task InterpolatedStrings16()

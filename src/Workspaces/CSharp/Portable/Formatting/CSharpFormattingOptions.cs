@@ -136,6 +136,9 @@ public static class CSharpFormattingOptions
     public static Option<BinaryOperatorSpacingOptions> SpacingAroundBinaryOperator { get; } =
         CSharpFormattingOptions2.SpacingAroundBinaryOperator.ToPublicOption().ConvertEnumOption<BinaryOperatorSpacingOptionsInternal, BinaryOperatorSpacingOptions>();
 
+    /// <inheritdoc cref="CSharpFormattingOptions2.SpaceWithinInterpolationBraces"/>
+    public static Option<bool> SpaceWithinInterpolationBraces { get; } = CSharpFormattingOptions2.SpaceWithinInterpolationBraces.ToPublicOption();
+
     /// <inheritdoc cref="CSharpFormattingOptions2.IndentBraces"/>
     public static Option<bool> IndentBraces { get; } = CSharpFormattingOptions2.IndentBraces.ToPublicOption();
 

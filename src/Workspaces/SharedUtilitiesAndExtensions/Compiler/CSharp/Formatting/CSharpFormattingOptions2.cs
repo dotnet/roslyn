@@ -186,6 +186,11 @@ internal static partial class CSharpFormattingOptions2
             GetSpacingAroundBinaryOperatorEditorConfigString))
         .WithPublicOption(PublicFeatureName, "SpacingAroundBinaryOperator");
 
+    public static Option2<bool> SpaceWithinInterpolationBraces { get; } = CreateOption(
+        CSharpFormattingOptionGroups.Spacing, "csharp_space_between_interpolation_braces",
+        CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.WithinInterpolationBraces))
+        .WithPublicOption(PublicFeatureName, "SpaceWithinInterpolationBraces");
+
     public static Option2<bool> IndentBraces { get; } = CreateOption(
         CSharpFormattingOptionGroups.Indentation, "csharp_indent_braces",
         CSharpSyntaxFormattingOptions.IndentationDefault.HasFlag(IndentationPlacement.Braces))

@@ -169,6 +169,7 @@ public sealed class FormatterTests
             Assert.True(formattingOptions.Spacing.HasFlag(SpacePlacement.BeforeComma));
             Assert.True(formattingOptions.Spacing.HasFlag(SpacePlacement.AfterDot));
             Assert.True(formattingOptions.Spacing.HasFlag(SpacePlacement.BeforeDot));
+            Assert.True(formattingOptions.Spacing.HasFlag(SpacePlacement.WithinInterpolationBraces));
 
             Assert.Equal(BinaryOperatorSpacingOptionsInternal.Remove, formattingOptions.SpacingAroundBinaryOperator);
 

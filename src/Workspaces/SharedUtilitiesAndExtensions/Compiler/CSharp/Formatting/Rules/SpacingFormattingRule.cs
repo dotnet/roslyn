@@ -500,7 +500,7 @@ internal sealed class SpacingFormattingRule : BaseFormattingRule
         // No space after { in interpolations (i.e. between the braces and the expression)
         if (previousKind == SyntaxKind.OpenBraceToken && previousToken.Parent is InterpolationSyntax)
         {
-            return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
+            return AdjustSpacesOperationZeroOrOne(_options.Spacing.HasFlag(SpacePlacement.WithinInterpolationBraces));
         }
 
         // Handle space before } in interpolations (i.e. between the braces and the expression)
@@ -508,7 +508,7 @@ internal sealed class SpacingFormattingRule : BaseFormattingRule
         {
             // If there is no format specifier (i.e. a colon) remove spaces
             if (interpolation.FormatClause is null)
-                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
+                return AdjustSpacesOperationZeroOrOne(_options.Spacing.HasFlag(SpacePlacement.WithinInterpolationBraces));
 
             // If there is a format specifier then whitespace is significant so preserve it
             return CreateAdjustSpacesOperation(0, AdjustSpacesOption.PreserveSpaces);
