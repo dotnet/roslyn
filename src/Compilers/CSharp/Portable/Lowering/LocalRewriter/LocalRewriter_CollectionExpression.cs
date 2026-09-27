@@ -287,12 +287,33 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression createImmutableArray(BoundCollectionExpression node, NamedTypeSymbol immutableArrayType)
             {
-                if (node.Elements.IsEmpty &&
-                    _factory.WellKnownMember(WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty, isOptional: true) is FieldSymbol immutableArrayOfTEmpty)
+                switch (node.Elements)
                 {
-                    // ImmutableArray<T> value = [];
-                    var immutableArrayOfTargetCollectionTypeEmpty = immutableArrayOfTEmpty.AsMember(immutableArrayType);
-                    return _factory.Field(receiver: null, immutableArrayOfTargetCollectionTypeEmpty);
+                    case []
+                        when _factory.WellKnownMember(WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty, isOptional: true) is FieldSymbol immutableArrayOfTEmpty:
+                        // ImmutableArray<T> value = [];
+                        var immutableArrayOfTargetCollectionTypeEmpty = immutableArrayOfTEmpty.AsMember(immutableArrayType);
+                        return _factory.Field(receiver: null, immutableArrayOfTargetCollectionTypeEmpty);
+                    case [BoundExpression single]
+                        when _factory.WellKnownMember(WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_OneElement, isOptional: true) is MethodSymbol createSingleElementGeneric:
+                        // ImmutableArray<T> value = ImmutableArray.Create<T>(single);
+                        var createSingleElementConstructed = createSingleElementGeneric.Construct([immutableArrayType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]]);
+                        return _factory.Call(receiver: null, createSingleElementConstructed, VisitExpression(single));
+                    case [BoundExpression first, BoundExpression second]
+                        when _factory.WellKnownMember(WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_TwoElements, isOptional: true) is MethodSymbol createTwoElementsGeneric:
+                        // ImmutableArray<T> value = ImmutableArray.Create<T>(first, second);
+                        var createTwoElementsConstructed = createTwoElementsGeneric.Construct([immutableArrayType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]]);
+                        return _factory.Call(receiver: null, createTwoElementsConstructed, VisitExpression(first), VisitExpression(second));
+                    case [BoundExpression first, BoundExpression second, BoundExpression third]
+                        when _factory.WellKnownMember(WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_ThreeElements, isOptional: true) is MethodSymbol createThreeElementsGeneric:
+                        // ImmutableArray<T> value = ImmutableArray.Create<T>(first, second, third);
+                        var createThreeElementsConstructed = createThreeElementsGeneric.Construct([immutableArrayType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]]);
+                        return _factory.Call(receiver: null, createThreeElementsConstructed, VisitExpression(first), VisitExpression(second), VisitExpression(third));
+                    case [BoundExpression first, BoundExpression second, BoundExpression third, BoundExpression fourth]
+                        when _factory.WellKnownMember(WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_FourElements, isOptional: true) is MethodSymbol createFourElementsGeneric:
+                        // ImmutableArray<T> value = ImmutableArray.Create<T>(first, second, third, fourth);
+                        var createFourElementsConstructed = createFourElementsGeneric.Construct([immutableArrayType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]]);
+                        return _factory.Call(receiver: null, createFourElementsConstructed, VisitExpression(first), VisitExpression(second), VisitExpression(third), VisitExpression(fourth));
                 }
 
                 if (CanOptimizeSingleSpreadAsCollectionBuilderArgument(node, out _))
