@@ -8962,12 +8962,15 @@ class D
 
 class Program
 {
-    static void M(C c, D d)
+    static void M(C c, D d, int x)
     {
         _ = c with { [0] = 1 };
         _ = c with { [0] = undefined };
         _ = c with { 1 = 2 };
         _ = c with { d.P = ""s"" };
+        _ = c with { [0] = ref x };
+        _ = c with { var(1) = 2 };
+        _ = c with { (_) = 1 };
     }
 }";
 
@@ -8990,7 +8993,25 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""s""").WithArguments("string", "int").WithLocation(19, 28),
                 // (19,22): error CS0747: Invalid initializer member declarator
                 //         _ = c with { d.P = "s" };
-                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, @"d.P = ""s""").WithLocation(19, 22));
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, @"d.P = ""s""").WithLocation(19, 22),
+                // (20,22): error CS0747: Invalid initializer member declarator
+                //         _ = c with { [0] = ref x };
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "[0] = ref x").WithLocation(20, 22),
+                // (21,22): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         _ = c with { var(1) = 2 };
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(1)").WithLocation(21, 22),
+                // (21,22): error CS0103: The name 'var' does not exist in the current context
+                //         _ = c with { var(1) = 2 };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(21, 22),
+                // (21,22): error CS0747: Invalid initializer member declarator
+                //         _ = c with { var(1) = 2 };
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "var(1) = 2").WithLocation(21, 22),
+                // (22,23): error CS0103: The name '_' does not exist in the current context
+                //         _ = c with { (_) = 1 };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(22, 23),
+                // (22,22): error CS0747: Invalid initializer member declarator
+                //         _ = c with { (_) = 1 };
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "(_) = 1").WithLocation(22, 22));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);

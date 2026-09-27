@@ -5981,6 +5981,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression boundLeft = BindExpression(initializer.Left, diagnostics, invoked: false, indexed: false);
 
+            // A discard is only bound for a left side that is an identifier or a tuple, which are handled elsewhere.
+            Debug.Assert(boundLeft.Kind != BoundKind.DiscardExpression);
+
             var valueCheckDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: diagnostics.AccumulatesDependencies);
             boundLeft = CheckValue(boundLeft, isRef ? BindValueKind.RefAssignable : BindValueKind.Assignable, valueCheckDiagnostics);
             if (valueCheckDiagnostics.HasAnyErrors())
@@ -5996,12 +5999,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var rhsKind = isRef ? GetRequiredRHSValueKindForRefAssignment(boundLeft) : BindValueKind.RValue;
             BoundExpression boundRight = BindValue(rhsExpr, diagnostics, rhsKind);
-
-            if (boundLeft.Kind == BoundKind.DiscardExpression)
-            {
-                boundRight = BindToNaturalType(boundRight, diagnostics);
-                boundLeft = InferTypeForDiscardAssignment((BoundDiscardExpression)boundLeft, boundRight, diagnostics);
-            }
 
             var boundAssignment = BindAssignment(initializer, boundLeft, boundRight, isRef, diagnostics);
             Error(diagnostics, ErrorCode.ERR_InvalidInitializerElementInitializer, initializer);
