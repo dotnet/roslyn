@@ -448,9 +448,8 @@
 -debug:pdbonly                    完全なデバッグ情報を生成します。
 -debug:portable                   クロスプラットフォーム デバッグ情報を生成します。
 -debug:embedded                   クロスプラットフォームのデバッグ情報を、ターゲットの .dll または .exe に
-                                  生成ます。
--deterministic                   決定論的アセンブリ
-を生成します
+                                  生成します。
+-deterministic                   決定論的アセンブリを生成します
                                   (モジュール バージョン GUID とタイムスタンプを含む)
 -refonly                          メイン出力の代わりに参照アセンブリを生成します
 -instrument:TestCoverage          カバレッジ情報を収集するようにインストルメント化されたアセンブリを
