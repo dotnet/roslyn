@@ -59,8 +59,6 @@ jobs:
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         HELIX_API_ACCESS_TOKEN: ${{ parameters.helixApiAccessToken }}
-        DOTNET_ROLL_FORWARD: LatestMajor
-        DOTNET_ROLL_FORWARD_TO_PRERELEASE: 1
 
     - template: publish-logs.yml
       parameters:

@@ -66,6 +66,8 @@ CI test-only jobs use `eng/pipelines/install-dotnet.yml` to install the SDK
 from `global.json` with `UseDotNet@2`. PrepareTests includes the checked-in
 `global.json` in the downloaded test payload for jobs without a source checkout.
 The task adds the SDK to `PATH`, and test steps call `dotnet exec` directly;
+the template also installs the .NET 10 runtime for the runner and testhosts,
+without requiring job-wide roll-forward environment overrides.
 build-then-test jobs reuse the SDK already
 installed and added to `PATH` by the build step. RunTests defaults to the dotnet
 executable above its hosting runtime directory, so `--dotnet` is unnecessary.

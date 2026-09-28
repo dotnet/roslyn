@@ -56,8 +56,6 @@ jobs:
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
           HELIX_API_ACCESS_TOKEN: ${{ parameters.helixApiAccessToken }}
-          DOTNET_ROLL_FORWARD: LatestMajor
-          DOTNET_ROLL_FORWARD_TO_PRERELEASE: 1
 
       # RunTests uses the same output paths for every Helix submission. Move each submission's
       # outputs aside so the next sequential submission cannot overwrite or mix its diagnostics.

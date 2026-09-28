@@ -5,3 +5,9 @@ steps:
       packageType: sdk
       useGlobalJson: true
       workingDirectory: '$(Build.SourcesDirectory)'
+
+  - task: UseDotNet@2
+    displayName: Install .NET runtime for tests
+    inputs:
+      packageType: runtime
+      version: '10.0.x'
