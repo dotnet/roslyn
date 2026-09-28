@@ -16,6 +16,7 @@ This is the loading map for the agent knowledge base under `.github/memory/`. **
 | **`FILE_MAP.md`** | Top-level `src/` map (one line per area) + layer pointers | When deciding which area/layer to work in |
 | **`API_MAP.md`** | Build/test entry points & PublicAPI tracking | When changing build, tests, or public APIs |
 | **`TESTING_STRATEGY.md`** | Test layout, shared authoring conventions & how to run tests | When writing tests or debugging test failures |
+| **`rebuild-validation.md`** | BuildValidator / `Correctness_Rebuild` leg and its reference-resolution rules | When a rebuild validation leg fails or when changing `src/Tools/BuildValidator` |
 
 ## Layer-specific knowledge
 
