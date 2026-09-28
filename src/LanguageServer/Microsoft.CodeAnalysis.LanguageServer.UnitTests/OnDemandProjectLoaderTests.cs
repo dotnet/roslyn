@@ -61,7 +61,7 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         var build = loader.QueueDesignTimeBuild();
 
         var load = onDemandLoader.StartLoadingAsync(documentUri);
-        Assert.Equal(projectPath, await build.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout));
+        Assert.Equal(projectPath, await build.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout), PathUtilities.Comparer);
         var snapshot = await onDemandLoader.CaptureWorkspaceLoadSnapshotAsync();
         Assert.False(snapshot.IsCompleted);
         build.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath, projectReferences: [projectPath]);
