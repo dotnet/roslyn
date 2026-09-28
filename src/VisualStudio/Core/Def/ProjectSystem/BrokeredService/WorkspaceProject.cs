@@ -33,16 +33,6 @@ internal sealed class WorkspaceProject : IWorkspaceProject
 #pragma warning restore CS0618 // Type or member is obsolete
     }
 
-    [Obsolete($"Call the {nameof(AddAdditionalFilesAsync)} overload that takes {nameof(SourceFileInfo)}.")]
-    public async Task AddAdditionalFilesAsync(IReadOnlyList<string> additionalFilePaths, CancellationToken cancellationToken)
-    {
-        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
-        await using var _ = disposableBatchScope.ConfigureAwait(false);
-
-        foreach (var additionalFilePath in additionalFilePaths)
-            _project.AddAdditionalFile(additionalFilePath);
-    }
-
     public async Task AddAdditionalFilesAsync(IReadOnlyList<SourceFileInfo> additionalFiles, CancellationToken cancellationToken)
     {
         var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
