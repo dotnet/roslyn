@@ -87,6 +87,9 @@ namespace Xunit.Threading
             ExecutionScheduler scheduler,
             FixtureMappingManager methodFixtureMappings)
         {
+            // This runner does not inspect WpfTestSharedData.Exception or report harness failures through
+            // ErrorReportingIdeTestRunner. It is invoked by InProcessIdeTestAssemblyRunner inside devenv,
+            // so a process-name check is not needed.
             return await InProcessIdeTestCaseRunner.Instance.Run(this, await CreateTests().ConfigureAwait(true), messageBus, aggregator, cancellationTokenSource, parallelMode, scheduler, TestCaseDisplayName, SkipReason, explicitOption, constructorArguments, methodFixtureMappings).ConfigureAwait(true);
         }
 
