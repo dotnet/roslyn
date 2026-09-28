@@ -91,12 +91,8 @@ When starting any task or answering any question about this repo:
 
 ### Doc Update Obligation
 
-Every task that changes code must end with a doc pass:
-- Changed a public interface, diagnostic ID, or API? → Update the relevant `.github/instructions/<area>.instructions.md` and `PublicAPI.Unshipped.txt`.
-- Hit something surprising or undocumented? → Ask the user how they want it documented.
-- Established a new pattern? → Repo-wide → `.github/memory/CONVENTIONS.md`; layer-specific → the matching `.github/instructions/<area>.instructions.md`.
-- Changed test base classes or conventions? → Repo-wide layout → `.github/memory/TESTING_STRATEGY.md`; layer-specific → `.github/memory/testing/<area>.md`.
-- Added/removed/renamed a memory file? → Update `.github/memory/INDEX.md`.
+For the documentation-maintenance checklist and routing rules, see the
+[`update-agent-docs` skill](skills/update-agent-docs/SKILL.md).
 
 ### Skills
 
