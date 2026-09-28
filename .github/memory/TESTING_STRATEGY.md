@@ -63,7 +63,9 @@ build actions. They forward the build configuration and supplied test-option
 values; test discovery, selection, and validation remain in RunTests.
 
 CI test-only jobs use `eng/pipelines/install-dotnet.yml` to install the SDK
-from `global.json` with `UseDotNet@2`. PrepareTests includes the checked-in
+from `global.json` with `UseDotNet@2`. The template reads `sdk.version` into a
+read-only job variable on every run and passes that exact version to the task.
+PrepareTests includes the checked-in
 `global.json` in the downloaded test payload for jobs without a source checkout.
 The task adds the SDK to `PATH`, and test steps call `dotnet exec` directly;
 the template also installs the .NET 10 runtime for the runner and testhosts,
