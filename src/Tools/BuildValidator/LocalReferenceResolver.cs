@@ -153,6 +153,7 @@ namespace BuildValidator
 
             using var _ = _logger.BeginScope($"Populating {fileName}");
             var assemblyInfoList = new List<AssemblyInfo>();
+            var readyToRunInfoList = new List<AssemblyInfo>();
             foreach (var filePath in locations)
             {
                 if (Util.GetPortableExecutableInfo(filePath) is not { } peInfo)
@@ -161,14 +162,33 @@ namespace BuildValidator
                     continue;
                 }
 
-                // ReadyToRun images retain the metadata and MVID needed to resolve recorded references.
                 var currentInfo = new AssemblyInfo(filePath, peInfo.Mvid);
                 assemblyInfoList.Add(currentInfo);
 
-                if (!_mvidMap.ContainsKey(peInfo.Mvid))
+                // A ReadyToRun image keeps the MVID of the IL assembly it was compiled from, but the
+                // PDB also records the timestamp and image size of the reference used in the original
+                // compilation. Prefer the IL assembly so those values match, and fall back to the
+                // ReadyToRun image for references that are only published in that form.
+                if (peInfo.IsReadyToRun)
                 {
-                    _logger.LogTrace($"Caching [{peInfo.Mvid}, {filePath}]");
-                    _mvidMap[peInfo.Mvid] = currentInfo;
+                    readyToRunInfoList.Add(currentInfo);
+                    continue;
+                }
+
+                TryCacheMvid(currentInfo);
+            }
+
+            foreach (var readyToRunInfo in readyToRunInfoList)
+            {
+                TryCacheMvid(readyToRunInfo);
+            }
+
+            void TryCacheMvid(AssemblyInfo assemblyInfo)
+            {
+                if (!_mvidMap.ContainsKey(assemblyInfo.Mvid))
+                {
+                    _logger.LogTrace($"Caching [{assemblyInfo.Mvid}, {assemblyInfo.FilePath}]");
+                    _mvidMap[assemblyInfo.Mvid] = assemblyInfo;
                 }
             }
 
