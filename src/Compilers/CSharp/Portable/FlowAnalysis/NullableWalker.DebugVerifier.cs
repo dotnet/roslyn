@@ -127,11 +127,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Visit(node.CollectionCreation);
 
                 bool hasElementType = node.CollectionTypeKind is not CollectionExpressionTypeKind.None;
+                node.HasSpreadElements(out _, out bool hasKnownLength);
                 foreach (var element in node.Elements)
                 {
                     if (element is BoundCollectionExpressionSpreadElement spread)
                     {
-                        VisitCollectionExpressionSpreadElement(spread, node.UsesKnownLength);
+                        VisitCollectionExpressionSpreadElement(spread, hasKnownLength);
                         if (spread.EnumeratorInfoOpt != null)
                         {
                             VisitForEachEnumeratorInfo(spread.EnumeratorInfoOpt);
@@ -151,10 +152,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node)
             {
-                return VisitCollectionExpressionSpreadElement(node, usesKnownLength: false);
+                return VisitCollectionExpressionSpreadElement(node, hasKnownLength: false);
             }
 
-            private BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node, bool usesKnownLength)
+            private BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node, bool hasKnownLength)
             {
                 Visit(node.Expression);
 
@@ -163,8 +164,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Visit(conversion);
                 }
 
-                Debug.Assert(!usesKnownLength || node.LengthOrCount is { });
-                if (usesKnownLength && node.LengthOrCount is { } lengthOrCount)
+                Debug.Assert(!hasKnownLength || node.LengthOrCount is { });
+                if (hasKnownLength && node.LengthOrCount is { } lengthOrCount)
                 {
                     Visit(lengthOrCount);
                 }

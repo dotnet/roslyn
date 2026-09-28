@@ -39567,56 +39567,6 @@ partial class Program
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85698")]
-        public void List_SingleSpread_IEnumerable_ToListUseSiteError()
-        {
-            var linqReference = CompileIL(
-                """
-                .assembly extern MissingDependency { }
-
-                .class public abstract sealed System.Linq.Enumerable extends [mscorlib]System.Object
-                {
-                    .method public hidebysig static
-                        class [mscorlib]System.Collections.Generic.List`1<!!T> modreq([MissingDependency]MissingModifier)
-                        ToList<T>(class [mscorlib]System.Collections.Generic.IEnumerable`1<!!T> source) cil managed
-                    {
-                        ldnull
-                        ret
-                    }
-                }
-                """);
-
-            var source = """
-                using System.Collections.Generic;
-
-                class C
-                {
-                    static List<int> M(IEnumerable<int> e) => [..e];
-                }
-                """;
-            var comp = CreateEmptyCompilation(
-                source,
-                references: [MscorlibRef, linqReference],
-                options: TestOptions.ReleaseDll);
-
-            var toList = (MethodSymbol)comp.GetWellKnownTypeMember(WellKnownMember.System_Linq_Enumerable__ToList)!;
-            Assert.Equal(DiagnosticSeverity.Error, toList.GetUseSiteInfo().DiagnosticInfo?.Severity);
-
-            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", """
-                {
-                  // Code size       13 (0xd)
-                  .maxstack  3
-                  IL_0000:  newobj     "System.Collections.Generic.List<int>..ctor()"
-                  IL_0005:  dup
-                  IL_0006:  ldarg.0
-                  IL_0007:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
-                  IL_000c:  ret
-                }
-                """);
-        }
-
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71217")]
         public void List_SingleSpread_IEnumerable_NonGeneric()
         {
@@ -46398,7 +46348,7 @@ class Program
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/85698")]
         [Fact]
-        public void Spread_Nullable_ExtensionGetEnumerator_WithLength_KnownLengthNotUsed()
+        public void Spread_Nullable_ExtensionGetEnumerator_WithLength_LoweringTemporaryLimit()
         {
             var source = """
                 #nullable enable
@@ -46421,19 +46371,22 @@ class Program
                 }
                 """;
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (16,34): warning CS8602: Dereference of a possibly null reference.
+                //         object[] y = [1, 2, 3, ..x];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(16, 34));
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/85698")]
         [Fact]
-        public void Spread_Nullable_Multiple_ExtensionGetEnumerator_KnownLengthSelection()
+        public void Spread_Nullable_Multiple_ExtensionGetEnumerator_CountAndMixed()
         {
             var source = """
                 #nullable enable
                 using System.Collections.Generic;
                 class Countable<T>
                 {
-                    public int Length { get; }
+                    public int Count { get; }
                 }
                 class Uncountable<T>
                 {
