@@ -62,10 +62,14 @@ The build scripts also accept `-test`, `-testSet:<name>`, `-testKind:<name>`, or
 build actions. They forward the build configuration and supplied test-option
 values; test discovery, selection, and validation remain in RunTests.
 
-CI test jobs bootstrap the SDK pinned in `global.json` with the repository's
-Arcade build helpers, which support daily SDK feeds. Bootstrap and direct
-`RunTests` execution share a shell so the SDK path and environment are preserved;
-the runner also receives the bootstrapped executable through `--dotnet`.
+CI test-only jobs use `eng/pipelines/install-dotnet.yml` to bootstrap the SDK
+pinned in `global.json` with the repository's Arcade helpers, which support daily
+SDK feeds. The helpers prepend the SDK to subsequent Azure steps' `PATH`; the
+template also persists SDK roots, telemetry, NuGet, and diagnostic environment
+variables. Windows bootstrap enables preview SDKs for Visual Studio. Test steps
+then call `dotnet exec` directly; build-then-test jobs reuse the SDK already
+installed and added to `PATH` by the build step. RunTests defaults to the dotnet
+executable above its hosting runtime directory, so `--dotnet` is unnecessary.
 
 ### Test types to be aware of
 - VS integration tests (`azure-pipelines-integration*.yml`) require a VS install, so they run only on **Windows** hosts (not CI-only — they can be run locally on Windows). Prefer unit tests for the inner development loop; reach for integration tests when validating end-to-end VS behavior.

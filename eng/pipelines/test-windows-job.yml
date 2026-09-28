@@ -38,6 +38,10 @@ jobs:
       env:
         HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
 
+    - template: install-dotnet.yml
+      parameters:
+        configuration: ${{ parameters.configuration }}
+
     # Attempt every submission even if an earlier one fails, then fail the aggregate job below.
     - ${{ each testRun in parameters.testRuns }}:
       - task: PowerShell@2
@@ -46,16 +50,11 @@ jobs:
         inputs:
           targetType: inline
           script: |
-            $ci = $true
-            $configuration = '${{ parameters.configuration }}'
-            . ./eng/build-utils.ps1
-            EnablePreviewSdks
-            $dotnet = Ensure-DotnetSdk
             $helixArguments = @()
             if ($env:HELIX_API_ACCESS_TOKEN) {
               $helixArguments += @('--helixApiAccessToken', $env:HELIX_API_ACCESS_TOKEN)
             }
-            & $dotnet exec "$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll" --dotnet $dotnet --ci --helix --testConfiguration ${{ parameters.configuration }} --logs "$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}" --helixQueueName ${{ testRun.helixQueueName }} @helixArguments ${{ testRun.testArguments }}
+            & dotnet exec "$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll" --ci --helix --testConfiguration ${{ parameters.configuration }} --logs "$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}" --helixQueueName ${{ testRun.helixQueueName }} @helixArguments ${{ testRun.testArguments }}
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
           HELIX_API_ACCESS_TOKEN: ${{ parameters.helixApiAccessToken }}

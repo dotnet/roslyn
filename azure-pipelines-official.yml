@@ -377,9 +377,8 @@ extends:
           inputs:
             targetType: inline
             script: |
-              & "$(Build.SourcesDirectory)\.dotnet\dotnet.exe" exec `
+              & dotnet exec `
                 "$(Build.SourcesDirectory)\artifacts\bin\RunTests\$(BuildConfiguration)\net10.0\RunTests.dll" `
-                --dotnet "$(Build.SourcesDirectory)\.dotnet\dotnet.exe" `
                 --logs "$(Build.SourcesDirectory)\artifacts\log\$(BuildConfiguration)" `
                 --testConfiguration $(BuildConfiguration) `
                 --testFramework:desktop `

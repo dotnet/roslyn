@@ -43,21 +43,21 @@ jobs:
       env:
         HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)/.duplicate'
 
+    - template: install-dotnet.yml
+      parameters:
+        configuration: ${{ parameters.configuration }}
+
     - task: Bash@3
       displayName: Run Unit Tests
       inputs:
         targetType: inline
         script: |
           set -e
-          ci=true
-          configuration='${{ parameters.configuration }}'
-          source eng/common/tools.sh
-          InitializeDotNetCli true
           helix_args=()
           if [[ -n "$HELIX_API_ACCESS_TOKEN" ]]; then
             helix_args+=(--helixApiAccessToken "$HELIX_API_ACCESS_TOKEN")
           fi
-          "$_InitializeDotNetCli/dotnet" exec "$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll" --dotnet "$_InitializeDotNetCli/dotnet" --ci --helix --testConfiguration ${{ parameters.configuration }} --logs "$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}" --helixQueueName ${{ parameters.helixQueueName }} "${helix_args[@]}" ${{ parameters.testArguments }}
+          dotnet exec "$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll" --ci --helix --testConfiguration ${{ parameters.configuration }} --logs "$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}" --helixQueueName ${{ parameters.helixQueueName }} "${helix_args[@]}" ${{ parameters.testArguments }}
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         HELIX_API_ACCESS_TOKEN: ${{ parameters.helixApiAccessToken }}

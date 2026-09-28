@@ -1,0 +1,40 @@
+parameters:
+- name: configuration
+  type: string
+  default: 'Debug'
+
+# Use Arcade rather than UseDotNet@2 so daily SDKs in global.json are supported.
+steps:
+  - task: PowerShell@2
+    displayName: Install .NET SDK
+    condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
+    inputs:
+      targetType: inline
+      script: |
+        $ci = $true
+        $configuration = '${{ parameters.configuration }}'
+        . ./eng/build-utils.ps1
+        EnablePreviewSdks
+        Ensure-DotnetSdk | Out-Null
+        $env:DOTNET_ROOT = $env:DOTNET_INSTALL_DIR
+        # Arcade prepends the SDK to PATH; persist the remaining test environment.
+        foreach ($name in @('DOTNET_ROOT', 'DOTNET_INSTALL_DIR', 'DOTNET_NOLOGO', 'DOTNET_CLI_TELEMETRY_OPTOUT', 'NUGET_PACKAGES', 'MSBUILDDEBUGPATH')) {
+          Write-PipelineSetVariable -Name $name -Value (Get-Item "env:$name").Value -IsMultiJobVariable:$false
+        }
+
+  - task: Bash@3
+    displayName: Install .NET SDK
+    condition: and(succeeded(), ne(variables['Agent.OS'], 'Windows_NT'))
+    inputs:
+      targetType: inline
+      script: |
+        set -e
+        ci=true
+        configuration='${{ parameters.configuration }}'
+        source eng/common/tools.sh
+        InitializeDotNetCli true
+        export DOTNET_ROOT="$DOTNET_INSTALL_DIR"
+        # Arcade prepends the SDK to PATH; persist the remaining test environment.
+        for name in DOTNET_ROOT DOTNET_INSTALL_DIR DOTNET_NOLOGO DOTNET_CLI_TELEMETRY_OPTOUT NUGET_PACKAGES MSBUILDDEBUGPATH LTTNG_HOME; do
+          Write-PipelineSetVariable -name "$name" -value "${!name}" -is_multi_job_variable false
+        done
