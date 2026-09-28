@@ -84,8 +84,8 @@ explicitly with `IsTestProject=false`; see
 
 ### Shared test-infrastructure projects
 
-Unit tests and VS integration tests now reference the same shared test-utility
-projects again:
+Unit tests and VS integration tests reference the same shared test-utility
+projects:
 
 | Shared utility project | Used by |
 |---|---|

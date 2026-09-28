@@ -40,8 +40,7 @@ public class MyTests
   `GetWaiter`; do not retrieve the interface and cast the listener.
 - WPF editor tests use Roslyn's `WpfFactAttribute`/`WpfTheoryAttribute` wrappers
   in `EditorFeatures/TestUtilities/Threading`; those wrappers delegate to the
-  aliased `Xunit.StaFact` xUnit v3 discoverers instead of Roslyn-owned custom
-  xUnit test-case runners.
+  aliased `Xunit.StaFact` xUnit v3 discoverers.
 - Language Server orchestration tests can pass additional MEF parts to
   `LanguageServerTestComposition.GetSharedExportProvider`. A controllable
   `PartNotDiscoverable` project loader can provide deterministic design-time
@@ -49,7 +48,7 @@ public class MyTests
 
 ## VS integration tests (`IdeFact`/`IdeTheory`)
 
-`src/VisualStudio/IntegrationTest/` is a separate suite from the unit tests above: it
-runs on xUnit v3 (not v2) and has its own dedicated test-utility forks so the two
-suites can be upgraded independently. See `testing/vs-integration-tests-xunit-v3.md`
-for its project-setup conventions and v2→v3 API differences.
+`src/VisualStudio/IntegrationTest/` is a separate suite from the unit tests above.
+It runs on xUnit v3 and references the shared Roslyn and Razor test utilities.
+See `testing/vs-integration-tests-xunit-v3.md` for its project-setup conventions
+and xUnit v3 API requirements.

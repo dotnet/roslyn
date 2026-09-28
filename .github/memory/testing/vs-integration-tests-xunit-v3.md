@@ -61,17 +61,16 @@ release: runner extension interfaces can differ between releases.
 
 ## xUnit v3 API considerations
 
-- `ITraitAttribute.GetTraits()` no longer exists as an interface method to override;
-  trait discovery logic must be inlined into the attribute/discoverer directly.
-- `BeforeAfterTestAttribute`'s method signatures changed (additional/renamed
-  parameters) — check the current v3 base class signature rather than assuming v2's.
-- `ITestOutputHelper` gained new members in v3.
-- `AsyncTestSyncContext` was removed in v3.
-- `IAsyncLifetime.InitializeAsync()` now returns `ValueTask`, and disposal is through
+- Implement trait discovery logic in the attribute/discoverer directly;
+  `ITraitAttribute` has no `GetTraits()` method.
+- Match the current `BeforeAfterTestAttribute` method signatures, including
+  their parameters.
+- Implement the members of `ITestOutputHelper` required by xUnit v3.
+- xUnit v3 test methods use the current `SynchronizationContext`.
+- `IAsyncLifetime.InitializeAsync()` returns `ValueTask`, and disposal is through
   `IAsyncDisposable.DisposeAsync()` (`ValueTask`).
 - Test-lifecycle methods like `InitializeCoreAsync()` on VS in-process test-service
-  types now return `ValueTask` instead of `Task` in the v3 harness — check every
-  override when porting a new in-process service.
+  types return `ValueTask` in the v3 harness — check the signature of every override.
 - xUnit v3 4.0 marks `CollectionBehaviorAttribute.DisableTestParallelization`
   obsolete as an error; use `[assembly: Parallelization(Mode = ParallelMode.None)]`
   with `[assembly: CollectionBehavior(CollectionBehavior.CollectionPerAssembly)]`.

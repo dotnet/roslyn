@@ -43,8 +43,8 @@
   </Target>
 
   <!--
-    xunit.runner.visualstudio already copies xunit.abstractions.dll. Keep the framework-specific
-    runner utility needed by direct runners without reintroducing the duplicate copy.
+    xunit.runner.visualstudio copies xunit.abstractions.dll. Direct runners also need the
+    framework-specific runner utility.
   -->
   <Target Name="_XunitCopyRunnerDependencies"
           AfterTargets="Build"

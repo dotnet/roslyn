@@ -24,6 +24,7 @@ From `.editorconfig`:
 - **Preserve BOM state on edit.** Keep an existing UTF-8 BOM (including on `*.csproj`/`*.vbproj`, which have no editorconfig `charset`), and don't add one to the ~300 existing `*.cs`/`*.vb` files that lack it. CI's `eng/validate-code-formatting.ps1` only runs `dotnet format whitespace` on the compiler `Generated` folders, so BOM loss elsewhere is not caught automatically.
 - **Blank lines must contain no whitespace** (no spaces/tabs) — this is a hard lint failure.
 - **No trailing whitespace.**
+- Comments describe current code and its rationale, not previous implementations; put history in commit messages or PR descriptions.
 - File-scoped namespaces and `var`/expression-body preferences are enforced via editorconfig analyzers — follow the file you are editing.
 
 Running the formatter:

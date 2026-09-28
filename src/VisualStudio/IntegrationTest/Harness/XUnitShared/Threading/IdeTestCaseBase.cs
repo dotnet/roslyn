@@ -87,11 +87,6 @@ namespace Xunit.Threading
             ExecutionScheduler scheduler,
             FixtureMappingManager methodFixtureMappings)
         {
-            // NOTE: Unlike the previous implementation, this does not currently check WpfTestSharedData.Exception to
-            // report a prior harness failure, nor does it verify the current process is "devenv". This test case is
-            // only ever executed in-process inside Visual Studio (via InProcessIdeTestAssemblyRunner), so the process
-            // check is implied by the architecture. Reporting a prior harness failure via ErrorReportingIdeTestRunner
-            // is a known gap in this initial xUnit v3 port.
             return await InProcessIdeTestCaseRunner.Instance.Run(this, await CreateTests().ConfigureAwait(true), messageBus, aggregator, cancellationTokenSource, parallelMode, scheduler, TestCaseDisplayName, SkipReason, explicitOption, constructorArguments, methodFixtureMappings).ConfigureAwait(true);
         }
 

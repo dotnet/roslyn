@@ -4,9 +4,7 @@
 
 namespace Xunit.Threading
 {
-    // Skipped data row test cases for [IdeTheory] are not currently supported by this port. The class body has been
-    // disabled (rather than deleted) to match the upstream xUnit v3 harness port, which similarly commented this out
-    // pending a v3-compatible base class.
+    // [IdeTheory] skipped data row test cases require a compatible base class.
     /*
     public sealed class IdeSkippedDataRowTestCase : XunitSkippedDataRowTestCase
     {

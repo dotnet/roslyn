@@ -84,8 +84,7 @@ internal sealed partial class TestExportJoinableTaskContext
 
     internal static SynchronizationContext? GetEffectiveSynchronizationContext()
     {
-        // xUnit v3 no longer installs a custom SynchronizationContext (e.g. AsyncTestSyncContext) for
-        // async Task test methods, so the current context is always the effective one.
+        // xUnit v3 leaves the test's SynchronizationContext unchanged.
         return SynchronizationContext.Current;
     }
 
