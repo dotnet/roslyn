@@ -5,6 +5,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.IO.Pipes;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.LanguageServer.Daemon;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -443,11 +444,36 @@ public partial class AbstractLanguageServerClientTests
             if (!_thinClientProcess.HasExited && !serverProcess.HasExited)
             {
                 await ShutdownAndExitAsync();
-                await _clientRpc.Completion;
+
+                try
+                {
+                    await _clientRpc.Completion;
+                }
+                catch (IOException exception) when (IsConnectionReset(exception))
+                {
+                    _loggerFactory.CreateLogger("Shutdown").LogTrace(exception, "A transport reset followed the completed shutdown handshake; waiting for the language server to exit.");
+                    await serverProcess.WaitForExitAsync().WaitAsync(TimeSpan.FromMilliseconds(TimeOutMsNewProcess));
+
+                    if (serverProcess.ExitCode != 0)
+                        throw new InvalidOperationException($"The language server exited with code {serverProcess.ExitCode} after a connection reset during shutdown.", exception);
+
+                    _loggerFactory.CreateLogger("Shutdown").LogTrace("The language server exited with code {ExitCode} after the transport reset.", serverProcess.ExitCode);
+                }
             }
 
             await serverProcess.WaitForExitAsync();
             await _thinClientProcess.WaitForExitAsync();
+        }
+
+        private static bool IsConnectionReset(IOException exception)
+        {
+            for (Exception? inner = exception; inner is not null; inner = inner.InnerException)
+            {
+                if (inner is SocketException { SocketErrorCode: SocketError.ConnectionReset })
+                    return true;
+            }
+
+            return exception.Message.Contains("Connection reset by peer", StringComparison.OrdinalIgnoreCase);
         }
 
         protected virtual void DisposeTransport()
