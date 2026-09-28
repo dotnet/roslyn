@@ -344,7 +344,7 @@ namespace RunTests
                 if (Regex.IsMatch(dirName, @"^net\d+\."))
                     return (testRuntime & TestRuntime.Core) != 0 && IsCompatibleWithCurrentPlatform(dirName);
 
-                return IsCompatibleWithCurrentPlatform(dirName);
+                return false;
             }
 
             static bool IsCompatibleWithCurrentPlatform(string tfmDirName)
