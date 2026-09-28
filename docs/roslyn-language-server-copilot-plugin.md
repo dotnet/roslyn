@@ -34,7 +34,17 @@ With the plugin active, the agent gains LSP-powered capabilities for C# code:
 
 ## Automatic Project Loading
 
-The language server automatically discovers and loads projects using the following strategy (evaluated in order):
+`--autoLoadProjects [maximum]` enables automatic project loading (default maximum: 500). In the LSP `initialize` request, `initializationOptions.autoLoadProjects` overrides this per connection: a positive 32-bit integer sets the discovery limit, `0` disables loading, and missing or `null` preserves the CLI setting. Other values are errors. Shared daemons use the CLI setting of the client that started them.
+
+For Copilot CLI, add this to the server entry in `.github/lsp.json` or `~/.copilot/lsp-config.json`:
+
+```json
+{
+  "initializationOptions": { "autoLoadProjects": 100 }
+}
+```
+
+When enabled, the language server automatically discovers and loads projects using the following strategy (evaluated in order):
 
 ### 1. VS Code Settings (`dotnet.defaultSolution`)
 
@@ -62,6 +72,8 @@ If there is exactly **one** `.sln` or `.slnx` file at the root of the workspace 
 ### 3. Individual Project Discovery
 
 As a fallback, the server recursively discovers all `.csproj` files within the workspace folders and loads them individually.
+
+The limit applies only to individual project discovery, not solution loading. If exceeded, projects under `test` or `tests` directories are removed before truncating the remaining list.
 
 ## Troubleshooting
 
@@ -121,6 +133,6 @@ When the agent opens a workspace containing `.cs` files, it will:
 | Option | Description |
 |--------|-------------|
 | `--stdio` | Use stdio for LSP communication (required for most agent integrations) |
-| `--autoLoadProjects` | Automatically discover and load projects from workspace folders |
+| `--autoLoadProjects [maximum]` | Automatically discover and load projects; optionally limit individual project discovery (currently defaults to 500) |
 | `--logLevel <level>` | Minimum log verbosity (default: `Information`) |
 | `--debug` | Launch the debugger on startup |

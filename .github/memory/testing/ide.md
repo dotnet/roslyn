@@ -39,3 +39,5 @@ public class MyTests
   `LanguageServerTestComposition.GetSharedExportProvider`. A controllable
   `PartNotDiscoverable` project loader can provide deterministic design-time
   build timing and results without invoking MSBuild.
+- Process-host Language Server tests use `LspServerLaunchOptions.InitializationOptions`
+  to send per-connection JSON options in `initialize`.
