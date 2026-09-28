@@ -39,3 +39,8 @@ public class MyTests : CSharpTestBase
   `Single()` instead of checking counts then indexing.
 - **Prefer raw string literals** (`"""..."""`) over verbatim strings (`@"..."`)
   for test source code.
+- **Localized command-line diagnostics**: compare message arguments using the
+  corresponding `CodeAnalysisResources` format string, not hard-coded English
+  punctuation. Analyzer-config descriptors can cache a resource string before
+  `/preferreduilang` takes effect, so account for the host UI culture as well as
+  the requested compiler UI culture when checking their output.

@@ -353,12 +353,23 @@ dotnet_diagnostic.cs0169.severity = garbage");
             Assert.Equal(0, exitCode);
             var output = outWriter.ToString();
             Assert.Contains("warning InvalidSeverityInAnalyzerConfig:", output, StringComparison.Ordinal);
-            Assert.Contains("cs0169", output, StringComparison.Ordinal);
-            Assert.Contains("garbage", output, StringComparison.Ordinal);
-            Assert.Contains(analyzerConfig.Path, output, StringComparison.Ordinal);
+            AssertLocalizedAnalyzerConfigMessage(output, nameof(CodeAnalysisResources.WRN_InvalidSeverityInAnalyzerConfig),
+                "cs0169", "garbage", analyzerConfig.Path);
             Assert.Contains("test.cs(4,9): warning CS0169:", output, StringComparison.Ordinal);
 
             Assert.Null(cmd.AnalyzerOptions);
+        }
+
+        private static void AssertLocalizedAnalyzerConfigMessage(string output, string resourceName, params object[] args)
+        {
+            // The descriptor can cache its message before the compiler applies /preferreduilang:en.
+            var english = CultureInfo.GetCultureInfo("en-US");
+            var expectedEnglish = string.Format(english, CodeAnalysisResources.ResourceManager.GetString(resourceName, english), args);
+            var expectedCurrent = string.Format(CultureInfo.CurrentUICulture,
+                CodeAnalysisResources.ResourceManager.GetString(resourceName, CultureInfo.CurrentUICulture), args);
+            Assert.True(
+                output.Contains(expectedEnglish, StringComparison.Ordinal) || output.Contains(expectedCurrent, StringComparison.Ordinal),
+                $"Expected '{expectedEnglish}' or '{expectedCurrent}' in:{Environment.NewLine}{output}");
         }
 
         [Fact]
@@ -15138,7 +15149,8 @@ option1 = def");
 
             // warning MultipleGlobalAnalyzerKeys: Multiple global analyzer config files set the same key 'option1' in section 'Global Section'. It has been unset. Key was set by the following files: ...
             Assert.Contains("MultipleGlobalAnalyzerKeys:", output, StringComparison.Ordinal);
-            Assert.Contains("option1", output, StringComparison.Ordinal);
+            AssertLocalizedAnalyzerConfigMessage(output, nameof(CodeAnalysisResources.WRN_MultipleGlobalAnalyzerKeys),
+                "option1", "Global Section", $"{analyzerConfig.Path}, {analyzerConfig2.Path}");
 
             analyzerConfig = analyzerConfigFile.WriteAllText(@"
 is_global = true
@@ -15156,8 +15168,8 @@ option1 = def");
 
             // warning MultipleGlobalAnalyzerKeys: Multiple global analyzer config files set the same key 'option1' in section 'file.cs'. It has been unset. Key was set by the following files: ...
             Assert.Contains("MultipleGlobalAnalyzerKeys:", output, StringComparison.Ordinal);
-            Assert.Contains("option1", output, StringComparison.Ordinal);
-            Assert.Contains("/file.cs", output, StringComparison.Ordinal);
+            AssertLocalizedAnalyzerConfigMessage(output, nameof(CodeAnalysisResources.WRN_MultipleGlobalAnalyzerKeys),
+                "option1", "/file.cs", $"{analyzerConfig.Path}, {analyzerConfig2.Path}");
         }
 
         [Fact]
