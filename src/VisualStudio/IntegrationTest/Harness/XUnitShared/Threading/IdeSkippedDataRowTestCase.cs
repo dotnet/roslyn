@@ -4,7 +4,8 @@
 
 namespace Xunit.Threading
 {
-    // [IdeTheory] skipped data row test cases require a compatible base class.
+    // Skipped data row test cases for [IdeTheory] are unsupported because xUnit v3's base class
+    // does not carry the Visual Studio instance metadata required to run them.
     /*
     public sealed class IdeSkippedDataRowTestCase : XunitSkippedDataRowTestCase
     {

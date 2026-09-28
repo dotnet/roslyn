@@ -9,8 +9,8 @@ namespace Xunit.Threading
     using Xunit.Sdk;
     using Xunit.v3;
 
-    // [IdeTheory] uses TheoryDiscoverer; this type is not wired to an attribute.
-    // VS-instance fan-out for theories is not supported.
+    // IdeTheoryAttribute uses xUnit's TheoryDiscoverer; this discoverer is not registered.
+    // Consequently, theories do not fan out across Visual Studio instances.
     public class IdeTheoryDiscoverer : TheoryDiscoverer
     {
         /*
