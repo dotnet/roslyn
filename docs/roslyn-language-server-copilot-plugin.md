@@ -34,46 +34,16 @@ With the plugin active, the agent gains LSP-powered capabilities for C# code:
 
 ## Automatic Project Loading
 
-`--autoLoadProjects [maximum]` enables automatic project loading (default maximum: 500). In the LSP `initialize` request, `initializationOptions.autoLoadProjects` overrides this per connection: a positive 32-bit integer sets the discovery limit, `0` disables loading, and missing or `null` preserves the CLI setting. Other values are errors. Shared daemons use the CLI setting of the client that started them.
-
-For Copilot CLI, add this to the server entry in `.github/lsp.json` or `~/.copilot/lsp-config.json`:
-
-```json
-{
-  "initializationOptions": { "autoLoadProjects": 100 }
-}
-```
-
-When enabled, the language server automatically discovers and loads projects using the following strategy (evaluated in order):
-
-### 1. VS Code Settings (`dotnet.defaultSolution`)
-
-If a `.vscode/settings.json` file exists in the workspace folder, the server reads the `dotnet.defaultSolution` setting:
+The server is configured to automatically discover and load projects via either the `--autoLoadProjects [maximum]` CLI flag (defaults to a maximum of 500 projects if value omitted) or LSP `initializationOptions` in the Copilot lsp.json as defined below.
 
 ```jsonc
-// .vscode/settings.json
+// lsp.json
 {
-  "dotnet.defaultSolution": "src/MyApp.sln"
+  "initializationOptions": { "autoLoadProjects": 500 }
 }
 ```
 
-- **Relative or absolute paths** to a `.sln` or `.slnx` file are supported.
-- Set to `"disable"` to prevent the server from loading any solution or projects automatically:
-  ```jsonc
-  {
-    "dotnet.defaultSolution": "disable"
-  }
-  ```
-
-### 2. Single Solution File at the Root
-
-If there is exactly **one** `.sln` or `.slnx` file at the root of the workspace folder, the server will automatically load that solution.
-
-### 3. Individual Project Discovery
-
-As a fallback, the server recursively discovers all `.csproj` files within the workspace folders and loads them individually.
-
-The limit applies only to individual project discovery, not solution loading. If exceeded, projects under `test` or `tests` directories are removed before truncating the remaining list.
+For how the server chooses which solution or projects to load, and how to control it, see [Automatic project loading](../src/LanguageServer/roslyn-language-server/README.md#automatic-project-loading).
 
 ## Troubleshooting
 
