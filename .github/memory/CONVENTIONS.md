@@ -22,6 +22,7 @@ From `.editorconfig`:
 - Indentation: 4 spaces for `*.cs`/`*.vb`; 2 spaces for project/XML/JSON/PS1/SH files. Never tabs.
 - `*.cs`/`*.vb`: `insert_final_newline = true`, `charset = utf-8-bom`.
 - Executable file-based C# apps with `#!` use the scoped `eng/.editorconfig` `utf-8` rules; shebangs must be at byte zero without a BOM. The PR correctness check rejects BOM-prefixed shebangs for tracked files.
+- The BOM correctness job installs the preview SDK by exact version in `azure-pipelines.yml`; keep that version in sync with `global.json` when updating the SDK.
 - **Blank lines must contain no whitespace** (no spaces/tabs) — this is a hard lint failure.
 - **No trailing whitespace.**
 - File-scoped namespaces and `var`/expression-body preferences are enforced via editorconfig analyzers — follow the file you are editing.

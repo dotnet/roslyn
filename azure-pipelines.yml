@@ -502,11 +502,10 @@ stages:
       - template: eng/pipelines/checkout-unix-task.yml
 
       - task: UseDotNet@2
-        displayName: Install .NET SDK from global.json
+        displayName: Install pinned .NET SDK
         inputs:
           packageType: sdk
-          useGlobalJson: true
-          workingDirectory: '$(Build.SourcesDirectory)'
+          version: 11.0.100-rc.1.26425.128
 
       - powershell: eng/todo-check.ps1
         displayName: Validate TODO/PROTOTYPE comments are not present
