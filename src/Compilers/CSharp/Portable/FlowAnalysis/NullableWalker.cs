@@ -6341,14 +6341,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool TryVisitConditionalAccess(BoundExpression node, out PossiblyConditionalState stateWhenNotNull)
         {
             var (operand, conversion) = RemoveConversion(node, includeExplicitConversions: true);
-            if (operand is not BoundConditionalAccess access || !CanPropagateStateWhenNotNull(conversion))
+            if (!CanPropagateStateWhenNotNull(conversion))
             {
                 stateWhenNotNull = default;
                 return false;
             }
 
-            Unsplit();
-            VisitConditionalAccess(access, out stateWhenNotNull);
+            if (operand is BoundConditionalAccess access)
+            {
+                Unsplit();
+                VisitConditionalAccess(access, out stateWhenNotNull);
+            }
+            else if (operand is BoundUnaryOperator { OperatorKind: UnaryOperatorKind.LiftedBoolLogicalNegation } unary
+                && TryVisitConditionalAccess(unary.Operand, out var operandStateWhenNotNull))
+            {
+                var operandResult = ResultType;
+                stateWhenNotNull = operandStateWhenNotNull.IsConditionalState
+                    ? new PossiblyConditionalState(operandStateWhenNotNull.StateWhenFalse, operandStateWhenNotNull.StateWhenTrue)
+                    : operandStateWhenNotNull;
+                SetResultType(unary, TypeWithState.Create(unary.Type, operandResult.State));
+            }
+            else
+            {
+                stateWhenNotNull = default;
+                return false;
+            }
+
             if (node is BoundConversion boundConversion)
             {
                 var operandType = ResultType;
@@ -6357,7 +6375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeWithAnnotations targetType = fromExplicitCast ? explicitType : TypeWithAnnotations.Create(boundConversion.Type);
                 Debug.Assert(targetType.HasType);
                 var result = VisitConversion(boundConversion,
-                    access,
+                    operand,
                     conversion,
                     targetType,
                     operandType,
@@ -12882,6 +12900,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.OperatorKind)
             {
                 case UnaryOperatorKind.BoolLogicalNegation:
+                case UnaryOperatorKind.LiftedBoolLogicalNegation:
                     Visit(node.Operand);
                     if (IsConditionalState)
                         SetConditionalState(StateWhenFalse, StateWhenTrue);
