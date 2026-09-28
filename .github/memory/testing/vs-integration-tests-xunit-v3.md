@@ -23,33 +23,28 @@ NU1109 involving Razor integration tests, check for a direct project-level
 `Xunit.Combinatorial` `VersionOverride="2.1.41"` or a v2 xUnit package reference
 leaking into the shared Razor test-utility projects.
 
-## Arcade `IsTestProject` / naming-heuristic gotcha
+## `IsTestProject` must stay enabled
 
-`eng/targets/XUnit.targets` configures conventionally discovered test projects
-for xUnit v3. Some VS integration projects manage their own package references
-and custom runners instead. The build's naming conventions set
-`IsTestProject`/`IsIntegrationTestProject`/`IsUnitTestProject` to `true` by
-**name-matching convention**, independently of each other:
+The VS integration projects are conventional test projects: their `.IntegrationTests`
+names make Arcade set `IsTestProject=true`, and `eng/targets/XUnit.targets` supplies
+`OutputType=Exe`, the `.dll` target extension plus `.exe` app host, `xunit.v3.mtp-off`,
+and `xunit.runner.visualstudio`. Do **not** set `IsTestProject=false` on them: without
+the VSTest adapter, `vstest.console` finds no tests and RunTests reports every
+integration work item as passed in about a second while nothing runs. Each project sets
+`<ExcludeFromDotNetBuild>true</ExcludeFromDotNetBuild>` because VS integration tests
+never participate in the source-only build.
 
-- `IsIntegrationTestProject` defaults `true` when the project name ends in
-  `.IntegrationTests`.
-- `IsUnitTestProject` defaults `true` when the project name ends in `.UnitTests` or
-  `.Tests`.
-- `IsTestProject` defaults `true` if either of the above is `true`.
+## `[IdeSettings]` lookup
 
-Integration projects that manage their own xUnit v3 packages need
-**`<IsTestProject>false</IsTestProject>`** explicitly set. Setting `IsTestProject=false`
-does **not** clear `IsIntegrationTestProject`/`IsUnitTestProject` — if the project's
-`OutputType` doesn't match Arcade's expected `TargetFileName` suffix for those flags
-(e.g. an `Exe`-output project named `*.IntegrationTests`), the
-`_CheckTestProjectTargetFileName` target in `eng/targets/Imports.targets` will fail;
-set the specific flag(s) (`IsIntegrationTestProject`/`IsUnitTestProject`) to `false`
-too.
-
-Setting `IsTestProject=false` also drops the implicit `DotNetBuildTests=false`
-source-build exclusion normally implied by that flag. Restore it explicitly with
-**`<ExcludeFromDotNetBuild>true</ExcludeFromDotNetBuild>`** (the same pattern used by
-e.g. `src/Tools/Replay/Replay.csproj`).
+Suites declare `[IdeSettings(MinVersion = VS18, RootSuffix = ..., MaxAttempts = ...,
+EnvironmentVariables = ...)]` on their abstract base test class.
+`IdeFactDiscoverer.GetSettingsAttributes` must read inherited attributes from both the
+test method and the test class (method first). If class-level settings are ignored,
+`MinVersion` falls back to VS2012, producing `(VS2022)` test cases that launch VS 2022
+with the default `Exp` hive and fail to install the VS18-only
+IntegrationTestService VSIX (`NoApplicableSKUsException`), crashing the test process.
+Check with `<Assembly>.exe -list full`, which does not launch VS: every ID should end
+in `_VS18` and use the suite's root suffix.
 
 ## Package version selection
 

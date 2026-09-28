@@ -77,6 +77,11 @@ namespace Xunit.Threading
             {
                 yield return attributeData;
             }
+
+            foreach (var attributeData in testMethod.TestClass.Class.GetCustomAttributes<IdeSettingsAttribute>(inherit: true))
+            {
+                yield return attributeData;
+            }
         }
 
         private static IEnumerable<VisualStudioVersion> GetSupportedVersions(IFactAttribute factAttribute, IdeSettingsAttribute[] settingsAttributes)
