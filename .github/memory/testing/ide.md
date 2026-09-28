@@ -46,6 +46,35 @@ public class MyTests
   `PartNotDiscoverable` project loader can provide deterministic design-time
   build timing and results without invoking MSBuild.
 
+## Test synchronization context
+
+`UseExportProviderAttribute.Before` installs a `TestSynchronizationContext`
+(`src/Workspaces/CoreTestUtilities/MEF/`) as the ambient
+`SynchronizationContext` for the duration of each test, and `After` restores the
+previous context.
+
+xUnit v3 installs no `SynchronizationContext` of its own, so without this an
+`await` in a test body resumes inline on whichever thread completed the awaited
+task. When that is a Roslyn worker draining an operation tracked by
+`IAsynchronousOperationListener`, the rest of the test — and
+`UseExportProviderAttribute.After` — runs nested inside that operation's stack,
+and cleanup then blocks forever waiting for the operation it is nested inside.
+`TestSynchronizationContext` posts continuations to the outer context when one
+exists (preserving WPF dispatcher affinity) and to the thread pool otherwise, so
+test bodies and cleanup never resume on a Roslyn worker thread.
+
+Consequences to keep in mind when writing or debugging tests:
+
+- `TestExportJoinableTaskContext.GetEffectiveSynchronizationContext` unwraps this
+  context, so `DenyExecutionSynchronizationContext` and WPF dispatcher detection
+  behave as if it were not installed. Code that inspects
+  `SynchronizationContext.Current` directly sees the wrapper instead.
+- `UseExportProviderAttribute` waits up to one minute
+  (`CleanupTimeout`) for outstanding asynchronous operations. An operation that
+  never completes fails the test with a `TimeoutException` listing the pending
+  listener tokens rather than hanging the test host — that exception text is the
+  starting point for diagnosing a leaked operation.
+
 ## VS integration tests (`IdeFact`/`IdeTheory`)
 
 `src/VisualStudio/IntegrationTest/` is a separate suite from the unit tests above.

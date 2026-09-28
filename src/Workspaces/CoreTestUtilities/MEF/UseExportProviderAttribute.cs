@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -55,6 +56,7 @@ public class UseExportProviderAttribute : BeforeAfterTestAttribute
     private static readonly TimeSpan CleanupTimeout = TimeSpan.FromMinutes(1);
 
     private MefHostServices? _hostServices;
+    private TestSynchronizationContext? _synchronizationContext;
 
     static UseExportProviderAttribute()
     {
@@ -66,6 +68,14 @@ public class UseExportProviderAttribute : BeforeAfterTestAttribute
 
     public override void Before(MethodInfo? methodUnderTest, IXunitTest test)
     {
+        // Ensure continuations in the test body do not resume inline on Roslyn worker threads. See
+        // TestSynchronizationContext for why this is required.
+        if (SynchronizationContext.Current is not TestSynchronizationContext)
+        {
+            _synchronizationContext = new TestSynchronizationContext(SynchronizationContext.Current);
+            SynchronizationContext.SetSynchronizationContext(_synchronizationContext);
+        }
+
         // Need to clear cached MefHostServices between test runs.
         MefHostServices.TestAccessor.HookServiceCreation(CreateMefHostServices);
 
@@ -103,6 +113,13 @@ public class UseExportProviderAttribute : BeforeAfterTestAttribute
             _hostServices = null;
             ExportProviderCache.SetEnabled_OnlyUseExportProviderAttributeCanCall(false);
             RoslynTelemetry.TestAccessor.RemoveAllSinks();
+
+            // Only restore if the context installed by Before is still the current one; anything else was
+            // installed by a scope that is responsible for restoring it.
+            var synchronizationContext = _synchronizationContext;
+            _synchronizationContext = null;
+            if (synchronizationContext is not null && ReferenceEquals(SynchronizationContext.Current, synchronizationContext))
+                SynchronizationContext.SetSynchronizationContext(synchronizationContext.InnerContext);
         }
     }
 
@@ -144,6 +161,16 @@ public class UseExportProviderAttribute : BeforeAfterTestAttribute
                     }
                     else
                     {
+                        // Wait through a non-faulting continuation so the only exception this can throw is the
+                        // OperationCanceledException for the cleanup timeout. Without the token, an asynchronous
+                        // operation that never completes would hang the test process instead of failing the test.
+                        waiter.ContinueWith(
+                            static _ => { },
+                            CancellationToken.None,
+                            TaskContinuationOptions.ExecuteSynchronously,
+                            TaskScheduler.Default).Wait(timeoutTokenSource.Token);
+
+                        // Propagate any failure from the original operation with its original exception shape.
                         waiter.GetAwaiter().GetResult();
                     }
                 }
