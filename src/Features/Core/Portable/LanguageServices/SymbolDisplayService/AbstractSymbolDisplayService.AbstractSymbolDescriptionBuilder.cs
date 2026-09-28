@@ -722,7 +722,8 @@ internal abstract partial class AbstractSymbolDisplayService
         private void AddDescriptionForMethod(IMethodSymbol method)
         {
             // TODO : show duplicated member case
-            var awaitable = method.IsAwaitableNonDynamic(_semanticModel, _position);
+            var awaitable = method.ReturnType is not ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Cref }
+                && method.IsAwaitableNonDynamic(_semanticModel, _position);
             var extension = method.IsExtensionMethod || method.MethodKind == MethodKind.ReducedExtension;
             if (awaitable && extension)
             {

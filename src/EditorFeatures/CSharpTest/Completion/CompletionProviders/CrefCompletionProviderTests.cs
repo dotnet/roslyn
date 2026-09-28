@@ -464,6 +464,22 @@ public sealed class CrefCompletionProviderTests : AbstractCSharpCompletionProvid
             }
             """, "MyMethod(ref readonly int)");
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85788")]
+    public Task DescriptionForMethodReturningCrefTypeParameter()
+        => VerifyItemExistsAsync("""
+            internal interface ICref<T>
+            {
+                /// <summary></summary>
+                /// <see cref="ICref{T}.Mak$$"/>
+                T Make();
+            }
+
+            internal static class Extensions
+            {
+                public static System.Runtime.CompilerServices.TaskAwaiter GetAwaiter(this object value) => default;
+            }
+            """, "Make", expectedDescriptionOrNull: "T ICref<T>.Make()");
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22626")]
     public Task ValueTuple1()
         => VerifyItemExistsAsync("""
