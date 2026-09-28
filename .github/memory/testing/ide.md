@@ -38,9 +38,13 @@ public class MyTests
 - When a test needs a feature waiter, retrieve the concrete
   `AsynchronousOperationListenerProvider` from the export provider and call
   `GetWaiter`; do not retrieve the interface and cast the listener.
-- WPF editor tests use Roslyn's `WpfFactAttribute`/`WpfTheoryAttribute` wrappers
-  in `EditorFeatures/TestUtilities/Threading`; those wrappers delegate to the
-  aliased `Xunit.StaFact` xUnit v3 discoverers.
+- WPF editor tests use Roslyn's `WpfFactAttribute`/`WpfTheoryAttribute` in
+  `EditorFeatures/TestUtilities/Threading`. Their discoverers create
+  `WpfTestCase`s that `WpfTestCaseRunner` runs serially on one persistent STA
+  Dispatcher thread, so async continuations and disposal stay on the UI thread
+  that `ThreadHelper` recognizes. The runner releases clipboard ownership held
+  by that thread after each test. Unconditionally skipped `[WpfTheory]` methods
+  report one skipped case (stock xUnit v3 behavior), not one per data row.
 - Language Server orchestration tests can pass additional MEF parts to
   `LanguageServerTestComposition.GetSharedExportProvider`. A controllable
   `PartNotDiscoverable` project loader can provide deterministic design-time
