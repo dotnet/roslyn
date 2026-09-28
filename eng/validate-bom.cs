@@ -11,9 +11,9 @@ using System.Text;
 //
 // Usage:
 //   dotnet run --file validate-bom.cs
-//   dotnet run --file validate-bom.cs -- --verify
+//   dotnet run --file validate-bom.cs -- --self-test
 //
-// Default mode when no args are passed: update
+// Default mode when no args are passed: verify
 
 var root = Path.GetFullPath(Path.Combine(AppContext.GetData("EntryPointFileDirectoryPath") as string ?? throw new InvalidOperationException(), ".."));
 if (args is ["--self-test"])
