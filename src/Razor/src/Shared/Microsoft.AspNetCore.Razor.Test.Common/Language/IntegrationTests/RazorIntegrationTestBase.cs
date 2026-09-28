@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
@@ -126,6 +127,8 @@ public class RazorIntegrationTestBase
     /// </summary>
     internal virtual bool EnableMarkupSplit => true;
 
+    internal virtual bool AttachTagHelpersToCodeDocument => false;
+
     // intentionally private - we don't want individual tests messing with the project engine
     private RazorProjectEngine CreateProjectEngine(RazorConfiguration configuration, MetadataReference[] references, bool supportLocalizedComponentNames, CSharpParseOptions? csharpParseOptions)
     {
@@ -173,6 +176,18 @@ public class RazorIntegrationTestBase
             });
 
             CompilerFeatures.Register(b);
+
+            if (AttachTagHelpersToCodeDocument)
+            {
+                for (var i = 0; i < b.Phases.Count; i++)
+                {
+                    if (b.Phases[i] is DefaultRazorTagHelperContextDiscoveryPhase)
+                    {
+                        b.Phases.Insert(i + 1, new AttachTagHelpersToCodeDocumentPhase());
+                        break;
+                    }
+                }
+            }
         });
     }
 
@@ -390,6 +405,20 @@ public class RazorIntegrationTestBase
     {
         var cSharpResult = CompileToCSharp(cshtmlRelativePath, cshtmlContent: cshtmlContent);
         return CompileToAssembly(cSharpResult);
+    }
+
+    private sealed class AttachTagHelpersToCodeDocumentPhase : RazorEnginePhaseBase
+    {
+        protected override RazorCodeDocument ExecuteCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+        {
+            if (codeDocument.TryGetTagHelpers(out _))
+            {
+                return codeDocument;
+            }
+
+            var tagHelperFeature = GetRequiredFeature<ITagHelperFeature>();
+            return codeDocument.WithTagHelpers(tagHelperFeature.GetTagHelpers(cancellationToken));
+        }
     }
 
     protected static CompileToAssemblyResult CompileToAssembly(CompileToCSharpResult cSharpResult, params DiagnosticDescription[] expectedDiagnostics)

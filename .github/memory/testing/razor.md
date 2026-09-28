@@ -27,6 +27,10 @@ Layer-specific test guidance for Razor tooling/compiler tests under `src/Razor`.
   Under two-phase compilation the `AdditionalSyntaxTrees` are compiled into a
   temp assembly and added as a *reference*, so discovery sees those types as
   coming from a referenced assembly (not source).
+- Direct project-engine tests that consume project-wide tag-helper metadata from
+  `RazorCodeDocument` must opt into `AttachTagHelpersToCodeDocument`; the
+  `ComponentCodeGenerationTestBase` enables this test-only phase after default
+  tag-helper discovery.
 - Regenerate baseline-backed compiler tests with a targeted test filter and
   `/p:GenerateBaselines=true` on one CoreCLR target framework, then rerun the
   tests normally. Two-phase tests can produce `.decl.codegen.cs` and

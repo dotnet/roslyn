@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -15,6 +16,30 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators;
 
 public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTestsBase
 {
+    private const string AcceptsAssetPathAttributeSource = """
+        namespace Microsoft.AspNetCore.Components
+        {
+            [System.AttributeUsage(System.AttributeTargets.Class, AllowMultiple = true, Inherited = true)]
+            public sealed class AcceptsAssetPathAttribute : System.Attribute
+            {
+                public AcceptsAssetPathAttribute(string elementName, string attributeName)
+                {
+                }
+            }
+        }
+        """;
+
+    private const string AssetPathConventionSource = """
+
+        namespace Microsoft.AspNetCore.Components.Web
+        {
+            [Microsoft.AspNetCore.Components.AcceptsAssetPath("img", "src")]
+            public static class AssetPathAttributes
+            {
+            }
+        }
+        """;
+
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/10991")]
     public async Task ImportsRazor()
     {
@@ -1274,6 +1299,64 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         Assert.Equal(2, result.GeneratedSources.Length);
     }
 
+    [Fact]
+    public async Task TildePath_SourceDeclaredAcceptsAssetPath_ExpandsHtmlAttribute()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["Pages/Index.razor"] = """
+                <img src="~/favicon.png" />
+                """,
+        }, new()
+        {
+            ["AssetPathAttributes.cs"] = AcceptsAssetPathAttributeSource + AssetPathConventionSource,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = "11.0";
+        });
+
+        var result = RunGenerator(compilation!, ref driver);
+
+        AssertTildePathExpanded(result);
+    }
+
+    [Fact]
+    public async Task TildePath_ReferencedAcceptsAssetPath_ExpandsHtmlAttribute()
+    {
+        var conventionProject = CreateTestProject(new(), new()
+        {
+            ["AssetPathAttributes.cs"] = AcceptsAssetPathAttributeSource + AssetPathConventionSource,
+        });
+
+        // Reference discovery filters assemblies that neither use nor carry the Microsoft.AspNetCore prefix.
+        conventionProject = conventionProject.WithAssemblyName("Microsoft.AspNetCore.Components.Web.Test");
+        var conventionCompilation = await conventionProject.GetCompilationAsync();
+        using var peStream = new MemoryStream();
+        var emitResult = conventionCompilation!.Emit(peStream);
+        Assert.True(emitResult.Success, string.Join(Environment.NewLine, emitResult.Diagnostics));
+        peStream.Position = 0;
+
+        var project = CreateTestProject(new()
+        {
+            ["Pages/Index.razor"] = """
+                <img src="~/favicon.png" />
+                """,
+        });
+        project = project.AddMetadataReference(MetadataReference.CreateFromStream(peStream));
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = "11.0";
+        });
+
+        var result = RunGenerator(compilation!, ref driver);
+
+        AssertTildePathExpanded(result);
+    }
+
     [Fact(Skip = "Fallback component nested-delegate metadata is lost by fast discovery; see https://github.com/dotnet/roslyn/issues/84646")]
     public async Task Component_BindValue_NestedDelegateInFallbackComponent()
     {
@@ -2128,4 +2211,11 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var diagnostic = Assert.Single(result.Diagnostics);
         Assert.Equal("RZ10011", diagnostic.Id);
     }
+
+    private static void AssertTildePathExpanded(GeneratorRunResult result)
+    {
+        var source = result.ImplGeneratedSources().Single().SourceText.ToString();
+        Assert.Contains("""Assets[@"favicon.png"]""", source);
+    }
+
 }
