@@ -161,12 +161,6 @@ namespace BuildValidator
                     continue;
                 }
 
-                if (peInfo.IsReadyToRun)
-                {
-                    _logger.LogInformation($@"Skipping ReadyToRun image ""{filePath}""");
-                    continue;
-                }
-
                 var currentInfo = new AssemblyInfo(filePath, peInfo.Mvid);
                 assemblyInfoList.Add(currentInfo);
 
